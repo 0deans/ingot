@@ -1,5 +1,5 @@
-import { Toast as ToastPrimitive } from "@base-ui/react/toast";
-import { cn } from "cn";
+import { Toast as ToastPrimitive } from "@base-ui/react/toast"
+import { cn } from "cn"
 import {
 	CircleCheckIcon,
 	InfoIcon,
@@ -7,18 +7,18 @@ import {
 	OctagonXIcon,
 	TriangleAlertIcon,
 	XIcon,
-} from "lucide-react";
-import type * as React from "react";
-import { Button } from "@/components/ui/button";
+} from "lucide-react"
+import type * as React from "react"
+import { Button } from "@/components/ui/button"
 
-const toast = ToastPrimitive.createToastManager();
+const toast = ToastPrimitive.createToastManager()
 
 function ToastProvider({ ...props }: ToastPrimitive.Provider.Props) {
-	return <ToastPrimitive.Provider {...props} />;
+	return <ToastPrimitive.Provider {...props} />
 }
 
 function ToastPortal({ ...props }: ToastPrimitive.Portal.Props) {
-	return <ToastPrimitive.Portal data-slot="toast-portal" {...props} />;
+	return <ToastPrimitive.Portal data-slot="toast-portal" {...props} />
 }
 
 function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
@@ -31,7 +31,7 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
 			)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
@@ -58,7 +58,7 @@ function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
 			)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
@@ -71,7 +71,7 @@ function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
 			)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
@@ -81,7 +81,7 @@ function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
 			className={cn("font-medium text-sm", className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function ToastDescription({ className, ...props }: ToastPrimitive.Description.Props) {
@@ -91,7 +91,7 @@ function ToastDescription({ className, ...props }: ToastPrimitive.Description.Pr
 			className={cn("text-muted-foreground text-sm", className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function ToastAction({
@@ -106,7 +106,7 @@ function ToastAction({
 			className={cn("shrink-0", className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function ToastClose({
@@ -128,34 +128,34 @@ function ToastClose({
 		>
 			{children ?? <XIcon aria-hidden="true" />}
 		</ToastPrimitive.Close>
-	);
+	)
 }
 
 function ToastIcon({ type }: { type: string | undefined }) {
-	let icon: React.ReactNode = null;
+	let icon: React.ReactNode = null
 
 	if (type === "success") {
-		icon = <CircleCheckIcon aria-hidden="true" />;
+		icon = <CircleCheckIcon aria-hidden="true" />
 	}
 
 	if (type === "info") {
-		icon = <InfoIcon aria-hidden="true" />;
+		icon = <InfoIcon aria-hidden="true" />
 	}
 
 	if (type === "warning") {
-		icon = <TriangleAlertIcon aria-hidden="true" />;
+		icon = <TriangleAlertIcon aria-hidden="true" />
 	}
 
 	if (type === "error") {
-		icon = <OctagonXIcon className="text-destructive" aria-hidden="true" />;
+		icon = <OctagonXIcon className="text-destructive" aria-hidden="true" />
 	}
 
 	if (type === "loading") {
-		icon = <Loader2Icon className="animate-spin" aria-hidden="true" />;
+		icon = <Loader2Icon className="animate-spin" aria-hidden="true" />
 	}
 
 	if (!icon) {
-		return null;
+		return null
 	}
 
 	return (
@@ -165,11 +165,11 @@ function ToastIcon({ type }: { type: string | undefined }) {
 		>
 			{icon}
 		</span>
-	);
+	)
 }
 
 function ToastList() {
-	const { toasts } = ToastPrimitive.useToastManager();
+	const { toasts } = ToastPrimitive.useToastManager()
 
 	return toasts.map((toastItem) => (
 		<Toast key={toastItem.id} toast={toastItem}>
@@ -183,7 +183,7 @@ function ToastList() {
 				<ToastClose />
 			</ToastContent>
 		</Toast>
-	));
+	))
 }
 
 function Toaster({ children, toastManager = toast, ...props }: ToastPrimitive.Provider.Props) {
@@ -196,11 +196,11 @@ function Toaster({ children, toastManager = toast, ...props }: ToastPrimitive.Pr
 				</ToastViewport>
 			</ToastPortal>
 		</ToastProvider>
-	);
+	)
 }
 
-const createToastManager = ToastPrimitive.createToastManager;
-const useToastManager = ToastPrimitive.useToastManager;
+const createToastManager = ToastPrimitive.createToastManager
+const useToastManager = ToastPrimitive.useToastManager
 
 export {
 	createToastManager,
@@ -216,4 +216,4 @@ export {
 	ToastViewport,
 	toast,
 	useToastManager,
-};
+}

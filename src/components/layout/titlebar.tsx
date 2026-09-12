@@ -1,65 +1,65 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Copy, Minus, Square, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { getCurrentWindow } from "@tauri-apps/api/window"
+import { Copy, Minus, Square, X } from "lucide-react"
+import { memo, useEffect, useState } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface TitlebarProps {
-	title?: string;
+	title?: string
 }
 
-export function Titlebar({ title = "Ingot" }: TitlebarProps) {
-	const [isMaximized, setIsMaximized] = useState(false);
+const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
+	const [isMaximized, setIsMaximized] = useState(false)
 
 	const isTauri =
-		typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+		typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
 
 	useEffect(() => {
-		if (!isTauri) return;
+		if (!isTauri) return
 
 		try {
-			const appWindow = getCurrentWindow();
-			appWindow.isMaximized().then(setIsMaximized);
+			const appWindow = getCurrentWindow()
+			appWindow.isMaximized().then(setIsMaximized)
 
 			const unlistenPromise = appWindow.onResized(async () => {
-				setIsMaximized(await appWindow.isMaximized());
-			});
+				setIsMaximized(await appWindow.isMaximized())
+			})
 
 			return () => {
-				unlistenPromise.then((unlisten) => unlisten());
-			};
+				unlistenPromise.then((unlisten) => unlisten())
+			}
 		} catch (error) {
-			console.warn("Could not attach window listeners:", error);
+			console.warn("Could not attach window listeners:", error)
 		}
-	}, [isTauri]);
+	}, [isTauri])
 
 	const handleMinimize = async () => {
-		if (!isTauri) return;
+		if (!isTauri) return
 		try {
-			await getCurrentWindow().minimize();
+			await getCurrentWindow().minimize()
 		} catch (error) {
-			console.error("Failed to minimize window:", error);
+			console.error("Failed to minimize window:", error)
 		}
-	};
+	}
 
 	const handleToggleMaximize = async () => {
-		if (!isTauri) return;
+		if (!isTauri) return
 		try {
-			const appWindow = getCurrentWindow();
-			await appWindow.toggleMaximize();
-			setIsMaximized(await appWindow.isMaximized());
+			const appWindow = getCurrentWindow()
+			await appWindow.toggleMaximize()
+			setIsMaximized(await appWindow.isMaximized())
 		} catch (error) {
-			console.error("Failed to toggle maximize window:", error);
+			console.error("Failed to toggle maximize window:", error)
 		}
-	};
+	}
 
 	const handleClose = async () => {
-		if (!isTauri) return;
+		if (!isTauri) return
 		try {
-			await getCurrentWindow().close();
+			await getCurrentWindow().close()
 		} catch (error) {
-			console.error("Failed to close window:", error);
+			console.error("Failed to close window:", error)
 		}
-	};
+	}
 
 	return (
 		<header
@@ -120,5 +120,9 @@ export function Titlebar({ title = "Ingot" }: TitlebarProps) {
 				</Tooltip>
 			</div>
 		</header>
-	);
+	)
 }
+
+Titlebar.displayName = "Titlebar"
+
+export default memo(Titlebar)

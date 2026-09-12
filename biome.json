@@ -6,7 +6,14 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!**/dist", "!**/node_modules", "!**/src-tauri/target", "!**/public"]
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/node_modules",
+			"!**/src-tauri/target",
+			"!**/public",
+			"!**/routeTree.gen.ts"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -62,7 +69,8 @@
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",
-			"jsxQuoteStyle": "double"
+			"jsxQuoteStyle": "double",
+			"semicolons": "asNeeded"
 		},
 		"jsxRuntime": "transparent"
 	},
