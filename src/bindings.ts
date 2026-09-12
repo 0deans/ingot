@@ -30,9 +30,9 @@ export type SystemMemoryInfo = {
 	availableMb: number,
 	usedMb: number,
 };
-const ARGS_MAP = {"":{"add_offline_account":["username"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_memory_settings":[],"get_system_memory":[],"greet":["name"],"on_memory_changed":["settings"],"remove_account":["account_id"],"set_active_account":["account_id"],"set_memory_settings":["min_ram_mb","max_ram_mb"]}};
+const ARGS_MAP = {"":{"add_offline_account":["username"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_memory_settings":[],"get_skin_data_url":["skin_url"],"get_system_memory":[],"greet":["name"],"on_memory_changed":["settings"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"save_skin_to_downloads":["username","skin_url"],"set_active_account":["account_id"],"set_memory_settings":["min_ram_mb","max_ram_mb"]}};
 
-const RESULT_MAP = {"":{"add_offline_account":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_memory_settings":true,"get_system_memory":true,"greet":false,"on_memory_changed":false,"remove_account":true,"set_active_account":true,"set_memory_settings":true}};
+const RESULT_MAP = {"":{"add_offline_account":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_memory_settings":true,"get_skin_data_url":true,"get_system_memory":true,"greet":false,"on_memory_changed":false,"remove_account":true,"reorder_accounts":true,"save_skin_to_downloads":true,"set_active_account":true,"set_memory_settings":true}};
 
 export type Router = {
 	"": {
@@ -41,10 +41,13 @@ export type Router = {
 		get_accounts: () => Promise<AccountProfile[]>,
 		get_active_account_token: () => Promise<string>,
 		get_memory_settings: () => Promise<MemorySettings>,
+		get_skin_data_url: (skinUrl: string) => Promise<string>,
 		get_system_memory: () => Promise<SystemMemoryInfo>,
 		greet: (name: string) => Promise<string>,
 		on_memory_changed: { on: (listener: (settings: MemorySettings) => void) => Promise<UnlistenFn> },
 		remove_account: (accountId: string) => Promise<null>,
+		reorder_accounts: (accountIds: string[]) => Promise<null>,
+		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
 		set_active_account: (accountId: string) => Promise<null>,
 		set_memory_settings: (minRamMb: number, maxRamMb: number) => Promise<MemorySettings>,
 	},

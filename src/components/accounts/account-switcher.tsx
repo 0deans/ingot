@@ -1,6 +1,7 @@
-import { Check, Settings, ShieldCheck, Trash2, UserPlus } from "lucide-react"
+import { Check, Eye, Settings, ShieldCheck, Trash2, UserPlus } from "lucide-react"
 import { memo, useState } from "react"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
+import SkinPreviewDialog from "@/components/accounts/skin-preview-dialog"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
@@ -14,6 +15,7 @@ import {
 import SkinAvatar from "@/components/ui/skin-avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useAccounts } from "@/services/account-service"
+import type { AccountProfile } from "@/types/account"
 
 interface AccountSwitcherProps {
 	compact?: boolean
@@ -23,6 +25,7 @@ interface AccountSwitcherProps {
 const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherProps) => {
 	const { accounts, activeAccount, setActiveAccount, removeAccount } = useAccounts()
 	const [isAddOpen, setIsAddOpen] = useState(false)
+	const [previewAccount, setPreviewAccount] = useState<AccountProfile | null>(null)
 
 	const handleSelectAccount = async (id: string) => {
 		try {
@@ -157,6 +160,18 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 										</div>
 
 										<div className="flex items-center gap-1">
+											<Button
+												variant="ghost"
+												size="icon-xs"
+												className="opacity-0 transition-opacity hover:text-primary group-hover/item:opacity-100"
+												onClick={(e) => {
+													e.stopPropagation()
+													setPreviewAccount(acc)
+												}}
+												title="Preview 3D skin"
+											>
+												<Eye className="size-3" />
+											</Button>
 											{isCurrent && <Check className="size-3.5 text-primary" />}
 											<Button
 												variant="ghost"
@@ -191,6 +206,11 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 			</DropdownMenu>
 
 			<AddAccountDialog open={isAddOpen} onOpenChange={setIsAddOpen} />
+			<SkinPreviewDialog
+				account={previewAccount}
+				open={Boolean(previewAccount)}
+				onOpenChange={(open) => !open && setPreviewAccount(null)}
+			/>
 		</>
 	)
 }

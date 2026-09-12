@@ -6,6 +6,7 @@ export const rpc = createTauRPCProxy()
 let cachedAccounts: AccountProfile[] = []
 let isInitialFetched = false
 const listeners = new Set<(accounts: AccountProfile[]) => void>()
+const skinCache = new Map<string, string>()
 
 function notify(accounts: AccountProfile[]) {
 	cachedAccounts = accounts
@@ -88,6 +89,48 @@ export const accountService = {
 	async getActiveToken(): Promise<string> {
 		return await rpc.get_active_account_token()
 	},
+
+	async getSkinDataUrl(skinUrl?: string | null): Promise<string | null> {
+		if (!skinUrl) return null
+		if (skinUrl.startsWith("data:")) return skinUrl
+		if (skinCache.has(skinUrl)) {
+			return skinCache.get(skinUrl) ?? null
+		}
+		try {
+			const dataUrl = await rpc.get_skin_data_url(skinUrl)
+			skinCache.set(skinUrl, dataUrl)
+			return dataUrl
+		} catch (error) {
+			console.warn("Failed to fetch skin via IPC:", error)
+			return null
+		}
+	},
+
+	async saveSkinToDownloads(username: string, skinUrl: string): Promise<string> {
+		return await rpc.save_skin_to_downloads(username, skinUrl)
+	},
+
+	async reorderAccounts(accountIds: string[]): Promise<void> {
+		const reordered: AccountProfile[] = []
+		for (const id of accountIds) {
+			const found = cachedAccounts.find((a) => a.id === id)
+			if (found) reordered.push(found)
+		}
+		for (const acc of cachedAccounts) {
+			if (!reordered.some((a) => a.id === acc.id)) {
+				reordered.push(acc)
+			}
+		}
+		cachedAccounts = reordered
+		notify(reordered)
+
+		try {
+			await rpc.reorder_accounts(accountIds)
+		} catch (error) {
+			console.error("Failed to persist account order:", error)
+			await accountService.refreshAccounts()
+		}
+	},
 }
 
 export function useAccounts() {
@@ -113,5 +156,6 @@ export function useAccounts() {
 		refreshAccounts: accountService.refreshAccounts.bind(accountService),
 		setActiveAccount: accountService.setActiveAccount.bind(accountService),
 		removeAccount: accountService.removeAccount.bind(accountService),
+		reorderAccounts: accountService.reorderAccounts.bind(accountService),
 	}
 }

@@ -284,3 +284,170 @@ pub async fn get_active_account_token<R: tauri::Runtime>(
 
     Ok(refresh_res.access_token)
 }
+
+pub async fn get_skin_data_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    skin_url: String,
+) -> Result<String, String> {
+    use base64::Engine;
+
+    if skin_url.trim().is_empty() {
+        return Err("Skin URL is empty".to_string());
+    }
+
+    let url_hash = uuid::Uuid::new_v3(&uuid::Uuid::NAMESPACE_URL, skin_url.as_bytes());
+    let filename = format!("{url_hash:x}.png");
+    let cache_dir = app
+        .path()
+        .app_cache_dir()
+        .or_else(|_| app.path().app_data_dir())
+        .map_err(|e| format!("Failed to get cache dir: {e}"))?
+        .join("skins");
+
+    if !cache_dir.exists() {
+        let _ = fs::create_dir_all(&cache_dir);
+    }
+
+    let file_path = cache_dir.join(&filename);
+
+    if file_path.exists() {
+        if let Ok(bytes) = fs::read(&file_path) {
+            let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+            return Ok(format!("data:image/png;base64,{encoded}"));
+        }
+    }
+
+    let client = reqwest::Client::builder()
+        .user_agent("Ingot-Launcher/0.1.0")
+        .build()
+        .map_err(|e| format!("Failed to build client: {e}"))?;
+
+    let resp = client
+        .get(&skin_url)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch skin: {e}"))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("Server returned HTTP {}", resp.status()));
+    }
+
+    let bytes = resp
+        .bytes()
+        .await
+        .map_err(|e| format!("Failed to read skin bytes: {e}"))?;
+
+    let _ = fs::write(&file_path, &bytes);
+
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    Ok(format!("data:image/png;base64,{encoded}"))
+}
+
+pub fn reorder_accounts<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    account_ids: Vec<String>,
+) -> Result<(), String> {
+    let accounts = load_accounts_file(&app)?;
+    let mut reordered: Vec<AccountProfile> = Vec::new();
+
+    for id in &account_ids {
+        if let Some(acc) = accounts.iter().find(|a| &a.id == id) {
+            reordered.push(acc.clone());
+        }
+    }
+
+    for acc in &accounts {
+        if !reordered.iter().any(|a| a.id == acc.id) {
+            reordered.push(acc.clone());
+        }
+    }
+
+    save_accounts_file(&app, &reordered)?;
+    Ok(())
+}
+
+pub async fn save_skin_to_downloads<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    username: String,
+    skin_url: String,
+) -> Result<String, String> {
+    use base64::Engine;
+
+    if skin_url.trim().is_empty() {
+        return Err("Skin URL is empty".to_string());
+    }
+
+    let bytes: Vec<u8> = if skin_url.starts_with("data:") {
+        let comma_pos = skin_url
+            .find(',')
+            .ok_or_else(|| "Invalid data URL".to_string())?;
+        let base64_data = &skin_url[comma_pos + 1..];
+        base64::engine::general_purpose::STANDARD
+            .decode(base64_data.trim())
+            .map_err(|e| format!("Failed to decode base64 skin data: {e}"))?
+    } else {
+        let url_hash = uuid::Uuid::new_v3(&uuid::Uuid::NAMESPACE_URL, skin_url.as_bytes());
+        let cache_filename = format!("{url_hash:x}.png");
+        let cache_dir = app
+            .path()
+            .app_cache_dir()
+            .or_else(|_| app.path().app_data_dir())
+            .map_err(|e| format!("Failed to get cache dir: {e}"))?
+            .join("skins");
+
+        let cached_path = cache_dir.join(&cache_filename);
+        if cached_path.exists() {
+            fs::read(&cached_path).map_err(|e| format!("Failed to read cached skin: {e}"))?
+        } else {
+            let client = reqwest::Client::builder()
+                .user_agent("Ingot-Launcher/0.1.0")
+                .build()
+                .map_err(|e| format!("Failed to build client: {e}"))?;
+
+            let resp = client
+                .get(&skin_url)
+                .send()
+                .await
+                .map_err(|e| format!("Failed to fetch skin: {e}"))?;
+
+            if !resp.status().is_success() {
+                return Err(format!("Server returned HTTP {}", resp.status()));
+            }
+
+            let b = resp
+                .bytes()
+                .await
+                .map_err(|e| format!("Failed to read skin bytes: {e}"))?;
+
+            let _ = fs::create_dir_all(&cache_dir);
+            let _ = fs::write(&cached_path, &b);
+            b.to_vec()
+        }
+    };
+
+    let download_dir = app
+        .path()
+        .download_dir()
+        .map_err(|e| format!("Failed to get downloads dir: {e}"))?;
+
+    let clean_user = username
+        .chars()
+        .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .collect::<String>();
+    let base_name = if clean_user.is_empty() {
+        "minecraft-skin".to_string()
+    } else {
+        format!("{clean_user}-skin")
+    };
+
+    let mut target_path = download_dir.join(format!("{base_name}.png"));
+    let mut counter = 1;
+    while target_path.exists() {
+        target_path = download_dir.join(format!("{base_name} ({counter}).png"));
+        counter += 1;
+    }
+
+    fs::write(&target_path, &bytes).map_err(|e| format!("Failed to write skin file: {e}"))?;
+
+    Ok(target_path.to_string_lossy().to_string())
+}

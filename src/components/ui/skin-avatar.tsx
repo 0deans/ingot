@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react"
+import { accountService } from "@/services/account-service"
 
 interface SkinAvatarProps {
 	skinUrl?: string | null
@@ -19,35 +20,56 @@ const SkinAvatar = ({ skinUrl, username, size = 36, className = "" }: SkinAvatar
 			return
 		}
 
+		let isMounted = true
 		setIsLoading(true)
 		setHasError(false)
 
-		const img = new Image()
-		img.crossOrigin = "anonymous"
-		img.src = skinUrl
+		accountService
+			.getSkinDataUrl(skinUrl)
+			.then((dataUrl) => {
+				if (!isMounted) return
+				const sourceUrl = dataUrl || skinUrl
 
-		img.onload = () => {
-			const canvas = canvasRef.current
-			if (!canvas) return
+				const img = new Image()
+				if (!dataUrl) {
+					img.crossOrigin = "anonymous"
+				}
+				img.src = sourceUrl
 
-			const ctx = canvas.getContext("2d")
-			if (!ctx) return
+				img.onload = () => {
+					if (!isMounted) return
+					const canvas = canvasRef.current
+					if (!canvas) return
 
-			ctx.imageSmoothingEnabled = false
-			ctx.clearRect(0, 0, size, size)
+					const ctx = canvas.getContext("2d")
+					if (!ctx) return
 
-			// 1. Draw head base layer: (8, 8) 8x8 in skin texture
-			ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
+					ctx.imageSmoothingEnabled = false
+					ctx.clearRect(0, 0, size, size)
 
-			// 2. Draw head outer/accessory layer: (40, 8) 8x8 in skin texture
-			ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
+					// 1. Draw head base layer: (8, 8) 8x8 in skin texture
+					ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
 
-			setIsLoading(false)
-		}
+					// 2. Draw head outer/accessory layer: (40, 8) 8x8 in skin texture
+					ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
 
-		img.onerror = () => {
-			setIsLoading(false)
-			setHasError(true)
+					setIsLoading(false)
+				}
+
+				img.onerror = () => {
+					if (!isMounted) return
+					setIsLoading(false)
+					setHasError(true)
+				}
+			})
+			.catch(() => {
+				if (!isMounted) return
+				setIsLoading(false)
+				setHasError(true)
+			})
+
+		return () => {
+			isMounted = false
 		}
 	}, [skinUrl, size])
 

@@ -2,6 +2,7 @@ import { createRootRoute, Outlet } from "@tanstack/react-router"
 import { memo } from "react"
 import Sidebar from "@/components/layout/sidebar"
 import WindowFrame from "@/components/layout/window-frame"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 const RootLayout = () => {
@@ -9,9 +10,11 @@ const RootLayout = () => {
 		<TooltipProvider>
 			<WindowFrame title="Ingot">
 				<Sidebar />
-				<main className="flex flex-1 flex-col overflow-y-auto p-6">
-					<Outlet />
-				</main>
+				<ScrollArea className="size-full flex-1" scrollFade>
+					<main className="flex min-h-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
+						<Outlet />
+					</main>
+				</ScrollArea>
 			</WindowFrame>
 		</TooltipProvider>
 	)

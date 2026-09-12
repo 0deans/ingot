@@ -37,6 +37,19 @@ pub trait AppApi {
         min_ram_mb: u32,
         max_ram_mb: u32,
     ) -> Result<MemorySettings, String>;
+    async fn get_skin_data_url(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        skin_url: String,
+    ) -> Result<String, String>;
+    async fn save_skin_to_downloads(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        username: String,
+        skin_url: String,
+    ) -> Result<String, String>;
+    async fn reorder_accounts(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_ids: Vec<String>,
+    ) -> Result<(), String>;
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
 }
@@ -115,5 +128,30 @@ impl AppApi for AppApiImpl {
         max_ram_mb: u32,
     ) -> Result<MemorySettings, String> {
         system::set_memory_settings(&app_handle, min_ram_mb, max_ram_mb)
+    }
+
+    async fn get_skin_data_url(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        skin_url: String,
+    ) -> Result<String, String> {
+        account::get_skin_data_url(app_handle, skin_url).await
+    }
+
+    async fn save_skin_to_downloads(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        username: String,
+        skin_url: String,
+    ) -> Result<String, String> {
+        account::save_skin_to_downloads(app_handle, username, skin_url).await
+    }
+
+    async fn reorder_accounts(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_ids: Vec<String>,
+    ) -> Result<(), String> {
+        account::reorder_accounts(app_handle, account_ids)
     }
 }

@@ -10,6 +10,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { accountService } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
 
@@ -102,145 +103,158 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 					</DialogDescription>
 				</DialogHeader>
 
-				{/* Account Type Selector */}
-				<div className="flex rounded-lg border border-border/40 bg-zinc-900/60 p-1">
-					<button
-						type="button"
-						onClick={() => {
-							setActiveTab("ely")
-							setErrorMessage(null)
-						}}
-						className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
-							activeTab === "ely"
-								? "bg-primary text-primary-foreground shadow-xs"
-								: "text-muted-foreground hover:text-foreground"
-						}`}
-					>
-						Ely.by
-					</button>
-					<button
-						type="button"
-						onClick={() => {
-							setActiveTab("offline")
-							setErrorMessage(null)
-						}}
-						className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
-							activeTab === "offline"
-								? "bg-primary text-primary-foreground shadow-xs"
-								: "text-muted-foreground hover:text-foreground"
-						}`}
-					>
-						Offline
-					</button>
-					<button
-						type="button"
-						onClick={() => {
-							setActiveTab("microsoft")
-							setErrorMessage(null)
-						}}
-						className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
-							activeTab === "microsoft"
-								? "bg-primary text-primary-foreground shadow-xs"
-								: "text-muted-foreground hover:text-foreground"
-						}`}
-					>
-						Microsoft
-					</button>
-				</div>
-
-				{/* Ely.by Form */}
-				{activeTab === "ely" && (
-					<div className="grid gap-3.5 py-1">
-						<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
-							<ShieldCheck className="size-4 shrink-0" />
-							<span>Tokens are securely encrypted in your OS Credential Vault.</span>
-						</div>
-
-						<div className="grid gap-1.5">
-							<label htmlFor="ely-username" className="font-medium text-muted-foreground text-xs">
-								Username or Email
-							</label>
-							<Input
-								id="ely-username"
-								placeholder="e.g. notch or player@ely.by"
-								value={username}
-								onChange={(e) => setUsername(e.target.value)}
-								disabled={isLoading}
-								autoFocus
-							/>
-						</div>
-
-						<div className="grid gap-1.5">
-							<label htmlFor="ely-password" className="font-medium text-muted-foreground text-xs">
-								Password
-							</label>
-							<Input
-								id="ely-password"
-								type="password"
-								placeholder="••••••••"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								disabled={isLoading}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") handleElyLogin()
+				<ScrollArea scrollFade className="min-h-0 w-full flex-1 pr-1">
+					<div className="flex flex-col gap-4 py-1">
+						{/* Account Type Selector */}
+						<div className="flex rounded-lg border border-border/40 bg-zinc-900/60 p-1">
+							<button
+								type="button"
+								onClick={() => {
+									setActiveTab("ely")
+									setErrorMessage(null)
 								}}
-							/>
-						</div>
-					</div>
-				)}
-
-				{/* Offline Form */}
-				{activeTab === "offline" && (
-					<div className="grid gap-3.5 py-1">
-						<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-zinc-900/40 px-3 py-2 text-muted-foreground text-xs">
-							<User className="size-4 shrink-0" />
-							<span>Offline accounts play without an online session token.</span>
-						</div>
-
-						<div className="grid gap-1.5">
-							<label htmlFor="offline-name" className="font-medium text-muted-foreground text-xs">
-								Player Nickname
-							</label>
-							<Input
-								id="offline-name"
-								placeholder="e.g. Steve"
-								value={offlineName}
-								onChange={(e) => setOfflineName(e.target.value)}
-								disabled={isLoading}
-								autoFocus
-								onKeyDown={(e) => {
-									if (e.key === "Enter") handleOfflineLogin()
+								className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
+									activeTab === "ely"
+										? "bg-primary text-primary-foreground shadow-xs"
+										: "text-muted-foreground hover:text-foreground"
+								}`}
+							>
+								Ely.by
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setActiveTab("offline")
+									setErrorMessage(null)
 								}}
-							/>
+								className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
+									activeTab === "offline"
+										? "bg-primary text-primary-foreground shadow-xs"
+										: "text-muted-foreground hover:text-foreground"
+								}`}
+							>
+								Offline
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setActiveTab("microsoft")
+									setErrorMessage(null)
+								}}
+								className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
+									activeTab === "microsoft"
+										? "bg-primary text-primary-foreground shadow-xs"
+										: "text-muted-foreground hover:text-foreground"
+								}`}
+							>
+								Microsoft
+							</button>
 						</div>
-					</div>
-				)}
 
-				{/* Microsoft Info */}
-				{activeTab === "microsoft" && (
-					<div className="flex flex-col items-center justify-center gap-2 py-4 text-center">
-						<p className="font-medium text-foreground text-sm">Microsoft / Xbox Live Login</p>
-						<p className="max-w-xs text-muted-foreground text-xs">
-							Official Mojang Microsoft account OAuth integration will be available in an upcoming
-							release.
-						</p>
-					</div>
-				)}
+						{/* Ely.by Form */}
+						{activeTab === "ely" && (
+							<div className="grid gap-3.5 py-1">
+								<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
+									<ShieldCheck className="size-4 shrink-0" />
+									<span>Tokens are securely encrypted in your OS Credential Vault.</span>
+								</div>
 
-				{/* Error / Success Feedback */}
-				{errorMessage && (
-					<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs">
-						<AlertCircle className="size-4 shrink-0" />
-						<span>{errorMessage}</span>
-					</div>
-				)}
+								<div className="grid gap-1.5">
+									<label
+										htmlFor="ely-username"
+										className="font-medium text-muted-foreground text-xs"
+									>
+										Username or Email
+									</label>
+									<Input
+										id="ely-username"
+										placeholder="e.g. notch or player@ely.by"
+										value={username}
+										onChange={(e) => setUsername(e.target.value)}
+										disabled={isLoading}
+										autoFocus
+									/>
+								</div>
 
-				{successMessage && (
-					<div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
-						<Check className="size-4 shrink-0" />
-						<span>{successMessage}</span>
+								<div className="grid gap-1.5">
+									<label
+										htmlFor="ely-password"
+										className="font-medium text-muted-foreground text-xs"
+									>
+										Password
+									</label>
+									<Input
+										id="ely-password"
+										type="password"
+										placeholder="••••••••"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										disabled={isLoading}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") handleElyLogin()
+										}}
+									/>
+								</div>
+							</div>
+						)}
+
+						{/* Offline Form */}
+						{activeTab === "offline" && (
+							<div className="grid gap-3.5 py-1">
+								<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-zinc-900/40 px-3 py-2 text-muted-foreground text-xs">
+									<User className="size-4 shrink-0" />
+									<span>Offline accounts play without an online session token.</span>
+								</div>
+
+								<div className="grid gap-1.5">
+									<label
+										htmlFor="offline-name"
+										className="font-medium text-muted-foreground text-xs"
+									>
+										Player Nickname
+									</label>
+									<Input
+										id="offline-name"
+										placeholder="e.g. Steve"
+										value={offlineName}
+										onChange={(e) => setOfflineName(e.target.value)}
+										disabled={isLoading}
+										autoFocus
+										onKeyDown={(e) => {
+											if (e.key === "Enter") handleOfflineLogin()
+										}}
+									/>
+								</div>
+							</div>
+						)}
+
+						{/* Microsoft Info */}
+						{activeTab === "microsoft" && (
+							<div className="flex flex-col items-center justify-center gap-2 py-4 text-center">
+								<p className="font-medium text-foreground text-sm">Microsoft / Xbox Live Login</p>
+								<p className="max-w-xs text-muted-foreground text-xs">
+									Official Mojang Microsoft account OAuth integration will be available in an
+									upcoming release.
+								</p>
+							</div>
+						)}
+
+						{/* Error / Success Feedback */}
+						{errorMessage && (
+							<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs">
+								<AlertCircle className="size-4 shrink-0" />
+								<span>{errorMessage}</span>
+							</div>
+						)}
+
+						{successMessage && (
+							<div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
+								<Check className="size-4 shrink-0" />
+								<span>{successMessage}</span>
+							</div>
+						)}
 					</div>
-				)}
+				</ScrollArea>
 
 				<DialogFooter>
 					<Button
