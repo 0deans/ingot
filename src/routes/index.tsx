@@ -3,10 +3,15 @@ import { memo, useState } from "react"
 import InstanceHero from "@/components/instances/instance-hero"
 import InstanceSearchHeader from "@/components/instances/instance-search-header"
 import NewInstanceDialog from "@/components/instances/new-instance-dialog"
+import { useMemorySettings } from "@/services/settings-service"
 
 const InstancesPage = () => {
 	const [searchQuery, setSearchQuery] = useState("")
 	const [isNewInstanceOpen, setIsNewInstanceOpen] = useState(false)
+	const { memory } = useMemorySettings()
+
+	const minGb = (memory.minRamMb / 1024).toFixed(1)
+	const maxGb = (memory.maxRamMb / 1024).toFixed(1)
 
 	const handleCreateInstance = (name: string) => {
 		console.log("Created instance:", name)
@@ -27,7 +32,7 @@ const InstancesPage = () => {
 				name="Minecraft 1.21.4"
 				version="1.21.4"
 				loader="Fabric 0.16.9"
-				memory="4.0 GB / 16.0 GB"
+				memory={`${minGb} GB / ${maxGb} GB`}
 				javaVersion="Java 21 (Temurin)"
 				onPlay={handlePlay}
 			/>

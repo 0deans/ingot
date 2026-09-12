@@ -1,4 +1,5 @@
 use crate::account::{self, AccountProfile};
+use crate::system::{self, MemorySettings, SystemMemoryInfo};
 use tauri::Runtime;
 
 #[taurpc::procedures]
@@ -27,6 +28,17 @@ pub trait AppApi {
     async fn get_active_account_token(
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<String, String>;
+    async fn get_system_memory() -> Result<SystemMemoryInfo, String>;
+    async fn get_memory_settings(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<MemorySettings, String>;
+    async fn set_memory_settings(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        min_ram_mb: u32,
+        max_ram_mb: u32,
+    ) -> Result<MemorySettings, String>;
+    #[taurpc(event)]
+    async fn on_memory_changed(settings: MemorySettings);
 }
 
 #[derive(Clone)]
@@ -83,5 +95,25 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<String, String> {
         account::get_active_account_token(app_handle).await
+    }
+
+    async fn get_system_memory(self) -> Result<SystemMemoryInfo, String> {
+        Ok(system::get_memory_info())
+    }
+
+    async fn get_memory_settings(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<MemorySettings, String> {
+        Ok(system::get_memory_settings(&app_handle))
+    }
+
+    async fn set_memory_settings(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        min_ram_mb: u32,
+        max_ram_mb: u32,
+    ) -> Result<MemorySettings, String> {
+        system::set_memory_settings(&app_handle, min_ram_mb, max_ram_mb)
     }
 }

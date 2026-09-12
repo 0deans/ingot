@@ -12,7 +12,8 @@
 			"!**/node_modules",
 			"!**/src-tauri/target",
 			"!**/public",
-			"!**/routeTree.gen.ts"
+			"!**/routeTree.gen.ts",
+			"!**/bindings.ts"
 		]
 	},
 	"formatter": {

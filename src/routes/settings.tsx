@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Check, Plus, ShieldCheck, Trash2 } from "lucide-react"
 import { memo, useState } from "react"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
+import MemoryAllocation from "@/components/settings/memory-allocation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import SkinAvatar from "@/components/ui/skin-avatar"
@@ -136,18 +137,7 @@ const SettingsPage = () => {
 				</div>
 
 				{/* Memory Allocation */}
-				<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-zinc-900/40 p-5">
-					<h3 className="font-semibold text-foreground text-sm">Memory Allocation (RAM)</h3>
-					<p className="text-muted-foreground text-xs">
-						Allocate maximum RAM for Minecraft instances.
-					</p>
-					<div className="mt-2 flex items-center gap-4">
-						<Input type="number" defaultValue={4096} className="w-32 font-mono text-xs" />
-						<span className="text-muted-foreground text-sm">
-							MB (Recommended: 4096 MB – 8192 MB)
-						</span>
-					</div>
-				</div>
+				<MemoryAllocation />
 
 				{/* Window & Launch Behavior */}
 				<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-zinc-900/40 p-5">
