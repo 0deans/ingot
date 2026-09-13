@@ -1,6 +1,29 @@
 use crate::account::{self, AccountProfile};
+use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
+use crate::minecraft::launcher::{
+    self, InstanceStatusEvent, LaunchProgressEvent, ProcessManager, RunningInstanceSummary,
+};
+use crate::minecraft::loader;
+use crate::minecraft::version::{self, VersionManifestEntry};
 use crate::system::{self, MemorySettings, SystemMemoryInfo};
-use tauri::Runtime;
+use std::sync::OnceLock;
+use tauri::{Manager, Runtime};
+
+static PROCESS_MANAGER: OnceLock<ProcessManager> = OnceLock::new();
+static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn get_process_manager() -> &'static ProcessManager {
+    PROCESS_MANAGER.get_or_init(ProcessManager::new)
+}
+
+fn get_http_client() -> &'static reqwest::Client {
+    HTTP_CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .user_agent("IngotLauncher/0.1.0")
+            .build()
+            .unwrap_or_default()
+    })
+}
 
 #[taurpc::procedures]
 pub trait AppApi {
@@ -76,8 +99,61 @@ pub trait AppApi {
         password: Option<String>,
     ) -> Result<(), String>;
     async fn has_ely_web_credentials(account_id: String) -> Result<bool, String>;
+
+    // Minecraft Instance Management
+    async fn get_instances(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<InstanceConfig>, String>;
+
+    async fn create_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        name: String,
+        game_version: String,
+        loader: ModLoaderType,
+        loader_version: Option<String>,
+    ) -> Result<InstanceConfig, String>;
+
+    async fn delete_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String>;
+
+    async fn update_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance: InstanceConfig,
+    ) -> Result<(), String>;
+
+    async fn open_instance_folder(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String>;
+
+    async fn launch_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<u32, String>;
+
+    async fn kill_instance(instance_id: String) -> Result<(), String>;
+
+    async fn get_running_instances() -> Result<Vec<RunningInstanceSummary>, String>;
+
+    async fn get_available_game_versions(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<VersionManifestEntry>, String>;
+
+    async fn get_available_loader_versions(
+        game_version: String,
+        loader: ModLoaderType,
+    ) -> Result<Vec<String>, String>;
+
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
+
+    #[taurpc(event)]
+    async fn on_instance_status_changed(event: InstanceStatusEvent);
+
+    #[taurpc(event)]
+    async fn on_launch_progress(event: LaunchProgressEvent);
 }
 
 #[derive(Clone)]
@@ -228,5 +304,124 @@ impl AppApi for AppApiImpl {
 
     async fn has_ely_web_credentials(self, account_id: String) -> Result<bool, String> {
         Ok(account::has_ely_web_credentials(&account_id))
+    }
+
+    async fn get_instances(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<InstanceConfig>, String> {
+        instance::load_instances(&app_handle)
+    }
+
+    async fn create_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        name: String,
+        game_version: String,
+        loader: ModLoaderType,
+        loader_version: Option<String>,
+    ) -> Result<InstanceConfig, String> {
+        instance::create_instance(&app_handle, name, game_version, loader, loader_version)
+    }
+
+    async fn delete_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String> {
+        instance::delete_instance(&app_handle, &instance_id)
+    }
+
+    async fn update_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance: InstanceConfig,
+    ) -> Result<(), String> {
+        instance::update_instance(&app_handle, instance)
+    }
+
+    async fn open_instance_folder(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String> {
+        let dir = instance::get_instance_dir(&app_handle, &instance_id)?;
+        let path_str = dir.to_string_lossy().to_string();
+        #[cfg(target_os = "windows")]
+        {
+            let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
+        }
+        #[cfg(target_os = "macos")]
+        {
+            let _ = std::process::Command::new("open").arg(&path_str).spawn();
+        }
+        #[cfg(target_os = "linux")]
+        {
+            let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
+        }
+        Ok(())
+    }
+
+    async fn launch_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<u32, String> {
+        let instances = instance::load_instances(&app_handle)?;
+        let inst = instances
+            .into_iter()
+            .find(|i| i.id == instance_id)
+            .ok_or_else(|| format!("Instance not found: {}", instance_id))?;
+
+        let pm = get_process_manager().clone();
+        let client = get_http_client().clone();
+        let app = app_handle.clone();
+
+        let app_prog = app_handle.clone();
+        let on_prog = move |ev: LaunchProgressEvent| {
+            let trigger = TauRpcAppApiEventTrigger::new(app_prog.clone());
+            if let Err(e) = trigger.on_launch_progress(ev) {
+                eprintln!("[IPC] Failed to emit on_launch_progress: {e}");
+            }
+        };
+
+        let app_stat = app_handle.clone();
+        let on_status = move |ev: InstanceStatusEvent| {
+            let trigger = TauRpcAppApiEventTrigger::new(app_stat.clone());
+            if let Err(e) = trigger.on_instance_status_changed(ev) {
+                eprintln!("[IPC] Failed to emit on_instance_status_changed: {e}");
+            }
+        };
+
+        launcher::launch_minecraft(app, pm, client, inst, on_prog, on_status).await
+    }
+
+    async fn kill_instance(self, instance_id: String) -> Result<(), String> {
+        get_process_manager().kill_instance(&instance_id).await
+    }
+
+    async fn get_running_instances(self) -> Result<Vec<RunningInstanceSummary>, String> {
+        Ok(get_process_manager().get_running_instances().await)
+    }
+
+    async fn get_available_game_versions(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<VersionManifestEntry>, String> {
+        let data_dir = app_handle
+            .path()
+            .app_data_dir()
+            .map_err(|e| format!("Failed to get app data directory: {e}"))?;
+        let cache_dir = data_dir.join("cache");
+        let manifest = version::fetch_version_manifest(get_http_client(), &cache_dir).await?;
+        Ok(manifest.versions)
+    }
+
+    async fn get_available_loader_versions(
+        self,
+        game_version: String,
+        loader: ModLoaderType,
+    ) -> Result<Vec<String>, String> {
+        loader::fetch_loader_versions(get_http_client(), &loader, &game_version).await
     }
 }

@@ -2,7 +2,7 @@
 	"$schema": "https://schema.tauri.app/config/2",
 	"productName": "ingot",
 	"version": "0.1.0",
-	"identifier": "app.odean.ingot",
+	"identifier": "ingot",
 	"build": {
 		"beforeDevCommand": "pnpm dev",
 		"devUrl": "http://localhost:1420",

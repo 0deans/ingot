@@ -43,7 +43,7 @@ fn get_storage_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<Path
     Ok(data_dir.join("accounts.json"))
 }
 
-fn load_accounts_file<R: tauri::Runtime>(
+pub(crate) fn load_accounts_file<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<Vec<AccountProfile>, String> {
     let file_path = get_storage_path(app)?;
