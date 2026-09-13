@@ -1,13 +1,4 @@
-import {
-	History,
-	Info,
-	Layers,
-	Palette,
-	RefreshCw,
-	Server,
-	Sliders,
-	UploadCloud,
-} from "lucide-react"
+import { History, Layers, Palette, RefreshCw, Server, Sliders, UploadCloud } from "lucide-react"
 import { memo, useCallback, useEffect, useState } from "react"
 import type { SharedSyncStatus, SyncSettings as SyncSettingsType } from "@/bindings"
 import SyncMasterDialog, {
@@ -190,35 +181,6 @@ export const SyncSettings = () => {
 				<p className="text-muted-foreground text-xs">
 					Keep your Minecraft configurations, servers, and assets aligned across all instances.
 				</p>
-			</div>
-
-			{/* How it works info callout */}
-			<div className="flex flex-col gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3.5 text-emerald-300 text-xs">
-				<div className="flex items-start gap-2.5">
-					<Info className="mt-0.5 size-4 shrink-0 text-emerald-400" />
-					<div className="flex flex-col gap-1 text-[11px] leading-relaxed">
-						<span>
-							<strong>Automated 2-way sync:</strong> Before game launch, updated shared settings are
-							copied to your instance. When Minecraft closes, your latest changes are automatically
-							saved back to shared storage.
-						</span>
-						{sharedStatus && (
-							<span className="text-emerald-400/80">
-								Shared storage active:{" "}
-								{[
-									sharedStatus.hasOptions && "options.txt",
-									sharedStatus.hasServers && "servers.dat",
-									sharedStatus.resourcePacksCount > 0 &&
-										`${sharedStatus.resourcePacksCount} resource packs`,
-									sharedStatus.hasCommandHistory && "command_history.txt",
-									sharedStatus.hasCreativeHotbars && "hotbar.nbt",
-								]
-									.filter(Boolean)
-									.join(", ") || "no shared files yet"}
-							</span>
-						)}
-					</div>
-				</div>
 			</div>
 
 			{/* Synchronization Toggles */}

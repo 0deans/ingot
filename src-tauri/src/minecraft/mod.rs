@@ -1,7 +1,9 @@
 pub mod downloader;
+pub mod importer;
 pub mod instance;
 pub mod java;
 pub mod launcher;
 pub mod loader;
+pub mod screenshots;
 pub mod sync;
 pub mod version;

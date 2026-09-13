@@ -5,7 +5,6 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
@@ -195,6 +194,22 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 										}}
 									/>
 								</div>
+
+								<Button
+									size="default"
+									onClick={handleElyLogin}
+									disabled={isLoading || !username.trim() || !password}
+									className="mt-1.5 w-full font-medium"
+								>
+									{isLoading ? (
+										<>
+											<Loader2 className="mr-1.5 size-3.5 animate-spin" />
+											Connecting...
+										</>
+									) : (
+										"Log In to Ely.by"
+									)}
+								</Button>
 							</div>
 						)}
 
@@ -225,6 +240,22 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 										}}
 									/>
 								</div>
+
+								<Button
+									size="default"
+									onClick={handleOfflineLogin}
+									disabled={isLoading || !offlineName.trim()}
+									className="mt-1.5 w-full font-medium"
+								>
+									{isLoading ? (
+										<>
+											<Loader2 className="mr-1.5 size-3.5 animate-spin" />
+											Adding...
+										</>
+									) : (
+										"Add Profile"
+									)}
+								</Button>
 							</div>
 						)}
 
@@ -255,49 +286,6 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 						)}
 					</div>
 				</ScrollArea>
-
-				<DialogFooter>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => handleOpenChange(false)}
-						disabled={isLoading}
-					>
-						Cancel
-					</Button>
-					{activeTab === "ely" && (
-						<Button
-							size="sm"
-							onClick={handleElyLogin}
-							disabled={isLoading || !username.trim() || !password}
-						>
-							{isLoading ? (
-								<>
-									<Loader2 className="mr-1.5 size-3.5 animate-spin" />
-									Connecting...
-								</>
-							) : (
-								"Log In to Ely.by"
-							)}
-						</Button>
-					)}
-					{activeTab === "offline" && (
-						<Button
-							size="sm"
-							onClick={handleOfflineLogin}
-							disabled={isLoading || !offlineName.trim()}
-						>
-							{isLoading ? (
-								<>
-									<Loader2 className="mr-1.5 size-3.5 animate-spin" />
-									Adding...
-								</>
-							) : (
-								"Add Profile"
-							)}
-						</Button>
-					)}
-				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	)

@@ -109,6 +109,10 @@ pub fn load_instances<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Vec<Insta
     serde_json::from_str(&data).map_err(|e| format!("Failed to parse instances file: {e}"))
 }
 
+pub fn get_instances<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Vec<InstanceConfig>, String> {
+    load_instances(app)
+}
+
 pub fn save_instances<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instances: &[InstanceConfig],

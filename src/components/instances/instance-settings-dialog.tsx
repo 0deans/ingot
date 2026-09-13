@@ -237,7 +237,7 @@ export const InstanceSettingsDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] max-w-xl border-border/60 bg-zinc-950 p-6 shadow-2xl backdrop-blur-2xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-zinc-950 p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={24} />
@@ -251,8 +251,8 @@ export const InstanceSettingsDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="-mx-1 max-h-[65vh] px-1">
-					<div className="flex flex-col gap-5 p-1">
+				<ScrollArea scrollFade className="-mr-2 max-h-[68vh] pr-2">
+					<div className="flex flex-col gap-4 py-1 pr-1">
 						{/* Instance Name */}
 						<div className="flex flex-col gap-2">
 							<label htmlFor="instance-name-input" className="font-medium text-foreground text-xs">
@@ -619,7 +619,7 @@ export const InstanceSettingsDialog = ({
 					</div>
 				</ScrollArea>
 
-				<DialogFooter className="mt-4 flex items-center justify-between border-border/40 border-t pt-4 sm:justify-between">
+				<DialogFooter className="mt-2 flex flex-row items-center justify-between border-border/40 border-t pt-3 sm:flex-row sm:justify-between">
 					<Button
 						type="button"
 						variant="ghost"
@@ -631,26 +631,15 @@ export const InstanceSettingsDialog = ({
 						Open Folder
 					</Button>
 
-					<div className="flex items-center gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => onOpenChange(false)}
-							disabled={isSaving}
-						>
-							Cancel
-						</Button>
-						<Button
-							type="button"
-							size="sm"
-							onClick={handleSave}
-							disabled={isSaving}
-							className="font-medium"
-						>
-							{isSaving ? "Saving..." : "Save Changes"}
-						</Button>
-					</div>
+					<Button
+						type="button"
+						size="sm"
+						onClick={handleSave}
+						disabled={isSaving}
+						className="font-medium"
+					>
+						{isSaving ? "Saving..." : "Save Changes"}
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 

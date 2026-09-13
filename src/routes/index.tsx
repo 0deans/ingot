@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Gamepad2, Layers, Plus, Square } from "lucide-react"
+import { FolderDown, Gamepad2, Layers, Plus, Square } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import type { InstanceConfig, ModLoaderType, SyncConflictInfo } from "@/bindings"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
+import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
 import InstanceSearchHeader from "@/components/instances/instance-search-header"
 import InstanceSettingsDialog from "@/components/instances/instance-settings-dialog"
@@ -20,6 +21,7 @@ import { settingsService, useMemorySettings } from "@/services/settings-service"
 const InstancesPage = () => {
 	const [searchQuery, setSearchQuery] = useState("")
 	const [isNewInstanceOpen, setIsNewInstanceOpen] = useState(false)
+	const [isImportOpen, setIsImportOpen] = useState(false)
 	const [editingInstance, setEditingInstance] = useState<InstanceConfig | null>(null)
 	const [deletingInstance, setDeletingInstance] = useState<InstanceConfig | null>(null)
 	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
@@ -107,6 +109,7 @@ const InstancesPage = () => {
 				searchQuery={searchQuery}
 				onSearchChange={setSearchQuery}
 				onOpenNewInstance={() => setIsNewInstanceOpen(true)}
+				onOpenImport={() => setIsImportOpen(true)}
 			/>
 
 			{/* Active Running Instances Multi-Banner */}
@@ -165,10 +168,21 @@ const InstancesPage = () => {
 						Create your first Minecraft instance to start playing. You can select Vanilla or mod
 						loaders like Fabric, Quilt, or Forge.
 					</p>
-					<Button onClick={() => setIsNewInstanceOpen(true)} className="mt-5 gap-2" size="sm">
-						<Plus className="size-4" />
-						Create Your First Instance
-					</Button>
+					<div className="mt-5 flex items-center gap-3">
+						<Button onClick={() => setIsNewInstanceOpen(true)} className="gap-2" size="sm">
+							<Plus className="size-4" />
+							Create Your First Instance
+						</Button>
+						<Button
+							variant="outline"
+							onClick={() => setIsImportOpen(true)}
+							className="gap-2"
+							size="sm"
+						>
+							<FolderDown className="size-4" />
+							Import from Launcher
+						</Button>
+					</div>
 				</div>
 			) : filteredInstances.length > 0 ? (
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -227,6 +241,15 @@ const InstancesPage = () => {
 				open={isNewInstanceOpen}
 				onOpenChange={setIsNewInstanceOpen}
 				onCreateInstance={handleCreateInstance}
+			/>
+
+			{/* Import Instance Dialog */}
+			<ImportInstanceDialog
+				open={isImportOpen}
+				onOpenChange={setIsImportOpen}
+				onSuccess={async () => {
+					await refresh()
+				}}
 			/>
 
 			{/* Instance Settings Dialog */}

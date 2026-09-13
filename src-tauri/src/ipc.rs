@@ -1,9 +1,11 @@
 use crate::account::{self, AccountProfile};
+use crate::minecraft::importer::{self, DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance};
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use crate::minecraft::launcher::{
     self, InstanceStatusEvent, LaunchProgressEvent, ProcessManager, RunningInstanceSummary,
 };
 use crate::minecraft::loader;
+use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
@@ -195,6 +197,46 @@ pub trait AppApi {
         instance_id: String,
         resolution: String,
     ) -> Result<SyncReport, String>;
+
+    async fn get_detected_launchers(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<DetectedLauncher>, String>;
+
+    async fn get_launcher_instances(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        launcher_id: String,
+        custom_path: Option<String>,
+    ) -> Result<Vec<ImportableInstance>, String>;
+
+    async fn detect_custom_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        path: String,
+    ) -> Result<ImportableInstance, String>;
+
+    async fn import_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        options: ImportInstanceOptions,
+    ) -> Result<ImportReport, String>;
+
+    // Screenshot Management
+    async fn get_all_screenshots(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<ScreenshotInfo>, String>;
+
+    async fn delete_screenshot(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        file_name: String,
+    ) -> Result<(), String>;
+
+    async fn open_screenshots_folder(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: Option<String>,
+    ) -> Result<(), String>;
+
+    async fn reveal_screenshot_file(
+        file_path: String,
+    ) -> Result<(), String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -552,5 +594,68 @@ impl AppApi for AppApiImpl {
         resolution: String,
     ) -> Result<SyncReport, String> {
         sync::resolve_sync_conflict(&app_handle, &instance_id, &resolution)
+    }
+
+    async fn get_detected_launchers(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<DetectedLauncher>, String> {
+        Ok(importer::get_detected_launchers(&app_handle))
+    }
+
+    async fn get_launcher_instances(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        launcher_id: String,
+        custom_path: Option<String>,
+    ) -> Result<Vec<ImportableInstance>, String> {
+        importer::get_launcher_instances(&app_handle, &launcher_id, custom_path.as_deref())
+    }
+
+    async fn detect_custom_instance(
+        self,
+        _app_handle: tauri::AppHandle<impl Runtime>,
+        path: String,
+    ) -> Result<ImportableInstance, String> {
+        importer::detect_custom_instance(&path)
+    }
+
+    async fn import_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        options: ImportInstanceOptions,
+    ) -> Result<ImportReport, String> {
+        importer::import_instance(&app_handle, options)
+    }
+
+    async fn get_all_screenshots(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<ScreenshotInfo>, String> {
+        screenshots::get_all_screenshots(&app_handle)
+    }
+
+    async fn delete_screenshot(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        file_name: String,
+    ) -> Result<(), String> {
+        screenshots::delete_screenshot(&app_handle, &instance_id, &file_name)
+    }
+
+    async fn open_screenshots_folder(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: Option<String>,
+    ) -> Result<(), String> {
+        screenshots::open_screenshots_folder(&app_handle, instance_id.as_deref())
+    }
+
+    async fn reveal_screenshot_file(
+        self,
+        file_path: String,
+    ) -> Result<(), String> {
+        screenshots::reveal_screenshot_file(&file_path)
     }
 }

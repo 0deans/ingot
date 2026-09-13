@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react"
+import { FolderDown, Plus, Search } from "lucide-react"
 import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,12 +7,14 @@ interface InstanceSearchHeaderProps {
 	searchQuery: string
 	onSearchChange: (query: string) => void
 	onOpenNewInstance: () => void
+	onOpenImport?: () => void
 }
 
 const InstanceSearchHeader = ({
 	searchQuery,
 	onSearchChange,
 	onOpenNewInstance,
+	onOpenImport,
 }: InstanceSearchHeaderProps) => {
 	return (
 		<div className="flex items-center justify-between gap-4">
@@ -26,10 +28,18 @@ const InstanceSearchHeader = ({
 				/>
 			</div>
 
-			<Button onClick={onOpenNewInstance} className="gap-2">
-				<Plus className="size-4" />
-				New Instance
-			</Button>
+			<div className="flex items-center gap-2">
+				{onOpenImport && (
+					<Button variant="outline" onClick={onOpenImport} className="gap-2">
+						<FolderDown className="size-4" />
+						Import
+					</Button>
+				)}
+				<Button onClick={onOpenNewInstance} className="gap-2">
+					<Plus className="size-4" />
+					New Instance
+				</Button>
+			</div>
 		</div>
 	)
 }

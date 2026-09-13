@@ -151,4 +151,9 @@
 	::-webkit-scrollbar-thumb:hover {
 		background: rgba(255, 255, 255, 0.35);
 	}
+
+	.scroll-fade {
+		mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+		-webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+	}
 }

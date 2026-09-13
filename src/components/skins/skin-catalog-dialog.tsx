@@ -936,19 +936,7 @@ export function SkinCatalogDialog({ open, onOpenChange, initialAccount }: SkinCa
 						{passwordError && <span className="text-[11px] text-rose-400">{passwordError}</span>}
 					</div>
 
-					<DialogFooter className="gap-2 sm:gap-0">
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							onClick={() => {
-								setShowPasswordDialog(false)
-								setPasswordInput("")
-							}}
-							className="text-xs text-zinc-400"
-						>
-							Cancel
-						</Button>
+					<DialogFooter>
 						<Button
 							type="button"
 							size="sm"

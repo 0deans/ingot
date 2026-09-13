@@ -43,7 +43,7 @@ export const DeleteInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-md border-border/60 bg-zinc-950 p-6 shadow-2xl backdrop-blur-2xl">
+			<DialogContent className="border-border/60 bg-zinc-950 sm:max-w-md">
 				<DialogHeader className="gap-2">
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive">
 						<AlertTriangle className="size-5" />
@@ -71,23 +71,13 @@ export const DeleteInstanceDialog = ({
 					instance folder will be deleted from disk.
 				</p>
 
-				<DialogFooter className="mt-2 flex items-center justify-end gap-2 border-border/30 border-t pt-4">
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => onOpenChange(false)}
-						disabled={isDeleting}
-					>
-						Cancel
-					</Button>
+				<DialogFooter>
 					<Button
 						type="button"
 						variant="destructive"
-						size="sm"
 						onClick={handleDelete}
 						disabled={isDeleting}
-						className="gap-1.5 font-semibold"
+						className="w-full gap-1.5 font-semibold"
 					>
 						<Trash2 className="size-3.5" />
 						{isDeleting ? "Deleting..." : "Delete Instance"}

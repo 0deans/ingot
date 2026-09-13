@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { Gamepad2, HardDrive, Settings, Shirt, Sparkles } from "lucide-react"
+import { Camera, Gamepad2, Settings, Shirt, Sparkles } from "lucide-react"
 import { memo } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -29,27 +29,6 @@ const Sidebar = () => {
 						}
 					/>
 					<TooltipContent side="right">Instances</TooltipContent>
-				</Tooltip>
-
-				<Tooltip>
-					<TooltipTrigger
-						render={
-							<Link
-								to="/storage"
-								aria-label="Storage & Mods"
-								activeProps={{
-									className: "bg-primary/15 text-primary",
-								}}
-								inactiveProps={{
-									className: "text-muted-foreground hover:bg-muted hover:text-foreground",
-								}}
-								className="inline-flex size-10 items-center justify-center rounded-xl transition-all"
-							>
-								<HardDrive className="size-5" />
-							</Link>
-						}
-					/>
-					<TooltipContent side="right">Storage</TooltipContent>
 				</Tooltip>
 
 				<Tooltip>
@@ -92,6 +71,27 @@ const Sidebar = () => {
 						}
 					/>
 					<TooltipContent side="right">Skins Catalog</TooltipContent>
+				</Tooltip>
+
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Link
+								to="/screenshots"
+								aria-label="Screenshots"
+								activeProps={{
+									className: "bg-primary/15 text-primary",
+								}}
+								inactiveProps={{
+									className: "text-muted-foreground hover:bg-muted hover:text-foreground",
+								}}
+								className="inline-flex size-10 items-center justify-center rounded-xl transition-all"
+							>
+								<Camera className="size-5" />
+							</Link>
+						}
+					/>
+					<TooltipContent side="right">Screenshots</TooltipContent>
 				</Tooltip>
 			</div>
 

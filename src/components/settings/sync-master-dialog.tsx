@@ -6,7 +6,6 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
@@ -94,7 +93,7 @@ export const SyncMasterDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="max-w-md border-border/60 bg-zinc-950 p-6 shadow-2xl backdrop-blur-2xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-zinc-950 p-4 shadow-2xl backdrop-blur-2xl sm:max-w-lg sm:p-5">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2 text-emerald-400">
 						<UploadCloud className="size-5" />
@@ -219,19 +218,6 @@ export const SyncMasterDialog = ({
 						<span>{statusMessage}</span>
 					</div>
 				)}
-
-				<DialogFooter className="mt-1 border-border/40 border-t pt-3">
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						onClick={() => handleOpenChange(false)}
-						disabled={isSubmitting}
-						className="text-muted-foreground text-xs hover:text-foreground"
-					>
-						Cancel
-					</Button>
-				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	)

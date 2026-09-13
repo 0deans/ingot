@@ -944,130 +944,179 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 				{/* Tab 2: Upload Custom Skin */}
 				{activeTab === "upload" && (
-					<ScrollArea className="flex-1 p-4 sm:p-6">
-						<div className="mx-auto flex w-full max-w-2xl flex-col justify-between gap-6 py-2">
-							{/* Drag & drop upload box */}
-							<label
-								onDragOver={handleDragOver}
-								onDragLeave={handleDragLeave}
-								onDrop={handleDrop}
-								className={cn(
-									"relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all",
-									isDragging
-										? "border-emerald-500 bg-emerald-500/10"
-										: uploadedDataUrl
-											? "border-emerald-500/40 bg-zinc-900/60"
-											: "border-zinc-800 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/50",
-								)}
-							>
-								<input
-									ref={fileInputRef}
-									type="file"
-									accept="image/png"
-									className="hidden"
-									onChange={(e) => {
-										if (e.target.files?.[0]) {
-											handleFileSelected(e.target.files[0])
-										}
-									}}
+					<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+						{/* Left Showcase: Live 3D Preview Stage */}
+						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-zinc-950 via-zinc-900/60 to-zinc-950 md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
+							{/* Background Studio Ambience */}
+							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.08),transparent_70%)]" />
+							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-emerald-500/10 blur-md" />
+
+							{/* Full-bleed 3D Viewer Stage */}
+							<div className="absolute inset-0 z-0 size-full">
+								<SkinViewer3D
+									skinUrl={uploadedDataUrl || DEFAULT_STEVE_SKIN}
+									username={targetAccount?.username || "CustomSkin"}
+									showToolbar={false}
+									model={uploadedModel}
+									autoResize={true}
+									borderless={true}
+									zoom={0.56}
+									floatingControlsClassName="top-4 right-3"
+									className="size-full"
 								/>
+							</div>
 
-								<div className="mb-3 flex size-12 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-300">
-									<Upload className="size-5 text-emerald-400" />
+							{/* Top Showcase Header (Floating Overlay) */}
+							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-zinc-950/90 via-zinc-950/50 to-transparent p-4 lg:p-5">
+								<span className="font-semibold text-xs text-zinc-200">Live 3D Preview</span>
+								<span className="pointer-events-auto rounded-full border border-zinc-800/80 bg-zinc-900/90 px-2.5 py-0.5 font-medium text-[10px] text-zinc-300 backdrop-blur-xs">
+									{uploadedModel === "default" ? "Steve (Classic 4px)" : "Alex (Slim 3px)"}
+								</span>
+							</div>
+
+							{/* Transparent Interaction Spacer */}
+							<div className="pointer-events-none min-h-0 flex-1" />
+
+							{/* Primary Apply Button (Floating Overlay at Bottom of 3D stage) */}
+							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-zinc-950/95 via-zinc-950/60 to-transparent p-4 lg:p-5">
+								<Button
+									size="default"
+									className="pointer-events-auto h-11 w-full gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 font-semibold text-sm text-white shadow-emerald-950/50 shadow-lg transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-900/60 active:scale-[0.99] disabled:opacity-50"
+									disabled={isApplying || !targetAccount || !uploadedDataUrl}
+									onClick={handleUploadSkin}
+								>
+									{isApplying ? (
+										<>
+											<Loader2 className="size-4 animate-spin" />
+											Uploading & Applying...
+										</>
+									) : (
+										<>
+											<Upload className="size-4" />
+											Upload and Apply Skin
+										</>
+									)}
+								</Button>
+							</div>
+						</div>
+
+						{/* Right Content Panel: Upload & Configuration */}
+						<ScrollArea scrollFade className="flex-1 p-5 lg:p-8">
+							<div className="mx-auto flex w-full max-w-xl flex-col gap-5 py-2">
+								<div>
+									<h2 className="font-semibold text-base text-zinc-100">Upload Custom Skin</h2>
+									<p className="mt-0.5 text-xs text-zinc-400">
+										Upload a Minecraft skin texture from your computer to apply directly to Ely.by.
+									</p>
 								</div>
-								<p className="font-medium text-sm text-zinc-200">
-									{uploadedFileName || "Click to browse or drag & drop skin PNG file here"}
-								</p>
-								<p className="mt-1 text-xs text-zinc-500">
-									Supports standard Minecraft skins (64x64 or 64x32 PNG, up to 2 MB)
-								</p>
 
-								{uploadValidationDetails && (
-									<div className="mt-3 flex items-center gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] text-emerald-300">
-										<span>Dimensions: {uploadValidationDetails.dimensions}</span>
-										<span>•</span>
-										<span>Size: {uploadValidationDetails.sizeKb}</span>
+								{/* Drag & Drop Upload Zone */}
+								<label
+									onDragOver={handleDragOver}
+									onDragLeave={handleDragLeave}
+									onDrop={handleDrop}
+									className={cn(
+										"relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all sm:p-8",
+										isDragging
+											? "border-emerald-500 bg-emerald-500/10"
+											: uploadedDataUrl
+												? "border-emerald-500/40 bg-zinc-900/40 hover:border-emerald-500/60"
+												: "border-zinc-800 bg-zinc-900/20 hover:border-zinc-700 hover:bg-zinc-900/40",
+									)}
+								>
+									<input
+										ref={fileInputRef}
+										type="file"
+										accept="image/png"
+										className="hidden"
+										onChange={(e) => {
+											if (e.target.files?.[0]) {
+												handleFileSelected(e.target.files[0])
+											}
+										}}
+									/>
+
+									<div className="mb-2.5 flex size-11 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-300">
+										<Upload className="size-5 text-emerald-400" />
+									</div>
+									<p className="font-medium text-xs text-zinc-200 sm:text-sm">
+										{uploadedFileName || "Click to browse or drag & drop skin PNG file here"}
+									</p>
+									<p className="mt-1 text-[11px] text-zinc-500">
+										Supports standard Minecraft skins (64×64 or 64×32 PNG, up to 2 MB)
+									</p>
+
+									{uploadValidationDetails && (
+										<div className="mt-3 flex items-center gap-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] text-emerald-300">
+											<span>Dimensions: {uploadValidationDetails.dimensions}</span>
+											<span>•</span>
+											<span>Size: {uploadValidationDetails.sizeKb}</span>
+										</div>
+									)}
+								</label>
+
+								{uploadError && (
+									<div className="flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 p-3 text-rose-300 text-xs">
+										<AlertCircle className="size-4 shrink-0 text-rose-400" />
+										<span>{uploadError}</span>
 									</div>
 								)}
 
-								{uploadError && <p className="mt-3 text-rose-400 text-xs">{uploadError}</p>}
-							</label>
-
-							{/* Upload details and preview */}
-							{uploadedDataUrl && (
-								<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-									{/* 3D Preview of uploaded skin */}
-									<div className="flex h-[280px] flex-col items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-										<SkinViewer3D
-											skinUrl={uploadedDataUrl}
-											username="CustomSkin"
-											width={220}
-											height={240}
-											model={uploadedModel}
-										/>
+								{/* Skin Arm Model Choice */}
+								<div className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+									<div>
+										<span className="font-medium text-xs text-zinc-300">Skin Arm Model</span>
+										<p className="mt-0.5 text-[11px] text-zinc-500">
+											Choose whether this skin was made for Classic (4px) or Slim (3px) arms.
+										</p>
 									</div>
-
-									{/* Model choice & confirm */}
-									<div className="flex flex-col justify-between gap-4">
-										<div>
-											<span className="font-medium text-xs text-zinc-300">Skin Arm Model</span>
-											<p className="mb-2 text-[11px] text-zinc-500">
-												Choose whether this skin was made for Classic (4px) or Slim (3px) arms.
-											</p>
-											<div className="grid grid-cols-2 gap-2">
-												<button
-													type="button"
-													className={cn(
-														"flex flex-col rounded-lg border p-3 text-left transition-all",
-														uploadedModel === "default"
-															? "border-emerald-500/60 bg-emerald-500/10 text-zinc-100"
-															: "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700",
-													)}
-													onClick={() => setUploadedModel("default")}
-												>
-													<span className="font-semibold text-xs">Steve</span>
-													<span className="text-[10px] text-zinc-500">Classic (4px arms)</span>
-												</button>
-												<button
-													type="button"
-													className={cn(
-														"flex flex-col rounded-lg border p-3 text-left transition-all",
-														uploadedModel === "slim"
-															? "border-emerald-500/60 bg-emerald-500/10 text-zinc-100"
-															: "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700",
-													)}
-													onClick={() => setUploadedModel("slim")}
-												>
-													<span className="font-semibold text-xs">Alex</span>
-													<span className="text-[10px] text-zinc-500">Slim (3px arms)</span>
-												</button>
-											</div>
-										</div>
-
-										<div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs">
-											<div className="text-zinc-400">Target Ely.by Account</div>
-											<div className="mt-0.5 font-semibold text-zinc-200">
-												{targetAccount ? targetAccount.username : "No active account"}
-											</div>
-										</div>
-
-										<Button
-											className="w-full gap-1.5 bg-emerald-600 text-white shadow-sm hover:bg-emerald-500"
-											disabled={isApplying || !targetAccount}
-											onClick={handleUploadSkin}
-										>
-											{isApplying ? (
-												<Loader2 className="size-4 animate-spin" />
-											) : (
-												<Upload className="size-4" />
+									<div className="grid grid-cols-2 gap-2.5 pt-1">
+										<button
+											type="button"
+											className={cn(
+												"flex flex-col rounded-lg border p-3 text-left transition-all",
+												uploadedModel === "default"
+													? "border-emerald-500/60 bg-emerald-500/10 text-zinc-100 ring-1 ring-emerald-500/30"
+													: "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700",
 											)}
-											Upload and Apply Skin
-										</Button>
+											onClick={() => setUploadedModel("default")}
+										>
+											<span className="font-semibold text-xs">Steve</span>
+											<span className="text-[10px] text-zinc-500">Classic (4px arms)</span>
+										</button>
+										<button
+											type="button"
+											className={cn(
+												"flex flex-col rounded-lg border p-3 text-left transition-all",
+												uploadedModel === "slim"
+													? "border-emerald-500/60 bg-emerald-500/10 text-zinc-100 ring-1 ring-emerald-500/30"
+													: "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700",
+											)}
+											onClick={() => setUploadedModel("slim")}
+										>
+											<span className="font-semibold text-xs">Alex</span>
+											<span className="text-[10px] text-zinc-500">Slim (3px arms)</span>
+										</button>
 									</div>
 								</div>
-							)}
-						</div>
-					</ScrollArea>
+
+								{/* Target Ely.by Account */}
+								<div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-3.5 text-xs">
+									<div>
+										<div className="text-[11px] text-zinc-400">Target Ely.by Account</div>
+										<div className="mt-0.5 font-semibold text-xs text-zinc-200">
+											{targetAccount ? targetAccount.username : "No active account"}
+										</div>
+									</div>
+									{targetAccount && (
+										<span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-[10px] text-emerald-400">
+											Ready to apply
+										</span>
+									)}
+								</div>
+							</div>
+						</ScrollArea>
+					</div>
 				)}
 			</div>
 

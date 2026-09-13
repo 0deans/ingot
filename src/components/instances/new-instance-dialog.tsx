@@ -279,20 +279,11 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 					</div>
 				</ScrollArea>
 
-				<DialogFooter className="gap-2">
+				<DialogFooter>
 					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => onOpenChange(false)}
-						disabled={isSubmitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						size="sm"
 						onClick={handleCreate}
 						disabled={!instanceName.trim() || isSubmitting}
-						className="gap-2"
+						className="w-full gap-2"
 					>
 						{isSubmitting && <Loader2 className="size-3.5 animate-spin" />}
 						Create Instance

@@ -1,11 +1,9 @@
 import { ArrowDownToLine, ArrowUpFromLine, RefreshCw } from "lucide-react"
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
@@ -96,19 +94,6 @@ export const InitialSyncDialog = ({
 						</p>
 					</button>
 				</div>
-
-				<DialogFooter className="mt-1 border-border/40 border-t pt-3">
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						onClick={onCancel}
-						disabled={isSubmitting}
-						className="text-muted-foreground text-xs hover:text-foreground"
-					>
-						Cancel
-					</Button>
-				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	)
