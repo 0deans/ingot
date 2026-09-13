@@ -402,15 +402,28 @@ where
     let (player_name, uuid_str, access_token, user_type, is_ely) = match active_account {
         Some(acc) => {
             let is_ely = acc.account_type == "ely";
+            let token = if is_ely {
+                crate::account::get_active_account_token(app.clone())
+                    .await
+                    .unwrap_or_else(|_| "0".to_string())
+            } else {
+                "0".to_string()
+            };
             (
                 acc.username,
                 acc.uuid,
-                "0".to_string(), // In offline or authlib mode
-                if is_ely { "ely" } else { "mojang" },
+                token,
+                "mojang",
                 is_ely,
             )
         }
-        None => ("Player".to_string(), uuid::Uuid::new_v4().to_string(), "0".to_string(), "mojang", false),
+        None => (
+            "Player".to_string(),
+            uuid::Uuid::new_v4().to_string(),
+            "0".to_string(),
+            "mojang",
+            false,
+        ),
     };
 
     // Step 8: Build classpath and arguments
@@ -452,17 +465,31 @@ where
     if is_ely {
         let authlib_path = cache_dir.join("authlib-injector.jar");
         if !authlib_path.exists() {
-            let _ = download_file_chunked(
-                &client,
-                "https://authlib-injector.yushi.moe/artifact/latest/authlib-injector.jar",
-                &authlib_path,
-                None,
-                None,
-            )
-            .await;
+            report_prog("Auth Setup", 7, 10, "Setting up Ely.by skin & authentication agent...");
+            let mut dl_url = "https://authlib-injector.yushi.moe/artifact/56/authlib-injector-1.2.8.jar".to_string();
+            if let Ok(resp) = client
+                .get("https://authlib-injector.yushi.moe/artifact/latest.json")
+                .send()
+                .await
+            {
+                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                    if let Some(u) = json.get("download_url").and_then(|v| v.as_str()) {
+                        dl_url = u.to_string();
+                    }
+                }
+            }
+
+            if let Err(e) = download_file_chunked(&client, &dl_url, &authlib_path, None, None).await {
+                eprintln!("[Launcher] Primary authlib-injector download failed ({e}), trying GitHub releases mirror...");
+                let github_url = "https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.8/authlib-injector-1.2.8.jar";
+                let _ = download_file_chunked(&client, github_url, &authlib_path, None, None).await;
+            }
         }
         if authlib_path.exists() {
+            cmd_args.push("-Dauthlibinjector.noLogFile".into());
             cmd_args.push(format!("-javaagent:{}={}", authlib_path.to_string_lossy(), "ely.by"));
+        } else {
+            eprintln!("[Launcher] Warning: Could not download authlib-injector.jar, Ely.by skin may not display.");
         }
     }
 
