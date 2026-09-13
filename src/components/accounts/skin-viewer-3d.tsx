@@ -33,6 +33,7 @@ export interface SkinViewer3DProps {
 	className?: string
 	enableControls?: boolean
 	showToolbar?: boolean
+	model?: "default" | "slim"
 }
 
 type AnimationType = "idle" | "walk" | "run" | "wave" | "none"
@@ -45,21 +46,29 @@ const SkinViewer3D = ({
 	className = "",
 	enableControls = true,
 	showToolbar = true,
+	model,
 }: SkinViewer3DProps) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const viewerRef = useRef<SkinViewer | null>(null)
 
 	const [animation, setAnimation] = useState<AnimationType>("idle")
-	const [isSlim, setIsSlim] = useState(false)
-	const [hasUserOverriddenModel, setHasUserOverriddenModel] = useState(false)
+	const [isSlim, setIsSlim] = useState(model === "slim")
+	const [hasUserOverriddenModel, setHasUserOverriddenModel] = useState(model !== undefined)
 	const [showOuterLayer, setShowOuterLayer] = useState(true)
 	const [isAutoRotate, setIsAutoRotate] = useState(false)
 	const [resolvedSkin, setResolvedSkin] = useState<string>(DEFAULT_STEVE_SKIN)
 	const [isLoadingSkin, setIsLoadingSkin] = useState(Boolean(skinUrl))
 
 	useEffect(() => {
+		if (model !== undefined) {
+			setIsSlim(model === "slim")
+			setHasUserOverriddenModel(true)
+		}
+	}, [model])
+
+	useEffect(() => {
 		let isMounted = true
-		setHasUserOverriddenModel(false)
+		setHasUserOverriddenModel(model !== undefined)
 
 		if (!skinUrl) {
 			setResolvedSkin(DEFAULT_STEVE_SKIN)
@@ -84,7 +93,7 @@ const SkinViewer3D = ({
 		return () => {
 			isMounted = false
 		}
-	}, [skinUrl])
+	}, [skinUrl, model])
 
 	// Initialize SkinViewer
 	useEffect(() => {

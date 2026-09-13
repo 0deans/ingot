@@ -19,7 +19,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { createFileRoute } from "@tanstack/react-router"
-import { Plus, ShieldCheck } from "lucide-react"
+import { Plus, ShieldCheck, Sparkles } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
@@ -29,6 +29,7 @@ import {
 	SortableAccountItem,
 } from "@/components/accounts/sortable-account-item"
 import MemoryAllocation from "@/components/settings/memory-allocation"
+import SkinCatalogDialog from "@/components/skins/skin-catalog-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -52,6 +53,7 @@ const modifiers = [restrictToVerticalAxis, restrictToParentElement]
 const SettingsPage = () => {
 	const { accounts, setActiveAccount, removeAccount, reorderAccounts } = useAccounts()
 	const [isAddOpen, setIsAddOpen] = useState(false)
+	const [isSkinCatalogOpen, setIsSkinCatalogOpen] = useState(false)
 	const [previewAccount, setPreviewAccount] = useState<AccountProfile | null>(null)
 	const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -131,6 +133,15 @@ const SettingsPage = () => {
 							</p>
 						</div>
 						<div className="flex items-center gap-2">
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => setIsSkinCatalogOpen(true)}
+								className="gap-1.5 border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-900"
+							>
+								<Sparkles className="size-3.5 text-emerald-400" />
+								Skins Catalog
+							</Button>
 							<Button size="sm" onClick={() => setIsAddOpen(true)} className="gap-1.5 text-xs">
 								<Plus className="size-3.5" />
 								Add Account
@@ -244,6 +255,11 @@ const SettingsPage = () => {
 				account={previewAccount}
 				open={Boolean(previewAccount)}
 				onOpenChange={(open) => !open && setPreviewAccount(null)}
+			/>
+			<SkinCatalogDialog
+				open={isSkinCatalogOpen}
+				onOpenChange={setIsSkinCatalogOpen}
+				initialAccount={accounts.find((a) => a.isActive) || accounts[0] || null}
 			/>
 		</div>
 	)

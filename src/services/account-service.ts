@@ -131,6 +131,29 @@ export const accountService = {
 			await accountService.refreshAccounts()
 		}
 	},
+
+	async getElySkins(
+		page: number,
+		query?: string,
+		sort?: string,
+		model?: string,
+	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
+		return await rpc.get_ely_skins(page, query ?? null, sort ?? null, model ?? null)
+	},
+
+	async applyElySkin(accountId: string, skinId: number, password?: string): Promise<void> {
+		await rpc.apply_ely_skin(accountId, skinId, password ?? null)
+		await this.refreshAccounts()
+	},
+
+	async uploadElySkin(accountId: string, imageBase64: string, password?: string): Promise<void> {
+		await rpc.upload_ely_skin(accountId, imageBase64, password ?? null)
+		await this.refreshAccounts()
+	},
+
+	async hasElyWebCredentials(accountId: string): Promise<boolean> {
+		return await rpc.has_ely_web_credentials(accountId)
+	},
 }
 
 export function useAccounts() {

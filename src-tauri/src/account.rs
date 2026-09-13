@@ -1,5 +1,6 @@
-use crate::auth::ely::ElyAuthService;
+use crate::auth::ely::{ElyAuthService, ElySkinsCatalogResponse};
 use crate::keyring_store;
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -24,6 +25,8 @@ pub struct AccountProfile {
 pub struct AccountSecrets {
     pub access_token: String,
     pub client_token: String,
+    #[serde(default)]
+    pub password: Option<String>,
 }
 
 fn get_storage_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
@@ -100,10 +103,11 @@ pub async fn ely_login<R: tauri::Runtime>(
     let account_id = format!("ely:{}", profile.id);
     let skin_url = format!("https://skinsystem.ely.by/skins/{}.png", profile.name);
 
-    // 1. Securely store the sensitive tokens in the native OS Credential Vault
+    // 1. Securely store the sensitive tokens and password in the native OS Credential Vault
     let secrets = AccountSecrets {
         access_token: auth_resp.access_token,
         client_token: auth_resp.client_token,
+        password: Some(password),
     };
     let secrets_json = serde_json::to_string(&secrets)
         .map_err(|e| format!("Failed to serialize credentials: {e}"))?;
@@ -276,6 +280,7 @@ pub async fn get_active_account_token<R: tauri::Runtime>(
     let updated_secrets = AccountSecrets {
         access_token: refresh_res.access_token.clone(),
         client_token: refresh_res.client_token,
+        password: secrets.password,
     };
     let updated_json = serde_json::to_string(&updated_secrets)
         .map_err(|e| format!("Failed to serialize refreshed credentials: {e}"))?;
@@ -450,4 +455,156 @@ pub async fn save_skin_to_downloads<R: tauri::Runtime>(
     fs::write(&target_path, &bytes).map_err(|e| format!("Failed to write skin file: {e}"))?;
 
     Ok(target_path.to_string_lossy().to_string())
+}
+
+pub async fn get_ely_skins_catalog(
+    page: u32,
+    query: Option<String>,
+    sort: Option<String>,
+    model: Option<String>,
+) -> Result<ElySkinsCatalogResponse, String> {
+    let service = ElyAuthService::new();
+    service.fetch_catalog(page, query, sort, model).await
+}
+
+pub fn has_ely_web_credentials(account_id: &str) -> bool {
+    if let Ok(Some(secret_str)) = keyring_store::get_secret(account_id) {
+        if let Ok(secrets) = serde_json::from_str::<AccountSecrets>(&secret_str) {
+            return secrets
+                .password
+                .as_deref()
+                .map(|p| !p.trim().is_empty())
+                .unwrap_or(false);
+        }
+    }
+    false
+}
+
+pub async fn apply_ely_skin<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+    skin_id: u64,
+    password: Option<String>,
+) -> Result<(), String> {
+    let mut accounts = load_accounts_file(app)?;
+    let acc = accounts
+        .iter()
+        .find(|a| a.id == account_id)
+        .ok_or_else(|| "Account not found".to_string())?;
+
+    if acc.account_type != "ely" {
+        return Err("Skin changes can only be applied to Ely.by accounts".to_string());
+    }
+
+    let username = acc.username.clone();
+
+    // Determine password
+    let mut secrets: Option<AccountSecrets> = None;
+    if let Ok(Some(secret_str)) = keyring_store::get_secret(account_id) {
+        secrets = serde_json::from_str::<AccountSecrets>(&secret_str).ok();
+    }
+
+    let effective_password = match password {
+        Some(p) if !p.trim().is_empty() => {
+            let p_trimmed = p.trim().to_string();
+            // Update saved password in keyring
+            if let Some(mut s) = secrets {
+                s.password = Some(p_trimmed.clone());
+                if let Ok(serialized) = serde_json::to_string(&s) {
+                    let _ = keyring_store::save_secret(account_id, &serialized);
+                }
+            }
+            p_trimmed
+        }
+        _ => secrets
+            .and_then(|s| s.password)
+            .filter(|p| !p.trim().is_empty())
+            .ok_or_else(|| "PASSWORD_REQUIRED".to_string())?,
+    };
+
+    let service = ElyAuthService::new();
+    service.wear_skin(&username, &effective_password, skin_id).await?;
+
+    // Update account skin_url with timestamp to invalidate local cache
+    let updated_skin_url = format!(
+        "https://skinsystem.ely.by/skins/{username}.png?t={}",
+        current_timestamp()
+    );
+    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
+        accounts[pos].skin_url = Some(updated_skin_url);
+        let _ = save_accounts_file(app, &accounts);
+    }
+
+    Ok(())
+}
+
+pub async fn upload_ely_skin<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+    image_base64: &str,
+    password: Option<String>,
+) -> Result<(), String> {
+    let mut accounts = load_accounts_file(app)?;
+    let acc = accounts
+        .iter()
+        .find(|a| a.id == account_id)
+        .ok_or_else(|| "Account not found".to_string())?;
+
+    if acc.account_type != "ely" {
+        return Err("Skin uploads can only be applied to Ely.by accounts".to_string());
+    }
+
+    let username = acc.username.clone();
+
+    // Clean base64 data
+    let clean_base64 = if let Some(comma_pos) = image_base64.find(',') {
+        &image_base64[comma_pos + 1..]
+    } else {
+        image_base64
+    };
+
+    let png_bytes = base64::engine::general_purpose::STANDARD
+        .decode(clean_base64.trim())
+        .map_err(|e| format!("Invalid base64 skin image data: {e}"))?;
+
+    // Determine password
+    let mut secrets: Option<AccountSecrets> = None;
+    if let Ok(Some(secret_str)) = keyring_store::get_secret(account_id) {
+        secrets = serde_json::from_str::<AccountSecrets>(&secret_str).ok();
+    }
+
+    let effective_password = match password {
+        Some(p) if !p.trim().is_empty() => {
+            let p_trimmed = p.trim().to_string();
+            // Update saved password in keyring
+            if let Some(mut s) = secrets {
+                s.password = Some(p_trimmed.clone());
+                if let Ok(serialized) = serde_json::to_string(&s) {
+                    let _ = keyring_store::save_secret(account_id, &serialized);
+                }
+            }
+            p_trimmed
+        }
+        _ => secrets
+            .and_then(|s| s.password)
+            .filter(|p| !p.trim().is_empty())
+            .ok_or_else(|| "PASSWORD_REQUIRED".to_string())?,
+    };
+
+    let service = ElyAuthService::new();
+    service
+        .upload_skin(&username, &effective_password, png_bytes)
+        .await?;
+
+    // Update account skin_url with timestamp to invalidate local cache
+    let updated_skin_url = format!(
+        "https://skinsystem.ely.by/skins/{username}.png?t={}",
+        current_timestamp()
+    );
+    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
+        accounts[pos].skin_url = Some(updated_skin_url);
+        let _ = save_accounts_file(app, &accounts);
+    }
+
+    Ok(())
 }

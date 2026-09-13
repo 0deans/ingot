@@ -50,6 +50,25 @@ pub trait AppApi {
         app_handle: tauri::AppHandle<impl Runtime>,
         account_ids: Vec<String>,
     ) -> Result<(), String>;
+    async fn get_ely_skins(
+        page: u32,
+        query: Option<String>,
+        sort: Option<String>,
+        model: Option<String>,
+    ) -> Result<crate::auth::ely::ElySkinsCatalogResponse, String>;
+    async fn apply_ely_skin(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        skin_id: u64,
+        password: Option<String>,
+    ) -> Result<(), String>;
+    async fn upload_ely_skin(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        image_base64: String,
+        password: Option<String>,
+    ) -> Result<(), String>;
+    async fn has_ely_web_credentials(account_id: String) -> Result<bool, String>;
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
 }
@@ -153,5 +172,39 @@ impl AppApi for AppApiImpl {
         account_ids: Vec<String>,
     ) -> Result<(), String> {
         account::reorder_accounts(app_handle, account_ids)
+    }
+
+    async fn get_ely_skins(
+        self,
+        page: u32,
+        query: Option<String>,
+        sort: Option<String>,
+        model: Option<String>,
+    ) -> Result<crate::auth::ely::ElySkinsCatalogResponse, String> {
+        account::get_ely_skins_catalog(page, query, sort, model).await
+    }
+
+    async fn apply_ely_skin(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        skin_id: u64,
+        password: Option<String>,
+    ) -> Result<(), String> {
+        account::apply_ely_skin(&app_handle, &account_id, skin_id, password).await
+    }
+
+    async fn upload_ely_skin(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        image_base64: String,
+        password: Option<String>,
+    ) -> Result<(), String> {
+        account::upload_ely_skin(&app_handle, &account_id, &image_base64, password).await
+    }
+
+    async fn has_ely_web_credentials(self, account_id: String) -> Result<bool, String> {
+        Ok(account::has_ely_web_credentials(&account_id))
     }
 }
