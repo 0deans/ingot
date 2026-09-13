@@ -1,3 +1,4 @@
+pub mod content;
 pub mod downloader;
 pub mod importer;
 pub mod instance;

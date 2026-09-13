@@ -1,4 +1,5 @@
 use crate::account::{self, AccountProfile};
+use crate::minecraft::content::{self, ContentSearchResult};
 use crate::minecraft::importer::{self, DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance};
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use crate::minecraft::launcher::{
@@ -237,6 +238,18 @@ pub trait AppApi {
     async fn reveal_screenshot_file(
         file_path: String,
     ) -> Result<(), String>;
+
+    // Content Discovery (CurseForge & Modrinth)
+    async fn search_content(
+        source: String,
+        project_type: String,
+        query: Option<String>,
+        game_version: Option<String>,
+        loader: Option<String>,
+        sort: Option<String>,
+        page: u32,
+        page_size: u32,
+    ) -> Result<ContentSearchResult, String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -657,5 +670,29 @@ impl AppApi for AppApiImpl {
         file_path: String,
     ) -> Result<(), String> {
         screenshots::reveal_screenshot_file(&file_path)
+    }
+
+    async fn search_content(
+        self,
+        source: String,
+        project_type: String,
+        query: Option<String>,
+        game_version: Option<String>,
+        loader: Option<String>,
+        sort: Option<String>,
+        page: u32,
+        page_size: u32,
+    ) -> Result<ContentSearchResult, String> {
+        content::search_content(
+            source,
+            project_type,
+            query,
+            game_version,
+            loader,
+            sort,
+            page,
+            page_size,
+        )
+        .await
     }
 }

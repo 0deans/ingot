@@ -36,7 +36,7 @@ const Sidebar = () => {
 						render={
 							<Link
 								to="/modpacks"
-								aria-label="Browse Modpacks"
+								aria-label="Discover Content"
 								activeProps={{
 									className: "bg-primary/15 text-primary",
 								}}
@@ -49,7 +49,7 @@ const Sidebar = () => {
 							</Link>
 						}
 					/>
-					<TooltipContent side="right">Modpacks</TooltipContent>
+					<TooltipContent side="right">Discover</TooltipContent>
 				</Tooltip>
 
 				<Tooltip>

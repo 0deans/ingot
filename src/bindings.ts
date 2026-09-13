@@ -12,6 +12,13 @@ export type AccountProfile = {
 	createdAt: number,
 };
 
+export type ContentSearchResult = {
+	items: UnifiedContentItem[],
+	totalHits: number,
+	offset: number,
+	limit: number,
+};
+
 export type DetectedLauncher = {
 	id: string,
 	name: string,
@@ -194,6 +201,25 @@ export type SystemMemoryInfo = {
 	usedMb: number,
 };
 
+export type UnifiedContentItem = {
+	id: string,
+	source: string,
+	projectType: string,
+	slug: string,
+	title: string,
+	description: string,
+	author: string,
+	iconUrl: string | null,
+	downloads: number,
+	follows: number | null,
+	categories: string[],
+	latestVersion: string | null,
+	gameVersions: string[],
+	loaders: string[],
+	websiteUrl: string | null,
+	dateModified: string | null,
+};
+
 export type VersionManifestEntry = {
 	id: string,
 	type: string,
@@ -208,9 +234,9 @@ export type WindowSettings = {
 	width: number,
 	height: number,
 };
-const ARGS_MAP = {"":{"add_offline_account":["username"],"apply_ely_skin":["account_id","skin_id","password"],"check_sync_conflict":["instance_id"],"create_instance":["name","game_version","loader","loader_version"],"delete_instance":["instance_id"],"delete_screenshot":["instance_id","file_name"],"detect_custom_instance":["path"],"ely_login":["username","password"],"export_instance_category_to_shared":["instance_id","category"],"get_accounts":[],"get_active_account_token":[],"get_all_screenshots":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_detected_launchers":[],"get_ely_skins":["page","query","sort","model"],"get_instances":[],"get_launcher_behavior":[],"get_launcher_instances":["launcher_id","custom_path"],"get_memory_settings":[],"get_running_instances":[],"get_shared_sync_status":[],"get_skin_data_url":["skin_url"],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"import_instance":["options"],"kill_instance":["instance_id"],"launch_instance":["instance_id"],"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_memory_changed":["settings"],"open_instance_folder":["instance_id"],"open_screenshots_folder":["instance_id"],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"resolve_sync_conflict":["instance_id","resolution"],"reveal_screenshot_file":["file_path"],"save_skin_to_downloads":["username","skin_url"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_sync_settings":["settings"],"set_window_settings":["settings"],"update_instance":["instance"],"upload_ely_skin":["account_id","image_base64","password"]}};
+const ARGS_MAP = {"":{"add_offline_account":["username"],"apply_ely_skin":["account_id","skin_id","password"],"check_sync_conflict":["instance_id"],"create_instance":["name","game_version","loader","loader_version"],"delete_instance":["instance_id"],"delete_screenshot":["instance_id","file_name"],"detect_custom_instance":["path"],"ely_login":["username","password"],"export_instance_category_to_shared":["instance_id","category"],"get_accounts":[],"get_active_account_token":[],"get_all_screenshots":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_detected_launchers":[],"get_ely_skins":["page","query","sort","model"],"get_instances":[],"get_launcher_behavior":[],"get_launcher_instances":["launcher_id","custom_path"],"get_memory_settings":[],"get_running_instances":[],"get_shared_sync_status":[],"get_skin_data_url":["skin_url"],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"import_instance":["options"],"kill_instance":["instance_id"],"launch_instance":["instance_id"],"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_memory_changed":["settings"],"open_instance_folder":["instance_id"],"open_screenshots_folder":["instance_id"],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"resolve_sync_conflict":["instance_id","resolution"],"reveal_screenshot_file":["file_path"],"save_skin_to_downloads":["username","skin_url"],"search_content":["source","project_type","query","game_version","loader","sort","page","page_size"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_sync_settings":["settings"],"set_window_settings":["settings"],"update_instance":["instance"],"upload_ely_skin":["account_id","image_base64","password"]}};
 
-const RESULT_MAP = {"":{"add_offline_account":true,"apply_ely_skin":true,"check_sync_conflict":true,"create_instance":true,"delete_instance":true,"delete_screenshot":true,"detect_custom_instance":true,"ely_login":true,"export_instance_category_to_shared":true,"get_accounts":true,"get_active_account_token":true,"get_all_screenshots":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_detected_launchers":true,"get_ely_skins":true,"get_instances":true,"get_launcher_behavior":true,"get_launcher_instances":true,"get_memory_settings":true,"get_running_instances":true,"get_shared_sync_status":true,"get_skin_data_url":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"greet":false,"has_ely_web_credentials":true,"import_instance":true,"kill_instance":true,"launch_instance":true,"on_instance_status_changed":false,"on_launch_progress":false,"on_memory_changed":false,"open_instance_folder":true,"open_screenshots_folder":true,"pull_instance_sync":true,"push_instance_sync":true,"remove_account":true,"reorder_accounts":true,"resolve_sync_conflict":true,"reveal_screenshot_file":true,"save_skin_to_downloads":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_sync_settings":true,"set_window_settings":true,"update_instance":true,"upload_ely_skin":true}};
+const RESULT_MAP = {"":{"add_offline_account":true,"apply_ely_skin":true,"check_sync_conflict":true,"create_instance":true,"delete_instance":true,"delete_screenshot":true,"detect_custom_instance":true,"ely_login":true,"export_instance_category_to_shared":true,"get_accounts":true,"get_active_account_token":true,"get_all_screenshots":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_detected_launchers":true,"get_ely_skins":true,"get_instances":true,"get_launcher_behavior":true,"get_launcher_instances":true,"get_memory_settings":true,"get_running_instances":true,"get_shared_sync_status":true,"get_skin_data_url":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"greet":false,"has_ely_web_credentials":true,"import_instance":true,"kill_instance":true,"launch_instance":true,"on_instance_status_changed":false,"on_launch_progress":false,"on_memory_changed":false,"open_instance_folder":true,"open_screenshots_folder":true,"pull_instance_sync":true,"push_instance_sync":true,"remove_account":true,"reorder_accounts":true,"resolve_sync_conflict":true,"reveal_screenshot_file":true,"save_skin_to_downloads":true,"search_content":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_sync_settings":true,"set_window_settings":true,"update_instance":true,"upload_ely_skin":true}};
 
 export type Router = {
 	"": {
@@ -265,6 +291,7 @@ export type Router = {
 		resolve_sync_conflict: (instanceId: string, resolution: string) => Promise<SyncReport>,
 		reveal_screenshot_file: (filePath: string) => Promise<null>,
 		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
+		search_content: (source: string, projectType: string, query: string | null, gameVersion: string | null, loader: string | null, sort: string | null, page: number, pageSize: number) => Promise<ContentSearchResult>,
 		set_active_account: (accountId: string) => Promise<null>,
 		set_launcher_behavior: (behavior: string) => Promise<string>,
 		set_memory_settings: (minRamMb: number, maxRamMb: number) => Promise<MemorySettings>,
