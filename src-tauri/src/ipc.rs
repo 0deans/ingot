@@ -4,8 +4,9 @@ use crate::minecraft::launcher::{
     self, InstanceStatusEvent, LaunchProgressEvent, ProcessManager, RunningInstanceSummary,
 };
 use crate::minecraft::loader;
+use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
-use crate::system::{self, MemorySettings, SystemMemoryInfo};
+use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
 use tauri::{Manager, Runtime};
 
@@ -145,6 +146,55 @@ pub trait AppApi {
         game_version: String,
         loader: ModLoaderType,
     ) -> Result<Vec<String>, String>;
+
+    async fn get_window_settings(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<WindowSettings, String>;
+
+    async fn set_window_settings(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        settings: WindowSettings,
+    ) -> Result<WindowSettings, String>;
+
+    async fn get_sync_settings(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<SyncSettings, String>;
+
+    async fn set_sync_settings(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        settings: SyncSettings,
+    ) -> Result<SyncSettings, String>;
+
+    async fn push_instance_sync(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<SyncReport, String>;
+
+    async fn export_instance_category_to_shared(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: String,
+    ) -> Result<SyncReport, String>;
+
+    async fn pull_instance_sync(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<SyncReport, String>;
+
+    async fn get_shared_sync_status(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<SharedSyncStatus, String>;
+
+    async fn check_sync_conflict(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<Option<SyncConflictInfo>, String>;
+
+    async fn resolve_sync_conflict(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        resolution: String,
+    ) -> Result<SyncReport, String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -423,5 +473,84 @@ impl AppApi for AppApiImpl {
         loader: ModLoaderType,
     ) -> Result<Vec<String>, String> {
         loader::fetch_loader_versions(get_http_client(), &loader, &game_version).await
+    }
+
+    async fn get_window_settings(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<WindowSettings, String> {
+        Ok(system::get_window_settings(&app_handle))
+    }
+
+    async fn set_window_settings(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        settings: WindowSettings,
+    ) -> Result<WindowSettings, String> {
+        system::set_window_settings(&app_handle, settings)
+    }
+
+    async fn get_sync_settings(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<SyncSettings, String> {
+        Ok(system::get_sync_settings(&app_handle))
+    }
+
+    async fn set_sync_settings(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        settings: SyncSettings,
+    ) -> Result<SyncSettings, String> {
+        system::set_sync_settings(&app_handle, settings)
+    }
+
+    async fn push_instance_sync(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<SyncReport, String> {
+        sync::export_instance_to_shared(&app_handle, &instance_id)
+    }
+
+    async fn export_instance_category_to_shared(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: String,
+    ) -> Result<SyncReport, String> {
+        sync::export_instance_category_to_shared(&app_handle, &instance_id, &category)
+    }
+
+    async fn pull_instance_sync(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<SyncReport, String> {
+        sync::import_shared_to_instance(&app_handle, &instance_id)
+    }
+
+    async fn get_shared_sync_status(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<SharedSyncStatus, String> {
+        sync::get_shared_sync_status(&app_handle)
+    }
+
+    async fn check_sync_conflict(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<Option<SyncConflictInfo>, String> {
+        sync::check_sync_conflict(&app_handle, &instance_id)
+    }
+
+    async fn resolve_sync_conflict(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        resolution: String,
+    ) -> Result<SyncReport, String> {
+        sync::resolve_sync_conflict(&app_handle, &instance_id, &resolution)
     }
 }

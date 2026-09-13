@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react"
-import { createTauRPCProxy, type MemorySettings, type SystemMemoryInfo } from "@/bindings"
+import {
+	createTauRPCProxy,
+	type MemorySettings,
+	type SharedSyncStatus,
+	type SyncConflictInfo,
+	type SyncReport,
+	type SyncSettings,
+	type SystemMemoryInfo,
+	type WindowSettings,
+} from "@/bindings"
 
 const rpc = createTauRPCProxy()
 
@@ -26,6 +35,37 @@ function notifyBehavior(b: LauncherBehavior) {
 	cachedBehavior = b
 	for (const listener of behaviorListeners) {
 		listener(b)
+	}
+}
+
+let cachedWindowSettings: WindowSettings = {
+	fullscreen: false,
+	width: 854,
+	height: 480,
+}
+const windowSettingsListeners = new Set<(ws: WindowSettings) => void>()
+
+function notifyWindowSettings(ws: WindowSettings) {
+	cachedWindowSettings = ws
+	for (const listener of windowSettingsListeners) {
+		listener(ws)
+	}
+}
+
+let cachedSyncSettings: SyncSettings = {
+	syncOptions: false,
+	syncServers: false,
+	syncResourcePacks: false,
+	syncCommandHistory: false,
+	syncCreativeHotbars: false,
+	initializedCategories: [],
+}
+const syncSettingsListeners = new Set<(ss: SyncSettings) => void>()
+
+function notifySyncSettings(ss: SyncSettings) {
+	cachedSyncSettings = ss
+	for (const listener of syncSettingsListeners) {
+		listener(ss)
 	}
 }
 
@@ -121,6 +161,131 @@ export const settingsService = {
 			throw error
 		}
 	},
+
+	getCachedWindowSettings(): WindowSettings {
+		return cachedWindowSettings
+	},
+
+	subscribeWindowSettings(listener: (ws: WindowSettings) => void): () => void {
+		windowSettingsListeners.add(listener)
+		listener(cachedWindowSettings)
+		return () => {
+			windowSettingsListeners.delete(listener)
+		}
+	},
+
+	async getWindowSettings(): Promise<WindowSettings> {
+		try {
+			const ws = await rpc.get_window_settings()
+			notifyWindowSettings(ws)
+			return ws
+		} catch (error) {
+			console.error("Failed to load window settings:", error)
+			return cachedWindowSettings
+		}
+	},
+
+	async setWindowSettings(settings: WindowSettings): Promise<WindowSettings> {
+		try {
+			const ws = await rpc.set_window_settings(settings)
+			notifyWindowSettings(ws)
+			return ws
+		} catch (error) {
+			console.error("Failed to save window settings:", error)
+			throw error
+		}
+	},
+
+	getCachedSyncSettings(): SyncSettings {
+		return cachedSyncSettings
+	},
+
+	subscribeSyncSettings(listener: (ss: SyncSettings) => void): () => void {
+		syncSettingsListeners.add(listener)
+		listener(cachedSyncSettings)
+		return () => {
+			syncSettingsListeners.delete(listener)
+		}
+	},
+
+	async getSyncSettings(): Promise<SyncSettings> {
+		try {
+			const ss = await rpc.get_sync_settings()
+			notifySyncSettings(ss)
+			return ss
+		} catch (error) {
+			console.error("Failed to load sync settings:", error)
+			return cachedSyncSettings
+		}
+	},
+
+	async setSyncSettings(settings: SyncSettings): Promise<SyncSettings> {
+		try {
+			const ss = await rpc.set_sync_settings(settings)
+			notifySyncSettings(ss)
+			return ss
+		} catch (error) {
+			console.error("Failed to save sync settings:", error)
+			throw error
+		}
+	},
+
+	async pushInstanceSync(instanceId: string): Promise<SyncReport> {
+		try {
+			return await rpc.push_instance_sync(instanceId)
+		} catch (error) {
+			console.error("Failed to push instance sync:", error)
+			throw error
+		}
+	},
+
+	async exportInstanceCategory(instanceId: string, category: string): Promise<SyncReport> {
+		try {
+			return await rpc.export_instance_category_to_shared(instanceId, category)
+		} catch (error) {
+			console.error("Failed to export instance category:", error)
+			throw error
+		}
+	},
+
+	async pullInstanceSync(instanceId: string): Promise<SyncReport> {
+		try {
+			return await rpc.pull_instance_sync(instanceId)
+		} catch (error) {
+			console.error("Failed to pull instance sync:", error)
+			throw error
+		}
+	},
+
+	async getSharedSyncStatus(): Promise<SharedSyncStatus> {
+		try {
+			return await rpc.get_shared_sync_status()
+		} catch (error) {
+			console.error("Failed to get shared sync status:", error)
+			throw error
+		}
+	},
+
+	async checkSyncConflict(instanceId: string): Promise<SyncConflictInfo | null> {
+		try {
+			return await rpc.check_sync_conflict(instanceId)
+		} catch (error) {
+			console.error("Failed to check sync conflict:", error)
+			return null
+		}
+	},
+
+	async resolveSyncConflict(
+		instanceId: string,
+		resolution: "use_shared" | "use_instance" | "disable_sync",
+	): Promise<SyncReport> {
+		try {
+			return await rpc.resolve_sync_conflict(instanceId, resolution)
+		} catch (error) {
+			console.error("Failed to resolve sync conflict:", error)
+			throw error
+		}
+	},
 }
 
 export function useMemorySettings() {
@@ -176,5 +341,55 @@ export function useLauncherBehavior() {
 		behavior,
 		isLoading,
 		setLauncherBehavior: settingsService.setLauncherBehavior.bind(settingsService),
+	}
+}
+
+export function useWindowSettings() {
+	const [windowSettings, setWindowSettingsState] = useState<WindowSettings>(
+		settingsService.getCachedWindowSettings(),
+	)
+	const [isLoading, setIsLoading] = useState(true)
+
+	useEffect(() => {
+		const unsubscribe = settingsService.subscribeWindowSettings((updated) => {
+			setWindowSettingsState(updated)
+		})
+
+		settingsService.getWindowSettings().finally(() => {
+			setIsLoading(false)
+		})
+
+		return unsubscribe
+	}, [])
+
+	return {
+		windowSettings,
+		isLoading,
+		setWindowSettings: settingsService.setWindowSettings.bind(settingsService),
+	}
+}
+
+export function useSyncSettings() {
+	const [syncSettings, setSyncSettingsState] = useState<SyncSettings>(
+		settingsService.getCachedSyncSettings(),
+	)
+	const [isLoading, setIsLoading] = useState(true)
+
+	useEffect(() => {
+		const unsubscribe = settingsService.subscribeSyncSettings((updated) => {
+			setSyncSettingsState(updated)
+		})
+
+		settingsService.getSyncSettings().finally(() => {
+			setIsLoading(false)
+		})
+
+		return unsubscribe
+	}, [])
+
+	return {
+		syncSettings,
+		isLoading,
+		setSyncSettings: settingsService.setSyncSettings.bind(settingsService),
 	}
 }

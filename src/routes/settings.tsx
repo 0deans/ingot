@@ -29,6 +29,8 @@ import {
 	SortableAccountItem,
 } from "@/components/accounts/sortable-account-item"
 import MemoryAllocation from "@/components/settings/memory-allocation"
+import SyncSettings from "@/components/settings/sync-settings"
+import WindowSettings from "@/components/settings/window-settings"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAccounts } from "@/services/account-service"
@@ -240,6 +242,12 @@ const SettingsPage = () => {
 						})}
 					</div>
 				</div>
+
+				{/* Window & Display */}
+				<WindowSettings />
+
+				{/* Game Data Synchronization */}
+				<SyncSettings />
 			</div>
 
 			<AddAccountDialog open={isAddOpen} onOpenChange={setIsAddOpen} />

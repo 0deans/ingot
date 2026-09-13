@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Gamepad2, Layers, Plus, Square } from "lucide-react"
 import { memo, useMemo, useState } from "react"
-import type { InstanceConfig, ModLoaderType } from "@/bindings"
+import type { InstanceConfig, ModLoaderType, SyncConflictInfo } from "@/bindings"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
 import InstanceSearchHeader from "@/components/instances/instance-search-header"
 import InstanceSettingsDialog from "@/components/instances/instance-settings-dialog"
 import NewInstanceDialog from "@/components/instances/new-instance-dialog"
+import SyncConflictDialog from "@/components/instances/sync-conflict-dialog"
 import { Button } from "@/components/ui/button"
 import {
 	instanceService,
@@ -14,13 +15,14 @@ import {
 	useInstances,
 	useRunningInstances,
 } from "@/services/instance-service"
-import { useMemorySettings } from "@/services/settings-service"
+import { settingsService, useMemorySettings } from "@/services/settings-service"
 
 const InstancesPage = () => {
 	const [searchQuery, setSearchQuery] = useState("")
 	const [isNewInstanceOpen, setIsNewInstanceOpen] = useState(false)
 	const [editingInstance, setEditingInstance] = useState<InstanceConfig | null>(null)
 	const [deletingInstance, setDeletingInstance] = useState<InstanceConfig | null>(null)
+	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
 
 	const { instances, refresh } = useInstances()
 	const { runningMap, runningList } = useRunningInstances()
@@ -39,10 +41,30 @@ const InstancesPage = () => {
 
 	const handlePlay = async (instanceId: string) => {
 		try {
+			const conflict = await settingsService.checkSyncConflict(instanceId)
+			if (conflict) {
+				setSyncConflict(conflict)
+				return
+			}
 			await instanceService.launchInstance(instanceId)
 		} catch (e) {
 			console.error("Failed to launch instance:", e)
 			alert(`Failed to launch instance: ${e}`)
+		}
+	}
+
+	const handleResolveConflict = async (
+		resolution: "use_shared" | "use_instance" | "disable_sync",
+	) => {
+		if (!syncConflict) return
+		const id = syncConflict.instanceId
+		try {
+			await settingsService.resolveSyncConflict(id, resolution)
+			setSyncConflict(null)
+			await instanceService.launchInstance(id)
+		} catch (e) {
+			console.error("Failed to resolve conflict and launch:", e)
+			alert(`Failed to resolve conflict: ${e}`)
 		}
 	}
 
@@ -223,6 +245,14 @@ const InstancesPage = () => {
 				open={Boolean(deletingInstance)}
 				onOpenChange={(open) => !open && setDeletingInstance(null)}
 				onConfirm={handleConfirmDelete}
+			/>
+
+			{/* Sync Conflict Dialog */}
+			<SyncConflictDialog
+				conflict={syncConflict}
+				open={Boolean(syncConflict)}
+				onResolve={handleResolveConflict}
+				onCancel={() => setSyncConflict(null)}
 			/>
 		</div>
 	)

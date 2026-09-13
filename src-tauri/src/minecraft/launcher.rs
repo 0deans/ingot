@@ -619,6 +619,31 @@ where
         }
     }
 
+    // Apply Window / Display Settings
+    let global_settings = crate::system::load_settings(&app);
+    let is_fullscreen = instance.fullscreen.unwrap_or(global_settings.window.fullscreen);
+    if is_fullscreen {
+        if !cmd_args.iter().any(|a| a == "--fullscreen") {
+            cmd_args.push("--fullscreen".into());
+        }
+    } else {
+        let width = instance.window_width.unwrap_or(global_settings.window.width);
+        let height = instance.window_height.unwrap_or(global_settings.window.height);
+        if !cmd_args.iter().any(|a| a == "--width") {
+            cmd_args.push("--width".into());
+            cmd_args.push(width.to_string());
+        }
+        if !cmd_args.iter().any(|a| a == "--height") {
+            cmd_args.push("--height".into());
+            cmd_args.push(height.to_string());
+        }
+    }
+
+    // Run pre-launch synchronization
+    if let Err(e) = crate::minecraft::sync::sync_before_launch(&app, &instance, &instance_dir) {
+        eprintln!("[Launcher] Warning: Pre-launch sync failed: {e}");
+    }
+
     report_prog("Starting Game", 10, 10, "Launching Minecraft process...");
 
     let mut command = tokio::process::Command::new(&java_bin);
@@ -661,6 +686,8 @@ where
     let app_clone = app.clone();
     let inst_id_clone = instance_id.clone();
     let on_status_clone = Arc::new(on_status);
+    let inst_clone = instance.clone();
+    let inst_dir_clone = instance_dir.clone();
 
     tokio::spawn(async move {
         match child.wait().await {
@@ -670,6 +697,11 @@ where
             Err(e) => {
                 eprintln!("[Launcher] Error waiting for Minecraft process: {e}");
             }
+        }
+
+        // Run post-exit synchronization
+        if let Err(e) = crate::minecraft::sync::sync_after_exit(&app_clone, &inst_clone, &inst_dir_clone) {
+            eprintln!("[Launcher] Warning: Post-exit sync failed: {e}");
         }
 
         let elapsed = SystemTime::now()

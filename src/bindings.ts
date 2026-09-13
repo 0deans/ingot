@@ -43,6 +43,15 @@ export type InstanceConfig = {
 	lastPlayed: number | null,
 	totalPlayTimeSeconds: number,
 	jvmArgs: string[] | null,
+	fullscreen?: boolean | null,
+	windowWidth?: number | null,
+	windowHeight?: number | null,
+	syncOptions?: boolean | null,
+	syncServers?: boolean | null,
+	syncResourcePacks?: boolean | null,
+	syncCommandHistory?: boolean | null,
+	syncCreativeHotbars?: boolean | null,
+	lastSyncedAt?: number | null,
 };
 
 export type InstanceStatusEvent = {
@@ -79,6 +88,43 @@ export type RunningInstanceSummary = {
 	startedAt: number,
 };
 
+export type SharedSyncStatus = {
+	hasOptions: boolean,
+	hasServers: boolean,
+	resourcePacksCount: number,
+	hasCommandHistory: boolean,
+	hasCreativeHotbars: boolean,
+	lastSyncedTimestamp: number | null,
+};
+
+export type SyncConflictInfo = {
+	instanceId: string,
+	instanceName: string,
+	hasInstanceOptions: boolean,
+	hasInstanceServers: boolean,
+	hasSharedOptions: boolean,
+	hasSharedServers: boolean,
+	sharedModified: number | null,
+};
+
+export type SyncReport = {
+	optionsSynced: boolean,
+	serversSynced: boolean,
+	resourcePacksCount: number,
+	commandHistorySynced: boolean,
+	creativeHotbarsSynced: boolean,
+	message: string,
+};
+
+export type SyncSettings = {
+	syncOptions: boolean,
+	syncServers: boolean,
+	syncResourcePacks: boolean,
+	syncCommandHistory: boolean,
+	syncCreativeHotbars: boolean,
+	initializedCategories?: string[],
+};
+
 export type SystemMemoryInfo = {
 	totalBytes: number,
 	availableBytes: number,
@@ -96,17 +142,33 @@ export type VersionManifestEntry = {
 	releaseTime: string,
 	sha1: string,
 };
-const ARGS_MAP = {"":{"add_offline_account":["username"],"apply_ely_skin":["account_id","skin_id","password"],"create_instance":["name","game_version","loader","loader_version"],"delete_instance":["instance_id"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_ely_skins":["page","query","sort","model"],"get_instances":[],"get_launcher_behavior":[],"get_memory_settings":[],"get_running_instances":[],"get_skin_data_url":["skin_url"],"get_system_memory":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"kill_instance":["instance_id"],"launch_instance":["instance_id"],"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_memory_changed":["settings"],"open_instance_folder":["instance_id"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"save_skin_to_downloads":["username","skin_url"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"update_instance":["instance"],"upload_ely_skin":["account_id","image_base64","password"]}};
 
-const RESULT_MAP = {"":{"add_offline_account":true,"apply_ely_skin":true,"create_instance":true,"delete_instance":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_ely_skins":true,"get_instances":true,"get_launcher_behavior":true,"get_memory_settings":true,"get_running_instances":true,"get_skin_data_url":true,"get_system_memory":true,"greet":false,"has_ely_web_credentials":true,"kill_instance":true,"launch_instance":true,"on_instance_status_changed":false,"on_launch_progress":false,"on_memory_changed":false,"open_instance_folder":true,"remove_account":true,"reorder_accounts":true,"save_skin_to_downloads":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"update_instance":true,"upload_ely_skin":true}};
+export type WindowSettings = {
+	fullscreen: boolean,
+	width: number,
+	height: number,
+};
+const ARGS_MAP = {"":{"add_offline_account":["username"],"apply_ely_skin":["account_id","skin_id","password"],"check_sync_conflict":["instance_id"],"create_instance":["name","game_version","loader","loader_version"],"delete_instance":["instance_id"],"ely_login":["username","password"],"export_instance_category_to_shared":["instance_id","category"],"get_accounts":[],"get_active_account_token":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_ely_skins":["page","query","sort","model"],"get_instances":[],"get_launcher_behavior":[],"get_memory_settings":[],"get_running_instances":[],"get_shared_sync_status":[],"get_skin_data_url":["skin_url"],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"kill_instance":["instance_id"],"launch_instance":["instance_id"],"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_memory_changed":["settings"],"open_instance_folder":["instance_id"],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"resolve_sync_conflict":["instance_id","resolution"],"save_skin_to_downloads":["username","skin_url"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_sync_settings":["settings"],"set_window_settings":["settings"],"update_instance":["instance"],"upload_ely_skin":["account_id","image_base64","password"]}};
+
+const RESULT_MAP = {"":{"add_offline_account":true,"apply_ely_skin":true,"check_sync_conflict":true,"create_instance":true,"delete_instance":true,"ely_login":true,"export_instance_category_to_shared":true,"get_accounts":true,"get_active_account_token":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_ely_skins":true,"get_instances":true,"get_launcher_behavior":true,"get_memory_settings":true,"get_running_instances":true,"get_shared_sync_status":true,"get_skin_data_url":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"greet":false,"has_ely_web_credentials":true,"kill_instance":true,"launch_instance":true,"on_instance_status_changed":false,"on_launch_progress":false,"on_memory_changed":false,"open_instance_folder":true,"pull_instance_sync":true,"push_instance_sync":true,"remove_account":true,"reorder_accounts":true,"resolve_sync_conflict":true,"save_skin_to_downloads":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_sync_settings":true,"set_window_settings":true,"update_instance":true,"upload_ely_skin":true}};
 
 export type Router = {
 	"": {
 		add_offline_account: (username: string) => Promise<AccountProfile>,
 		apply_ely_skin: (accountId: string, skinId: number, password: string | null) => Promise<null>,
+		check_sync_conflict: (instanceId: string) => Promise<{
+	instanceId: string,
+	instanceName: string,
+	hasInstanceOptions: boolean,
+	hasInstanceServers: boolean,
+	hasSharedOptions: boolean,
+	hasSharedServers: boolean,
+	sharedModified: number | null,
+} | null>,
 		create_instance: (name: string, gameVersion: string, loader: ModLoaderType, loaderVersion: string | null) => Promise<InstanceConfig>,
 		delete_instance: (instanceId: string) => Promise<null>,
 		ely_login: (username: string, password: string) => Promise<AccountProfile>,
+		export_instance_category_to_shared: (instanceId: string, category: string) => Promise<SyncReport>,
 		get_accounts: () => Promise<AccountProfile[]>,
 		get_active_account_token: () => Promise<string>,
 		get_available_game_versions: () => Promise<VersionManifestEntry[]>,
@@ -116,8 +178,11 @@ export type Router = {
 		get_launcher_behavior: () => Promise<string>,
 		get_memory_settings: () => Promise<MemorySettings>,
 		get_running_instances: () => Promise<RunningInstanceSummary[]>,
+		get_shared_sync_status: () => Promise<SharedSyncStatus>,
 		get_skin_data_url: (skinUrl: string) => Promise<string>,
+		get_sync_settings: () => Promise<SyncSettings>,
 		get_system_memory: () => Promise<SystemMemoryInfo>,
+		get_window_settings: () => Promise<WindowSettings>,
 		greet: (name: string) => Promise<string>,
 		has_ely_web_credentials: (accountId: string) => Promise<boolean>,
 		kill_instance: (instanceId: string) => Promise<null>,
@@ -126,12 +191,17 @@ export type Router = {
 		on_launch_progress: { on: (listener: (event: LaunchProgressEvent) => void) => Promise<UnlistenFn> },
 		on_memory_changed: { on: (listener: (settings: MemorySettings) => void) => Promise<UnlistenFn> },
 		open_instance_folder: (instanceId: string) => Promise<null>,
+		pull_instance_sync: (instanceId: string) => Promise<SyncReport>,
+		push_instance_sync: (instanceId: string) => Promise<SyncReport>,
 		remove_account: (accountId: string) => Promise<null>,
 		reorder_accounts: (accountIds: string[]) => Promise<null>,
+		resolve_sync_conflict: (instanceId: string, resolution: string) => Promise<SyncReport>,
 		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
 		set_active_account: (accountId: string) => Promise<null>,
 		set_launcher_behavior: (behavior: string) => Promise<string>,
 		set_memory_settings: (minRamMb: number, maxRamMb: number) => Promise<MemorySettings>,
+		set_sync_settings: (settings: SyncSettings) => Promise<SyncSettings>,
+		set_window_settings: (settings: WindowSettings) => Promise<WindowSettings>,
 		update_instance: (instance: InstanceConfig) => Promise<null>,
 		upload_ely_skin: (accountId: string, imageBase64: string, password: string | null) => Promise<null>,
 	},

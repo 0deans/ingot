@@ -36,6 +36,24 @@ pub struct InstanceConfig {
     pub last_played: Option<u64>,
     pub total_play_time_seconds: u64,
     pub jvm_args: Option<Vec<String>>,
+    #[serde(default)]
+    pub fullscreen: Option<bool>,
+    #[serde(default)]
+    pub window_width: Option<u32>,
+    #[serde(default)]
+    pub window_height: Option<u32>,
+    #[serde(default)]
+    pub sync_options: Option<bool>,
+    #[serde(default)]
+    pub sync_servers: Option<bool>,
+    #[serde(default)]
+    pub sync_resource_packs: Option<bool>,
+    #[serde(default)]
+    pub sync_command_history: Option<bool>,
+    #[serde(default)]
+    pub sync_creative_hotbars: Option<bool>,
+    #[serde(default)]
+    pub last_synced_at: Option<u64>,
 }
 
 pub fn get_instances_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
@@ -129,6 +147,15 @@ pub fn create_instance<R: Runtime>(
         last_played: None,
         total_play_time_seconds: 0,
         jvm_args: None,
+        fullscreen: None,
+        window_width: None,
+        window_height: None,
+        sync_options: None,
+        sync_servers: None,
+        sync_resource_packs: None,
+        sync_command_history: None,
+        sync_creative_hotbars: None,
+        last_synced_at: None,
     };
 
     // Ensure instance dir exists

@@ -40,12 +40,61 @@ fn default_launcher_behavior() -> String {
     BEHAVIOR_KEEP_OPEN.to_string()
 }
 
+#[taurpc::ipc_type]
+#[derive(Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowSettings {
+    pub fullscreen: bool,
+    pub width: u32,
+    pub height: u32,
+}
+
+impl Default for WindowSettings {
+    fn default() -> Self {
+        Self {
+            fullscreen: false,
+            width: 854,
+            height: 480,
+        }
+    }
+}
+
+#[taurpc::ipc_type]
+#[derive(Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncSettings {
+    pub sync_options: bool,
+    pub sync_servers: bool,
+    pub sync_resource_packs: bool,
+    pub sync_command_history: bool,
+    pub sync_creative_hotbars: bool,
+    #[serde(default)]
+    pub initialized_categories: Vec<String>,
+}
+
+impl Default for SyncSettings {
+    fn default() -> Self {
+        Self {
+            sync_options: false,
+            sync_servers: false,
+            sync_resource_packs: false,
+            sync_command_history: false,
+            sync_creative_hotbars: false,
+            initialized_categories: Vec::new(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LauncherSettings {
     pub memory: MemorySettings,
     #[serde(default = "default_launcher_behavior")]
     pub launcher_behavior: String,
+    #[serde(default)]
+    pub window: WindowSettings,
+    #[serde(default)]
+    pub sync: SyncSettings,
 }
 
 impl Default for LauncherSettings {
@@ -53,6 +102,8 @@ impl Default for LauncherSettings {
         Self {
             memory: MemorySettings::default(),
             launcher_behavior: default_launcher_behavior(),
+            window: WindowSettings::default(),
+            sync: SyncSettings::default(),
         }
     }
 }
@@ -158,4 +209,32 @@ pub fn set_launcher_behavior<R: tauri::Runtime>(
     settings.launcher_behavior = behavior.clone();
     save_settings(app, &settings)?;
     Ok(behavior)
+}
+
+pub fn get_window_settings<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> WindowSettings {
+    load_settings(app).window
+}
+
+pub fn set_window_settings<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    window: WindowSettings,
+) -> Result<WindowSettings, String> {
+    let mut settings = load_settings(app);
+    settings.window = window.clone();
+    save_settings(app, &settings)?;
+    Ok(window)
+}
+
+pub fn get_sync_settings<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> SyncSettings {
+    load_settings(app).sync
+}
+
+pub fn set_sync_settings<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    sync: SyncSettings,
+) -> Result<SyncSettings, String> {
+    let mut settings = load_settings(app);
+    settings.sync = sync.clone();
+    save_settings(app, &settings)?;
+    Ok(sync)
 }
