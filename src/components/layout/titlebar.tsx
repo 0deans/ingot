@@ -1,7 +1,6 @@
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Copy, Minus, Square, X } from "lucide-react"
 import { memo, useEffect, useState } from "react"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface TitlebarProps {
 	title?: string
@@ -80,44 +79,32 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 
 			{/* Window control buttons */}
 			<div className="flex items-center gap-0.5">
-				<Tooltip>
-					<TooltipTrigger
-						onClick={handleMinimize}
-						aria-label="Minimize"
-						className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-					>
-						<Minus className="size-3.5" />
-					</TooltipTrigger>
-					<TooltipContent side="bottom" sideOffset={6}>
-						Minimize
-					</TooltipContent>
-				</Tooltip>
+				<button
+					type="button"
+					onClick={handleMinimize}
+					aria-label="Minimize"
+					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+				>
+					<Minus className="size-3.5" />
+				</button>
 
-				<Tooltip>
-					<TooltipTrigger
-						onClick={handleToggleMaximize}
-						aria-label={isMaximized ? "Restore" : "Maximize"}
-						className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-					>
-						{isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
-					</TooltipTrigger>
-					<TooltipContent side="bottom" sideOffset={6}>
-						{isMaximized ? "Restore" : "Maximize"}
-					</TooltipContent>
-				</Tooltip>
+				<button
+					type="button"
+					onClick={handleToggleMaximize}
+					aria-label={isMaximized ? "Restore" : "Maximize"}
+					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+				>
+					{isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
+				</button>
 
-				<Tooltip>
-					<TooltipTrigger
-						onClick={handleClose}
-						aria-label="Close"
-						className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
-					>
-						<X className="size-3.5" />
-					</TooltipTrigger>
-					<TooltipContent side="bottom" sideOffset={6}>
-						Close
-					</TooltipContent>
-				</Tooltip>
+				<button
+					type="button"
+					onClick={handleClose}
+					aria-label="Close"
+					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+				>
+					<X className="size-3.5" />
+				</button>
 			</div>
 		</header>
 	)

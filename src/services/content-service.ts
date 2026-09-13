@@ -1,4 +1,12 @@
-import { type ContentSearchResult, createTauRPCProxy, type UnifiedContentItem } from "@/bindings"
+import {
+	type ContentScreenshot,
+	type ContentSearchResult,
+	createTauRPCProxy,
+	type InstanceConfig,
+	type UnifiedContentDetails,
+	type UnifiedContentItem,
+	type UnifiedContentVersion,
+} from "@/bindings"
 
 const rpc = createTauRPCProxy()
 
@@ -40,6 +48,53 @@ export const contentService = {
 			}
 		}
 	},
+
+	async getContentDetails(
+		source: ContentSource,
+		projectId: string,
+	): Promise<UnifiedContentDetails> {
+		const cleanId = projectId.replace(/^(mr|cf|modrinth|curseforge):/, "")
+		try {
+			return await rpc.get_content_details(source, cleanId)
+		} catch (error) {
+			console.error(`Failed to get content details for ${projectId}:`, error)
+			throw error
+		}
+	},
+
+	async installContentFile(
+		instanceId: string,
+		projectType: string,
+		downloadUrl: string,
+		filename: string,
+	): Promise<string> {
+		try {
+			return await rpc.install_content_file(instanceId, projectType, downloadUrl, filename)
+		} catch (error) {
+			console.error(`Failed to install content file ${filename}:`, error)
+			throw error
+		}
+	},
+
+	async installModpackInstance(
+		name: string,
+		source: ContentSource,
+		downloadUrl: string,
+		filename: string,
+	): Promise<InstanceConfig> {
+		try {
+			return await rpc.install_modpack_instance(name, source, downloadUrl, filename)
+		} catch (error) {
+			console.error(`Failed to install modpack ${name}:`, error)
+			throw error
+		}
+	},
 }
 
-export type { ContentSearchResult, UnifiedContentItem }
+export type {
+	ContentScreenshot,
+	ContentSearchResult,
+	UnifiedContentDetails,
+	UnifiedContentItem,
+	UnifiedContentVersion,
+}

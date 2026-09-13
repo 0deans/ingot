@@ -27,7 +27,7 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
 		<DialogPrimitive.Backdrop
 			data-slot="dialog-overlay"
 			className={cn(
-				"data-open:fade-in-0 data-closed:fade-out-0 fixed inset-x-0 top-10 bottom-0 isolate z-50 bg-black/60 duration-100 data-closed:animate-out data-open:animate-in supports-backdrop-filter:backdrop-blur-xs",
+				"fixed inset-x-0 top-10 bottom-0 isolate z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-200 ease-out data-closed:opacity-0 data-ending-style:opacity-0 data-open:opacity-100 data-starting-style:opacity-0",
 				className,
 			)}
 			{...props}
@@ -49,7 +49,7 @@ function DialogContent({
 			<DialogPrimitive.Popup
 				data-slot="dialog-content"
 				className={cn(
-					"data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 -translate-1/2 fixed top-[calc(50%+1.25rem)] left-1/2 z-50 flex max-h-[calc(100vh-3.5rem)] min-h-0 w-full max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden rounded-xl bg-popover p-4 text-popover-foreground text-sm outline-none ring-1 ring-foreground/10 duration-100 data-closed:animate-out data-open:animate-in sm:max-w-sm sm:p-5",
+					"-translate-1/2 fixed top-[calc(50%+1.25rem)] left-1/2 z-50 flex max-h-[calc(100vh-3.5rem)] min-h-0 w-full max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden rounded-xl bg-popover p-4 text-popover-foreground text-sm outline-none ring-1 ring-foreground/10 transition-[opacity,transform] duration-200 ease-out data-closed:scale-95 data-ending-style:scale-95 data-open:scale-100 data-starting-style:scale-95 data-closed:opacity-0 data-ending-style:opacity-0 data-open:opacity-100 data-starting-style:opacity-0 sm:max-w-sm sm:p-5",
 					className,
 				)}
 				{...props}

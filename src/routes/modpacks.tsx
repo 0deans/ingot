@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { openUrl } from "@tauri-apps/plugin-opener"
 import {
 	Box,
+	Check,
 	ChevronLeft,
 	ChevronRight,
 	Download,
-	ExternalLink,
 	Flame,
+	Info,
 	Package,
 	Paintbrush,
 	RefreshCw,
@@ -16,15 +16,25 @@ import {
 	X,
 } from "lucide-react"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
+import { ContentDetailsDialog } from "@/components/content/content-details-dialog"
+import { InstallDialog } from "@/components/content/install-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select"
 import {
 	type ContentSort,
 	type ContentSource,
 	type ContentType,
 	contentService,
 	type UnifiedContentItem,
+	type UnifiedContentVersion,
 } from "@/services/content-service"
 
 const CATEGORIES: { id: ContentType; label: string; icon: typeof Sparkles }[] = [
@@ -90,6 +100,12 @@ const ModpacksPage = () => {
 	const [totalHits, setTotalHits] = useState(0)
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+
+	// Modal States
+	const [detailsItem, setDetailsItem] = useState<UnifiedContentItem | null>(null)
+	const [installItem, setInstallItem] = useState<UnifiedContentItem | null>(null)
+	const [installVersion, setInstallVersion] = useState<UnifiedContentVersion | null>(null)
+	const [successNotification, setSuccessNotification] = useState<string | null>(null)
 
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const searchCountRef = useRef(0)
@@ -206,13 +222,18 @@ const ModpacksPage = () => {
 		setPage(0)
 	}
 
-	const handleOpenWebsite = async (url: string | null) => {
-		if (!url) return
-		try {
-			await openUrl(url)
-		} catch {
-			window.open(url, "_blank")
-		}
+	const handleCardClick = (item: UnifiedContentItem) => {
+		setDetailsItem(item)
+	}
+
+	const handleStartInstall = (item: UnifiedContentItem, specificVer?: UnifiedContentVersion) => {
+		setInstallItem(item)
+		setInstallVersion(specificVer ?? null)
+	}
+
+	const handleInstallSuccess = (message: string) => {
+		setSuccessNotification(message)
+		setTimeout(() => setSuccessNotification(null), 5000)
 	}
 
 	const totalPages = Math.ceil(totalHits / PAGE_SIZE)
@@ -220,6 +241,23 @@ const ModpacksPage = () => {
 	return (
 		<ScrollArea className="flex-1" scrollFade>
 			<div className="flex flex-col gap-6 p-6">
+				{/* Notification Banner */}
+				{successNotification && (
+					<div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-300 text-xs shadow-sm">
+						<div className="flex items-center gap-2">
+							<Check className="size-4 text-emerald-400" />
+							<span className="font-medium">{successNotification}</span>
+						</div>
+						<button
+							type="button"
+							onClick={() => setSuccessNotification(null)}
+							className="text-muted-foreground hover:text-foreground"
+						>
+							<X className="size-3.5" />
+						</button>
+					</div>
+				)}
+
 				{/* Header */}
 				<div className="flex flex-col gap-2">
 					<div className="flex items-center gap-2">
@@ -227,8 +265,8 @@ const ModpacksPage = () => {
 						<h1 className="font-bold text-2xl text-foreground tracking-tight">Discover Content</h1>
 					</div>
 					<p className="text-muted-foreground text-sm">
-						Browse and search mods, modpacks, resource packs, and shaders from Modrinth and
-						CurseForge.
+						Search and install mods, modpacks, resource packs, and shaders directly into your
+						instances from Modrinth and CurseForge.
 					</p>
 				</div>
 
@@ -245,7 +283,7 @@ const ModpacksPage = () => {
 									setSearchQuery(e.target.value)
 									setPage(0)
 								}}
-								placeholder="Search mods, modpacks, resource packs..."
+								placeholder="Search mods, modpacks, resource packs, shaders..."
 								className="h-10 px-9 text-sm"
 							/>
 							{searchQuery && (
@@ -311,49 +349,61 @@ const ModpacksPage = () => {
 						{/* Loader Selector */}
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground text-xs">Loader:</span>
-							<select
-								value={activeLoader}
-								onChange={(e) => handleLoaderChange(e.target.value)}
-								className="h-8 rounded-md border border-input bg-zinc-900/90 px-2.5 text-foreground text-xs outline-none focus:border-primary"
+							<Select
+								value={activeLoader || "all"}
+								onValueChange={(val) => handleLoaderChange(!val || val === "all" ? "" : val)}
 							>
-								{LOADERS.map((ldr) => (
-									<option key={ldr.id} value={ldr.id}>
-										{ldr.label}
-									</option>
-								))}
-							</select>
+								<SelectTrigger className="h-8 w-28 text-xs">
+									<SelectValue placeholder="All Loaders" />
+								</SelectTrigger>
+								<SelectContent>
+									{LOADERS.map((ldr) => (
+										<SelectItem key={ldr.id || "all"} value={ldr.id || "all"}>
+											{ldr.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 
 						{/* Version Selector */}
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground text-xs">Version:</span>
-							<select
-								value={activeVersion}
-								onChange={(e) => handleVersionChange(e.target.value)}
-								className="h-8 rounded-md border border-input bg-zinc-900/90 px-2.5 text-foreground text-xs outline-none focus:border-primary"
+							<Select
+								value={activeVersion || "all"}
+								onValueChange={(val) => handleVersionChange(!val || val === "all" ? "" : val)}
 							>
-								{POPULAR_VERSIONS.map((v) => (
-									<option key={v.id} value={v.id}>
-										{v.label}
-									</option>
-								))}
-							</select>
+								<SelectTrigger className="h-8 w-32 text-xs">
+									<SelectValue placeholder="All Versions" />
+								</SelectTrigger>
+								<SelectContent>
+									{POPULAR_VERSIONS.map((v) => (
+										<SelectItem key={v.id || "all"} value={v.id || "all"}>
+											{v.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 
 						{/* Sort Selector */}
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground text-xs">Sort:</span>
-							<select
+							<Select
 								value={activeSort}
-								onChange={(e) => handleSortChange(e.target.value as ContentSort)}
-								className="h-8 rounded-md border border-input bg-zinc-900/90 px-2.5 text-foreground text-xs outline-none focus:border-primary"
+								onValueChange={(val) => val && handleSortChange(val as ContentSort)}
 							>
-								{SORTS.map((s) => (
-									<option key={s.id} value={s.id}>
-										{s.label}
-									</option>
-								))}
-							</select>
+								<SelectTrigger className="h-8 w-36 text-xs">
+									<SelectValue placeholder="Sort by" />
+								</SelectTrigger>
+								<SelectContent>
+									{SORTS.map((s) => (
+										<SelectItem key={s.id} value={s.id}>
+											{s.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 
 						{/* Active Filters Clear */}
@@ -508,9 +558,12 @@ const ModpacksPage = () => {
 				) : (
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{items.map((item) => (
+							// biome-ignore lint/a11y/useKeyWithClickEvents: Clicking card opens details dialog
+							// biome-ignore lint/a11y/noStaticElementInteractions: Clicking card opens details dialog
 							<div
 								key={`${item.source}-${item.id}`}
-								className="group flex flex-col justify-between rounded-xl border border-border/40 bg-zinc-900/40 p-4 backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-zinc-900/70"
+								onClick={() => handleCardClick(item)}
+								className="group flex cursor-pointer flex-col justify-between rounded-xl border border-border/40 bg-zinc-900/40 p-4 backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-zinc-900/70"
 							>
 								<div className="flex flex-col gap-3">
 									{/* Top row: Icon + Info */}
@@ -590,17 +643,33 @@ const ModpacksPage = () => {
 										<span>{formatDownloads(item.downloads)}</span>
 									</div>
 
-									{item.websiteUrl && (
+									<div className="flex items-center gap-1.5">
 										<Button
 											size="sm"
 											variant="ghost"
-											onClick={() => handleOpenWebsite(item.websiteUrl)}
-											className="h-7 gap-1 px-2 text-xs hover:text-foreground"
+											onClick={(e) => {
+												e.stopPropagation()
+												handleCardClick(item)
+											}}
+											className="h-7 px-2 text-muted-foreground text-xs hover:text-foreground"
 										>
-											<ExternalLink className="size-3" />
-											View
+											<Info className="size-3" />
+											Details
 										</Button>
-									)}
+
+										<Button
+											size="sm"
+											variant="default"
+											onClick={(e) => {
+												e.stopPropagation()
+												handleStartInstall(item)
+											}}
+											className="h-7 gap-1 px-2.5 font-semibold text-xs"
+										>
+											<Download className="size-3" />
+											{item.projectType === "modpack" ? "Install" : "Add"}
+										</Button>
+									</div>
 								</div>
 							</div>
 						))}
@@ -642,6 +711,33 @@ const ModpacksPage = () => {
 					</div>
 				)}
 			</div>
+
+			{/* Details Modal */}
+			<ContentDetailsDialog
+				open={detailsItem !== null}
+				onOpenChange={(open) => {
+					if (!open) setDetailsItem(null)
+				}}
+				item={detailsItem}
+				onInstall={(item, ver) => {
+					setDetailsItem(null)
+					handleStartInstall(item, ver)
+				}}
+			/>
+
+			{/* Install Modal */}
+			<InstallDialog
+				open={installItem !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setInstallItem(null)
+						setInstallVersion(null)
+					}
+				}}
+				item={installItem}
+				specificVersion={installVersion}
+				onSuccess={handleInstallSuccess}
+			/>
 		</ScrollArea>
 	)
 }

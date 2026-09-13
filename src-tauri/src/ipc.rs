@@ -1,5 +1,5 @@
 use crate::account::{self, AccountProfile};
-use crate::minecraft::content::{self, ContentSearchResult};
+use crate::minecraft::content::{self, ContentSearchResult, UnifiedContentDetails};
 use crate::minecraft::importer::{self, DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance};
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use crate::minecraft::launcher::{
@@ -250,6 +250,27 @@ pub trait AppApi {
         page: u32,
         page_size: u32,
     ) -> Result<ContentSearchResult, String>;
+
+    async fn get_content_details(
+        source: String,
+        project_id: String,
+    ) -> Result<UnifiedContentDetails, String>;
+
+    async fn install_content_file(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        project_type: String,
+        download_url: String,
+        filename: String,
+    ) -> Result<String, String>;
+
+    async fn install_modpack_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        name: String,
+        source: String,
+        download_url: String,
+        filename: String,
+    ) -> Result<InstanceConfig, String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -694,5 +715,35 @@ impl AppApi for AppApiImpl {
             page_size,
         )
         .await
+    }
+
+    async fn get_content_details(
+        self,
+        source: String,
+        project_id: String,
+    ) -> Result<UnifiedContentDetails, String> {
+        content::get_content_details(&source, &project_id).await
+    }
+
+    async fn install_content_file(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        project_type: String,
+        download_url: String,
+        filename: String,
+    ) -> Result<String, String> {
+        content::install_content_file(&app_handle, &instance_id, &project_type, &download_url, &filename).await
+    }
+
+    async fn install_modpack_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        name: String,
+        source: String,
+        download_url: String,
+        filename: String,
+    ) -> Result<InstanceConfig, String> {
+        content::install_modpack_instance(&app_handle, &name, &source, &download_url, &filename).await
     }
 }
