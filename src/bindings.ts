@@ -47,9 +47,9 @@ export type SystemMemoryInfo = {
 	availableMb: number,
 	usedMb: number,
 };
-const ARGS_MAP = {"":{"add_offline_account":["username"],"apply_ely_skin":["account_id","skin_id","password"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_ely_skins":["page","query","sort","model"],"get_memory_settings":[],"get_skin_data_url":["skin_url"],"get_system_memory":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"on_memory_changed":["settings"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"save_skin_to_downloads":["username","skin_url"],"set_active_account":["account_id"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"upload_ely_skin":["account_id","image_base64","password"]}};
+const ARGS_MAP = {"":{"add_offline_account":["username"],"apply_ely_skin":["account_id","skin_id","password"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_ely_skins":["page","query","sort","model"],"get_launcher_behavior":[],"get_memory_settings":[],"get_skin_data_url":["skin_url"],"get_system_memory":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"on_memory_changed":["settings"],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"save_skin_to_downloads":["username","skin_url"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"upload_ely_skin":["account_id","image_base64","password"]}};
 
-const RESULT_MAP = {"":{"add_offline_account":true,"apply_ely_skin":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_ely_skins":true,"get_memory_settings":true,"get_skin_data_url":true,"get_system_memory":true,"greet":false,"has_ely_web_credentials":true,"on_memory_changed":false,"remove_account":true,"reorder_accounts":true,"save_skin_to_downloads":true,"set_active_account":true,"set_memory_settings":true,"upload_ely_skin":true}};
+const RESULT_MAP = {"":{"add_offline_account":true,"apply_ely_skin":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_ely_skins":true,"get_launcher_behavior":true,"get_memory_settings":true,"get_skin_data_url":true,"get_system_memory":true,"greet":false,"has_ely_web_credentials":true,"on_memory_changed":false,"remove_account":true,"reorder_accounts":true,"save_skin_to_downloads":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"upload_ely_skin":true}};
 
 export type Router = {
 	"": {
@@ -59,6 +59,7 @@ export type Router = {
 		get_accounts: () => Promise<AccountProfile[]>,
 		get_active_account_token: () => Promise<string>,
 		get_ely_skins: (page: number, query: string | null, sort: string | null, model: string | null) => Promise<ElySkinsCatalogResponse>,
+		get_launcher_behavior: () => Promise<string>,
 		get_memory_settings: () => Promise<MemorySettings>,
 		get_skin_data_url: (skinUrl: string) => Promise<string>,
 		get_system_memory: () => Promise<SystemMemoryInfo>,
@@ -69,6 +70,7 @@ export type Router = {
 		reorder_accounts: (accountIds: string[]) => Promise<null>,
 		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
 		set_active_account: (accountId: string) => Promise<null>,
+		set_launcher_behavior: (behavior: string) => Promise<string>,
 		set_memory_settings: (minRamMb: number, maxRamMb: number) => Promise<MemorySettings>,
 		upload_ely_skin: (accountId: string, imageBase64: string, password: string | null) => Promise<null>,
 	},

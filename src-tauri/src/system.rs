@@ -32,10 +32,29 @@ impl Default for MemorySettings {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub const BEHAVIOR_KEEP_OPEN: &str = "keepOpen";
+pub const BEHAVIOR_HIDE_TO_TRAY: &str = "hideToTray";
+pub const BEHAVIOR_CLOSE: &str = "close";
+
+fn default_launcher_behavior() -> String {
+    BEHAVIOR_KEEP_OPEN.to_string()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LauncherSettings {
     pub memory: MemorySettings,
+    #[serde(default = "default_launcher_behavior")]
+    pub launcher_behavior: String,
+}
+
+impl Default for LauncherSettings {
+    fn default() -> Self {
+        Self {
+            memory: MemorySettings::default(),
+            launcher_behavior: default_launcher_behavior(),
+        }
+    }
 }
 
 fn get_settings_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
@@ -118,4 +137,25 @@ pub fn set_memory_settings<R: tauri::Runtime>(
     settings.memory = mem.clone();
     save_settings(app, &settings)?;
     Ok(mem)
+}
+
+pub fn get_launcher_behavior<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> String {
+    load_settings(app).launcher_behavior
+}
+
+pub fn set_launcher_behavior<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    behavior: String,
+) -> Result<String, String> {
+    let valid = match behavior.as_str() {
+        BEHAVIOR_KEEP_OPEN | BEHAVIOR_HIDE_TO_TRAY | BEHAVIOR_CLOSE => true,
+        _ => false,
+    };
+    if !valid {
+        return Err(format!("Invalid launcher behavior: {behavior}"));
+    }
+    let mut settings = load_settings(app);
+    settings.launcher_behavior = behavior.clone();
+    save_settings(app, &settings)?;
+    Ok(behavior)
 }

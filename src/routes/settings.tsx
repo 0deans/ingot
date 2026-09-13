@@ -31,9 +31,9 @@ import {
 import MemoryAllocation from "@/components/settings/memory-allocation"
 import SkinCatalogDialog from "@/components/skins/skin-catalog-dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { useAccounts } from "@/services/account-service"
+import { type LauncherBehavior, useLauncherBehavior } from "@/services/settings-service"
 import type { AccountProfile } from "@/types/account"
 
 const dropAnimationConfig: DropAnimation = {
@@ -50,8 +50,15 @@ const dropAnimationConfig: DropAnimation = {
 
 const modifiers = [restrictToVerticalAxis, restrictToParentElement]
 
+const LAUNCHER_BEHAVIOR_OPTIONS: { id: LauncherBehavior; label: string }[] = [
+	{ id: "keepOpen", label: "Keep Launcher Open" },
+	{ id: "hideToTray", label: "Hide Launcher to System Tray" },
+	{ id: "close", label: "Close Launcher" },
+]
+
 const SettingsPage = () => {
 	const { accounts, setActiveAccount, removeAccount, reorderAccounts } = useAccounts()
+	const { behavior, setLauncherBehavior } = useLauncherBehavior()
 	const [isAddOpen, setIsAddOpen] = useState(false)
 	const [isSkinCatalogOpen, setIsSkinCatalogOpen] = useState(false)
 	const [previewAccount, setPreviewAccount] = useState<AccountProfile | null>(null)
@@ -213,23 +220,6 @@ const SettingsPage = () => {
 					</DndContext>
 				</div>
 
-				{/* Java Runtime */}
-				<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
-					<h3 className="font-semibold text-foreground text-sm">Default Java Runtime</h3>
-					<p className="text-muted-foreground text-xs">
-						Java 21 is required for Minecraft 1.20.5 and newer.
-					</p>
-					<div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-3">
-						<Input
-							defaultValue="C:\Program Files\Eclipse Adoptium\jdk-21.0.3.9-hotspot\bin\javaw.exe"
-							className="flex-1 font-mono text-xs"
-						/>
-						<Button variant="outline" className="shrink-0">
-							Browse
-						</Button>
-					</div>
-				</div>
-
 				{/* Memory Allocation */}
 				<MemoryAllocation />
 
@@ -240,12 +230,25 @@ const SettingsPage = () => {
 						Choose what happens when an instance is launched.
 					</p>
 					<div className="mt-3 flex flex-wrap gap-2">
-						<Button size="sm" variant="outline" className="flex-1 sm:flex-none">
-							Keep Launcher Open
-						</Button>
-						<Button size="sm" variant="outline" className="flex-1 sm:flex-none">
-							Hide Launcher to System Tray
-						</Button>
+						{LAUNCHER_BEHAVIOR_OPTIONS.map((opt) => {
+							const isSelected = behavior === opt.id
+							return (
+								<Button
+									key={opt.id}
+									size="sm"
+									variant={isSelected ? "default" : "outline"}
+									className={cn(
+										"flex-1 transition-all sm:flex-none",
+										isSelected
+											? "bg-primary text-primary-foreground shadow-sm"
+											: "text-muted-foreground hover:text-foreground",
+									)}
+									onClick={() => setLauncherBehavior(opt.id)}
+								>
+									{opt.label}
+								</Button>
+							)
+						})}
 					</div>
 				</div>
 			</div>

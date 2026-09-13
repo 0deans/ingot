@@ -37,6 +37,13 @@ pub trait AppApi {
         min_ram_mb: u32,
         max_ram_mb: u32,
     ) -> Result<MemorySettings, String>;
+    async fn get_launcher_behavior(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<String, String>;
+    async fn set_launcher_behavior(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        behavior: String,
+    ) -> Result<String, String>;
     async fn get_skin_data_url(
         app_handle: tauri::AppHandle<impl Runtime>,
         skin_url: String,
@@ -147,6 +154,21 @@ impl AppApi for AppApiImpl {
         max_ram_mb: u32,
     ) -> Result<MemorySettings, String> {
         system::set_memory_settings(&app_handle, min_ram_mb, max_ram_mb)
+    }
+
+    async fn get_launcher_behavior(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<String, String> {
+        Ok(system::get_launcher_behavior(&app_handle))
+    }
+
+    async fn set_launcher_behavior(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        behavior: String,
+    ) -> Result<String, String> {
+        system::set_launcher_behavior(&app_handle, behavior)
     }
 
     async fn get_skin_data_url(

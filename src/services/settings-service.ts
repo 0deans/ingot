@@ -17,7 +17,53 @@ function notifyMemory(mem: MemorySettings) {
 	}
 }
 
+export type LauncherBehavior = "keepOpen" | "hideToTray" | "close"
+
+let cachedBehavior: LauncherBehavior = "keepOpen"
+const behaviorListeners = new Set<(b: LauncherBehavior) => void>()
+
+function notifyBehavior(b: LauncherBehavior) {
+	cachedBehavior = b
+	for (const listener of behaviorListeners) {
+		listener(b)
+	}
+}
+
 export const settingsService = {
+	getCachedLauncherBehavior(): LauncherBehavior {
+		return cachedBehavior
+	},
+
+	subscribeBehavior(listener: (b: LauncherBehavior) => void): () => void {
+		behaviorListeners.add(listener)
+		listener(cachedBehavior)
+		return () => {
+			behaviorListeners.delete(listener)
+		}
+	},
+
+	async getLauncherBehavior(): Promise<LauncherBehavior> {
+		try {
+			const b = (await rpc.get_launcher_behavior()) as LauncherBehavior
+			notifyBehavior(b)
+			return b
+		} catch (error) {
+			console.error("Failed to load launcher behavior:", error)
+			return cachedBehavior
+		}
+	},
+
+	async setLauncherBehavior(behavior: LauncherBehavior): Promise<LauncherBehavior> {
+		try {
+			const b = (await rpc.set_launcher_behavior(behavior)) as LauncherBehavior
+			notifyBehavior(b)
+			return b
+		} catch (error) {
+			console.error("Failed to save launcher behavior:", error)
+			throw error
+		}
+	},
+
 	getCachedMemorySettings(): MemorySettings {
 		return cachedMemory
 	},
@@ -105,5 +151,30 @@ export function useMemorySettings() {
 		isLoading,
 		setMemorySettings: settingsService.setMemorySettings.bind(settingsService),
 		refreshSystemMemory: settingsService.getSystemMemory.bind(settingsService),
+	}
+}
+
+export function useLauncherBehavior() {
+	const [behavior, setBehavior] = useState<LauncherBehavior>(
+		settingsService.getCachedLauncherBehavior(),
+	)
+	const [isLoading, setIsLoading] = useState(true)
+
+	useEffect(() => {
+		const unsubscribe = settingsService.subscribeBehavior((updated) => {
+			setBehavior(updated)
+		})
+
+		settingsService.getLauncherBehavior().finally(() => {
+			setIsLoading(false)
+		})
+
+		return unsubscribe
+	}, [])
+
+	return {
+		behavior,
+		isLoading,
+		setLauncherBehavior: settingsService.setLauncherBehavior.bind(settingsService),
 	}
 }
