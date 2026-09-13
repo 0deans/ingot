@@ -11,7 +11,7 @@ const RootLayout = () => {
 			<WindowFrame title="Ingot">
 				<Sidebar />
 				<ScrollArea className="size-full flex-1" scrollFade>
-					<main className="flex min-h-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
+					<main className="flex size-full min-h-full flex-1 flex-col p-4 sm:p-5 lg:p-6">
 						<Outlet />
 					</main>
 				</ScrollArea>

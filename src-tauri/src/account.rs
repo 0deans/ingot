@@ -51,8 +51,8 @@ fn load_accounts_file<R: tauri::Runtime>(
         return Ok(Vec::new());
     }
 
-    let data = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read accounts file: {e}"))?;
+    let data =
+        fs::read_to_string(&file_path).map_err(|e| format!("Failed to read accounts file: {e}"))?;
 
     let accounts: Vec<AccountProfile> = serde_json::from_str(&data).unwrap_or_default();
     Ok(accounts)
@@ -66,8 +66,7 @@ fn save_accounts_file<R: tauri::Runtime>(
     let data = serde_json::to_string_pretty(accounts)
         .map_err(|e| format!("Failed to serialize accounts: {e}"))?;
 
-    fs::write(&file_path, data)
-        .map_err(|e| format!("Failed to write accounts file: {e}"))?;
+    fs::write(&file_path, data).map_err(|e| format!("Failed to write accounts file: {e}"))?;
 
     Ok(())
 }
@@ -433,24 +432,43 @@ pub async fn save_skin_to_downloads<R: tauri::Runtime>(
     let download_dir = app
         .path()
         .download_dir()
-        .map_err(|e| format!("Failed to get downloads dir: {e}"))?;
+        .or_else(|_| app.path().app_data_dir())
+        .unwrap_or_else(|_| std::path::PathBuf::from("."));
 
     let clean_user = username
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '_' || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect::<String>();
     let base_name = if clean_user.is_empty() {
         "minecraft-skin".to_string()
     } else {
         format!("{clean_user}-skin")
     };
+    let default_file_name = format!("{base_name}.png");
 
-    let mut target_path = download_dir.join(format!("{base_name}.png"));
-    let mut counter = 1;
-    while target_path.exists() {
-        target_path = download_dir.join(format!("{base_name} ({counter}).png"));
-        counter += 1;
-    }
+    use tauri_plugin_dialog::DialogExt;
+    let file_path = app
+        .dialog()
+        .file()
+        .set_title("Save Skin As")
+        .set_directory(&download_dir)
+        .set_file_name(&default_file_name)
+        .add_filter("PNG Image (*.png)", &["png"])
+        .blocking_save_file();
+
+    let target_path = match file_path {
+        Some(path) => match path.into_path() {
+            Ok(p) => p,
+            Err(_) => return Err("Invalid destination file path".to_string()),
+        },
+        None => return Ok(String::new()), // User cancelled dialog
+    };
 
     fs::write(&target_path, &bytes).map_err(|e| format!("Failed to write skin file: {e}"))?;
 
@@ -523,7 +541,9 @@ pub async fn apply_ely_skin<R: tauri::Runtime>(
     };
 
     let service = ElyAuthService::new();
-    service.wear_skin(&username, &effective_password, skin_id).await?;
+    service
+        .wear_skin(&username, &effective_password, skin_id)
+        .await?;
 
     // Update account skin_url with timestamp to invalidate local cache
     let updated_skin_url = format!(

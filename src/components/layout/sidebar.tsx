@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { Gamepad2, HardDrive, Settings, Sparkles } from "lucide-react"
+import { Gamepad2, HardDrive, Settings, Shirt, Sparkles } from "lucide-react"
 import { memo } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -71,6 +71,27 @@ const Sidebar = () => {
 						}
 					/>
 					<TooltipContent side="right">Modpacks</TooltipContent>
+				</Tooltip>
+
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Link
+								to="/skins"
+								aria-label="Skins Catalog"
+								activeProps={{
+									className: "bg-primary/15 text-primary",
+								}}
+								inactiveProps={{
+									className: "text-muted-foreground hover:bg-muted hover:text-foreground",
+								}}
+								className="inline-flex size-10 items-center justify-center rounded-xl transition-all"
+							>
+								<Shirt className="size-5" />
+							</Link>
+						}
+					/>
+					<TooltipContent side="right">Skins Catalog</TooltipContent>
 				</Tooltip>
 			</div>
 

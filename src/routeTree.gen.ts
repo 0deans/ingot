@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ModpacksRouteImport } from './routes/modpacks'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SkinsRouteImport } from './routes/skins'
 import { Route as StorageRouteImport } from './routes/storage'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SkinsRoute = SkinsRouteImport.update({
+  id: '/skins',
+  path: '/skins',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StorageRoute = StorageRouteImport.update({
   id: '/storage',
   path: '/storage',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/modpacks': typeof ModpacksRoute
   '/settings': typeof SettingsRoute
+  '/skins': typeof SkinsRoute
   '/storage': typeof StorageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/modpacks': typeof ModpacksRoute
   '/settings': typeof SettingsRoute
+  '/skins': typeof SkinsRoute
   '/storage': typeof StorageRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/modpacks': typeof ModpacksRoute
   '/settings': typeof SettingsRoute
+  '/skins': typeof SkinsRoute
   '/storage': typeof StorageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/modpacks' | '/settings' | '/storage'
+  fullPaths: '/' | '/modpacks' | '/settings' | '/skins' | '/storage'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/modpacks' | '/settings' | '/storage'
-  id: '__root__' | '/' | '/modpacks' | '/settings' | '/storage'
+  to: '/' | '/modpacks' | '/settings' | '/skins' | '/storage'
+  id: '__root__' | '/' | '/modpacks' | '/settings' | '/skins' | '/storage'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ModpacksRoute: typeof ModpacksRoute
   SettingsRoute: typeof SettingsRoute
+  SkinsRoute: typeof SkinsRoute
   StorageRoute: typeof StorageRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/skins': {
+      id: '/skins'
+      path: '/skins'
+      fullPath: '/skins'
+      preLoaderRoute: typeof SkinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/storage': {
       id: '/storage'
       path: '/storage'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ModpacksRoute: ModpacksRoute,
   SettingsRoute: SettingsRoute,
+  SkinsRoute: SkinsRoute,
   StorageRoute: StorageRoute,
 }
 export const routeTree = rootRouteImport

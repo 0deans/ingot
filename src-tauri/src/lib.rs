@@ -25,6 +25,7 @@ pub fn run() {
     let _ = taurpc::Exporter::new().export(&router, "../src/bindings.ts");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(router.into_handler())
         .run(tauri::generate_context!())

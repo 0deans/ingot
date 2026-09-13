@@ -221,7 +221,10 @@ impl ElyAuthService {
             .map_err(|e| format!("Failed to fetch Ely.by skins catalog: {e}"))?;
 
         if !res.status().is_success() {
-            return Err(format!("Ely.by responded with HTTP status {}", res.status()));
+            return Err(format!(
+                "Ely.by responded with HTTP status {}",
+                res.status()
+            ));
         }
 
         let raw = res
@@ -251,12 +254,7 @@ impl ElyAuthService {
         })
     }
 
-    pub async fn wear_skin(
-        &self,
-        login: &str,
-        password: &str,
-        skin_id: u64,
-    ) -> Result<(), String> {
+    pub async fn wear_skin(&self, login: &str, password: &str, skin_id: u64) -> Result<(), String> {
         let client = create_authenticated_web_client(login, password).await?;
 
         let res = client
@@ -269,7 +267,10 @@ impl ElyAuthService {
             .map_err(|e| format!("Failed to wear skin request: {e}"))?;
 
         if !res.status().is_success() {
-            return Err(format!("Ely.by responded with HTTP status {}", res.status()));
+            return Err(format!(
+                "Ely.by responded with HTTP status {}",
+                res.status()
+            ));
         }
 
         let json = res
@@ -305,7 +306,10 @@ impl ElyAuthService {
             .map_err(|e| format!("Failed to upload skin request: {e}"))?;
 
         if !res.status().is_success() {
-            return Err(format!("Ely.by responded with HTTP status {}", res.status()));
+            return Err(format!(
+                "Ely.by responded with HTTP status {}",
+                res.status()
+            ));
         }
 
         let json = res
@@ -491,10 +495,7 @@ async fn create_authenticated_web_client(
         .ok_or_else(|| "Missing access_token in Ely.by response".to_string())?;
 
     // Step C: Complete OAuth flow on account.ely.by
-    let query_string = redirect_url
-        .split_once('?')
-        .map(|(_, q)| q)
-        .unwrap_or("");
+    let query_string = redirect_url.split_once('?').map(|(_, q)| q).unwrap_or("");
 
     let complete_url = if query_string.is_empty() {
         "https://account.ely.by/api/oauth2/v1/complete".to_string()

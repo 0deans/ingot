@@ -312,23 +312,14 @@ export function SkinCatalogDialog({ open, onOpenChange, initialAccount }: SkinCa
 	// Download skin locally
 	const handleDownloadSkin = async (skinUrl: string, name: string) => {
 		try {
-			await accountService.saveSkinToDownloads(name, skinUrl)
+			const savedPath = await accountService.saveSkinToDownloads(name, skinUrl)
+			if (!savedPath) return // User cancelled file dialog
 			setApplyStatusMessage({
 				type: "success",
-				text: "Skin saved to your Downloads folder!",
+				text: "Skin saved successfully!",
 			})
-		} catch {
-			try {
-				const link = document.createElement("a")
-				link.href = skinUrl
-				link.download = `${name}-skin.png`
-				link.target = "_blank"
-				document.body.appendChild(link)
-				link.click()
-				document.body.removeChild(link)
-			} catch (err) {
-				console.error("Failed to download skin:", err)
-			}
+		} catch (err: unknown) {
+			console.error("Failed to download skin:", err)
 		}
 	}
 

@@ -53,16 +53,17 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 							render={
 								<DropdownMenuTrigger
 									aria-label="User profile"
-									className="group relative flex size-10 items-center justify-center rounded-xl border border-border/40 bg-zinc-900/40 outline-none transition-all hover:border-primary/50 hover:bg-zinc-800/80 focus-visible:ring-2 focus-visible:ring-primary/40"
+									className="group relative flex size-10 items-center justify-center rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary/40"
 								>
 									<SkinAvatar
 										username={activeAccount ? activeAccount.username : "Player"}
 										skinUrl={activeAccount?.skinUrl}
-										size={28}
+										size={32}
+										className="transition-all group-hover:ring-2 group-hover:ring-primary/40"
 									/>
 									{activeAccount?.accountType === "ely" && (
 										<span
-											className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-zinc-950 bg-emerald-500"
+											className="absolute right-0.5 bottom-0.5 size-2.5 rounded-full border-2 border-zinc-950 bg-emerald-500"
 											title="Secured via Ely.by"
 										/>
 									)}
