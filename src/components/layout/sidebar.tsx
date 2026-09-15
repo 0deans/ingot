@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { Camera, Gamepad2, Settings, Shirt, Sparkles } from "lucide-react"
+import { Camera, Gamepad2, Server, Settings, Shirt, Sparkles } from "lucide-react"
 import { memo } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -92,6 +92,27 @@ const Sidebar = () => {
 						}
 					/>
 					<TooltipContent side="right">Screenshots</TooltipContent>
+				</Tooltip>
+
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Link
+								to="/servers"
+								aria-label="Dedicated Servers"
+								activeProps={{
+									className: "bg-primary/15 text-primary",
+								}}
+								inactiveProps={{
+									className: "text-muted-foreground hover:bg-muted hover:text-foreground",
+								}}
+								className="inline-flex size-10 items-center justify-center rounded-xl transition-all"
+							>
+								<Server className="size-5" />
+							</Link>
+						}
+					/>
+					<TooltipContent side="right">Dedicated Servers</TooltipContent>
 				</Tooltip>
 			</div>
 

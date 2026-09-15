@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ModpacksRouteImport } from './routes/modpacks'
 import { Route as ScreenshotsRouteImport } from './routes/screenshots'
+import { Route as ServersRouteImport } from './routes/servers'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SkinsRouteImport } from './routes/skins'
 
@@ -30,6 +31,11 @@ const ScreenshotsRoute = ScreenshotsRouteImport.update({
   path: '/screenshots',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServersRoute = ServersRouteImport.update({
+  id: '/servers',
+  path: '/servers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/modpacks': typeof ModpacksRoute
   '/screenshots': typeof ScreenshotsRoute
+  '/servers': typeof ServersRoute
   '/settings': typeof SettingsRoute
   '/skins': typeof SkinsRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/modpacks': typeof ModpacksRoute
   '/screenshots': typeof ScreenshotsRoute
+  '/servers': typeof ServersRoute
   '/settings': typeof SettingsRoute
   '/skins': typeof SkinsRoute
 }
@@ -60,21 +68,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/modpacks': typeof ModpacksRoute
   '/screenshots': typeof ScreenshotsRoute
+  '/servers': typeof ServersRoute
   '/settings': typeof SettingsRoute
   '/skins': typeof SkinsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/modpacks' | '/screenshots' | '/settings' | '/skins'
+  fullPaths:
+    '/' | '/modpacks' | '/screenshots' | '/servers' | '/settings' | '/skins'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/modpacks' | '/screenshots' | '/settings' | '/skins'
-  id: '__root__' | '/' | '/modpacks' | '/screenshots' | '/settings' | '/skins'
+  to: '/' | '/modpacks' | '/screenshots' | '/servers' | '/settings' | '/skins'
+  id:
+    | '__root__'
+    | '/'
+    | '/modpacks'
+    | '/screenshots'
+    | '/servers'
+    | '/settings'
+    | '/skins'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ModpacksRoute: typeof ModpacksRoute
   ScreenshotsRoute: typeof ScreenshotsRoute
+  ServersRoute: typeof ServersRoute
   SettingsRoute: typeof SettingsRoute
   SkinsRoute: typeof SkinsRoute
 }
@@ -102,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScreenshotsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/servers': {
+      id: '/servers'
+      path: '/servers'
+      fullPath: '/servers'
+      preLoaderRoute: typeof ServersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -123,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ModpacksRoute: ModpacksRoute,
   ScreenshotsRoute: ScreenshotsRoute,
+  ServersRoute: ServersRoute,
   SettingsRoute: SettingsRoute,
   SkinsRoute: SkinsRoute,
 }

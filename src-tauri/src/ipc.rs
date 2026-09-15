@@ -9,15 +9,24 @@ use crate::minecraft::loader;
 use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
+use crate::server::{
+    self, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent, ServerProperties,
+    ServerProcessManager, ServerStatusEvent,
+};
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
 use tauri::{Manager, Runtime};
 
 static PROCESS_MANAGER: OnceLock<ProcessManager> = OnceLock::new();
+static SERVER_PROCESS_MANAGER: OnceLock<ServerProcessManager> = OnceLock::new();
 static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 fn get_process_manager() -> &'static ProcessManager {
     PROCESS_MANAGER.get_or_init(ProcessManager::new)
+}
+
+fn get_server_process_manager() -> &'static ServerProcessManager {
+    SERVER_PROCESS_MANAGER.get_or_init(ServerProcessManager::new)
 }
 
 fn get_http_client() -> &'static reqwest::Client {
@@ -272,6 +281,68 @@ pub trait AppApi {
         filename: String,
     ) -> Result<InstanceConfig, String>;
 
+    // Dedicated Server Management
+    async fn get_servers(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<ServerConfig>, String>;
+
+    async fn create_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        name: String,
+        core: ServerCoreType,
+        game_version: String,
+        build_number: Option<String>,
+        port: Option<u16>,
+        memory_min_mb: Option<u32>,
+        memory_max_mb: Option<u32>,
+    ) -> Result<ServerConfig, String>;
+
+    async fn delete_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        delete_files: bool,
+    ) -> Result<(), String>;
+
+    async fn update_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server: ServerConfig,
+    ) -> Result<(), String>;
+
+    async fn get_server_properties(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<ServerProperties, String>;
+
+    async fn set_server_properties(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        properties: ServerProperties,
+    ) -> Result<(), String>;
+
+    async fn open_server_folder(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
+
+    async fn start_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<u32, String>;
+
+    async fn stop_server(server_id: String) -> Result<(), String>;
+
+    async fn kill_server(server_id: String) -> Result<(), String>;
+
+    async fn send_server_command(server_id: String, command: String) -> Result<(), String>;
+
+    async fn get_running_servers() -> Result<Vec<RunningServerSummary>, String>;
+
+    async fn get_server_logs(server_id: String) -> Result<Vec<String>, String>;
+
+    async fn get_available_server_core_versions(
+        core: ServerCoreType,
+    ) -> Result<Vec<String>, String>;
+
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
 
@@ -280,6 +351,12 @@ pub trait AppApi {
 
     #[taurpc(event)]
     async fn on_launch_progress(event: LaunchProgressEvent);
+
+    #[taurpc(event)]
+    async fn on_server_log(event: ServerLogEvent);
+
+    #[taurpc(event)]
+    async fn on_server_status_changed(event: ServerStatusEvent);
 }
 
 #[derive(Clone)]
@@ -745,5 +822,156 @@ impl AppApi for AppApiImpl {
         filename: String,
     ) -> Result<InstanceConfig, String> {
         content::install_modpack_instance(&app_handle, &name, &source, &download_url, &filename).await
+    }
+
+    async fn get_servers(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<ServerConfig>, String> {
+        server::load_servers(&app_handle)
+    }
+
+    async fn create_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        name: String,
+        core: ServerCoreType,
+        game_version: String,
+        build_number: Option<String>,
+        port: Option<u16>,
+        memory_min_mb: Option<u32>,
+        memory_max_mb: Option<u32>,
+    ) -> Result<ServerConfig, String> {
+        server::create_server(
+            &app_handle,
+            name,
+            core,
+            game_version,
+            build_number,
+            port,
+            memory_min_mb,
+            memory_max_mb,
+        )
+    }
+
+    async fn delete_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        delete_files: bool,
+    ) -> Result<(), String> {
+        server::delete_server(&app_handle, &server_id, delete_files)
+    }
+
+    async fn update_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server: ServerConfig,
+    ) -> Result<(), String> {
+        server::update_server(&app_handle, server)
+    }
+
+    async fn get_server_properties(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<ServerProperties, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::read_server_properties_from_dir(&dir)
+    }
+
+    async fn set_server_properties(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        properties: ServerProperties,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::write_server_properties_to_dir(&dir, &properties)
+    }
+
+    async fn open_server_folder(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        let path_str = dir.to_string_lossy().to_string();
+        #[cfg(target_os = "windows")]
+        {
+            let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
+        }
+        #[cfg(target_os = "macos")]
+        {
+            let _ = std::process::Command::new("open").arg(&path_str).spawn();
+        }
+        #[cfg(target_os = "linux")]
+        {
+            let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
+        }
+        Ok(())
+    }
+
+    async fn start_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<u32, String> {
+        let servers = server::load_servers(&app_handle)?;
+        let config = servers
+            .into_iter()
+            .find(|s| s.id == server_id)
+            .ok_or_else(|| format!("Server not found: {}", server_id))?;
+
+        let pm = get_server_process_manager().clone();
+        let client = get_http_client().clone();
+        let app = app_handle.clone();
+
+        let app_log = app_handle.clone();
+        let on_log = move |ev: ServerLogEvent| {
+            let trigger = TauRpcAppApiEventTrigger::new(app_log.clone());
+            if let Err(e) = trigger.on_server_log(ev) {
+                eprintln!("[IPC] Failed to emit on_server_log: {e}");
+            }
+        };
+
+        let app_status = app_handle.clone();
+        let on_status = move |ev: ServerStatusEvent| {
+            let trigger = TauRpcAppApiEventTrigger::new(app_status.clone());
+            if let Err(e) = trigger.on_server_status_changed(ev) {
+                eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
+            }
+        };
+
+        server::launch_server(app, pm, client, config, on_log, on_status).await
+    }
+
+    async fn stop_server(self, server_id: String) -> Result<(), String> {
+        get_server_process_manager().stop_server(&server_id).await
+    }
+
+    async fn kill_server(self, server_id: String) -> Result<(), String> {
+        get_server_process_manager().kill_server(&server_id).await
+    }
+
+    async fn send_server_command(self, server_id: String, command: String) -> Result<(), String> {
+        get_server_process_manager()
+            .send_command(&server_id, &command)
+            .await
+    }
+
+    async fn get_running_servers(self) -> Result<Vec<RunningServerSummary>, String> {
+        Ok(get_server_process_manager().get_running_servers().await)
+    }
+
+    async fn get_server_logs(self, server_id: String) -> Result<Vec<String>, String> {
+        Ok(get_server_process_manager().get_server_logs(&server_id).await)
+    }
+
+    async fn get_available_server_core_versions(
+        self,
+        core: ServerCoreType,
+    ) -> Result<Vec<String>, String> {
+        server::fetch_core_versions(get_http_client(), &core).await
     }
 }

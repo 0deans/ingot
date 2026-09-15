@@ -3,6 +3,7 @@ pub mod auth;
 pub mod ipc;
 pub mod keyring_store;
 pub mod minecraft;
+pub mod server;
 pub mod system;
 
 use ipc::{AppApi, AppApiImpl};
