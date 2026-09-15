@@ -430,7 +430,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	}
 
 	return (
-		<div className="flex size-full min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+		<div className="flex size-full min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 sm:p-5 lg:p-6">
 			{/* Page Header */}
 			<div className="flex shrink-0 flex-col justify-between gap-2 sm:flex-row sm:items-center">
 				<div>
@@ -834,7 +834,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																className="transition-transform duration-200 group-hover:scale-105"
 															/>
 															{skin.isSlim && (
-																<span className="absolute bottom-1.5 left-1.5 rounded-xs border border-zinc-700/60 bg-zinc-900/90 px-1 py-0.2 font-mono text-[9px] text-zinc-400">
+																<span className="absolute bottom-1.5 left-1.5 rounded-xs border border-zinc-700/60 bg-zinc-900/90 px-1.5 py-0.5 font-mono text-[9px] text-zinc-400">
 																	Slim
 																</span>
 															)}
@@ -1001,8 +1001,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						</div>
 
 						{/* Right Content Panel: Upload & Configuration */}
-						<ScrollArea scrollFade className="flex-1 p-5 lg:p-8">
-							<div className="mx-auto flex w-full max-w-xl flex-col gap-5 py-2">
+						<ScrollArea scrollFade className="flex-1" viewportClassName="p-5 lg:p-8">
+							<div className="mx-auto flex w-full max-w-xl flex-col gap-5">
 								<div>
 									<h2 className="font-semibold text-base text-zinc-100">Upload Custom Skin</h2>
 									<p className="mt-0.5 text-xs text-zinc-400">

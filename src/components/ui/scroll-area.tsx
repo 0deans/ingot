@@ -22,7 +22,7 @@ function ScrollArea({
 			<ScrollAreaPrimitive.Viewport
 				data-slot="scroll-area-viewport"
 				className={cn(
-					"size-full min-h-0 flex-1 rounded-[inherit] outline-none transition-[color,box-shadow] focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50",
+					"size-full min-h-0 flex-1 rounded-[inherit] outline-none transition-[color,box-shadow] [-ms-overflow-style:none] [scrollbar-width:none] focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50 [&::-webkit-scrollbar]:hidden",
 					scrollFade && "scroll-fade",
 					viewportClassName,
 				)}

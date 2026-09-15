@@ -489,7 +489,7 @@ export function SkinCatalogDialog({ open, onOpenChange, initialAccount }: SkinCa
 											<span>Updating...</span>
 										</div>
 									)}
-									<ScrollArea className="flex-1 p-3 sm:p-4">
+									<ScrollArea className="flex-1" viewportClassName="p-3 sm:p-4">
 										{isLoadingCatalog && skins.length === 0 ? (
 											<div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-2 text-zinc-400">
 												<Loader2 className="size-6 animate-spin text-emerald-400" />
@@ -545,7 +545,7 @@ export function SkinCatalogDialog({ open, onOpenChange, initialAccount }: SkinCa
 																	className="transition-transform group-hover:scale-105"
 																/>
 																{skin.isSlim && (
-																	<span className="absolute right-1 bottom-1 rounded-xs border border-zinc-700 bg-zinc-900/90 px-1 py-0.2 font-mono text-[9px] text-zinc-300">
+																	<span className="absolute right-1 bottom-1 rounded-xs border border-zinc-700 bg-zinc-900/90 px-1.5 py-0.5 font-mono text-[9px] text-zinc-300">
 																		Slim
 																	</span>
 																)}
@@ -569,7 +569,7 @@ export function SkinCatalogDialog({ open, onOpenChange, initialAccount }: SkinCa
 																	{skin.tags.slice(0, 2).map((t) => (
 																		<span
 																			key={t}
-																			className="max-w-[70px] truncate rounded bg-zinc-800 px-1 py-0.1 text-[9px] text-zinc-400"
+																			className="max-w-[70px] truncate rounded bg-zinc-800 px-1.5 py-0.5 text-[9px] text-zinc-400"
 																		>
 																			{t}
 																		</span>

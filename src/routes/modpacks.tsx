@@ -239,8 +239,8 @@ const ModpacksPage = () => {
 	const totalPages = Math.ceil(totalHits / PAGE_SIZE)
 
 	return (
-		<ScrollArea className="flex-1" scrollFade>
-			<div className="flex flex-col gap-6 p-6">
+		<ScrollArea className="size-full flex-1" scrollFade>
+			<div className="flex flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Notification Banner */}
 				{successNotification && (
 					<div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-300 text-xs shadow-sm">

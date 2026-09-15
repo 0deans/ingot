@@ -120,8 +120,6 @@
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
-		scrollbar-width: thin;
-		scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 	}
 	body {
 		@apply bg-background text-foreground;
@@ -132,6 +130,24 @@
 	}
 	html {
 		@apply font-sans;
+	}
+
+	/* ScrollArea Viewport: NEVER show native browser scrollbars because ScrollArea provides custom scrollbars */
+	[data-slot="scroll-area-viewport"] {
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	[data-slot="scroll-area-viewport"]::-webkit-scrollbar {
+		display: none;
+		width: 0;
+		height: 0;
+	}
+
+	/* Default styled scrollbars for native overflow containers outside of ScrollArea */
+	*:not([data-slot="scroll-area-viewport"]) {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 	}
 
 	::-webkit-scrollbar {
