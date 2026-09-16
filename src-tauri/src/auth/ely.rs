@@ -495,31 +495,39 @@ async fn create_authenticated_web_client(
         .ok_or_else(|| "Missing access_token in Ely.by response".to_string())?;
 
     // Step C: Complete OAuth flow on account.ely.by
-    let query_string = redirect_url.split_once('?').map(|(_, q)| q).unwrap_or("");
+    let complete_url = build_oauth_complete_url(&redirect_url);
 
-    let complete_url = if query_string.is_empty() {
-        "https://account.ely.by/api/oauth2/v1/complete".to_string()
-    } else {
-        format!("https://account.ely.by/api/oauth2/v1/complete?{query_string}")
-    };
-
+    // Post with accept: true (form urlencoded as required by Ely.by OAuth completion)
     let complete_res = client
         .post(&complete_url)
         .header("Authorization", format!("Bearer {web_access_token}"))
-        .json(&serde_json::json!({ "accept": true }))
+        .form(&[("accept", "true")])
         .send()
         .await
         .map_err(|e| format!("Failed to complete Ely.by OAuth: {e}"))?;
 
+    let status = complete_res.status();
     let complete_json = complete_res
         .json::<serde_json::Value>()
         .await
         .map_err(|e| format!("Failed to parse OAuth complete response: {e}"))?;
 
+    if !status.is_success() {
+        let err_detail = complete_json
+            .get("message")
+            .or_else(|| complete_json.get("error_description"))
+            .or_else(|| complete_json.get("error"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| complete_json.to_string());
+        return Err(format!("Ely.by OAuth completion error ({status}): {err_detail}"));
+    }
+
     let redirect_uri = complete_json
         .get("redirectUri")
+        .or_else(|| complete_json.get("redirect_uri"))
         .and_then(|v| v.as_str())
-        .ok_or_else(|| "Missing redirectUri from Ely.by OAuth".to_string())?;
+        .ok_or_else(|| format!("Missing redirectUri from Ely.by OAuth response: {complete_json}"))?;
 
     // Step D: GET redirect_uri on ely.by to finalize session cookies
     let finalize_res = client
@@ -535,5 +543,86 @@ async fn create_authenticated_web_client(
         ));
     }
 
+    // Follow redirect if Ely.by responded with 302 Found to complete session initialization
+    if finalize_res.status().is_redirection() {
+        if let Some(loc) = finalize_res
+            .headers()
+            .get(reqwest::header::LOCATION)
+            .and_then(|v| v.to_str().ok())
+        {
+            let next_url = if loc.starts_with('/') {
+                format!("https://ely.by{loc}")
+            } else {
+                loc.to_string()
+            };
+            let _ = client.get(&next_url).send().await;
+        }
+    }
+
     Ok(client)
+}
+
+fn build_oauth_complete_url(redirect_url: &str) -> String {
+    let (path_part, query_part) = redirect_url
+        .split_once('?')
+        .unwrap_or((redirect_url, ""));
+
+    // Extract client_id from path if present (e.g. "/oauth2/v1/ely" -> "ely")
+    let client_id_from_path = path_part
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .filter(|s| !s.is_empty() && *s != "oauth2" && !s.starts_with('v'));
+
+    let mut has_client_id = false;
+    let mut params: Vec<(String, String)> = Vec::new();
+
+    for pair in query_part.split('&').filter(|p| !p.is_empty()) {
+        let (k, v) = pair.split_once('=').unwrap_or((pair, ""));
+        if k == "client_id" {
+            has_client_id = true;
+        }
+        if k == "scope" {
+            // Replace comma with space in scope (RFC 6749 & Ely.by standard)
+            let scope_val = v.replace("%2C", " ").replace(',', " ");
+            params.push((k.to_string(), scope_val));
+        } else {
+            params.push((k.to_string(), v.to_string()));
+        }
+    }
+
+    if !has_client_id {
+        let cid = client_id_from_path.unwrap_or("ely");
+        params.insert(0, ("client_id".to_string(), cid.to_string()));
+    }
+
+    let query_string = params
+        .iter()
+        .map(|(k, v)| {
+            if k == "scope" {
+                format!("{k}={}", v.replace(' ', "%20"))
+            } else {
+                format!("{k}={v}")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("&");
+
+    format!("https://account.ely.by/api/oauth2/v1/complete?{query_string}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_oauth_complete_url() {
+        let url = "https://account.ely.by/oauth2/v1/ely?scope=account_info%2Caccount_email&state=826fcd58c1a95a8f7418ac1211990821&response_type=code&redirect_uri=https%3A%2F%2Fely.by%2Fauthorization%2Foauth";
+        let complete_url = build_oauth_complete_url(url);
+        assert!(complete_url.starts_with("https://account.ely.by/api/oauth2/v1/complete?"));
+        assert!(complete_url.contains("client_id=ely"));
+        assert!(complete_url.contains("scope=account_info%20account_email"));
+        assert!(complete_url.contains("state=826fcd58c1a95a8f7418ac1211990821"));
+        assert!(complete_url.contains("redirect_uri=https%3A%2F%2Fely.by%2Fauthorization%2Foauth"));
+    }
 }

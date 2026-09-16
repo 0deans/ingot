@@ -12,6 +12,7 @@
 	"app": {
 		"windows": [
 			{
+				"label": "main",
 				"title": "Ingot",
 				"width": 1024,
 				"height": 680,
