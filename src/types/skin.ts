@@ -1,3 +1,11 @@
+export interface UserUploadedSkin {
+	id: string
+	name: string
+	dataUrl: string
+	isSlim: boolean
+	uploadedAt: number
+}
+
 export interface ElySkinItem {
 	id: number
 	skinUrl: string
@@ -6,6 +14,11 @@ export interface ElySkinItem {
 	countCubes: number
 	countViews: number
 	tags: string[]
+	// Optional fields for custom/user uploaded skins
+	dataUrl?: string
+	isCustom?: boolean
+	name?: string
+	uploadedAt?: number
 }
 
 export interface ElySkinsCatalogResponse {

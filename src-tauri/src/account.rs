@@ -480,9 +480,10 @@ pub async fn get_ely_skins_catalog(
     query: Option<String>,
     sort: Option<String>,
     model: Option<String>,
+    uploader: Option<String>,
 ) -> Result<ElySkinsCatalogResponse, String> {
     let service = ElyAuthService::new();
-    service.fetch_catalog(page, query, sort, model).await
+    service.fetch_catalog(page, query, sort, model, uploader).await
 }
 
 pub fn has_ely_web_credentials(account_id: &str) -> bool {

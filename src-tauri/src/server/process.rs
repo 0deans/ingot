@@ -23,6 +23,7 @@ struct ActiveServer {
     stdin: Arc<Mutex<ChildStdin>>,
     child: Arc<Mutex<Child>>,
     log_history: Arc<Mutex<Vec<String>>>,
+    online_players: Arc<Mutex<Vec<String>>>,
 }
 
 #[derive(Clone, Default)]
@@ -69,6 +70,16 @@ impl ServerProcessManager {
         if let Some(s) = guard.get(server_id) {
             let logs = s.log_history.lock().await;
             logs.clone()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub async fn get_server_online_players(&self, server_id: &str) -> Vec<String> {
+        let guard = self.servers.lock().await;
+        if let Some(s) = guard.get(server_id) {
+            let players = s.online_players.lock().await;
+            players.clone()
         } else {
             Vec::new()
         }
@@ -361,7 +372,8 @@ where
 
     let stdin_arc = Arc::new(Mutex::new(stdin));
     let child_arc = Arc::new(Mutex::new(child));
-    let log_history = Arc::new(Mutex::new(Vec::new()));
+    let log_history = Arc::new(Mutex::new(Vec::<String>::new()));
+    let online_players: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -381,6 +393,7 @@ where
                 stdin: stdin_arc.clone(),
                 child: child_arc.clone(),
                 log_history: log_history.clone(),
+                online_players: online_players.clone(),
             },
         );
     }
@@ -394,6 +407,7 @@ where
     // 7. Background task: Read STDOUT
     let s_id_out = server_id.clone();
     let logs_out = log_history.clone();
+    let players_out = online_players.clone();
     let on_log_arc = Arc::new(on_log);
     let on_log_out = on_log_arc.clone();
     tokio::spawn(async move {
@@ -406,6 +420,33 @@ where
             } else {
                 "info".to_string()
             };
+
+            // Parse player join / leave events from Minecraft server output.
+            // Typical formats:
+            //   "[HH:MM:SS] [Server thread/INFO]: PlayerName joined the game"
+            //   "[HH:MM:SS] [Server thread/INFO]: PlayerName left the game"
+            if line.contains("joined the game") || line.contains("left the game") {
+                // Extract the player name: the word just before "joined" or "left"
+                let extract_player = |line: &str, keyword: &str| -> Option<String> {
+                    let idx = line.find(keyword)?;
+                    let before = line[..idx].trim();
+                    // The name is the last word before the keyword
+                    before.split_whitespace().last().map(|s| s.to_string())
+                };
+
+                let mut guard = players_out.lock().await;
+                if line.contains("joined the game") {
+                    if let Some(name) = extract_player(&line, " joined the game") {
+                        if !guard.contains(&name) {
+                            guard.push(name);
+                        }
+                    }
+                } else if line.contains("left the game") {
+                    if let Some(name) = extract_player(&line, " left the game") {
+                        guard.retain(|p| p != &name);
+                    }
+                }
+            }
 
             {
                 let mut guard = logs_out.lock().await;
@@ -421,7 +462,11 @@ where
                 level,
             });
         }
+        // Clear player list when stdout closes (server stopped)
+        let mut guard = players_out.lock().await;
+        guard.clear();
     });
+
 
     // 8. Background task: Read STDERR
     let s_id_err = server_id.clone();

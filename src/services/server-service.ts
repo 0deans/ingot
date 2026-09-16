@@ -175,6 +175,35 @@ export const serverService = {
 	async getAvailableServerCoreVersions(core: ServerCoreType): Promise<string[]> {
 		return rpc.get_available_server_core_versions(core)
 	},
+
+	async getServerOnlinePlayers(serverId: string): Promise<string[]> {
+		return rpc.get_server_online_players(serverId)
+	},
+
+	async getServerWhitelist(serverId: string) {
+		return rpc.get_server_whitelist(serverId)
+	},
+
+	async addToServerWhitelist(serverId: string, username: string): Promise<void> {
+		await rpc.add_to_server_whitelist(serverId, username)
+	},
+
+	async removeFromServerWhitelist(serverId: string, username: string): Promise<void> {
+		await rpc.remove_from_server_whitelist(serverId, username)
+	},
+
+	isPortInUse(port: number, excludeServerId?: string): boolean {
+		return cachedServers.some((s) => s.port === port && s.id !== excludeServerId)
+	},
+
+	getNextAvailablePort(): number {
+		const usedPorts = new Set(cachedServers.map((s) => s.port))
+		let port = 25565
+		while (usedPorts.has(port)) {
+			port += 1
+		}
+		return port
+	},
 }
 
 export function useServers() {

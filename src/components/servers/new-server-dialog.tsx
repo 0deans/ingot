@@ -83,6 +83,13 @@ export default function NewServerDialog({
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
+	// Auto-select next available port when dialog opens
+	useEffect(() => {
+		if (!open) return
+		const nextPort = serverService.getNextAvailablePort()
+		setPort(nextPort)
+	}, [open])
+
 	// Fetch versions whenever core changes
 	useEffect(() => {
 		if (!open) return
@@ -124,6 +131,8 @@ export default function NewServerDialog({
 		}
 	}
 
+	const isPortConflict = serverService.isPortInUse(port)
+
 	const handleCreate = async () => {
 		if (!name.trim()) {
 			setError("Please enter a server name.")
@@ -131,6 +140,16 @@ export default function NewServerDialog({
 		}
 		if (!selectedVersion) {
 			setError("Please select a Minecraft version.")
+			return
+		}
+		if (!port || port < 1024 || port > 65535) {
+			setError("Please enter a valid port between 1024 and 65535.")
+			return
+		}
+		if (isPortConflict) {
+			setError(
+				`Port ${port} is already assigned to another server. Please choose a different port.`,
+			)
 			return
 		}
 
@@ -269,9 +288,14 @@ export default function NewServerDialog({
 
 						{/* Server Port */}
 						<div className="flex flex-col gap-1.5">
-							<label htmlFor="server-port" className="font-medium text-foreground text-xs">
-								Server Port
-							</label>
+							<div className="flex items-center justify-between">
+								<label htmlFor="server-port" className="font-medium text-foreground text-xs">
+									Server Port
+								</label>
+								{isPortConflict && (
+									<span className="font-medium text-[11px] text-rose-400">Port already in use</span>
+								)}
+							</div>
 							<Input
 								id="server-port"
 								type="number"
@@ -279,7 +303,10 @@ export default function NewServerDialog({
 								max={65535}
 								value={port}
 								onChange={(e) => setPort(Number(e.target.value) || 25565)}
-								className="h-9 font-mono text-xs"
+								className={cn(
+									"h-9 font-mono text-xs",
+									isPortConflict && "border-rose-500 focus-visible:ring-rose-500/50",
+								)}
 							/>
 						</div>
 					</div>
@@ -332,7 +359,7 @@ export default function NewServerDialog({
 					<Button
 						size="sm"
 						onClick={handleCreate}
-						disabled={isSubmitting || !name.trim() || !selectedVersion}
+						disabled={isSubmitting || !name.trim() || !selectedVersion || isPortConflict}
 						className="gap-1.5 bg-emerald-600 text-white text-xs hover:bg-emerald-500"
 					>
 						{isSubmitting ? (

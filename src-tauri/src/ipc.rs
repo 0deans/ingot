@@ -11,7 +11,7 @@ use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncRepor
 use crate::minecraft::version::{self, VersionManifestEntry};
 use crate::server::{
     self, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent, ServerProperties,
-    ServerProcessManager, ServerStatusEvent,
+    ServerProcessManager, ServerStatusEvent, WhitelistEntry,
 };
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
@@ -98,6 +98,7 @@ pub trait AppApi {
         query: Option<String>,
         sort: Option<String>,
         model: Option<String>,
+        uploader: Option<String>,
     ) -> Result<crate::auth::ely::ElySkinsCatalogResponse, String>;
     async fn apply_ely_skin(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -339,6 +340,25 @@ pub trait AppApi {
 
     async fn get_server_logs(server_id: String) -> Result<Vec<String>, String>;
 
+    async fn get_server_online_players(server_id: String) -> Result<Vec<String>, String>;
+
+    async fn get_server_whitelist(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<WhitelistEntry>, String>;
+
+    async fn add_to_server_whitelist(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        username: String,
+    ) -> Result<(), String>;
+
+    async fn remove_from_server_whitelist(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        username: String,
+    ) -> Result<(), String>;
+
     async fn get_available_server_core_versions(
         core: ServerCoreType,
     ) -> Result<Vec<String>, String>;
@@ -481,8 +501,9 @@ impl AppApi for AppApiImpl {
         query: Option<String>,
         sort: Option<String>,
         model: Option<String>,
+        uploader: Option<String>,
     ) -> Result<crate::auth::ely::ElySkinsCatalogResponse, String> {
-        account::get_ely_skins_catalog(page, query, sort, model).await
+        account::get_ely_skins_catalog(page, query, sort, model, uploader).await
     }
 
     async fn apply_ely_skin(
@@ -887,7 +908,40 @@ impl AppApi for AppApiImpl {
         properties: ServerProperties,
     ) -> Result<(), String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        server::write_server_properties_to_dir(&dir, &properties)
+        let prev_props = server::read_server_properties_from_dir(&dir).ok();
+        server::write_server_properties_to_dir(&dir, &properties)?;
+
+        // If server is currently running, dispatch runtime console commands so changes apply immediately without restart!
+        let pm = get_server_process_manager();
+        if pm.get_server_status(&server_id).await == server::ServerStatus::Running {
+            // Whitelist state change
+            if let Some(prev) = prev_props {
+                if prev.white_list != properties.white_list {
+                    let cmd = if properties.white_list {
+                        "whitelist on"
+                    } else {
+                        "whitelist off"
+                    };
+                    let _ = pm.send_command(&server_id, cmd).await;
+                }
+                if prev.difficulty != properties.difficulty {
+                    let _ = pm.send_command(&server_id, &format!("difficulty {}", properties.difficulty)).await;
+                }
+                if prev.gamemode != properties.gamemode {
+                    let _ = pm.send_command(&server_id, &format!("defaultgamemode {}", properties.gamemode)).await;
+                }
+            } else {
+                let cmd = if properties.white_list {
+                    "whitelist on"
+                } else {
+                    "whitelist off"
+                };
+                let _ = pm.send_command(&server_id, cmd).await;
+            }
+            let _ = pm.send_command(&server_id, "whitelist reload").await;
+        }
+
+        Ok(())
     }
 
     async fn open_server_folder(
@@ -966,6 +1020,53 @@ impl AppApi for AppApiImpl {
 
     async fn get_server_logs(self, server_id: String) -> Result<Vec<String>, String> {
         Ok(get_server_process_manager().get_server_logs(&server_id).await)
+    }
+
+    async fn get_server_online_players(self, server_id: String) -> Result<Vec<String>, String> {
+        Ok(get_server_process_manager().get_server_online_players(&server_id).await)
+    }
+
+    async fn get_server_whitelist(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<WhitelistEntry>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::read_server_whitelist(&dir)
+    }
+
+    async fn add_to_server_whitelist(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        username: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::add_to_server_whitelist(&dir, &username)?;
+        // If server is running, dispatch both direct whitelist add and reload command so it takes effect immediately!
+        let pm = get_server_process_manager();
+        if pm.get_server_status(&server_id).await == server::ServerStatus::Running {
+            let _ = pm.send_command(&server_id, &format!("whitelist add {}", username)).await;
+            let _ = pm.send_command(&server_id, "whitelist reload").await;
+        }
+        Ok(())
+    }
+
+    async fn remove_from_server_whitelist(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        username: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::remove_from_server_whitelist(&dir, &username)?;
+        // If server is running, dispatch both direct whitelist remove and reload command so it takes effect immediately!
+        let pm = get_server_process_manager();
+        if pm.get_server_status(&server_id).await == server::ServerStatus::Running {
+            let _ = pm.send_command(&server_id, &format!("whitelist remove {}", username)).await;
+            let _ = pm.send_command(&server_id, "whitelist reload").await;
+        }
+        Ok(())
     }
 
     async fn get_available_server_core_versions(

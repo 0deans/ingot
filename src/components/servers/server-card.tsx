@@ -10,11 +10,13 @@ import {
 	Square,
 	Terminal,
 	Trash2,
+	Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { RunningServerSummary, ServerConfig, ServerCoreType } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { serverService } from "@/services/server-service"
 
 export interface ServerCardProps {
 	server: ServerConfig
@@ -73,6 +75,7 @@ export default function ServerCard({
 
 	const [copied, setCopied] = useState(false)
 	const [uptime, setUptime] = useState(runningInfo?.uptimeSeconds || 0)
+	const [playerCount, setPlayerCount] = useState(0)
 
 	// Live ticker for uptime
 	useEffect(() => {
@@ -83,6 +86,29 @@ export default function ServerCard({
 		}, 1000)
 		return () => clearInterval(timer)
 	}, [isRunning, runningInfo?.uptimeSeconds])
+
+	// Poll player count every 10s when running
+	useEffect(() => {
+		if (!isRunning) {
+			setPlayerCount(0)
+			return
+		}
+		let cancelled = false
+		const fetch = async () => {
+			try {
+				const list = await serverService.getServerOnlinePlayers(server.id)
+				if (!cancelled) setPlayerCount(list.length)
+			} catch {
+				// ignore
+			}
+		}
+		fetch()
+		const timer = setInterval(fetch, 10000)
+		return () => {
+			cancelled = true
+			clearInterval(timer)
+		}
+	}, [isRunning, server.id])
 
 	const handleCopyAddress = (e: React.MouseEvent) => {
 		e.stopPropagation()
@@ -165,6 +191,14 @@ export default function ServerCard({
 						<Cpu className="size-3 text-emerald-500/70" />
 						<span>{(server.memoryMaxMb / 1024).toFixed(0)} GB RAM</span>
 					</div>
+
+					{/* Player count badge (only when running) */}
+					{isRunning && (
+						<div className="flex items-center gap-1 font-mono text-[11px] text-emerald-400">
+							<Users className="size-3 text-emerald-500/70" />
+							<span>{playerCount} online</span>
+						</div>
+					)}
 				</div>
 			</div>
 

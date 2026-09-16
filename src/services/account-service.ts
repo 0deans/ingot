@@ -137,8 +137,15 @@ export const accountService = {
 		query?: string,
 		sort?: string,
 		model?: string,
+		uploader?: string,
 	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
-		return await rpc.get_ely_skins(page, query ?? null, sort ?? null, model ?? null)
+		return await rpc.get_ely_skins(
+			page,
+			query ?? null,
+			sort ?? null,
+			model ?? null,
+			uploader ?? null,
+		)
 	},
 
 	async applyElySkin(accountId: string, skinId: number, password?: string): Promise<void> {
@@ -153,6 +160,50 @@ export const accountService = {
 
 	async hasElyWebCredentials(accountId: string): Promise<boolean> {
 		return await rpc.has_ely_web_credentials(accountId)
+	},
+}
+
+const UPLOADED_SKINS_STORAGE_KEY_PREFIX = "ingot_uploaded_skins_"
+
+export const skinStorageService = {
+	getUploadedSkins(accountId: string): import("@/types/skin").UserUploadedSkin[] {
+		if (!accountId) return []
+		try {
+			const raw = localStorage.getItem(`${UPLOADED_SKINS_STORAGE_KEY_PREFIX}${accountId}`)
+			if (!raw) return []
+			return JSON.parse(raw) as import("@/types/skin").UserUploadedSkin[]
+		} catch {
+			return []
+		}
+	},
+
+	saveUploadedSkin(accountId: string, skin: import("@/types/skin").UserUploadedSkin): void {
+		if (!accountId) return
+		try {
+			const existing = this.getUploadedSkins(accountId)
+			const filtered = existing.filter((s) => s.id !== skin.id && s.dataUrl !== skin.dataUrl)
+			const updated = [skin, ...filtered]
+			localStorage.setItem(
+				`${UPLOADED_SKINS_STORAGE_KEY_PREFIX}${accountId}`,
+				JSON.stringify(updated),
+			)
+		} catch (e) {
+			console.error("Failed to save uploaded skin to local storage:", e)
+		}
+	},
+
+	removeUploadedSkin(accountId: string, skinId: string): void {
+		if (!accountId) return
+		try {
+			const existing = this.getUploadedSkins(accountId)
+			const updated = existing.filter((s) => s.id !== skinId)
+			localStorage.setItem(
+				`${UPLOADED_SKINS_STORAGE_KEY_PREFIX}${accountId}`,
+				JSON.stringify(updated),
+			)
+		} catch (e) {
+			console.error("Failed to remove uploaded skin from local storage:", e)
+		}
 	},
 }
 

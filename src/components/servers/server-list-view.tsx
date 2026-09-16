@@ -311,6 +311,9 @@ export default function ServerListView() {
 					open={Boolean(settingsServer)}
 					onOpenChange={(open) => !open && setSettingsServer(null)}
 					onSaved={() => refresh()}
+					isRunning={Boolean(
+						settingsServer && runningMap.get(settingsServer.id)?.status === "running",
+					)}
 				/>
 
 				<DeleteServerDialog

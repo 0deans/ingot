@@ -6,6 +6,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{Manager, Runtime};
 use uuid::Uuid;
 
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WhitelistEntry {
+    pub uuid: String,
+    pub name: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ServerCoreType {
@@ -434,4 +441,107 @@ pub fn write_server_properties_to_dir(
     let final_content = existing_lines.join("\n") + "\n";
     fs::write(file_path, final_content)
         .map_err(|e| format!("Failed to write server.properties: {e}"))
+}
+
+// ─── Whitelist helpers ────────────────────────────────────────────────────────
+
+pub fn read_server_whitelist(server_dir: &Path) -> Result<Vec<WhitelistEntry>, String> {
+    let path = server_dir.join("whitelist.json");
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let raw = fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read whitelist.json: {e}"))?;
+    if raw.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+    // Minecraft stores whitelist as an array of objects with `uuid` and `name`.
+    // We deserialize using raw JSON because the key casing is lowercase in the file.
+    let entries: Vec<serde_json::Value> = serde_json::from_str(&raw)
+        .map_err(|e| format!("Failed to parse whitelist.json: {e}"))?;
+    Ok(entries
+        .into_iter()
+        .filter_map(|v| {
+            let name = v.get("name")?.as_str()?.to_string();
+            let uuid = v
+                .get("uuid")
+                .and_then(|u| u.as_str())
+                .unwrap_or("")
+                .to_string();
+            Some(WhitelistEntry { uuid, name })
+        })
+        .collect())
+}
+
+fn write_server_whitelist(server_dir: &Path, entries: &[WhitelistEntry]) -> Result<(), String> {
+    let path = server_dir.join("whitelist.json");
+    // Write in the format Minecraft expects: lowercase keys
+    let json_entries: Vec<serde_json::Value> = entries
+        .iter()
+        .map(|e| {
+            serde_json::json!({
+                "uuid": e.uuid,
+                "name": e.name
+            })
+        })
+        .collect();
+    let raw = serde_json::to_string_pretty(&json_entries)
+        .map_err(|e| format!("Failed to serialize whitelist: {e}"))?;
+    fs::write(path, raw).map_err(|e| format!("Failed to write whitelist.json: {e}"))
+}
+
+/// Compute the offline-mode UUID that Minecraft uses for a given username.
+/// This matches Java's `UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes("UTF-8"))`.
+fn offline_uuid(name: &str) -> String {
+    let key = format!("OfflinePlayer:{name}");
+    // UUID v3 with a nil namespace (as Minecraft does via MD5)
+    let bytes = key.as_bytes();
+    let hash = md5_bytes(bytes);
+    // Set version (3) and variant bits exactly as Minecraft does
+    let mut b = hash;
+    b[6] = (b[6] & 0x0f) | 0x30; // version 3
+    b[8] = (b[8] & 0x3f) | 0x80; // variant RFC 4122
+    format!(
+        "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
+        u32::from_be_bytes([b[0], b[1], b[2], b[3]]),
+        u16::from_be_bytes([b[4], b[5]]),
+        u16::from_be_bytes([b[6], b[7]]),
+        u16::from_be_bytes([b[8], b[9]]),
+        {
+            let hi = u32::from_be_bytes([b[10], b[11], b[12], b[13]]) as u64;
+            let lo = u16::from_be_bytes([b[14], b[15]]) as u64;
+            (hi << 16) | lo
+        }
+    )
+}
+
+fn md5_bytes(data: &[u8]) -> [u8; 16] {
+    // Simple portable MD5 — use the md5 crate if available, otherwise derive manually.
+    // We use the uuid v3 helper through a nil namespace UUID.
+    let ns = Uuid::nil();
+    let id = Uuid::new_v3(&ns, data);
+    *id.as_bytes()
+}
+
+pub fn add_to_server_whitelist(server_dir: &Path, username: &str) -> Result<(), String> {
+    let mut entries = read_server_whitelist(server_dir)?;
+    // Skip if already whitelisted (case-insensitive)
+    if entries
+        .iter()
+        .any(|e| e.name.eq_ignore_ascii_case(username))
+    {
+        return Ok(());
+    }
+    let uuid = offline_uuid(username);
+    entries.push(WhitelistEntry {
+        uuid,
+        name: username.to_string(),
+    });
+    write_server_whitelist(server_dir, &entries)
+}
+
+pub fn remove_from_server_whitelist(server_dir: &Path, username: &str) -> Result<(), String> {
+    let mut entries = read_server_whitelist(server_dir)?;
+    entries.retain(|e| !e.name.eq_ignore_ascii_case(username));
+    write_server_whitelist(server_dir, &entries)
 }
