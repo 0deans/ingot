@@ -61,6 +61,7 @@ pub struct ServerConfig {
     pub port: u16,
     pub memory_min_mb: u32,
     pub memory_max_mb: u32,
+    pub icon: Option<String>,
     pub java_path: Option<String>,
     pub jvm_args: Option<Vec<String>>,
     pub auto_start: Option<bool>,
@@ -253,6 +254,7 @@ pub fn create_server<R: Runtime>(
         port: selected_port,
         memory_min_mb: memory_min_mb.unwrap_or(2048),
         memory_max_mb: memory_max_mb.unwrap_or(4096),
+        icon: None,
         java_path: None,
         jvm_args: None,
         auto_start: Some(false),
@@ -545,3 +547,31 @@ pub fn remove_from_server_whitelist(server_dir: &Path, username: &str) -> Result
     entries.retain(|e| !e.name.eq_ignore_ascii_case(username));
     write_server_whitelist(server_dir, &entries)
 }
+
+pub fn save_server_icon(server_dir: &Path, base64_data: &str) -> Result<(), String> {
+    use base64::Engine;
+    // Strip optional data:image/png;base64, prefix
+    let clean_b64 = if let Some(idx) = base64_data.find(',') {
+        &base64_data[idx + 1..]
+    } else {
+        base64_data
+    };
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(clean_b64)
+        .map_err(|e| format!("Invalid base64 icon data: {e}"))?;
+    let icon_path = server_dir.join("server-icon.png");
+    fs::write(icon_path, bytes).map_err(|e| format!("Failed to write server-icon.png: {e}"))
+}
+
+pub fn get_server_icon_base64(server_dir: &Path) -> Option<String> {
+    use base64::Engine;
+    let icon_path = server_dir.join("server-icon.png");
+    if icon_path.exists() {
+        if let Ok(bytes) = fs::read(&icon_path) {
+            let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+            return Some(format!("data:image/png;base64,{}", encoded));
+        }
+    }
+    None
+}
+

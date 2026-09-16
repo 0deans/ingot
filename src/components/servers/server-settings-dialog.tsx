@@ -13,11 +13,18 @@ import {
 	Signal,
 	Swords,
 	Trash2,
+	Upload,
 	UserCheck,
 	Users,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { ServerConfig, ServerProperties, WhitelistEntry } from "@/bindings"
+import type {
+	ServerConfig,
+	ServerPingResponse,
+	ServerPlayerSample,
+	ServerProperties,
+	WhitelistEntry,
+} from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -116,9 +123,25 @@ function parseMotd(motd: string): MotdSpan[] {
 	return spans
 }
 
-function MotdPreview({ motd }: { motd: string }) {
+function MotdPreview({
+	motd,
+	icon,
+	serverName,
+	maxPlayers = 20,
+	onlinePlayers = 0,
+	pingMs,
+	isRunning = false,
+}: {
+	motd: string
+	icon?: string | null
+	serverName?: string
+	maxPlayers?: number
+	onlinePlayers?: number
+	pingMs?: number
+	isRunning?: boolean
+}) {
 	const spans = parseMotd(motd)
-	// Split into lines
+	// Split into lines (max 2 lines in Minecraft server list)
 	const lines: MotdLine[] = [{ key: "line-0", spans: [] }]
 	for (const span of spans) {
 		if (span.text === "\n") {
@@ -129,22 +152,60 @@ function MotdPreview({ motd }: { motd: string }) {
 	}
 
 	return (
-		<div className="rounded-lg border border-zinc-700 bg-[#1a1a2e] p-3 font-minecraft shadow-inner">
+		<div className="w-full min-w-0 max-w-full overflow-hidden rounded-lg border border-zinc-700 bg-[#1a1a2e] p-3 font-minecraft shadow-inner">
 			{/* Fake server list row */}
-			<div className="flex items-start gap-3">
+			<div className="flex items-start gap-3 min-w-0 overflow-hidden">
 				{/* Server icon */}
-				<div className="flex size-12 shrink-0 items-center justify-center rounded border border-zinc-600 bg-zinc-800 text-2xl">
-					🌿
+				<div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded border border-zinc-600 bg-zinc-800 text-2xl">
+					{icon ? (
+						<img
+							src={icon}
+							alt="Server Icon"
+							className="size-full object-cover [image-rendering:pixelated]"
+						/>
+					) : (
+						"🌿"
+					)}
 				</div>
 
-				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					{/* Server name placeholder */}
-					<div className="font-semibold text-white text-xs">localhost</div>
+				<div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
+					{/* Server Name + Ping & Player count header */}
+					<div className="flex items-center justify-between gap-2 min-w-0 overflow-hidden">
+						<span className="truncate font-semibold text-white text-xs">
+							{serverName || "A Minecraft Server"}
+						</span>
+						<div className="flex shrink-0 items-center gap-2 text-[10px] text-zinc-400">
+							<span className="flex items-center gap-1 font-mono">
+								<Signal
+									className={cn(
+										"size-2.5",
+										isRunning ? "text-emerald-400" : "text-zinc-500",
+									)}
+								/>
+								<span>
+									{isRunning && pingMs != null
+										? `${pingMs}ms`
+										: isRunning
+											? "<1ms"
+											: "Offline"}
+								</span>
+							</span>
+							<span className="font-mono text-zinc-300">
+								{onlinePlayers}/{maxPlayers}
+							</span>
+						</div>
+					</div>
 
-					{/* MOTD lines */}
-					<div className="font-mono text-[11px] leading-snug">
-						{lines.map((line) => (
-							<div key={line.key} className={line.spans.length === 0 ? "h-[1em]" : ""}>
+					{/* MOTD lines - max 2 lines with strict wrapping so text never overflows */}
+					<div className="flex flex-col gap-0.5 overflow-hidden font-mono text-[11px] leading-snug break-words break-all [overflow-wrap:anywhere]">
+						{lines.slice(0, 2).map((line) => (
+							<div
+								key={line.key}
+								className={cn(
+									"break-words break-all overflow-hidden [overflow-wrap:anywhere]",
+									line.spans.length === 0 && "h-[1em]",
+								)}
+							>
 								{line.spans.map((span) => (
 									<span
 										key={span.key}
@@ -167,15 +228,6 @@ function MotdPreview({ motd }: { motd: string }) {
 							<span className="text-[11px] text-zinc-500 italic">Empty MOTD</span>
 						)}
 					</div>
-
-					{/* Ping + player count */}
-					<div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
-						<span className="flex items-center gap-1">
-							<Signal className="size-2.5 text-emerald-400" />
-							<span>1ms</span>
-						</span>
-						<span>0/20</span>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -188,16 +240,17 @@ function PlayersTab({
 	isRunning,
 	whitelistEnabled,
 	onToggleWhitelist,
+	pingInfo,
+	isLoadingPing,
 }: {
 	server: ServerConfig | null
 	isRunning: boolean
 	whitelistEnabled: boolean
 	onToggleWhitelist?: (enabled: boolean) => void
+	pingInfo: ServerPingResponse | null
+	isLoadingPing: boolean
 }) {
 	const [activeSubTab, setActiveSubTab] = useState<"online" | "whitelist">("online")
-	const [players, setPlayers] = useState<string[]>([])
-	const [isLoadingPlayers, setIsLoadingPlayers] = useState(false)
-	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
 	// Whitelist state
 	const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([])
@@ -229,32 +282,6 @@ function PlayersTab({
 		}
 	}, [serverId, loadWhitelist])
 
-	useEffect(() => {
-		if (!serverId || !isRunning) {
-			setPlayers([])
-			return
-		}
-
-		const fetchPlayers = async () => {
-			try {
-				setIsLoadingPlayers(true)
-				const list = await serverService.getServerOnlinePlayers(serverId)
-				setPlayers(list)
-			} catch {
-				// ignore
-			} finally {
-				setIsLoadingPlayers(false)
-			}
-		}
-
-		fetchPlayers()
-		intervalRef.current = setInterval(fetchPlayers, 5000)
-
-		return () => {
-			if (intervalRef.current) clearInterval(intervalRef.current)
-		}
-	}, [serverId, isRunning])
-
 	const handleAddWhitelist = async (e?: React.FormEvent) => {
 		if (e) e.preventDefault()
 		const trimmed = newUsername.trim()
@@ -284,9 +311,13 @@ function PlayersTab({
 			await serverService.removeFromServerWhitelist(server.id, username)
 			await loadWhitelist()
 		} catch (err: unknown) {
-			setWhitelistError(err instanceof Error ? err.message : "Failed to remove user from whitelist")
+			setWhitelistError(
+				err instanceof Error ? err.message : "Failed to remove user from whitelist",
+			)
 		}
 	}
+
+	const onlineSample: ServerPlayerSample[] = pingInfo?.players.sample || []
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -304,7 +335,7 @@ function PlayersTab({
 						)}
 					>
 						<Users className="size-3.5" />
-						<span>Online ({isRunning ? players.length : 0})</span>
+						<span>Online ({isRunning ? pingInfo?.players.online || 0 : 0})</span>
 					</button>
 					<button
 						type="button"
@@ -362,7 +393,7 @@ function PlayersTab({
 				)}
 			</div>
 
-			{/* Sub-Tab 1: Online Players */}
+			{/* Sub-Tab 1: Online Players via SLP */}
 			{activeSubTab === "online" && (
 				<div className="flex flex-col gap-3">
 					{!isRunning ? (
@@ -370,61 +401,76 @@ function PlayersTab({
 							<Users className="size-8 text-zinc-600" />
 							<p className="font-medium text-sm text-zinc-400">Server is offline</p>
 							<p className="text-muted-foreground text-xs">
-								Start the server to see live online players.
+								Start the server to query online players via Server List Ping (SLP).
 							</p>
 						</div>
-					) : isLoadingPlayers && players.length === 0 ? (
+					) : isLoadingPing && !pingInfo ? (
 						<div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
 							<Loader2 className="size-4 animate-spin text-emerald-400" />
-							<span className="text-xs">Loading players...</span>
+							<span className="text-xs">Querying server via SLP protocol...</span>
 						</div>
-					) : players.length === 0 ? (
+					) : (pingInfo?.players.online || 0) === 0 ? (
 						<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border/40 border-dashed bg-zinc-900/20 p-8 text-center">
 							<Users className="size-8 text-zinc-600" />
 							<p className="font-medium text-sm text-zinc-400">Nobody online</p>
-							<p className="text-muted-foreground text-xs">No players are currently connected.</p>
+							<p className="text-muted-foreground text-xs">
+								0 / {pingInfo?.players.max || 20} players connected. Ping: {pingInfo?.pingMs || 0}ms
+							</p>
 						</div>
 					) : (
-						<div className="flex flex-col divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-zinc-900/30">
-							{players.map((name) => (
-								<div key={name} className="flex items-center justify-between px-3.5 py-2.5">
-									<div className="flex items-center gap-3">
-										<img
-											src={`https://mc-heads.net/avatar/${encodeURIComponent(name)}/32`}
-											alt={name}
-											className="size-8 shrink-0 rounded-md border border-zinc-700 bg-zinc-800"
-											onError={(e) => {
-												;(e.currentTarget as HTMLImageElement).src =
-													"https://mc-heads.net/avatar/Steve/32"
-											}}
-										/>
-										<div className="flex flex-col">
-											<span className="font-medium text-foreground text-xs">{name}</span>
-											<span className="text-[10px] text-emerald-400">Connected</span>
+						<div className="flex flex-col gap-2">
+							<div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+								<span>
+									Online Players ({pingInfo?.players.online} / {pingInfo?.players.max})
+								</span>
+								<span className="flex items-center gap-1 font-mono text-[11px]">
+									<Signal className="size-2.5 text-emerald-400" />
+									{pingInfo?.pingMs}ms
+								</span>
+							</div>
+							<div className="flex flex-col divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-zinc-900/30">
+								{onlineSample.map((p) => (
+									<div key={p.id || p.name} className="flex items-center justify-between px-3.5 py-2.5">
+										<div className="flex items-center gap-3">
+											<img
+												src={`https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/32`}
+												alt={p.name}
+												className="size-8 shrink-0 rounded-md border border-zinc-700 bg-zinc-800"
+												onError={(e) => {
+													;(e.currentTarget as HTMLImageElement).src =
+														"https://mc-heads.net/avatar/Steve/32"
+												}}
+											/>
+											<div className="flex flex-col">
+												<span className="font-medium text-foreground text-xs">{p.name}</span>
+												<span className="font-mono text-[10px] text-muted-foreground truncate max-w-[180px]">
+													{p.id}
+												</span>
+											</div>
+										</div>
+
+										<div className="flex items-center gap-2">
+											{!whitelist.some((w) => w.name.toLowerCase() === p.name.toLowerCase()) && (
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={async () => {
+														if (!server) return
+														await serverService.addToServerWhitelist(server.id, p.name)
+														await loadWhitelist()
+													}}
+													className="h-7 gap-1 border-emerald-500/30 text-[11px] text-emerald-300 hover:bg-emerald-500/10"
+													title="Add to whitelist"
+												>
+													<Plus className="size-3" />
+													<span>Whitelist</span>
+												</Button>
+											)}
+											<span className="size-2 rounded-full bg-emerald-400 shadow-emerald-500/50 shadow-sm" />
 										</div>
 									</div>
-
-									<div className="flex items-center gap-2">
-										{!whitelist.some((w) => w.name.toLowerCase() === name.toLowerCase()) && (
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={async () => {
-													if (!server) return
-													await serverService.addToServerWhitelist(server.id, name)
-													await loadWhitelist()
-												}}
-												className="h-7 gap-1 border-emerald-500/30 text-[11px] text-emerald-300 hover:bg-emerald-500/10"
-												title="Add this online player to whitelist"
-											>
-												<Plus className="size-3" />
-												<span>Whitelist</span>
-											</Button>
-										)}
-										<span className="size-2 rounded-full bg-emerald-400 shadow-emerald-500/50 shadow-sm" />
-									</div>
-								</div>
-							))}
+								))}
+							</div>
 						</div>
 					)}
 				</div>
@@ -535,6 +581,9 @@ export default function ServerSettingsDialog({
 	// General tab state (ServerConfig fields)
 	const [editName, setEditName] = useState("")
 	const [editRamMb, setEditRamMb] = useState(4096)
+	const [serverIcon, setServerIcon] = useState<string | null>(null)
+	const [isUploadingIcon, setIsUploadingIcon] = useState(false)
+	const fileInputRef = useRef<HTMLInputElement | null>(null)
 	const [isSavingGeneral, setIsSavingGeneral] = useState(false)
 	const [generalError, setGeneralError] = useState<string | null>(null)
 	const [generalSuccess, setGeneralSuccess] = useState(false)
@@ -546,6 +595,10 @@ export default function ServerSettingsDialog({
 	const [propsError, setPropsError] = useState<string | null>(null)
 	const [propsSuccess, setPropsSuccess] = useState(false)
 
+	// Live SLP state
+	const [pingInfo, setPingInfo] = useState<ServerPingResponse | null>(null)
+	const [isLoadingPing, setIsLoadingPing] = useState(false)
+
 	useEffect(() => {
 		if (!open || !server) return
 		// Prefill General tab
@@ -556,6 +609,83 @@ export default function ServerSettingsDialog({
 		setPropsError(null)
 		setPropsSuccess(false)
 	}, [open, server])
+
+	// SLP native query
+	const serverPort = server?.port
+	useEffect(() => {
+		if (!open || !serverPort || !isRunning) {
+			setPingInfo(null)
+			return
+		}
+
+		let isMounted = true
+		const fetchSlp = async () => {
+			try {
+				setIsLoadingPing(true)
+				const info = await serverService.pingServer(serverPort)
+				if (isMounted) setPingInfo(info)
+			} catch {
+				// Server may be booting or offline
+			} finally {
+				if (isMounted) setIsLoadingPing(false)
+			}
+		}
+
+		fetchSlp()
+		const interval = setInterval(fetchSlp, 4000)
+
+		return () => {
+			isMounted = false
+			clearInterval(interval)
+		}
+	}, [open, serverPort, isRunning])
+
+	// Load server icon
+	useEffect(() => {
+		if (!open || !serverId) {
+			setServerIcon(null)
+			return
+		}
+		let isMounted = true
+		serverService
+			.getServerIcon(serverId)
+			.then((icon) => {
+				if (isMounted) setServerIcon(icon)
+			})
+			.catch((err) => {
+				console.error("Failed to load server icon:", err)
+			})
+		return () => {
+			isMounted = false
+		}
+	}, [open, serverId])
+
+	const handleIconFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0]
+		if (!file || !serverId) return
+		setIsUploadingIcon(true)
+		try {
+			const reader = new FileReader()
+			reader.onload = async () => {
+				try {
+					const base64 = reader.result as string
+					await serverService.setServerIcon(serverId, base64)
+					setServerIcon(base64)
+					onSaved?.()
+				} catch (err: unknown) {
+					console.error("Failed to save server icon:", err)
+					setGeneralError(err instanceof Error ? err.message : "Failed to upload icon")
+				} finally {
+					setIsUploadingIcon(false)
+					if (fileInputRef.current) fileInputRef.current.value = ""
+				}
+			}
+			reader.readAsDataURL(file)
+		} catch (err) {
+			console.error("Failed to read file:", err)
+			setIsUploadingIcon(false)
+		}
+	}
 
 	// Load server.properties when opening Game tab (we load eagerly)
 	useEffect(() => {
@@ -702,6 +832,51 @@ export default function ServerSettingsDialog({
 					{/* ── General Tab ── */}
 					<TabsContent value="general" className="overflow-y-auto px-5 pt-3 pb-5">
 						<div className="flex flex-col gap-4">
+							{/* Server Icon */}
+							<div className="flex items-center gap-4 rounded-xl border border-border/40 bg-zinc-900/30 p-3.5">
+								<div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-zinc-800/80 shadow-inner">
+									{serverIcon ? (
+										<img
+											src={serverIcon}
+											alt="Server Icon"
+											className="size-full object-cover [image-rendering:pixelated]"
+										/>
+									) : (
+										<Server className="size-6 text-zinc-500" />
+									)}
+								</div>
+								<div className="flex flex-1 flex-col gap-1">
+									<span className="font-medium text-foreground text-xs">Server Picture (Icon)</span>
+									<p className="text-[11px] text-muted-foreground">
+										Upload a custom server icon (64x64 PNG format). Shown in server list and multiplayer ping.
+									</p>
+									<div className="mt-1 flex items-center gap-2">
+										<input
+											type="file"
+											ref={fileInputRef}
+											accept="image/png,image/jpeg,image/webp"
+											onChange={handleIconFileSelect}
+											className="hidden"
+										/>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											disabled={isUploadingIcon}
+											onClick={() => fileInputRef.current?.click()}
+											className="h-7 gap-1.5 text-xs"
+										>
+											{isUploadingIcon ? (
+												<Loader2 className="size-3 animate-spin" />
+											) : (
+												<Upload className="size-3" />
+											)}
+											<span>{serverIcon ? "Change Picture" : "Upload Picture"}</span>
+										</Button>
+									</div>
+								</div>
+							</div>
+
 							{/* Server Name */}
 							<div className="flex flex-col gap-1.5">
 								<label htmlFor="edit-name" className="font-medium text-foreground text-xs">
@@ -804,6 +979,23 @@ export default function ServerSettingsDialog({
 							</div>
 						) : properties ? (
 							<div className="flex flex-col gap-4">
+								{/* Running Warning Banner */}
+								{isRunning && (
+									<div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-300 text-xs">
+										<AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-400" />
+										<div className="flex flex-col gap-0.5">
+											<span className="font-semibold text-amber-200">Server is currently running</span>
+											<p className="text-[11px] text-amber-300/80">
+												Changes to{" "}
+												<code className="rounded bg-amber-500/20 px-1 py-0.5 font-mono text-[10px] text-amber-200">
+													server.properties
+												</code>{" "}
+												will take effect the next time the server is restarted.
+											</p>
+										</div>
+									</div>
+								)}
+
 								{/* MOTD + Preview */}
 								<div className="flex flex-col gap-1.5">
 									<label htmlFor="motd-input" className="font-medium text-foreground text-xs">
@@ -816,12 +1008,21 @@ export default function ServerSettingsDialog({
 											setProperties((p) => (p ? { ...p, motd: e.target.value } : null))
 										}
 										placeholder="§6§lMy Server§r §7- Welcome!"
-										className="h-9 font-mono text-xs"
+										className="h-9 font-mono text-xs w-full min-w-0"
+										maxLength={256}
 									/>
 									<p className="text-[11px] text-muted-foreground">
 										Use §-codes for colors: §6 gold, §c red, §a green, §l bold, §r reset
 									</p>
-									<MotdPreview motd={properties.motd} />
+									<MotdPreview
+										motd={properties.motd}
+										icon={serverIcon}
+										serverName={editName || server?.name}
+										maxPlayers={properties.maxPlayers}
+										onlinePlayers={isRunning ? (pingInfo?.players.online ?? 0) : 0}
+										pingMs={isRunning ? pingInfo?.pingMs : undefined}
+										isRunning={isRunning}
+									/>
 								</div>
 
 								{/* Port & Max Players */}
@@ -1075,6 +1276,8 @@ export default function ServerSettingsDialog({
 							server={server}
 							isRunning={isRunning}
 							whitelistEnabled={Boolean(properties?.whiteList)}
+							pingInfo={pingInfo}
+							isLoadingPing={isLoadingPing}
 							onToggleWhitelist={async (enabled) => {
 								if (!serverId || !properties) return
 								const updated = { ...properties, whiteList: enabled }

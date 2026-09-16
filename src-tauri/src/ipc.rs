@@ -10,8 +10,8 @@ use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
 use crate::server::{
-    self, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent, ServerProperties,
-    ServerProcessManager, ServerStatusEvent, WhitelistEntry,
+    self, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent, ServerPingResponse,
+    ServerProperties, ServerProcessManager, ServerStatusEvent, WhitelistEntry,
 };
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
@@ -357,6 +357,19 @@ pub trait AppApi {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
         username: String,
+    ) -> Result<(), String>;
+
+    async fn ping_server(port: u16) -> Result<ServerPingResponse, String>;
+
+    async fn get_server_icon(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Option<String>, String>;
+
+    async fn set_server_icon(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        base64_data: String,
     ) -> Result<(), String>;
 
     async fn get_available_server_core_versions(
@@ -908,40 +921,7 @@ impl AppApi for AppApiImpl {
         properties: ServerProperties,
     ) -> Result<(), String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        let prev_props = server::read_server_properties_from_dir(&dir).ok();
-        server::write_server_properties_to_dir(&dir, &properties)?;
-
-        // If server is currently running, dispatch runtime console commands so changes apply immediately without restart!
-        let pm = get_server_process_manager();
-        if pm.get_server_status(&server_id).await == server::ServerStatus::Running {
-            // Whitelist state change
-            if let Some(prev) = prev_props {
-                if prev.white_list != properties.white_list {
-                    let cmd = if properties.white_list {
-                        "whitelist on"
-                    } else {
-                        "whitelist off"
-                    };
-                    let _ = pm.send_command(&server_id, cmd).await;
-                }
-                if prev.difficulty != properties.difficulty {
-                    let _ = pm.send_command(&server_id, &format!("difficulty {}", properties.difficulty)).await;
-                }
-                if prev.gamemode != properties.gamemode {
-                    let _ = pm.send_command(&server_id, &format!("defaultgamemode {}", properties.gamemode)).await;
-                }
-            } else {
-                let cmd = if properties.white_list {
-                    "whitelist on"
-                } else {
-                    "whitelist off"
-                };
-                let _ = pm.send_command(&server_id, cmd).await;
-            }
-            let _ = pm.send_command(&server_id, "whitelist reload").await;
-        }
-
-        Ok(())
+        server::write_server_properties_to_dir(&dir, &properties)
     }
 
     async fn open_server_folder(
@@ -1042,14 +1022,7 @@ impl AppApi for AppApiImpl {
         username: String,
     ) -> Result<(), String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        server::add_to_server_whitelist(&dir, &username)?;
-        // If server is running, dispatch both direct whitelist add and reload command so it takes effect immediately!
-        let pm = get_server_process_manager();
-        if pm.get_server_status(&server_id).await == server::ServerStatus::Running {
-            let _ = pm.send_command(&server_id, &format!("whitelist add {}", username)).await;
-            let _ = pm.send_command(&server_id, "whitelist reload").await;
-        }
-        Ok(())
+        server::add_to_server_whitelist(&dir, &username)
     }
 
     async fn remove_from_server_whitelist(
@@ -1059,14 +1032,30 @@ impl AppApi for AppApiImpl {
         username: String,
     ) -> Result<(), String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        server::remove_from_server_whitelist(&dir, &username)?;
-        // If server is running, dispatch both direct whitelist remove and reload command so it takes effect immediately!
-        let pm = get_server_process_manager();
-        if pm.get_server_status(&server_id).await == server::ServerStatus::Running {
-            let _ = pm.send_command(&server_id, &format!("whitelist remove {}", username)).await;
-            let _ = pm.send_command(&server_id, "whitelist reload").await;
-        }
-        Ok(())
+        server::remove_from_server_whitelist(&dir, &username)
+    }
+
+    async fn ping_server(self, port: u16) -> Result<ServerPingResponse, String> {
+        server::ping_server("127.0.0.1", port).await
+    }
+
+    async fn get_server_icon(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Option<String>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        Ok(server::get_server_icon_base64(&dir))
+    }
+
+    async fn set_server_icon(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        base64_data: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::save_server_icon(&dir, &base64_data)
     }
 
     async fn get_available_server_core_versions(

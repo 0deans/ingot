@@ -5,6 +5,7 @@ import {
 	type ServerConfig,
 	type ServerCoreType,
 	type ServerLogEvent,
+	type ServerPingResponse,
 	type ServerProperties,
 	type ServerStatusEvent,
 } from "@/bindings"
@@ -178,6 +179,18 @@ export const serverService = {
 
 	async getServerOnlinePlayers(serverId: string): Promise<string[]> {
 		return rpc.get_server_online_players(serverId)
+	},
+
+	async pingServer(port: number): Promise<ServerPingResponse> {
+		return rpc.ping_server(port)
+	},
+
+	async getServerIcon(serverId: string): Promise<string | null> {
+		return rpc.get_server_icon(serverId)
+	},
+
+	async setServerIcon(serverId: string, base64Data: string): Promise<void> {
+		await rpc.set_server_icon(serverId, base64Data)
 	},
 
 	async getServerWhitelist(serverId: string) {

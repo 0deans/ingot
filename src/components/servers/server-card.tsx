@@ -1,4 +1,4 @@
-import {
+﻿import {
 	Check,
 	Copy,
 	Cpu,
@@ -6,14 +6,16 @@ import {
 	Globe,
 	Loader2,
 	Play,
+	Server,
 	Settings,
+	Signal,
 	Square,
 	Terminal,
 	Trash2,
 	Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { RunningServerSummary, ServerConfig, ServerCoreType } from "@/bindings"
+import type { RunningServerSummary, ServerConfig, ServerCoreType, ServerPingResponse } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
@@ -75,7 +77,8 @@ export default function ServerCard({
 
 	const [copied, setCopied] = useState(false)
 	const [uptime, setUptime] = useState(runningInfo?.uptimeSeconds || 0)
-	const [playerCount, setPlayerCount] = useState(0)
+	const [pingInfo, setPingInfo] = useState<ServerPingResponse | null>(null)
+	const [serverIcon, setServerIcon] = useState<string | null>(server.icon || null)
 
 	// Live ticker for uptime
 	useEffect(() => {
@@ -87,28 +90,40 @@ export default function ServerCard({
 		return () => clearInterval(timer)
 	}, [isRunning, runningInfo?.uptimeSeconds])
 
-	// Poll player count every 10s when running
+	// Fetch custom icon if not in server config
+	useEffect(() => {
+		let cancelled = false
+		serverService.getServerIcon(server.id).then((icon) => {
+			if (!cancelled && icon) setServerIcon(icon)
+		}).catch(() => {})
+		return () => { cancelled = true }
+	}, [server.id])
+
+	// Query Server List Ping (SLP) when server is running
 	useEffect(() => {
 		if (!isRunning) {
-			setPlayerCount(0)
+			setPingInfo(null)
 			return
 		}
 		let cancelled = false
-		const fetch = async () => {
+		const fetchSlp = async () => {
 			try {
-				const list = await serverService.getServerOnlinePlayers(server.id)
-				if (!cancelled) setPlayerCount(list.length)
+				const info = await serverService.pingServer(server.port)
+				if (!cancelled) {
+					setPingInfo(info)
+					if (info.favicon) setServerIcon(info.favicon)
+				}
 			} catch {
-				// ignore
+				// Server may still be finishing startup
 			}
 		}
-		fetch()
-		const timer = setInterval(fetch, 10000)
+		fetchSlp()
+		const timer = setInterval(fetchSlp, 5000)
 		return () => {
 			cancelled = true
 			clearInterval(timer)
 		}
-	}, [isRunning, server.id])
+	}, [isRunning, server.port])
 
 	const handleCopyAddress = (e: React.MouseEvent) => {
 		e.stopPropagation()
@@ -163,42 +178,67 @@ export default function ServerCard({
 				)}
 			</div>
 
-			{/* Center Info: Name & Specs */}
-			<div className="my-3 flex flex-col gap-1.5">
-				<h3 className="truncate font-semibold text-base text-foreground transition-colors group-hover:text-emerald-300">
-					{server.name}
-				</h3>
-
-				<div className="flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
-					{/* Address / Port with Click-to-copy */}
-					<button
-						type="button"
-						onClick={handleCopyAddress}
-						className="flex items-center gap-1 font-mono text-[11px] text-zinc-400 transition-colors hover:text-emerald-400"
-						title="Click to copy server address"
-					>
-						<Globe className="size-3 text-emerald-500/70" />
-						<span>localhost:{server.port}</span>
-						{copied ? (
-							<Check className="size-3 text-emerald-400" />
-						) : (
-							<Copy className="size-2.5 opacity-60" />
-						)}
-					</button>
-
-					{/* RAM */}
-					<div className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">
-						<Cpu className="size-3 text-emerald-500/70" />
-						<span>{(server.memoryMaxMb / 1024).toFixed(0)} GB RAM</span>
-					</div>
-
-					{/* Player count badge (only when running) */}
-					{isRunning && (
-						<div className="flex items-center gap-1 font-mono text-[11px] text-emerald-400">
-							<Users className="size-3 text-emerald-500/70" />
-							<span>{playerCount} online</span>
-						</div>
+			{/* Center Info: Icon + Name & Specs */}
+			<div className="my-3 flex items-start gap-3">
+				{/* Server Icon / Favicon */}
+				<div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-zinc-800/80 shadow-inner">
+					{serverIcon ? (
+						<img
+							src={serverIcon}
+							alt={server.name}
+							className="size-full object-cover [image-rendering:pixelated]"
+						/>
+					) : (
+						<Server className="size-5 text-zinc-500" />
 					)}
+				</div>
+
+				<div className="flex min-w-0 flex-1 flex-col gap-1">
+					<h3 className="truncate font-semibold text-base text-foreground transition-colors group-hover:text-emerald-300">
+						{server.name}
+					</h3>
+
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
+						{/* Address / Port with Click-to-copy */}
+						<button
+							type="button"
+							onClick={handleCopyAddress}
+							className="flex items-center gap-1 font-mono text-[11px] text-zinc-400 transition-colors hover:text-emerald-400 cursor-pointer"
+							title="Click to copy server address"
+						>
+							<Globe className="size-3 text-emerald-500/70" />
+							<span>localhost:{server.port}</span>
+							{copied ? (
+								<Check className="size-3 text-emerald-400" />
+							) : (
+								<Copy className="size-2.5 opacity-60" />
+							)}
+						</button>
+
+						{/* RAM */}
+						<div className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">
+							<Cpu className="size-3 text-emerald-500/70" />
+							<span>{(server.memoryMaxMb / 1024).toFixed(0)} GB</span>
+						</div>
+
+						{/* Live SLP Player count badge (only when running) */}
+						{isRunning && (
+							<div className="flex items-center gap-1 font-mono text-[11px] text-emerald-400">
+								<Users className="size-3 text-emerald-400" />
+								<span>
+									{pingInfo ? `${pingInfo.players.online}/${pingInfo.players.max}` : "0 online"}
+								</span>
+							</div>
+						)}
+
+						{/* Live SLP Ping latency badge */}
+						{isRunning && pingInfo && (
+							<div className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">
+								<Signal className="size-2.5 text-emerald-400" />
+								<span>{pingInfo.pingMs}ms</span>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 
