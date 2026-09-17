@@ -705,7 +705,6 @@ const ModpacksPage = () => {
 							className="size-7 p-0"
 						>
 							<ChevronLeft className="size-3.5" />
-							Previous
 						</Button>
 						<span className="text-muted-foreground text-xs">
 							Page {page + 1} of {Math.max(1, totalPages)}

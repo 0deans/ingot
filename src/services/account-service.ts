@@ -90,6 +90,12 @@ export const accountService = {
 		return await rpc.get_active_account_token()
 	},
 
+	getCachedSkinDataUrl(skinUrl?: string | null): string | null {
+		if (!skinUrl) return null
+		if (skinUrl.startsWith("data:")) return skinUrl
+		return skinCache.get(skinUrl) ?? null
+	},
+
 	async getSkinDataUrl(skinUrl?: string | null): Promise<string | null> {
 		if (!skinUrl) return null
 		if (skinUrl.startsWith("data:")) return skinUrl

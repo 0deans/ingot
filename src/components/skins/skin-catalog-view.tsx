@@ -1,3 +1,4 @@
+import { keepPreviousData, queryOptions, useQuery, useQueryClient } from "@tanstack/react-query"
 import { getRouteApi } from "@tanstack/react-router"
 import {
 	AlertCircle,
@@ -42,11 +43,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import SkinAvatar from "@/components/ui/skin-avatar"
-import SkinBodyPreview from "@/components/ui/skin-body-preview"
 import { cn } from "@/lib/utils"
 import { accountService, skinStorageService, useAccounts } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
 import type { ElySkinItem, SkinSortOption } from "@/types/skin"
+import SkinPreviewCanvas from "./skin-preview-canvas"
 
 const routeApi = getRouteApi("/skins")
 
@@ -56,6 +57,10 @@ const SORT_OPTIONS: { id: SkinSortOption; label: string }[] = [
 	{ id: "views", label: "Views" },
 	{ id: "cubes", label: "Likes" },
 ]
+
+const MODEL_OPTIONS: readonly ("any" | "steve" | "slim")[] = ["any", "steve", "slim"]
+
+let lastKnownSkin: ElySkinItem | null = null
 
 function formatNumber(num?: number | null): string {
 	if (num === undefined || num === null || Number.isNaN(num)) return "0"
@@ -111,6 +116,136 @@ function normalizeSkinItem(raw: ElySkinItem | Record<string, unknown>): ElySkinI
 	}
 }
 
+export interface SkinsQueryParams {
+	tab: "catalog" | "my-skins" | "upload"
+	page: number
+	searchQuery: string
+	sort: SkinSortOption
+	model: "any" | "steve" | "slim"
+	accountId?: string
+	accountUsername?: string
+	accountSkinUrl?: string | null
+}
+
+export const skinsQueryOptions = (params: SkinsQueryParams) =>
+	queryOptions({
+		queryKey: [
+			"skins",
+			params.tab,
+			{
+				page: params.page,
+				q: params.searchQuery,
+				sort: params.sort,
+				model: params.model,
+				account: params.tab === "my-skins" ? params.accountId : undefined,
+			},
+		],
+		queryFn: async () => {
+			if (params.tab === "upload") {
+				return { items: [], lastPage: 1, totalItems: 0 }
+			}
+
+			if (params.tab === "my-skins") {
+				const localUploads = params.accountId
+					? skinStorageService.getUploadedSkins(params.accountId)
+					: []
+
+				const localSkinItems: ElySkinItem[] = localUploads.map((u, idx) => ({
+					id: -1000 - idx,
+					skinUrl: u.dataUrl,
+					dataUrl: u.dataUrl,
+					isSlim: u.isSlim,
+					countWearers: 1,
+					countCubes: 0,
+					countViews: 0,
+					tags: [u.name || "Custom Skin"],
+					isCustom: true,
+					name: u.name,
+					uploadedAt: u.uploadedAt,
+				}))
+
+				let remoteItems: ElySkinItem[] = []
+				if (params.accountUsername) {
+					try {
+						const res = await accountService.getElySkins(
+							params.page,
+							params.searchQuery || undefined,
+							params.sort,
+							params.model === "any" ? undefined : params.model,
+							params.accountUsername,
+						)
+						remoteItems = (res.items || []).map(normalizeSkinItem)
+					} catch (e) {
+						console.warn("Could not fetch remote uploader skins:", e)
+					}
+				}
+
+				const currentSkinItem: ElySkinItem[] = []
+				if (
+					params.accountSkinUrl &&
+					!localSkinItems.some((s) => s.skinUrl === params.accountSkinUrl) &&
+					!remoteItems.some((s) => s.skinUrl === params.accountSkinUrl)
+				) {
+					currentSkinItem.push({
+						id: 0,
+						skinUrl: params.accountSkinUrl,
+						isSlim: false,
+						countWearers: 1,
+						countCubes: 0,
+						countViews: 0,
+						tags: ["Current Active Skin", params.accountUsername || ""],
+						name: "Active Account Skin",
+					})
+				}
+
+				let combined = [...localSkinItems, ...currentSkinItem, ...remoteItems]
+
+				if (params.model === "slim") {
+					combined = combined.filter((s) => s.isSlim)
+				} else if (params.model === "steve") {
+					combined = combined.filter((s) => !s.isSlim)
+				}
+
+				if (params.searchQuery) {
+					const q = params.searchQuery.toLowerCase()
+					combined = combined.filter(
+						(s) =>
+							s.tags.some((t) => t.toLowerCase().includes(q)) || s.name?.toLowerCase().includes(q),
+					)
+				}
+
+				return {
+					items: combined,
+					lastPage: 1,
+					totalItems: combined.length,
+				}
+			}
+
+			// Public catalog
+			const res = await accountService.getElySkins(
+				params.page,
+				params.searchQuery || undefined,
+				params.sort,
+				params.model === "any" ? undefined : params.model,
+			)
+			const normalized = (res.items || []).map(normalizeSkinItem)
+			if (params.sort === "views") {
+				normalized.sort((a, b) => b.countViews - a.countViews)
+			} else if (params.sort === "cubes") {
+				normalized.sort((a, b) => b.countCubes - a.countCubes)
+			}
+
+			return {
+				items: normalized,
+				lastPage: res.lastPage || 1,
+				totalItems: res.totalItems || 0,
+			}
+		},
+		staleTime: 1000 * 60 * 5,
+		gcTime: 1000 * 60 * 30,
+		placeholderData: keepPreviousData,
+	})
+
 export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountProfile | null }) {
 	const search = routeApi.useSearch()
 	const navigate = routeApi.useNavigate()
@@ -131,13 +266,32 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	// Mobile view mode when activeTab is not "upload": "catalog" | "preview"
 	const [mobileView, setMobileView] = useState<"catalog" | "preview">("catalog")
 
-	// Catalog state
-	const [skins, setSkins] = useState<ElySkinItem[]>([])
+	// Query client & catalog query
+	const queryClient = useQueryClient()
 	const [selectedSkin, setSelectedSkin] = useState<ElySkinItem | null>(null)
-	const [lastPage, setLastPage] = useState(1)
-	const [totalItems, setTotalItems] = useState(0)
-	const [isLoadingCatalog, setIsLoadingCatalog] = useState(false)
-	const [catalogError, setCatalogError] = useState<string | null>(null)
+
+	const { data, isLoading, isFetching, error, refetch } = useQuery(
+		skinsQueryOptions({
+			tab: activeTab,
+			page,
+			searchQuery,
+			sort: sortOption,
+			model: modelFilter,
+			accountId: targetAccount?.id,
+			accountUsername: targetAccount?.username,
+			accountSkinUrl: targetAccount?.skinUrl,
+		}),
+	)
+
+	const skins = data?.items ?? []
+	const totalItems = data?.totalItems ?? 0
+	const lastPage = data?.lastPage ?? 1
+	const catalogError = error
+		? error instanceof Error
+			? error.message
+			: "Failed to load skins from Ely.by"
+		: null
+	const isLoadingCatalog = isLoading
 
 	// Keep input synced if URL search param changes
 	useEffect(() => {
@@ -171,7 +325,30 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		[targetAccount],
 	)
 
-	const activeSkin = selectedSkin || skins[0] || fallbackSkin
+	const activeSkin = useMemo(() => {
+		if (selectedSkinId !== undefined) {
+			const match = skins.find((item) => item.id === selectedSkinId)
+			if (match) {
+				lastKnownSkin = match
+				return match
+			}
+		}
+		if (selectedSkin) {
+			const match = skins.find(
+				(item) =>
+					item.skinUrl === selectedSkin.skinUrl || (item.id !== 0 && item.id === selectedSkin.id),
+			)
+			if (match) {
+				lastKnownSkin = match
+				return match
+			}
+		}
+		if (skins[0]) {
+			lastKnownSkin = skins[0]
+			return skins[0]
+		}
+		return lastKnownSkin || fallbackSkin
+	}, [selectedSkinId, selectedSkin, skins, fallbackSkin])
 
 	// Action state
 	const [isApplying, setIsApplying] = useState(false)
@@ -212,152 +389,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				}),
 			})
 			setSelectedSkin(null)
-			setCatalogError(null)
+			lastKnownSkin = null
 		},
 		[navigate],
 	)
-
-	// Fetch catalog on filter / page / tab changes
-	const fetchCatalog = useCallback(async () => {
-		if (activeTab === "upload") return
-		setIsLoadingCatalog(true)
-		setCatalogError(null)
-
-		try {
-			if (activeTab === "my-skins") {
-				// 1. Get locally stored uploaded skins for this account
-				const localUploads = targetAccount
-					? skinStorageService.getUploadedSkins(targetAccount.id)
-					: []
-
-				const localSkinItems: ElySkinItem[] = localUploads.map((u, idx) => ({
-					id: -1000 - idx,
-					skinUrl: u.dataUrl,
-					dataUrl: u.dataUrl,
-					isSlim: u.isSlim,
-					countWearers: 1,
-					countCubes: 0,
-					countViews: 0,
-					tags: [u.name || "Custom Skin"],
-					isCustom: true,
-					name: u.name,
-					uploadedAt: u.uploadedAt,
-				}))
-
-				// 2. Fetch any remote catalog skins under this uploader from Ely.by
-				let remoteItems: ElySkinItem[] = []
-				try {
-					if (targetAccount?.username) {
-						const res = await accountService.getElySkins(
-							page,
-							searchQuery || undefined,
-							sortOption,
-							modelFilter === "any" ? undefined : modelFilter,
-							targetAccount.username,
-						)
-						remoteItems = (res.items || []).map(normalizeSkinItem)
-					}
-				} catch (e) {
-					console.warn("Could not fetch remote uploader skins:", e)
-				}
-
-				// 3. Current active account skin if not already in list
-				const currentSkinItem: ElySkinItem[] = []
-				if (
-					targetAccount?.skinUrl &&
-					!localSkinItems.some((s) => s.skinUrl === targetAccount.skinUrl) &&
-					!remoteItems.some((s) => s.skinUrl === targetAccount.skinUrl)
-				) {
-					currentSkinItem.push({
-						id: 0,
-						skinUrl: targetAccount.skinUrl,
-						isSlim: false,
-						countWearers: 1,
-						countCubes: 0,
-						countViews: 0,
-						tags: ["Current Active Skin", targetAccount.username],
-						name: "Active Account Skin",
-					})
-				}
-
-				// Combine local uploads + active skin + remote uploads
-				let combined = [...localSkinItems, ...currentSkinItem, ...remoteItems]
-
-				// Apply filter for model
-				if (modelFilter === "slim") {
-					combined = combined.filter((s) => s.isSlim)
-				} else if (modelFilter === "steve") {
-					combined = combined.filter((s) => !s.isSlim)
-				}
-
-				// Apply query filter for local items if needed
-				if (searchQuery) {
-					const q = searchQuery.toLowerCase()
-					combined = combined.filter(
-						(s) =>
-							s.tags.some((t) => t.toLowerCase().includes(q)) || s.name?.toLowerCase().includes(q),
-					)
-				}
-
-				setSkins(combined)
-				setLastPage(1)
-				setTotalItems(combined.length)
-				setSelectedSkin((prev) => {
-					if (selectedSkinId !== undefined) {
-						const match = combined.find((item) => item.id === selectedSkinId)
-						if (match) return match
-					}
-					if (
-						prev &&
-						combined.some(
-							(item) => item.skinUrl === prev.skinUrl || (item.id !== 0 && item.id === prev.id),
-						)
-					) {
-						return prev
-					}
-					return combined[0] ?? null
-				})
-			} else {
-				// Public Browse Catalog tab
-				const res = await accountService.getElySkins(
-					page,
-					searchQuery || undefined,
-					sortOption,
-					modelFilter === "any" ? undefined : modelFilter,
-				)
-				const normalized = (res.items || []).map(normalizeSkinItem)
-				if (sortOption === "views") {
-					normalized.sort((a, b) => b.countViews - a.countViews)
-				} else if (sortOption === "cubes") {
-					normalized.sort((a, b) => b.countCubes - a.countCubes)
-				}
-				setSkins(normalized)
-				setLastPage(res.lastPage || 1)
-				setTotalItems(res.totalItems || 0)
-				setSelectedSkin((prev) => {
-					if (selectedSkinId !== undefined) {
-						const match = normalized.find((item) => item.id === selectedSkinId)
-						if (match) return match
-					}
-					if (prev && normalized.some((item) => item.id === prev.id)) {
-						return prev
-					}
-					return normalized[0] ?? null
-				})
-			}
-		} catch (err: unknown) {
-			console.error("Failed to fetch Ely.by skins:", err)
-			setCatalogError(err instanceof Error ? err.message : "Failed to load skins from Ely.by")
-		} finally {
-			setIsLoadingCatalog(false)
-		}
-	}, [activeTab, targetAccount, page, searchQuery, sortOption, modelFilter, selectedSkinId])
-
-	useEffect(() => {
-		if (activeTab === "catalog" || activeTab === "my-skins") {
-			fetchCatalog()
-		}
-	}, [activeTab, fetchCatalog])
 
 	// Reset status message after delay
 	useEffect(() => {
@@ -417,7 +452,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 					text: `Skin #${skin.id} applied to ${targetAccount.username}!`,
 				})
 			}
-			await fetchCatalog()
+			await queryClient.invalidateQueries({ queryKey: ["skins"] })
 		} catch (err: unknown) {
 			const msg = err instanceof Error ? err.message : String(err)
 			if (msg.includes("password") || msg.includes("auth") || msg.includes("credentials")) {
@@ -476,7 +511,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			setShowPasswordDialog(false)
 			setPendingAction(null)
 			setPasswordInput("")
-			await fetchCatalog()
+			await queryClient.invalidateQueries({ queryKey: ["skins"] })
 		} catch (err: unknown) {
 			setPasswordError(err instanceof Error ? err.message : String(err))
 		} finally {
@@ -491,7 +526,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		const match = localUploads.find((u) => u.dataUrl === skin.skinUrl || u.id === String(skin.id))
 		if (match) {
 			skinStorageService.removeUploadedSkin(targetAccount.id, match.id)
-			fetchCatalog()
+			queryClient.invalidateQueries({ queryKey: ["skins"] })
 		}
 	}
 
@@ -512,7 +547,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 		const reader = new FileReader()
 		reader.onload = (e) => {
-			const dataUrl = e.target?.result as string
+			const dataUrl = typeof e.target?.result === "string" ? e.target.result : null
 			if (!dataUrl) return
 
 			const img = new Image()
@@ -600,7 +635,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				text: `Custom skin uploaded and applied to ${targetAccount.username}!`,
 			})
 			handleTabChange("my-skins")
-			await fetchCatalog()
+			await queryClient.invalidateQueries({ queryKey: ["skins"] })
 		} catch (err: unknown) {
 			const msg = err instanceof Error ? err.message : String(err)
 			if (msg.includes("password") || msg.includes("auth") || msg.includes("credentials")) {
@@ -937,7 +972,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								<div className="flex items-center gap-2">
 									{/* Model Filter */}
 									<div className="flex items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900/80 p-0.5">
-										{(["any", "steve", "slim"] as const).map((m) => (
+										{MODEL_OPTIONS.map((m) => (
 											<button
 												key={m}
 												type="button"
@@ -997,6 +1032,23 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										</DropdownMenuContent>
 									</DropdownMenu>
 
+									<Button
+										variant="outline"
+										size="xs"
+										onClick={() => refetch()}
+										disabled={isFetching}
+										className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900/80 px-2 text-[11px] text-zinc-300 hover:bg-zinc-800"
+										title="Refresh skins"
+									>
+										<RefreshCw
+											className={cn(
+												"size-3 text-zinc-400",
+												isFetching && "animate-spin text-emerald-400",
+											)}
+										/>
+										<span className="hidden sm:inline">Refresh</span>
+									</Button>
+
 									{totalItems > 0 && (
 										<span className="hidden font-mono text-[11px] text-zinc-500 xl:inline">
 											{formatNumber(totalItems)} skins
@@ -1007,7 +1059,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 							{/* Skins Grid Area */}
 							<div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-								{isLoadingCatalog && skins.length > 0 && (
+								{isFetching && skins.length > 0 && (
 									<div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 rounded-full border border-zinc-700/80 bg-zinc-900/95 px-2.5 py-1 text-[11px] text-zinc-300 shadow-md backdrop-blur-xs">
 										<Loader2 className="size-3 animate-spin text-emerald-400" />
 										<span>Updating...</span>
@@ -1015,7 +1067,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								)}
 
 								<ScrollArea className="flex-1" viewportClassName="p-4">
-									{isLoadingCatalog && skins.length === 0 ? (
+									{isLoading && skins.length === 0 ? (
 										<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-2 text-zinc-400">
 											<Loader2 className="size-6 animate-spin text-emerald-400" />
 											<span className="text-xs">
@@ -1031,7 +1083,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											<Button
 												size="sm"
 												variant="outline"
-												onClick={fetchCatalog}
+												onClick={() => refetch()}
 												className="h-7 text-xs"
 											>
 												<RefreshCw className="mr-1.5 size-3" />
@@ -1082,12 +1134,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											)}
 										</div>
 									) : (
-										<div
-											className={cn(
-												"grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 transition-opacity duration-150",
-												isLoadingCatalog ? "pointer-events-none opacity-50" : "opacity-100",
-											)}
-										>
+										<div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
 											{skins.map((skin) => {
 												const isSelected =
 													activeSkin.skinUrl === skin.skinUrl ||
@@ -1103,6 +1150,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														key={skin.id || skin.skinUrl}
 														type="button"
 														onClick={() => {
+															lastKnownSkin = skin
 															setSelectedSkin(skin)
 															navigate({
 																search: (prev) => ({ ...prev, skinId: skin.id }),
@@ -1139,7 +1187,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 														{/* 2D Skin Body Preview */}
 														<div className="flex h-36 w-full items-center justify-center overflow-hidden rounded-lg bg-zinc-950/60 p-2">
-															<SkinBodyPreview
+															<SkinPreviewCanvas
 																skinUrl={skin.dataUrl || skin.skinUrl}
 																isSlim={skin.isSlim}
 																height={128}

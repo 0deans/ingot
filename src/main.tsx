@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window"
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
+import { recordLocation } from "./lib/tab-history"
 import { routeTree } from "./routeTree.gen"
 
 export const queryClient = new QueryClient({
@@ -20,12 +21,19 @@ const memoryHistory = createMemoryHistory({
 	initialEntries: ["/"],
 })
 
-const router = createRouter({
+export const router = createRouter({
 	routeTree,
 	history: memoryHistory,
+	scrollRestoration: true,
 	context: {
 		queryClient,
 	},
+})
+
+// Automatically track section locations across all navigations
+recordLocation(router.history.location.href, router.history.location.pathname)
+router.history.subscribe((event) => {
+	recordLocation(event.location.href, event.location.pathname)
 })
 
 declare module "@tanstack/react-router" {
@@ -34,13 +42,16 @@ declare module "@tanstack/react-router" {
 	}
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-	<React.StrictMode>
-		<QueryClientProvider client={queryClient}>
-			<RouterProvider router={router} />
-		</QueryClientProvider>
-	</React.StrictMode>,
-)
+const rootElement = document.getElementById("root")
+if (rootElement) {
+	ReactDOM.createRoot(rootElement).render(
+		<React.StrictMode>
+			<QueryClientProvider client={queryClient}>
+				<RouterProvider router={router} />
+			</QueryClientProvider>
+		</React.StrictMode>,
+	)
+}
 
 requestAnimationFrame(() => {
 	const appWindow = getCurrentWindow()

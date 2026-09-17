@@ -4,17 +4,20 @@ import { memo } from "react"
 import Sidebar from "@/components/layout/sidebar"
 import WindowFrame from "@/components/layout/window-frame"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { useScrollRestoration } from "@/lib/scroll-restoration"
 
 export interface RouterContext {
 	queryClient: QueryClient
 }
 
 const RootLayout = () => {
+	const mainRef = useScrollRestoration()
+
 	return (
 		<TooltipProvider>
 			<WindowFrame title="Ingot">
 				<Sidebar />
-				<main className="flex size-full min-h-0 flex-1 flex-col overflow-hidden">
+				<main ref={mainRef} className="flex size-full min-h-0 flex-1 flex-col overflow-hidden">
 					<Outlet />
 				</main>
 			</WindowFrame>

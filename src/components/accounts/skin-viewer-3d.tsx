@@ -71,8 +71,13 @@ const SkinViewer3D = ({
 	const [hasUserOverriddenModel, setHasUserOverriddenModel] = useState(model !== undefined)
 	const [showOuterLayer, setShowOuterLayer] = useState(true)
 	const [isAutoRotate, setIsAutoRotate] = useState(false)
-	const [resolvedSkin, setResolvedSkin] = useState<string>(DEFAULT_STEVE_SKIN)
-	const [isLoadingSkin, setIsLoadingSkin] = useState(Boolean(skinUrl))
+	const initialSkin =
+		(skinUrl ? accountService.getCachedSkinDataUrl(skinUrl) : null) || skinUrl || DEFAULT_STEVE_SKIN
+	const [resolvedSkin, setResolvedSkin] = useState<string>(initialSkin)
+	const [isLoadingSkin, setIsLoadingSkin] = useState(
+		Boolean(skinUrl && !accountService.getCachedSkinDataUrl(skinUrl)),
+	)
+	const loadedSkinRef = useRef<{ skin: string; model: string } | null>(null)
 
 	useEffect(() => {
 		if (model !== undefined) {
@@ -87,6 +92,13 @@ const SkinViewer3D = ({
 
 		if (!skinUrl) {
 			setResolvedSkin(DEFAULT_STEVE_SKIN)
+			setIsLoadingSkin(false)
+			return
+		}
+
+		const cached = accountService.getCachedSkinDataUrl(skinUrl)
+		if (cached) {
+			setResolvedSkin(cached)
 			setIsLoadingSkin(false)
 			return
 		}
@@ -141,6 +153,7 @@ const SkinViewer3D = ({
 		return () => {
 			viewer.dispose()
 			viewerRef.current = null
+			loadedSkinRef.current = null
 		}
 	}, [enableControls, zoom, floatingToolbar])
 
@@ -292,6 +305,15 @@ const SkinViewer3D = ({
 		if (!viewer || !resolvedSkin) return
 
 		const modelOption = hasUserOverriddenModel ? (isSlim ? "slim" : "default") : "auto-detect"
+
+		if (
+			loadedSkinRef.current?.skin === resolvedSkin &&
+			loadedSkinRef.current?.model === modelOption
+		) {
+			return
+		}
+
+		loadedSkinRef.current = { skin: resolvedSkin, model: modelOption }
 
 		viewer
 			.loadSkin(resolvedSkin, {
