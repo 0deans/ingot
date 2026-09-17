@@ -1,4 +1,5 @@
 import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router"
+import { getCurrentWindow } from "@tauri-apps/api/window"
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
@@ -24,3 +25,13 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 		<RouterProvider router={router} />
 	</React.StrictMode>,
 )
+
+requestAnimationFrame(() => {
+	const appWindow = getCurrentWindow()
+	appWindow
+		.show()
+		.then(() => {
+			appWindow.setFocus().catch(() => {})
+		})
+		.catch(() => {})
+})

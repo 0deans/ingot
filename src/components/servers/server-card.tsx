@@ -15,7 +15,12 @@
 	Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { RunningServerSummary, ServerConfig, ServerCoreType, ServerPingResponse } from "@/bindings"
+import type {
+	RunningServerSummary,
+	ServerConfig,
+	ServerCoreType,
+	ServerPingResponse,
+} from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
@@ -93,10 +98,15 @@ export default function ServerCard({
 	// Fetch custom icon if not in server config
 	useEffect(() => {
 		let cancelled = false
-		serverService.getServerIcon(server.id).then((icon) => {
-			if (!cancelled && icon) setServerIcon(icon)
-		}).catch(() => {})
-		return () => { cancelled = true }
+		serverService
+			.getServerIcon(server.id)
+			.then((icon) => {
+				if (!cancelled && icon) setServerIcon(icon)
+			})
+			.catch(() => {})
+		return () => {
+			cancelled = true
+		}
 	}, [server.id])
 
 	// Query Server List Ping (SLP) when server is running
@@ -203,7 +213,7 @@ export default function ServerCard({
 						<button
 							type="button"
 							onClick={handleCopyAddress}
-							className="flex items-center gap-1 font-mono text-[11px] text-zinc-400 transition-colors hover:text-emerald-400 cursor-pointer"
+							className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-zinc-400 transition-colors hover:text-emerald-400"
 							title="Click to copy server address"
 						>
 							<Globe className="size-3 text-emerald-500/70" />

@@ -154,7 +154,7 @@ function MotdPreview({
 	return (
 		<div className="w-full min-w-0 max-w-full overflow-hidden rounded-lg border border-zinc-700 bg-[#1a1a2e] p-3 font-minecraft shadow-inner">
 			{/* Fake server list row */}
-			<div className="flex items-start gap-3 min-w-0 overflow-hidden">
+			<div className="flex min-w-0 items-start gap-3 overflow-hidden">
 				{/* Server icon */}
 				<div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded border border-zinc-600 bg-zinc-800 text-2xl">
 					{icon ? (
@@ -170,24 +170,17 @@ function MotdPreview({
 
 				<div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
 					{/* Server Name + Ping & Player count header */}
-					<div className="flex items-center justify-between gap-2 min-w-0 overflow-hidden">
+					<div className="flex min-w-0 items-center justify-between gap-2 overflow-hidden">
 						<span className="truncate font-semibold text-white text-xs">
 							{serverName || "A Minecraft Server"}
 						</span>
 						<div className="flex shrink-0 items-center gap-2 text-[10px] text-zinc-400">
 							<span className="flex items-center gap-1 font-mono">
 								<Signal
-									className={cn(
-										"size-2.5",
-										isRunning ? "text-emerald-400" : "text-zinc-500",
-									)}
+									className={cn("size-2.5", isRunning ? "text-emerald-400" : "text-zinc-500")}
 								/>
 								<span>
-									{isRunning && pingMs != null
-										? `${pingMs}ms`
-										: isRunning
-											? "<1ms"
-											: "Offline"}
+									{isRunning && pingMs != null ? `${pingMs}ms` : isRunning ? "<1ms" : "Offline"}
 								</span>
 							</span>
 							<span className="font-mono text-zinc-300">
@@ -197,12 +190,12 @@ function MotdPreview({
 					</div>
 
 					{/* MOTD lines - max 2 lines with strict wrapping so text never overflows */}
-					<div className="flex flex-col gap-0.5 overflow-hidden font-mono text-[11px] leading-snug break-words break-all [overflow-wrap:anywhere]">
+					<div className="flex flex-col gap-0.5 overflow-hidden break-words break-all font-mono text-[11px] leading-snug [overflow-wrap:anywhere]">
 						{lines.slice(0, 2).map((line) => (
 							<div
 								key={line.key}
 								className={cn(
-									"break-words break-all overflow-hidden [overflow-wrap:anywhere]",
+									"overflow-hidden break-words break-all [overflow-wrap:anywhere]",
 									line.spans.length === 0 && "h-[1em]",
 								)}
 							>
@@ -311,9 +304,7 @@ function PlayersTab({
 			await serverService.removeFromServerWhitelist(server.id, username)
 			await loadWhitelist()
 		} catch (err: unknown) {
-			setWhitelistError(
-				err instanceof Error ? err.message : "Failed to remove user from whitelist",
-			)
+			setWhitelistError(err instanceof Error ? err.message : "Failed to remove user from whitelist")
 		}
 	}
 
@@ -419,7 +410,7 @@ function PlayersTab({
 						</div>
 					) : (
 						<div className="flex flex-col gap-2">
-							<div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+							<div className="flex items-center justify-between px-1 text-muted-foreground text-xs">
 								<span>
 									Online Players ({pingInfo?.players.online} / {pingInfo?.players.max})
 								</span>
@@ -430,7 +421,10 @@ function PlayersTab({
 							</div>
 							<div className="flex flex-col divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-zinc-900/30">
 								{onlineSample.map((p) => (
-									<div key={p.id || p.name} className="flex items-center justify-between px-3.5 py-2.5">
+									<div
+										key={p.id || p.name}
+										className="flex items-center justify-between px-3.5 py-2.5"
+									>
 										<div className="flex items-center gap-3">
 											<img
 												src={`https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/32`}
@@ -443,7 +437,7 @@ function PlayersTab({
 											/>
 											<div className="flex flex-col">
 												<span className="font-medium text-foreground text-xs">{p.name}</span>
-												<span className="font-mono text-[10px] text-muted-foreground truncate max-w-[180px]">
+												<span className="max-w-[180px] truncate font-mono text-[10px] text-muted-foreground">
 													{p.id}
 												</span>
 											</div>
@@ -848,7 +842,8 @@ export default function ServerSettingsDialog({
 								<div className="flex flex-1 flex-col gap-1">
 									<span className="font-medium text-foreground text-xs">Server Picture (Icon)</span>
 									<p className="text-[11px] text-muted-foreground">
-										Upload a custom server icon (64x64 PNG format). Shown in server list and multiplayer ping.
+										Upload a custom server icon (64x64 PNG format). Shown in server list and
+										multiplayer ping.
 									</p>
 									<div className="mt-1 flex items-center gap-2">
 										<input
@@ -984,7 +979,9 @@ export default function ServerSettingsDialog({
 									<div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-300 text-xs">
 										<AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-400" />
 										<div className="flex flex-col gap-0.5">
-											<span className="font-semibold text-amber-200">Server is currently running</span>
+											<span className="font-semibold text-amber-200">
+												Server is currently running
+											</span>
 											<p className="text-[11px] text-amber-300/80">
 												Changes to{" "}
 												<code className="rounded bg-amber-500/20 px-1 py-0.5 font-mono text-[10px] text-amber-200">
@@ -1008,7 +1005,7 @@ export default function ServerSettingsDialog({
 											setProperties((p) => (p ? { ...p, motd: e.target.value } : null))
 										}
 										placeholder="§6§lMy Server§r §7- Welcome!"
-										className="h-9 font-mono text-xs w-full min-w-0"
+										className="h-9 w-full min-w-0 font-mono text-xs"
 										maxLength={256}
 									/>
 									<p className="text-[11px] text-muted-foreground">
