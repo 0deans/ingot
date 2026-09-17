@@ -1,10 +1,12 @@
+import { getRouteApi } from "@tanstack/react-router"
 import { Plus, RefreshCw, Search, Server, Square, Terminal, X } from "lucide-react"
-import { useMemo, useState } from "react"
-import type { ServerConfig } from "@/bindings"
+import { useEffect, useMemo, useState } from "react"
+import type * as v from "valibot"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import type { serverCoreSchema } from "@/routes/servers"
 import { serverService, useRunningServers, useServers } from "@/services/server-service"
 import DeleteServerDialog from "./delete-server-dialog"
 import NewServerDialog from "./new-server-dialog"
@@ -12,7 +14,9 @@ import ServerCard from "./server-card"
 import ServerConsoleDialog from "./server-console-dialog"
 import ServerSettingsDialog from "./server-settings-dialog"
 
-const CORE_FILTERS: { id: string; label: string }[] = [
+const routeApi = getRouteApi("/servers")
+
+const CORE_FILTERS: { id: v.InferOutput<typeof serverCoreSchema>; label: string }[] = [
 	{ id: "all", label: "All Cores" },
 	{ id: "paper", label: "Paper" },
 	{ id: "purpur", label: "Purpur" },
@@ -22,26 +26,56 @@ const CORE_FILTERS: { id: string; label: string }[] = [
 ]
 
 export default function ServerListView() {
+	const search = routeApi.useSearch()
+	const navigate = routeApi.useNavigate()
+
+	const searchQuery = search.q ?? ""
+	const coreFilter = search.core ?? "all"
+	const action = search.action
+	const consoleServerId = search.console
+	const settingsServerId = search.settings
+	const deletingServerId = search.delete
+
+	const [searchInput, setSearchInput] = useState(searchQuery)
+
 	const { servers, isLoading, refresh } = useServers()
 	const { runningMap, runningList } = useRunningServers()
 
-	const [searchQuery, setSearchQuery] = useState("")
-	const [coreFilter, setCoreFilter] = useState("all")
+	useEffect(() => {
+		setSearchInput(searchQuery)
+	}, [searchQuery])
 
-	// Dialog states
-	const [isNewServerOpen, setIsNewServerOpen] = useState(false)
-	const [consoleServer, setConsoleServer] = useState<ServerConfig | null>(null)
-	const [settingsServer, setSettingsServer] = useState<ServerConfig | null>(null)
-	const [deletingServer, setDeletingServer] = useState<ServerConfig | null>(null)
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchInput !== searchQuery) {
+				navigate({
+					search: (prev) => ({ ...prev, q: searchInput }),
+					replace: true,
+				})
+			}
+		}, 300)
+		return () => clearTimeout(timer)
+	}, [searchInput, searchQuery, navigate])
+
+	const consoleServer = useMemo(
+		() => (consoleServerId ? (servers.find((s) => s.id === consoleServerId) ?? null) : null),
+		[servers, consoleServerId],
+	)
+	const settingsServer = useMemo(
+		() => (settingsServerId ? (servers.find((s) => s.id === settingsServerId) ?? null) : null),
+		[servers, settingsServerId],
+	)
+	const deletingServer = useMemo(
+		() => (deletingServerId ? (servers.find((s) => s.id === deletingServerId) ?? null) : null),
+		[servers, deletingServerId],
+	)
 
 	const handleStart = async (serverId: string) => {
 		try {
 			await serverService.startServer(serverId)
-			// Automatically open console when starting server
-			const found = servers.find((s) => s.id === serverId)
-			if (found) {
-				setConsoleServer(found)
-			}
+			navigate({
+				search: (prev) => ({ ...prev, console: serverId }),
+			})
 		} catch (err) {
 			console.error("Failed to start server:", err)
 			alert(`Failed to start server: ${err}`)
@@ -67,8 +101,14 @@ export default function ServerListView() {
 	const handleDeleteConfirm = async (serverId: string, deleteFiles: boolean) => {
 		try {
 			await serverService.deleteServer(serverId, deleteFiles)
-			if (consoleServer?.id === serverId) setConsoleServer(null)
-			if (settingsServer?.id === serverId) setSettingsServer(null)
+			navigate({
+				search: (prev) => ({
+					...prev,
+					delete: undefined,
+					console: prev.console === serverId ? undefined : prev.console,
+					settings: prev.settings === serverId ? undefined : prev.settings,
+				}),
+			})
 		} catch (err) {
 			console.error("Failed to delete server:", err)
 			alert(`Failed to delete server: ${err}`)
@@ -126,7 +166,11 @@ export default function ServerListView() {
 
 						<Button
 							size="sm"
-							onClick={() => setIsNewServerOpen(true)}
+							onClick={() =>
+								navigate({
+									search: (prev) => ({ ...prev, action: "new" }),
+								})
+							}
 							className="h-9 gap-1.5 bg-emerald-600 font-semibold text-white text-xs shadow-emerald-950/20 shadow-md hover:bg-emerald-500"
 						>
 							<Plus className="size-4" />
@@ -156,7 +200,12 @@ export default function ServerListView() {
 										</span>
 										<button
 											type="button"
-											onClick={() => srv && setConsoleServer(srv)}
+											onClick={() =>
+												srv &&
+												navigate({
+													search: (prev) => ({ ...prev, console: srv.id }),
+												})
+											}
 											className="rounded p-0.5 text-emerald-300 transition-colors hover:text-white"
 											title="Open Console"
 										>
@@ -184,14 +233,20 @@ export default function ServerListView() {
 						<Input
 							type="text"
 							placeholder="Search servers by name, version, port..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
+							value={searchInput}
+							onChange={(e) => setSearchInput(e.target.value)}
 							className="h-8.5 rounded-lg border-border/60 bg-zinc-900/50 pr-8 pl-8.5 text-foreground text-xs placeholder:text-muted-foreground focus-visible:ring-emerald-500/50"
 						/>
-						{searchQuery && (
+						{searchInput && (
 							<button
 								type="button"
-								onClick={() => setSearchQuery("")}
+								onClick={() => {
+									setSearchInput("")
+									navigate({
+										search: (prev) => ({ ...prev, q: "" }),
+										replace: true,
+									})
+								}}
 								className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 							>
 								<X className="size-3.5" />
@@ -204,7 +259,11 @@ export default function ServerListView() {
 							<button
 								key={c.id}
 								type="button"
-								onClick={() => setCoreFilter(c.id)}
+								onClick={() =>
+									navigate({
+										search: (prev) => ({ ...prev, core: c.id }),
+									})
+								}
 								className={cn(
 									"rounded-md px-2.5 py-1 font-medium text-xs transition-colors",
 									coreFilter === c.id
@@ -230,7 +289,11 @@ export default function ServerListView() {
 							JAR, accept the EULA, configure the port, and set up your Java runtime.
 						</p>
 						<Button
-							onClick={() => setIsNewServerOpen(true)}
+							onClick={() =>
+								navigate({
+									search: (prev) => ({ ...prev, action: "new" }),
+								})
+							}
 							className="mt-5 gap-2 bg-emerald-600 text-white text-xs hover:bg-emerald-500"
 							size="sm"
 						>
@@ -247,17 +310,33 @@ export default function ServerListView() {
 								runningInfo={runningMap.get(srv.id)}
 								onStart={handleStart}
 								onStop={handleStop}
-								onOpenConsole={(s) => setConsoleServer(s)}
-								onOpenSettings={(s) => setSettingsServer(s)}
+								onOpenConsole={(s) =>
+									navigate({
+										search: (prev) => ({ ...prev, console: s.id }),
+									})
+								}
+								onOpenSettings={(s) =>
+									navigate({
+										search: (prev) => ({ ...prev, settings: s.id }),
+									})
+								}
 								onOpenFolder={handleOpenFolder}
-								onDelete={(s) => setDeletingServer(s)}
+								onDelete={(s) =>
+									navigate({
+										search: (prev) => ({ ...prev, delete: s.id }),
+									})
+								}
 							/>
 						))}
 
 						{/* Create New Server Dashed Card */}
 						<button
 							type="button"
-							onClick={() => setIsNewServerOpen(true)}
+							onClick={() =>
+								navigate({
+									search: (prev) => ({ ...prev, action: "new" }),
+								})
+							}
 							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-zinc-950/30 p-6 text-muted-foreground transition-all duration-200 hover:border-emerald-500/60 hover:bg-zinc-900/40 hover:text-white"
 						>
 							<div className="flex size-11 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-inner transition-transform group-hover:scale-110">
@@ -283,8 +362,10 @@ export default function ServerListView() {
 							variant="outline"
 							size="sm"
 							onClick={() => {
-								setSearchQuery("")
-								setCoreFilter("all")
+								setSearchInput("")
+								navigate({
+									search: (prev) => ({ ...prev, q: "", core: "all" }),
+								})
 							}}
 							className="mt-4 text-xs"
 						>
@@ -295,21 +376,33 @@ export default function ServerListView() {
 
 				{/* Dialogs */}
 				<NewServerDialog
-					open={isNewServerOpen}
-					onOpenChange={setIsNewServerOpen}
+					open={action === "new"}
+					onOpenChange={(open) =>
+						navigate({
+							search: (prev) => ({ ...prev, action: open ? "new" : undefined }),
+						})
+					}
 					onServerCreated={() => refresh()}
 				/>
 
 				<ServerConsoleDialog
 					server={consoleServer}
 					open={Boolean(consoleServer)}
-					onOpenChange={(open) => !open && setConsoleServer(null)}
+					onOpenChange={(open) =>
+						navigate({
+							search: (prev) => ({ ...prev, console: open ? prev.console : undefined }),
+						})
+					}
 				/>
 
 				<ServerSettingsDialog
 					server={settingsServer}
 					open={Boolean(settingsServer)}
-					onOpenChange={(open) => !open && setSettingsServer(null)}
+					onOpenChange={(open) =>
+						navigate({
+							search: (prev) => ({ ...prev, settings: open ? prev.settings : undefined }),
+						})
+					}
 					onSaved={() => refresh()}
 					isRunning={Boolean(
 						settingsServer && runningMap.get(settingsServer.id)?.status === "running",
@@ -319,7 +412,11 @@ export default function ServerListView() {
 				<DeleteServerDialog
 					server={deletingServer}
 					open={Boolean(deletingServer)}
-					onOpenChange={(open) => !open && setDeletingServer(null)}
+					onOpenChange={(open) =>
+						navigate({
+							search: (prev) => ({ ...prev, delete: open ? prev.delete : undefined }),
+						})
+					}
 					onConfirm={handleDeleteConfirm}
 				/>
 			</div>

@@ -1,3 +1,4 @@
+import { getRouteApi } from "@tanstack/react-router"
 import {
 	ArrowUpDown,
 	Camera,
@@ -11,7 +12,8 @@ import {
 	Trash2,
 	X,
 } from "lucide-react"
-import { memo, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
+import type * as v from "valibot"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -30,16 +32,24 @@ import {
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import type { screenshotSortSchema } from "@/routes/screenshots"
 import { useInstances } from "@/services/instance-service"
-import {
-	type ScreenshotInfo,
-	screenshotService,
-	useScreenshots,
-} from "@/services/screenshot-service"
+import { screenshotService, useScreenshots } from "@/services/screenshot-service"
 import ScreenshotCard from "./screenshot-card"
 import ScreenshotLightbox from "./screenshot-lightbox"
 
-type SortOption = "date-desc" | "date-asc" | "name-asc" | "name-desc" | "size-desc" | "size-asc"
+const routeApi = getRouteApi("/screenshots")
+
+type SortOption = v.InferOutput<typeof screenshotSortSchema>
+
+const SORT_OPTIONS: SortOption[] = [
+	"date-desc",
+	"date-asc",
+	"name-asc",
+	"name-desc",
+	"size-desc",
+	"size-asc",
+]
 
 const SORT_LABELS: Record<SortOption, string> = {
 	"date-desc": "Newest First",
@@ -61,12 +71,45 @@ const ScreenshotsView = () => {
 	} = useScreenshots()
 	const { instances } = useInstances()
 
-	const [searchQuery, setSearchQuery] = useState("")
-	const [selectedInstanceId, setSelectedInstanceId] = useState<string>("all")
-	const [sortBy, setSortBy] = useState<SortOption>("date-desc")
-	const [activeScreenshot, setActiveScreenshot] = useState<ScreenshotInfo | null>(null)
-	const [screenshotToDelete, setScreenshotToDelete] = useState<ScreenshotInfo | null>(null)
+	const search = routeApi.useSearch()
+	const navigate = routeApi.useNavigate()
+
+	const searchQuery = search.q ?? ""
+	const selectedInstanceId = search.instance ?? "all"
+	const sortBy = search.sort ?? "date-desc"
+	const lightboxFileName = search.lightbox
+	const deleteFileName = search.delete
+
+	const [searchInput, setSearchInput] = useState(searchQuery)
 	const [isDeleting, setIsDeleting] = useState(false)
+
+	useEffect(() => {
+		setSearchInput(searchQuery)
+	}, [searchQuery])
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchInput !== searchQuery) {
+				navigate({
+					search: (prev) => ({ ...prev, q: searchInput }),
+					replace: true,
+				})
+			}
+		}, 300)
+		return () => clearTimeout(timer)
+	}, [searchInput, searchQuery, navigate])
+
+	const activeScreenshot = useMemo(
+		() =>
+			lightboxFileName ? (screenshots.find((s) => s.fileName === lightboxFileName) ?? null) : null,
+		[screenshots, lightboxFileName],
+	)
+
+	const screenshotToDelete = useMemo(
+		() =>
+			deleteFileName ? (screenshots.find((s) => s.fileName === deleteFileName) ?? null) : null,
+		[screenshots, deleteFileName],
+	)
 
 	// Build a map of instances for filter dropdown
 	const instanceOptions = useMemo(() => {
@@ -137,13 +180,13 @@ const ScreenshotsView = () => {
 		try {
 			setIsDeleting(true)
 			await deleteScreenshot(screenshotToDelete.instanceId, screenshotToDelete.fileName)
-			if (
-				activeScreenshot?.instanceId === screenshotToDelete.instanceId &&
-				activeScreenshot?.fileName === screenshotToDelete.fileName
-			) {
-				setActiveScreenshot(null)
-			}
-			setScreenshotToDelete(null)
+			navigate({
+				search: (prev) => ({
+					...prev,
+					delete: undefined,
+					lightbox: prev.lightbox === screenshotToDelete.fileName ? undefined : prev.lightbox,
+				}),
+			})
 		} catch (error) {
 			console.error("Failed to delete screenshot:", error)
 		} finally {
@@ -213,14 +256,20 @@ const ScreenshotsView = () => {
 						<Input
 							type="text"
 							placeholder="Search screenshots..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
+							value={searchInput}
+							onChange={(e) => setSearchInput(e.target.value)}
 							className="h-9 w-full bg-zinc-900/60 px-8 text-xs placeholder:text-muted-foreground/60"
 						/>
-						{searchQuery && (
+						{searchInput && (
 							<button
 								type="button"
-								onClick={() => setSearchQuery("")}
+								onClick={() => {
+									setSearchInput("")
+									navigate({
+										search: (prev) => ({ ...prev, q: "" }),
+										replace: true,
+									})
+								}}
 								className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 							>
 								<X className="size-3.5" />
@@ -248,7 +297,11 @@ const ScreenshotsView = () => {
 						<DropdownMenuContent align="end" className="max-h-64 w-56 overflow-y-auto">
 							<DropdownMenuItem
 								className={`text-xs ${selectedInstanceId === "all" ? "font-semibold text-primary" : ""}`}
-								onClick={() => setSelectedInstanceId("all")}
+								onClick={() =>
+									navigate({
+										search: (prev) => ({ ...prev, instance: "all" }),
+									})
+								}
 							>
 								All Instances ({screenshots.length})
 							</DropdownMenuItem>
@@ -258,7 +311,11 @@ const ScreenshotsView = () => {
 									<DropdownMenuItem
 										key={opt.id}
 										className={`text-xs ${selectedInstanceId === opt.id ? "font-semibold text-primary" : ""}`}
-										onClick={() => setSelectedInstanceId(opt.id)}
+										onClick={() =>
+											navigate({
+												search: (prev) => ({ ...prev, instance: opt.id }),
+											})
+										}
 									>
 										<span className="flex-1 truncate">{opt.name}</span>
 										<span className="ml-2 text-[10px] text-muted-foreground">{count}</span>
@@ -280,11 +337,15 @@ const ScreenshotsView = () => {
 							}
 						/>
 						<DropdownMenuContent align="end" className="w-44">
-							{(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
+							{SORT_OPTIONS.map((opt) => (
 								<DropdownMenuItem
 									key={opt}
 									className={`text-xs ${sortBy === opt ? "font-semibold text-primary" : ""}`}
-									onClick={() => setSortBy(opt)}
+									onClick={() =>
+										navigate({
+											search: (prev) => ({ ...prev, sort: opt }),
+										})
+									}
 								>
 									{SORT_LABELS[opt]}
 								</DropdownMenuItem>
@@ -302,8 +363,16 @@ const ScreenshotsView = () => {
 							<ScreenshotCard
 								key={`${item.instanceId}-${item.fileName}`}
 								screenshot={item}
-								onClick={(s) => setActiveScreenshot(s)}
-								onDelete={(s) => setScreenshotToDelete(s)}
+								onClick={(s) =>
+									navigate({
+										search: (prev) => ({ ...prev, lightbox: s.fileName }),
+									})
+								}
+								onDelete={(s) =>
+									navigate({
+										search: (prev) => ({ ...prev, delete: s.fileName }),
+									})
+								}
 								onReveal={(s) => revealScreenshotFile(s.filePath)}
 							/>
 						))}
@@ -347,8 +416,10 @@ const ScreenshotsView = () => {
 							size="sm"
 							className="mt-2 text-xs"
 							onClick={() => {
-								setSearchQuery("")
-								setSelectedInstanceId("all")
+								setSearchInput("")
+								navigate({
+									search: (prev) => ({ ...prev, q: "", instance: "all" }),
+								})
 							}}
 						>
 							Clear Filters
@@ -361,17 +432,33 @@ const ScreenshotsView = () => {
 			<ScreenshotLightbox
 				screenshot={activeScreenshot}
 				allScreenshots={filteredScreenshots}
-				onClose={() => setActiveScreenshot(null)}
-				onSelect={(s) => setActiveScreenshot(s)}
-				onDelete={(s) => setScreenshotToDelete(s)}
+				onClose={() =>
+					navigate({
+						search: (prev) => ({ ...prev, lightbox: undefined }),
+					})
+				}
+				onSelect={(s) =>
+					navigate({
+						search: (prev) => ({ ...prev, lightbox: s.fileName }),
+					})
+				}
+				onDelete={(s) =>
+					navigate({
+						search: (prev) => ({ ...prev, delete: s.fileName }),
+					})
+				}
 				onReveal={(s) => revealScreenshotFile(s.filePath)}
 			/>
 
 			{/* Confirm Delete Dialog */}
 			<Dialog
-				open={!!screenshotToDelete}
+				open={Boolean(screenshotToDelete)}
 				onOpenChange={(open) => {
-					if (!open && !isDeleting) setScreenshotToDelete(null)
+					if (!open && !isDeleting) {
+						navigate({
+							search: (prev) => ({ ...prev, delete: undefined }),
+						})
+					}
 				}}
 			>
 				<DialogContent className="sm:max-w-md">
@@ -408,7 +495,11 @@ const ScreenshotsView = () => {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setScreenshotToDelete(null)}
+							onClick={() =>
+								navigate({
+									search: (prev) => ({ ...prev, delete: undefined }),
+								})
+							}
 							disabled={isDeleting}
 						>
 							Cancel

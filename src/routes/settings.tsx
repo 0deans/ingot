@@ -22,6 +22,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Plus, ShieldCheck } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
+import * as v from "valibot"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
 import SkinPreviewDialog from "@/components/accounts/skin-preview-dialog"
 import {
@@ -36,7 +37,15 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useAccounts } from "@/services/account-service"
 import { type LauncherBehavior, useLauncherBehavior } from "@/services/settings-service"
-import type { AccountProfile } from "@/types/account"
+
+export const settingsDialogSchema = v.picklist(["add-account"])
+
+export const settingsSearchSchema = v.object({
+	dialog: v.optional(settingsDialogSchema),
+	preview: v.optional(v.string()),
+})
+
+export type SettingsSearchParams = v.InferOutput<typeof settingsSearchSchema>
 
 const dropAnimationConfig: DropAnimation = {
 	duration: 200,
@@ -59,11 +68,20 @@ const LAUNCHER_BEHAVIOR_OPTIONS: { id: LauncherBehavior; label: string }[] = [
 ]
 
 const SettingsPage = () => {
+	const search = Route.useSearch()
+	const navigate = Route.useNavigate()
+
+	const isAddOpen = search.dialog === "add-account"
+	const previewAccountId = search.preview
+
 	const { accounts, setActiveAccount, removeAccount, reorderAccounts } = useAccounts()
 	const { behavior, setLauncherBehavior } = useLauncherBehavior()
-	const [isAddOpen, setIsAddOpen] = useState(false)
-	const [previewAccount, setPreviewAccount] = useState<AccountProfile | null>(null)
 	const [activeId, setActiveId] = useState<string | null>(null)
+
+	const previewAccount = useMemo(
+		() => (previewAccountId ? (accounts.find((a) => a.id === previewAccountId) ?? null) : null),
+		[accounts, previewAccountId],
+	)
 
 	const activeAccount = useMemo(
 		() => accounts.find((acc) => acc.id === activeId) || null,
@@ -82,7 +100,7 @@ const SettingsPage = () => {
 	)
 
 	const handleDragStart = (event: DragStartEvent) => {
-		setActiveId(event.active.id as string)
+		setActiveId(String(event.active.id))
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
@@ -142,7 +160,15 @@ const SettingsPage = () => {
 								</p>
 							</div>
 							<div className="flex items-center gap-2">
-								<Button size="sm" onClick={() => setIsAddOpen(true)} className="gap-1.5 text-xs">
+								<Button
+									size="sm"
+									onClick={() =>
+										navigate({
+											search: (prev) => ({ ...prev, dialog: "add-account" }),
+										})
+									}
+									className="gap-1.5 text-xs"
+								>
 									<Plus className="size-3.5" />
 									Add Account
 								</Button>
@@ -184,7 +210,11 @@ const SettingsPage = () => {
 											<SortableAccountItem
 												key={acc.id}
 												account={acc}
-												onPreviewSkin={setPreviewAccount}
+												onPreviewSkin={(a) =>
+													navigate({
+														search: (prev) => ({ ...prev, preview: a.id }),
+													})
+												}
 												onSetActive={handleSetActive}
 												onRemove={handleRemove}
 											/>
@@ -252,11 +282,28 @@ const SettingsPage = () => {
 					<SyncSettings />
 				</div>
 
-				<AddAccountDialog open={isAddOpen} onOpenChange={setIsAddOpen} />
+				<AddAccountDialog
+					open={isAddOpen}
+					onOpenChange={(open) =>
+						navigate({
+							search: (prev) => ({
+								...prev,
+								dialog: open ? "add-account" : undefined,
+							}),
+						})
+					}
+				/>
 				<SkinPreviewDialog
 					account={previewAccount}
 					open={Boolean(previewAccount)}
-					onOpenChange={(open) => !open && setPreviewAccount(null)}
+					onOpenChange={(open) =>
+						navigate({
+							search: (prev) => ({
+								...prev,
+								preview: open ? prev.preview : undefined,
+							}),
+						})
+					}
 				/>
 			</div>
 		</ScrollArea>
@@ -268,5 +315,6 @@ SettingsPage.displayName = "SettingsPage"
 const MemoizedSettingsPage = memo(SettingsPage)
 
 export const Route = createFileRoute("/settings")({
+	validateSearch: settingsSearchSchema,
 	component: MemoizedSettingsPage,
 })

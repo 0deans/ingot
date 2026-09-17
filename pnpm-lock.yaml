@@ -32,6 +32,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(jiti@2.7.0))
+      '@tanstack/react-query':
+        specifier: ^5.103.1
+        version: 5.103.1(react@19.3.0)
       '@tanstack/react-router':
         specifier: ^1.170.35
         version: 1.170.35(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -77,6 +80,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      valibot:
+        specifier: ^1.5.0
+        version: 1.5.0(typescript@6.0.3)
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.13
@@ -786,6 +792,14 @@ packages:
   '@tanstack/history@1.162.3':
     resolution: {integrity: sha512-zZTDxZxdDxZudHXGp42d221R/sEKoQPbZsW2ezpdWknHpOmJVLyiljW21pdWtKXfMnLq+Kg5VJpVBwOe18+ZzQ==}
     engines: {node: '>=20.19'}
+
+  '@tanstack/query-core@5.103.1':
+    resolution: {integrity: sha512-rms8HqTGp6zA00dM+cUQ2eBcgzNJefuu5CAMB37i/6MiGT1zulPOytCFu2a0qjLqVR2n1jENPj9woqFQNuCzWA==}
+
+  '@tanstack/react-query@5.103.1':
+    resolution: {integrity: sha512-rmAPPApNEK17VXRJhtE1rja53n23VV5w30C0saCgJhhX+EpdUnVqMGV/s5nnzV43X75KTHKzuoiuxSzGTBIkag==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tanstack/react-router@1.170.35':
     resolution: {integrity: sha512-MiqKL692aSOFsbtEts5eFjfCixxrej+ko+gA2Y85gmWdxolgtfcBPOdJ6tMSi/zFePqwwPLo+CVSUWu/qXu8LQ==}
@@ -2315,6 +2329,14 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  valibot@1.5.0:
+    resolution: {integrity: sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   validate-npm-package-name@7.0.2:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
     engines: {node: ^20.17.0 || >=22.9.0}
@@ -3040,6 +3062,13 @@ snapshots:
       vite: 8.3.0(@types/node@22.20.2)(jiti@2.7.0)
 
   '@tanstack/history@1.162.3': {}
+
+  '@tanstack/query-core@5.103.1': {}
+
+  '@tanstack/react-query@5.103.1(react@19.3.0)':
+    dependencies:
+      '@tanstack/query-core': 5.103.1
+      react: 19.3.0
 
   '@tanstack/react-router@1.170.35(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
@@ -4405,6 +4434,10 @@ snapshots:
       react: 19.3.0
 
   util-deprecate@1.0.2: {}
+
+  valibot@1.5.0(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
 
   validate-npm-package-name@7.0.2: {}
 

@@ -1,3 +1,4 @@
+import { getRouteApi } from "@tanstack/react-router"
 import {
 	AlertCircle,
 	ArrowUpDown,
@@ -9,7 +10,6 @@ import {
 	Download,
 	Eye,
 	Grid,
-	Heart,
 	KeyRound,
 	Loader2,
 	Lock,
@@ -46,7 +46,9 @@ import SkinBodyPreview from "@/components/ui/skin-body-preview"
 import { cn } from "@/lib/utils"
 import { accountService, skinStorageService, useAccounts } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
-import type { ElySkinItem, SkinModelFilter, SkinSortOption } from "@/types/skin"
+import type { ElySkinItem, SkinSortOption } from "@/types/skin"
+
+const routeApi = getRouteApi("/skins")
 
 const SORT_OPTIONS: { id: SkinSortOption; label: string }[] = [
 	{ id: "wearers", label: "Popular" },
@@ -63,25 +65,68 @@ function formatNumber(num?: number | null): string {
 }
 
 function normalizeSkinItem(raw: ElySkinItem | Record<string, unknown>): ElySkinItem {
-	const r = raw as Record<string, unknown>
+	const id = "id" in raw && typeof raw.id === "number" ? raw.id : 0
+	const skinUrl =
+		"skinUrl" in raw && typeof raw.skinUrl === "string"
+			? raw.skinUrl
+			: "skin_url" in raw && typeof raw.skin_url === "string"
+				? raw.skin_url
+				: ""
+	const isSlim =
+		"isSlim" in raw && typeof raw.isSlim === "boolean"
+			? raw.isSlim
+			: "is_slim" in raw
+				? Boolean(raw.is_slim)
+				: false
+	const countWearers =
+		"countWearers" in raw && typeof raw.countWearers === "number"
+			? raw.countWearers
+			: "count_wearers" in raw && typeof raw.count_wearers === "number"
+				? raw.count_wearers
+				: 0
+	const countCubes =
+		"countCubes" in raw && typeof raw.countCubes === "number"
+			? raw.countCubes
+			: "count_cubes" in raw && typeof raw.count_cubes === "number"
+				? raw.count_cubes
+				: 0
+	const countViews =
+		"countViews" in raw && typeof raw.countViews === "number"
+			? raw.countViews
+			: "count_views" in raw && typeof raw.count_views === "number"
+				? raw.count_views
+				: 0
+	const tags =
+		"tags" in raw && Array.isArray(raw.tags)
+			? raw.tags.filter((t): t is string => typeof t === "string")
+			: []
 	return {
-		id: Number(r.id),
-		skinUrl: (r.skinUrl as string) || (r.skin_url as string) || "",
-		isSlim: Boolean(r.isSlim ?? r.is_slim),
-		countWearers: Number(r.countWearers ?? r.count_wearers ?? 0),
-		countCubes: Number(r.countCubes ?? r.count_cubes ?? 0),
-		countViews: Number(r.countViews ?? r.count_views ?? 0),
-		tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
+		id,
+		skinUrl,
+		isSlim,
+		countWearers,
+		countCubes,
+		countViews,
+		tags,
 	}
 }
 
 export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountProfile | null }) {
+	const search = routeApi.useSearch()
+	const navigate = routeApi.useNavigate()
+
+	const activeTab = search.tab ?? "catalog"
+	const sortOption = search.sort ?? "wearers"
+	const modelFilter = search.model ?? "any"
+	const page = search.page ?? 1
+	const searchQuery = search.q ?? ""
+	const selectedSkinId = search.skinId
+
+	const [searchInput, setSearchInput] = useState(searchQuery)
+
 	const { accounts, activeAccount } = useAccounts()
 	const targetAccount =
 		initialAccount || activeAccount || accounts.find((a) => a.accountType === "ely") || null
-
-	// Active tab: "catalog" | "my-skins" | "upload"
-	const [activeTab, setActiveTab] = useState<"catalog" | "my-skins" | "upload">("catalog")
 
 	// Mobile view mode when activeTab is not "upload": "catalog" | "preview"
 	const [mobileView, setMobileView] = useState<"catalog" | "preview">("catalog")
@@ -89,15 +134,28 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	// Catalog state
 	const [skins, setSkins] = useState<ElySkinItem[]>([])
 	const [selectedSkin, setSelectedSkin] = useState<ElySkinItem | null>(null)
-	const [page, setPage] = useState(1)
 	const [lastPage, setLastPage] = useState(1)
 	const [totalItems, setTotalItems] = useState(0)
-	const [searchQuery, setSearchQuery] = useState("")
-	const [debouncedQuery, setDebouncedQuery] = useState("")
-	const [sortOption, setSortOption] = useState<SkinSortOption>("wearers")
-	const [modelFilter, setModelFilter] = useState<SkinModelFilter>("any")
 	const [isLoadingCatalog, setIsLoadingCatalog] = useState(false)
 	const [catalogError, setCatalogError] = useState<string | null>(null)
+
+	// Keep input synced if URL search param changes
+	useEffect(() => {
+		setSearchInput(searchQuery)
+	}, [searchQuery])
+
+	// Debounce search input to URL query
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchInput !== searchQuery) {
+				navigate({
+					search: (prev) => ({ ...prev, q: searchInput, page: 1 }),
+					replace: true,
+				})
+			}
+		}, 400)
+		return () => clearTimeout(timer)
+	}, [searchInput, searchQuery, navigate])
 
 	// Fallback skin (active account skin or Steve) to guarantee a skin is ALWAYS visible in 3D
 	const fallbackSkin: ElySkinItem = useMemo(
@@ -142,23 +200,22 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	const [isDragging, setIsDragging] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-	const handleTabChange = useCallback((tab: "catalog" | "my-skins" | "upload") => {
-		setActiveTab(tab)
-		setPage(1)
-		setSearchQuery("")
-		setDebouncedQuery("")
-		setSelectedSkin(null)
-		setCatalogError(null)
-	}, [])
-
-	// Debounce search query
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedQuery(searchQuery.trim())
-			setPage(1)
-		}, 400)
-		return () => clearTimeout(timer)
-	}, [searchQuery])
+	const handleTabChange = useCallback(
+		(tab: "catalog" | "my-skins" | "upload") => {
+			navigate({
+				search: (prev) => ({
+					...prev,
+					tab,
+					page: 1,
+					q: "",
+					skinId: undefined,
+				}),
+			})
+			setSelectedSkin(null)
+			setCatalogError(null)
+		},
+		[navigate],
+	)
 
 	// Fetch catalog on filter / page / tab changes
 	const fetchCatalog = useCallback(async () => {
@@ -193,7 +250,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 					if (targetAccount?.username) {
 						const res = await accountService.getElySkins(
 							page,
-							debouncedQuery || undefined,
+							searchQuery || undefined,
 							sortOption,
 							modelFilter === "any" ? undefined : modelFilter,
 							targetAccount.username,
@@ -234,8 +291,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				}
 
 				// Apply query filter for local items if needed
-				if (debouncedQuery) {
-					const q = debouncedQuery.toLowerCase()
+				if (searchQuery) {
+					const q = searchQuery.toLowerCase()
 					combined = combined.filter(
 						(s) =>
 							s.tags.some((t) => t.toLowerCase().includes(q)) || s.name?.toLowerCase().includes(q),
@@ -246,6 +303,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				setLastPage(1)
 				setTotalItems(combined.length)
 				setSelectedSkin((prev) => {
+					if (selectedSkinId !== undefined) {
+						const match = combined.find((item) => item.id === selectedSkinId)
+						if (match) return match
+					}
 					if (
 						prev &&
 						combined.some(
@@ -260,7 +321,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				// Public Browse Catalog tab
 				const res = await accountService.getElySkins(
 					page,
-					debouncedQuery || undefined,
+					searchQuery || undefined,
 					sortOption,
 					modelFilter === "any" ? undefined : modelFilter,
 				)
@@ -274,6 +335,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				setLastPage(res.lastPage || 1)
 				setTotalItems(res.totalItems || 0)
 				setSelectedSkin((prev) => {
+					if (selectedSkinId !== undefined) {
+						const match = normalized.find((item) => item.id === selectedSkinId)
+						if (match) return match
+					}
 					if (prev && normalized.some((item) => item.id === prev.id)) {
 						return prev
 					}
@@ -286,7 +351,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		} finally {
 			setIsLoadingCatalog(false)
 		}
-	}, [activeTab, targetAccount, page, debouncedQuery, sortOption, modelFilter])
+	}, [activeTab, targetAccount, page, searchQuery, sortOption, modelFilter, selectedSkinId])
 
 	useEffect(() => {
 		if (activeTab === "catalog" || activeTab === "my-skins") {
@@ -847,14 +912,20 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												? "Search my skins or tags..."
 												: "Search skins or tags..."
 										}
-										value={searchQuery}
-										onChange={(e) => setSearchQuery(e.target.value)}
+										value={searchInput}
+										onChange={(e) => setSearchInput(e.target.value)}
 										className="h-8 rounded-lg border-zinc-800 bg-zinc-900/80 pr-7 pl-8 text-xs text-zinc-200 placeholder:text-zinc-500 focus-visible:ring-emerald-500/50"
 									/>
-									{searchQuery && (
+									{searchInput && (
 										<button
 											type="button"
-											onClick={() => setSearchQuery("")}
+											onClick={() => {
+												setSearchInput("")
+												navigate({
+													search: (prev) => ({ ...prev, q: "", page: 1 }),
+													replace: true,
+												})
+											}}
 											className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
 										>
 											<X className="size-3" />
@@ -877,8 +948,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														: "text-zinc-400 hover:text-zinc-200",
 												)}
 												onClick={() => {
-													setModelFilter(m)
-													setPage(1)
+													navigate({
+														search: (prev) => ({ ...prev, model: m, page: 1 }),
+													})
 												}}
 											>
 												{m === "any" ? "All" : m === "steve" ? "Classic" : "Slim"}
@@ -909,8 +981,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												<DropdownMenuItem
 													key={s.id}
 													onClick={() => {
-														setSortOption(s.id)
-														setPage(1)
+														navigate({
+															search: (prev) => ({ ...prev, sort: s.id, page: 1 }),
+														})
 													}}
 													className={cn(
 														"flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-zinc-900",
@@ -973,20 +1046,20 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														<User className="size-6 text-zinc-400" />
 													</div>
 													<p className="font-medium text-xs text-zinc-300">
-														{debouncedQuery
+														{searchQuery
 															? "No matching uploaded skins found"
 															: targetAccount
 																? `No uploaded skins found for ${targetAccount.username}`
 																: "No active Ely.by account"}
 													</p>
 													<p className="max-w-xs text-[11px] text-zinc-500">
-														{debouncedQuery
+														{searchQuery
 															? "Try a different search query or filter."
 															: targetAccount
 																? "You haven't uploaded any custom skins to Ely.by yet. Upload a skin to manage and wear it anytime."
 																: "Please select or add an Ely.by account to view your uploaded skins."}
 													</p>
-													{!debouncedQuery && targetAccount && (
+													{!searchQuery && targetAccount && (
 														<Button
 															type="button"
 															size="sm"
@@ -1029,7 +1102,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													<button
 														key={skin.id || skin.skinUrl}
 														type="button"
-														onClick={() => setSelectedSkin(skin)}
+														onClick={() => {
+															setSelectedSkin(skin)
+															navigate({
+																search: (prev) => ({ ...prev, skinId: skin.id }),
+															})
+														}}
 														className={cn(
 															"group relative flex flex-col rounded-xl border p-2.5 text-left transition-all duration-150 hover:shadow-md",
 															isSelected
@@ -1048,64 +1126,47 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														{skin.isCustom && (
 															<button
 																type="button"
-																title="Remove from uploads"
-																onClick={(e) => handleRemoveCustomSkin(skin, e)}
-																className="absolute top-2 left-2 z-10 flex size-6 items-center justify-center rounded-md bg-zinc-950/80 text-zinc-400 opacity-0 transition-opacity hover:bg-rose-500/20 hover:text-rose-400 group-hover:opacity-100"
+																onClick={(e) => {
+																	e.stopPropagation()
+																	handleRemoveCustomSkin(skin, e)
+																}}
+																className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-zinc-900/90 text-zinc-400 opacity-0 transition-all hover:bg-rose-500/20 hover:text-rose-400 group-hover:opacity-100"
+																title="Delete custom skin"
 															>
-																<Trash2 className="size-3.5" />
+																<Trash2 className="size-3" />
 															</button>
 														)}
 
-														{/* Pedestal Stage */}
-														<div className="relative mb-2 flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-800/50 bg-gradient-to-b from-zinc-800/30 via-zinc-900/50 to-zinc-950/80">
-															{/* Soft Floor Shadow */}
-															<div className="pointer-events-none absolute bottom-1.5 h-3 w-16 rounded-[100%] bg-zinc-800/60 blur-xs" />
+														{/* 2D Skin Body Preview */}
+														<div className="flex h-36 w-full items-center justify-center overflow-hidden rounded-lg bg-zinc-950/60 p-2">
 															<SkinBodyPreview
-																skinUrl={skin.skinUrl}
+																skinUrl={skin.dataUrl || skin.skinUrl}
 																isSlim={skin.isSlim}
-																width={48}
-																height={96}
-																className="transition-transform duration-200 group-hover:scale-105"
+																height={128}
+																className="drop-shadow-md transition-transform duration-200 group-hover:scale-105"
 															/>
-															{skin.isSlim && (
-																<span className="absolute bottom-1.5 left-1.5 rounded-xs border border-zinc-700/60 bg-zinc-900/90 px-1.5 py-0.5 font-mono text-[9px] text-zinc-400">
-																	Slim
-																</span>
-															)}
 														</div>
 
-														{/* Skin Label */}
-														<p className="truncate font-medium text-xs text-zinc-200 capitalize">
-															{title}
-														</p>
-
-														{/* Stats or Upload metadata */}
-														{skin.isCustom ? (
-															<div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
-																<span className="font-medium text-emerald-400/90">
-																	Uploaded skin
+														{/* Skin Metadata Info */}
+														<div className="mt-2 flex flex-col gap-0.5">
+															<span
+																className="truncate font-medium text-xs text-zinc-200 group-hover:text-emerald-400"
+																title={title}
+															>
+																{title}
+															</span>
+															<div className="flex items-center justify-between text-[10px] text-zinc-500">
+																<span className="capitalize">
+																	{skin.isSlim ? "Slim" : "Classic"}
 																</span>
-																{skin.uploadedAt ? (
-																	<span className="text-zinc-500">
-																		{new Date(skin.uploadedAt).toLocaleDateString(undefined, {
-																			month: "short",
-																			day: "numeric",
-																		})}
+																{skin.countWearers > 0 && (
+																	<span className="flex items-center gap-0.5 font-mono">
+																		<Users className="size-2.5" />
+																		{formatNumber(skin.countWearers)}
 																	</span>
-																) : null}
+																)}
 															</div>
-														) : (
-															<div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
-																<span className="flex items-center gap-1">
-																	<Users className="size-2.5 text-zinc-500" />
-																	{formatNumber(skin.countWearers)}
-																</span>
-																<span className="flex items-center gap-1 text-zinc-500">
-																	<Heart className="size-2.5 text-rose-500/70" />
-																	{formatNumber(skin.countCubes)}
-																</span>
-															</div>
-														)}
+														</div>
 													</button>
 												)
 											})}
@@ -1126,7 +1187,11 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											size="sm"
 											variant="ghost"
 											disabled={page <= 1 || isLoadingCatalog}
-											onClick={() => setPage((p) => Math.max(1, p - 1))}
+											onClick={() =>
+												navigate({
+													search: (prev) => ({ ...prev, page: Math.max(1, page - 1) }),
+												})
+											}
 											className="h-7 px-2 text-xs"
 										>
 											<ChevronLeft className="mr-0.5 size-3.5" />
@@ -1136,7 +1201,11 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											size="sm"
 											variant="ghost"
 											disabled={page >= lastPage || isLoadingCatalog}
-											onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
+											onClick={() =>
+												navigate({
+													search: (prev) => ({ ...prev, page: Math.min(lastPage, page + 1) }),
+												})
+											}
 											className="h-7 px-2 text-xs"
 										>
 											Next

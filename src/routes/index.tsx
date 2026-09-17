@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { FolderDown, Gamepad2, Layers, Plus, Square } from "lucide-react"
-import { memo, useMemo, useState } from "react"
-import type { InstanceConfig, ModLoaderType, SyncConflictInfo } from "@/bindings"
+import { memo, useEffect, useMemo, useState } from "react"
+import * as v from "valibot"
+import type { ModLoaderType, SyncConflictInfo } from "@/bindings"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
@@ -19,18 +20,57 @@ import {
 } from "@/services/instance-service"
 import { settingsService, useMemorySettings } from "@/services/settings-service"
 
+export const instancesActionSchema = v.picklist(["new", "import"])
+
+export const instancesSearchSchema = v.object({
+	q: v.optional(v.fallback(v.string(), ""), ""),
+	action: v.optional(instancesActionSchema),
+	edit: v.optional(v.string()),
+	delete: v.optional(v.string()),
+})
+
+export type InstancesSearchParams = v.InferOutput<typeof instancesSearchSchema>
+
 const InstancesPage = () => {
-	const [searchQuery, setSearchQuery] = useState("")
-	const [isNewInstanceOpen, setIsNewInstanceOpen] = useState(false)
-	const [isImportOpen, setIsImportOpen] = useState(false)
-	const [editingInstance, setEditingInstance] = useState<InstanceConfig | null>(null)
-	const [deletingInstance, setDeletingInstance] = useState<InstanceConfig | null>(null)
+	const search = Route.useSearch()
+	const navigate = Route.useNavigate()
+
+	const searchQuery = search.q ?? ""
+	const action = search.action
+	const editId = search.edit
+	const deleteId = search.delete
+
+	const [searchInput, setSearchInput] = useState(searchQuery)
 	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
 
 	const { instances, refresh } = useInstances()
 	const { runningMap, runningList } = useRunningInstances()
 	const progressMap = useAllInstancesProgress()
 	const { memory } = useMemorySettings()
+
+	// Keep input synced if URL search param changes
+	useEffect(() => {
+		setSearchInput(searchQuery)
+	}, [searchQuery])
+
+	// Debounce search input to URL query
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchInput !== searchQuery) {
+				navigate({
+					search: (prev) => ({ ...prev, q: searchInput }),
+					replace: true,
+				})
+			}
+		}, 300)
+
+		return () => clearTimeout(timer)
+	}, [searchInput, searchQuery, navigate])
+
+	const isNewInstanceOpen = action === "new"
+	const isImportOpen = action === "import"
+	const editingInstance = editId ? (instances.find((i) => i.id === editId) ?? null) : null
+	const deletingInstance = deleteId ? (instances.find((i) => i.id === deleteId) ?? null) : null
 
 	const handleCreateInstance = async (
 		name: string,
@@ -82,10 +122,21 @@ const InstancesPage = () => {
 	const handleConfirmDelete = async (instanceId: string) => {
 		try {
 			await instanceService.deleteInstance(instanceId)
+			navigate({
+				search: (prev) => ({ ...prev, delete: undefined }),
+				replace: true,
+			})
 		} catch (e) {
 			console.error("Failed to delete instance:", e)
 			alert(`Failed to delete instance: ${e}`)
 		}
+	}
+
+	const handleCloseAction = () => {
+		navigate({
+			search: (prev) => ({ ...prev, action: undefined, edit: undefined, delete: undefined }),
+			replace: true,
+		})
 	}
 
 	const filteredInstances = useMemo(() => {
@@ -93,7 +144,7 @@ const InstancesPage = () => {
 		const q = searchQuery.toLowerCase()
 		return instances.filter((i) => {
 			const name = i.name || ""
-			const ver = i.gameVersion || (i as unknown as Record<string, string>).game_version || ""
+			const ver = i.gameVersion || ""
 			const ldr = String(i.loader || "")
 			return (
 				name.toLowerCase().includes(q) ||
@@ -108,10 +159,20 @@ const InstancesPage = () => {
 			<div className="flex flex-1 flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Top Header */}
 				<InstanceSearchHeader
-					searchQuery={searchQuery}
-					onSearchChange={setSearchQuery}
-					onOpenNewInstance={() => setIsNewInstanceOpen(true)}
-					onOpenImport={() => setIsImportOpen(true)}
+					searchQuery={searchInput}
+					onSearchChange={setSearchInput}
+					onOpenNewInstance={() =>
+						navigate({
+							search: (prev) => ({ ...prev, action: "new" }),
+							replace: true,
+						})
+					}
+					onOpenImport={() =>
+						navigate({
+							search: (prev) => ({ ...prev, action: "import" }),
+							replace: true,
+						})
+					}
 				/>
 
 				{/* Active Running Instances Multi-Banner */}
@@ -173,13 +234,27 @@ const InstancesPage = () => {
 							loaders like Fabric, Quilt, or Forge.
 						</p>
 						<div className="mt-5 flex items-center gap-3">
-							<Button onClick={() => setIsNewInstanceOpen(true)} className="gap-2" size="sm">
+							<Button
+								onClick={() =>
+									navigate({
+										search: (prev) => ({ ...prev, action: "new" }),
+										replace: true,
+									})
+								}
+								className="gap-2"
+								size="sm"
+							>
 								<Plus className="size-4" />
 								Create Your First Instance
 							</Button>
 							<Button
 								variant="outline"
-								onClick={() => setIsImportOpen(true)}
+								onClick={() =>
+									navigate({
+										search: (prev) => ({ ...prev, action: "import" }),
+										replace: true,
+									})
+								}
 								className="gap-2"
 								size="sm"
 							>
@@ -199,15 +274,30 @@ const InstancesPage = () => {
 								globalMaxRamMb={memory.maxRamMb}
 								onPlay={() => handlePlay(inst.id)}
 								onStop={() => handleStop(inst.id)}
-								onSettings={() => setEditingInstance(inst)}
-								onDelete={() => setDeletingInstance(inst)}
+								onSettings={() =>
+									navigate({
+										search: (prev) => ({ ...prev, edit: inst.id }),
+										replace: true,
+									})
+								}
+								onDelete={() =>
+									navigate({
+										search: (prev) => ({ ...prev, delete: inst.id }),
+										replace: true,
+									})
+								}
 							/>
 						))}
 
 						{/* Create New Instance Card */}
 						<button
 							type="button"
-							onClick={() => setIsNewInstanceOpen(true)}
+							onClick={() =>
+								navigate({
+									search: (prev) => ({ ...prev, action: "new" }),
+									replace: true,
+								})
+							}
 							className="group flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-zinc-950/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-zinc-900/40 hover:text-white"
 						>
 							<div className="flex size-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-inner transition-transform group-hover:scale-110">
@@ -232,7 +322,13 @@ const InstancesPage = () => {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setSearchQuery("")}
+							onClick={() => {
+								setSearchInput("")
+								navigate({
+									search: (prev) => ({ ...prev, q: "" }),
+									replace: true,
+								})
+							}}
 							className="mt-4 text-xs"
 						>
 							Clear Search
@@ -243,16 +339,20 @@ const InstancesPage = () => {
 				{/* New Instance Dialog */}
 				<NewInstanceDialog
 					open={isNewInstanceOpen}
-					onOpenChange={setIsNewInstanceOpen}
-					onCreateInstance={handleCreateInstance}
+					onOpenChange={(open) => !open && handleCloseAction()}
+					onCreateInstance={async (name, ver, loader, loaderVer) => {
+						await handleCreateInstance(name, ver, loader, loaderVer)
+						handleCloseAction()
+					}}
 				/>
 
 				{/* Import Instance Dialog */}
 				<ImportInstanceDialog
 					open={isImportOpen}
-					onOpenChange={setIsImportOpen}
+					onOpenChange={(open) => !open && handleCloseAction()}
 					onSuccess={async () => {
 						await refresh()
+						handleCloseAction()
 					}}
 				/>
 
@@ -260,7 +360,7 @@ const InstancesPage = () => {
 				<InstanceSettingsDialog
 					instance={editingInstance}
 					open={Boolean(editingInstance)}
-					onOpenChange={(open) => !open && setEditingInstance(null)}
+					onOpenChange={(open) => !open && handleCloseAction()}
 					onSave={async () => {
 						await refresh()
 					}}
@@ -270,7 +370,7 @@ const InstancesPage = () => {
 				<DeleteInstanceDialog
 					instance={deletingInstance}
 					open={Boolean(deletingInstance)}
-					onOpenChange={(open) => !open && setDeletingInstance(null)}
+					onOpenChange={(open) => !open && handleCloseAction()}
 					onConfirm={handleConfirmDelete}
 				/>
 
@@ -291,5 +391,6 @@ InstancesPage.displayName = "InstancesPage"
 const MemoizedInstancesPage = memo(InstancesPage)
 
 export const Route = createFileRoute("/")({
+	validateSearch: instancesSearchSchema,
 	component: MemoizedInstancesPage,
 })

@@ -1,3 +1,4 @@
+import { queryOptions, useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import {
 	Box,
@@ -15,7 +16,8 @@ import {
 	SunMedium,
 	X,
 } from "lucide-react"
-import { memo, useCallback, useEffect, useRef, useState } from "react"
+import { memo, useEffect, useState } from "react"
+import * as v from "valibot"
 import { ContentDetailsDialog } from "@/components/content/content-details-dialog"
 import { InstallDialog } from "@/components/content/install-dialog"
 import { Button } from "@/components/ui/button"
@@ -37,18 +39,35 @@ import {
 	type UnifiedContentVersion,
 } from "@/services/content-service"
 
-const CATEGORIES: { id: ContentType; label: string; icon: typeof Sparkles }[] = [
-	{ id: "all", label: "All Types", icon: Sparkles },
-	{ id: "modpack", label: "Modpacks", icon: Package },
-	{ id: "mod", label: "Mods", icon: Box },
-	{ id: "resourcepack", label: "Resource Packs", icon: Paintbrush },
-	{ id: "shader", label: "Shaders", icon: SunMedium },
+export const categorySchema = v.picklist(["all", "modpack", "mod", "resourcepack", "shader"])
+export const sourceSchema = v.picklist(["all", "modrinth", "curseforge"])
+export const sortSchema = v.picklist(["downloads", "relevance", "updated", "newest"])
+
+export const modpacksSearchSchema = v.object({
+	query: v.optional(v.fallback(v.string(), ""), ""),
+	category: v.optional(v.fallback(categorySchema, "all"), "all"),
+	source: v.optional(v.fallback(sourceSchema, "all"), "all"),
+	loader: v.optional(v.fallback(v.string(), ""), ""),
+	version: v.optional(v.fallback(v.string(), ""), ""),
+	sort: v.optional(v.fallback(sortSchema, "downloads"), "downloads"),
+	page: v.optional(v.fallback(v.number(), 0), 0),
+	details: v.optional(v.string()),
+})
+
+export type ModpacksSearchParams = v.InferOutput<typeof modpacksSearchSchema>
+
+const CATEGORIES = [
+	{ id: "all" as const, label: "All Types", icon: Sparkles },
+	{ id: "modpack" as const, label: "Modpacks", icon: Package },
+	{ id: "mod" as const, label: "Mods", icon: Box },
+	{ id: "resourcepack" as const, label: "Resource Packs", icon: Paintbrush },
+	{ id: "shader" as const, label: "Shaders", icon: SunMedium },
 ]
 
-const SOURCES: { id: ContentSource; label: string }[] = [
-	{ id: "all", label: "All Sources" },
-	{ id: "modrinth", label: "Modrinth" },
-	{ id: "curseforge", label: "CurseForge" },
+const SOURCES = [
+	{ id: "all" as const, label: "All Sources" },
+	{ id: "modrinth" as const, label: "Modrinth" },
+	{ id: "curseforge" as const, label: "CurseForge" },
 ]
 
 const LOADERS = [
@@ -71,11 +90,11 @@ const POPULAR_VERSIONS = [
 	{ id: "1.7.10", label: "1.7.10" },
 ]
 
-const SORTS: { id: ContentSort; label: string }[] = [
-	{ id: "downloads", label: "Most Downloads" },
-	{ id: "relevance", label: "Relevance" },
-	{ id: "updated", label: "Recently Updated" },
-	{ id: "newest", label: "Newest" },
+const SORTS = [
+	{ id: "downloads" as const, label: "Most Downloads" },
+	{ id: "relevance" as const, label: "Relevance" },
+	{ id: "updated" as const, label: "Recently Updated" },
+	{ id: "newest" as const, label: "Newest" },
 ]
 
 function formatDownloads(count: number): string {
@@ -87,143 +106,162 @@ function formatDownloads(count: number): string {
 
 const PAGE_SIZE = 24
 
+export const modpacksQueryOptions = (search: ModpacksSearchParams) =>
+	queryOptions({
+		queryKey: [
+			"content",
+			"search",
+			{
+				query: search.query ?? "",
+				category: search.category ?? "all",
+				source: search.source ?? "all",
+				loader: search.loader ?? "",
+				version: search.version ?? "",
+				sort: search.sort ?? "downloads",
+				page: search.page ?? 0,
+			},
+		],
+		queryFn: () =>
+			contentService.searchContent({
+				source: search.source ?? "all",
+				projectType: search.category ?? "all",
+				query: search.query?.trim() ? search.query.trim() : null,
+				gameVersion: search.version?.trim() ? search.version.trim() : null,
+				loader: search.loader?.trim() ? search.loader.trim() : null,
+				sort: search.sort ?? "downloads",
+				page: search.page ?? 0,
+				pageSize: PAGE_SIZE,
+			}),
+	})
+
 const ModpacksPage = () => {
-	const [searchQuery, setSearchQuery] = useState("")
-	const [activeCategory, setActiveCategory] = useState<ContentType>("all")
-	const [activeSource, setActiveSource] = useState<ContentSource>("all")
-	const [activeLoader, setActiveLoader] = useState("")
-	const [activeVersion, setActiveVersion] = useState("")
-	const [activeSort, setActiveSort] = useState<ContentSort>("downloads")
-	const [page, setPage] = useState(0)
+	const search = Route.useSearch()
+	const navigate = Route.useNavigate()
 
-	const [items, setItems] = useState<UnifiedContentItem[]>([])
-	const [totalHits, setTotalHits] = useState(0)
-	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState<string | null>(null)
+	const activeCategory = search.category ?? "all"
+	const activeSource = search.source ?? "all"
+	const activeLoader = search.loader ?? ""
+	const activeVersion = search.version ?? ""
+	const activeSort = search.sort ?? "downloads"
+	const page = search.page ?? 0
+	const urlQuery = search.query ?? ""
+	const detailsId = search.details
 
-	// Modal States
-	const [detailsItem, setDetailsItem] = useState<UnifiedContentItem | null>(null)
+	const [searchInput, setSearchInput] = useState(urlQuery)
+
+	// Keep input synced if URL search param changes (e.g. back/forward navigation)
+	useEffect(() => {
+		setSearchInput(urlQuery)
+	}, [urlQuery])
+
+	// Debounce input to URL search parameters
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchInput !== urlQuery) {
+				navigate({
+					search: (prev) => ({ ...prev, query: searchInput, page: 0 }),
+					replace: true,
+				})
+			}
+		}, 300)
+
+		return () => clearTimeout(timer)
+	}, [searchInput, urlQuery, navigate])
+
+	// TanStack Query integration
+	const { data, isLoading, isFetching, error, refetch } = useQuery(
+		modpacksQueryOptions({
+			query: urlQuery,
+			category: activeCategory,
+			source: activeSource,
+			loader: activeLoader,
+			version: activeVersion,
+			sort: activeSort,
+			page,
+		}),
+	)
+
+	const items = data?.items ?? []
+	const totalHits = data?.totalHits ?? 0
+
+	// Details dialog is derived directly from the URL search param
+	const detailsItem = detailsId ? (items.find((i) => i.id === detailsId) ?? null) : null
+
 	const [installItem, setInstallItem] = useState<UnifiedContentItem | null>(null)
 	const [installVersion, setInstallVersion] = useState<UnifiedContentVersion | null>(null)
 	const [successNotification, setSuccessNotification] = useState<string | null>(null)
 
-	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-	const searchCountRef = useRef(0)
-
-	const fetchContent = useCallback(
-		async (
-			query: string,
-			category: ContentType,
-			source: ContentSource,
-			loader: string,
-			version: string,
-			sort: ContentSort,
-			pageNum: number,
-		) => {
-			const reqId = ++searchCountRef.current
-			setIsLoading(true)
-			setError(null)
-
-			try {
-				const result = await contentService.searchContent({
-					source,
-					projectType: category,
-					query: query || null,
-					gameVersion: version || null,
-					loader: loader || null,
-					sort,
-					page: pageNum,
-					pageSize: PAGE_SIZE,
-				})
-
-				if (reqId === searchCountRef.current) {
-					setItems(result.items)
-					setTotalHits(result.totalHits)
-				}
-			} catch (err) {
-				if (reqId === searchCountRef.current) {
-					setError(err instanceof Error ? err.message : "Failed to load content")
-				}
-			} finally {
-				if (reqId === searchCountRef.current) {
-					setIsLoading(false)
-				}
-			}
-		},
-		[],
-	)
-
-	// Perform fetch with debounce on query change
-	useEffect(() => {
-		if (debounceTimerRef.current) {
-			clearTimeout(debounceTimerRef.current)
-		}
-
-		debounceTimerRef.current = setTimeout(() => {
-			fetchContent(
-				searchQuery,
-				activeCategory,
-				activeSource,
-				activeLoader,
-				activeVersion,
-				activeSort,
-				page,
-			)
-		}, 300)
-
-		return () => {
-			if (debounceTimerRef.current) {
-				clearTimeout(debounceTimerRef.current)
-			}
-		}
-	}, [
-		searchQuery,
-		activeCategory,
-		activeSource,
-		activeLoader,
-		activeVersion,
-		activeSort,
-		page,
-		fetchContent,
-	])
-
-	const handleCategoryChange = (cat: ContentType) => {
-		setActiveCategory(cat)
-		setPage(0)
+	const handleCategoryChange = (category: ContentType) => {
+		navigate({
+			search: (prev) => ({ ...prev, category, page: 0 }),
+			replace: true,
+		})
 	}
 
-	const handleSourceChange = (src: ContentSource) => {
-		setActiveSource(src)
-		setPage(0)
+	const handleSourceChange = (source: ContentSource) => {
+		navigate({
+			search: (prev) => ({ ...prev, source, page: 0 }),
+			replace: true,
+		})
 	}
 
-	const handleLoaderChange = (ldr: string) => {
-		setActiveLoader(ldr)
-		setPage(0)
+	const handleLoaderChange = (loader: string) => {
+		navigate({
+			search: (prev) => ({ ...prev, loader, page: 0 }),
+			replace: true,
+		})
 	}
 
-	const handleVersionChange = (ver: string) => {
-		setActiveVersion(ver)
-		setPage(0)
+	const handleVersionChange = (version: string) => {
+		navigate({
+			search: (prev) => ({ ...prev, version, page: 0 }),
+			replace: true,
+		})
 	}
 
-	const handleSortChange = (srt: ContentSort) => {
-		setActiveSort(srt)
-		setPage(0)
+	const handleSortChange = (sort: ContentSort) => {
+		navigate({
+			search: (prev) => ({ ...prev, sort, page: 0 }),
+			replace: true,
+		})
+	}
+
+	const handlePageChange = (newPage: number) => {
+		navigate({
+			search: (prev) => ({ ...prev, page: newPage }),
+			replace: true,
+		})
 	}
 
 	const handleClearFilters = () => {
-		setSearchQuery("")
-		setActiveCategory("all")
-		setActiveSource("all")
-		setActiveLoader("")
-		setActiveVersion("")
-		setActiveSort("downloads")
-		setPage(0)
+		setSearchInput("")
+		navigate({
+			search: () => ({
+				query: "",
+				category: "all",
+				source: "all",
+				loader: "",
+				version: "",
+				sort: "downloads",
+				page: 0,
+				details: undefined,
+			}),
+			replace: true,
+		})
 	}
 
-	const handleCardClick = (item: UnifiedContentItem) => {
-		setDetailsItem(item)
+	const handleOpenDetails = (item: UnifiedContentItem) => {
+		navigate({
+			search: (prev) => ({ ...prev, details: item.id }),
+			replace: true,
+		})
+	}
+
+	const handleCloseDetails = () => {
+		navigate({
+			search: (prev) => ({ ...prev, details: undefined }),
+			replace: true,
+		})
 	}
 
 	const handleStartInstall = (item: UnifiedContentItem, specificVer?: UnifiedContentVersion) => {
@@ -237,6 +275,7 @@ const ModpacksPage = () => {
 	}
 
 	const totalPages = Math.ceil(totalHits / PAGE_SIZE)
+	const isBusy = isLoading || isFetching
 
 	return (
 		<ScrollArea className="size-full flex-1" scrollFade>
@@ -278,20 +317,20 @@ const ModpacksPage = () => {
 							<Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								type="text"
-								value={searchQuery}
-								onChange={(e) => {
-									setSearchQuery(e.target.value)
-									setPage(0)
-								}}
+								value={searchInput}
+								onChange={(e) => setSearchInput(e.target.value)}
 								placeholder="Search mods, modpacks, resource packs, shaders..."
 								className="h-10 px-9 text-sm"
 							/>
-							{searchQuery && (
+							{searchInput && (
 								<button
 									type="button"
 									onClick={() => {
-										setSearchQuery("")
-										setPage(0)
+										setSearchInput("")
+										navigate({
+											search: (prev) => ({ ...prev, query: "", page: 0 }),
+											replace: true,
+										})
 									}}
 									aria-label="Clear search"
 									className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
@@ -391,7 +430,7 @@ const ModpacksPage = () => {
 							<span className="text-muted-foreground text-xs">Sort:</span>
 							<Select
 								value={activeSort}
-								onValueChange={(val) => val && handleSortChange(val as ContentSort)}
+								onValueChange={(val) => val && v.is(sortSchema, val) && handleSortChange(val)}
 							>
 								<SelectTrigger className="h-8 w-36 text-xs">
 									<SelectValue placeholder="Sort by" />
@@ -407,12 +446,13 @@ const ModpacksPage = () => {
 						</div>
 
 						{/* Active Filters Clear */}
-						{(searchQuery ||
+						{(urlQuery ||
 							activeCategory !== "all" ||
 							activeSource !== "all" ||
 							activeLoader ||
 							activeVersion ||
-							activeSort !== "downloads") && (
+							activeSort !== "downloads" ||
+							detailsId) && (
 							<Button
 								size="sm"
 								variant="ghost"
@@ -428,21 +468,11 @@ const ModpacksPage = () => {
 						<Button
 							size="sm"
 							variant="ghost"
-							disabled={isLoading}
-							onClick={() =>
-								fetchContent(
-									searchQuery,
-									activeCategory,
-									activeSource,
-									activeLoader,
-									activeVersion,
-									activeSort,
-									page,
-								)
-							}
+							disabled={isBusy}
+							onClick={() => refetch()}
 							className="ml-auto h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
 						>
-							<RefreshCw className={`size-3.5 ${isLoading ? "animate-spin" : ""}`} />
+							<RefreshCw className={`size-3.5 ${isBusy ? "animate-spin" : ""}`} />
 							Refresh
 						</Button>
 					</div>
@@ -468,8 +498,8 @@ const ModpacksPage = () => {
 							<Button
 								size="sm"
 								variant="outline"
-								disabled={page === 0 || isLoading}
-								onClick={() => setPage((p) => Math.max(0, p - 1))}
+								disabled={page === 0 || isBusy}
+								onClick={() => handlePageChange(Math.max(0, page - 1))}
 								className="size-7 p-0"
 							>
 								<ChevronLeft className="size-3.5" />
@@ -480,8 +510,8 @@ const ModpacksPage = () => {
 							<Button
 								size="sm"
 								variant="outline"
-								disabled={page >= totalPages - 1 || isLoading}
-								onClick={() => setPage((p) => p + 1)}
+								disabled={page >= totalPages - 1 || isBusy}
+								onClick={() => handlePageChange(page + 1)}
 								className="size-7 p-0"
 							>
 								<ChevronRight className="size-3.5" />
@@ -516,22 +546,10 @@ const ModpacksPage = () => {
 					</div>
 				) : error ? (
 					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 py-12 text-center">
-						<p className="font-medium text-destructive text-sm">{error}</p>
-						<Button
-							size="sm"
-							variant="outline"
-							onClick={() =>
-								fetchContent(
-									searchQuery,
-									activeCategory,
-									activeSource,
-									activeLoader,
-									activeVersion,
-									activeSort,
-									page,
-								)
-							}
-						>
+						<p className="font-medium text-destructive text-sm">
+							{error instanceof Error ? error.message : "Failed to load content"}
+						</p>
+						<Button size="sm" variant="outline" onClick={() => refetch()}>
 							Try Again
 						</Button>
 					</div>
@@ -562,7 +580,7 @@ const ModpacksPage = () => {
 							// biome-ignore lint/a11y/noStaticElementInteractions: Clicking card opens details dialog
 							<div
 								key={`${item.source}-${item.id}`}
-								onClick={() => handleCardClick(item)}
+								onClick={() => handleOpenDetails(item)}
 								className="group flex cursor-pointer flex-col justify-between rounded-xl border border-border/40 bg-zinc-900/40 p-4 backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-zinc-900/70"
 							>
 								<div className="flex flex-col gap-3">
@@ -575,7 +593,7 @@ const ModpacksPage = () => {
 												className="size-12 shrink-0 rounded-lg bg-zinc-800 object-cover"
 												loading="lazy"
 												onError={(e) => {
-													;(e.currentTarget as HTMLElement).style.display = "none"
+													e.currentTarget.style.display = "none"
 												}}
 											/>
 										) : (
@@ -649,7 +667,7 @@ const ModpacksPage = () => {
 											variant="ghost"
 											onClick={(e) => {
 												e.stopPropagation()
-												handleCardClick(item)
+												handleOpenDetails(item)
 											}}
 											className="h-7 px-2 text-muted-foreground text-xs hover:text-foreground"
 										>
@@ -682,12 +700,9 @@ const ModpacksPage = () => {
 						<Button
 							size="sm"
 							variant="outline"
-							disabled={page === 0 || isLoading}
-							onClick={() => {
-								setPage((p) => Math.max(0, p - 1))
-								window.scrollTo({ top: 0, behavior: "smooth" })
-							}}
-							className="gap-1 text-xs"
+							disabled={page === 0 || isBusy}
+							onClick={() => handlePageChange(Math.max(0, page - 1))}
+							className="size-7 p-0"
 						>
 							<ChevronLeft className="size-3.5" />
 							Previous
@@ -698,14 +713,10 @@ const ModpacksPage = () => {
 						<Button
 							size="sm"
 							variant="outline"
-							disabled={page >= totalPages - 1 || isLoading}
-							onClick={() => {
-								setPage((p) => p + 1)
-								window.scrollTo({ top: 0, behavior: "smooth" })
-							}}
-							className="gap-1 text-xs"
+							disabled={page >= totalPages - 1 || isBusy}
+							onClick={() => handlePageChange(page + 1)}
+							className="size-7 p-0"
 						>
-							Next
 							<ChevronRight className="size-3.5" />
 						</Button>
 					</div>
@@ -714,13 +725,13 @@ const ModpacksPage = () => {
 
 			{/* Details Modal */}
 			<ContentDetailsDialog
-				open={detailsItem !== null}
+				open={Boolean(detailsId) && detailsItem !== null}
 				onOpenChange={(open) => {
-					if (!open) setDetailsItem(null)
+					if (!open) handleCloseDetails()
 				}}
 				item={detailsItem}
 				onInstall={(item, ver) => {
-					setDetailsItem(null)
+					handleCloseDetails()
 					handleStartInstall(item, ver)
 				}}
 			/>
@@ -747,5 +758,10 @@ ModpacksPage.displayName = "ModpacksPage"
 const MemoizedModpacksPage = memo(ModpacksPage)
 
 export const Route = createFileRoute("/modpacks")({
+	validateSearch: modpacksSearchSchema,
+	loaderDeps: ({ search }) => ({ search }),
+	loader: async ({ context: { queryClient }, deps: { search } }) => {
+		return queryClient.ensureQueryData(modpacksQueryOptions(search))
+	},
 	component: MemoizedModpacksPage,
 })
