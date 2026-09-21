@@ -1,0 +1,16 @@
+# Set default behavior to automatically normalize line endings to LF
+* text=auto eol=lf
+
+# Known binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.exe binary
+*.dll binary
+*.zip binary
+*.tar.gz binary
