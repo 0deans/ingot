@@ -501,7 +501,7 @@ where
     let replace_jvm_vars = |arg: &str| -> String {
         arg.replace("${natives_directory}", &natives_dir.to_string_lossy())
             .replace("${launcher_name}", "ingot")
-            .replace("${launcher_version}", "0.1.0")
+            .replace("${launcher_version}", env!("CARGO_PKG_VERSION"))
             .replace("${classpath}", &classpath_str)
             .replace("${library_directory}", &libraries_dir.to_string_lossy())
             .replace("${classpath_separator}", cp_separator)
@@ -555,7 +555,7 @@ where
     if !has_manifest_jvm {
         cmd_args.push(format!("-Djava.library.path={}", natives_dir.to_string_lossy()));
         cmd_args.push("-Dminecraft.launcher.brand=ingot".into());
-        cmd_args.push("-Dminecraft.launcher.version=0.1.0".into());
+        cmd_args.push(format!("-Dminecraft.launcher.version={}", env!("CARGO_PKG_VERSION")));
         #[cfg(target_os = "windows")]
         cmd_args.push("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump".into());
         #[cfg(target_os = "macos")]

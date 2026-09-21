@@ -4,11 +4,15 @@ import tailwindcss from "@tailwindcss/vite"
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
+import pkg from "./package.json" with { type: "json" }
 
 const host = process.env.TAURI_DEV_HOST
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
+	define: {
+		APP_VERSION: JSON.stringify(pkg.version),
+	},
 	plugins: [TanStackRouterVite({ autoCodeSplitting: true }), react(), tailwindcss()],
 	resolve: {
 		alias: {

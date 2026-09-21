@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Linux system dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -52,13 +52,19 @@ jobs:
             librsvg2-dev
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: ".nvmrc"
           cache: "pnpm"
+
+      - name: Verify versions
+        shell: bash
+        run: |
+          node -v
+          pnpm -v
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable

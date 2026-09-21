@@ -61,7 +61,7 @@ export const UpdateSettings = () => {
 						<div>
 							<div className="flex items-center gap-2">
 								<span className="font-medium text-foreground text-xs sm:text-sm">
-									Ingot {updateInfo?.currentVersion ? `v${updateInfo.currentVersion}` : "v0.1.0"}
+									Ingot v{updateInfo?.currentVersion || APP_VERSION}
 								</span>
 								<span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
 									Release Channel

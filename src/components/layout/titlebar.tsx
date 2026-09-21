@@ -70,7 +70,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 				<img src="/ingot.svg" alt="Ingot Logo" className="size-4.5 rounded-sm object-contain" />
 				<span className="font-semibold text-foreground text-xs tracking-wide">{title}</span>
 				<span className="rounded-full bg-primary/10 px-1.5 py-0.5 font-medium text-[10px] text-primary">
-					v0.1.0
+					v{APP_VERSION}
 				</span>
 			</div>
 
