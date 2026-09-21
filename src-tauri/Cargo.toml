@@ -1,6 +1,6 @@
 [package]
 name = "ingot"
-version = "0.2.2"
+version = "0.2.3"
 description = "Lightweight, open-source Minecraft launcher"
 authors = ["0deans <https://github.com/0deans>"]
 edition = "2021"
