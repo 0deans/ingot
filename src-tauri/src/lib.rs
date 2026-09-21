@@ -5,9 +5,11 @@ pub mod keyring_store;
 pub mod minecraft;
 pub mod server;
 pub mod system;
+pub mod tray;
 
 use ipc::{AppApi, AppApiImpl};
 use tauri::Manager;
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -37,6 +39,12 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            if let Err(e) = tray::setup_tray(app.handle()) {
+                eprintln!("[Tray] Failed to setup tray: {e}");
+            }
+            Ok(())
+        })
         .invoke_handler(router.into_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

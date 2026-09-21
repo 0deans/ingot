@@ -19,7 +19,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { createFileRoute } from "@tanstack/react-router"
-import { Plus, ShieldCheck } from "lucide-react"
+import { AppWindow, Layers, Minimize2, Plus, Power, ShieldCheck } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import * as v from "valibot"
@@ -61,10 +61,30 @@ const dropAnimationConfig: DropAnimation = {
 
 const modifiers = [restrictToVerticalAxis, restrictToParentElement]
 
-const LAUNCHER_BEHAVIOR_OPTIONS: { id: LauncherBehavior; label: string }[] = [
-	{ id: "keepOpen", label: "Keep Launcher Open" },
-	{ id: "hideToTray", label: "Hide Launcher to System Tray" },
-	{ id: "close", label: "Close Launcher" },
+const LAUNCHER_BEHAVIOR_OPTIONS: {
+	id: LauncherBehavior
+	label: string
+	description: string
+	icon: typeof AppWindow
+}[] = [
+	{
+		id: "keepOpen",
+		label: "Keep Open",
+		description: "Stay open in the background while playing",
+		icon: AppWindow,
+	},
+	{
+		id: "hideToTray",
+		label: "Hide to Tray",
+		description: "Minimize to tray and restore on game exit",
+		icon: Minimize2,
+	},
+	{
+		id: "close",
+		label: "Close Launcher",
+		description: "Close Ingot completely after game starts",
+		icon: Power,
+	},
 ]
 
 const SettingsPage = () => {
@@ -247,29 +267,63 @@ const SettingsPage = () => {
 					<MemoryAllocation />
 
 					{/* Window & Launch Behavior */}
-					<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
-						<h3 className="font-semibold text-foreground text-sm">Launcher Behavior</h3>
-						<p className="text-muted-foreground text-xs">
-							Choose what happens when an instance is launched.
-						</p>
-						<div className="mt-3 flex flex-wrap gap-2">
+					<div className="flex flex-col gap-3 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
+						<div className="flex flex-col gap-1">
+							<div className="flex items-center gap-2">
+								<Layers className="size-4 text-emerald-400" />
+								<h3 className="font-semibold text-foreground text-sm">Launcher Behavior</h3>
+							</div>
+							<p className="text-muted-foreground text-xs">
+								Choose what happens when an instance is launched.
+							</p>
+						</div>
+						<div className="grid grid-cols-1 gap-2.5 pt-1 sm:grid-cols-3">
 							{LAUNCHER_BEHAVIOR_OPTIONS.map((opt) => {
 								const isSelected = behavior === opt.id
+								const Icon = opt.icon
 								return (
-									<Button
+									<button
 										key={opt.id}
-										size="sm"
-										variant={isSelected ? "default" : "outline"}
-										className={cn(
-											"flex-1 transition-all sm:flex-none",
-											isSelected
-												? "bg-primary text-primary-foreground shadow-sm"
-												: "text-muted-foreground hover:text-foreground",
-										)}
+										type="button"
 										onClick={() => setLauncherBehavior(opt.id)}
+										className={cn(
+											"flex flex-col items-start gap-2 rounded-lg border p-3.5 text-left transition-all",
+											isSelected
+												? "border-primary/60 bg-primary/10 shadow-sm"
+												: "border-border/30 bg-zinc-950/60 hover:border-border/60 hover:bg-zinc-900/60",
+										)}
 									>
-										{opt.label}
-									</Button>
+										<div className="flex w-full items-center justify-between">
+											<div
+												className={cn(
+													"flex size-7 items-center justify-center rounded-md transition-colors",
+													isSelected
+														? "bg-primary text-primary-foreground"
+														: "bg-zinc-900 text-muted-foreground",
+												)}
+											>
+												<Icon className="size-3.5" />
+											</div>
+											{isSelected && (
+												<span className="rounded-full bg-primary/20 px-2 py-0.5 font-medium text-[10px] text-primary">
+													Active
+												</span>
+											)}
+										</div>
+										<div>
+											<div
+												className={cn(
+													"font-medium text-xs sm:text-sm",
+													isSelected ? "font-semibold text-foreground" : "text-zinc-300",
+												)}
+											>
+												{opt.label}
+											</div>
+											<div className="mt-0.5 text-[11px] text-muted-foreground leading-tight">
+												{opt.description}
+											</div>
+										</div>
+									</button>
 								)
 							})}
 						</div>

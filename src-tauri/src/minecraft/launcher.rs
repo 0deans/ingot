@@ -708,6 +708,26 @@ where
         started_at: now,
     });
 
+    // Handle launcher behavior (keepOpen, hideToTray, close)
+    match global_settings.launcher_behavior.as_str() {
+        crate::system::BEHAVIOR_HIDE_TO_TRAY => {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.hide();
+            }
+        }
+        crate::system::BEHAVIOR_CLOSE => {
+            let _ = update_last_played(&app, &instance_id, 0);
+            let app_exit = app.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                app_exit.exit(0);
+            });
+        }
+        _ => {
+            // BEHAVIOR_KEEP_OPEN: keep launcher open as is
+        }
+    }
+
     // Background task to monitor child exit
     let pm_clone = process_manager.clone();
     let app_clone = app.clone();
@@ -738,6 +758,7 @@ where
 
         let mut lock = pm_clone.running.lock().await;
         lock.remove(&inst_id_clone);
+        let no_more_running = lock.is_empty();
         drop(lock);
 
         let _ = update_last_played(&app_clone, &inst_id_clone, elapsed);
@@ -748,6 +769,19 @@ where
             pid: 0,
             started_at: 0,
         });
+
+        // If launcher behavior is hide to tray (or window was hidden), restore window on game exit
+        let current_settings = crate::system::load_settings(&app_clone);
+        if no_more_running {
+            let should_restore = current_settings.launcher_behavior == crate::system::BEHAVIOR_HIDE_TO_TRAY
+                || app_clone
+                    .get_webview_window("main")
+                    .map(|w| w.is_visible().unwrap_or(true) == false)
+                    .unwrap_or(false);
+            if should_restore {
+                crate::tray::restore_main_window(&app_clone);
+            }
+        }
     });
 
     Ok(pid)
