@@ -2,6 +2,7 @@
 	"name": "ingot",
 	"private": true,
 	"version": "0.1.0",
+	"packageManager": "pnpm@10.4.1",
 	"description": "Fast, lightweight Minecraft launcher built with Tauri and React",
 	"author": "0deans <https://github.com/0deans>",
 	"type": "module",
