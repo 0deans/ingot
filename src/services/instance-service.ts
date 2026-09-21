@@ -3,8 +3,10 @@ import {
 	createTauRPCProxy,
 	type InstanceConfig,
 	type InstanceStatusEvent,
+	type InstanceWorldSummary,
 	type LaunchProgressEvent,
 	type ModLoaderType,
+	type QuickPlayOptions,
 	type RunningInstanceSummary,
 	type VersionManifestEntry,
 } from "@/bindings"
@@ -133,24 +135,32 @@ export const instanceService = {
 		await rpc.open_instance_folder(instanceId)
 	},
 
-	async launchInstance(instanceId: string): Promise<number> {
+	async launchInstance(instanceId: string, quickPlay?: QuickPlayOptions | null): Promise<number> {
 		progressMap.set(instanceId, {
 			instanceId,
 			phase: "Preparing launch",
 			currentStep: 0,
 			totalSteps: 10,
 			percentage: 0,
-			detail: "Initializing launch sequence...",
+			detail: quickPlay?.server
+				? `Connecting to ${quickPlay.server}...`
+				: quickPlay?.world
+					? `Loading world ${quickPlay.world}...`
+					: "Initializing launch sequence...",
 		})
 		notifyProgress()
 		try {
-			const pid = await rpc.launch_instance(instanceId)
+			const pid = await rpc.launch_instance(instanceId, quickPlay || null)
 			return pid
 		} catch (e) {
 			progressMap.delete(instanceId)
 			notifyProgress()
 			throw e
 		}
+	},
+
+	async getInstanceWorlds(instanceId: string): Promise<InstanceWorldSummary[]> {
+		return rpc.get_instance_worlds(instanceId)
 	},
 
 	async killInstance(instanceId: string): Promise<void> {

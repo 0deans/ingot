@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { FolderDown, Gamepad2, Layers, Plus, Square } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
 import * as v from "valibot"
-import type { ModLoaderType, SyncConflictInfo } from "@/bindings"
+import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
@@ -82,14 +82,14 @@ const InstancesPage = () => {
 		await refresh()
 	}
 
-	const handlePlay = async (instanceId: string) => {
+	const handlePlay = async (instanceId: string, quickPlay?: QuickPlayOptions) => {
 		try {
 			const conflict = await settingsService.checkSyncConflict(instanceId)
 			if (conflict) {
 				setSyncConflict(conflict)
 				return
 			}
-			await instanceService.launchInstance(instanceId)
+			await instanceService.launchInstance(instanceId, quickPlay)
 		} catch (e) {
 			console.error("Failed to launch instance:", e)
 			alert(`Failed to launch instance: ${e}`)
@@ -272,7 +272,7 @@ const InstancesPage = () => {
 								runningInfo={runningMap.get(inst.id)}
 								progress={progressMap.get(inst.id)}
 								globalMaxRamMb={memory.maxRamMb}
-								onPlay={() => handlePlay(inst.id)}
+								onPlay={(quickPlay) => handlePlay(inst.id, quickPlay)}
 								onStop={() => handleStop(inst.id)}
 								onSettings={() =>
 									navigate({

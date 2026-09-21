@@ -1,8 +1,9 @@
-﻿import {
+import {
 	Check,
 	Copy,
 	Cpu,
 	FolderOpen,
+	Gamepad2,
 	Globe,
 	Loader2,
 	Play,
@@ -34,6 +35,7 @@ export interface ServerCardProps {
 	onOpenSettings: (server: ServerConfig) => void
 	onOpenFolder: (serverId: string) => void
 	onDelete: (server: ServerConfig) => void
+	onJoinServer?: (server: ServerConfig) => void
 }
 
 function getCoreBadgeStyle(core: ServerCoreType) {
@@ -75,6 +77,7 @@ export default function ServerCard({
 	onOpenSettings,
 	onOpenFolder,
 	onDelete,
+	onJoinServer,
 }: ServerCardProps) {
 	const isRunning = Boolean(runningInfo && runningInfo.status === "running")
 	const isStarting = Boolean(runningInfo && runningInfo.status === "starting")
@@ -260,8 +263,18 @@ export default function ServerCard({
 						<>
 							<Button
 								size="sm"
+								onClick={() => onJoinServer?.(server)}
+								className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs shadow-emerald-950/40 shadow-sm hover:bg-emerald-500"
+								title="Launch Minecraft & Connect to this server"
+							>
+								<Gamepad2 className="size-3.5" />
+								<span>Join</span>
+							</Button>
+							<Button
+								size="sm"
+								variant="secondary"
 								onClick={() => onOpenConsole(server)}
-								className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
+								className="h-8 gap-1.5 bg-zinc-800 font-medium text-xs text-zinc-200 hover:bg-zinc-700"
 							>
 								<Terminal className="size-3.5" />
 								<span>Console</span>

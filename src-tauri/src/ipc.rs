@@ -145,7 +145,13 @@ pub trait AppApi {
     async fn launch_instance(
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
+        quick_play: Option<launcher::QuickPlayOptions>,
     ) -> Result<u32, String>;
+
+    async fn get_instance_worlds(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<Vec<instance::InstanceWorldSummary>, String>;
 
     async fn kill_instance(instance_id: String) -> Result<(), String>;
 
@@ -603,6 +609,7 @@ impl AppApi for AppApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
+        quick_play: Option<launcher::QuickPlayOptions>,
     ) -> Result<u32, String> {
         let instances = instance::load_instances(&app_handle)?;
         let inst = instances
@@ -630,7 +637,16 @@ impl AppApi for AppApiImpl {
             }
         };
 
-        launcher::launch_minecraft(app, pm, client, inst, on_prog, on_status).await
+        launcher::launch_minecraft(app, pm, client, inst, quick_play, on_prog, on_status).await
+    }
+
+    async fn get_instance_worlds(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<Vec<instance::InstanceWorldSummary>, String> {
+        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
+        instance::get_instance_worlds(&instance_dir)
     }
 
     async fn kill_instance(self, instance_id: String) -> Result<(), String> {

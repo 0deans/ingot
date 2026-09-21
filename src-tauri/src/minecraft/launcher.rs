@@ -47,6 +47,36 @@ pub struct RunningInstanceSummary {
     pub started_at: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct QuickPlayOptions {
+    pub server: Option<String>,
+    pub world: Option<String>,
+}
+
+pub fn is_version_at_least(version_str: &str, target_major: u32, target_minor: u32) -> bool {
+    let parts: Vec<&str> = version_str.split('.').collect();
+    if parts.len() >= 2 {
+        if let (Ok(major), Ok(minor)) = (parts[0].parse::<u32>(), parts[1].parse::<u32>()) {
+            if major > target_major {
+                return true;
+            }
+            if major == target_major && minor >= target_minor {
+                return true;
+            }
+            return false;
+        }
+    }
+    if let Some(first_two) = version_str.get(0..2) {
+        if let Ok(year) = first_two.parse::<u32>() {
+            if year >= 23 {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 struct ActiveChild {
     pid: u32,
     started_at: u64,
@@ -107,6 +137,7 @@ pub async fn launch_minecraft<R: Runtime, FProg, FStatus>(
     process_manager: ProcessManager,
     client: reqwest::Client,
     instance: InstanceConfig,
+    quick_play: Option<QuickPlayOptions>,
     on_progress: FProg,
     on_status: FStatus,
 ) -> Result<u32, String>
@@ -666,6 +697,79 @@ where
         }
     }
 
+    // Apply Quick Play Arguments
+    if let Some(ref qp) = quick_play {
+        if let Some(ref server) = qp.server {
+            let server = server.trim();
+            if !server.is_empty() {
+                if is_version_at_least(&instance.game_version, 1, 20) {
+                    cmd_args.push("--quickPlayMultiplayer".into());
+                    cmd_args.push(server.to_string());
+                } else {
+                    let (host, port) = match server.rsplit_once(':') {
+                        Some((h, p)) if p.chars().all(|c| c.is_ascii_digit()) => (h, p),
+                        _ => (server, "25565"),
+                    };
+                    cmd_args.push("--server".into());
+                    cmd_args.push(host.to_string());
+                    cmd_args.push("--port".into());
+                    cmd_args.push(port.to_string());
+                }
+            }
+        } else if let Some(ref world) = qp.world {
+            let world = world.trim();
+            if !world.is_empty() {
+                if is_version_at_least(&instance.game_version, 1, 20) {
+                    let final_world_arg = if world.is_ascii() {
+                        world.to_string()
+                    } else {
+                        // On Windows, Java CLI arguments are decoded using the legacy system ANSI code page (CP_ACP).
+                        // Non-ASCII characters (e.g. Cyrillic, CJK, accents) become '?' in Java's argv.
+                        // Create a temporary pure-ASCII junction 'qp_world' pointing to the actual world folder.
+                        let saves_dir = instance_dir.join("saves");
+                        let target_path = saves_dir.join(world);
+                        let junction_name = "qp_world";
+                        let junction_path = saves_dir.join(junction_name);
+
+                        if junction_path.exists() {
+                            #[cfg(target_os = "windows")]
+                            let _ = std::fs::remove_dir(&junction_path);
+                            #[cfg(not(target_os = "windows"))]
+                            let _ = std::fs::remove_file(&junction_path);
+                        }
+
+                        #[cfg(target_os = "windows")]
+                        {
+                            use std::os::windows::process::CommandExt;
+                            let _ = std::process::Command::new("cmd")
+                                .args(["/C", "mklink", "/J"])
+                                .arg(&junction_path)
+                                .arg(&target_path)
+                                .creation_flags(0x08000000) // CREATE_NO_WINDOW
+                                .output();
+                        }
+
+                        #[cfg(not(target_os = "windows"))]
+                        {
+                            let _ = std::os::unix::fs::symlink(&target_path, &junction_path);
+                        }
+
+                        if junction_path.exists() {
+                            junction_name.to_string()
+                        } else {
+                            world.to_string()
+                        }
+                    };
+
+                    cmd_args.push("--quickPlaySingleplayer".into());
+                    cmd_args.push(final_world_arg);
+                } else {
+                    eprintln!("[Launcher] Warning: Quick Play Singleplayer is only supported on Minecraft 1.20+");
+                }
+            }
+        }
+    }
+
     // Run pre-launch synchronization
     if let Err(e) = crate::minecraft::sync::sync_before_launch(&app, &instance, &instance_dir) {
         eprintln!("[Launcher] Warning: Pre-launch sync failed: {e}");
@@ -744,6 +848,15 @@ where
             Err(e) => {
                 eprintln!("[Launcher] Error waiting for Minecraft process: {e}");
             }
+        }
+
+        // Clean up temporary Quick Play junction if it exists
+        let qp_junction = inst_dir_clone.join("saves").join("qp_world");
+        if qp_junction.exists() {
+            #[cfg(target_os = "windows")]
+            let _ = std::fs::remove_dir(&qp_junction);
+            #[cfg(not(target_os = "windows"))]
+            let _ = std::fs::remove_file(&qp_junction);
         }
 
         // Run post-exit synchronization

@@ -2,14 +2,17 @@ import { getRouteApi } from "@tanstack/react-router"
 import { Plus, RefreshCw, Search, Server, Square, Terminal, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import type * as v from "valibot"
+import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import type { serverCoreSchema } from "@/routes/servers"
+import { instanceService } from "@/services/instance-service"
 import { serverService, useRunningServers, useServers } from "@/services/server-service"
 import DeleteServerDialog from "./delete-server-dialog"
 import NewServerDialog from "./new-server-dialog"
+import { QuickJoinDialog } from "./quick-join-dialog"
 import ServerCard from "./server-card"
 import ServerConsoleDialog from "./server-console-dialog"
 import ServerSettingsDialog from "./server-settings-dialog"
@@ -37,6 +40,7 @@ export default function ServerListView() {
 	const deletingServerId = search.delete
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
+	const [quickJoinServer, setQuickJoinServer] = useState<ServerConfig | null>(null)
 
 	const { servers, isLoading, refresh } = useServers()
 	const { runningMap, runningList } = useRunningServers()
@@ -326,6 +330,7 @@ export default function ServerListView() {
 										search: (prev) => ({ ...prev, delete: s.id }),
 									})
 								}
+								onJoinServer={(s) => setQuickJoinServer(s)}
 							/>
 						))}
 
@@ -418,6 +423,29 @@ export default function ServerListView() {
 						})
 					}
 					onConfirm={handleDeleteConfirm}
+				/>
+
+				<QuickJoinDialog
+					server={quickJoinServer}
+					open={Boolean(quickJoinServer)}
+					onOpenChange={(open) => !open && setQuickJoinServer(null)}
+					onLaunch={async (instanceId, serverAddress) => {
+						try {
+							await instanceService.launchInstance(instanceId, {
+								server: serverAddress,
+								world: null,
+							})
+						} catch (e) {
+							console.error("Failed to quick play server:", e)
+							alert(`Failed to quick play server: ${e}`)
+						}
+					}}
+					onCreateInstance={() => {
+						navigate({
+							to: "/",
+							search: { action: "new" },
+						})
+					}}
 				/>
 			</div>
 		</ScrollArea>

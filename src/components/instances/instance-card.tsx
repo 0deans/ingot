@@ -1,8 +1,37 @@
-import { Clock, FolderOpen, HardDrive, Loader2, Play, Settings, Square, Trash2 } from "lucide-react"
+import {
+	ChevronDown,
+	Clock,
+	Compass,
+	FolderOpen,
+	Globe,
+	HardDrive,
+	Loader2,
+	Play,
+	Settings,
+	Square,
+	Trash2,
+} from "lucide-react"
 import { memo, useEffect, useState } from "react"
-import type { InstanceConfig, LaunchProgressEvent, RunningInstanceSummary } from "@/bindings"
+import type {
+	InstanceConfig,
+	InstanceWorldSummary,
+	LaunchProgressEvent,
+	QuickPlayOptions,
+	RunningInstanceSummary,
+} from "@/bindings"
+import { DirectConnectDialog } from "@/components/instances/direct-connect-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { instanceService } from "@/services/instance-service"
 
 interface InstanceCardProps {
@@ -10,10 +39,28 @@ interface InstanceCardProps {
 	runningInfo?: RunningInstanceSummary
 	progress?: LaunchProgressEvent
 	globalMaxRamMb: number
-	onPlay: () => void
+	onPlay: (quickPlay?: QuickPlayOptions) => void
 	onStop: () => void
 	onSettings: () => void
 	onDelete: () => void
+}
+
+function isVersionAtLeast(versionStr: string, targetMajor: number, targetMinor: number): boolean {
+	const parts = versionStr.split(".")
+	if (parts.length >= 2) {
+		const major = Number.parseInt(parts[0], 10)
+		const minor = Number.parseInt(parts[1], 10)
+		if (!Number.isNaN(major) && !Number.isNaN(minor)) {
+			if (major > targetMajor) return true
+			if (major === targetMajor && minor >= targetMinor) return true
+			return false
+		}
+	}
+	const firstTwo = Number.parseInt(versionStr.slice(0, 2), 10)
+	if (!Number.isNaN(firstTwo) && firstTwo >= 23) {
+		return true
+	}
+	return false
 }
 
 function formatDuration(seconds: number): string {
@@ -48,6 +95,24 @@ export const InstanceCard = ({
 	const isDownloading = !!progress && !isRunning
 
 	const [elapsedSeconds, setElapsedSeconds] = useState(0)
+	const [worlds, setWorlds] = useState<InstanceWorldSummary[]>([])
+	const [loadingWorlds, setLoadingWorlds] = useState(false)
+	const [directConnectOpen, setDirectConnectOpen] = useState(false)
+
+	const supportsSingleplayerQP = isVersionAtLeast(instance.gameVersion, 1, 20)
+
+	const loadWorlds = async () => {
+		if (!supportsSingleplayerQP) return
+		try {
+			setLoadingWorlds(true)
+			const list = await instanceService.getInstanceWorlds(instance.id)
+			setWorlds(list)
+		} catch (e) {
+			console.error("Failed to load instance worlds:", e)
+		} finally {
+			setLoadingWorlds(false)
+		}
+	}
 
 	useEffect(() => {
 		if (!isRunning || !runningInfo) {
@@ -193,14 +258,115 @@ export const InstanceCard = ({
 							<span>Preparing...</span>
 						</Button>
 					) : (
-						<Button
-							size="sm"
-							onClick={onPlay}
-							className="h-8 gap-1.5 bg-emerald-600 px-4 font-semibold text-white text-xs shadow-emerald-950/40 shadow-md transition-all hover:scale-[1.02] hover:bg-emerald-500 active:scale-[0.98]"
-						>
-							<Play className="size-3.5 fill-current" />
-							<span>Play</span>
-						</Button>
+						<div className="inline-flex items-center rounded-md shadow-emerald-950/40 shadow-md">
+							<Button
+								size="sm"
+								onClick={() => onPlay()}
+								className="h-8 gap-1.5 rounded-r-none border-emerald-700/60 border-r bg-emerald-600 px-3.5 font-semibold text-white text-xs hover:bg-emerald-500 active:scale-[0.98]"
+							>
+								<Play className="size-3.5 fill-current" />
+								<span>Play</span>
+							</Button>
+							<DropdownMenu
+								onOpenChange={(open) => {
+									if (open) loadWorlds()
+								}}
+							>
+								<DropdownMenuTrigger
+									render={
+										<Button
+											size="sm"
+											className="h-8 rounded-l-none bg-emerald-600 px-1.5 text-white hover:bg-emerald-500"
+											title="Quick Play options"
+										>
+											<ChevronDown className="size-3.5" />
+										</Button>
+									}
+								/>
+								<DropdownMenuContent align="start" className="w-56">
+									<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
+										Quick Play
+									</DropdownMenuLabel>
+									<DropdownMenuItem
+										onClick={() => setDirectConnectOpen(true)}
+										className="cursor-pointer gap-2"
+									>
+										<Globe className="size-4 text-emerald-400" />
+										<div className="flex flex-col">
+											<span className="font-medium text-xs">Direct Connect...</span>
+											<span className="text-[10px] text-muted-foreground">
+												Join a server directly
+											</span>
+										</div>
+									</DropdownMenuItem>
+
+									{supportsSingleplayerQP ? (
+										<DropdownMenuSub>
+											<DropdownMenuSubTrigger className="cursor-pointer gap-2">
+												<Compass className="size-4 text-sky-400" />
+												<div className="flex flex-col text-left">
+													<span className="font-medium text-xs">Quick Load World</span>
+													<span className="text-[10px] text-muted-foreground">
+														Jump straight into a save
+													</span>
+												</div>
+											</DropdownMenuSubTrigger>
+											<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
+												<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
+													Singleplayer Saves
+												</DropdownMenuLabel>
+												{loadingWorlds ? (
+													<div className="flex items-center gap-2 p-2.5 text-muted-foreground text-xs">
+														<Loader2 className="size-3.5 animate-spin" />
+														<span>Scanning worlds...</span>
+													</div>
+												) : worlds.length === 0 ? (
+													<div className="p-2.5 text-xs text-zinc-400">
+														No saved worlds found in this instance.
+													</div>
+												) : (
+													worlds.map((w) => (
+														<DropdownMenuItem
+															key={w.folderName}
+															onClick={() => onPlay({ server: null, world: w.folderName })}
+															className="cursor-pointer gap-2.5 py-1.5"
+														>
+															{w.icon ? (
+																<img
+																	src={w.icon}
+																	alt=""
+																	className="size-7 shrink-0 rounded border border-zinc-800 object-cover"
+																/>
+															) : (
+																<div className="flex size-7 shrink-0 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-400">
+																	<Compass className="size-3.5" />
+																</div>
+															)}
+															<div className="flex min-w-0 flex-col truncate">
+																<span className="truncate font-medium text-xs text-zinc-200">
+																	{w.displayName}
+																</span>
+																<span className="truncate text-[10px] text-zinc-500">
+																	{w.lastPlayed ? formatLastPlayed(w.lastPlayed) : w.folderName}
+																</span>
+															</div>
+														</DropdownMenuItem>
+													))
+												)}
+											</DropdownMenuSubContent>
+										</DropdownMenuSub>
+									) : (
+										<DropdownMenuItem disabled className="gap-2 opacity-50">
+											<Compass className="size-4 text-zinc-500" />
+											<div className="flex flex-col">
+												<span className="font-medium text-xs">Quick Load World</span>
+												<span className="text-[10px] text-zinc-500">Requires Minecraft 1.20+</span>
+											</div>
+										</DropdownMenuItem>
+									)}
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
 					)}
 				</div>
 
@@ -239,6 +405,13 @@ export const InstanceCard = ({
 					)}
 				</div>
 			</div>
+
+			<DirectConnectDialog
+				open={directConnectOpen}
+				onOpenChange={setDirectConnectOpen}
+				instanceName={instance.name}
+				onConnect={(addr) => onPlay({ server: addr, world: null })}
+			/>
 		</div>
 	)
 }
