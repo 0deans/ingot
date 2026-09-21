@@ -1,7 +1,7 @@
 import path from "node:path"
 import process from "node:process"
 import tailwindcss from "@tailwindcss/vite"
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite"
+import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import pkg from "./package.json" with { type: "json" }
@@ -13,7 +13,7 @@ export default defineConfig(() => ({
 	define: {
 		APP_VERSION: JSON.stringify(pkg.version),
 	},
-	plugins: [TanStackRouterVite({ autoCodeSplitting: true }), react(), tailwindcss()],
+	plugins: [tanstackRouter({ autoCodeSplitting: true }), react(), tailwindcss()],
 	resolve: {
 		alias: {
 			"@": path.resolve(import.meta.dirname, "./src"),
