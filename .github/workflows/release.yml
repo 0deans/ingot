@@ -92,3 +92,28 @@ jobs:
           releaseDraft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Package and upload Windows Portable (.exe & .zip)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $config = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $version = $config.version
+          $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { "v$version" }
+          $exeName = "Ingot_${version}_x64_portable.exe"
+          $zipName = "Ingot_${version}_x64_portable.zip"
+
+          Write-Host "Packaging portable builds for $tag..."
+          # 1. Standalone Portable EXE
+          Copy-Item "src-tauri/target/release/ingot.exe" -Destination $exeName
+
+          # 2. Portable ZIP (containing Ingot.exe)
+          New-Item -ItemType Directory -Force -Path "portable-staging" | Out-Null
+          Copy-Item "src-tauri/target/release/ingot.exe" -Destination "portable-staging/Ingot.exe"
+          Compress-Archive -Path "portable-staging/*" -DestinationPath $zipName -Force
+
+          Write-Host "Uploading $exeName and $zipName to release $tag..."
+          gh release upload $tag $exeName $zipName --clobber
