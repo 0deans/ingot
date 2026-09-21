@@ -7,11 +7,11 @@ const version = pkg.version
 
 console.log(`[sync-version] Synchronizing version ${version} across Tauri files...`)
 
-// 2. Update src-tauri/tauri.conf.json
+// 2. Update src-tauri/tauri.conf.json (preserves exact formatting)
 const tauriConfPath = "src-tauri/tauri.conf.json"
-const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, "utf-8"))
-tauriConf.version = version
-fs.writeFileSync(tauriConfPath, `${JSON.stringify(tauriConf, null, "\t")}\n`)
+let tauriConf = fs.readFileSync(tauriConfPath, "utf-8")
+tauriConf = tauriConf.replace(/"version":\s*"[^"]+"/, `"version": "${version}"`)
+fs.writeFileSync(tauriConfPath, tauriConf)
 
 // 3. Update src-tauri/Cargo.toml
 const cargoTomlPath = "src-tauri/Cargo.toml"
