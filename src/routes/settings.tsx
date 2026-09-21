@@ -31,6 +31,7 @@ import {
 } from "@/components/accounts/sortable-account-item"
 import MemoryAllocation from "@/components/settings/memory-allocation"
 import SyncSettings from "@/components/settings/sync-settings"
+import UpdateSettings from "@/components/settings/update-settings"
 import WindowSettings from "@/components/settings/window-settings"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -334,6 +335,9 @@ const SettingsPage = () => {
 
 					{/* Game Data Synchronization */}
 					<SyncSettings />
+
+					{/* Application Updates */}
+					<UpdateSettings />
 				</div>
 
 				<AddAccountDialog

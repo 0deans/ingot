@@ -39,7 +39,14 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            #[cfg(desktop)]
+            {
+                if let Err(e) = app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {
+                    eprintln!("[Updater] Failed to initialize updater plugin: {e}");
+                }
+            }
             if let Err(e) = tray::setup_tray(app.handle()) {
                 eprintln!("[Tray] Failed to setup tray: {e}");
             }

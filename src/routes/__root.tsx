@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
 import { memo } from "react"
 import Sidebar from "@/components/layout/sidebar"
+import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { useScrollRestoration } from "@/lib/scroll-restoration"
@@ -18,6 +19,7 @@ const RootLayout = () => {
 			<WindowFrame title="Ingot">
 				<Sidebar />
 				<main ref={mainRef} className="flex size-full min-h-0 flex-1 flex-col overflow-hidden">
+					<UpdateBanner />
 					<Outlet />
 				</main>
 			</WindowFrame>
