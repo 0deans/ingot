@@ -2085,6 +2085,7 @@ dependencies = [
  "sha1",
  "specta",
  "sysinfo",
+ "tar",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",

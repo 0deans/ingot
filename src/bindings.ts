@@ -180,6 +180,14 @@ export type ScreenshotInfo = {
 	modifiedAt: number,
 };
 
+export type PlayitTunnelStatus = {
+	isRunning: boolean,
+	status: string,
+	claimUrl: string | null,
+	publicAddress: string | null,
+	pingMs: number | null,
+};
+
 export type ServerConfig = {
 	id: string,
 	name: string,
@@ -193,11 +201,16 @@ export type ServerConfig = {
 	javaPath: string | null,
 	jvmArgs: string[] | null,
 	autoStart: boolean | null,
+	sleepEnabled?: boolean | null,
+	idleTimeoutSeconds?: number | null,
+	internalPort?: number | null,
+	playitEnabled?: boolean | null,
+	playitSecretKey?: string | null,
 	createdAt: number,
 	lastRunAt: number | null,
 };
 
-export type ServerCoreType = "paper" | "purpur" | "fabric" | "vanilla" | "folia";
+export type ServerCoreType = "paper" | "purpur" | "fabric" | "vanilla" | "folia" | "pumpkin";
 
 export type ServerLogEvent = {
 	serverId: string,
@@ -239,7 +252,7 @@ export type ServerProperties = {
 	spawnProtection: number,
 };
 
-export type ServerStatus = "stopped" | "starting" | "running" | "stopping";
+export type ServerStatus = "stopped" | "starting" | "running" | "stopping" | "sleeping";
 
 export type ServerStatusEvent = {
 	serverId: string,
@@ -464,7 +477,11 @@ export type Router = {
 		set_sync_settings: (settings: SyncSettings) => Promise<SyncSettings>,
 		set_window_settings: (settings: WindowSettings) => Promise<WindowSettings>,
 		start_server: (serverId: string) => Promise<number>,
+		put_server_to_sleep: (serverId: string) => Promise<null>,
 		stop_server: (serverId: string) => Promise<null>,
+		start_playit_tunnel: (secretKey: string | null) => Promise<PlayitTunnelStatus>,
+		stop_playit_tunnel: () => Promise<null>,
+		get_playit_status: () => Promise<PlayitTunnelStatus>,
 		update_instance: (instance: InstanceConfig) => Promise<null>,
 		update_server: (server: ServerConfig) => Promise<null>,
 		upload_ely_skin: (accountId: string, imageBase64: string, password: string | null) => Promise<null>,

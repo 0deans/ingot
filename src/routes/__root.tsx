@@ -1,10 +1,16 @@
 import type { QueryClient } from "@tanstack/react-query"
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
-import { memo } from "react"
+import {
+	createRootRouteWithContext,
+	Outlet,
+	useNavigate,
+	useRouterState,
+} from "@tanstack/react-router"
+import { memo, useEffect } from "react"
 import Sidebar from "@/components/layout/sidebar"
 import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { isMobileEnvironment } from "@/lib/platform"
 import { useScrollRestoration } from "@/lib/scroll-restoration"
 
 export interface RouterContext {
@@ -13,6 +19,28 @@ export interface RouterContext {
 
 const RootLayout = () => {
 	const mainRef = useScrollRestoration()
+	const isMobile = isMobileEnvironment()
+	const navigate = useNavigate()
+	const currentPath = useRouterState({ select: (s) => s.location.pathname })
+
+	useEffect(() => {
+		if (isMobile && currentPath !== "/servers") {
+			navigate({ to: "/servers" })
+		}
+	}, [isMobile, currentPath, navigate])
+
+	if (isMobile) {
+		return (
+			<TooltipProvider>
+				<main
+					ref={mainRef}
+					className="flex size-full min-h-screen flex-1 flex-col overflow-y-auto bg-zinc-950"
+				>
+					<Outlet />
+				</main>
+			</TooltipProvider>
+		)
+	}
 
 	return (
 		<TooltipProvider>

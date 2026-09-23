@@ -66,6 +66,12 @@ const SERVER_CORES: {
 		tagline: "Official unmodded Minecraft server directly from Mojang",
 		badge: "Original",
 	},
+	{
+		id: "pumpkin",
+		name: "PumpkinMC (Rust)",
+		tagline: "Ultra lightweight modern core in Rust (< 60MB RAM, instant boot)",
+		badge: "Ultra Low RAM",
+	},
 ]
 
 export default function NewServerDialog({

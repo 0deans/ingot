@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { memo } from "react"
 import * as v from "valibot"
+import MobileServerDashboard from "@/components/servers/mobile-server-dashboard"
 import ServerListView from "@/components/servers/server-list-view"
+import { isMobileEnvironment } from "@/lib/platform"
 import { serverService } from "@/services/server-service"
 
-export const serverCoreSchema = v.picklist(["all", "paper", "purpur", "fabric", "folia", "vanilla"])
+export const serverCoreSchema = v.picklist([
+	"all",
+	"paper",
+	"purpur",
+	"fabric",
+	"folia",
+	"vanilla",
+	"pumpkin",
+])
 
 export const serversSearchSchema = v.object({
 	q: v.optional(v.fallback(v.string(), ""), ""),
@@ -18,6 +28,10 @@ export const serversSearchSchema = v.object({
 export type ServersSearchParams = v.InferOutput<typeof serversSearchSchema>
 
 const ServersPage = () => {
+	const isMobile = isMobileEnvironment()
+	if (isMobile) {
+		return <MobileServerDashboard />
+	}
 	return <ServerListView />
 }
 

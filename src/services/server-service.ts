@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import {
 	createTauRPCProxy,
+	type PlayitTunnelStatus,
 	type RunningServerSummary,
 	type ServerConfig,
 	type ServerCoreType,
@@ -157,8 +158,24 @@ export const serverService = {
 		return rpc.start_server(serverId)
 	},
 
+	async putServerToSleep(serverId: string): Promise<void> {
+		await rpc.put_server_to_sleep(serverId)
+	},
+
 	async stopServer(serverId: string): Promise<void> {
 		await rpc.stop_server(serverId)
+	},
+
+	async startPlayitTunnel(secretKey?: string | null): Promise<PlayitTunnelStatus> {
+		return rpc.start_playit_tunnel(secretKey ?? null)
+	},
+
+	async stopPlayitTunnel(): Promise<void> {
+		await rpc.stop_playit_tunnel()
+	},
+
+	async getPlayitStatus(): Promise<PlayitTunnelStatus> {
+		return rpc.get_playit_status()
 	},
 
 	async killServer(serverId: string): Promise<void> {

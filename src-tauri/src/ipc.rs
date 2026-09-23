@@ -10,8 +10,8 @@ use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
 use crate::server::{
-    self, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent, ServerPingResponse,
-    ServerProperties, ServerProcessManager, ServerStatusEvent, WhitelistEntry,
+    self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent,
+    ServerPingResponse, ServerProperties, ServerProcessManager, ServerStatusEvent, WhitelistEntry,
 };
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
@@ -19,6 +19,8 @@ use tauri::{Manager, Runtime};
 
 static PROCESS_MANAGER: OnceLock<ProcessManager> = OnceLock::new();
 static SERVER_PROCESS_MANAGER: OnceLock<ServerProcessManager> = OnceLock::new();
+static SERVER_SUPERVISOR_MANAGER: OnceLock<server::ServerSupervisorManager> = OnceLock::new();
+static PLAYIT_MANAGER: OnceLock<server::PlayitManager> = OnceLock::new();
 static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 fn get_process_manager() -> &'static ProcessManager {
@@ -27,6 +29,14 @@ fn get_process_manager() -> &'static ProcessManager {
 
 fn get_server_process_manager() -> &'static ServerProcessManager {
     SERVER_PROCESS_MANAGER.get_or_init(ServerProcessManager::new)
+}
+
+fn get_server_supervisor_manager() -> &'static server::ServerSupervisorManager {
+    SERVER_SUPERVISOR_MANAGER.get_or_init(server::ServerSupervisorManager::new)
+}
+
+fn get_playit_manager() -> &'static server::PlayitManager {
+    PLAYIT_MANAGER.get_or_init(server::PlayitManager::new)
 }
 
 fn get_http_client() -> &'static reqwest::Client {
@@ -336,11 +346,25 @@ pub trait AppApi {
         server_id: String,
     ) -> Result<u32, String>;
 
+    async fn put_server_to_sleep(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
+
     async fn stop_server(server_id: String) -> Result<(), String>;
 
     async fn kill_server(server_id: String) -> Result<(), String>;
 
     async fn send_server_command(server_id: String, command: String) -> Result<(), String>;
+
+    async fn start_playit_tunnel(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        secret_key: Option<String>,
+    ) -> Result<PlayitTunnelStatus, String>;
+
+    async fn stop_playit_tunnel() -> Result<(), String>;
+
+    async fn get_playit_status() -> Result<PlayitTunnelStatus, String>;
 
     async fn get_running_servers() -> Result<Vec<RunningServerSummary>, String>;
 
@@ -993,15 +1017,54 @@ impl AppApi for AppApiImpl {
             }
         };
 
-        server::launch_server(app, pm, client, config, on_log, on_status).await
+        get_server_supervisor_manager()
+            .supervise_and_start(app, pm, client, config, on_log, on_status)
+            .await
+    }
+
+    async fn put_server_to_sleep(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        let app_status = app_handle.clone();
+        let on_status = move |ev: ServerStatusEvent| {
+            let trigger = TauRpcAppApiEventTrigger::new(app_status.clone());
+            if let Err(e) = trigger.on_server_status_changed(ev) {
+                eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
+            }
+        };
+        get_server_supervisor_manager()
+            .put_to_sleep(get_server_process_manager(), &server_id, on_status)
+            .await
     }
 
     async fn stop_server(self, server_id: String) -> Result<(), String> {
-        get_server_process_manager().stop_server(&server_id).await
+        get_server_supervisor_manager()
+            .stop_supervised(get_server_process_manager(), &server_id)
+            .await
     }
 
     async fn kill_server(self, server_id: String) -> Result<(), String> {
         get_server_process_manager().kill_server(&server_id).await
+    }
+
+    async fn start_playit_tunnel(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        secret_key: Option<String>,
+    ) -> Result<PlayitTunnelStatus, String> {
+        get_playit_manager()
+            .start_tunnel(&app_handle, get_http_client(), secret_key)
+            .await
+    }
+
+    async fn stop_playit_tunnel(self) -> Result<(), String> {
+        get_playit_manager().stop_tunnel().await
+    }
+
+    async fn get_playit_status(self) -> Result<PlayitTunnelStatus, String> {
+        Ok(get_playit_manager().get_status().await)
     }
 
     async fn send_server_command(self, server_id: String, command: String) -> Result<(), String> {

@@ -165,6 +165,7 @@ pub async fn fetch_core_versions(
                 .collect();
             Ok(versions)
         }
+        ServerCoreType::Pumpkin => crate::server::pumpkin::fetch_pumpkin_versions(client).await,
     }
 }
 
@@ -325,6 +326,10 @@ pub async fn ensure_server_jar(
             )
             .await?;
             Ok(format!("Vanilla server {} installed", game_version))
+        }
+        ServerCoreType::Pumpkin => {
+            crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
+            Ok("Pumpkin binary ready".to_string())
         }
     }
 }

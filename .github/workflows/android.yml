@@ -1,0 +1,117 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build Type (release or debug)"
+        required: true
+        type: choice
+        options:
+          - release
+          - debug
+        default: release
+      target:
+        description: "Target Architecture"
+        required: true
+        type: choice
+        options:
+          - aarch64
+          - armv7
+          - all
+        default: aarch64
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - "scripts/**"
+      - ".github/workflows/android.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK and Build Tools
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize Tauri Android project
+        run: pnpm tauri android init --ci
+
+      - name: Inject Foreground Service and Android Manifest Permissions
+        run: node scripts/prepare-android.cjs
+
+      - name: Build Android APK
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
+        run: |
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          TARGET="${{ github.event.inputs.target || 'aarch64' }}"
+
+          TARGET_ARGS=""
+          if [ "$TARGET" != "all" ]; then
+            TARGET_ARGS="--target $TARGET"
+          fi
+
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            pnpm tauri android build --apk --debug $TARGET_ARGS
+          else
+            pnpm tauri android build --apk $TARGET_ARGS
+          fi
+
+      - name: Collect Output APKs
+        run: |
+          mkdir -p output-apks
+          find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" -exec cp {} output-apks/ \;
+          ls -lh output-apks/
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingot-server-host-apks
+          path: output-apks/*.apk
+          retention-days: 14

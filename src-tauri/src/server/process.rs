@@ -1,7 +1,8 @@
 use crate::minecraft::java::{ensure_java_runtime, get_required_java_version};
 use crate::server::config::{
     get_server_dir, read_server_properties_from_dir, write_server_properties_to_dir,
-    RunningServerSummary, ServerConfig, ServerLogEvent, ServerStatus, ServerStatusEvent,
+    RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent, ServerStatus,
+    ServerStatusEvent,
 };
 use crate::server::downloader::ensure_server_jar;
 use std::collections::HashMap;
@@ -29,12 +30,14 @@ struct ActiveServer {
 #[derive(Clone, Default)]
 pub struct ServerProcessManager {
     servers: Arc<Mutex<HashMap<String, ActiveServer>>>,
+    sleeping_servers: Arc<Mutex<std::collections::HashSet<String>>>,
 }
 
 impl ServerProcessManager {
     pub fn new() -> Self {
         Self {
             servers: Arc::new(Mutex::new(HashMap::new())),
+            sleeping_servers: Arc::new(Mutex::new(std::collections::HashSet::new())),
         }
     }
 
@@ -59,10 +62,29 @@ impl ServerProcessManager {
 
     pub async fn get_server_status(&self, server_id: &str) -> ServerStatus {
         let guard = self.servers.lock().await;
-        guard
-            .get(server_id)
-            .map(|s| s.status.clone())
-            .unwrap_or(ServerStatus::Stopped)
+        if let Some(s) = guard.get(server_id) {
+            return s.status.clone();
+        }
+        let sleeping_guard = self.sleeping_servers.lock().await;
+        if sleeping_guard.contains(server_id) {
+            return ServerStatus::Sleeping;
+        }
+        ServerStatus::Stopped
+    }
+
+    pub async fn set_server_status(&self, server_id: &str, status: ServerStatus) {
+        if status == ServerStatus::Sleeping {
+            let mut sleeping_guard = self.sleeping_servers.lock().await;
+            sleeping_guard.insert(server_id.to_string());
+        } else {
+            let mut sleeping_guard = self.sleeping_servers.lock().await;
+            sleeping_guard.remove(server_id);
+        }
+
+        let mut guard = self.servers.lock().await;
+        if let Some(s) = guard.get_mut(server_id) {
+            s.status = status;
+        }
     }
 
     pub async fn get_server_logs(&self, server_id: &str) -> Vec<String> {
@@ -237,10 +259,12 @@ where
     let server_dir = get_server_dir(&app, &server_id)?;
 
     // Check if already running
-    if pm.get_server_status(&server_id).await != ServerStatus::Stopped {
+    let cur_status = pm.get_server_status(&server_id).await;
+    if cur_status != ServerStatus::Stopped && cur_status != ServerStatus::Sleeping {
         return Err("Server is already running".to_string());
     }
 
+    pm.set_server_status(&server_id, ServerStatus::Starting).await;
     on_status(ServerStatusEvent {
         server_id: server_id.clone(),
         status: ServerStatus::Starting,
@@ -253,6 +277,7 @@ where
     let build_num = config.build_number.as_deref();
 
     if let Err(e) = ensure_server_jar(&client, &server_dir, &core_type, &game_ver, build_num).await {
+        pm.set_server_status(&server_id, ServerStatus::Stopped).await;
         on_status(ServerStatusEvent {
             server_id: server_id.clone(),
             status: ServerStatus::Stopped,
@@ -275,71 +300,79 @@ where
         }
     }
 
-    // 4. Resolve Java runtime
-    let required_java = get_required_java_version(&config.game_version, None);
-    let java_bin = if let Some(ref path) = config.java_path {
-        let p = PathBuf::from(path);
-        find_java_console_bin(&p).unwrap_or(p)
+    // 4. Build execution command (Pumpkin native vs Android PRoot sandbox vs Desktop Java)
+    let mut cmd = if config.core == ServerCoreType::Pumpkin {
+        crate::server::pumpkin::build_pumpkin_command(&server_dir, config.port)
     } else {
-        // Ensure Adoptium runtime is installed
-        let resolved = ensure_java_runtime(&app, &client, required_java, None, None).await?;
-        find_java_console_bin(&resolved).ok_or_else(|| {
-            format!(
-                "Could not find java console binary in {}",
-                resolved.display()
-            )
-        })?
+        // Construct command arguments with Aikar's G1GC flags
+        let mut args: Vec<String> = Vec::new();
+        args.push(format!("-Xms{}M", config.memory_min_mb));
+        args.push(format!("-Xmx{}M", config.memory_max_mb));
+
+        // Aikar's high-performance server GC flags
+        args.push("-XX:+UseG1GC".into());
+        args.push("-XX:+ParallelRefProcEnabled".into());
+        args.push("-XX:MaxGCPauseMillis=200".into());
+        args.push("-XX:+UnlockExperimentalVMOptions".into());
+        args.push("-XX:+DisableExplicitGC".into());
+        args.push("-XX:+AlwaysPreTouch".into());
+        args.push("-XX:G1NewSizePercent=30".into());
+        args.push("-XX:G1MaxNewSizePercent=40".into());
+        args.push("-XX:G1ReservePercent=20".into());
+        args.push("-XX:G1HeapWastePercent=5".into());
+        args.push("-XX:G1MixedGCCountTarget=4".into());
+        args.push("-XX:InitiatingHeapOccupancyPercent=15".into());
+        args.push("-XX:G1MixedGCLiveThresholdPercent=90".into());
+        args.push("-XX:G1RSetUpdatingPauseTimePercent=5".into());
+        args.push("-XX:SurvivorRatio=32".into());
+        args.push("-XX:+PerfDisableSharedMem".into());
+        args.push("-XX:MaxTenuringThreshold=1".into());
+        args.push("-Dusing.aikars.flags=https://mcflags.emc.gs".into());
+        args.push("-Daikars.new.flags=true".into());
+
+        let required_java = get_required_java_version(&config.game_version, None);
+        if required_java >= 24 {
+            args.push("--sun-misc-unsafe-memory-access=allow".into());
+        }
+        if required_java >= 17 {
+            args.push("--enable-native-access=ALL-UNNAMED".into());
+        }
+
+        if let Some(ref custom_args) = config.jvm_args {
+            args.extend(custom_args.clone());
+        }
+
+        args.push("-jar".into());
+        args.push("server.jar".into());
+        args.push("nogui".into());
+
+        if crate::server::sandbox::is_android_sandbox() {
+            let rootfs = crate::server::sandbox::ensure_sandbox_rootfs(&app, &client, |msg, prog| {
+                eprintln!("[Sandbox] {msg} ({:.0}%)", prog * 100.0);
+            })
+            .await?;
+            let dummy_java = PathBuf::from("/usr/bin/java");
+            crate::server::sandbox::build_server_command(Some(&rootfs), &server_dir, &dummy_java, &args)?
+        } else {
+            let java_bin = if let Some(ref path) = config.java_path {
+                let p = PathBuf::from(path);
+                find_java_console_bin(&p).unwrap_or(p)
+            } else {
+                let resolved = ensure_java_runtime(&app, &client, required_java, None, None).await?;
+                find_java_console_bin(&resolved).ok_or_else(|| {
+                    format!(
+                        "Could not find java console binary in {}",
+                        resolved.display()
+                    )
+                })?
+            };
+            let mut c = Command::new(&java_bin);
+            c.args(&args).current_dir(&server_dir);
+            c
+        }
     };
 
-    // 5. Construct command arguments with Aikar's G1GC flags
-    let mut args: Vec<String> = Vec::new();
-    args.push(format!("-Xms{}M", config.memory_min_mb));
-    args.push(format!("-Xmx{}M", config.memory_max_mb));
-
-    // Aikar's high-performance server GC flags
-    args.push("-XX:+UseG1GC".into());
-    args.push("-XX:+ParallelRefProcEnabled".into());
-    args.push("-XX:MaxGCPauseMillis=200".into());
-    args.push("-XX:+UnlockExperimentalVMOptions".into());
-    args.push("-XX:+DisableExplicitGC".into());
-    args.push("-XX:+AlwaysPreTouch".into());
-    args.push("-XX:G1NewSizePercent=30".into());
-    args.push("-XX:G1MaxNewSizePercent=40".into());
-    args.push("-XX:G1ReservePercent=20".into());
-    args.push("-XX:G1HeapWastePercent=5".into());
-    args.push("-XX:G1MixedGCCountTarget=4".into());
-    args.push("-XX:InitiatingHeapOccupancyPercent=15".into());
-    args.push("-XX:G1MixedGCLiveThresholdPercent=90".into());
-    args.push("-XX:G1RSetUpdatingPauseTimePercent=5".into());
-    args.push("-XX:SurvivorRatio=32".into());
-    args.push("-XX:+PerfDisableSharedMem".into());
-    args.push("-XX:MaxTenuringThreshold=1".into());
-    args.push("-Dusing.aikars.flags=https://mcflags.emc.gs".into());
-    args.push("-Daikars.new.flags=true".into());
-
-    // Modern Java module flags
-    if required_java >= 24 {
-        args.push("--sun-misc-unsafe-memory-access=allow".into());
-    }
-    if required_java >= 17 {
-        args.push("--enable-native-access=ALL-UNNAMED".into());
-    }
-
-    // Instance custom JVM args if configured
-    if let Some(ref custom_args) = config.jvm_args {
-        args.extend(custom_args.clone());
-    }
-
-    // Jar & nogui
-    args.push("-jar".into());
-    args.push("server.jar".into());
-    args.push("nogui".into());
-
-    // 6. Spawn process
-    let mut cmd = Command::new(&java_bin);
-    cmd.args(&args)
-        .current_dir(&server_dir)
-        .stdin(Stdio::piped())
+    cmd.stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 

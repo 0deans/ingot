@@ -21,6 +21,7 @@ pub enum ServerCoreType {
     Fabric,
     Vanilla,
     Folia,
+    Pumpkin,
 }
 
 impl Default for ServerCoreType {
@@ -37,6 +38,7 @@ impl std::fmt::Display for ServerCoreType {
             Self::Fabric => write!(f, "Fabric"),
             Self::Vanilla => write!(f, "Vanilla"),
             Self::Folia => write!(f, "Folia"),
+            Self::Pumpkin => write!(f, "Pumpkin"),
         }
     }
 }
@@ -48,6 +50,17 @@ pub enum ServerStatus {
     Starting,
     Running,
     Stopping,
+    Sleeping,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayitTunnelStatus {
+    pub is_running: bool,
+    pub status: String,
+    pub claim_url: Option<String>,
+    pub public_address: Option<String>,
+    pub ping_ms: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -65,6 +78,11 @@ pub struct ServerConfig {
     pub java_path: Option<String>,
     pub jvm_args: Option<Vec<String>>,
     pub auto_start: Option<bool>,
+    pub sleep_enabled: Option<bool>,
+    pub idle_timeout_seconds: Option<u64>,
+    pub internal_port: Option<u16>,
+    pub playit_enabled: Option<bool>,
+    pub playit_secret_key: Option<String>,
     pub created_at: u64,
     pub last_run_at: Option<u64>,
 }
@@ -258,6 +276,11 @@ pub fn create_server<R: Runtime>(
         java_path: None,
         jvm_args: None,
         auto_start: Some(false),
+        sleep_enabled: Some(true),
+        idle_timeout_seconds: Some(600), // 10 minutes default
+        internal_port: Some(selected_port.saturating_add(1)),
+        playit_enabled: Some(false),
+        playit_secret_key: None,
         created_at: now,
         last_run_at: None,
     };
