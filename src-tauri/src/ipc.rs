@@ -613,18 +613,18 @@ impl AppApi for AppApiImpl {
         instance_id: String,
     ) -> Result<(), String> {
         let dir = instance::get_instance_dir(&app_handle, &instance_id)?;
-        let path_str = dir.to_string_lossy().to_string();
+        let _path_str = dir.to_string_lossy().to_string();
         #[cfg(target_os = "windows")]
         {
-            let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
+            let _ = std::process::Command::new("explorer").arg(&_path_str).spawn();
         }
         #[cfg(target_os = "macos")]
         {
-            let _ = std::process::Command::new("open").arg(&path_str).spawn();
+            let _ = std::process::Command::new("open").arg(&_path_str).spawn();
         }
         #[cfg(target_os = "linux")]
         {
-            let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
+            let _ = std::process::Command::new("xdg-open").arg(&_path_str).spawn();
         }
         Ok(())
     }
@@ -970,18 +970,18 @@ impl AppApi for AppApiImpl {
         server_id: String,
     ) -> Result<(), String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        let path_str = dir.to_string_lossy().to_string();
+        let _path_str = dir.to_string_lossy().to_string();
         #[cfg(target_os = "windows")]
         {
-            let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
+            let _ = std::process::Command::new("explorer").arg(&_path_str).spawn();
         }
         #[cfg(target_os = "macos")]
         {
-            let _ = std::process::Command::new("open").arg(&path_str).spawn();
+            let _ = std::process::Command::new("open").arg(&_path_str).spawn();
         }
         #[cfg(target_os = "linux")]
         {
-            let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
+            let _ = std::process::Command::new("xdg-open").arg(&_path_str).spawn();
         }
         Ok(())
     }

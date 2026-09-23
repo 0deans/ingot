@@ -5,11 +5,11 @@ pub mod keyring_store;
 pub mod minecraft;
 pub mod server;
 pub mod system;
+#[cfg(desktop)]
 pub mod tray;
 
 use ipc::{AppApi, AppApiImpl};
 use tauri::Manager;
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -29,14 +29,20 @@ pub fn run() {
     #[cfg(debug_assertions)]
     let _ = taurpc::Exporter::new().export(&router, "../src/bindings.ts");
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+    let mut builder = tauri::Builder::default();
+
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
                 let _ = window.unminimize();
                 let _ = window.set_focus();
             }
-        }))
+        }));
+    }
+
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
@@ -46,9 +52,9 @@ pub fn run() {
                 if let Err(e) = app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {
                     eprintln!("[Updater] Failed to initialize updater plugin: {e}");
                 }
-            }
-            if let Err(e) = tray::setup_tray(app.handle()) {
-                eprintln!("[Tray] Failed to setup tray: {e}");
+                if let Err(e) = tray::setup_tray(app.handle()) {
+                    eprintln!("[Tray] Failed to setup tray: {e}");
+                }
             }
             Ok(())
         })

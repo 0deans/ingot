@@ -138,18 +138,18 @@ pub fn open_screenshots_folder<R: Runtime>(
         _ => instance::get_instances_dir(app)?,
     };
 
-    let path_str = target_dir.to_string_lossy().to_string();
+    let _path_str = target_dir.to_string_lossy().to_string();
     #[cfg(target_os = "windows")]
     {
-        let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
+        let _ = std::process::Command::new("explorer").arg(&_path_str).spawn();
     }
     #[cfg(target_os = "macos")]
     {
-        let _ = std::process::Command::new("open").arg(&path_str).spawn();
+        let _ = std::process::Command::new("open").arg(&_path_str).spawn();
     }
     #[cfg(target_os = "linux")]
     {
-        let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
+        let _ = std::process::Command::new("xdg-open").arg(&_path_str).spawn();
     }
 
     Ok(())

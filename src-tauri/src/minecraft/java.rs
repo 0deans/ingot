@@ -230,13 +230,15 @@ pub async fn ensure_java_runtime<R: Runtime>(
     let os = "windows";
     #[cfg(target_os = "macos")]
     let os = "mac";
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     let os = "linux";
 
     #[cfg(target_arch = "x86_64")]
     let arch = "x64";
-    #[cfg(target_arch = "aarch64")]
+    #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
     let arch = "aarch64";
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "arm")))]
+    let arch = "x64";
 
     let download_url = format!(
         "https://api.adoptium.net/v3/binary/latest/{}/ga/{}/{}/jdk/hotspot/normal/eclipse",
