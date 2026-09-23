@@ -21,8 +21,6 @@ on:
           - all
         default: aarch64
   push:
-    branches:
-      - main
     tags:
       - "v*"
 
