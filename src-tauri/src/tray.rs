@@ -47,7 +47,7 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::err
             }
             _ => {}
         })
-        .on_tray_icon_event(|tray, event| {
+        .on_tray_icon_event(|_tray, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
@@ -55,7 +55,7 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::err
             } = event
             {
                 #[cfg(not(target_os = "macos"))]
-                restore_main_window(tray.app_handle());
+                restore_main_window(_tray.app_handle());
             }
         })
         .build(app)?;
