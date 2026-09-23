@@ -9,6 +9,7 @@ pub mod system;
 pub mod tray;
 
 use ipc::{AppApi, AppApiImpl};
+#[cfg(desktop)]
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -29,6 +30,7 @@ pub fn run() {
     #[cfg(debug_assertions)]
     let _ = taurpc::Exporter::new().export(&router, "../src/bindings.ts");
 
+    #[allow(unused_mut)]
     let mut builder = tauri::Builder::default();
 
     #[cfg(desktop)]
@@ -46,13 +48,13 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
-        .setup(|app| {
+        .setup(|_app| {
             #[cfg(desktop)]
             {
-                if let Err(e) = app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {
+                if let Err(e) = _app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {
                     eprintln!("[Updater] Failed to initialize updater plugin: {e}");
                 }
-                if let Err(e) = tray::setup_tray(app.handle()) {
+                if let Err(e) = tray::setup_tray(_app.handle()) {
                     eprintln!("[Tray] Failed to setup tray: {e}");
                 }
             }

@@ -892,7 +892,13 @@ where
                     .map(|w| w.is_visible().unwrap_or(true) == false)
                     .unwrap_or(false);
             if should_restore {
+                #[cfg(desktop)]
                 crate::tray::restore_main_window(&app_clone);
+                #[cfg(not(desktop))]
+                if let Some(window) = app_clone.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
             }
         }
     });
