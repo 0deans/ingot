@@ -131,11 +131,14 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           echo "Attaching APKs to release $TAG..."
-          for i in {1..12}; do
+          for i in {1..30}; do
             if gh release view "$TAG" > /dev/null 2>&1; then
-              gh release upload "$TAG" output-apks/*.apk --clobber && echo "Successfully uploaded APKs to $TAG" && break
+              gh release upload "$TAG" output-apks/*.apk --clobber && echo "Successfully uploaded APKs to $TAG" && exit 0
             fi
-            echo "Waiting for release $TAG to be created... (attempt $i/12)"
-            sleep 15
+            echo "Waiting for release $TAG to be created... (attempt $i/30)"
+            sleep 20
           done
+
+          echo "Release $TAG not found after waiting. Creating release $TAG and attaching APKs..."
+          gh release create "$TAG" output-apks/*.apk --title "Ingot $TAG" --notes "Release $TAG" || true
 
