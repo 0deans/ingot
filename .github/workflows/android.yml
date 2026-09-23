@@ -23,13 +23,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "src/**"
-      - "src-tauri/**"
-      - "scripts/**"
-      - ".github/workflows/android.yml"
-      - "package.json"
-      - "pnpm-lock.yaml"
+    tags:
+      - "v*"
 
 permissions:
   contents: write
@@ -115,3 +110,19 @@ jobs:
           name: ingot-server-host-apks
           path: output-apks/*.apk
           retention-days: 14
+
+      - name: Attach APK to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "Attaching APKs to release $TAG..."
+          for i in {1..12}; do
+            if gh release view "$TAG" > /dev/null 2>&1; then
+              gh release upload "$TAG" output-apks/*.apk --clobber && echo "Successfully uploaded APKs to $TAG" && break
+            fi
+            echo "Waiting for release $TAG to be created... (attempt $i/12)"
+            sleep 15
+          done
+
