@@ -184,16 +184,31 @@ jobs:
           NDK_HOME: ${{ env.NDK_HOME }}
         run: pnpm tauri android build --apk --target aarch64
 
-      - name: Attach APK to GitHub Release
+      - name: Sign APK and Attach to GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p output-apks
-          find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" -exec cp {} output-apks/ \;
+          RAW_APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          echo "Found raw APK: $RAW_APK"
+
+          # 1. Generate release signing key
+          keytool -genkey -v -keystore release.jks -alias ingot -keyalg RSA -keysize 2048 -validity 10000 -storepass ingot123 -keypass ingot123 -dname "CN=Ingot, OU=Ingot, O=Ingot, L=Unknown, S=Unknown, C=US"
+
+          # 2. Locate apksigner and sign the APK
+          APKSIGNER=$(find /usr/local/lib/android/sdk/build-tools -name "apksigner" | sort -V | tail -n 1)
+          echo "Using apksigner: $APKSIGNER"
+          
+          FINAL_APK="output-apks/Ingot-Server-Host-aarch64.apk"
+          $APKSIGNER sign --ks release.jks --ks-pass pass:ingot123 --out "$FINAL_APK" "$RAW_APK"
+
+          # 3. Verify signature
+          $APKSIGNER verify "$FINAL_APK"
           ls -lh output-apks/
 
           TAG="${{ github.ref_name }}"
-          echo "Uploading APK to release $TAG..."
-          gh release upload "$TAG" output-apks/*.apk --clobber
+          echo "Uploading $FINAL_APK to release $TAG..."
+          gh release upload "$TAG" "$FINAL_APK" --clobber
+
 
