@@ -20,9 +20,7 @@ on:
           - armv7
           - all
         default: aarch64
-  push:
-    tags:
-      - "v*"
+
 
 permissions:
   contents: write

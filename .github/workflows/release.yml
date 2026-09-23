@@ -117,3 +117,83 @@ jobs:
 
           Write-Host "Uploading $exeName and $zipName to release $tag..."
           gh release upload $tag $exeName $zipName --clobber
+
+  release-android:
+    needs: release
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Android SDK and NDK
+        run: |
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          NDK_BASE="/usr/local/lib/android/sdk/ndk"
+          if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
+            SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
+          else
+            /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+            SELECTED_NDK="$NDK_BASE/26.1.10909125"
+          fi
+          echo "NDK_HOME=$SELECTED_NDK" >> $GITHUB_ENV
+          echo "$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+          echo "TARGET_AR=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
+          echo "AR_aarch64_linux_android=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Initialize Tauri Android project
+        run: pnpm tauri android init --ci
+
+      - name: Inject Foreground Service and Android Manifest Permissions
+        run: node scripts/prepare-android.cjs
+
+      - name: Build Android APK
+        env:
+          NDK_HOME: ${{ env.NDK_HOME }}
+        run: pnpm tauri android build --apk --target aarch64
+
+      - name: Attach APK to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p output-apks
+          find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" -exec cp {} output-apks/ \;
+          ls -lh output-apks/
+
+          TAG="${{ github.ref_name }}"
+          echo "Uploading APK to release $TAG..."
+          gh release upload "$TAG" output-apks/*.apk --clobber
+
