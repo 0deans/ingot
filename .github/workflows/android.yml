@@ -43,14 +43,26 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK and Build Tools
+      - name: Setup Android SDK and NDK
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
-          echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          
+          # Accept licenses
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          # Check for pre-installed NDK or install
+          NDK_BASE="/usr/local/lib/android/sdk/ndk"
+          if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
+            SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
+            echo "Using pre-installed NDK at: $SELECTED_NDK"
+          else
+            echo "Installing NDK 26.1.10909125..."
+            /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+            SELECTED_NDK="$NDK_BASE/26.1.10909125"
+          fi
+          echo "NDK_HOME=$SELECTED_NDK" >> $GITHUB_ENV
+
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -72,7 +84,7 @@ jobs:
           workspaces: "./src-tauri -> target"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Initialize Tauri Android project
         run: pnpm tauri android init --ci
@@ -82,7 +94,7 @@ jobs:
 
       - name: Build Android APK
         env:
-          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
+          NDK_HOME: ${{ env.NDK_HOME }}
         run: |
           BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
           TARGET="${{ github.event.inputs.target || 'aarch64' }}"
