@@ -684,5 +684,5 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 }
 
 function formatMb(mb: number): string {
-	return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`
+	return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb * 10) / 10} MB`
 }
