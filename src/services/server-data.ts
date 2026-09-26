@@ -206,12 +206,21 @@ export const pluginKeys = {
 	versions: (id: string, source: PluginSource, project: string, compatible: boolean) =>
 		["server", id, "plugins", "versions", source, project, compatible] as const,
 	page: (source: PluginSource, project: string) => ["plugin-page", source, project] as const,
+	companion: (id: string) => ["server", id, "plugins", "companion"] as const,
 }
 
 export function useInstalledPlugins(serverId: string) {
 	return useQuery({
 		queryKey: pluginKeys.installed(serverId),
 		queryFn: () => rpc.list_server_plugins(serverId),
+	})
+}
+
+/** Ingot's own plugin (live map): whether it fits this server and is installed */
+export function useCompanionStatus(serverId: string) {
+	return useQuery({
+		queryKey: pluginKeys.companion(serverId),
+		queryFn: () => rpc.get_companion_status(serverId),
 	})
 }
 
@@ -275,6 +284,7 @@ export function usePluginActions(serverId: string) {
 		Promise.all([
 			queryClient.invalidateQueries({ queryKey: pluginKeys.installed(serverId) }),
 			queryClient.invalidateQueries({ queryKey: pluginKeys.updates(serverId) }),
+			queryClient.invalidateQueries({ queryKey: pluginKeys.companion(serverId) }),
 		])
 	const install = useMutation({
 		mutationFn: (args: { source: PluginSource; projectId: string; versionId?: string | null }) =>
@@ -290,7 +300,11 @@ export function usePluginActions(serverId: string) {
 			rpc.set_server_plugin_enabled(serverId, args.fileName, args.enabled),
 		onSettled: refresh,
 	})
-	return { install, remove, toggle }
+	const installCompanion = useMutation({
+		mutationFn: () => rpc.install_companion(serverId),
+		onSettled: refresh,
+	})
+	return { install, remove, toggle, installCompanion }
 }
 
 // ─── Performance ──────────────────────────────────────────────────────────────

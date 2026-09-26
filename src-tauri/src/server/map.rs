@@ -1,14 +1,19 @@
-//! Top-down world map rendered straight from the world's Anvil region files.
+//! Top-down world map rendered from the world's Anvil region files, plus live chunks
+//! from Ingot's companion plugin when it's installed.
 //!
 //! Each region (32x32 chunks) becomes a 512x512 PNG tile (1 px per block), cached next
-//! to the world and re-rendered when the region file changes. Works for any server core
-//! that writes Anvil (vanilla, Paper, Fabric, Pumpkin) - no map plugin needed.
+//! to the world and re-rendered when the region file or its live chunks change. Saved
+//! regions work for any core that writes Anvil (vanilla, Paper, Fabric, Pumpkin). The
+//! plugin (Paper/Purpur/Folia) adds chunks straight from server memory, so the map is
+//! current without the server ever having to save.
 
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::sync::{LazyLock, Mutex};
+use std::time::SystemTime;
 
 const TILE: usize = 512;
 
@@ -62,20 +67,54 @@ fn region_dirs(server_dir: &Path, level: &str, dimension: &str) -> Vec<PathBuf> 
     dirs
 }
 
+fn secs(time: SystemTime) -> u32 {
+    time.duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as u32)
+}
+
+fn modified(path: &Path) -> Option<SystemTime> {
+    std::fs::metadata(path).and_then(|m| m.modified()).ok()
+}
+
 fn list_regions(dir: &Path) -> Vec<MapRegion> {
     let Ok(entries) = std::fs::read_dir(dir) else { return Vec::new() };
     entries
         .flatten()
         .filter_map(|e| {
             let meta = e.metadata().ok().filter(|m| m.len() > 8192)?;
-            let modified = meta
-                .modified()
-                .ok()
-                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .map_or(0, |d| d.as_secs() as u32);
             let name = e.file_name().to_string_lossy().into_owned();
             let mut parts = name.strip_prefix("r.")?.strip_suffix(".mca")?.split('.');
-            Some(MapRegion { x: parts.next()?.parse().ok()?, z: parts.next()?.parse().ok()?, modified })
+            Some(MapRegion {
+                x: parts.next()?.parse().ok()?,
+                z: parts.next()?.parse().ok()?,
+                modified: meta.modified().map_or(0, secs),
+            })
+        })
+        .collect()
+}
+
+// ─── Live chunks from the companion plugin ────────────────────────────────────
+
+/// Where the Ingot plugin writes chunks it read from server memory:
+/// `.ingot/live/<namespace>/<dimension>/<rx>.<rz>/<cx>.<cz>.bin`
+fn live_dir(server_dir: &Path, dimension: &str) -> PathBuf {
+    let (ns, path) = dimension.split_once(':').unwrap_or(("minecraft", dimension));
+    server_dir.join(".ingot").join("live").join(ns).join(path)
+}
+
+/// Regions with live chunks. The plugin replaces files by renaming, which updates the
+/// folder's time, so one stat per region tells whether anything in it changed.
+fn list_live_regions(dir: &Path) -> Vec<MapRegion> {
+    let Ok(entries) = std::fs::read_dir(dir) else { return Vec::new() };
+    entries
+        .flatten()
+        .filter_map(|e| {
+            let name = e.file_name().to_string_lossy().into_owned();
+            let (x, z) = name.split_once('.')?;
+            Some(MapRegion {
+                x: x.parse().ok()?,
+                z: z.parse().ok()?,
+                modified: e.metadata().ok()?.modified().map_or(0, secs),
+            })
         })
         .collect()
 }
@@ -99,11 +138,19 @@ pub fn dimensions(server_dir: &Path) -> Vec<MapDimension> {
     }
     ids.into_iter()
         .filter_map(|id| {
-            let regions = region_dirs(server_dir, &level, &id)
+            let mut regions = region_dirs(server_dir, &level, &id)
                 .iter()
                 .map(|d| list_regions(d))
-                .find(|r| !r.is_empty())?;
-            Some(MapDimension { id, regions })
+                .find(|r| !r.is_empty())
+                .unwrap_or_default();
+            // Live chunks can be in regions the server hasn't saved yet
+            for live in list_live_regions(&live_dir(server_dir, &id)) {
+                match regions.iter_mut().find(|r| r.x == live.x && r.z == live.z) {
+                    Some(region) => region.modified = region.modified.max(live.modified),
+                    None => regions.push(live),
+                }
+            }
+            (!regions.is_empty()).then_some(MapDimension { id, regions })
         })
         .collect()
 }
@@ -112,26 +159,36 @@ pub fn dimensions(server_dir: &Path) -> Vec<MapDimension> {
 pub fn tile(server_dir: &Path, dimension: &str, x: i32, z: i32) -> Result<Option<String>, String> {
     let level = level_name(server_dir);
     let file_name = format!("r.{x}.{z}.mca");
-    let Some(region_path) = region_dirs(server_dir, &level, dimension)
+    let region_path = region_dirs(server_dir, &level, dimension)
         .into_iter()
         .map(|d| d.join(&file_name))
-        .find(|p| p.exists())
-    else {
+        .find(|p| p.exists());
+    let live_path = live_dir(server_dir, dimension).join(format!("{x}.{z}"));
+    let live_time = modified(&live_path);
+    if region_path.is_none() && live_time.is_none() {
         return Ok(None);
-    };
+    }
 
     let cache_dir = server_dir
         .join(".ingot")
         .join("map")
         .join(dimension.replace(':', "_"));
     let cache_path = cache_dir.join(format!("r.{x}.{z}.png"));
-    let mtime = |p: &Path| std::fs::metadata(p).and_then(|m| m.modified()).ok();
-    let png = match (mtime(&cache_path), mtime(&region_path)) {
+    let source_time = region_path.as_deref().and_then(modified).max(live_time);
+    let png = match (modified(&cache_path), source_time) {
         (Some(cached), Some(source)) if cached >= source => {
             std::fs::read(&cache_path).map_err(|e| format!("Failed to read map tile: {e}"))?
         }
         _ => {
-            let png = render_region(&region_path, dimension == "minecraft:the_nether")?;
+            let ceiling = dimension == "minecraft:the_nether";
+            let mut raster = match &region_path {
+                Some(path) => saved_raster(path, ceiling)?,
+                None => Raster::empty(),
+            };
+            if live_time.is_some() {
+                apply_live_chunks(&mut raster, &live_path);
+            }
+            let png = raster.to_png()?;
             let _ = std::fs::create_dir_all(&cache_dir);
             let _ = std::fs::write(&cache_path, &png);
             png
@@ -201,7 +258,8 @@ impl ResolvedSection {
     }
 }
 
-fn read_chunks(region_path: &Path) -> Result<Vec<(usize, usize, Chunk)>, String> {
+/// Chunks of a region file with their stored generation step and save time
+fn read_chunks(region_path: &Path) -> Result<Vec<(usize, usize, Chunk, u32)>, String> {
     let bytes = std::fs::read(region_path).map_err(|e| format!("Failed to read region: {e}"))?;
     if bytes.len() < 8192 {
         return Ok(Vec::new());
@@ -213,6 +271,8 @@ fn read_chunks(region_path: &Path) -> Result<Vec<(usize, usize, Chunk)>, String>
         if offset == 0 || offset + 5 > bytes.len() {
             continue;
         }
+        // Second header table: when each chunk was last saved (unix seconds)
+        let saved = u32::from_be_bytes(bytes[4096 + i * 4..4096 + i * 4 + 4].try_into().unwrap());
         let length = u32::from_be_bytes(bytes[offset..offset + 4].try_into().unwrap()) as usize;
         let Some(payload) = bytes.get(offset + 5..offset + 4 + length) else { continue };
         let mut raw = Vec::new();
@@ -230,7 +290,7 @@ fn read_chunks(region_path: &Path) -> Result<Vec<(usize, usize, Chunk)>, String>
         }
         if let Ok(chunk) = fastnbt::from_bytes::<Chunk>(&raw) {
             if has_terrain(chunk.status.as_deref()) {
-                chunks.push((i % 32, i / 32, chunk));
+                chunks.push((i % 32, i / 32, chunk, saved));
             }
         }
     }
@@ -246,15 +306,107 @@ fn has_terrain(status: Option<&str>) -> bool {
     matches!(step, "surface" | "carvers" | "features" | "initialize_light" | "light" | "spawn" | "full")
 }
 
-fn render_region(region_path: &Path, ceiling: bool) -> Result<Vec<u8>, String> {
+/// One region's map before shading and encoding
+#[derive(Clone)]
+struct Raster {
+    /// RGBA, alpha 0 where there's no data
+    pixels: Vec<u8>,
+    /// Surface height per pixel, for relief shading; i32::MIN = no data
+    heights: Vec<i32>,
+    is_water: Vec<bool>,
+    /// When each chunk's data was taken (unix seconds); 0 = no data
+    chunk_times: Vec<u32>,
+}
+
+impl Raster {
+    fn empty() -> Self {
+        Raster {
+            pixels: vec![0; TILE * TILE * 4],
+            heights: vec![i32::MIN; TILE * TILE],
+            is_water: vec![false; TILE * TILE],
+            chunk_times: vec![0; 1024],
+        }
+    }
+
+    fn set(&mut self, px: usize, pz: usize, surface: Option<([u8; 3], i32, bool)>) {
+        let i = pz * TILE + px;
+        match surface {
+            Some((color, height, water)) => {
+                self.pixels[i * 4..i * 4 + 4].copy_from_slice(&[color[0], color[1], color[2], 255]);
+                self.heights[i] = height;
+                self.is_water[i] = water;
+            }
+            None => {
+                self.pixels[i * 4..i * 4 + 4].fill(0);
+                self.heights[i] = i32::MIN;
+                self.is_water[i] = false;
+            }
+        }
+    }
+
+    /// Relief shading (lighter uphill from the north, darker downhill), then PNG
+    fn to_png(&self) -> Result<Vec<u8>, String> {
+        let mut pixels = self.pixels.clone();
+        for pz in 1..TILE {
+            for px in 0..TILE {
+                let i = pz * TILE + px;
+                let north = self.heights[i - TILE];
+                if self.heights[i] == i32::MIN || north == i32::MIN || self.is_water[i] {
+                    continue;
+                }
+                let factor = match self.heights[i].cmp(&north) {
+                    std::cmp::Ordering::Greater => 1.12,
+                    std::cmp::Ordering::Less => 0.84,
+                    std::cmp::Ordering::Equal => 1.0,
+                };
+                for c in &mut pixels[i * 4..i * 4 + 3] {
+                    *c = (*c as f32 * factor).min(255.0) as u8;
+                }
+            }
+        }
+        let mut out = Vec::new();
+        {
+            let mut encoder = png::Encoder::new(&mut out, TILE as u32, TILE as u32);
+            encoder.set_color(png::ColorType::Rgba);
+            encoder.set_depth(png::BitDepth::Eight);
+            encoder.set_compression(png::Compression::Fast);
+            let mut writer = encoder.write_header().map_err(|e| e.to_string())?;
+            writer.write_image_data(&pixels).map_err(|e| e.to_string())?;
+        }
+        Ok(out)
+    }
+}
+
+/// Parsed saved regions, so live updates don't re-read the whole region file each time
+static SAVED_RASTERS: LazyLock<Mutex<Vec<(PathBuf, SystemTime, Raster)>>> = LazyLock::new(Default::default);
+const SAVED_RASTER_CACHE: usize = 6;
+
+/// The region as saved on disk (cached in memory until the file changes)
+fn saved_raster(region_path: &Path, ceiling: bool) -> Result<Raster, String> {
+    let time = modified(region_path).unwrap_or(SystemTime::UNIX_EPOCH);
+    if let Ok(cache) = SAVED_RASTERS.lock() {
+        if let Some((_, _, raster)) = cache.iter().find(|(p, t, _)| p == region_path && *t == time) {
+            return Ok(raster.clone());
+        }
+    }
+    let raster = render_saved(region_path, ceiling)?;
+    if let Ok(mut cache) = SAVED_RASTERS.lock() {
+        cache.retain(|(p, _, _)| p != region_path);
+        if cache.len() >= SAVED_RASTER_CACHE {
+            cache.remove(0);
+        }
+        cache.push((region_path.to_path_buf(), time, raster.clone()));
+    }
+    Ok(raster)
+}
+
+fn render_saved(region_path: &Path, ceiling: bool) -> Result<Raster, String> {
     let chunks = read_chunks(region_path)?;
     let mut kind_cache: HashMap<String, Kind> = HashMap::new();
-    let mut pixels = vec![0u8; TILE * TILE * 4];
-    // Surface height per pixel, for relief shading; i32::MIN = no data / water
-    let mut heights = vec![i32::MIN; TILE * TILE];
-    let mut is_water = vec![false; TILE * TILE];
+    let mut raster = Raster::empty();
 
-    for (cx, cz, chunk) in chunks {
+    for (cx, cz, chunk, saved) in chunks {
+        raster.chunk_times[cz * 32 + cx] = saved.max(1);
         let mut sections: Vec<ResolvedSection> = chunk
             .sections
             .into_iter()
@@ -281,83 +433,118 @@ fn render_region(region_path: &Path, ceiling: bool) -> Result<Vec<u8>, String> {
 
         for z in 0..16 {
             for x in 0..16 {
-                let px = cx * 16 + x;
-                let pz = cz * 16 + z;
-                let Some((color, height, water)) = column(&sections, x, z, ceiling) else { continue };
-                let i = pz * TILE + px;
-                pixels[i * 4..i * 4 + 4].copy_from_slice(&[color[0], color[1], color[2], 255]);
-                heights[i] = height;
-                is_water[i] = water;
+                if let Some(surface) = column(&sections, x, z, ceiling) {
+                    raster.set(cx * 16 + x, cz * 16 + z, Some(surface));
+                }
             }
         }
     }
-
-    // Relief: lighten blocks higher than their northern neighbour, darken lower ones
-    for pz in 1..TILE {
-        for px in 0..TILE {
-            let i = pz * TILE + px;
-            let north = heights[i - TILE];
-            if heights[i] == i32::MIN || north == i32::MIN || is_water[i] {
-                continue;
-            }
-            let factor = match heights[i].cmp(&north) {
-                std::cmp::Ordering::Greater => 1.12,
-                std::cmp::Ordering::Less => 0.84,
-                std::cmp::Ordering::Equal => 1.0,
-            };
-            for c in &mut pixels[i * 4..i * 4 + 3] {
-                *c = (*c as f32 * factor).min(255.0) as u8;
-            }
-        }
-    }
-
-    let mut out = Vec::new();
-    {
-        let mut encoder = png::Encoder::new(&mut out, TILE as u32, TILE as u32);
-        encoder.set_color(png::ColorType::Rgba);
-        encoder.set_depth(png::BitDepth::Eight);
-        encoder.set_compression(png::Compression::Fast);
-        let mut writer = encoder.write_header().map_err(|e| e.to_string())?;
-        writer.write_image_data(&pixels).map_err(|e| e.to_string())?;
-    }
-    Ok(out)
+    Ok(raster)
 }
 
-/// Finds the visible surface of one column: (color, height, is_water)
-fn column(sections: &[ResolvedSection], x: usize, z: usize, ceiling: bool) -> Option<([u8; 3], i32, bool)> {
-    const WATER: [u8; 3] = [52, 94, 196];
-    // In the Nether, start below the bedrock roof: skip down to the first open space
-    let mut searching_for_air = ceiling;
-    let mut water_top: Option<i32> = None;
-    for section in sections {
-        if ceiling && section.y * 16 > 120 {
+/// Draws the plugin's live chunks over the saved ones, where they're newer
+fn apply_live_chunks(raster: &mut Raster, live_region: &Path) {
+    let Ok(entries) = std::fs::read_dir(live_region) else { return };
+    let mut kind_cache: HashMap<String, Kind> = HashMap::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let Some((cx, cz)) = name.strip_suffix(".bin").and_then(|n| n.split_once('.')) else { continue };
+        let (Ok(cx), Ok(cz)) = (cx.parse::<i32>(), cz.parse::<i32>()) else { continue };
+        let (lx, lz) = (cx.rem_euclid(32) as usize, cz.rem_euclid(32) as usize);
+        let taken = entry.metadata().ok().and_then(|m| m.modified().ok()).map_or(0, secs);
+        // The server saved this chunk after the plugin captured it: the saved one wins
+        if taken < raster.chunk_times[lz * 32 + lx] {
             continue;
         }
-        for ly in (0..16).rev() {
-            let y = section.y * 16 + ly as i32;
-            let kind = section.kind_at(x, ly, z);
-            if searching_for_air {
-                if kind == Kind::Clear {
-                    searching_for_air = false;
-                }
-                continue;
+        let Ok(bytes) = std::fs::read(entry.path()) else { continue };
+        let Some(columns) = decode_live_chunk(&bytes) else { continue };
+        raster.chunk_times[lz * 32 + lx] = taken;
+        for (i, runs) in columns.iter().enumerate() {
+            let blocks = runs.iter().flat_map(|(name, top, len)| {
+                let kind = *kind_cache.entry(name.clone()).or_insert_with(|| classify(name));
+                (0..*len as i32).map(move |d| (top - d, kind))
+            });
+            // The plugin already starts below the Nether roof
+            raster.set(lx * 16 + i % 16, lz * 16 + i / 16, surface(blocks, false));
+        }
+    }
+}
+
+/// One column of a live chunk: runs of (block id, top y, length) from the top down
+type LiveColumn = Vec<(String, i32, u16)>;
+
+/// Reads the plugin's chunk format: "IGC" + version 1, a palette of block ids, then 256
+/// columns (index z * 16 + x) of runs. Big endian, as Java's DataOutputStream writes.
+fn decode_live_chunk(bytes: &[u8]) -> Option<Vec<LiveColumn>> {
+    let mut pos = 0;
+    let mut take = |n: usize| -> Option<&[u8]> {
+        let slice = bytes.get(pos..pos + n)?;
+        pos += n;
+        Some(slice)
+    };
+    if take(4)? != b"IGC\x01" {
+        return None;
+    }
+    let u16_at = |b: &[u8]| u16::from_be_bytes([b[0], b[1]]);
+    let palette_len = u16_at(take(2)?);
+    let mut palette = Vec::with_capacity(palette_len as usize);
+    for _ in 0..palette_len {
+        let len = u16_at(take(2)?) as usize;
+        palette.push(String::from_utf8_lossy(take(len)?).into_owned());
+    }
+    let mut columns = Vec::with_capacity(256);
+    for _ in 0..256 {
+        let runs = u16_at(take(2)?);
+        let mut column = Vec::with_capacity(runs as usize);
+        for _ in 0..runs {
+            let run = take(6)?;
+            let name = palette.get(u16_at(run) as usize)?.clone();
+            let top = i16::from_be_bytes([run[2], run[3]]) as i32;
+            column.push((name, top, u16_at(&run[4..])));
+        }
+        columns.push(column);
+    }
+    Some(columns)
+}
+
+/// Finds the visible surface of one column in a saved chunk: (color, height, is_water)
+fn column(sections: &[ResolvedSection], x: usize, z: usize, ceiling: bool) -> Option<([u8; 3], i32, bool)> {
+    let blocks = sections
+        .iter()
+        // In the Nether, start below the bedrock roof
+        .filter(|s| !(ceiling && s.y * 16 > 120))
+        .flat_map(|s| (0..16).rev().map(move |ly| (s.y * 16 + ly as i32, s.kind_at(x, ly, z))));
+    surface(blocks, ceiling)
+}
+
+/// The visible surface from blocks listed top-down: (color, height, is_water).
+/// With `ceiling`, skips down to the first open space first (the Nether roof).
+fn surface(blocks: impl Iterator<Item = (i32, Kind)>, ceiling: bool) -> Option<([u8; 3], i32, bool)> {
+    const WATER: [u8; 3] = [52, 94, 196];
+    let mut searching_for_air = ceiling;
+    let mut water_top: Option<i32> = None;
+    for (y, kind) in blocks {
+        if searching_for_air {
+            if kind == Kind::Clear {
+                searching_for_air = false;
             }
-            match kind {
-                Kind::Clear => {}
-                Kind::Water => {
-                    water_top.get_or_insert(y);
-                }
-                Kind::Solid(color) => {
-                    return Some(match water_top {
-                        // Blend the lake/sea floor into the water by depth
-                        Some(top) => {
-                            let depth = (top - y).clamp(1, 24) as f32;
-                            let t = (0.45 + depth / 24.0 * 0.5).min(0.95);
-                            (mix(color, WATER, t), top, true)
-                        }
-                        None => (color, y, false),
-                    });
-                }
+            continue;
+        }
+        match kind {
+            Kind::Clear => {}
+            Kind::Water => {
+                water_top.get_or_insert(y);
+            }
+            Kind::Solid(color) => {
+                return Some(match water_top {
+                    // Blend the lake/sea floor into the water by depth
+                    Some(top) => {
+                        let depth = (top - y).clamp(1, 24) as f32;
+                        let t = (0.45 + depth / 24.0 * 0.5).min(0.95);
+                        (mix(color, WATER, t), top, true)
+                    }
+                    None => (color, y, false),
+                });
             }
         }
     }
@@ -535,6 +722,54 @@ fn classify(id: &str) -> Kind {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A live chunk as the plugin's DataOutputStream writes it
+    fn live_chunk_bytes() -> Vec<u8> {
+        let mut out = b"IGC\x01".to_vec();
+        let palette = ["minecraft:grass_block", "minecraft:water", "minecraft:sand"];
+        out.extend((palette.len() as u16).to_be_bytes());
+        for name in palette {
+            out.extend((name.len() as u16).to_be_bytes());
+            out.extend(name.as_bytes());
+        }
+        for i in 0..256 {
+            // Column 0 is a lake: 3 water over sand; the rest is grass at y=70
+            let runs: &[(u16, i16, u16)] = if i == 0 { &[(1, 62, 3), (2, 59, 1)] } else { &[(0, 70, 1)] };
+            out.extend((runs.len() as u16).to_be_bytes());
+            for (index, top, len) in runs {
+                out.extend(index.to_be_bytes());
+                out.extend(top.to_be_bytes());
+                out.extend(len.to_be_bytes());
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn decodes_and_renders_live_chunks() {
+        let columns = decode_live_chunk(&live_chunk_bytes()).unwrap();
+        assert_eq!(columns.len(), 256);
+        assert_eq!(columns[0], vec![("minecraft:water".to_string(), 62, 3), ("minecraft:sand".to_string(), 59, 1)]);
+        assert!(decode_live_chunk(b"IGC\x02").is_none(), "unknown versions are ignored");
+
+        // A region the server never saved still gets a tile from live chunks alone
+        let dir = std::env::temp_dir().join(format!("ingot-live-{}", std::process::id()));
+        let region = live_dir(&dir, "minecraft:overworld").join("-1.0");
+        std::fs::create_dir_all(&region).unwrap();
+        std::fs::write(region.join("-1.3.bin"), live_chunk_bytes()).unwrap();
+        let dims = dimensions(&dir);
+        assert_eq!(dims[0].regions.len(), 1);
+        assert_eq!((dims[0].regions[0].x, dims[0].regions[0].z), (-1, 0));
+
+        let mut raster = Raster::empty();
+        apply_live_chunks(&mut raster, &region);
+        // Chunk -1 sits at local x 31; column 0 is the lake, column 1 is grass
+        let lake = (3 * 16) * TILE + 31 * 16;
+        assert!(raster.is_water[lake] && raster.heights[lake] == 62);
+        assert!(!raster.is_water[lake + 1] && raster.heights[lake + 1] == 70);
+        assert!(tile(&dir, "minecraft:overworld", -1, 0).unwrap().is_some());
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 
     #[test]
     fn classifies_common_blocks() {

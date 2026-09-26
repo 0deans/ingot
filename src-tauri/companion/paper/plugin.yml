@@ -1,0 +1,8 @@
+name: Ingot
+version: "${version}"
+main: org.ingot.companion.IngotCompanion
+description: Live world map for the Ingot app. Reads chunks from memory; never saves the world.
+authors: [Ingot]
+website: https://github.com/0deans/ingot
+api-version: "1.20"
+folia-supported: true

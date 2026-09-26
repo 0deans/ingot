@@ -84,6 +84,8 @@ pub struct InstalledPlugin {
     pub source: Option<PluginSource>,
     pub project_id: Option<String>,
     pub icon_url: Option<String>,
+    /// Ingot's own companion plugin (shown separately, never auto-updated)
+    pub system: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -543,13 +545,14 @@ pub fn list_installed(server_dir: &Path, core: &ServerCoreType) -> Result<Vec<In
                 file_name: file_name.clone(),
                 enabled,
                 size: meta.len().min(u32::MAX as u64) as u32,
-                name,
                 version: version.or_else(|| track.map(|t| t.version_number.clone())),
                 description,
                 authors,
                 source: track.map(|t| t.source),
                 project_id: track.map(|t| t.project_id.clone()),
                 icon_url: track.and_then(|t| t.icon_url.clone()),
+                system: *core != ServerCoreType::Fabric && name == super::companion::PLUGIN_NAME,
+                name,
             })
         })
         .collect();

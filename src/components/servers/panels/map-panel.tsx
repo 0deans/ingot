@@ -1,21 +1,24 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { Loader2, Map as MapIcon, RefreshCw } from "lucide-react"
+import { Check, Loader2, Map as MapIcon, Radio, RefreshCw } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { dimensionStyle } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 import {
 	serverKeys,
+	useCompanionStatus,
 	useMapDimensions,
 	useOnlinePlayers,
+	usePluginActions,
 	useServerStatus,
 } from "@/services/server-data"
 import { EmptyState, PlayerAvatar } from "../shared/primitives"
 import { PlayerSheet } from "./player-sheet"
 import { type MapView, WorldMap } from "./world-map"
 
-/** How often to look for region files the server has saved since */
-const LIVE_INTERVAL_MS = 10_000
+/** How often to look for changed regions: live chunks from the Ingot plugin, else saves */
+const LIVE_INTERVAL_MS = 3_000
+const SAVED_INTERVAL_MS = 10_000
 
 export function MapPanel({
 	server,
@@ -29,12 +32,19 @@ export function MapPanel({
 }) {
 	const queryClient = useQueryClient()
 	const { isRunning } = useServerStatus(server.id)
-	const { data: dimensions, isLoading } = useMapDimensions(server.id)
+	const { data: dimensions, isLoading, refetch } = useMapDimensions(server.id)
 	const { data: online = [] } = useOnlinePlayers(server.id, isRunning, 1500)
 	const [dimension, setDimension] = useState(focus?.dimension ?? "minecraft:overworld")
 	const [view, setView] = useState<MapView | null>(null)
 	const [refreshing, setRefreshing] = useState(false)
+	/** What the last refresh found, shown briefly on the button */
+	const [refreshNote, setRefreshNote] = useState<string | null>(null)
 	const [selected, setSelected] = useState<string | null>(null)
+	const { data: companion } = useCompanionStatus(server.id)
+	const { installCompanion } = usePluginActions(server.id)
+	// Installed while this server was running: it loads on the next start
+	const [installedAt, setInstalledAt] = useState<string | null>(null)
+	const companionReady = companion?.fileName != null && companion.enabled
 
 	const current = dimensions?.find((d) => d.id === dimension) ?? dimensions?.[0]
 	const players = useMemo(
@@ -68,26 +78,43 @@ export function MapPanel({
 		}
 	}, [focus])
 
-	// The map never makes the server save: it re-lists regions now and then and redraws
-	// only the files the server has written since (on its own schedule)
-	const live = isRunning && online.length > 0
+	// The map never makes the server save. It re-lists regions now and then and redraws
+	// the ones that changed: live chunks the Ingot plugin reads from memory, or whatever
+	// the server saved on its own schedule.
+	const live = isRunning && companionReady && installedAt !== server.id
 	useEffect(() => {
-		if (!live) return
+		if (!isRunning) {
+			setInstalledAt(null)
+			return
+		}
 		const timer = setInterval(
 			() => queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) }),
-			LIVE_INTERVAL_MS,
+			live ? LIVE_INTERVAL_MS : SAVED_INTERVAL_MS,
 		)
 		return () => clearInterval(timer)
-	}, [live, server.id, queryClient])
+	}, [isRunning, live, server.id, queryClient])
 
+	// Re-reads what the server has written and says how much changed, so the button
+	// visibly does something even when the answer is "nothing new"
 	const refresh = async () => {
 		setRefreshing(true)
-		try {
-			await queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) })
-		} finally {
-			setRefreshing(false)
-		}
+		setRefreshNote(null)
+		const before = current?.regions ?? []
+		const [{ data: fresh }] = await Promise.all([refetch(), new Promise((r) => setTimeout(r, 600))])
+		const after = fresh?.find((d) => d.id === current?.id)?.regions ?? []
+		const changed = after.filter(
+			(r) => !before.some((b) => b.x === r.x && b.z === r.z && b.modified === r.modified),
+		).length
+		setRefreshing(false)
+		setRefreshNote(
+			changed === 0 ? "Up to date" : `Updated ${changed} ${changed === 1 ? "area" : "areas"}`,
+		)
 	}
+	useEffect(() => {
+		if (!refreshNote) return
+		const timer = setTimeout(() => setRefreshNote(null), 2500)
+		return () => clearTimeout(timer)
+	}, [refreshNote])
 
 	if (isLoading) {
 		return (
@@ -147,23 +174,58 @@ export function MapPanel({
 				<div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
 					{live && (
 						<span
-							title="The map updates automatically while players are online"
+							title="The Ingot plugin keeps the map current from server memory"
 							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
 						>
 							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
 							Live
 						</span>
 					)}
-					<button
-						type="button"
-						onClick={refresh}
-						disabled={refreshing}
-						title={isRunning ? "Save the world and redraw the map" : "Redraw the map"}
-						className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
-					>
-						<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
-						<span className="hidden sm:inline">{refreshing ? "Saving..." : "Refresh"}</span>
-					</button>
+					{isRunning && installedAt === server.id && (
+						<span className="flex h-9 items-center rounded-xl border border-amber-500/20 bg-black/60 px-2.5 font-medium text-[11px] text-amber-200 backdrop-blur-md">
+							Restart to go live
+						</span>
+					)}
+					{companion?.supported && companion.fileName === null && (
+						<button
+							type="button"
+							onClick={async () => {
+								await installCompanion.mutateAsync().catch(() => {})
+								if (isRunning) setInstalledAt(server.id)
+							}}
+							disabled={installCompanion.isPending}
+							title="Install the Ingot plugin to update the map in real time, without saving the world"
+							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
+						>
+							{installCompanion.isPending ? (
+								<Loader2 className="size-3.5 animate-spin" />
+							) : (
+								<Radio className="size-3.5 text-emerald-400" />
+							)}
+							Make live
+						</button>
+					)}
+					{/* Live maps update themselves; otherwise re-read what the server saved */}
+					{!live && (
+						<button
+							type="button"
+							onClick={refresh}
+							disabled={refreshing}
+							title="Check for newly saved areas"
+							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
+						>
+							{refreshNote ? (
+								<Check className="size-3.5 text-emerald-400" />
+							) : (
+								<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
+							)}
+							{refreshNote ? (
+								<span>{refreshNote}</span>
+							) : (
+								<span className="hidden sm:inline">{refreshing ? "Checking..." : "Refresh"}</span>
+							)}
+						</button>
+					)}
 				</div>
 			</div>
 

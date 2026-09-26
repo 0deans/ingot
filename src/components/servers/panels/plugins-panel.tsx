@@ -41,6 +41,7 @@ import {
 } from "@/services/server-data"
 import { rpc } from "@/services/server-service"
 import { Card, EmptyState, ErrorNote, Segmented, useSticky } from "../shared/primitives"
+import { CompanionCard } from "./companion-card"
 import { PluginDetailsSheet, PluginIcon } from "./plugin-details-sheet"
 
 /** What the server core can load; null = nothing */
@@ -64,6 +65,8 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 	const [needsRestart, setNeedsRestart] = useState(false)
 	const installed = useInstalledPlugins(server.id)
 	const actions = usePluginActions(server.id)
+	// Ingot's own plugin has its own card above the list
+	const userPlugins = (installed.data ?? []).filter((p) => !p.system)
 
 	useEffect(() => {
 		if (!isRunning) setNeedsRestart(false)
@@ -112,7 +115,7 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 				options={[
 					{
 						value: "installed",
-						label: `Installed${installed.data ? ` · ${installed.data.length}` : ""}`,
+						label: `Installed${installed.data ? ` · ${userPlugins.length}` : ""}`,
 					},
 					{ value: "browse", label: `Browse ${kind.nouns.toLowerCase()}` },
 				]}
@@ -134,11 +137,12 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 				</button>
 			)}
 
+			{view === "installed" && <CompanionCard server={server} onChanged={changed} />}
 			{view === "installed" ? (
 				<InstalledList
 					server={server}
 					kind={kind}
-					plugins={installed.data ?? []}
+					plugins={userPlugins}
 					loading={installed.isLoading}
 					onBrowse={() => setView("browse")}
 					onChanged={changed}

@@ -563,6 +563,18 @@ pub trait AppApi {
     /// This device's LAN IP, for inviting players on the same network
     async fn get_lan_address() -> Result<Option<String>, String>;
 
+    /// Whether Ingot's companion plugin (live map) fits this server and is installed
+    async fn get_companion_status(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<server::companion::CompanionStatus, String>;
+
+    /// Installs or updates Ingot's companion plugin; applies on the next start
+    async fn install_companion(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
+
     /// Disk space used by the server folder, by category, and space left on the device
     async fn get_server_storage(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -1119,7 +1131,7 @@ impl AppApi for AppApiImpl {
         memory_min_mb: Option<u32>,
         memory_max_mb: Option<u32>,
     ) -> Result<ServerConfig, String> {
-        server::create_server(
+        let created = server::create_server(
             &app_handle,
             name,
             core,
@@ -1128,7 +1140,16 @@ impl AppApi for AppApiImpl {
             port,
             memory_min_mb,
             memory_max_mb,
-        )
+        )?;
+        // New servers come with the companion plugin (live map); users can remove it
+        if server::companion::supported(&created.core, &created.game_version) {
+            if let Ok((dir, _)) = server_with_config(&app_handle, &created.id) {
+                if let Err(e) = server::companion::install(&dir, &created.core, &created.game_version) {
+                    eprintln!("[Server] Couldn't install the Ingot plugin: {e}");
+                }
+            }
+        }
+        Ok(created)
     }
 
     async fn delete_server(
@@ -1678,6 +1699,24 @@ impl AppApi for AppApiImpl {
 
     async fn get_lan_address(self) -> Result<Option<String>, String> {
         Ok(server::stats::lan_address())
+    }
+
+    async fn get_companion_status(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<server::companion::CompanionStatus, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        Ok(server::companion::status(&dir, &config.core, &config.game_version))
+    }
+
+    async fn install_companion(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        server::companion::install(&dir, &config.core, &config.game_version)
     }
 
     async fn get_server_storage(
