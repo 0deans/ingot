@@ -1,6 +1,6 @@
 import { AlertCircle, Cpu, Loader2, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { ServerCoreType } from "@/bindings"
+import type { ServerConfig, ServerCoreType } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -26,7 +26,7 @@ import { serverService } from "@/services/server-service"
 export interface NewServerDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	onServerCreated?: () => void
+	onServerCreated?: (server: ServerConfig) => void
 }
 
 const SERVER_CORES: {
@@ -165,7 +165,7 @@ export default function NewServerDialog({
 		setError(null)
 
 		try {
-			await serverService.createServer(
+			const created = await serverService.createServer(
 				name.trim(),
 				core,
 				selectedVersion,
@@ -175,7 +175,7 @@ export default function NewServerDialog({
 				ramMb,
 			)
 			onOpenChange(false)
-			onServerCreated?.()
+			onServerCreated?.(created)
 			// Reset
 			setName("")
 			setPort(25565)

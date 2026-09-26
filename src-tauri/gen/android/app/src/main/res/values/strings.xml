@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">"Ingot Server Host"</string>
-    <string name="main_activity_title">"Ingot Server Host"</string>
+    <string name="app_name">"Ingot"</string>
+    <string name="main_activity_title">"Ingot"</string>
 </resources>

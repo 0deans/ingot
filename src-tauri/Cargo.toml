@@ -37,6 +37,9 @@ zip = { version = "8", default-features = false, features = ["deflate"] }
 flate2 = "1"
 indexmap = { version = "2", features = ["serde"] }
 tar = "0.4"
+fastnbt = "2"
+png = "0.18"
+md5 = { version = "0.10", package = "md-5" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 libc = "0.2"

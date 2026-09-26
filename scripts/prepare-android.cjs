@@ -93,8 +93,30 @@ function main() {
 		console.log("Copied local libproot.so ->", prootDest)
 	}
 
-	// 4. Ensure dark theme background for status bar & navigation bar
 	const resDir = path.join(ANDROID_APP_DIR, "res")
+
+	// 4. App icon (ingot) and name. `tauri android init` generates the default Tauri
+	// icon, so copy our adaptive icon set over it and drop Tauri's vector drawables.
+	const iconSrcDir = path.join(ROOT_DIR, "src-tauri", "icons", "android")
+	if (fs.existsSync(iconSrcDir)) {
+		fs.cpSync(iconSrcDir, resDir, { recursive: true })
+		for (const stale of [
+			path.join("drawable-v24", "ic_launcher_foreground.xml"),
+			path.join("drawable", "ic_launcher_background.xml"),
+		]) {
+			fs.rmSync(path.join(resDir, stale), { force: true })
+		}
+		console.log("Copied ingot launcher icons")
+	}
+	const stringsPath = path.join(resDir, "values", "strings.xml")
+	if (fs.existsSync(stringsPath)) {
+		const strings = fs
+			.readFileSync(stringsPath, "utf8")
+			.replace(/(<string name="(?:app_name|main_activity_title)">)[^<]*(<\/string>)/g, '$1"Ingot"$2')
+		fs.writeFileSync(stringsPath, strings, "utf8")
+	}
+
+	// 5. Ensure dark theme background for status bar & navigation bar
 	const colorsPath = path.join(resDir, "values", "colors.xml")
 	if (fs.existsSync(colorsPath)) {
 		let colors = fs.readFileSync(colorsPath, "utf8")

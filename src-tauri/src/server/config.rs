@@ -358,7 +358,7 @@ pub fn read_server_properties_from_dir(server_dir: &Path) -> Result<ServerProper
             continue;
         }
         if let Some((k, v)) = line.split_once('=') {
-            map.insert(k.trim().to_string(), v.trim().to_string());
+            map.insert(k.trim().to_string(), crate::server::files::unescape_property(v.trim()));
         }
     }
 
@@ -453,7 +453,7 @@ pub fn write_server_properties_to_dir(
 
     apply_prop("server-port", &props.server_port.to_string());
     apply_prop("query.port", &props.server_port.to_string());
-    apply_prop("motd", &props.motd);
+    apply_prop("motd", &crate::server::files::escape_property(&props.motd));
     apply_prop("online-mode", &props.online_mode.to_string());
     apply_prop("difficulty", &props.difficulty);
     apply_prop("gamemode", &props.gamemode);
@@ -542,12 +542,40 @@ fn offline_uuid(name: &str) -> String {
     )
 }
 
+/// Earlier Ingot versions wrote whitelist UUIDs as a v3 UUID in the nil namespace,
+/// which doesn't match Minecraft's offline UUID, so whitelisted players were still
+/// rejected. Rewrites such entries in whitelist.json / ops.json.
+pub fn repair_offline_uuids(server_dir: &Path) {
+    for file in ["whitelist.json", "ops.json"] {
+        let path = server_dir.join(file);
+        let Ok(raw) = fs::read_to_string(&path) else { continue };
+        let Ok(mut entries) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) else { continue };
+        let mut changed = false;
+        for entry in &mut entries {
+            let Some(name) = entry.get("name").and_then(|n| n.as_str()).map(str::to_string) else { continue };
+            let legacy = Uuid::new_v3(&Uuid::nil(), format!("OfflinePlayer:{name}").as_bytes()).to_string();
+            if entry.get("uuid").and_then(|u| u.as_str()) == Some(legacy.as_str()) {
+                entry["uuid"] = serde_json::Value::String(offline_uuid(&name));
+                changed = true;
+            }
+        }
+        if changed {
+            if let Ok(fixed) = serde_json::to_string_pretty(&entries) {
+                let _ = fs::write(&path, fixed);
+            }
+        }
+    }
+}
+
+pub fn offline_uuid_for(name: &str) -> String {
+    offline_uuid(name)
+}
+
 fn md5_bytes(data: &[u8]) -> [u8; 16] {
-    // Simple portable MD5 — use the md5 crate if available, otherwise derive manually.
-    // We use the uuid v3 helper through a nil namespace UUID.
-    let ns = Uuid::nil();
-    let id = Uuid::new_v3(&ns, data);
-    *id.as_bytes()
+    // Plain MD5 of the name. (Uuid::new_v3 would also hash a namespace, which gives
+    // a different UUID than Java's UUID.nameUUIDFromBytes.)
+    use md5::Digest;
+    md5::Md5::digest(data).into()
 }
 
 pub fn add_to_server_whitelist(server_dir: &Path, username: &str) -> Result<(), String> {
@@ -600,3 +628,27 @@ pub fn get_server_icon_base64(server_dir: &Path) -> Option<String> {
     None
 }
 
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn offline_uuid_matches_java() {
+        // UUID.nameUUIDFromBytes("OfflinePlayer:Notch".getBytes(UTF_8))
+        assert_eq!(super::offline_uuid("Notch"), "b50ad385-829d-3141-a216-7e7d7539ba7f");
+    }
+}
+
+#[cfg(test)]
+mod repair_tests {
+    #[test]
+    fn repairs_legacy_whitelist_uuid() {
+        let dir = std::env::temp_dir().join(format!("ingot-repair-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let legacy = uuid::Uuid::new_v3(&uuid::Uuid::nil(), b"OfflinePlayer:Notch").to_string();
+        std::fs::write(dir.join("whitelist.json"), format!(r#"[{{"uuid":"{legacy}","name":"Notch"}}]"#)).unwrap();
+        super::repair_offline_uuids(&dir);
+        let fixed = std::fs::read_to_string(dir.join("whitelist.json")).unwrap();
+        assert!(fixed.contains("b50ad385-829d-3141-a216-7e7d7539ba7f"), "{fixed}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}

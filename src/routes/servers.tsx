@@ -20,8 +20,11 @@ export const serversSearchSchema = v.object({
 	q: v.optional(v.fallback(v.string(), ""), ""),
 	core: v.optional(v.fallback(serverCoreSchema, "all"), "all"),
 	action: v.optional(v.picklist(["new"])),
-	console: v.optional(v.string()),
-	settings: v.optional(v.string()),
+	/** Server page to show, with its tab */
+	server: v.optional(v.string()),
+	tab: v.optional(
+		v.fallback(v.picklist(["overview", "console", "players", "map", "settings"]), "overview"),
+	),
 	delete: v.optional(v.string()),
 })
 

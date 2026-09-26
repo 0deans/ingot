@@ -35,6 +35,8 @@ export interface ServerCardProps {
 	onOpenSettings: (server: ServerConfig) => void
 	onOpenFolder: (serverId: string) => void
 	onDelete: (server: ServerConfig) => void
+	/** Opens the server page */
+	onOpen?: (server: ServerConfig) => void
 	onJoinServer?: (server: ServerConfig) => void
 }
 
@@ -78,6 +80,7 @@ export default function ServerCard({
 	onOpenFolder,
 	onDelete,
 	onJoinServer,
+	onOpen,
 }: ServerCardProps) {
 	const isRunning = Boolean(runningInfo && runningInfo.status === "running")
 	const isStarting = Boolean(runningInfo && runningInfo.status === "starting")
@@ -207,9 +210,14 @@ export default function ServerCard({
 				</div>
 
 				<div className="flex min-w-0 flex-1 flex-col gap-1">
-					<h3 className="truncate font-semibold text-base text-foreground transition-colors group-hover:text-emerald-300">
+					<button
+						type="button"
+						onClick={() => onOpen?.(server)}
+						className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-emerald-300"
+						title="Open server page"
+					>
 						{server.name}
-					</h3>
+					</button>
 
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 						{/* Address / Port with Click-to-copy */}

@@ -14,8 +14,7 @@ import DeleteServerDialog from "./delete-server-dialog"
 import NewServerDialog from "./new-server-dialog"
 import { QuickJoinDialog } from "./quick-join-dialog"
 import ServerCard from "./server-card"
-import ServerConsoleDialog from "./server-console-dialog"
-import ServerSettingsDialog from "./server-settings-dialog"
+import { ServerWorkspace } from "./server-workspace"
 
 const routeApi = getRouteApi("/servers")
 
@@ -35,8 +34,7 @@ export default function ServerListView() {
 	const searchQuery = search.q ?? ""
 	const coreFilter = search.core ?? "all"
 	const action = search.action
-	const consoleServerId = search.console
-	const settingsServerId = search.settings
+	const openServerId = search.server
 	const deletingServerId = search.delete
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
@@ -61,14 +59,12 @@ export default function ServerListView() {
 		return () => clearTimeout(timer)
 	}, [searchInput, searchQuery, navigate])
 
-	const consoleServer = useMemo(
-		() => (consoleServerId ? (servers.find((s) => s.id === consoleServerId) ?? null) : null),
-		[servers, consoleServerId],
+	const openServer = useMemo(
+		() => (openServerId ? (servers.find((s) => s.id === openServerId) ?? null) : null),
+		[servers, openServerId],
 	)
-	const settingsServer = useMemo(
-		() => (settingsServerId ? (servers.find((s) => s.id === settingsServerId) ?? null) : null),
-		[servers, settingsServerId],
-	)
+	const openPage = (serverId: string, tab: NonNullable<typeof search.tab> = "overview") =>
+		navigate({ search: (prev) => ({ ...prev, server: serverId, tab }) })
 	const deletingServer = useMemo(
 		() => (deletingServerId ? (servers.find((s) => s.id === deletingServerId) ?? null) : null),
 		[servers, deletingServerId],
@@ -77,9 +73,6 @@ export default function ServerListView() {
 	const handleStart = async (serverId: string) => {
 		try {
 			await serverService.startServer(serverId)
-			navigate({
-				search: (prev) => ({ ...prev, console: serverId }),
-			})
 		} catch (err) {
 			console.error("Failed to start server:", err)
 			alert(`Failed to start server: ${err}`)
@@ -109,8 +102,7 @@ export default function ServerListView() {
 				search: (prev) => ({
 					...prev,
 					delete: undefined,
-					console: prev.console === serverId ? undefined : prev.console,
-					settings: prev.settings === serverId ? undefined : prev.settings,
+					server: prev.server === serverId ? undefined : prev.server,
 				}),
 			})
 		} catch (err) {
@@ -135,6 +127,19 @@ export default function ServerListView() {
 		}
 		return list
 	}, [servers, coreFilter, searchQuery])
+
+	if (openServer) {
+		return (
+			<ServerWorkspace
+				server={openServer}
+				tab={search.tab ?? "overview"}
+				onTabChange={(tab) => openPage(openServer.id, tab)}
+				onBack={() =>
+					navigate({ search: (prev) => ({ ...prev, server: undefined, tab: undefined }) })
+				}
+			/>
+		)
+	}
 
 	return (
 		<ScrollArea className="size-full flex-1" scrollFade>
@@ -204,12 +209,7 @@ export default function ServerListView() {
 										</span>
 										<button
 											type="button"
-											onClick={() =>
-												srv &&
-												navigate({
-													search: (prev) => ({ ...prev, console: srv.id }),
-												})
-											}
+											onClick={() => srv && openPage(srv.id, "console")}
 											className="rounded p-0.5 text-emerald-300 transition-colors hover:text-white"
 											title="Open Console"
 										>
@@ -314,16 +314,9 @@ export default function ServerListView() {
 								runningInfo={runningMap.get(srv.id)}
 								onStart={handleStart}
 								onStop={handleStop}
-								onOpenConsole={(s) =>
-									navigate({
-										search: (prev) => ({ ...prev, console: s.id }),
-									})
-								}
-								onOpenSettings={(s) =>
-									navigate({
-										search: (prev) => ({ ...prev, settings: s.id }),
-									})
-								}
+								onOpen={(s) => openPage(s.id)}
+								onOpenConsole={(s) => openPage(s.id, "console")}
+								onOpenSettings={(s) => openPage(s.id, "settings")}
 								onOpenFolder={handleOpenFolder}
 								onDelete={(s) =>
 									navigate({
@@ -388,30 +381,6 @@ export default function ServerListView() {
 						})
 					}
 					onServerCreated={() => refresh()}
-				/>
-
-				<ServerConsoleDialog
-					server={consoleServer}
-					open={Boolean(consoleServer)}
-					onOpenChange={(open) =>
-						navigate({
-							search: (prev) => ({ ...prev, console: open ? prev.console : undefined }),
-						})
-					}
-				/>
-
-				<ServerSettingsDialog
-					server={settingsServer}
-					open={Boolean(settingsServer)}
-					onOpenChange={(open) =>
-						navigate({
-							search: (prev) => ({ ...prev, settings: open ? prev.settings : undefined }),
-						})
-					}
-					onSaved={() => refresh()}
-					isRunning={Boolean(
-						settingsServer && runningMap.get(settingsServer.id)?.status === "running",
-					)}
 				/>
 
 				<DeleteServerDialog

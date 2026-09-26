@@ -25,6 +25,15 @@ struct ActiveServer {
     child: Arc<Mutex<Child>>,
     log_history: Arc<Mutex<Vec<String>>>,
     online_players: Arc<Mutex<Vec<String>>>,
+    /// Every cleaned stdout line, for capturing command replies
+    line_tx: tokio::sync::broadcast::Sender<String>,
+    /// Serializes console queries so replies can't be mixed up
+    query_lock: Arc<Mutex<()>>,
+    /// While > 0, query replies are hidden from the user's console
+    pending_queries: Arc<std::sync::atomic::AtomicUsize>,
+    /// Set once the server logs "Done (...)"; commands sent earlier crash on
+    /// Paper 26.x because no world is loaded yet
+    ready: Arc<std::sync::atomic::AtomicBool>,
 }
 
 #[derive(Clone, Default)]
@@ -139,6 +148,53 @@ impl ServerProcessManager {
             .await
             .map_err(|e| format!("Failed to flush server stdin: {e}"))?;
         Ok(())
+    }
+
+    /// Sends a console command and returns the first stdout line accepted by `is_reply`.
+    /// Used for live data (`data get entity`, `list`) without any server plugin.
+    pub async fn query(
+        &self,
+        server_id: &str,
+        command: &str,
+        is_reply: impl Fn(&str) -> bool,
+        timeout: Duration,
+    ) -> Result<String, String> {
+        let (query_lock, pending, line_tx) = {
+            let guard = self.servers.lock().await;
+            let s = guard
+                .get(server_id)
+                .filter(|s| s.status == ServerStatus::Running)
+                .ok_or_else(|| "Server is not running".to_string())?;
+            if !s.ready.load(std::sync::atomic::Ordering::SeqCst) {
+                return Err("Server is still starting".to_string());
+            }
+            (s.query_lock.clone(), s.pending_queries.clone(), s.line_tx.clone())
+        };
+
+        let _serial = query_lock.lock().await;
+        let mut rx = line_tx.subscribe();
+        pending.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let result = async {
+            self.send_command(server_id, command).await?;
+            tokio::time::timeout(timeout, async {
+                loop {
+                    match rx.recv().await {
+                        Ok(line) if is_reply(&line) => return Ok(line),
+                        Ok(_) | Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {}
+                        Err(_) => return Err("Server stopped".to_string()),
+                    }
+                }
+            })
+            .await
+            .map_err(|_| format!("No reply to `{command}`"))?
+        }
+        .await;
+        // Keep hiding briefly so a late reply doesn't leak into the user's console
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(300)).await;
+            pending.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+        });
+        result
     }
 
     pub async fn stop_server(&self, server_id: &str) -> Result<(), String> {
@@ -413,6 +469,8 @@ where
         return Err(format!("Failed to download server jar: {e}"));
     }
 
+    crate::server::config::repair_offline_uuids(&server_dir);
+
     // 2. Ensure eula.txt is accepted
     let eula_path = server_dir.join("eula.txt");
     if !eula_path.exists() {
@@ -556,6 +614,9 @@ where
     let child_arc = Arc::new(Mutex::new(child));
     let setup_lines = setup_log.lock().map(|l| l.clone()).unwrap_or_default();
     let log_history = Arc::new(Mutex::new(setup_lines));
+    let (line_tx, _) = tokio::sync::broadcast::channel::<String>(512);
+    let pending_queries = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let ready = Arc::new(std::sync::atomic::AtomicBool::new(false));
     let online_players: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 
     let now = SystemTime::now()
@@ -577,6 +638,10 @@ where
                 child: child_arc.clone(),
                 log_history: log_history.clone(),
                 online_players: online_players.clone(),
+                line_tx: line_tx.clone(),
+                query_lock: Arc::new(Mutex::new(())),
+                pending_queries: pending_queries.clone(),
+                ready: ready.clone(),
             },
         );
     }
@@ -597,6 +662,16 @@ where
         let mut lines = BufReader::new(stdout).lines();
         while let Ok(Some(raw)) = lines.next_line().await {
             let line = clean_console_line(&raw);
+            // Vanilla/Paper/Fabric: "Done (12.345s)! For help, type "help""
+            if line.contains("Done (") && line.contains("For help") {
+                ready.store(true, std::sync::atomic::Ordering::SeqCst);
+            }
+            let _ = line_tx.send(line.clone());
+            if pending_queries.load(std::sync::atomic::Ordering::SeqCst) > 0
+                && crate::server::live::is_query_reply(&line)
+            {
+                continue;
+            }
             // Vanilla logs "[Server thread/WARN]", Paper logs "[12:00:00 WARN]"
             let level = if line.contains("WARN]") || line.contains("WARN:") {
                 "warn".to_string()

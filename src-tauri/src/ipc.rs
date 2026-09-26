@@ -13,6 +13,9 @@ use crate::server::{
     self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent,
     ServerPingResponse, ServerProperties, ServerProcessManager, ServerStatusEvent, WhitelistEntry,
 };
+use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
+use crate::server::live::{KnownPlayer, PlayerDetails};
+use crate::server::map::MapDimension;
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
 use tauri::{Manager, Runtime};
@@ -405,6 +408,88 @@ pub trait AppApi {
     async fn get_available_server_core_versions(
         core: ServerCoreType,
     ) -> Result<Vec<String>, String>;
+
+    /// Live details of all online players (console queries; server must be running)
+    async fn get_online_players(server_id: String) -> Result<Vec<PlayerDetails>, String>;
+
+    /// Everyone with a save file, newest first
+    async fn get_known_players(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<KnownPlayer>, String>;
+
+    /// Live data for online players, last saved state otherwise
+    async fn get_player_details(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        name: String,
+    ) -> Result<PlayerDetails, String>;
+
+    async fn get_map_dimensions(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<MapDimension>, String>;
+
+    /// A region tile as a PNG data URL (None if the region doesn't exist)
+    async fn get_map_tile(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        dimension: String,
+        x: i32,
+        z: i32,
+    ) -> Result<Option<String>, String>;
+
+    /// Flushes the world to disk (`save-all flush`) so the map shows the latest state
+    async fn save_server_world(server_id: String) -> Result<(), String>;
+
+    async fn get_server_properties_all(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<PropertyEntry>, String>;
+
+    async fn set_server_properties_all(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        entries: Vec<PropertyEntry>,
+    ) -> Result<(), String>;
+
+    async fn list_server_config_files(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<ConfigFile>, String>;
+
+    async fn read_server_config_file(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        path: String,
+    ) -> Result<String, String>;
+
+    async fn write_server_config_file(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        path: String,
+        content: String,
+    ) -> Result<(), String>;
+
+    async fn get_access_list(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        kind: AccessListKind,
+    ) -> Result<Vec<AccessEntry>, String>;
+
+    async fn add_access_entry(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        kind: AccessListKind,
+        name: String,
+    ) -> Result<Vec<AccessEntry>, String>;
+
+    async fn remove_access_entry(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        kind: AccessListKind,
+        name: String,
+    ) -> Result<Vec<AccessEntry>, String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -1143,4 +1228,246 @@ impl AppApi for AppApiImpl {
     ) -> Result<Vec<String>, String> {
         server::fetch_core_versions(get_http_client(), &core).await
     }
+
+    async fn get_online_players(self, server_id: String) -> Result<Vec<PlayerDetails>, String> {
+        server::live::online_players(get_server_process_manager(), &server_id).await
+    }
+
+    async fn get_known_players(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<KnownPlayer>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        let world = dir.join(server::map::level_name(&dir));
+        let mut known = tauri::async_runtime::spawn_blocking(move || server::live::known_players(&dir, &world))
+            .await
+            .map_err(|e| e.to_string())?;
+        if is_server_running(&server_id).await {
+            if let Ok(online) = server::live::list_online(get_server_process_manager(), &server_id).await {
+                for (name, uuid) in online {
+                    match known.iter_mut().find(|k| k.name.eq_ignore_ascii_case(&name)) {
+                        Some(k) => k.online = true,
+                        None => known.insert(
+                            0,
+                            KnownPlayer {
+                                name,
+                                uuid: uuid.unwrap_or_default(),
+                                online: true,
+                                last_seen: None,
+                            },
+                        ),
+                    }
+                }
+            }
+        }
+        Ok(known)
+    }
+
+    async fn get_player_details(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        name: String,
+    ) -> Result<PlayerDetails, String> {
+        if is_server_running(&server_id).await {
+            if let Ok(details) = server::live::query_player(get_server_process_manager(), &server_id, &name).await {
+                return Ok(details);
+            }
+        }
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        let world = dir.join(server::map::level_name(&dir));
+        tauri::async_runtime::spawn_blocking(move || server::live::offline_player(&dir, &world, &name))
+            .await
+            .map_err(|e| e.to_string())?
+    }
+
+    async fn get_map_dimensions(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<MapDimension>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        tauri::async_runtime::spawn_blocking(move || server::map::dimensions(&dir))
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    async fn get_map_tile(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        dimension: String,
+        x: i32,
+        z: i32,
+    ) -> Result<Option<String>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        tauri::async_runtime::spawn_blocking(move || server::map::tile(&dir, &dimension, x, z))
+            .await
+            .map_err(|e| e.to_string())?
+    }
+
+    async fn save_server_world(self, server_id: String) -> Result<(), String> {
+        get_server_process_manager()
+            .query(
+                &server_id,
+                "save-all flush",
+                |line| line.contains("Saved the game") || line.contains("Saving is already turned on"),
+                std::time::Duration::from_secs(30),
+            )
+            .await
+            .map(|_| ())
+    }
+
+    async fn get_server_properties_all(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<PropertyEntry>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::files::read_properties(&dir)
+    }
+
+    async fn set_server_properties_all(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        entries: Vec<PropertyEntry>,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::files::write_properties(&dir, &entries)?;
+        // Keep Ingot's own copy of the port in sync (used for the proxy and status)
+        if let Some(port) = entries
+            .iter()
+            .find(|e| e.key == "server-port")
+            .and_then(|e| e.value.trim().parse::<u16>().ok())
+        {
+            let mut servers = server::load_servers(&app_handle)?;
+            if let Some(config) = servers.iter_mut().find(|s| s.id == server_id) {
+                if config.port != port {
+                    config.port = port;
+                    server::save_servers(&app_handle, &servers)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    async fn list_server_config_files(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<ConfigFile>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        Ok(server::files::list_config_files(&dir))
+    }
+
+    async fn read_server_config_file(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        path: String,
+    ) -> Result<String, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::files::read_config_file(&dir, &path)
+    }
+
+    async fn write_server_config_file(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        path: String,
+        content: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::files::write_config_file(&dir, &path, &content)
+    }
+
+    async fn get_access_list(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        kind: AccessListKind,
+    ) -> Result<Vec<AccessEntry>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        Ok(server::files::read_access_list(&dir, kind))
+    }
+
+    async fn add_access_entry(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        kind: AccessListKind,
+        name: String,
+    ) -> Result<Vec<AccessEntry>, String> {
+        let name = name.trim().to_string();
+        if !server::live::is_valid_player_name(&name) {
+            return Err(format!("\"{name}\" is not a valid Minecraft username"));
+        }
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        let running = is_server_running(&server_id).await;
+        // The whitelist is edited directly (with the right UUID for the server's auth
+        // mode) and reloaded; ops and bans go through commands while running.
+        if kind == AccessListKind::Whitelist || !running {
+            let (name, uuid) = resolve_profile(&dir, &name).await;
+            server::files::add_access_entry(&dir, kind, &name, &uuid)?;
+            if running {
+                let _ = get_server_process_manager().send_command(&server_id, "whitelist reload").await;
+            }
+        } else {
+            get_server_process_manager().send_command(&server_id, &kind.add_command(&name)).await?;
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        }
+        Ok(server::files::read_access_list(&dir, kind))
+    }
+
+    async fn remove_access_entry(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        kind: AccessListKind,
+        name: String,
+    ) -> Result<Vec<AccessEntry>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        if is_server_running(&server_id).await {
+            if !server::live::is_valid_player_name(&name) {
+                return Err(format!("\"{name}\" is not a valid Minecraft username"));
+            }
+            get_server_process_manager().send_command(&server_id, &kind.remove_command(&name)).await?;
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        } else {
+            server::files::remove_access_entry(&dir, kind, &name)?;
+        }
+        Ok(server::files::read_access_list(&dir, kind))
+    }
+}
+
+async fn is_server_running(server_id: &str) -> bool {
+    get_server_process_manager().get_server_status(server_id).await == server::ServerStatus::Running
+}
+
+/// Canonical name and UUID for a player: Mojang's profile on online-mode servers,
+/// the offline UUID otherwise (or when Mojang can't be reached)
+async fn resolve_profile(server_dir: &std::path::Path, name: &str) -> (String, String) {
+    let online_mode = server::read_server_properties_from_dir(server_dir)
+        .map(|p| p.online_mode)
+        .unwrap_or(false);
+    if online_mode {
+        #[derive(serde::Deserialize)]
+        struct Profile {
+            id: String,
+            name: String,
+        }
+        let url = format!("https://api.mojang.com/users/profiles/minecraft/{name}");
+        if let Ok(res) = get_http_client().get(url).send().await {
+            if let Ok(profile) = res.json::<Profile>().await {
+                if profile.id.len() == 32 {
+                    let id = &profile.id;
+                    let uuid = format!("{}-{}-{}-{}-{}", &id[0..8], &id[8..12], &id[12..16], &id[16..20], &id[20..32]);
+                    return (profile.name, uuid);
+                }
+            }
+        }
+    }
+    (name.to_string(), server::config::offline_uuid_for(name))
 }
