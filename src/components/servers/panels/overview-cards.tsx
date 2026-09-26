@@ -204,6 +204,13 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 
 const HISTORY = 60
 
+/**
+ * Label sitting on a chart line. The solid background hides whatever passes behind it
+ * (the graph, gridlines, reference lines), so text never gets crossed out.
+ */
+const CHART_CHIP =
+	"pointer-events-none absolute -translate-y-1/2 whitespace-nowrap rounded-[3px] bg-zinc-900 px-1 text-[9px] tabular-nums leading-3.5 ring-1 ring-zinc-800"
+
 /** Seconds between stat samples (useServerStats polls every 2s) */
 const SAMPLE_SECONDS = 2
 
@@ -211,7 +218,7 @@ type Marker = { value: number; label: string; color: string }
 
 /**
  * Area chart of the last HISTORY samples, filling in from the right like a task manager.
- * Scale labels on the right, optional reference lines, and hover/touch to read any sample.
+ * Scale and reference labels sit on their lines as chips, optional reference lines, and hover/touch to read any sample.
  */
 function Chart({
 	values,
@@ -256,137 +263,137 @@ function Chart({
 		setHover(index < 0 ? null : Math.min(index, values.length - 1))
 	}
 	const secondsAgo = (values.length - 1 - active) * SAMPLE_SECONDS
-
 	return (
 		<div className="flex flex-col gap-1">
-			<div className="flex gap-2">
-				<div
-					ref={ref}
-					className="relative h-16 min-w-0 flex-1 touch-pan-y"
-					onPointerMove={(e) => pick(e.clientX)}
-					onPointerDown={(e) => pick(e.clientX)}
-					onPointerLeave={() => setHover(null)}
-					onPointerCancel={() => setHover(null)}
+			<div
+				ref={ref}
+				className="relative h-20 w-full touch-pan-y"
+				onPointerMove={(e) => pick(e.clientX)}
+				onPointerDown={(e) => pick(e.clientX)}
+				onPointerLeave={() => setHover(null)}
+				onPointerCancel={() => setHover(null)}
+			>
+				<svg
+					viewBox={`0 0 ${w} ${h}`}
+					preserveAspectRatio="none"
+					className="absolute inset-0 size-full overflow-visible"
+					aria-hidden
 				>
-					<svg
-						viewBox={`0 0 ${w} ${h}`}
-						preserveAspectRatio="none"
-						className="absolute inset-0 size-full overflow-visible"
-						aria-hidden
-					>
-						<defs>
-							<linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
-								<stop offset="0" stopColor={color} stopOpacity={0.3} />
-								<stop offset="1" stopColor={color} stopOpacity={0} />
-							</linearGradient>
-						</defs>
-						{[max, max / 2].map((v) => (
-							<line
-								key={v}
-								x1={0}
-								x2={w}
-								y1={y(v)}
-								y2={y(v)}
-								stroke="currentColor"
-								strokeDasharray="2 4"
-								vectorEffect="non-scaling-stroke"
-								className="text-zinc-800"
-							/>
-						))}
+					<defs>
+						<linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
+							<stop offset="0" stopColor={color} stopOpacity={0.3} />
+							<stop offset="1" stopColor={color} stopOpacity={0} />
+						</linearGradient>
+					</defs>
+					{[max, max / 2].map((v) => (
 						<line
+							key={v}
 							x1={0}
 							x2={w}
-							y1={h - 0.5}
-							y2={h - 0.5}
+							y1={y(v)}
+							y2={y(v)}
 							stroke="currentColor"
+							strokeDasharray="2 4"
 							vectorEffect="non-scaling-stroke"
 							className="text-zinc-800"
 						/>
-						{markers.map((m) => (
-							<line
-								key={m.label}
-								x1={0}
-								x2={w}
-								y1={y(m.value)}
-								y2={y(m.value)}
-								stroke={m.color}
-								strokeOpacity={0.6}
-								strokeDasharray="4 3"
-								vectorEffect="non-scaling-stroke"
-							/>
-						))}
-						{points.length >= 2 && (
-							<>
-								<path
-									d={`${line} L${w},${h} L${offset.toFixed(1)},${h} Z`}
-									fill={`url(#${gradient})`}
-								/>
-								<path
-									d={line}
-									fill="none"
-									stroke={color}
-									strokeWidth={1.75}
-									strokeLinejoin="round"
-									vectorEffect="non-scaling-stroke"
-								/>
-							</>
-						)}
-						{hover !== null && dot && (
-							<line
-								x1={dot[0]}
-								x2={dot[0]}
-								y1={0}
-								y2={h}
-								stroke="currentColor"
-								vectorEffect="non-scaling-stroke"
-								className="text-zinc-600"
-							/>
-						)}
-					</svg>
-					{/* HTML overlays stay undistorted by the stretched SVG */}
-					{markers.map((m) => (
-						<span
-							key={m.label}
-							className="pointer-events-none absolute left-1 -translate-y-full text-[9px] leading-3"
-							style={{ top: `${(y(m.value) / h) * 100}%`, color: m.color }}
-						>
-							{m.label}
-						</span>
 					))}
-					{dot && (
-						<span
-							className="-translate-1/2 pointer-events-none absolute size-2 rounded-full ring-2 ring-zinc-950"
-							style={{
-								left: `${(dot[0] / w) * 100}%`,
-								top: `${(dot[1] / h) * 100}%`,
-								background: color,
-							}}
+					<line
+						x1={0}
+						x2={w}
+						y1={h - 0.5}
+						y2={h - 0.5}
+						stroke="currentColor"
+						vectorEffect="non-scaling-stroke"
+						className="text-zinc-800"
+					/>
+					{markers.map((m) => (
+						<line
+							key={m.label}
+							x1={0}
+							x2={w}
+							y1={y(m.value)}
+							y2={y(m.value)}
+							stroke={m.color}
+							strokeOpacity={0.6}
+							strokeDasharray="4 3"
+							vectorEffect="non-scaling-stroke"
 						/>
+					))}
+					{points.length >= 2 && (
+						<>
+							<path
+								d={`${line} L${w},${h} L${offset.toFixed(1)},${h} Z`}
+								fill={`url(#${gradient})`}
+							/>
+							<path
+								d={line}
+								fill="none"
+								stroke={color}
+								strokeWidth={1.75}
+								strokeLinejoin="round"
+								vectorEffect="non-scaling-stroke"
+							/>
+						</>
 					)}
 					{hover !== null && dot && (
-						<span
-							className={cn(
-								"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-[10px] text-zinc-200 tabular-nums shadow-lg",
-								dot[0] / w > 0.6 && "-ml-1.5 -translate-x-full",
-							)}
-							style={{ left: `${(dot[0] / w) * 100}%` }}
-						>
-							{format(values[active])}
-							<span className="text-zinc-500">
-								{" · "}
-								{secondsAgo === 0 ? "now" : `${formatAgo(secondsAgo)} ago`}
-							</span>
-						</span>
+						<line
+							x1={dot[0]}
+							x2={dot[0]}
+							y1={0}
+							y2={h}
+							stroke="currentColor"
+							vectorEffect="non-scaling-stroke"
+							className="text-zinc-600"
+						/>
 					)}
-				</div>
-				{/* Scale */}
-				<div className="flex w-11 shrink-0 flex-col justify-between text-right text-[9px] text-zinc-600 tabular-nums leading-none">
-					<span>{format(max)}</span>
-					<span>{format(max / 2)}</span>
-					<span>0</span>
-				</div>
+				</svg>
+				{/* HTML overlays stay undistorted by the stretched SVG */}
+				{[max, max / 2].map((v) => (
+					<span
+						key={v}
+						className={cn(CHART_CHIP, "left-0 text-zinc-500")}
+						style={{ top: `${(y(v) / h) * 100}%` }}
+					>
+						{format(v)}
+					</span>
+				))}
+				{markers.map((m) => (
+					<span
+						key={m.label}
+						className={cn(CHART_CHIP, "right-0")}
+						style={{ top: `${(y(m.value) / h) * 100}%`, color: m.color }}
+					>
+						{m.label} {format(m.value)}
+					</span>
+				))}
+				{dot && (
+					<span
+						className="-translate-1/2 pointer-events-none absolute size-2 rounded-full ring-2 ring-zinc-950"
+						style={{
+							left: `${(dot[0] / w) * 100}%`,
+							top: `${(dot[1] / h) * 100}%`,
+							background: color,
+						}}
+					/>
+				)}
+				{hover !== null && dot && (
+					<span
+						className={cn(
+							"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-[10px] text-zinc-200 tabular-nums shadow-lg",
+							dot[0] / w > 0.6 && "-ml-1.5 -translate-x-full",
+						)}
+						style={{ left: `${(dot[0] / w) * 100}%` }}
+					>
+						{format(values[active])}
+						<span className="text-zinc-500">
+							{" · "}
+							{secondsAgo === 0 ? "now" : `${formatAgo(secondsAgo)} ago`}
+						</span>
+					</span>
+				)}
 			</div>
-			<div className="mr-13 flex justify-between text-[9px] text-zinc-600 leading-none">
+			<div className="flex justify-between text-[9px] text-zinc-600 leading-none">
 				<span>{formatAgo(HISTORY * SAMPLE_SECONDS)} ago</span>
 				<span>now</span>
 			</div>
