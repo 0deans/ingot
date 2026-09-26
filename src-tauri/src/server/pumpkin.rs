@@ -48,7 +48,7 @@ pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<Stri
     let url = "https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases?per_page=10";
     let res = client
         .get(url)
-        .header("User-Agent", "Ingot-Minecraft-Launcher")
+        .header("User-Agent", crate::USER_AGENT)
         .send()
         .await
         .map_err(|e| format!("Failed to fetch Pumpkin releases: {e}"))?;
@@ -111,7 +111,7 @@ pub async fn ensure_pumpkin_binary(
     let url = "https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases/latest";
     let res = client
         .get(url)
-        .header("User-Agent", "Ingot-Minecraft-Launcher")
+        .header("User-Agent", crate::USER_AGENT)
         .send()
         .await
         .map_err(|e| format!("Failed to fetch latest Pumpkin release: {e}"))?;
@@ -160,7 +160,7 @@ pub async fn ensure_pumpkin_binary(
 
     let download_res = client
         .get(&asset.browser_download_url)
-        .header("User-Agent", "Ingot-Minecraft-Launcher")
+        .header("User-Agent", crate::USER_AGENT)
         .send()
         .await
         .map_err(|e| format!("Failed to download Pumpkin binary: {e}"))?;

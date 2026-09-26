@@ -173,3 +173,52 @@
 		-webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
 	}
 }
+
+/* Rendered plugin/mod descriptions (sanitized Markdown) */
+@layer components {
+	.plugin-page {
+		overflow-wrap: anywhere;
+	}
+	.plugin-page :where(h1, h2, h3, h4) {
+		@apply mt-5 mb-2 font-semibold text-zinc-100;
+	}
+	.plugin-page h1 {
+		@apply text-lg;
+	}
+	.plugin-page h2 {
+		@apply text-base;
+	}
+	.plugin-page :where(p, ul, ol, pre, blockquote, table) {
+		@apply my-2.5;
+	}
+	.plugin-page :where(ul) {
+		@apply list-disc pl-5;
+	}
+	.plugin-page :where(ol) {
+		@apply list-decimal pl-5;
+	}
+	.plugin-page a {
+		@apply text-emerald-400 underline underline-offset-2;
+	}
+	.plugin-page img {
+		@apply inline-block h-auto max-w-full rounded-lg;
+	}
+	.plugin-page code {
+		@apply rounded bg-zinc-800 px-1 py-0.5 font-mono text-[0.85em];
+	}
+	.plugin-page pre {
+		@apply overflow-x-auto rounded-xl bg-zinc-900 p-3;
+	}
+	.plugin-page pre code {
+		@apply bg-transparent p-0;
+	}
+	.plugin-page blockquote {
+		@apply border-zinc-700 border-l-2 pl-3 text-zinc-400;
+	}
+	.plugin-page table {
+		@apply block overflow-x-auto;
+	}
+	.plugin-page :where(td, th) {
+		@apply border border-zinc-800 px-2 py-1;
+	}
+}

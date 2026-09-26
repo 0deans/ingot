@@ -526,7 +526,7 @@ pub async fn search_content(
     page_size: u32,
 ) -> Result<ContentSearchResult, String> {
     let client = reqwest::Client::builder()
-        .user_agent("Ingot-Launcher/0.1.0 (https://github.com/0deans/ingot)")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {e}"))?;
 
@@ -780,7 +780,7 @@ pub async fn get_content_details(
     project_id: &str,
 ) -> Result<UnifiedContentDetails, String> {
     let client = reqwest::Client::builder()
-        .user_agent("Ingot-Launcher/0.1.0 (https://github.com/0deans/ingot)")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {e}"))?;
 
@@ -1081,7 +1081,7 @@ pub async fn install_content_file<R: Runtime>(
     let tmp_file = target_dir.join(format!("{}.tmp", clean_name));
 
     let client = reqwest::Client::builder()
-        .user_agent("Ingot-Launcher/0.1.0 (https://github.com/0deans/ingot)")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {e}"))?;
 
@@ -1113,7 +1113,7 @@ pub async fn install_modpack_instance<R: Runtime>(
     filename: &str,
 ) -> Result<InstanceConfig, String> {
     let client = reqwest::Client::builder()
-        .user_agent("Ingot-Launcher/0.1.0 (https://github.com/0deans/ingot)")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {e}"))?;
 

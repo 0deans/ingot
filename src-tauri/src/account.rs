@@ -322,7 +322,7 @@ pub async fn get_skin_data_url<R: tauri::Runtime>(
     }
 
     let client = reqwest::Client::builder()
-        .user_agent("Ingot-Launcher/0.1.0")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| format!("Failed to build client: {e}"))?;
 
@@ -404,7 +404,7 @@ pub async fn save_skin_to_downloads<R: tauri::Runtime>(
             fs::read(&cached_path).map_err(|e| format!("Failed to read cached skin: {e}"))?
         } else {
             let client = reqwest::Client::builder()
-                .user_agent("Ingot-Launcher/0.1.0")
+                .user_agent(crate::USER_AGENT)
                 .build()
                 .map_err(|e| format!("Failed to build client: {e}"))?;
 

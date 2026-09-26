@@ -34,7 +34,7 @@ import { useServerLogs } from "@/services/server-service"
 import { MotdText } from "../shared/motd"
 import { Card, ErrorNote, PlayerAvatar } from "../shared/primitives"
 
-export type WorkspaceTab = "overview" | "console" | "players" | "map" | "settings"
+export type WorkspaceTab = "overview" | "console" | "players" | "map" | "plugins" | "settings"
 
 export function OverviewPanel({
 	server,

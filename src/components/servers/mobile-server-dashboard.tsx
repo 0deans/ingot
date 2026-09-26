@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Plus, Server } from "lucide-react"
+import { Check, ChevronDown, Plus, Server, Settings2 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import NewServerDialog from "@/components/servers/new-server-dialog"
@@ -10,7 +10,7 @@ import { useServerIcon, useServerStatus } from "@/services/server-data"
 import { useServers } from "@/services/server-service"
 import type { WorkspaceTab } from "./panels/overview-panel"
 import { StatusPill } from "./panels/overview-panel"
-import { FILL_TABS, WORKSPACE_TABS, WorkspaceContent } from "./server-workspace"
+import { FILL_TABS, tabLabel, WORKSPACE_TABS, WorkspaceContent } from "./server-workspace"
 
 const SELECTED_KEY = "ingot:mobile-server"
 
@@ -89,6 +89,19 @@ export const MobileServerDashboard = memo(() => {
 		<div className="flex h-dvh flex-col bg-zinc-950 text-zinc-100">
 			<header className="flex shrink-0 items-center gap-2 border-zinc-900 border-b px-3 py-2.5">
 				<ServerSwitcherButton server={server} onClick={() => setSwitcherOpen(true)} />
+				<button
+					type="button"
+					onClick={() => setTab("settings")}
+					aria-label="Server settings"
+					className={cn(
+						"flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+						tab === "settings"
+							? "bg-emerald-500/15 text-emerald-400"
+							: "text-zinc-400 active:bg-zinc-900",
+					)}
+				>
+					<Settings2 className="size-5" />
+				</button>
 			</header>
 
 			<main
@@ -108,7 +121,8 @@ export const MobileServerDashboard = memo(() => {
 			</main>
 
 			<nav className="grid shrink-0 grid-cols-5 border-zinc-900 border-t bg-zinc-950 pb-[env(safe-area-inset-bottom)]">
-				{WORKSPACE_TABS.map(({ id, label, icon: Icon }) => (
+				{/* Settings lives behind the gear in the top bar, keeping five tabs here */}
+				{WORKSPACE_TABS.filter((t) => t.id !== "settings").map(({ id, label, icon: Icon }) => (
 					<button
 						key={id}
 						type="button"
@@ -126,7 +140,7 @@ export const MobileServerDashboard = memo(() => {
 						>
 							<Icon className="size-[18px]" />
 						</span>
-						{id === "overview" ? "Home" : label}
+						{id === "overview" ? "Home" : tabLabel(id, label, server.core)}
 					</button>
 				))}
 			</nav>

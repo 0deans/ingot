@@ -126,7 +126,7 @@ impl PlayitManager {
         eprintln!("[Playit] Downloading agent binary from {download_url}...");
         let res = client
             .get(download_url)
-            .header("User-Agent", "Ingot-Minecraft-Launcher")
+            .header("User-Agent", crate::USER_AGENT)
             .send()
             .await
             .map_err(|e| format!("Failed to download playit binary: {e}"))?;

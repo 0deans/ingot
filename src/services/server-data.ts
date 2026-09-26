@@ -2,9 +2,22 @@
  * React Query hooks for live server data: players, map, configs and access lists.
  * Live data is polled only while the server is running.
  */
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+	keepPreviousData,
+	useInfiniteQuery,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query"
 import { useEffect, useState } from "react"
-import type { AccessEntry, AccessListKind, PropertyEntry, ServerStatus } from "@/bindings"
+import type {
+	AccessEntry,
+	AccessListKind,
+	PluginSearchResult,
+	PluginSource,
+	PropertyEntry,
+	ServerStatus,
+} from "@/bindings"
 import { isValidServerIcon, toServerIcon } from "@/lib/server-icon"
 import { rpc, useRunningServers } from "@/services/server-service"
 
@@ -178,4 +191,101 @@ export function useLiveUptime(serverId: string): number {
 
 	const startedAt = startTimes.get(serverId)
 	return startedAt === undefined ? 0 : Math.max(0, (now - startedAt) / 1000)
+}
+
+// ─── Plugins / mods ───────────────────────────────────────────────────────────
+
+export const pluginKeys = {
+	installed: (id: string) => ["server", id, "plugins", "installed"] as const,
+	updates: (id: string) => ["server", id, "plugins", "updates"] as const,
+	search: (id: string, source: PluginSource, query: string, sort: string, compatible: boolean) =>
+		["server", id, "plugins", "search", source, query, sort, compatible] as const,
+	versions: (id: string, source: PluginSource, project: string, compatible: boolean) =>
+		["server", id, "plugins", "versions", source, project, compatible] as const,
+	page: (source: PluginSource, project: string) => ["plugin-page", source, project] as const,
+}
+
+export function useInstalledPlugins(serverId: string) {
+	return useQuery({
+		queryKey: pluginKeys.installed(serverId),
+		queryFn: () => rpc.list_server_plugins(serverId),
+	})
+}
+
+export function usePluginUpdates(serverId: string, enabled: boolean) {
+	return useQuery({
+		queryKey: pluginKeys.updates(serverId),
+		queryFn: () => rpc.check_server_plugin_updates(serverId),
+		enabled,
+		staleTime: 10 * 60_000,
+	})
+}
+
+export function usePluginSearch(
+	serverId: string,
+	source: PluginSource,
+	query: string,
+	sort: string,
+	compatibleOnly: boolean,
+) {
+	return useInfiniteQuery({
+		queryKey: pluginKeys.search(serverId, source, query, sort, compatibleOnly),
+		queryFn: ({ pageParam }) =>
+			rpc.search_server_plugins(serverId, source, query, sort, compatibleOnly, pageParam),
+		initialPageParam: 0,
+		getNextPageParam: (last: PluginSearchResult, pages) => {
+			const loaded = pages.reduce((n, p) => n + p.items.length, 0)
+			return last.items.length > 0 && loaded < last.total ? pages.length : undefined
+		},
+		staleTime: 5 * 60_000,
+	})
+}
+
+export function usePluginVersions(
+	serverId: string,
+	source: PluginSource,
+	projectId: string | null,
+	compatibleOnly: boolean,
+) {
+	return useQuery({
+		queryKey: pluginKeys.versions(serverId, source, projectId ?? "", compatibleOnly),
+		queryFn: () =>
+			rpc.get_server_plugin_versions(serverId, source, projectId ?? "", compatibleOnly),
+		enabled: Boolean(projectId),
+		staleTime: 5 * 60_000,
+	})
+}
+
+export function usePluginPage(source: PluginSource, projectId: string | null) {
+	return useQuery({
+		queryKey: pluginKeys.page(source, projectId ?? ""),
+		queryFn: () => rpc.get_server_plugin_page(source, projectId ?? ""),
+		enabled: Boolean(projectId),
+		staleTime: 30 * 60_000,
+	})
+}
+
+/** Install/remove/toggle, refreshing the installed list afterwards */
+export function usePluginActions(serverId: string) {
+	const queryClient = useQueryClient()
+	const refresh = () =>
+		Promise.all([
+			queryClient.invalidateQueries({ queryKey: pluginKeys.installed(serverId) }),
+			queryClient.invalidateQueries({ queryKey: pluginKeys.updates(serverId) }),
+		])
+	const install = useMutation({
+		mutationFn: (args: { source: PluginSource; projectId: string; versionId?: string | null }) =>
+			rpc.install_server_plugin(serverId, args.source, args.projectId, args.versionId ?? null),
+		onSettled: refresh,
+	})
+	const remove = useMutation({
+		mutationFn: (fileName: string) => rpc.remove_server_plugin(serverId, fileName),
+		onSettled: refresh,
+	})
+	const toggle = useMutation({
+		mutationFn: (args: { fileName: string; enabled: boolean }) =>
+			rpc.set_server_plugin_enabled(serverId, args.fileName, args.enabled),
+		onSettled: refresh,
+	})
+	return { install, remove, toggle }
 }

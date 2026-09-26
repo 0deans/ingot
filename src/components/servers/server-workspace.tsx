@@ -1,4 +1,13 @@
-import { ArrowLeft, Gauge, Map as MapIcon, Server, Settings2, Terminal, Users } from "lucide-react"
+import {
+	ArrowLeft,
+	Gauge,
+	Map as MapIcon,
+	Puzzle,
+	Server,
+	Settings2,
+	Terminal,
+	Users,
+} from "lucide-react"
 import { useState } from "react"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -8,6 +17,7 @@ import { ConsolePanel } from "./panels/console-panel"
 import { MapPanel } from "./panels/map-panel"
 import { OverviewPanel, StatusPill, type WorkspaceTab } from "./panels/overview-panel"
 import { PlayersPanel } from "./panels/players-panel"
+import { addonKind, PluginsPanel } from "./panels/plugins-panel"
 import { SettingsPanel } from "./panels/settings-panel"
 
 export const WORKSPACE_TABS: { id: WorkspaceTab; label: string; icon: typeof Gauge }[] = [
@@ -15,8 +25,14 @@ export const WORKSPACE_TABS: { id: WorkspaceTab; label: string; icon: typeof Gau
 	{ id: "console", label: "Console", icon: Terminal },
 	{ id: "players", label: "Players", icon: Users },
 	{ id: "map", label: "Map", icon: MapIcon },
+	{ id: "plugins", label: "Plugins", icon: Puzzle },
 	{ id: "settings", label: "Settings", icon: Settings2 },
 ]
+
+/** Tab label for this server ("Mods" instead of "Plugins" on Fabric) */
+export function tabLabel(id: WorkspaceTab, label: string, core: ServerConfig["core"]): string {
+	return id === "plugins" ? (addonKind(core)?.nouns ?? label) : label
+}
 
 /** Content of one workspace tab; shared by the desktop page and the mobile app */
 export function WorkspaceContent({
@@ -52,6 +68,8 @@ export function WorkspaceContent({
 			)
 		case "map":
 			return <MapPanel server={server} focus={mapFocus} className="h-full" />
+		case "plugins":
+			return <PluginsPanel server={server} />
 		case "settings":
 			return <SettingsPanel server={server} onDeleted={onDeleted} />
 	}
@@ -133,7 +151,7 @@ export function ServerWorkspace({
 							)}
 						>
 							<Icon className="size-3.5" />
-							{label}
+							{tabLabel(id, label, server.core)}
 						</button>
 					))}
 				</nav>

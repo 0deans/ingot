@@ -505,7 +505,7 @@ function PropertyRow({
 					<Switch checked={value === "true"} onCheckedChange={(c) => onChange(String(c))} />
 				)}
 				{control.type === "select" && (
-					<Select value={value} onValueChange={(v) => v && onChange(v)}>
+					<Select items={control.options} value={value} onValueChange={(v) => v && onChange(v)}>
 						<SelectTrigger className="h-9 w-36 rounded-xl border-zinc-800 bg-zinc-950/60 text-xs">
 							<SelectValue />
 						</SelectTrigger>

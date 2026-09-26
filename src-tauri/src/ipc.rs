@@ -16,6 +16,9 @@ use crate::server::{
 use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
 use crate::server::live::{KnownPlayer, PlayerDetails};
 use crate::server::map::MapDimension;
+use crate::server::plugins::{
+    InstallReport, InstalledPlugin, PluginSearchResult, PluginSource, PluginUpdate, PluginVersion,
+};
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
 use tauri::{Manager, Runtime};
@@ -45,7 +48,7 @@ fn get_playit_manager() -> &'static server::PlayitManager {
 fn get_http_client() -> &'static reqwest::Client {
     HTTP_CLIENT.get_or_init(|| {
         reqwest::Client::builder()
-            .user_agent("IngotLauncher/0.1.0")
+            .user_agent(crate::USER_AGENT)
             .build()
             .unwrap_or_default()
     })
@@ -490,6 +493,61 @@ pub trait AppApi {
         kind: AccessListKind,
         name: String,
     ) -> Result<Vec<AccessEntry>, String>;
+
+    /// Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric) for this server
+    async fn search_server_plugins(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        source: PluginSource,
+        query: String,
+        sort: String,
+        compatible_only: bool,
+        page: u32,
+    ) -> Result<PluginSearchResult, String>;
+
+    /// Project description as Markdown
+    async fn get_server_plugin_page(source: PluginSource, project_id: String) -> Result<String, String>;
+
+    async fn get_server_plugin_versions(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        source: PluginSource,
+        project_id: String,
+        compatible_only: bool,
+    ) -> Result<Vec<PluginVersion>, String>;
+
+    /// Installs a plugin (latest compatible version unless `version_id` is given)
+    /// together with its required dependencies
+    async fn install_server_plugin(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        source: PluginSource,
+        project_id: String,
+        version_id: Option<String>,
+    ) -> Result<InstallReport, String>;
+
+    async fn list_server_plugins(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<InstalledPlugin>, String>;
+
+    async fn set_server_plugin_enabled(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        file_name: String,
+        enabled: bool,
+    ) -> Result<(), String>;
+
+    async fn remove_server_plugin(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        file_name: String,
+    ) -> Result<(), String>;
+
+    async fn check_server_plugin_updates(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<PluginUpdate>, String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -1440,6 +1498,119 @@ impl AppApi for AppApiImpl {
         }
         Ok(server::files::read_access_list(&dir, kind))
     }
+
+    async fn search_server_plugins(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        source: PluginSource,
+        query: String,
+        sort: String,
+        compatible_only: bool,
+        page: u32,
+    ) -> Result<PluginSearchResult, String> {
+        let (_, config) = server_with_config(&app_handle, &server_id)?;
+        server::plugins::search(
+            &config.core,
+            &config.game_version,
+            source,
+            &query,
+            &sort,
+            compatible_only,
+            page,
+            20,
+        )
+        .await
+    }
+
+    async fn get_server_plugin_page(self, source: PluginSource, project_id: String) -> Result<String, String> {
+        server::plugins::page(source, &project_id).await
+    }
+
+    async fn get_server_plugin_versions(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        source: PluginSource,
+        project_id: String,
+        compatible_only: bool,
+    ) -> Result<Vec<PluginVersion>, String> {
+        let (_, config) = server_with_config(&app_handle, &server_id)?;
+        server::plugins::versions(&config.core, &config.game_version, source, &project_id, compatible_only).await
+    }
+
+    async fn install_server_plugin(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        source: PluginSource,
+        project_id: String,
+        version_id: Option<String>,
+    ) -> Result<InstallReport, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        server::plugins::install(
+            &dir,
+            &config.core,
+            &config.game_version,
+            source,
+            &project_id,
+            version_id.as_deref(),
+        )
+        .await
+    }
+
+    async fn list_server_plugins(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<InstalledPlugin>, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        tauri::async_runtime::spawn_blocking(move || server::plugins::list_installed(&dir, &config.core))
+            .await
+            .map_err(|e| e.to_string())?
+    }
+
+    async fn set_server_plugin_enabled(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        file_name: String,
+        enabled: bool,
+    ) -> Result<(), String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        server::plugins::set_enabled(&dir, &config.core, &file_name, enabled)
+    }
+
+    async fn remove_server_plugin(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        file_name: String,
+    ) -> Result<(), String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        server::plugins::remove(&dir, &config.core, &file_name)
+    }
+
+    async fn check_server_plugin_updates(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<PluginUpdate>, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        Ok(server::plugins::check_updates(&dir, &config.core, &config.game_version).await)
+    }
+}
+
+/// Server folder plus its config (core and game version decide which plugins fit)
+fn server_with_config<R: Runtime>(
+    app_handle: &tauri::AppHandle<R>,
+    server_id: &str,
+) -> Result<(std::path::PathBuf, ServerConfig), String> {
+    let config = server::load_servers(app_handle)?
+        .into_iter()
+        .find(|s| s.id == server_id)
+        .ok_or_else(|| format!("Server not found: {server_id}"))?;
+    Ok((server::get_server_dir(app_handle, server_id)?, config))
 }
 
 async fn is_server_running(server_id: &str) -> bool {

@@ -114,3 +114,17 @@ export function formatUptime(seconds: number): string {
 export function isValidPlayerName(name: string): boolean {
 	return /^[A-Za-z0-9_]{1,32}$/.test(name)
 }
+
+/** 1234567 -> "1.2M" */
+export function formatCount(n: number): string {
+	if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
+	if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+	if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+	return String(n)
+}
+
+export function formatBytes(bytes: number): string {
+	if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+	if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`
+	return `${bytes} B`
+}

@@ -62,7 +62,7 @@ impl ElyAuthService {
     pub fn new() -> Self {
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Ingot-Launcher/0.1.0")
+                .user_agent(crate::USER_AGENT)
                 .build()
                 .unwrap_or_default(),
         }

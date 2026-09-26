@@ -1,5 +1,12 @@
 pub mod account;
 pub mod auth;
+/// User agent for all HTTP requests; the version comes from Cargo.toml at build time
+pub const USER_AGENT: &str = concat!(
+    "Ingot-Launcher/",
+    env!("CARGO_PKG_VERSION"),
+    " (https://github.com/0deans/ingot)"
+);
+
 pub mod ipc;
 pub mod keyring_store;
 pub mod minecraft;
