@@ -1546,7 +1546,17 @@ impl AppApi for AppApiImpl {
         server_id: String,
     ) -> Result<Vec<PropertyEntry>, String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        server::files::read_properties(&dir)
+        let mut props = server::files::read_properties(&dir)?;
+        if let Ok(servers) = server::load_servers(&app_handle) {
+            if let Some(cfg) = servers.iter().find(|s| s.id == server_id) {
+                for p in &mut props {
+                    if p.key == "server-port" {
+                        p.value = cfg.port.to_string();
+                    }
+                }
+            }
+        }
+        Ok(props)
     }
 
     async fn set_server_properties_all(
@@ -1573,7 +1583,7 @@ impl AppApi for AppApiImpl {
             if let Some(config) = servers.iter_mut().find(|s| s.id == server_id) {
                 if config.port != port {
                     config.port = port;
-                    config.internal_port = Some(port.saturating_add(1));
+                    config.internal_port = Some(server::config::internal_port_for(port));
                     server::save_servers(&app_handle, &servers)?;
                 }
             }

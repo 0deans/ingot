@@ -11,7 +11,7 @@ import type { serverCoreSchema } from "@/routes/servers"
 import { instanceService } from "@/services/instance-service"
 import { serverService, useRunningServers, useServers } from "@/services/server-service"
 import DeleteServerDialog from "./delete-server-dialog"
-import NewServerDialog from "./new-server-dialog"
+import { NewServerWizard } from "./new-server-wizard"
 import { ImportServerButton } from "./panels/transfer-card"
 import { QuickJoinDialog } from "./quick-join-dialog"
 import ServerCard from "./server-card"
@@ -139,6 +139,31 @@ export default function ServerListView() {
 					navigate({ search: (prev) => ({ ...prev, server: undefined, tab: undefined }) })
 				}
 			/>
+		)
+	}
+
+	if (action === "new") {
+		return (
+			<div className="size-full overflow-hidden">
+				<NewServerWizard
+					onCancel={() => navigate({ search: (prev) => ({ ...prev, action: undefined }) })}
+					onServerCreated={(created) => {
+						navigate({ search: (prev) => ({ ...prev, action: undefined }) })
+						refresh()
+						openPage(created.id)
+					}}
+					importSlot={
+						<ImportServerButton
+							className="h-12 gap-2 rounded-2xl border-zinc-800"
+							onImported={(created) => {
+								navigate({ search: (prev) => ({ ...prev, action: undefined }) })
+								refresh()
+								openPage(created.id)
+							}}
+						/>
+					}
+				/>
+			</div>
 		)
 	}
 
@@ -378,16 +403,6 @@ export default function ServerListView() {
 				)}
 
 				{/* Dialogs */}
-				<NewServerDialog
-					open={action === "new"}
-					onOpenChange={(open) =>
-						navigate({
-							search: (prev) => ({ ...prev, action: open ? "new" : undefined }),
-						})
-					}
-					onServerCreated={() => refresh()}
-				/>
-
 				<DeleteServerDialog
 					server={deletingServer}
 					open={Boolean(deletingServer)}

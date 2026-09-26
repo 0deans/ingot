@@ -1,8 +1,8 @@
 import { Check, ChevronDown, Plus, Server, Settings2 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
-import NewServerDialog from "@/components/servers/new-server-dialog"
-import { Button } from "@/components/ui/button"
+import { NewServerWizard, NoServersState } from "@/components/servers/new-server-wizard"
+import { ImportServerButton } from "@/components/servers/panels/transfer-card"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useAndroidHostService } from "@/services/hosting"
@@ -10,7 +10,6 @@ import { useServerIcon, useServerStatus } from "@/services/server-data"
 import { useServers } from "@/services/server-service"
 import type { WorkspaceTab } from "./panels/overview-panel"
 import { StatusPill } from "./panels/overview-panel"
-import { ImportServerButton } from "./panels/transfer-card"
 import { FILL_TABS, tabLabel, WORKSPACE_TABS, WorkspaceContent } from "./server-workspace"
 import { FadeScroll } from "./shared/primitives"
 
@@ -41,7 +40,7 @@ function readTab(): WorkspaceTab {
 
 /** Phone UI: server switcher on top, the shared panels in the middle, tabs at the bottom */
 export const MobileServerDashboard = memo(() => {
-	const { servers, isLoading } = useServers()
+	const { servers, isLoading, refresh } = useServers()
 	const [selectedId, setSelectedId] = useState<string | null>(() => read(SELECTED_KEY))
 	const [tab, setTabState] = useState<WorkspaceTab>(readTab)
 	const setTab = (next: WorkspaceTab) => {
@@ -49,7 +48,7 @@ export const MobileServerDashboard = memo(() => {
 		write(TAB_KEY, next)
 	}
 	const [switcherOpen, setSwitcherOpen] = useState(false)
-	const [newOpen, setNewOpen] = useState(false)
+	const [wizardOpen, setWizardOpen] = useState(false)
 	const [mapFocus, setMapFocus] = useState<PlayerDetails | null>(null)
 
 	useAndroidHostService(servers)
@@ -67,31 +66,56 @@ export const MobileServerDashboard = memo(() => {
 		setSwitcherOpen(false)
 	}
 
-	if (!server) {
+	const handleServerCreated = (created: ServerConfig) => {
+		setWizardOpen(false)
+		refresh()
+		select(created.id)
+	}
+
+	// ── Wizard (full-screen) ──
+	if (wizardOpen) {
 		return (
-			<div className="flex h-dvh flex-col items-center justify-center gap-4 bg-zinc-950 px-8 text-center">
-				<div className="flex size-16 items-center justify-center rounded-3xl border border-emerald-500/20 bg-emerald-500/10">
-					<Server className="size-7 text-emerald-400" />
+			<div className="h-dvh overflow-hidden bg-zinc-950">
+				<NewServerWizard
+					onCancel={() => setWizardOpen(false)}
+					onServerCreated={handleServerCreated}
+					importSlot={
+						<ImportServerButton
+							className="h-12 gap-2 rounded-2xl border-zinc-800"
+							onImported={(created) => {
+								setWizardOpen(false)
+								refresh()
+								select(created.id)
+							}}
+						/>
+					}
+				/>
+			</div>
+		)
+	}
+
+	// ── Empty state ──
+	if (!server) {
+		if (isLoading) {
+			return (
+				<div className="flex h-dvh items-center justify-center bg-zinc-950">
+					<div className="size-8 animate-spin rounded-full border-2 border-zinc-800 border-t-emerald-400" />
 				</div>
-				<div>
-					<h1 className="font-bold text-xl text-zinc-50">
-						{isLoading ? "Loading..." : "Host a Minecraft server"}
-					</h1>
-					{!isLoading && (
-						<p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-							Run a server right on this phone and invite friends from anywhere.
-						</p>
-					)}
-				</div>
-				{!isLoading && (
-					<Button
-						onClick={() => setNewOpen(true)}
-						className="h-12 gap-2 rounded-2xl bg-emerald-600 px-6 font-semibold text-white hover:bg-emerald-500"
-					>
-						<Plus className="size-4" /> Create server
-					</Button>
-				)}
-				<NewServerDialog open={newOpen} onOpenChange={setNewOpen} />
+			)
+		}
+		return (
+			<div className="h-dvh overflow-hidden bg-zinc-950">
+				<NoServersState
+					onCreate={() => setWizardOpen(true)}
+					importSlot={
+						<ImportServerButton
+							onImported={(created) => {
+								refresh()
+								select(created.id)
+							}}
+						/>
+					}
+				/>
 			</div>
 		)
 	}
@@ -178,27 +202,25 @@ export const MobileServerDashboard = memo(() => {
 							/>
 						))}
 					</FadeScroll>
-					<Button
+					<button
+						type="button"
 						onClick={() => {
 							setSwitcherOpen(false)
-							setNewOpen(true)
+							setWizardOpen(true)
 						}}
-						className="h-12 gap-2 rounded-2xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+						className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 font-semibold text-sm text-white transition-colors hover:bg-emerald-500 active:bg-emerald-700"
 					>
 						<Plus className="size-4" /> New server
-					</Button>
+					</button>
 					<ImportServerButton
 						className="h-11 gap-2 rounded-2xl border-zinc-800"
-						onImported={(created) => select(created.id)}
+						onImported={(created) => {
+							refresh()
+							select(created.id)
+						}}
 					/>
 				</DialogContent>
 			</Dialog>
-
-			<NewServerDialog
-				open={newOpen}
-				onOpenChange={setNewOpen}
-				onServerCreated={(created) => select(created.id)}
-			/>
 		</div>
 	)
 })

@@ -220,7 +220,16 @@ pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<
         }
         table["address"] = toml_edit::value(address);
     };
-    set(&mut doc, &["networking", "java"], format!("0.0.0.0:{java_port}"));
+    let java_host = if java_port != public_port {
+        "127.0.0.1"
+    } else {
+        "0.0.0.0"
+    };
+    set(
+        &mut doc,
+        &["networking", "java"],
+        format!("{java_host}:{java_port}"),
+    );
     set(
         &mut doc,
         &["networking", "bedrock", "nethernet"],
@@ -283,7 +292,7 @@ mod tests {
         super::set_ports(&dir, 25568, 25567).unwrap();
         let text = std::fs::read_to_string(&file).unwrap();
         let doc: toml_edit::DocumentMut = text.parse().unwrap();
-        assert_eq!(doc["networking"]["java"]["address"].as_str(), Some("0.0.0.0:25568"));
+        assert_eq!(doc["networking"]["java"]["address"].as_str(), Some("127.0.0.1:25568"));
         assert_eq!(doc["networking"]["bedrock"]["nethernet"]["address"].as_str(), Some("0.0.0.0:19134"));
 
         // Pumpkin's own file: only the addresses change, comments and settings stay
@@ -295,7 +304,7 @@ mod tests {
         super::set_ports(&dir, 25571, 25570).unwrap();
         let text = std::fs::read_to_string(&file).unwrap();
         assert!(text.starts_with("# My server\nhardcore = true\n"), "{text}");
-        assert!(text.contains("address = \"0.0.0.0:25571\"\nonline_mode = false"), "{text}");
+        assert!(text.contains("address = \"127.0.0.1:25571\"\nonline_mode = false"), "{text}");
         assert!(text.contains("0.0.0.0:19137"), "{text}");
         std::fs::remove_dir_all(&dir).unwrap();
     }

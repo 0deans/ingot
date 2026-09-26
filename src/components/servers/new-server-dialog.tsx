@@ -62,16 +62,16 @@ const SERVER_CORES: {
 		badge: "Multi-threaded",
 	},
 	{
-		id: "vanilla",
-		name: "Vanilla",
-		tagline: "Official unmodded Minecraft server directly from Mojang",
-		badge: "Original",
-	},
-	{
 		id: "pumpkin",
 		name: "PumpkinMC (Rust)",
 		tagline: "Ultra lightweight modern core in Rust (< 60MB RAM, instant boot)",
 		badge: "Ultra Low RAM",
+	},
+	{
+		id: "vanilla",
+		name: "Vanilla",
+		tagline: "Official unmodded Minecraft server directly from Mojang",
+		badge: "Original",
 	},
 ]
 
@@ -111,8 +111,8 @@ export default function NewServerDialog({
 				if (!isMounted) return
 				setVersions(list)
 				if (list.length > 0) {
-					// Default to latest version or 1.21.4
-					const best = list.find((v) => v === "1.21.4") || list[0]
+					// Default to latest full release version (skipping -rc, -pre, snapshots)
+					const best = list.find((v) => /^\d+\.\d+(\.\d+)?$/.test(v)) || list[0]
 					setSelectedVersion(best)
 				}
 			})
@@ -229,7 +229,6 @@ export default function NewServerDialog({
 						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 							{SERVER_CORES.map((c) => {
 								const isSelected = core === c.id
-								const isRecommended = isMobile ? c.id === "pumpkin" : c.recommended
 								return (
 									<button
 										key={c.id}
@@ -249,9 +248,7 @@ export default function NewServerDialog({
 													"rounded-full px-2 py-0.5 font-medium text-[10px]",
 													isSelected
 														? "bg-emerald-500/20 text-emerald-300"
-														: isRecommended
-															? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-															: "bg-zinc-800 text-zinc-400",
+														: "bg-zinc-800 text-zinc-400",
 												)}
 											>
 												{isMobile && c.id === "pumpkin" ? "Mobile Native" : c.badge}
@@ -264,12 +261,6 @@ export default function NewServerDialog({
 								)
 							})}
 						</div>
-						{isMobile && core !== "pumpkin" && (
-							<p className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-[11px] text-amber-400/90 leading-relaxed">
-								Note: Java cores require the unprivileged Linux runtime environment. PumpkinMC is
-								recommended on Android as it runs natively with instant boot and &lt; 60MB RAM.
-							</p>
-						)}
 					</div>
 
 					{/* Version & Port Row */}
@@ -349,9 +340,6 @@ export default function NewServerDialog({
 							}
 							className="my-1"
 						/>
-						<p className="text-[11px] text-muted-foreground">
-							Aikar's optimized G1GC flags will automatically be applied for top performance.
-						</p>
 					</div>
 
 					{/* Error Message */}

@@ -369,7 +369,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 	const onSave = async () => {
 		if (portConflict)
 			return setError(
-				`Port ${portValue} or the one after it is used by another server. Try ${serverService.getNextAvailablePort()}.`,
+				`Port ${portValue} is already used by another server. Try ${serverService.getNextAvailablePort()}.`,
 			)
 		setStatus("saving")
 		setError(null)

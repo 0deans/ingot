@@ -271,6 +271,6 @@ export const PROPERTY_GROUPS: PropertyGroup[] = [
 ]
 
 /** Keys edited elsewhere in the UI */
-export const HANDLED_ELSEWHERE = new Set(["motd", "white-list", "enforce-whitelist"])
+export const HANDLED_ELSEWHERE = new Set(["motd", "white-list", "enforce-whitelist", "server-ip"])
 
 export const KNOWN_KEYS = new Set(PROPERTY_GROUPS.flatMap((g) => g.properties.map((p) => p.key)))

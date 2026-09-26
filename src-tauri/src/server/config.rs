@@ -276,7 +276,7 @@ pub fn create_server<R: Runtime>(
         auto_start: Some(false),
         sleep_enabled: Some(true),
         idle_timeout_seconds: Some(600), // 10 minutes default
-        internal_port: Some(selected_port.saturating_add(1)),
+        internal_port: Some(internal_port_for(selected_port)),
         playit_enabled: Some(false),
         playit_secret_key: None,
         created_at: now,
@@ -326,7 +326,7 @@ pub fn update_server<R: Runtime>(
     // Also update server-port in server.properties if port changed
     if servers[index].port != config.port {
         check_port(&servers, &config.id, config.port)?;
-        config.internal_port = Some(config.port.saturating_add(1));
+        config.internal_port = Some(internal_port_for(config.port));
         if let Ok(server_dir) = get_server_dir(app, &config.id) {
             if let Ok(mut props) = read_server_properties_from_dir(&server_dir) {
                 props.server_port = config.port;
@@ -341,11 +341,19 @@ pub fn update_server<R: Runtime>(
 
 // ─── Ports ───────────────────────────────────────────────────────────────────
 
+/// Internal loopback port offset (+10000, or -10000 for high ports) so consecutive
+/// public ports like 25565, 25566, 25567 never collide with each other.
+pub fn internal_port_for(port: u16) -> u16 {
+    if port <= 55535 {
+        port + 10000
+    } else {
+        port - 10000
+    }
+}
+
 /// Port the game server itself runs on, behind Ingot's wake-up proxy on the public port.
-/// Always the next port: the stored `internal_port` can be stale (older builds didn't
-/// move it along when the port changed), so it isn't trusted.
 pub fn internal_port(server: &ServerConfig) -> u16 {
-    server.port.saturating_add(1)
+    internal_port_for(server.port)
 }
 
 /// Ports a server listens on: the public one players join and the internal one
@@ -353,27 +361,27 @@ pub fn ports_of(server: &ServerConfig) -> [u16; 2] {
     [server.port, internal_port(server)]
 }
 
-/// Another server already using `port` or the internal port that comes with it (port + 1)
+/// Another server already using `port` or its internal port
 pub fn port_owner<'a>(
     servers: &'a [ServerConfig],
     server_id: &str,
     port: u16,
 ) -> Option<&'a ServerConfig> {
-    let wanted = [port, port.saturating_add(1)];
+    let wanted = [port, internal_port_for(port)];
     servers
         .iter()
         .filter(|s| s.id != server_id)
         .find(|s| ports_of(s).iter().any(|p| wanted.contains(p)))
 }
 
-/// Errors when `port` (or port + 1) belongs to another server
+/// Errors when `port` belongs to another server
 pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Result<(), String> {
     if port < 1024 {
         return Err("Use a port between 1024 and 65534.".into());
     }
     match port_owner(servers, server_id, port) {
         Some(other) => Err(format!(
-            "Port {port} is already used by \"{}\". Each server needs its own port and the one after it, so pick another (for example {}).",
+            "Port {port} is already used by \"{}\". Try {}.",
             other.name,
             free_port(servers, server_id)
         )),
@@ -381,7 +389,7 @@ pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Resul
     }
 }
 
-/// Lowest free port from 25565 whose internal port (port + 1) is free too
+/// Lowest free port from 25565
 pub fn free_port(servers: &[ServerConfig], server_id: &str) -> u16 {
     let mut port = 25565;
     while port_owner(servers, server_id, port).is_some() && port < u16::MAX - 1 {
@@ -722,31 +730,22 @@ mod tests {
 
     #[test]
     fn ports_account_for_the_internal_port() {
-        // "a" takes 25565 and its internal 25566. "b" has a stale stored internal port
-        // (25580); the real one is always port + 1, so it takes 25570-25571
+        // "a" takes 25565 and its internal 35565. "b" takes 25570 and 35570.
         let servers = vec![
-            server("a", 25565, Some(25566)),
+            server("a", 25565, Some(35565)),
             server("b", 25570, Some(25580)),
         ];
         assert_eq!(
             super::free_port(&servers, "new"),
-            25567,
-            "25566 is a's internal port"
+            25566,
+            "25566 is now free right after 25565"
         );
         assert!(super::check_port(&servers, "new", 25565).is_err());
+        assert!(super::check_port(&servers, "new", 25566).is_ok());
         assert!(
-            super::check_port(&servers, "new", 25564).is_err(),
-            "its internal port 25565 is taken"
+            super::check_port(&servers, "new", 35565).is_err(),
+            "35565 is a's internal port"
         );
-        assert!(
-            super::check_port(&servers, "new", 25579).is_ok(),
-            "the stale 25580 is ignored"
-        );
-        assert!(
-            super::check_port(&servers, "new", 25571).is_err(),
-            "25571 is b's real internal port"
-        );
-        assert!(super::check_port(&servers, "new", 25567).is_ok());
         // A server never conflicts with itself
         assert!(super::check_port(&servers, "a", 25565).is_ok());
         assert!(super::check_port(&servers, "new", 80).is_err());

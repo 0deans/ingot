@@ -233,13 +233,16 @@ export const serverService = {
 
 	/**
 	 * Whether `port` clashes with another server. Each server uses its port and an
-	 * internal one right after it (the game server behind Ingot's wake-up proxy), so
-	 * both must be free. Mirrors check_port in the backend.
+	 * internal loopback port (+10000) behind Ingot's wake-up proxy.
+	 * Mirrors check_port in the backend.
 	 */
 	isPortInUse(port: number, excludeServerId?: string): boolean {
-		const wanted = [port, port + 1]
+		const internalPort = (p: number) => (p <= 55535 ? p + 10000 : p - 10000)
+		const wanted = [port, internalPort(port)]
 		return cachedServers.some(
-			(s) => s.id !== excludeServerId && [s.port, s.port + 1].some((p) => wanted.includes(p)),
+			(s) =>
+				s.id !== excludeServerId &&
+				[s.port, internalPort(s.port)].some((p) => wanted.includes(p)),
 		)
 	},
 

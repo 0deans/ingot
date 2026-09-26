@@ -477,21 +477,37 @@ where
         let _ = std::fs::write(eula_path, "# Agreed by Ingot\neula=true\n");
     }
 
-    // 3. Ensure server.properties exists and has configured port
+    // 3. Ensure server.properties exists and has configured port & loopback bind when behind proxy
     if let Ok(mut props) = read_server_properties_from_dir(&server_dir) {
         if props.server_port != config.port {
             props.server_port = config.port;
             let _ = write_server_properties_to_dir(&server_dir, &props);
         }
     }
+    let bind_ip = if config.sleep_enabled.unwrap_or(true) {
+        "127.0.0.1"
+    } else {
+        ""
+    };
+    let _ = crate::server::files::write_properties(
+        &server_dir,
+        &[crate::server::files::PropertyEntry {
+            key: "server-ip".to_string(),
+            value: bind_ip.to_string(),
+        }],
+    );
 
     // 4. Build execution command (Pumpkin native vs Android PRoot sandbox vs Desktop Java)
     let mut cmd = if config.core == ServerCoreType::Pumpkin {
         step("Preparing Pumpkin server...");
         let bin = crate::server::pumpkin::ensure_pumpkin_binary(&client, &server_dir).await?;
-        // With sleep on, this runs on the internal port (public + 1) behind the proxy
+        // With sleep on, this runs on the internal port (public + 10000) behind the proxy
         let public_port = if config.sleep_enabled.unwrap_or(true) {
-            config.port.saturating_sub(1)
+            if config.port >= 11024 {
+                config.port - 10000
+            } else {
+                config.port + 10000
+            }
         } else {
             config.port
         };
