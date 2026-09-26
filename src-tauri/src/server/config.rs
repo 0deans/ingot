@@ -234,16 +234,12 @@ pub fn create_server<R: Runtime>(
         .map(|d| d.as_secs())
         .unwrap_or(0);
 
-    // Auto-select available port if not explicitly given
-    let used_ports: Vec<u16> = servers.iter().map(|s| s.port).collect();
-    let selected_port = if let Some(p) = port {
-        p
-    } else {
-        let mut p = 25565;
-        while used_ports.contains(&p) {
-            p += 1;
+    let selected_port = match port {
+        Some(p) => {
+            check_port(&servers, &id, p)?;
+            p
         }
-        p
+        None => free_port(&servers, &id),
     };
 
     let server_dir = get_server_dir(app, &id)?;
@@ -319,7 +315,7 @@ pub fn delete_server<R: Runtime>(
 
 pub fn update_server<R: Runtime>(
     app: &tauri::AppHandle<R>,
-    config: ServerConfig,
+    mut config: ServerConfig,
 ) -> Result<(), String> {
     let mut servers = load_servers(app)?;
     let index = servers
@@ -329,6 +325,8 @@ pub fn update_server<R: Runtime>(
 
     // Also update server-port in server.properties if port changed
     if servers[index].port != config.port {
+        check_port(&servers, &config.id, config.port)?;
+        config.internal_port = Some(config.port.saturating_add(1));
         if let Ok(server_dir) = get_server_dir(app, &config.id) {
             if let Ok(mut props) = read_server_properties_from_dir(&server_dir) {
                 props.server_port = config.port;
@@ -339,6 +337,57 @@ pub fn update_server<R: Runtime>(
 
     servers[index] = config;
     save_servers(app, &servers)
+}
+
+// ─── Ports ───────────────────────────────────────────────────────────────────
+
+/// Port the game server itself runs on, behind Ingot's wake-up proxy on the public port.
+/// Always the next port: the stored `internal_port` can be stale (older builds didn't
+/// move it along when the port changed), so it isn't trusted.
+pub fn internal_port(server: &ServerConfig) -> u16 {
+    server.port.saturating_add(1)
+}
+
+/// Ports a server listens on: the public one players join and the internal one
+pub fn ports_of(server: &ServerConfig) -> [u16; 2] {
+    [server.port, internal_port(server)]
+}
+
+/// Another server already using `port` or the internal port that comes with it (port + 1)
+pub fn port_owner<'a>(
+    servers: &'a [ServerConfig],
+    server_id: &str,
+    port: u16,
+) -> Option<&'a ServerConfig> {
+    let wanted = [port, port.saturating_add(1)];
+    servers
+        .iter()
+        .filter(|s| s.id != server_id)
+        .find(|s| ports_of(s).iter().any(|p| wanted.contains(p)))
+}
+
+/// Errors when `port` (or port + 1) belongs to another server
+pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Result<(), String> {
+    if port < 1024 {
+        return Err("Use a port between 1024 and 65534.".into());
+    }
+    match port_owner(servers, server_id, port) {
+        Some(other) => Err(format!(
+            "Port {port} is already used by \"{}\". Each server needs its own port and the one after it, so pick another (for example {}).",
+            other.name,
+            free_port(servers, server_id)
+        )),
+        None => Ok(()),
+    }
+}
+
+/// Lowest free port from 25565 whose internal port (port + 1) is free too
+pub fn free_port(servers: &[ServerConfig], server_id: &str) -> u16 {
+    let mut port = 25565;
+    while port_owner(servers, server_id, port).is_some() && port < u16::MAX - 1 {
+        port += 1;
+    }
+    port
 }
 
 /// Parses server.properties from a key=value file format
@@ -358,7 +407,10 @@ pub fn read_server_properties_from_dir(server_dir: &Path) -> Result<ServerProper
             continue;
         }
         if let Some((k, v)) = line.split_once('=') {
-            map.insert(k.trim().to_string(), crate::server::files::unescape_property(v.trim()));
+            map.insert(
+                k.trim().to_string(),
+                crate::server::files::unescape_property(v.trim()),
+            );
         }
     }
 
@@ -368,22 +420,13 @@ pub fn read_server_properties_from_dir(server_dir: &Path) -> Result<ServerProper
             .get("server-port")
             .and_then(|v| v.parse().ok())
             .unwrap_or(default.server_port),
-        motd: map
-            .get("motd")
-            .cloned()
-            .unwrap_or(default.motd),
+        motd: map.get("motd").cloned().unwrap_or(default.motd),
         online_mode: map
             .get("online-mode")
             .and_then(|v| v.parse().ok())
             .unwrap_or(default.online_mode),
-        difficulty: map
-            .get("difficulty")
-            .cloned()
-            .unwrap_or(default.difficulty),
-        gamemode: map
-            .get("gamemode")
-            .cloned()
-            .unwrap_or(default.gamemode),
+        difficulty: map.get("difficulty").cloned().unwrap_or(default.difficulty),
+        gamemode: map.get("gamemode").cloned().unwrap_or(default.gamemode),
         max_players: map
             .get("max-players")
             .and_then(|v| v.parse().ok())
@@ -460,7 +503,10 @@ pub fn write_server_properties_to_dir(
     apply_prop("max-players", &props.max_players.to_string());
     apply_prop("pvp", &props.pvp.to_string());
     apply_prop("view-distance", &props.view_distance.to_string());
-    apply_prop("simulation-distance", &props.simulation_distance.to_string());
+    apply_prop(
+        "simulation-distance",
+        &props.simulation_distance.to_string(),
+    );
     apply_prop("white-list", &props.white_list.to_string());
     apply_prop("allow-flight", &props.allow_flight.to_string());
     apply_prop("spawn-protection", &props.spawn_protection.to_string());
@@ -477,15 +523,15 @@ pub fn read_server_whitelist(server_dir: &Path) -> Result<Vec<WhitelistEntry>, S
     if !path.exists() {
         return Ok(Vec::new());
     }
-    let raw = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read whitelist.json: {e}"))?;
+    let raw =
+        fs::read_to_string(&path).map_err(|e| format!("Failed to read whitelist.json: {e}"))?;
     if raw.trim().is_empty() {
         return Ok(Vec::new());
     }
     // Minecraft stores whitelist as an array of objects with `uuid` and `name`.
     // We deserialize using raw JSON because the key casing is lowercase in the file.
-    let entries: Vec<serde_json::Value> = serde_json::from_str(&raw)
-        .map_err(|e| format!("Failed to parse whitelist.json: {e}"))?;
+    let entries: Vec<serde_json::Value> =
+        serde_json::from_str(&raw).map_err(|e| format!("Failed to parse whitelist.json: {e}"))?;
     Ok(entries
         .into_iter()
         .filter_map(|v| {
@@ -548,12 +594,23 @@ fn offline_uuid(name: &str) -> String {
 pub fn repair_offline_uuids(server_dir: &Path) {
     for file in ["whitelist.json", "ops.json"] {
         let path = server_dir.join(file);
-        let Ok(raw) = fs::read_to_string(&path) else { continue };
-        let Ok(mut entries) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) else { continue };
+        let Ok(raw) = fs::read_to_string(&path) else {
+            continue;
+        };
+        let Ok(mut entries) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) else {
+            continue;
+        };
         let mut changed = false;
         for entry in &mut entries {
-            let Some(name) = entry.get("name").and_then(|n| n.as_str()).map(str::to_string) else { continue };
-            let legacy = Uuid::new_v3(&Uuid::nil(), format!("OfflinePlayer:{name}").as_bytes()).to_string();
+            let Some(name) = entry
+                .get("name")
+                .and_then(|n| n.as_str())
+                .map(str::to_string)
+            else {
+                continue;
+            };
+            let legacy =
+                Uuid::new_v3(&Uuid::nil(), format!("OfflinePlayer:{name}").as_bytes()).to_string();
             if entry.get("uuid").and_then(|u| u.as_str()) == Some(legacy.as_str()) {
                 entry["uuid"] = serde_json::Value::String(offline_uuid(&name));
                 changed = true;
@@ -628,13 +685,71 @@ pub fn get_server_icon_base64(server_dir: &Path) -> Option<String> {
     None
 }
 
-
 #[cfg(test)]
 mod tests {
     #[test]
     fn offline_uuid_matches_java() {
         // UUID.nameUUIDFromBytes("OfflinePlayer:Notch".getBytes(UTF_8))
-        assert_eq!(super::offline_uuid("Notch"), "b50ad385-829d-3141-a216-7e7d7539ba7f");
+        assert_eq!(
+            super::offline_uuid("Notch"),
+            "b50ad385-829d-3141-a216-7e7d7539ba7f"
+        );
+    }
+
+    fn server(id: &str, port: u16, internal: Option<u16>) -> super::ServerConfig {
+        super::ServerConfig {
+            id: id.into(),
+            name: format!("Server {id}"),
+            core: super::ServerCoreType::Paper,
+            game_version: "26.2".into(),
+            build_number: None,
+            port,
+            memory_min_mb: 1024,
+            memory_max_mb: 2048,
+            icon: None,
+            java_path: None,
+            jvm_args: None,
+            auto_start: None,
+            sleep_enabled: None,
+            idle_timeout_seconds: None,
+            internal_port: internal,
+            playit_enabled: None,
+            playit_secret_key: None,
+            created_at: 0,
+            last_run_at: None,
+        }
+    }
+
+    #[test]
+    fn ports_account_for_the_internal_port() {
+        // "a" takes 25565 and its internal 25566. "b" has a stale stored internal port
+        // (25580); the real one is always port + 1, so it takes 25570-25571
+        let servers = vec![
+            server("a", 25565, Some(25566)),
+            server("b", 25570, Some(25580)),
+        ];
+        assert_eq!(
+            super::free_port(&servers, "new"),
+            25567,
+            "25566 is a's internal port"
+        );
+        assert!(super::check_port(&servers, "new", 25565).is_err());
+        assert!(
+            super::check_port(&servers, "new", 25564).is_err(),
+            "its internal port 25565 is taken"
+        );
+        assert!(
+            super::check_port(&servers, "new", 25579).is_ok(),
+            "the stale 25580 is ignored"
+        );
+        assert!(
+            super::check_port(&servers, "new", 25571).is_err(),
+            "25571 is b's real internal port"
+        );
+        assert!(super::check_port(&servers, "new", 25567).is_ok());
+        // A server never conflicts with itself
+        assert!(super::check_port(&servers, "a", 25565).is_ok());
+        assert!(super::check_port(&servers, "new", 80).is_err());
     }
 }
 
@@ -645,10 +760,17 @@ mod repair_tests {
         let dir = std::env::temp_dir().join(format!("ingot-repair-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let legacy = uuid::Uuid::new_v3(&uuid::Uuid::nil(), b"OfflinePlayer:Notch").to_string();
-        std::fs::write(dir.join("whitelist.json"), format!(r#"[{{"uuid":"{legacy}","name":"Notch"}}]"#)).unwrap();
+        std::fs::write(
+            dir.join("whitelist.json"),
+            format!(r#"[{{"uuid":"{legacy}","name":"Notch"}}]"#),
+        )
+        .unwrap();
         super::repair_offline_uuids(&dir);
         let fixed = std::fs::read_to_string(dir.join("whitelist.json")).unwrap();
-        assert!(fixed.contains("b50ad385-829d-3141-a216-7e7d7539ba7f"), "{fixed}");
+        assert!(
+            fixed.contains("b50ad385-829d-3141-a216-7e7d7539ba7f"),
+            "{fixed}"
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

@@ -1,6 +1,8 @@
 use crate::account::{self, AccountProfile};
 use crate::minecraft::content::{self, ContentSearchResult, UnifiedContentDetails};
-use crate::minecraft::importer::{self, DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance};
+use crate::minecraft::importer::{
+    self, DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance,
+};
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use crate::minecraft::launcher::{
     self, InstanceStatusEvent, LaunchProgressEvent, ProcessManager, RunningInstanceSummary,
@@ -9,17 +11,17 @@ use crate::minecraft::loader;
 use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
-use crate::server::{
-    self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent,
-    ServerPingResponse, ServerProperties, ServerProcessManager, ServerStatusEvent, WhitelistEntry,
-};
 use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
 use crate::server::live::{KnownPlayer, PlayerDetails};
 use crate::server::map::MapDimension;
-use crate::server::stats::ServerStats;
-use crate::server::transfer::ExportMode;
 use crate::server::plugins::{
     InstallReport, InstalledPlugin, PluginSearchResult, PluginSource, PluginUpdate, PluginVersion,
+};
+use crate::server::stats::ServerStats;
+use crate::server::transfer::ExportMode;
+use crate::server::{
+    self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent,
+    ServerPingResponse, ServerProcessManager, ServerProperties, ServerStatusEvent, WhitelistEntry,
 };
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
 use std::sync::OnceLock;
@@ -269,9 +271,7 @@ pub trait AppApi {
         instance_id: Option<String>,
     ) -> Result<(), String>;
 
-    async fn reveal_screenshot_file(
-        file_path: String,
-    ) -> Result<(), String>;
+    async fn reveal_screenshot_file(file_path: String) -> Result<(), String>;
 
     // Content Discovery (CurseForge & Modrinth)
     async fn search_content(
@@ -510,7 +510,10 @@ pub trait AppApi {
     ) -> Result<PluginSearchResult, String>;
 
     /// Project description as Markdown
-    async fn get_server_plugin_page(source: PluginSource, project_id: String) -> Result<String, String>;
+    async fn get_server_plugin_page(
+        source: PluginSource,
+        project_id: String,
+    ) -> Result<String, String>;
 
     async fn get_server_plugin_versions(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -831,7 +834,9 @@ impl AppApi for AppApiImpl {
         let _path_str = dir.to_string_lossy().to_string();
         #[cfg(target_os = "windows")]
         {
-            let _ = std::process::Command::new("explorer").arg(&_path_str).spawn();
+            let _ = std::process::Command::new("explorer")
+                .arg(&_path_str)
+                .spawn();
         }
         #[cfg(target_os = "macos")]
         {
@@ -839,7 +844,9 @@ impl AppApi for AppApiImpl {
         }
         #[cfg(target_os = "linux")]
         {
-            let _ = std::process::Command::new("xdg-open").arg(&_path_str).spawn();
+            let _ = std::process::Command::new("xdg-open")
+                .arg(&_path_str)
+                .spawn();
         }
         Ok(())
     }
@@ -1052,10 +1059,7 @@ impl AppApi for AppApiImpl {
         screenshots::open_screenshots_folder(&app_handle, instance_id.as_deref())
     }
 
-    async fn reveal_screenshot_file(
-        self,
-        file_path: String,
-    ) -> Result<(), String> {
+    async fn reveal_screenshot_file(self, file_path: String) -> Result<(), String> {
         screenshots::reveal_screenshot_file(&file_path)
     }
 
@@ -1099,7 +1103,14 @@ impl AppApi for AppApiImpl {
         download_url: String,
         filename: String,
     ) -> Result<String, String> {
-        content::install_content_file(&app_handle, &instance_id, &project_type, &download_url, &filename).await
+        content::install_content_file(
+            &app_handle,
+            &instance_id,
+            &project_type,
+            &download_url,
+            &filename,
+        )
+        .await
     }
 
     async fn install_modpack_instance(
@@ -1110,7 +1121,8 @@ impl AppApi for AppApiImpl {
         download_url: String,
         filename: String,
     ) -> Result<InstanceConfig, String> {
-        content::install_modpack_instance(&app_handle, &name, &source, &download_url, &filename).await
+        content::install_modpack_instance(&app_handle, &name, &source, &download_url, &filename)
+            .await
     }
 
     async fn get_servers(
@@ -1144,7 +1156,9 @@ impl AppApi for AppApiImpl {
         // New servers come with the companion plugin (live map); users can remove it
         if server::companion::supported(&created.core, &created.game_version) {
             if let Ok((dir, _)) = server_with_config(&app_handle, &created.id) {
-                if let Err(e) = server::companion::install(&dir, &created.core, &created.game_version) {
+                if let Err(e) =
+                    server::companion::install(&dir, &created.core, &created.game_version)
+                {
                     eprintln!("[Server] Couldn't install the Ingot plugin: {e}");
                 }
             }
@@ -1197,7 +1211,9 @@ impl AppApi for AppApiImpl {
         let _path_str = dir.to_string_lossy().to_string();
         #[cfg(target_os = "windows")]
         {
-            let _ = std::process::Command::new("explorer").arg(&_path_str).spawn();
+            let _ = std::process::Command::new("explorer")
+                .arg(&_path_str)
+                .spawn();
         }
         #[cfg(target_os = "macos")]
         {
@@ -1205,7 +1221,9 @@ impl AppApi for AppApiImpl {
         }
         #[cfg(target_os = "linux")]
         {
-            let _ = std::process::Command::new("xdg-open").arg(&_path_str).spawn();
+            let _ = std::process::Command::new("xdg-open")
+                .arg(&_path_str)
+                .spawn();
         }
         Ok(())
     }
@@ -1220,6 +1238,52 @@ impl AppApi for AppApiImpl {
             .into_iter()
             .find(|s| s.id == server_id)
             .ok_or_else(|| format!("Server not found: {}", server_id))?;
+
+        // Two servers can't listen on the same ports; say which one is in the way
+        // instead of failing halfway through the start. Sleeping servers count too:
+        // their proxy keeps the public port open to wake them.
+        let pm = get_server_process_manager();
+        for other in server::load_servers(&app_handle)?
+            .iter()
+            .filter(|s| s.id != config.id)
+        {
+            let other_ports = server::config::ports_of(other);
+            let Some(port) = server::config::ports_of(&config)
+                .into_iter()
+                .find(|p| other_ports.contains(p))
+            else {
+                continue;
+            };
+            if pm.get_server_status(&other.id).await != server::ServerStatus::Stopped {
+                return Err(format!(
+                    "Port {port} is used by \"{}\", which is running. Stop it, or give this server another port in Settings.",
+                    other.name
+                ));
+            }
+        }
+        // This server's own leftover proxy (a run that crashed, or sleeping) holds its port;
+        // free it, then give the port a moment to close before deciding it's taken
+        if matches!(
+            pm.get_server_status(&config.id).await,
+            server::ServerStatus::Stopped | server::ServerStatus::Sleeping
+        ) {
+            get_server_supervisor_manager().release(&config.id).await;
+        }
+        let port_free = || std::net::TcpListener::bind(("0.0.0.0", config.port)).is_ok();
+        let mut free = port_free();
+        for _ in 0..10 {
+            if free {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            free = port_free();
+        }
+        if !free {
+            return Err(format!(
+                "Port {} is already in use by another app. Close it, or give this server another port in Settings.",
+                config.port
+            ));
+        }
 
         let pm = get_server_process_manager().clone();
         let client = get_http_client().clone();
@@ -1306,11 +1370,15 @@ impl AppApi for AppApiImpl {
     }
 
     async fn get_server_logs(self, server_id: String) -> Result<Vec<String>, String> {
-        Ok(get_server_process_manager().get_server_logs(&server_id).await)
+        Ok(get_server_process_manager()
+            .get_server_logs(&server_id)
+            .await)
     }
 
     async fn get_server_online_players(self, server_id: String) -> Result<Vec<String>, String> {
-        Ok(get_server_process_manager().get_server_online_players(&server_id).await)
+        Ok(get_server_process_manager()
+            .get_server_online_players(&server_id)
+            .await)
     }
 
     async fn get_server_whitelist(
@@ -1383,13 +1451,19 @@ impl AppApi for AppApiImpl {
     ) -> Result<Vec<KnownPlayer>, String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
         let world = dir.join(server::map::level_name(&dir));
-        let mut known = tauri::async_runtime::spawn_blocking(move || server::live::known_players(&dir, &world))
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut known =
+            tauri::async_runtime::spawn_blocking(move || server::live::known_players(&dir, &world))
+                .await
+                .map_err(|e| e.to_string())?;
         if is_server_running(&server_id).await {
-            if let Ok(online) = server::live::list_online(get_server_process_manager(), &server_id).await {
+            if let Ok(online) =
+                server::live::list_online(get_server_process_manager(), &server_id).await
+            {
                 for (name, uuid) in online {
-                    match known.iter_mut().find(|k| k.name.eq_ignore_ascii_case(&name)) {
+                    match known
+                        .iter_mut()
+                        .find(|k| k.name.eq_ignore_ascii_case(&name))
+                    {
                         Some(k) => k.online = true,
                         None => known.insert(
                             0,
@@ -1414,15 +1488,19 @@ impl AppApi for AppApiImpl {
         name: String,
     ) -> Result<PlayerDetails, String> {
         if is_server_running(&server_id).await {
-            if let Ok(details) = server::live::query_player(get_server_process_manager(), &server_id, &name).await {
+            if let Ok(details) =
+                server::live::query_player(get_server_process_manager(), &server_id, &name).await
+            {
                 return Ok(details);
             }
         }
         let dir = server::get_server_dir(&app_handle, &server_id)?;
         let world = dir.join(server::map::level_name(&dir));
-        tauri::async_runtime::spawn_blocking(move || server::live::offline_player(&dir, &world, &name))
-            .await
-            .map_err(|e| e.to_string())?
+        tauri::async_runtime::spawn_blocking(move || {
+            server::live::offline_player(&dir, &world, &name)
+        })
+        .await
+        .map_err(|e| e.to_string())?
     }
 
     async fn get_map_dimensions(
@@ -1478,17 +1556,24 @@ impl AppApi for AppApiImpl {
         entries: Vec<PropertyEntry>,
     ) -> Result<(), String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        server::files::write_properties(&dir, &entries)?;
-        // Keep Ingot's own copy of the port in sync (used for the proxy and status)
-        if let Some(port) = entries
+        let new_port = entries
             .iter()
             .find(|e| e.key == "server-port")
-            .and_then(|e| e.value.trim().parse::<u16>().ok())
-        {
-            let mut servers = server::load_servers(&app_handle)?;
+            .and_then(|e| e.value.trim().parse::<u16>().ok());
+        let mut servers = server::load_servers(&app_handle)?;
+        // Refuse a port another server uses before writing anything
+        if let Some(port) = new_port {
+            if servers.iter().any(|s| s.id == server_id && s.port != port) {
+                server::config::check_port(&servers, &server_id, port)?;
+            }
+        }
+        server::files::write_properties(&dir, &entries)?;
+        // Keep Ingot's own copy of the ports in sync (used for the proxy and status)
+        if let Some(port) = new_port {
             if let Some(config) = servers.iter_mut().find(|s| s.id == server_id) {
                 if config.port != port {
                     config.port = port;
+                    config.internal_port = Some(port.saturating_add(1));
                     server::save_servers(&app_handle, &servers)?;
                 }
             }
@@ -1555,10 +1640,14 @@ impl AppApi for AppApiImpl {
             let (name, uuid) = resolve_profile(&dir, &name).await;
             server::files::add_access_entry(&dir, kind, &name, &uuid)?;
             if running {
-                let _ = get_server_process_manager().send_command(&server_id, "whitelist reload").await;
+                let _ = get_server_process_manager()
+                    .send_command(&server_id, "whitelist reload")
+                    .await;
             }
         } else {
-            get_server_process_manager().send_command(&server_id, &kind.add_command(&name)).await?;
+            get_server_process_manager()
+                .send_command(&server_id, &kind.add_command(&name))
+                .await?;
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;
         }
         Ok(server::files::read_access_list(&dir, kind))
@@ -1576,7 +1665,9 @@ impl AppApi for AppApiImpl {
             if !server::live::is_valid_player_name(&name) {
                 return Err(format!("\"{name}\" is not a valid Minecraft username"));
             }
-            get_server_process_manager().send_command(&server_id, &kind.remove_command(&name)).await?;
+            get_server_process_manager()
+                .send_command(&server_id, &kind.remove_command(&name))
+                .await?;
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;
         } else {
             server::files::remove_access_entry(&dir, kind, &name)?;
@@ -1608,7 +1699,11 @@ impl AppApi for AppApiImpl {
         .await
     }
 
-    async fn get_server_plugin_page(self, source: PluginSource, project_id: String) -> Result<String, String> {
+    async fn get_server_plugin_page(
+        self,
+        source: PluginSource,
+        project_id: String,
+    ) -> Result<String, String> {
         server::plugins::page(source, &project_id).await
     }
 
@@ -1621,7 +1716,14 @@ impl AppApi for AppApiImpl {
         compatible_only: bool,
     ) -> Result<Vec<PluginVersion>, String> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::versions(&config.core, &config.game_version, source, &project_id, compatible_only).await
+        server::plugins::versions(
+            &config.core,
+            &config.game_version,
+            source,
+            &project_id,
+            compatible_only,
+        )
+        .await
     }
 
     async fn install_server_plugin(
@@ -1650,9 +1752,11 @@ impl AppApi for AppApiImpl {
         server_id: String,
     ) -> Result<Vec<InstalledPlugin>, String> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        tauri::async_runtime::spawn_blocking(move || server::plugins::list_installed(&dir, &config.core))
-            .await
-            .map_err(|e| e.to_string())?
+        tauri::async_runtime::spawn_blocking(move || {
+            server::plugins::list_installed(&dir, &config.core)
+        })
+        .await
+        .map_err(|e| e.to_string())?
     }
 
     async fn set_server_plugin_enabled(
@@ -1692,7 +1796,11 @@ impl AppApi for AppApiImpl {
     ) -> Result<Vec<ServerStats>, String> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
         if is_server_running(&server_id).await {
-            server::stats::ensure_sampler(get_server_process_manager(), &server_id, core_has_tps(&config));
+            server::stats::ensure_sampler(
+                get_server_process_manager(),
+                &server_id,
+                core_has_tps(&config),
+            );
         }
         Ok(server::stats::history(&server_id))
     }
@@ -1707,7 +1815,11 @@ impl AppApi for AppApiImpl {
         server_id: String,
     ) -> Result<server::companion::CompanionStatus, String> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        Ok(server::companion::status(&dir, &config.core, &config.game_version))
+        Ok(server::companion::status(
+            &dir,
+            &config.core,
+            &config.game_version,
+        ))
     }
 
     async fn install_companion(
@@ -1747,9 +1859,11 @@ impl AppApi for AppApiImpl {
                 .join("exports")
                 .join(server::transfer::export_file_name(&config, mode)),
         };
-        let path = tauri::async_runtime::spawn_blocking(move || server::transfer::export(&dir, &config, mode, &dest))
-            .await
-            .map_err(|e| e.to_string())??;
+        let path = tauri::async_runtime::spawn_blocking(move || {
+            server::transfer::export(&dir, &config, mode, &dest)
+        })
+        .await
+        .map_err(|e| e.to_string())??;
         Ok(path.to_string_lossy().into_owned())
     }
 
@@ -1776,7 +1890,8 @@ impl AppApi for AppApiImpl {
             .truncate(first)
             .open(&path)
             .map_err(|e| format!("Failed to store upload: {e}"))?;
-        file.write_all(&bytes).map_err(|e| format!("Failed to store upload: {e}"))
+        file.write_all(&bytes)
+            .map_err(|e| format!("Failed to store upload: {e}"))
     }
 
     async fn import_server(
@@ -1787,9 +1902,10 @@ impl AppApi for AppApiImpl {
         let path = import_upload_path(&app_handle, &upload_id)?;
         let app = app_handle.clone();
         let archive = path.clone();
-        let result = tauri::async_runtime::spawn_blocking(move || server::transfer::import(&app, &archive))
-            .await
-            .map_err(|e| e.to_string())?;
+        let result =
+            tauri::async_runtime::spawn_blocking(move || server::transfer::import(&app, &archive))
+                .await
+                .map_err(|e| e.to_string())?;
         let _ = std::fs::remove_file(&path);
         result
     }
@@ -1821,7 +1937,11 @@ impl AppApi for AppApiImpl {
         game_version: String,
         build_number: Option<String>,
     ) -> Result<ServerConfig, String> {
-        if get_server_process_manager().get_server_status(&server_id).await != server::ServerStatus::Stopped {
+        if get_server_process_manager()
+            .get_server_status(&server_id)
+            .await
+            != server::ServerStatus::Stopped
+        {
             return Err("Stop the server before changing its version".to_string());
         }
         let (_, config) = server_with_config(&app_handle, &server_id)?;
@@ -1831,8 +1951,16 @@ impl AppApi for AppApiImpl {
 
 /// Temporary file for a chunked import; the id comes from the frontend, so it's
 /// restricted to a plain token
-fn import_upload_path<R: Runtime>(app: &tauri::AppHandle<R>, upload_id: &str) -> Result<std::path::PathBuf, String> {
-    if upload_id.is_empty() || upload_id.len() > 64 || !upload_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+fn import_upload_path<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    upload_id: &str,
+) -> Result<std::path::PathBuf, String> {
+    if upload_id.is_empty()
+        || upload_id.len() > 64
+        || !upload_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-')
+    {
         return Err("Invalid upload id".to_string());
     }
     Ok(app
@@ -1864,7 +1992,10 @@ fn core_has_tps(config: &server::ServerConfig) -> bool {
 }
 
 async fn is_server_running(server_id: &str) -> bool {
-    get_server_process_manager().get_server_status(server_id).await == server::ServerStatus::Running
+    get_server_process_manager()
+        .get_server_status(server_id)
+        .await
+        == server::ServerStatus::Running
 }
 
 /// Canonical name and UUID for a player: Mojang's profile on online-mode servers,
@@ -1884,7 +2015,14 @@ async fn resolve_profile(server_dir: &std::path::Path, name: &str) -> (String, S
             if let Ok(profile) = res.json::<Profile>().await {
                 if profile.id.len() == 32 {
                     let id = &profile.id;
-                    let uuid = format!("{}-{}-{}-{}-{}", &id[0..8], &id[8..12], &id[12..16], &id[16..20], &id[20..32]);
+                    let uuid = format!(
+                        "{}-{}-{}-{}-{}",
+                        &id[0..8],
+                        &id[8..12],
+                        &id[12..16],
+                        &id[16..20],
+                        &id[20..32]
+                    );
                     return (profile.name, uuid);
                 }
             }

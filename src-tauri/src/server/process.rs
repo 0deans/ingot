@@ -489,7 +489,13 @@ where
     let mut cmd = if config.core == ServerCoreType::Pumpkin {
         step("Preparing Pumpkin server...");
         let bin = crate::server::pumpkin::ensure_pumpkin_binary(&client, &server_dir).await?;
-        crate::server::pumpkin::build_pumpkin_command(&bin, &server_dir, config.port)?
+        // With sleep on, this runs on the internal port (public + 1) behind the proxy
+        let public_port = if config.sleep_enabled.unwrap_or(true) {
+            config.port.saturating_sub(1)
+        } else {
+            config.port
+        };
+        crate::server::pumpkin::build_pumpkin_command(&bin, &server_dir, config.port, public_port)?
     } else {
         // Construct command arguments with Aikar's G1GC flags
         let mut args: Vec<String> = Vec::new();

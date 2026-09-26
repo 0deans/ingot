@@ -150,13 +150,13 @@ export default function NewServerDialog({
 			setError("Please select a Minecraft version.")
 			return
 		}
-		if (!port || port < 1024 || port > 65535) {
-			setError("Please enter a valid port between 1024 and 65535.")
+		if (!port || port < 1024 || port > 65534) {
+			setError("Please enter a valid port between 1024 and 65534.")
 			return
 		}
 		if (isPortConflict) {
 			setError(
-				`Port ${port} is already assigned to another server. Please choose a different port.`,
+				`Port ${port} or ${port + 1} is already used by another server (each server needs its port and the one after it). Try ${serverService.getNextAvailablePort()}.`,
 			)
 			return
 		}

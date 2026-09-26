@@ -367,7 +367,10 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 	const portConflict = portValue ? serverService.isPortInUse(Number(portValue), server.id) : false
 
 	const onSave = async () => {
-		if (portConflict) return setError(`Port ${portValue} is used by another server.`)
+		if (portConflict)
+			return setError(
+				`Port ${portValue} or the one after it is used by another server. Try ${serverService.getNextAvailablePort()}.`,
+			)
 		setStatus("saving")
 		setError(null)
 		try {
@@ -463,7 +466,9 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 
 					{error && <ErrorNote>{error}</ErrorNote>}
 					{(changed.length > 0 || status !== "idle") && (
-						<div className="sticky bottom-0 flex items-center justify-end gap-3 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent pt-3">
+						// Solid bar across the card (its color is the card's zinc-900/40 over the page),
+						// so settings scrolling underneath never show through
+						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-zinc-800/80 border-t bg-[color-mix(in_oklab,var(--color-zinc-900)_40%,var(--color-zinc-950))] px-4 py-3">
 							{changed.length > 0 && (
 								<>
 									<span className="text-xs text-zinc-500">{changed.length} changed</span>

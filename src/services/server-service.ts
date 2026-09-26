@@ -231,14 +231,21 @@ export const serverService = {
 		await rpc.remove_from_server_whitelist(serverId, username)
 	},
 
+	/**
+	 * Whether `port` clashes with another server. Each server uses its port and an
+	 * internal one right after it (the game server behind Ingot's wake-up proxy), so
+	 * both must be free. Mirrors check_port in the backend.
+	 */
 	isPortInUse(port: number, excludeServerId?: string): boolean {
-		return cachedServers.some((s) => s.port === port && s.id !== excludeServerId)
+		const wanted = [port, port + 1]
+		return cachedServers.some(
+			(s) => s.id !== excludeServerId && [s.port, s.port + 1].some((p) => wanted.includes(p)),
+		)
 	},
 
 	getNextAvailablePort(): number {
-		const usedPorts = new Set(cachedServers.map((s) => s.port))
 		let port = 25565
-		while (usedPorts.has(port)) {
+		while (this.isPortInUse(port)) {
 			port += 1
 		}
 		return port

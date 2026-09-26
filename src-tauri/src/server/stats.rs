@@ -28,7 +28,9 @@ static SYSTEM: Mutex<Option<System>> = Mutex::new(None);
 
 /// CPU (% of all cores) and resident memory of `root` and all its descendants
 fn process_tree_usage(root: u32) -> (f32, u64, u64, u64) {
-    let Ok(mut guard) = SYSTEM.lock() else { return (0.0, 0, 0, 0) };
+    let Ok(mut guard) = SYSTEM.lock() else {
+        return (0.0, 0, 0, 0);
+    };
     let sys = guard.get_or_insert_with(System::new);
     sys.refresh_processes_specifics(
         ProcessesToUpdate::All,
@@ -51,7 +53,9 @@ fn process_tree_usage(root: u32) -> (f32, u64, u64, u64) {
         }
         false
     };
-    let (mut cpu, mut mem) = (0.0f32, 0u64);
+    let mut mem = 0u64;
+    // (pid, sysinfo's CPU %) of every process in the tree
+    let mut tree: Vec<(u32, f32)> = Vec::new();
     for (pid, process) in sys.processes() {
         // On Linux/Android every thread is listed as a task sharing its process's memory;
         // counting them would multiply the JVM's RAM by its thread count
@@ -59,17 +63,70 @@ fn process_tree_usage(root: u32) -> (f32, u64, u64, u64) {
             continue;
         }
         if in_tree(*pid) {
-            cpu += process.cpu_usage();
             mem += process.memory();
+            tree.push((pid.as_u32(), process.cpu_usage()));
         }
     }
-    let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1) as f32;
+    let cores = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(1) as f32;
+    // sysinfo's per-process CPU needs /proc/stat, which Android doesn't let apps read
+    // (it silently reports 0); measure from the processes' own counters instead
+    #[cfg(target_os = "android")]
+    let cpu = proc_cpu_percent(root.as_u32(), tree.iter().map(|(pid, _)| *pid));
+    #[cfg(not(target_os = "android"))]
+    let cpu: f32 = tree.iter().map(|(_, cpu)| cpu).sum();
     (
         (cpu / cores).clamp(0.0, 100.0),
         mem,
         sys.used_memory(),
         sys.total_memory(),
     )
+}
+
+/// Previous CPU-time reading per root process: (when, total clock ticks)
+#[cfg(target_os = "android")]
+static CPU_SAMPLES: LazyLock<Mutex<HashMap<u32, (std::time::Instant, u64)>>> =
+    LazyLock::new(Default::default);
+
+/// CPU time (user + system clock ticks) of a process and all its threads
+#[cfg(target_os = "android")]
+fn proc_cpu_ticks(pid: u32) -> Option<u64> {
+    let stat = std::fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
+    parse_cpu_ticks(&stat)
+}
+
+/// utime + stime from /proc/<pid>/stat (fields 14 and 15). The name in parentheses can
+/// contain spaces, so count fields from after its closing parenthesis.
+#[cfg(any(target_os = "android", test))]
+fn parse_cpu_ticks(stat: &str) -> Option<u64> {
+    let fields: Vec<&str> = stat.rsplit_once(')')?.1.split_whitespace().collect();
+    Some(fields.get(11)?.parse::<u64>().ok()? + fields.get(12)?.parse::<u64>().ok()?)
+}
+
+/// CPU use of the process tree since the last call, as % of one core
+#[cfg(target_os = "android")]
+fn proc_cpu_percent(root: u32, tree: impl Iterator<Item = u32>) -> f32 {
+    let ticks: u64 = tree.filter_map(proc_cpu_ticks).sum();
+    let now = std::time::Instant::now();
+    let Ok(mut samples) = CPU_SAMPLES.lock() else {
+        return 0.0;
+    };
+    let previous = samples.insert(root, (now, ticks));
+    let Some((then, before)) = previous else {
+        return 0.0;
+    };
+    let elapsed = now.duration_since(then).as_secs_f32();
+    // SAFETY: sysconf only reads a system constant
+    let per_second = match unsafe { libc::sysconf(libc::_SC_CLK_TCK) } {
+        n if n > 0 => n as f32,
+        _ => 100.0,
+    };
+    if elapsed <= 0.0 {
+        return 0.0;
+    }
+    // A child process that exited takes its ticks with it; that's a drop, not negative use
+    ticks.saturating_sub(before) as f32 / per_second / elapsed * 100.0
 }
 
 /// "TPS from last 1m, 5m, 15m: 20.0, 19.98, *20.0" -> 20.0
@@ -84,15 +141,25 @@ fn parse_tps(line: &str) -> Option<f32> {
         .ok()
 }
 
-pub async fn stats(pm: &ServerProcessManager, server_id: &str, pid: u32, has_tps: bool) -> ServerStats {
+pub async fn stats(
+    pm: &ServerProcessManager,
+    server_id: &str,
+    pid: u32,
+    has_tps: bool,
+) -> ServerStats {
     let (cpu, mem, used, total) = tokio::task::spawn_blocking(move || process_tree_usage(pid))
         .await
         .unwrap_or((0.0, 0, 0, 0));
     let tps = if has_tps {
-        pm.query(server_id, "tps", |l| l.contains("TPS from last"), Duration::from_secs(2))
-            .await
-            .ok()
-            .and_then(|l| parse_tps(&l))
+        pm.query(
+            server_id,
+            "tps",
+            |l| l.contains("TPS from last"),
+            Duration::from_secs(2),
+        )
+        .await
+        .ok()
+        .and_then(|l| parse_tps(&l))
     } else {
         None
     };
@@ -129,7 +196,9 @@ async fn running_pid(pm: &ServerProcessManager, server_id: &str) -> Option<u32> 
 /// drops the history) once the server stops; a restart begins a fresh history.
 pub fn ensure_sampler(pm: &'static ServerProcessManager, server_id: &str, has_tps: bool) {
     {
-        let Ok(mut sampling) = SAMPLING.lock() else { return };
+        let Ok(mut sampling) = SAMPLING.lock() else {
+            return;
+        };
         if !sampling.insert(server_id.to_string()) {
             return;
         }
@@ -188,8 +257,20 @@ pub fn history(server_id: &str) -> Vec<ServerStats> {
 
 /// Interfaces that aren't the real local network (VPNs, virtual switches, containers)
 const VIRTUAL_INTERFACES: [&str; 14] = [
-    "warp", "vpn", "tun", "tap", "wg", "wireguard", "zerotier", "tailscale", "vethernet", "docker",
-    "virtualbox", "vmware", "hyper-v", "utun",
+    "warp",
+    "vpn",
+    "tun",
+    "tap",
+    "wg",
+    "wireguard",
+    "zerotier",
+    "tailscale",
+    "vethernet",
+    "docker",
+    "virtualbox",
+    "vmware",
+    "hyper-v",
+    "utun",
 ];
 
 /// How likely an interface is the Wi-Fi/Ethernet network friends are on
@@ -203,7 +284,9 @@ fn lan_score(name: &str, ip: std::net::Ipv4Addr) -> Option<u32> {
     }
     // Linux/Android/macOS names (wlan0, eth0, en0) by prefix; Windows names by word
     let physical = ["wlan", "eth", "en"].iter().any(|p| name.starts_with(p))
-        || ["wi-fi", "wifi", "wireless", "ethernet"].iter().any(|p| name.contains(p));
+        || ["wi-fi", "wifi", "wireless", "ethernet"]
+            .iter()
+            .any(|p| name.contains(p));
     let home_range = ip.octets()[0] == 192;
     Some(u32::from(physical) * 2 + u32::from(home_range))
 }
@@ -232,8 +315,22 @@ pub fn lan_address() -> Option<String> {
 mod tests {
     #[test]
     fn parses_tps() {
-        assert_eq!(super::parse_tps("[12:00:00 INFO]: TPS from last 1m, 5m, 15m: 19.5, 20.0, 20.0"), Some(19.5));
-        assert_eq!(super::parse_tps("TPS from last 1m, 5m, 15m: *20.0, *20.0, *20.0"), Some(20.0));
+        assert_eq!(
+            super::parse_tps("[12:00:00 INFO]: TPS from last 1m, 5m, 15m: 19.5, 20.0, 20.0"),
+            Some(19.5)
+        );
+        assert_eq!(
+            super::parse_tps("TPS from last 1m, 5m, 15m: *20.0, *20.0, *20.0"),
+            Some(20.0)
+        );
+    }
+
+    #[test]
+    fn parses_cpu_ticks() {
+        // Process names can contain spaces and parentheses
+        let stat = "1234 (java (main) x) S 1 1234 1234 0 -1 4194560 100 0 0 0 250 75 0 0 20 0 42";
+        assert_eq!(super::parse_cpu_ticks(stat), Some(325));
+        assert_eq!(super::parse_cpu_ticks("garbage"), None);
     }
 
     #[test]
@@ -249,10 +346,19 @@ mod lan_tests {
 
     #[test]
     fn prefers_wifi_over_vpn() {
-        assert_eq!(super::lan_score("CloudflareWARP", Ipv4Addr::new(172, 16, 0, 2)), None);
-        assert_eq!(super::lan_score("vEthernet (WSL)", Ipv4Addr::new(172, 25, 208, 1)), None);
+        assert_eq!(
+            super::lan_score("CloudflareWARP", Ipv4Addr::new(172, 16, 0, 2)),
+            None
+        );
+        assert_eq!(
+            super::lan_score("vEthernet (WSL)", Ipv4Addr::new(172, 25, 208, 1)),
+            None
+        );
         assert_eq!(super::lan_score("Wi-Fi", Ipv4Addr::new(8, 8, 8, 8)), None);
-        assert!(super::lan_score("wlan0", Ipv4Addr::new(192, 168, 8, 6)) > super::lan_score("rmnet0", Ipv4Addr::new(10, 0, 0, 5)));
+        assert!(
+            super::lan_score("wlan0", Ipv4Addr::new(192, 168, 8, 6))
+                > super::lan_score("rmnet0", Ipv4Addr::new(10, 0, 0, 5))
+        );
     }
 
     #[test]

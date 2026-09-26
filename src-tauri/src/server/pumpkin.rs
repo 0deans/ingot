@@ -193,6 +193,46 @@ pub async fn ensure_pumpkin_binary(
     Ok(bin_path)
 }
 
+/// Bedrock port for a server whose players join on `public_port`: 19132 for the first
+/// server (25565), then moving along with it so several Pumpkin servers don't collide.
+/// Bedrock connects to Pumpkin directly (the wake-up proxy is Java-only).
+fn bedrock_port(public_port: u16) -> u16 {
+    19132u16.saturating_add(public_port.saturating_sub(25565))
+}
+
+/// Points Pumpkin at the ports Ingot chose, on every start (the port can change in
+/// Settings). Pumpkin reads `pumpkin.toml`: `[networking.java] address` and
+/// `[networking.bedrock.nethernet] address`. Edits only those keys, so everything else
+/// in the file (and Pumpkin's own defaults for missing keys) stays as it is.
+pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<(), String> {
+    let path = server_dir.join("pumpkin.toml");
+    let text = std::fs::read_to_string(&path).unwrap_or_default();
+    let mut doc: toml_edit::DocumentMut = text
+        .parse()
+        .map_err(|e| format!("pumpkin.toml has an error, so Ingot can't set the port: {e}"))?;
+    let set = |doc: &mut toml_edit::DocumentMut, table_path: &[&str], address: String| {
+        let mut table = doc.as_table_mut();
+        for key in table_path {
+            let entry = table.entry(key).or_insert(toml_edit::table());
+            let Some(next) = entry.as_table_mut() else { return };
+            next.set_implicit(true);
+            table = next;
+        }
+        table["address"] = toml_edit::value(address);
+    };
+    set(&mut doc, &["networking", "java"], format!("0.0.0.0:{java_port}"));
+    set(
+        &mut doc,
+        &["networking", "bedrock", "nethernet"],
+        format!("0.0.0.0:{}", bedrock_port(public_port)),
+    );
+    let out = doc.to_string();
+    if out != text {
+        std::fs::write(&path, out).map_err(|e| format!("Failed to write pumpkin.toml: {e}"))?;
+    }
+    Ok(())
+}
+
 /// Builds the Command to run Pumpkin natively.
 ///
 /// `binary_path` is the resolved executable path (from `ensure_pumpkin_binary`).
@@ -200,14 +240,13 @@ pub async fn ensure_pumpkin_binary(
 /// On Android, if the binary is NOT in `nativeLibraryDir` (i.e. it was downloaded
 /// to app-data which is noexec), we transparently use `memfd_create` to execute
 /// it from RAM — bypassing the W^X filesystem restriction.
-pub fn build_pumpkin_command(binary_path: &Path, server_dir: &Path, port: u16) -> Result<Command, String> {
-    let config_path = server_dir.join("configuration.toml");
-    if !config_path.exists() {
-        let content = format!(
-            "[server]\naddress = \"0.0.0.0:{port}\"\n\n[bedrock]\nenabled = true\naddress = \"0.0.0.0:19132\"\n"
-        );
-        let _ = std::fs::write(&config_path, content);
-    }
+pub fn build_pumpkin_command(
+    binary_path: &Path,
+    server_dir: &Path,
+    port: u16,
+    public_port: u16,
+) -> Result<Command, String> {
+    set_ports(server_dir, port, public_port)?;
 
     // On Android: if the binary is in nativeLibraryDir, exec directly.
     // Otherwise (downloaded to noexec app-data) — use memfd to exec from RAM.
@@ -230,4 +269,34 @@ pub fn build_pumpkin_command(binary_path: &Path, server_dir: &Path, port: u16) -
     let mut cmd = Command::new(binary_path);
     cmd.current_dir(server_dir);
     Ok(cmd)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn sets_ports_in_pumpkin_toml() {
+        let dir = std::env::temp_dir().join(format!("ingot-pumpkin-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("pumpkin.toml");
+
+        // No file yet: Pumpkin fills in its defaults around the ports
+        super::set_ports(&dir, 25568, 25567).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        let doc: toml_edit::DocumentMut = text.parse().unwrap();
+        assert_eq!(doc["networking"]["java"]["address"].as_str(), Some("0.0.0.0:25568"));
+        assert_eq!(doc["networking"]["bedrock"]["nethernet"]["address"].as_str(), Some("0.0.0.0:19134"));
+
+        // Pumpkin's own file: only the addresses change, comments and settings stay
+        std::fs::write(
+            &file,
+            "# My server\nhardcore = true\n\n[networking.java]\naddress = \"0.0.0.0:25565\"\nonline_mode = false\n",
+        )
+        .unwrap();
+        super::set_ports(&dir, 25571, 25570).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(text.starts_with("# My server\nhardcore = true\n"), "{text}");
+        assert!(text.contains("address = \"0.0.0.0:25571\"\nonline_mode = false"), "{text}");
+        assert!(text.contains("0.0.0.0:19137"), "{text}");
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 }

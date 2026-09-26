@@ -16,7 +16,12 @@ pub struct SupervisedServer {
     pub config: ServerConfig,
     pub proxy_handle: Option<ServerProxyHandle>,
     pub last_active_timestamp: Arc<AtomicU64>,
+    /// Which start this entry belongs to, so a watcher from an earlier run never
+    /// touches a newer one
+    pub generation: u64,
 }
+
+static GENERATION: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Clone, Default)]
 pub struct ServerSupervisorManager {
@@ -47,7 +52,7 @@ impl ServerSupervisorManager {
         let server_id = config.id.clone();
         let sleep_enabled = config.sleep_enabled.unwrap_or(true);
         let public_port = config.port;
-        let internal_port = config.internal_port.unwrap_or(public_port.saturating_add(1));
+        let internal_port = super::config::internal_port(&config);
         let idle_timeout = config.idle_timeout_seconds.unwrap_or(600); // 10 minutes default
 
         let last_active = Arc::new(AtomicU64::new(
@@ -62,6 +67,11 @@ impl ServerSupervisorManager {
         if sleep_enabled {
             internal_config.port = internal_port;
         }
+
+        // A proxy left from an earlier run (crash, or waking a sleeping server) still
+        // holds the public port; free it before starting again
+        self.release(&server_id).await;
+        let generation = GENERATION.fetch_add(1, Ordering::SeqCst);
 
         // Launch the initial server process
         let pid = launch_server(
@@ -158,9 +168,16 @@ impl ServerSupervisorManager {
             })
         };
 
-        let proxy_handle = start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn)
-            .await
-            .map_err(|e| format!("Failed to start TCP proxy on port {public_port}: {e}"))?;
+        let proxy_handle = match start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn).await {
+            Ok(handle) => handle,
+            Err(e) => {
+                // Don't leave the game server running without its public port
+                let _ = pm.stop_server(&server_id).await;
+                return Err(format!(
+                    "Port {public_port} is already in use ({e}). Close whatever uses it, or give this server another port in Settings."
+                ));
+            }
+        };
 
         let active_conns = proxy_handle.active_connections.clone();
 
@@ -173,6 +190,7 @@ impl ServerSupervisorManager {
                     config: config.clone(),
                     proxy_handle: Some(proxy_handle),
                     last_active_timestamp: last_active.clone(),
+                    generation,
                 },
             );
         }
@@ -181,6 +199,7 @@ impl ServerSupervisorManager {
         let s_id_idle = server_id.clone();
         let pm_idle = pm.clone();
         let on_status_idle = on_status.clone();
+        let supervised = self.supervised.clone();
         tokio::spawn(async move {
             eprintln!("[Supervisor] Idle detection loop started for {s_id_idle} (Timeout: {idle_timeout}s)");
             let mut idle_seconds = 0u64;
@@ -188,10 +207,28 @@ impl ServerSupervisorManager {
             loop {
                 tokio::time::sleep(Duration::from_secs(10)).await;
 
+                // A newer start (or a manual stop) replaced this run: nothing left to watch
+                let current = supervised.lock().await.get(&s_id_idle).map(|s| s.generation);
+                if current != Some(generation) {
+                    break;
+                }
+
                 let status = pm_idle.get_server_status(&s_id_idle).await;
                 if status == ServerStatus::Stopped {
-                    // Server was manually stopped, terminate idle loop
-                    break;
+                    // Going to sleep passes through "stopped" for a moment; still stopped a
+                    // bit later means the server exited on its own (crash, failed start)
+                    tokio::time::sleep(Duration::from_secs(12)).await;
+                    if pm_idle.get_server_status(&s_id_idle).await == ServerStatus::Stopped {
+                        let mut guard = supervised.lock().await;
+                        if guard.get(&s_id_idle).map(|s| s.generation) == Some(generation) {
+                            if let Some(proxy) = guard.remove(&s_id_idle).and_then(|s| s.proxy_handle) {
+                                let _ = proxy.shutdown_tx.send(());
+                            }
+                            eprintln!("[Supervisor] {s_id_idle} exited; released its port");
+                        }
+                        break;
+                    }
+                    continue;
                 }
 
                 if status == ServerStatus::Running {
@@ -273,14 +310,19 @@ impl ServerSupervisorManager {
         Ok(())
     }
 
+    /// Shuts down the server's proxy (freeing its public port) and forgets it
+    pub async fn release(&self, server_id: &str) {
+        let removed = self.supervised.lock().await.remove(server_id);
+        if let Some(proxy) = removed.and_then(|s| s.proxy_handle) {
+            let _ = proxy.shutdown_tx.send(());
+            // The listener closes when the proxy task sees the signal
+            tokio::time::sleep(Duration::from_millis(150)).await;
+        }
+    }
+
     /// Stops the server and shuts down its proxy
     pub async fn stop_supervised(&self, pm: &ServerProcessManager, server_id: &str) -> Result<(), String> {
-        let mut guard = self.supervised.lock().await;
-        if let Some(supervised) = guard.remove(server_id) {
-            if let Some(proxy) = supervised.proxy_handle {
-                let _ = proxy.shutdown_tx.send(());
-            }
-        }
+        self.release(server_id).await;
 
         // Stop the server process if running
         let _ = pm.stop_server(server_id).await;
