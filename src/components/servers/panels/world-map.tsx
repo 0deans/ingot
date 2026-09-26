@@ -7,6 +7,8 @@ import { useMapTile } from "@/services/server-data"
 
 const REGION_BLOCKS = 512
 const MIN_SCALE = 1 / 16
+/** Same as the map's player polling interval, so movement looks continuous */
+const MARKER_GLIDE_MS = 1500
 const MAX_SCALE = 8
 
 export interface MapView {
@@ -47,6 +49,11 @@ export function WorldMap({
 	const gesture = useRef<{ view: MapView; x: number; y: number; dist: number } | null>(null)
 	const viewRef = useRef(view)
 	viewRef.current = view
+	const lastScale = useRef(view.scale)
+	const zooming = lastScale.current !== view.scale
+	useEffect(() => {
+		lastScale.current = view.scale
+	})
 
 	useEffect(() => {
 		const el = containerRef.current
@@ -155,11 +162,6 @@ export function WorldMap({
 		)
 	})
 
-	const screen = (x: number, z: number) => ({
-		left: (x - view.x) * view.scale + size.w / 2,
-		top: (z - view.z) * view.scale + size.h / 2,
-	})
-
 	return (
 		<div
 			ref={containerRef}
@@ -206,18 +208,28 @@ export function WorldMap({
 				))}
 			</div>
 
-			{players.map((p) => {
-				const pos = screen(p.x, p.z)
-				if (pos.left < -40 || pos.top < -40 || pos.left > size.w + 40 || pos.top > size.h + 40)
-					return null
-				return (
+			{/* Pans with the map instantly; heads glide to new positions between polls */}
+			<div
+				className="pointer-events-none absolute top-0 left-0"
+				style={{
+					transform: `translate(${size.w / 2 - view.x * view.scale}px, ${size.h / 2 - view.z * view.scale}px)`,
+				}}
+			>
+				{players.map((p) => (
 					<button
 						key={p.name}
 						type="button"
 						onPointerDown={(e) => e.stopPropagation()}
 						onClick={() => onSelectPlayer(p.name)}
-						className="group -translate-1/2 absolute flex flex-col items-center gap-1"
-						style={pos}
+						className="group -translate-1/2 pointer-events-auto absolute flex flex-col items-center gap-1"
+						style={{
+							left: p.x * view.scale,
+							top: p.z * view.scale,
+							// No glide while zooming, or heads would trail behind the map
+							transition: zooming
+								? "none"
+								: `left ${MARKER_GLIDE_MS}ms linear, top ${MARKER_GLIDE_MS}ms linear`,
+						}}
 					>
 						<img
 							src={avatarUrl(p.name, 48)}
@@ -228,8 +240,8 @@ export function WorldMap({
 							{p.name}
 						</span>
 					</button>
-				)
-			})}
+				))}
+			</div>
 
 			<div className="absolute right-3 bottom-3 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-black/60 backdrop-blur-md">
 				<MapButton label="Zoom in" onClick={() => zoomAt(1.5, size.w / 2, size.h / 2)}>

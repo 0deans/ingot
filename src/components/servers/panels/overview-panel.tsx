@@ -1,28 +1,21 @@
 import {
-	Check,
 	ChevronRight,
 	Clock,
-	Copy,
 	Cpu,
-	ExternalLink,
-	Globe,
 	Loader2,
 	Moon,
 	Play,
-	QrCode,
 	Server,
 	Square,
 	Terminal,
 	Users,
 	Zap,
 } from "lucide-react"
-import { useState } from "react"
 import type { ServerConfig, ServerStatus } from "@/bindings"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { formatUptime } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
-import { usePlayitTunnel, useServerControls, useStartupStep } from "@/services/hosting"
+import { useServerControls, useStartupStep } from "@/services/hosting"
 import {
 	useLiveUptime,
 	useOnlinePlayers,
@@ -33,6 +26,7 @@ import {
 import { useServerLogs } from "@/services/server-service"
 import { MotdText } from "../shared/motd"
 import { Card, ErrorNote, PlayerAvatar } from "../shared/primitives"
+import { JoinCard, PerformanceCard } from "./overview-cards"
 
 export type WorkspaceTab = "overview" | "console" | "players" | "map" | "plugins" | "settings"
 
@@ -47,8 +41,9 @@ export function OverviewPanel({
 		<div className="flex flex-col gap-4">
 			<ServerHero server={server} />
 			<StatTiles server={server} onNavigate={onNavigate} />
+			<PerformanceCard server={server} />
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<TunnelCard server={server} />
+				<JoinCard server={server} />
 				<ConsolePeek server={server} onOpen={() => onNavigate("console")} />
 			</div>
 		</div>
@@ -248,140 +243,6 @@ function Tile({ icon: Icon, label, value }: { icon: typeof Clock; label: string;
 			</p>
 			<p className="mt-1 font-semibold text-lg text-zinc-100">{value}</p>
 		</div>
-	)
-}
-
-function TunnelCard({ server }: { server: ServerConfig }) {
-	const { tunnel, toggle, isBusy } = usePlayitTunnel()
-	const [copied, setCopied] = useState(false)
-	const [qrOpen, setQrOpen] = useState(false)
-
-	const copy = async (text: string) => {
-		await navigator.clipboard.writeText(text)
-		setCopied(true)
-		setTimeout(() => setCopied(false), 1500)
-	}
-
-	return (
-		<Card className="flex min-w-0 flex-col">
-			<div className="flex items-start justify-between gap-3 p-4">
-				<div className="flex items-start gap-2.5">
-					<div className="mt-0.5 flex size-7 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
-						<Globe className="size-3.5" />
-					</div>
-					<div>
-						<h3 className="font-semibold text-sm text-zinc-100">Public address</h3>
-						<p className="text-xs text-zinc-500">Let friends join from anywhere with playit.gg.</p>
-					</div>
-				</div>
-				<Button
-					size="sm"
-					variant={tunnel.isRunning ? "outline" : "default"}
-					disabled={isBusy}
-					onClick={() => toggle(server.playitSecretKey)}
-					className={cn(
-						"h-8 rounded-lg px-3",
-						!tunnel.isRunning && "bg-sky-600 text-white hover:bg-sky-500",
-					)}
-				>
-					{isBusy ? (
-						<Loader2 className="size-3.5 animate-spin" />
-					) : tunnel.isRunning ? (
-						"Disconnect"
-					) : (
-						"Connect"
-					)}
-				</Button>
-			</div>
-
-			<div className="mt-auto px-4 pb-4">
-				{tunnel.status === "error" && tunnel.message && <ErrorNote>{tunnel.message}</ErrorNote>}
-				{tunnel.isRunning &&
-					(tunnel.status === "claiming" && tunnel.claimUrl ? (
-						<div className="flex flex-col gap-2 rounded-xl border border-sky-500/20 bg-sky-500/[0.07] p-3">
-							<p className="text-sky-100 text-xs">
-								Link this device to your playit.gg account to get an address.
-							</p>
-							<a
-								href={tunnel.claimUrl}
-								target="_blank"
-								rel="noreferrer"
-								className="inline-flex items-center gap-1.5 self-start rounded-lg bg-sky-600 px-3 py-1.5 font-medium text-white text-xs hover:bg-sky-500"
-							>
-								Open playit.gg <ExternalLink className="size-3" />
-							</a>
-						</div>
-					) : tunnel.publicAddress ? (
-						<div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.07] p-2 pl-3">
-							<code className="min-w-0 flex-1 truncate font-mono font-semibold text-emerald-300 text-sm">
-								{tunnel.publicAddress}
-							</code>
-							<Button
-								size="icon-sm"
-								variant="ghost"
-								aria-label="Copy address"
-								onClick={() => copy(tunnel.publicAddress ?? "")}
-							>
-								{copied ? (
-									<Check className="size-3.5 text-emerald-400" />
-								) : (
-									<Copy className="size-3.5" />
-								)}
-							</Button>
-							<Button
-								size="icon-sm"
-								variant="ghost"
-								aria-label="Show QR code"
-								onClick={() => setQrOpen(true)}
-							>
-								<QrCode className="size-3.5" />
-							</Button>
-						</div>
-					) : tunnel.status === "no_tunnel" ? (
-						<div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.07] p-3 text-amber-100 text-xs">
-							{tunnel.message}{" "}
-							<a
-								href="https://playit.gg/account/tunnels"
-								target="_blank"
-								rel="noreferrer"
-								className="font-semibold text-amber-300 underline"
-							>
-								Add a tunnel
-							</a>{" "}
-							pointing to port {server.port}.
-						</div>
-					) : (
-						<div className="flex items-center gap-2 text-xs text-zinc-400">
-							<Loader2 className="size-3.5 animate-spin text-sky-400" />
-							{tunnel.message ??
-								(tunnel.status === "starting"
-									? "Starting playit agent..."
-									: "Connecting to playit.gg...")}
-						</div>
-					))}
-				{!tunnel.isRunning && tunnel.status !== "error" && (
-					<p className="text-xs text-zinc-500">
-						On the same Wi-Fi, friends can join with this device's local IP and port {server.port}.
-					</p>
-				)}
-			</div>
-
-			<Dialog open={qrOpen} onOpenChange={setQrOpen}>
-				<DialogContent className="items-center p-6 text-center sm:max-w-xs">
-					<DialogTitle className="text-sm">Scan to copy the address</DialogTitle>
-					<div className="rounded-2xl bg-white p-3">
-						<img
-							src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(tunnel.publicAddress ?? "")}`}
-							alt="QR code"
-							className="size-48"
-						/>
-					</div>
-					<code className="font-mono font-semibold text-emerald-300 text-sm">
-						{tunnel.publicAddress}
-					</code>
-				</DialogContent>
-			</Dialog>
-		</Card>
 	)
 }
 

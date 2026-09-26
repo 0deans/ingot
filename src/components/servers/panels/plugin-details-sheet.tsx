@@ -9,7 +9,7 @@ import { formatBytes, formatCount } from "@/lib/minecraft"
 import { sanitizeHtml } from "@/lib/sanitize-html"
 import { cn } from "@/lib/utils"
 import { usePluginPage, usePluginVersions } from "@/services/server-data"
-import { EmptyState, ErrorNote, Segmented } from "../shared/primitives"
+import { EmptyState, ErrorNote, FadeScroll, Segmented, useSticky } from "../shared/primitives"
 
 export function PluginIcon({
 	url,
@@ -62,9 +62,11 @@ export function PluginDetailsSheet({
 }) {
 	const [tab, setTab] = useState<"about" | "versions">("about")
 	const [compatibleOnly, setCompatibleOnly] = useState(true)
-	const source = project?.source ?? "modrinth"
-	const page = usePluginPage(source, project?.id ?? null)
-	const versions = usePluginVersions(serverId, source, project?.id ?? null, compatibleOnly)
+	const open = Boolean(project)
+	const shown = useSticky(project)
+	const source = shown?.source ?? "modrinth"
+	const page = usePluginPage(source, shown?.id ?? null)
+	const versions = usePluginVersions(serverId, source, shown?.id ?? null, compatibleOnly)
 
 	const html = useMemo(() => {
 		if (!page.data) return ""
@@ -75,23 +77,23 @@ export function PluginDetailsSheet({
 	const hasCompatible = (versions.data ?? []).some((v) => v.downloadUrl)
 
 	return (
-		<Dialog open={Boolean(project)} onOpenChange={(open) => !open && onClose()}>
+		<Dialog open={open} onOpenChange={(o) => !o && onClose()}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-				{project && (
+				{shown && (
 					<>
 						<div className="flex flex-col gap-4 border-zinc-800/80 border-b p-4 pt-3 sm:p-5">
 							<div className="flex items-start gap-3.5 pr-8">
-								<PluginIcon url={project.iconUrl} name={project.title} className="size-14" />
+								<PluginIcon url={shown.iconUrl} name={shown.title} className="size-14" />
 								<div className="min-w-0 flex-1">
 									<DialogTitle className="truncate font-bold text-lg text-zinc-50">
-										{project.title}
+										{shown.title}
 									</DialogTitle>
 									<p className="text-xs text-zinc-500">
-										by {project.author} · {formatCount(project.downloads)} downloads ·{" "}
-										{project.source === "hangar" ? "Hangar" : "Modrinth"}
+										by {shown.author} · {formatCount(shown.downloads)} downloads ·{" "}
+										{shown.source === "hangar" ? "Hangar" : "Modrinth"}
 									</p>
 									<p className="mt-1.5 text-sm text-zinc-300 leading-relaxed">
-										{project.description}
+										{shown.description}
 									</p>
 								</div>
 							</div>
@@ -102,7 +104,7 @@ export function PluginDetailsSheet({
 										installing ||
 										(versions.isSuccess && !hasCompatible && compatibleOnly)
 									}
-									onClick={() => onInstall(project)}
+									onClick={() => onInstall(shown)}
 									className={cn(
 										"h-11 flex-1 gap-2 rounded-xl font-semibold",
 										installed
@@ -120,7 +122,7 @@ export function PluginDetailsSheet({
 									{installing ? "Installing..." : installed ? "Installed" : "Install"}
 								</Button>
 								<a
-									href={project.pageUrl}
+									href={shown.pageUrl}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="flex h-11 items-center gap-1.5 rounded-xl border border-zinc-800 px-4 font-medium text-sm text-zinc-300 hover:bg-zinc-900"
@@ -136,7 +138,8 @@ export function PluginDetailsSheet({
 							)}
 						</div>
 
-						<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-5">
+						{/* Pinned above the scrolling content */}
+						<div className="shrink-0 px-4 pt-3 sm:px-5">
 							<Segmented
 								value={tab}
 								onChange={setTab}
@@ -145,6 +148,8 @@ export function PluginDetailsSheet({
 									{ value: "versions", label: "Versions" },
 								]}
 							/>
+						</div>
+						<FadeScroll className="flex min-h-0 flex-1 flex-col gap-3 p-4 sm:p-5">
 							{tab === "about" &&
 								(page.isLoading ? (
 									<div className="flex justify-center py-10">
@@ -168,10 +173,10 @@ export function PluginDetailsSheet({
 									compatibleOnly={compatibleOnly}
 									onCompatibleChange={setCompatibleOnly}
 									installing={installing}
-									onInstall={(v) => onInstall(project, v)}
+									onInstall={(v) => onInstall(shown, v)}
 								/>
 							)}
-						</div>
+						</FadeScroll>
 					</>
 				)}
 			</DialogContent>

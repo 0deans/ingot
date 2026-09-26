@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { type ReactNode, useState } from "react"
+import { type ReactNode, useEffect, useRef, useState } from "react"
 import type { ItemStack } from "@/bindings"
 import { avatarUrl, itemIconUrls, prettyId } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -89,7 +89,7 @@ export function Segmented<T extends string>({
 	return (
 		<div
 			className={cn(
-				"flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1 [scrollbar-width:none]",
+				"flex shrink-0 gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1 [scrollbar-width:none]",
 				className,
 			)}
 		>
@@ -274,6 +274,53 @@ export function StatBar({
 export function ErrorNote({ children }: { children: ReactNode }) {
 	return (
 		<div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2.5 text-rose-300 text-xs">
+			{children}
+		</div>
+	)
+}
+
+/**
+ * Last non-null value. Sheets are closed by clearing their subject (e.g. the selected
+ * player); keeping the old value lets the close animation play with the content intact.
+ */
+export function useSticky<T>(value: T | null | undefined): T | null {
+	const ref = useRef<T | null>(value ?? null)
+	if (value != null) ref.current = value
+	return ref.current
+}
+
+/** Scrollable div whose top/bottom edges fade only while there's more content that way */
+export function FadeScroll({
+	className,
+	children,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+	const ref = useRef<HTMLDivElement>(null)
+	useEffect(() => {
+		const el = ref.current
+		if (!el) return
+		const update = () => {
+			el.style.setProperty("--scroll-area-overflow-y-start", `${el.scrollTop}px`)
+			el.style.setProperty(
+				"--scroll-area-overflow-y-end",
+				`${Math.max(0, el.scrollHeight - el.scrollTop - el.clientHeight)}px`,
+			)
+		}
+		update()
+		el.addEventListener("scroll", update, { passive: true })
+		// Content can grow (lazy data, images) without the container resizing
+		const resize = new ResizeObserver(update)
+		resize.observe(el)
+		const mutations = new MutationObserver(update)
+		mutations.observe(el, { childList: true, subtree: true })
+		return () => {
+			el.removeEventListener("scroll", update)
+			resize.disconnect()
+			mutations.disconnect()
+		}
+	}, [])
+	return (
+		<div ref={ref} className={cn("scroll-fade overflow-y-auto", className)} {...props}>
 			{children}
 		</div>
 	)

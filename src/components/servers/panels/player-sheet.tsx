@@ -29,11 +29,13 @@ import { serverService } from "@/services/server-service"
 import {
 	EmptyState,
 	ErrorNote,
+	FadeScroll,
 	ItemIcon,
 	ItemSlot,
 	PlayerAvatar,
 	Segmented,
 	StatBar,
+	useSticky,
 } from "../shared/primitives"
 
 type SheetTab = "inventory" | "ender" | "effects"
@@ -51,14 +53,19 @@ export function PlayerSheet({
 	onClose: () => void
 	onShowOnMap?: (player: PlayerDetails) => void
 }) {
-	const { data: player, isLoading, error } = usePlayerDetails(serverId, name, isRunning)
+	const shownName = useSticky(name)
+	const {
+		data: player,
+		isLoading,
+		error,
+	} = usePlayerDetails(serverId, shownName, isRunning && Boolean(name))
 	const [tab, setTab] = useState<SheetTab>("inventory")
 	const [selectedItem, setSelectedItem] = useState<ItemStack | null>(null)
 
 	return (
 		<Dialog open={Boolean(name)} onOpenChange={(open) => !open && onClose()}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-				<DialogTitle className="sr-only">{name}</DialogTitle>
+				<DialogTitle className="sr-only">{shownName}</DialogTitle>
 				{isLoading && !player ? (
 					<div className="flex items-center justify-center gap-2 py-16 text-sm text-zinc-500">
 						<Loader2 className="size-4 animate-spin" /> Loading player...
@@ -68,7 +75,7 @@ export function PlayerSheet({
 						<ErrorNote>{String(error ?? "No data for this player yet.")}</ErrorNote>
 					</div>
 				) : (
-					<div className="flex min-h-0 flex-col overflow-y-auto">
+					<FadeScroll className="flex min-h-0 flex-col">
 						<PlayerHeader player={player} />
 
 						<div className="grid gap-4 px-4 pb-4 sm:grid-cols-2 sm:px-5">
@@ -180,7 +187,7 @@ export function PlayerSheet({
 						</div>
 
 						{player.online && isRunning && <PlayerActions serverId={serverId} player={player} />}
-					</div>
+					</FadeScroll>
 				)}
 			</DialogContent>
 		</Dialog>

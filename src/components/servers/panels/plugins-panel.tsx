@@ -40,7 +40,7 @@ import {
 	useServerStatus,
 } from "@/services/server-data"
 import { rpc } from "@/services/server-service"
-import { Card, EmptyState, ErrorNote, Segmented } from "../shared/primitives"
+import { Card, EmptyState, ErrorNote, Segmented, useSticky } from "../shared/primitives"
 import { PluginDetailsSheet, PluginIcon } from "./plugin-details-sheet"
 
 /** What the server core can load; null = nothing */
@@ -215,7 +215,7 @@ function InstalledList({
 	const hasTracked = plugins.some((p) => p.projectId)
 	const updates = usePluginUpdates(server.id, hasTracked)
 	const [selected, setSelected] = useState<string | null>(null)
-	const current = plugins.find((p) => p.fileName === selected) ?? null
+	const current = useSticky(plugins.find((p) => p.fileName === selected))
 	const updateFor = (p: InstalledPlugin) =>
 		updates.data?.find((u) => u.fileName === p.fileName.replace(/\.disabled$/, ""))
 
@@ -304,7 +304,7 @@ function InstalledList({
 				})}
 			</Card>
 
-			<Dialog open={Boolean(current)} onOpenChange={(open) => !open && setSelected(null)}>
+			<Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
 				<DialogContent className="gap-4 p-5 sm:max-w-md">
 					{current && (
 						<InstalledDetails

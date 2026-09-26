@@ -67,12 +67,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 	}
 
 	return (
-		<div
-			className={cn(
-				"relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#0a0a0c]",
-				className,
-			)}
-		>
+		<div className={cn("relative flex min-h-0 flex-col overflow-hidden bg-[#0a0a0c]", className)}>
 			<div className="flex items-center justify-between border-zinc-800/80 border-b px-3 py-2">
 				<span className="flex items-center gap-2 font-medium text-xs text-zinc-400">
 					<Terminal className="size-3.5" />
@@ -104,11 +99,13 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 				className="min-h-0 flex-1 overflow-y-auto px-3 py-2 font-mono text-[11px] leading-relaxed"
 			>
 				{logs.length === 0 ? (
-					<EmptyState
-						icon={Terminal}
-						title={isRunning ? "Waiting for output..." : "Server is offline"}
-						description={isRunning ? undefined : "Start the server to see its console."}
-					/>
+					<div className="flex h-full items-center justify-center font-sans">
+						<EmptyState
+							icon={Terminal}
+							title={isRunning ? "Waiting for output..." : "Server is offline"}
+							description={isRunning ? undefined : "Start the server to see its console."}
+						/>
+					</div>
 				) : (
 					logs.map((line, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: log lines are append-only

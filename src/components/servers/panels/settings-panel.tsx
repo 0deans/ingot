@@ -41,8 +41,9 @@ import {
 import { rpc, serverService } from "@/services/server-service"
 import DeleteServerDialog from "../delete-server-dialog"
 import { MC_COLORS, ServerListPreview } from "../shared/motd"
-import { Card, CardHeader, ErrorNote } from "../shared/primitives"
+import { Card, CardHeader, ErrorNote, useSticky } from "../shared/primitives"
 import { HANDLED_ELSEWHERE, KNOWN_KEYS, PROPERTY_GROUPS, type PropertyDef } from "./property-schema"
+import { TransferCard } from "./transfer-card"
 
 export function SettingsPanel({
 	server,
@@ -64,6 +65,7 @@ export function SettingsPanel({
 			<MemoryCard server={server} />
 			<PropertiesCard server={server} />
 			<ConfigFilesCard serverId={server.id} />
+			<TransferCard server={server} />
 			<DangerCard server={server} onDeleted={onDeleted} />
 		</div>
 	)
@@ -590,7 +592,8 @@ function ConfigFileEditor({
 	onClose: () => void
 }) {
 	const queryClient = useQueryClient()
-	const { data, isLoading } = useConfigFile(serverId, path)
+	const shownPath = useSticky(path)
+	const { data, isLoading } = useConfigFile(serverId, shownPath)
 	const [text, setText] = useState<string | null>(null)
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
 	const [error, setError] = useState<string | null>(null)
@@ -622,7 +625,7 @@ function ConfigFileEditor({
 	return (
 		<Dialog open={Boolean(path)} onOpenChange={(o) => !o && onClose()}>
 			<DialogContent className="flex h-[85vh] flex-col gap-3 p-4 sm:max-w-3xl">
-				<DialogTitle className="truncate pr-8 font-mono text-sm">{path}</DialogTitle>
+				<DialogTitle className="truncate pr-8 font-mono text-sm">{shownPath}</DialogTitle>
 				{isLoading ? (
 					<div className="flex flex-1 items-center justify-center">
 						<Loader2 className="size-5 animate-spin text-zinc-500" />

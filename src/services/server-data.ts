@@ -47,12 +47,13 @@ export function useServerStatus(serverId: string | null | undefined): {
 	return { status, isRunning: status === "running", uptimeSeconds: info?.uptimeSeconds ?? 0 }
 }
 
-export function useOnlinePlayers(serverId: string, isRunning: boolean) {
+/** `interval`: the map polls faster so player heads move smoothly */
+export function useOnlinePlayers(serverId: string, isRunning: boolean, interval = 3000) {
 	return useQuery({
 		queryKey: serverKeys.online(serverId),
 		queryFn: () => rpc.get_online_players(serverId),
 		enabled: isRunning,
-		refetchInterval: 3000,
+		refetchInterval: interval,
 		retry: false,
 		placeholderData: keepPreviousData,
 	})
@@ -130,6 +131,8 @@ export function useMapTile(
 	return useQuery({
 		queryKey: serverKeys.tile(serverId, dimension, x, z, revision),
 		queryFn: () => rpc.get_map_tile(serverId, dimension, x, z),
+		// Keep showing the previous image while a redrawn tile loads (no flicker)
+		placeholderData: keepPreviousData,
 		staleTime: Number.POSITIVE_INFINITY,
 		gcTime: 5 * 60_000,
 	})
@@ -288,4 +291,24 @@ export function usePluginActions(serverId: string) {
 		onSettled: refresh,
 	})
 	return { install, remove, toggle }
+}
+
+// ─── Performance ──────────────────────────────────────────────────────────────
+
+export function useServerStats(serverId: string, isRunning: boolean) {
+	return useQuery({
+		queryKey: ["server", serverId, "stats"],
+		queryFn: () => rpc.get_server_stats(serverId),
+		enabled: isRunning,
+		refetchInterval: 2000,
+		retry: false,
+	})
+}
+
+export function useLanAddress() {
+	return useQuery({
+		queryKey: ["lan-address"],
+		queryFn: () => rpc.get_lan_address(),
+		staleTime: 60_000,
+	})
 }

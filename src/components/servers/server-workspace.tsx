@@ -158,7 +158,7 @@ export function ServerWorkspace({
 			</header>
 
 			{fill ? (
-				<div className="min-h-0 flex-1 p-5 lg:p-6">{content}</div>
+				<div className="min-h-0 flex-1">{content}</div>
 			) : (
 				<ScrollArea className="min-h-0 flex-1" scrollFade>
 					<div className="mx-auto w-full max-w-5xl p-5 pb-12 lg:p-6">{content}</div>

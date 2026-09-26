@@ -10,31 +10,44 @@ import { useServerIcon, useServerStatus } from "@/services/server-data"
 import { useServers } from "@/services/server-service"
 import type { WorkspaceTab } from "./panels/overview-panel"
 import { StatusPill } from "./panels/overview-panel"
+import { ImportServerButton } from "./panels/transfer-card"
 import { FILL_TABS, tabLabel, WORKSPACE_TABS, WorkspaceContent } from "./server-workspace"
+import { FadeScroll } from "./shared/primitives"
 
 const SELECTED_KEY = "ingot:mobile-server"
+const TAB_KEY = "ingot:mobile-tab"
 
-function readSelected(): string | null {
+function read(key: string): string | null {
 	try {
-		return localStorage.getItem(SELECTED_KEY)
+		return localStorage.getItem(key)
 	} catch {
 		return null
 	}
 }
 
-function writeSelected(id: string) {
+function write(key: string, value: string) {
 	try {
-		localStorage.setItem(SELECTED_KEY, id)
+		localStorage.setItem(key, value)
 	} catch {
-		// Storage can be unavailable; the first server is used then
+		// Storage can be unavailable; defaults are used then
 	}
+}
+
+/** Last tab, so a WebView reload (Android can recreate it) returns to the same screen */
+function readTab(): WorkspaceTab {
+	const tab = read(TAB_KEY)
+	return WORKSPACE_TABS.some((t) => t.id === tab) ? (tab as WorkspaceTab) : "overview"
 }
 
 /** Phone UI: server switcher on top, the shared panels in the middle, tabs at the bottom */
 export const MobileServerDashboard = memo(() => {
 	const { servers, isLoading } = useServers()
-	const [selectedId, setSelectedId] = useState<string | null>(readSelected)
-	const [tab, setTab] = useState<WorkspaceTab>("overview")
+	const [selectedId, setSelectedId] = useState<string | null>(() => read(SELECTED_KEY))
+	const [tab, setTabState] = useState<WorkspaceTab>(readTab)
+	const setTab = (next: WorkspaceTab) => {
+		setTabState(next)
+		write(TAB_KEY, next)
+	}
 	const [switcherOpen, setSwitcherOpen] = useState(false)
 	const [newOpen, setNewOpen] = useState(false)
 	const [mapFocus, setMapFocus] = useState<PlayerDetails | null>(null)
@@ -49,7 +62,7 @@ export const MobileServerDashboard = memo(() => {
 
 	const select = (id: string) => {
 		setSelectedId(id)
-		writeSelected(id)
+		write(SELECTED_KEY, id)
 		setTab("overview")
 		setSwitcherOpen(false)
 	}
@@ -84,6 +97,16 @@ export const MobileServerDashboard = memo(() => {
 	}
 
 	const fill = FILL_TABS.includes(tab)
+	const content = (
+		<WorkspaceContent
+			server={server}
+			tab={tab}
+			onTabChange={setTab}
+			onDeleted={() => setTab("overview")}
+			mapFocus={mapFocus}
+			onMapFocus={setMapFocus}
+		/>
+	)
 
 	return (
 		<div className="flex h-dvh flex-col bg-zinc-950 text-zinc-100">
@@ -104,21 +127,14 @@ export const MobileServerDashboard = memo(() => {
 				</button>
 			</header>
 
-			<main
-				className={cn(
-					"min-h-0 flex-1",
-					fill ? "p-3" : "overflow-y-auto overflow-x-hidden px-3 pt-3 pb-6",
-				)}
-			>
-				<WorkspaceContent
-					server={server}
-					tab={tab}
-					onTabChange={setTab}
-					onDeleted={() => setTab("overview")}
-					mapFocus={mapFocus}
-					onMapFocus={setMapFocus}
-				/>
-			</main>
+			{/* Console and map fill the whole area; other tabs scroll */}
+			{fill ? (
+				<main className="min-h-0 flex-1">{content}</main>
+			) : (
+				<FadeScroll className="min-h-0 flex-1 overflow-x-hidden px-3 pt-3 pb-6">
+					{content}
+				</FadeScroll>
+			)}
 
 			<nav className="grid shrink-0 grid-cols-5 border-zinc-900 border-t bg-zinc-950 pb-[env(safe-area-inset-bottom)]">
 				{/* Settings lives behind the gear in the top bar, keeping five tabs here */}
@@ -148,7 +164,7 @@ export const MobileServerDashboard = memo(() => {
 			<Dialog open={switcherOpen} onOpenChange={setSwitcherOpen}>
 				<DialogContent className="gap-3 p-4">
 					<DialogTitle className="px-1 text-base">Your servers</DialogTitle>
-					<div className="-mx-1 flex max-h-[55dvh] flex-col gap-1 overflow-y-auto">
+					<FadeScroll className="-mx-1 flex max-h-[55dvh] flex-col gap-1">
 						{servers.map((s) => (
 							<ServerRow
 								key={s.id}
@@ -157,7 +173,7 @@ export const MobileServerDashboard = memo(() => {
 								onClick={() => select(s.id)}
 							/>
 						))}
-					</div>
+					</FadeScroll>
 					<Button
 						onClick={() => {
 							setSwitcherOpen(false)
@@ -167,6 +183,10 @@ export const MobileServerDashboard = memo(() => {
 					>
 						<Plus className="size-4" /> New server
 					</Button>
+					<ImportServerButton
+						className="h-11 gap-2 rounded-2xl border-zinc-800"
+						onImported={(created) => select(created.id)}
+					/>
 				</DialogContent>
 			</Dialog>
 

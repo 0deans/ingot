@@ -67,6 +67,12 @@ export type ElySkinsCatalogResponse = {
 	lastPage: number,
 };
 
+export type ExportMode = 
+/**  server.properties, plugin/mod configs, whitelist, ops, icon - no worlds or jars */
+"configs" | 
+/**  Everything needed to run it elsewhere, worlds and plugins included */
+"full";
+
 export type ImportInstanceOptions = {
 	sourcePath: string,
 	launcherId: string,
@@ -406,6 +412,16 @@ export type ServerProperties = {
 	spawnProtection: number,
 };
 
+export type ServerStats = {
+	/**  Share of the whole machine's CPU, 0-100 */
+	cpuPercent: number,
+	memoryMb: number,
+	systemMemoryUsedMb: number,
+	systemMemoryTotalMb: number,
+	/**  Ticks per second over the last minute (Paper/Purpur/Folia only) */
+	tps: number | null,
+};
+
 export type ServerStatus = "stopped" | "starting" | "running" | "stopping" | "sleeping";
 
 export type ServerStatusEvent = {
@@ -547,9 +563,9 @@ export type WindowSettings = {
 	width: number,
 	height: number,
 };
-const ARGS_MAP = {"":{"add_access_entry":["server_id","kind","name"],"add_offline_account":["username"],"add_to_server_whitelist":["server_id","username"],"apply_ely_skin":["account_id","skin_id","password"],"check_server_plugin_updates":["server_id"],"check_sync_conflict":["instance_id"],"create_instance":["name","game_version","loader","loader_version"],"create_server":["name","core","game_version","build_number","port","memory_min_mb","memory_max_mb"],"delete_instance":["instance_id"],"delete_screenshot":["instance_id","file_name"],"delete_server":["server_id","delete_files"],"detect_custom_instance":["path"],"ely_login":["username","password"],"export_instance_category_to_shared":["instance_id","category"],"get_access_list":["server_id","kind"],"get_accounts":[],"get_active_account_token":[],"get_all_screenshots":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_available_server_core_versions":["core"],"get_content_details":["source","project_id"],"get_detected_launchers":[],"get_ely_skins":["page","query","sort","model","uploader"],"get_instance_worlds":["instance_id"],"get_instances":[],"get_known_players":["server_id"],"get_launcher_behavior":[],"get_launcher_instances":["launcher_id","custom_path"],"get_map_dimensions":["server_id"],"get_map_tile":["server_id","dimension","x","z"],"get_memory_settings":[],"get_online_players":["server_id"],"get_player_details":["server_id","name"],"get_playit_status":[],"get_running_instances":[],"get_running_servers":[],"get_server_icon":["server_id"],"get_server_logs":["server_id"],"get_server_online_players":["server_id"],"get_server_plugin_page":["source","project_id"],"get_server_plugin_versions":["server_id","source","project_id","compatible_only"],"get_server_properties":["server_id"],"get_server_properties_all":["server_id"],"get_server_whitelist":["server_id"],"get_servers":[],"get_shared_sync_status":[],"get_skin_data_url":["skin_url"],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"import_instance":["options"],"install_content_file":["instance_id","project_type","download_url","filename"],"install_modpack_instance":["name","source","download_url","filename"],"install_server_plugin":["server_id","source","project_id","version_id"],"kill_instance":["instance_id"],"kill_server":["server_id"],"launch_instance":["instance_id","quick_play"],"list_server_config_files":["server_id"],"list_server_plugins":["server_id"],"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_memory_changed":["settings"],"on_server_log":["event"],"on_server_status_changed":["event"],"open_instance_folder":["instance_id"],"open_screenshots_folder":["instance_id"],"open_server_folder":["server_id"],"ping_server":["port"],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"put_server_to_sleep":["server_id"],"read_server_config_file":["server_id","path"],"remove_access_entry":["server_id","kind","name"],"remove_account":["account_id"],"remove_from_server_whitelist":["server_id","username"],"remove_server_plugin":["server_id","file_name"],"reorder_accounts":["account_ids"],"resolve_sync_conflict":["instance_id","resolution"],"reveal_screenshot_file":["file_path"],"save_server_world":["server_id"],"save_skin_to_downloads":["username","skin_url"],"search_content":["source","project_type","query","game_version","loader","sort","page","page_size"],"search_server_plugins":["server_id","source","query","sort","compatible_only","page"],"send_server_command":["server_id","command"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_server_icon":["server_id","base64_data"],"set_server_plugin_enabled":["server_id","file_name","enabled"],"set_server_properties":["server_id","properties"],"set_server_properties_all":["server_id","entries"],"set_sync_settings":["settings"],"set_window_settings":["settings"],"start_playit_tunnel":["secret_key"],"start_server":["server_id"],"stop_playit_tunnel":[],"stop_server":["server_id"],"update_instance":["instance"],"update_server":["server"],"upload_ely_skin":["account_id","image_base64","password"],"write_server_config_file":["server_id","path","content"]}};
+const ARGS_MAP = {"":{"add_access_entry":["server_id","kind","name"],"add_offline_account":["username"],"add_to_server_whitelist":["server_id","username"],"apply_ely_skin":["account_id","skin_id","password"],"change_server_version":["server_id","game_version","build_number"],"check_server_plugin_updates":["server_id"],"check_sync_conflict":["instance_id"],"create_instance":["name","game_version","loader","loader_version"],"create_server":["name","core","game_version","build_number","port","memory_min_mb","memory_max_mb"],"delete_instance":["instance_id"],"delete_screenshot":["instance_id","file_name"],"delete_server":["server_id","delete_files"],"detect_custom_instance":["path"],"duplicate_server":["server_id","name","game_version","build_number"],"ely_login":["username","password"],"export_instance_category_to_shared":["instance_id","category"],"export_server":["server_id","mode","dest"],"get_access_list":["server_id","kind"],"get_accounts":[],"get_active_account_token":[],"get_all_screenshots":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_available_server_core_versions":["core"],"get_content_details":["source","project_id"],"get_detected_launchers":[],"get_ely_skins":["page","query","sort","model","uploader"],"get_instance_worlds":["instance_id"],"get_instances":[],"get_known_players":["server_id"],"get_lan_address":[],"get_launcher_behavior":[],"get_launcher_instances":["launcher_id","custom_path"],"get_map_dimensions":["server_id"],"get_map_tile":["server_id","dimension","x","z"],"get_memory_settings":[],"get_online_players":["server_id"],"get_player_details":["server_id","name"],"get_playit_status":[],"get_running_instances":[],"get_running_servers":[],"get_server_icon":["server_id"],"get_server_logs":["server_id"],"get_server_online_players":["server_id"],"get_server_plugin_page":["source","project_id"],"get_server_plugin_versions":["server_id","source","project_id","compatible_only"],"get_server_properties":["server_id"],"get_server_properties_all":["server_id"],"get_server_stats":["server_id"],"get_server_whitelist":["server_id"],"get_servers":[],"get_shared_sync_status":[],"get_skin_data_url":["skin_url"],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"greet":["name"],"has_ely_web_credentials":["account_id"],"import_instance":["options"],"import_server":["upload_id"],"import_upload_chunk":["upload_id","data_base64","first"],"install_content_file":["instance_id","project_type","download_url","filename"],"install_modpack_instance":["name","source","download_url","filename"],"install_server_plugin":["server_id","source","project_id","version_id"],"kill_instance":["instance_id"],"kill_server":["server_id"],"launch_instance":["instance_id","quick_play"],"list_server_config_files":["server_id"],"list_server_plugins":["server_id"],"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_memory_changed":["settings"],"on_server_log":["event"],"on_server_status_changed":["event"],"open_instance_folder":["instance_id"],"open_screenshots_folder":["instance_id"],"open_server_folder":["server_id"],"ping_server":["port"],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"put_server_to_sleep":["server_id"],"read_server_config_file":["server_id","path"],"remove_access_entry":["server_id","kind","name"],"remove_account":["account_id"],"remove_from_server_whitelist":["server_id","username"],"remove_server_plugin":["server_id","file_name"],"reorder_accounts":["account_ids"],"resolve_sync_conflict":["instance_id","resolution"],"reveal_screenshot_file":["file_path"],"save_server_world":["server_id","flush"],"save_skin_to_downloads":["username","skin_url"],"search_content":["source","project_type","query","game_version","loader","sort","page","page_size"],"search_server_plugins":["server_id","source","query","sort","compatible_only","page"],"send_server_command":["server_id","command"],"set_active_account":["account_id"],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_server_icon":["server_id","base64_data"],"set_server_plugin_enabled":["server_id","file_name","enabled"],"set_server_properties":["server_id","properties"],"set_server_properties_all":["server_id","entries"],"set_sync_settings":["settings"],"set_window_settings":["settings"],"start_playit_tunnel":["secret_key"],"start_server":["server_id"],"stop_playit_tunnel":[],"stop_server":["server_id"],"update_instance":["instance"],"update_server":["server"],"upload_ely_skin":["account_id","image_base64","password"],"write_server_config_file":["server_id","path","content"]}};
 
-const RESULT_MAP = {"":{"add_access_entry":true,"add_offline_account":true,"add_to_server_whitelist":true,"apply_ely_skin":true,"check_server_plugin_updates":true,"check_sync_conflict":true,"create_instance":true,"create_server":true,"delete_instance":true,"delete_screenshot":true,"delete_server":true,"detect_custom_instance":true,"ely_login":true,"export_instance_category_to_shared":true,"get_access_list":true,"get_accounts":true,"get_active_account_token":true,"get_all_screenshots":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_available_server_core_versions":true,"get_content_details":true,"get_detected_launchers":true,"get_ely_skins":true,"get_instance_worlds":true,"get_instances":true,"get_known_players":true,"get_launcher_behavior":true,"get_launcher_instances":true,"get_map_dimensions":true,"get_map_tile":true,"get_memory_settings":true,"get_online_players":true,"get_player_details":true,"get_playit_status":true,"get_running_instances":true,"get_running_servers":true,"get_server_icon":true,"get_server_logs":true,"get_server_online_players":true,"get_server_plugin_page":true,"get_server_plugin_versions":true,"get_server_properties":true,"get_server_properties_all":true,"get_server_whitelist":true,"get_servers":true,"get_shared_sync_status":true,"get_skin_data_url":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"greet":false,"has_ely_web_credentials":true,"import_instance":true,"install_content_file":true,"install_modpack_instance":true,"install_server_plugin":true,"kill_instance":true,"kill_server":true,"launch_instance":true,"list_server_config_files":true,"list_server_plugins":true,"on_instance_status_changed":false,"on_launch_progress":false,"on_memory_changed":false,"on_server_log":false,"on_server_status_changed":false,"open_instance_folder":true,"open_screenshots_folder":true,"open_server_folder":true,"ping_server":true,"pull_instance_sync":true,"push_instance_sync":true,"put_server_to_sleep":true,"read_server_config_file":true,"remove_access_entry":true,"remove_account":true,"remove_from_server_whitelist":true,"remove_server_plugin":true,"reorder_accounts":true,"resolve_sync_conflict":true,"reveal_screenshot_file":true,"save_server_world":true,"save_skin_to_downloads":true,"search_content":true,"search_server_plugins":true,"send_server_command":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_server_icon":true,"set_server_plugin_enabled":true,"set_server_properties":true,"set_server_properties_all":true,"set_sync_settings":true,"set_window_settings":true,"start_playit_tunnel":true,"start_server":true,"stop_playit_tunnel":true,"stop_server":true,"update_instance":true,"update_server":true,"upload_ely_skin":true,"write_server_config_file":true}};
+const RESULT_MAP = {"":{"add_access_entry":true,"add_offline_account":true,"add_to_server_whitelist":true,"apply_ely_skin":true,"change_server_version":true,"check_server_plugin_updates":true,"check_sync_conflict":true,"create_instance":true,"create_server":true,"delete_instance":true,"delete_screenshot":true,"delete_server":true,"detect_custom_instance":true,"duplicate_server":true,"ely_login":true,"export_instance_category_to_shared":true,"export_server":true,"get_access_list":true,"get_accounts":true,"get_active_account_token":true,"get_all_screenshots":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_available_server_core_versions":true,"get_content_details":true,"get_detected_launchers":true,"get_ely_skins":true,"get_instance_worlds":true,"get_instances":true,"get_known_players":true,"get_lan_address":true,"get_launcher_behavior":true,"get_launcher_instances":true,"get_map_dimensions":true,"get_map_tile":true,"get_memory_settings":true,"get_online_players":true,"get_player_details":true,"get_playit_status":true,"get_running_instances":true,"get_running_servers":true,"get_server_icon":true,"get_server_logs":true,"get_server_online_players":true,"get_server_plugin_page":true,"get_server_plugin_versions":true,"get_server_properties":true,"get_server_properties_all":true,"get_server_stats":true,"get_server_whitelist":true,"get_servers":true,"get_shared_sync_status":true,"get_skin_data_url":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"greet":false,"has_ely_web_credentials":true,"import_instance":true,"import_server":true,"import_upload_chunk":true,"install_content_file":true,"install_modpack_instance":true,"install_server_plugin":true,"kill_instance":true,"kill_server":true,"launch_instance":true,"list_server_config_files":true,"list_server_plugins":true,"on_instance_status_changed":false,"on_launch_progress":false,"on_memory_changed":false,"on_server_log":false,"on_server_status_changed":false,"open_instance_folder":true,"open_screenshots_folder":true,"open_server_folder":true,"ping_server":true,"pull_instance_sync":true,"push_instance_sync":true,"put_server_to_sleep":true,"read_server_config_file":true,"remove_access_entry":true,"remove_account":true,"remove_from_server_whitelist":true,"remove_server_plugin":true,"reorder_accounts":true,"resolve_sync_conflict":true,"reveal_screenshot_file":true,"save_server_world":true,"save_skin_to_downloads":true,"search_content":true,"search_server_plugins":true,"send_server_command":true,"set_active_account":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_server_icon":true,"set_server_plugin_enabled":true,"set_server_properties":true,"set_server_properties_all":true,"set_sync_settings":true,"set_window_settings":true,"start_playit_tunnel":true,"start_server":true,"stop_playit_tunnel":true,"stop_server":true,"update_instance":true,"update_server":true,"upload_ely_skin":true,"write_server_config_file":true}};
 
 export type Router = {
 	"": {
@@ -557,6 +573,8 @@ export type Router = {
 		add_offline_account: (username: string) => Promise<AccountProfile>,
 		add_to_server_whitelist: (serverId: string, username: string) => Promise<null>,
 		apply_ely_skin: (accountId: string, skinId: number, password: string | null) => Promise<null>,
+		/**  Switches a server to another version in place */
+		change_server_version: (serverId: string, gameVersion: string, buildNumber: string | null) => Promise<ServerConfig>,
 		check_server_plugin_updates: (serverId: string) => Promise<PluginUpdate[]>,
 		check_sync_conflict: (instanceId: string) => Promise<{
 	instanceId: string,
@@ -573,8 +591,15 @@ export type Router = {
 		delete_screenshot: (instanceId: string, fileName: string) => Promise<null>,
 		delete_server: (serverId: string, deleteFiles: boolean) => Promise<null>,
 		detect_custom_instance: (path: string) => Promise<ImportableInstance>,
+		/**  Copies a server, optionally switching the copy to another version */
+		duplicate_server: (serverId: string, name: string, gameVersion: string | null, buildNumber: string | null) => Promise<ServerConfig>,
 		ely_login: (username: string, password: string) => Promise<AccountProfile>,
 		export_instance_category_to_shared: (instanceId: string, category: string) => Promise<SyncReport>,
+		/**
+		 *  Zips the server; saved to `dest`, or to the app cache (for sharing) when None.
+		 *  Returns the archive path.
+		 */
+		export_server: (serverId: string, mode: ExportMode, dest: string | null) => Promise<string>,
 		get_access_list: (serverId: string, kind: AccessListKind) => Promise<AccessEntry[]>,
 		get_accounts: () => Promise<AccountProfile[]>,
 		get_active_account_token: () => Promise<string>,
@@ -589,6 +614,8 @@ export type Router = {
 		get_instances: () => Promise<InstanceConfig[]>,
 		/**  Everyone with a save file, newest first */
 		get_known_players: (serverId: string) => Promise<KnownPlayer[]>,
+		/**  This device's LAN IP, for inviting players on the same network */
+		get_lan_address: () => Promise<string | null>,
 		get_launcher_behavior: () => Promise<string>,
 		get_launcher_instances: (launcherId: string, customPath: string | null) => Promise<ImportableInstance[]>,
 		get_map_dimensions: (serverId: string) => Promise<MapDimension[]>,
@@ -610,6 +637,8 @@ export type Router = {
 		get_server_plugin_versions: (serverId: string, source: PluginSource, projectId: string, compatibleOnly: boolean) => Promise<PluginVersion[]>,
 		get_server_properties: (serverId: string) => Promise<ServerProperties>,
 		get_server_properties_all: (serverId: string) => Promise<PropertyEntry[]>,
+		/**  CPU, memory and TPS of a running server */
+		get_server_stats: (serverId: string) => Promise<ServerStats>,
 		get_server_whitelist: (serverId: string) => Promise<WhitelistEntry[]>,
 		get_servers: () => Promise<ServerConfig[]>,
 		get_shared_sync_status: () => Promise<SharedSyncStatus>,
@@ -620,6 +649,10 @@ export type Router = {
 		greet: (name: string) => Promise<string>,
 		has_ely_web_credentials: (accountId: string) => Promise<boolean>,
 		import_instance: (options: ImportInstanceOptions) => Promise<ImportReport>,
+		/**  Creates a new server from an uploaded archive */
+		import_server: (uploadId: string) => Promise<ServerConfig>,
+		/**  Appends a base64 chunk of an archive being imported (first chunk truncates) */
+		import_upload_chunk: (uploadId: string, dataBase64: string, first: boolean) => Promise<null>,
 		install_content_file: (instanceId: string, projectType: string, downloadUrl: string, filename: string) => Promise<string>,
 		install_modpack_instance: (name: string, source: string, downloadUrl: string, filename: string) => Promise<InstanceConfig>,
 		/**
@@ -655,8 +688,12 @@ export type Router = {
 		reorder_accounts: (accountIds: string[]) => Promise<null>,
 		resolve_sync_conflict: (instanceId: string, resolution: string) => Promise<SyncReport>,
 		reveal_screenshot_file: (filePath: string) => Promise<null>,
-		/**  Flushes the world to disk (`save-all flush`) so the map shows the latest state */
-		save_server_world: (serverId: string) => Promise<null>,
+		/**
+		 *  Flushes the world to disk (`save-all flush`) so the map shows the latest state
+		 *  Saves the world so the map shows the latest state. `flush` also waits for
+		 *  every chunk to reach the disk (slower; used for an explicit refresh).
+		 */
+		save_server_world: (serverId: string, flush: boolean) => Promise<null>,
 		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
 		search_content: (source: string, projectType: string, query: string | null, gameVersion: string | null, loader: string | null, sort: string | null, page: number, pageSize: number) => Promise<ContentSearchResult>,
 		/**  Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric) for this server */

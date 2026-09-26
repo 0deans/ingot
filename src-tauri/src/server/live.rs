@@ -532,6 +532,10 @@ pub fn is_query_reply(line: &str) -> bool {
     line.contains(ENTITY_DATA_MARKER)
         || line.contains("No entity was found")
         || is_list_reply(line)
+        || line.contains("TPS from last")
+        // Periodic saves for the live map
+        || line.contains("Saving the game")
+        || line.contains("Saved the game")
 }
 
 fn is_list_reply(line: &str) -> bool {

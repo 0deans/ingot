@@ -12,6 +12,7 @@ import { instanceService } from "@/services/instance-service"
 import { serverService, useRunningServers, useServers } from "@/services/server-service"
 import DeleteServerDialog from "./delete-server-dialog"
 import NewServerDialog from "./new-server-dialog"
+import { ImportServerButton } from "./panels/transfer-card"
 import { QuickJoinDialog } from "./quick-join-dialog"
 import ServerCard from "./server-card"
 import { ServerWorkspace } from "./server-workspace"
@@ -185,6 +186,10 @@ export default function ServerListView() {
 							<Plus className="size-4" />
 							<span>Create Server</span>
 						</Button>
+						<ImportServerButton
+							className="h-9 gap-1.5 text-xs"
+							onImported={(created) => openPage(created.id)}
+						/>
 					</div>
 				</div>
 

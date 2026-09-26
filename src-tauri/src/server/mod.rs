@@ -11,7 +11,9 @@ pub mod map;
 pub mod plugins;
 pub mod sandbox;
 pub mod slp;
+pub mod stats;
 pub mod supervisor;
+pub mod transfer;
 pub mod tunnel;
 
 pub use config::{

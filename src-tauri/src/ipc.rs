@@ -16,6 +16,8 @@ use crate::server::{
 use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
 use crate::server::live::{KnownPlayer, PlayerDetails};
 use crate::server::map::MapDimension;
+use crate::server::stats::ServerStats;
+use crate::server::transfer::ExportMode;
 use crate::server::plugins::{
     InstallReport, InstalledPlugin, PluginSearchResult, PluginSource, PluginUpdate, PluginVersion,
 };
@@ -443,7 +445,9 @@ pub trait AppApi {
     ) -> Result<Option<String>, String>;
 
     /// Flushes the world to disk (`save-all flush`) so the map shows the latest state
-    async fn save_server_world(server_id: String) -> Result<(), String>;
+    /// Saves the world so the map shows the latest state. `flush` also waits for
+    /// every chunk to reach the disk (slower; used for an explicit refresh).
+    async fn save_server_world(server_id: String, flush: bool) -> Result<(), String>;
 
     async fn get_server_properties_all(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -548,6 +552,55 @@ pub trait AppApi {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<Vec<PluginUpdate>, String>;
+
+    /// CPU, memory and TPS of a running server
+    async fn get_server_stats(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<ServerStats, String>;
+
+    /// This device's LAN IP, for inviting players on the same network
+    async fn get_lan_address() -> Result<Option<String>, String>;
+
+    /// Zips the server; saved to `dest`, or to the app cache (for sharing) when None.
+    /// Returns the archive path.
+    async fn export_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        mode: ExportMode,
+        dest: Option<String>,
+    ) -> Result<String, String>;
+
+    /// Appends a base64 chunk of an archive being imported (first chunk truncates)
+    async fn import_upload_chunk(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        upload_id: String,
+        data_base64: String,
+        first: bool,
+    ) -> Result<(), String>;
+
+    /// Creates a new server from an uploaded archive
+    async fn import_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        upload_id: String,
+    ) -> Result<ServerConfig, String>;
+
+    /// Copies a server, optionally switching the copy to another version
+    async fn duplicate_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        name: String,
+        game_version: Option<String>,
+        build_number: Option<String>,
+    ) -> Result<ServerConfig, String>;
+
+    /// Switches a server to another version in place
+    async fn change_server_version(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        game_version: String,
+        build_number: Option<String>,
+    ) -> Result<ServerConfig, String>;
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -1365,12 +1418,12 @@ impl AppApi for AppApiImpl {
             .map_err(|e| e.to_string())?
     }
 
-    async fn save_server_world(self, server_id: String) -> Result<(), String> {
+    async fn save_server_world(self, server_id: String, flush: bool) -> Result<(), String> {
         get_server_process_manager()
             .query(
                 &server_id,
-                "save-all flush",
-                |line| line.contains("Saved the game") || line.contains("Saving is already turned on"),
+                if flush { "save-all flush" } else { "save-all" },
+                |line| line.contains("Saved the game"),
                 std::time::Duration::from_secs(30),
             )
             .await
@@ -1599,6 +1652,143 @@ impl AppApi for AppApiImpl {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         Ok(server::plugins::check_updates(&dir, &config.core, &config.game_version).await)
     }
+
+    async fn get_server_stats(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<ServerStats, String> {
+        let (_, config) = server_with_config(&app_handle, &server_id)?;
+        let pm = get_server_process_manager();
+        let pid = pm
+            .get_running_servers()
+            .await
+            .into_iter()
+            .find(|s| s.server_id == server_id && s.pid > 0)
+            .map(|s| s.pid)
+            .ok_or("Server is not running")?;
+        let has_tps = matches!(
+            config.core,
+            ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia
+        );
+        Ok(server::stats::stats(pm, &server_id, pid, has_tps).await)
+    }
+
+    async fn get_lan_address(self) -> Result<Option<String>, String> {
+        Ok(server::stats::lan_address())
+    }
+
+    async fn export_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        mode: ExportMode,
+        dest: Option<String>,
+    ) -> Result<String, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        let dest = match dest {
+            Some(path) => std::path::PathBuf::from(path),
+            None => app_handle
+                .path()
+                .app_cache_dir()
+                .map_err(|e| e.to_string())?
+                .join("exports")
+                .join(server::transfer::export_file_name(&config, mode)),
+        };
+        let path = tauri::async_runtime::spawn_blocking(move || server::transfer::export(&dir, &config, mode, &dest))
+            .await
+            .map_err(|e| e.to_string())??;
+        Ok(path.to_string_lossy().into_owned())
+    }
+
+    async fn import_upload_chunk(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        upload_id: String,
+        data_base64: String,
+        first: bool,
+    ) -> Result<(), String> {
+        use base64::Engine;
+        use std::io::Write;
+        let path = import_upload_path(&app_handle, &upload_id)?;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(data_base64)
+            .map_err(|e| format!("Invalid upload chunk: {e}"))?;
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .append(!first)
+            .truncate(first)
+            .open(&path)
+            .map_err(|e| format!("Failed to store upload: {e}"))?;
+        file.write_all(&bytes).map_err(|e| format!("Failed to store upload: {e}"))
+    }
+
+    async fn import_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        upload_id: String,
+    ) -> Result<ServerConfig, String> {
+        let path = import_upload_path(&app_handle, &upload_id)?;
+        let app = app_handle.clone();
+        let archive = path.clone();
+        let result = tauri::async_runtime::spawn_blocking(move || server::transfer::import(&app, &archive))
+            .await
+            .map_err(|e| e.to_string())?;
+        let _ = std::fs::remove_file(&path);
+        result
+    }
+
+    async fn duplicate_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        name: String,
+        game_version: Option<String>,
+        build_number: Option<String>,
+    ) -> Result<ServerConfig, String> {
+        if is_server_running(&server_id).await {
+            return Err("Stop the server before copying it".to_string());
+        }
+        let (_, config) = server_with_config(&app_handle, &server_id)?;
+        let app = app_handle.clone();
+        tauri::async_runtime::spawn_blocking(move || {
+            server::transfer::duplicate(&app, &config, &name, game_version.as_deref(), build_number)
+        })
+        .await
+        .map_err(|e| e.to_string())?
+    }
+
+    async fn change_server_version(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        game_version: String,
+        build_number: Option<String>,
+    ) -> Result<ServerConfig, String> {
+        if get_server_process_manager().get_server_status(&server_id).await != server::ServerStatus::Stopped {
+            return Err("Stop the server before changing its version".to_string());
+        }
+        let (_, config) = server_with_config(&app_handle, &server_id)?;
+        server::transfer::change_version(&app_handle, &config, &game_version, build_number)
+    }
+}
+
+/// Temporary file for a chunked import; the id comes from the frontend, so it's
+/// restricted to a plain token
+fn import_upload_path<R: Runtime>(app: &tauri::AppHandle<R>, upload_id: &str) -> Result<std::path::PathBuf, String> {
+    if upload_id.is_empty() || upload_id.len() > 64 || !upload_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        return Err("Invalid upload id".to_string());
+    }
+    Ok(app
+        .path()
+        .app_cache_dir()
+        .map_err(|e| e.to_string())?
+        .join("imports")
+        .join(format!("{upload_id}.zip")))
 }
 
 /// Server folder plus its config (core and game version decide which plugins fit)

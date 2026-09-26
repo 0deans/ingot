@@ -11,9 +11,11 @@ import {
 	useServerStatus,
 } from "@/services/server-data"
 import { rpc } from "@/services/server-service"
-import { Card, EmptyState, PlayerAvatar } from "../shared/primitives"
+import { EmptyState, PlayerAvatar } from "../shared/primitives"
 import { PlayerSheet } from "./player-sheet"
 import { type MapView, WorldMap } from "./world-map"
+
+const LIVE_INTERVAL_MS = 20_000
 
 export function MapPanel({
 	server,
@@ -28,7 +30,7 @@ export function MapPanel({
 	const queryClient = useQueryClient()
 	const { isRunning } = useServerStatus(server.id)
 	const { data: dimensions, isLoading } = useMapDimensions(server.id)
-	const { data: online = [] } = useOnlinePlayers(server.id, isRunning)
+	const { data: online = [] } = useOnlinePlayers(server.id, isRunning, 1500)
 	const [dimension, setDimension] = useState(focus?.dimension ?? "minecraft:overworld")
 	const [view, setView] = useState<MapView | null>(null)
 	const [revision, setRevision] = useState(0)
@@ -67,10 +69,22 @@ export function MapPanel({
 		}
 	}, [focus])
 
+	// Live updates: while people play, save regularly and redraw changed regions
+	const live = isRunning && online.length > 0
+	useEffect(() => {
+		if (!live) return
+		const timer = setInterval(async () => {
+			await rpc.save_server_world(server.id, false).catch(() => {})
+			await queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) })
+			setRevision((r) => r + 1)
+		}, LIVE_INTERVAL_MS)
+		return () => clearInterval(timer)
+	}, [live, server.id, queryClient])
+
 	const refresh = async () => {
 		setRefreshing(true)
 		try {
-			if (isRunning) await rpc.save_server_world(server.id).catch(() => {})
+			if (isRunning) await rpc.save_server_world(server.id, true).catch(() => {})
 			await queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) })
 			setRevision((r) => r + 1)
 		} finally {
@@ -80,31 +94,26 @@ export function MapPanel({
 
 	if (isLoading) {
 		return (
-			<Card className={cn("flex items-center justify-center", className)}>
+			<div className={cn("flex items-center justify-center", className)}>
 				<Loader2 className="size-5 animate-spin text-zinc-500" />
-			</Card>
+			</div>
 		)
 	}
 
 	if (!current || !view) {
 		return (
-			<Card className={className}>
+			<div className={cn("flex items-center justify-center", className)}>
 				<EmptyState
 					icon={MapIcon}
 					title="No world yet"
 					description="Start the server once so it generates a world. Explored areas will appear on the map."
 				/>
-			</Card>
+			</div>
 		)
 	}
 
 	return (
-		<div
-			className={cn(
-				"relative flex flex-col overflow-hidden rounded-2xl border border-zinc-800/80",
-				className,
-			)}
-		>
+		<div className={cn("relative flex flex-col overflow-hidden", className)}>
 			<WorldMap
 				serverId={server.id}
 				dimension={current.id}
@@ -139,16 +148,27 @@ export function MapPanel({
 						</button>
 					))}
 				</div>
-				<button
-					type="button"
-					onClick={refresh}
-					disabled={refreshing}
-					title={isRunning ? "Save the world and redraw the map" : "Redraw the map"}
-					className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
-				>
-					<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
-					<span className="hidden sm:inline">{refreshing ? "Saving..." : "Refresh"}</span>
-				</button>
+				<div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
+					{live && (
+						<span
+							title="The map updates automatically while players are online"
+							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
+						>
+							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
+							Live
+						</span>
+					)}
+					<button
+						type="button"
+						onClick={refresh}
+						disabled={refreshing}
+						title={isRunning ? "Save the world and redraw the map" : "Redraw the map"}
+						className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
+					>
+						<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
+						<span className="hidden sm:inline">{refreshing ? "Saving..." : "Refresh"}</span>
+					</button>
+				</div>
 			</div>
 
 			{/* Players in this dimension */}
