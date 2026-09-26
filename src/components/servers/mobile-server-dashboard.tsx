@@ -131,7 +131,11 @@ export const MobileServerDashboard = memo(() => {
 			{fill ? (
 				<main className="min-h-0 flex-1">{content}</main>
 			) : (
-				<FadeScroll className="min-h-0 flex-1 overflow-x-hidden px-3 pt-3 pb-6">
+				// Keyed so each tab starts at the top instead of inheriting the last tab's scroll
+				<FadeScroll
+					key={`${server.id}:${tab}`}
+					className="min-h-0 flex-1 overflow-x-hidden px-3 pt-3 pb-6"
+				>
 					{content}
 				</FadeScroll>
 			)}

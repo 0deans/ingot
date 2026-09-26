@@ -308,11 +308,20 @@ export function FadeScroll({
 		}
 		update()
 		el.addEventListener("scroll", update, { passive: true })
-		// Content can grow (lazy data, images) without the container resizing
+		// Content can grow or shrink (lazy data, images, collapsing rows) without the
+		// container resizing, so watch the children's sizes too
 		const resize = new ResizeObserver(update)
-		resize.observe(el)
-		const mutations = new MutationObserver(update)
-		mutations.observe(el, { childList: true, subtree: true })
+		const observeChildren = () => {
+			resize.disconnect()
+			resize.observe(el)
+			for (const child of el.children) resize.observe(child)
+		}
+		observeChildren()
+		const mutations = new MutationObserver(() => {
+			observeChildren()
+			update()
+		})
+		mutations.observe(el, { childList: true, subtree: true, characterData: true })
 		return () => {
 			el.removeEventListener("scroll", update)
 			resize.disconnect()
