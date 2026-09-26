@@ -562,6 +562,12 @@ pub trait AppApi {
     /// This device's LAN IP, for inviting players on the same network
     async fn get_lan_address() -> Result<Option<String>, String>;
 
+    /// Disk space used by the server folder, by category, and space left on the device
+    async fn get_server_storage(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<server::storage::ServerStorage, String>;
+
     /// Zips the server; saved to `dest`, or to the app cache (for sharing) when None.
     /// Returns the archive path.
     async fn export_server(
@@ -1676,6 +1682,17 @@ impl AppApi for AppApiImpl {
 
     async fn get_lan_address(self) -> Result<Option<String>, String> {
         Ok(server::stats::lan_address())
+    }
+
+    async fn get_server_storage(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<server::storage::ServerStorage, String> {
+        let (dir, _) = server_with_config(&app_handle, &server_id)?;
+        tauri::async_runtime::spawn_blocking(move || server::storage::storage(&dir))
+            .await
+            .map_err(|e| e.to_string())
     }
 
     async fn export_server(

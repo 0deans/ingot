@@ -29,7 +29,7 @@ uuid = { version = "1", features = ["v4", "v3"] }
 taurpc = "0.8.2"
 specta = { version = "=2.0.0-rc.25", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-sysinfo = { version = "0.39", default-features = false, features = ["system"] }
+sysinfo = { version = "0.39", default-features = false, features = ["system", "disk"] }
 base64 = "0.23.1"
 tauri-plugin-dialog = "2"
 sha1 = "0.11.0"

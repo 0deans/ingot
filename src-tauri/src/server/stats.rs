@@ -52,6 +52,11 @@ fn process_tree_usage(root: u32) -> (f32, u64, u64, u64) {
     };
     let (mut cpu, mut mem) = (0.0f32, 0u64);
     for (pid, process) in sys.processes() {
+        // On Linux/Android every thread is listed as a task sharing its process's memory;
+        // counting them would multiply the JVM's RAM by its thread count
+        if process.thread_kind().is_some() {
+            continue;
+        }
         if in_tree(*pid) {
             cpu += process.cpu_usage();
             mem += process.memory();

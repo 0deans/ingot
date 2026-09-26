@@ -305,6 +305,16 @@ export function useServerStats(serverId: string, isRunning: boolean) {
 	})
 }
 
+/** Disk usage of the server folder; directory walks are cheap but not free, so poll slowly */
+export function useServerStorage(serverId: string) {
+	return useQuery({
+		queryKey: ["server", serverId, "storage"],
+		queryFn: () => rpc.get_server_storage(serverId),
+		refetchInterval: 60_000,
+		staleTime: 15_000,
+	})
+}
+
 export function useLanAddress() {
 	return useQuery({
 		queryKey: ["lan-address"],

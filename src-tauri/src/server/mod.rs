@@ -12,6 +12,7 @@ pub mod plugins;
 pub mod sandbox;
 pub mod slp;
 pub mod stats;
+pub mod storage;
 pub mod supervisor;
 pub mod transfer;
 pub mod tunnel;

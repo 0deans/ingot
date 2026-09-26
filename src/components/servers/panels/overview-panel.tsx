@@ -26,7 +26,7 @@ import {
 import { useServerLogs } from "@/services/server-service"
 import { MotdText } from "../shared/motd"
 import { Card, ErrorNote, PlayerAvatar } from "../shared/primitives"
-import { JoinCard, PerformanceCard } from "./overview-cards"
+import { JoinCard, PerformanceCard, StorageCard } from "./overview-cards"
 
 export type WorkspaceTab = "overview" | "console" | "players" | "map" | "plugins" | "settings"
 
@@ -46,6 +46,7 @@ export function OverviewPanel({
 				<JoinCard server={server} />
 				<ConsolePeek server={server} onOpen={() => onNavigate("console")} />
 			</div>
+			<StorageCard server={server} />
 		</div>
 	)
 }
@@ -261,9 +262,14 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 				</span>
 				<ChevronRight className="size-4 text-zinc-600" />
 			</div>
-			<div className="flex min-h-24 flex-col justify-end px-4 pb-4 font-mono text-[10.5px] text-zinc-400 leading-relaxed">
+			<div
+				className={cn(
+					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-[10.5px] text-zinc-400 leading-relaxed",
+					lines.length === 0 ? "items-center justify-center" : "justify-end",
+				)}
+			>
 				{lines.length === 0 ? (
-					<span className="text-zinc-600">No output yet</span>
+					<span className="font-sans text-xs text-zinc-600">No output yet</span>
 				) : (
 					lines.map((line, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: log lines are append-only
