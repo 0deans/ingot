@@ -554,10 +554,11 @@ pub trait AppApi {
     ) -> Result<Vec<PluginUpdate>, String>;
 
     /// CPU, memory and TPS of a running server
+    /// CPU/RAM/TPS samples of the last two minutes (recorded in the background)
     async fn get_server_stats(
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
-    ) -> Result<ServerStats, String>;
+    ) -> Result<Vec<ServerStats>, String>;
 
     /// This device's LAN IP, for inviting players on the same network
     async fn get_lan_address() -> Result<Option<String>, String>;
@@ -1219,9 +1220,13 @@ impl AppApi for AppApiImpl {
             }
         };
 
-        get_server_supervisor_manager()
+        let has_tps = core_has_tps(&config);
+        let pid = get_server_supervisor_manager()
             .supervise_and_start(app, pm, client, config, on_log, on_status)
-            .await
+            .await?;
+        // Record stats from the start, so the graphs have history whenever they're opened
+        server::stats::ensure_sampler(get_server_process_manager(), &server_id, has_tps);
+        Ok(pid)
     }
 
     async fn put_server_to_sleep(
@@ -1663,21 +1668,12 @@ impl AppApi for AppApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
-    ) -> Result<ServerStats, String> {
+    ) -> Result<Vec<ServerStats>, String> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
-        let pm = get_server_process_manager();
-        let pid = pm
-            .get_running_servers()
-            .await
-            .into_iter()
-            .find(|s| s.server_id == server_id && s.pid > 0)
-            .map(|s| s.pid)
-            .ok_or("Server is not running")?;
-        let has_tps = matches!(
-            config.core,
-            ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia
-        );
-        Ok(server::stats::stats(pm, &server_id, pid, has_tps).await)
+        if is_server_running(&server_id).await {
+            server::stats::ensure_sampler(get_server_process_manager(), &server_id, core_has_tps(&config));
+        }
+        Ok(server::stats::history(&server_id))
     }
 
     async fn get_lan_address(self) -> Result<Option<String>, String> {
@@ -1818,6 +1814,14 @@ fn server_with_config<R: Runtime>(
         .find(|s| s.id == server_id)
         .ok_or_else(|| format!("Server not found: {server_id}"))?;
     Ok((server::get_server_dir(app_handle, server_id)?, config))
+}
+
+/// Paper and its forks answer the `tps` command
+fn core_has_tps(config: &server::ServerConfig) -> bool {
+    matches!(
+        config.core,
+        ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia
+    )
 }
 
 async fn is_server_running(server_id: &str) -> bool {

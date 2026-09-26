@@ -120,16 +120,16 @@ export function useMapDimensions(serverId: string) {
 	})
 }
 
-/** `revision` busts the cache after the world was saved */
+/** `modified` (the region file's change time) makes changed regions refetch */
 export function useMapTile(
 	serverId: string,
 	dimension: string,
 	x: number,
 	z: number,
-	revision: number,
+	modified: number,
 ) {
 	return useQuery({
-		queryKey: serverKeys.tile(serverId, dimension, x, z, revision),
+		queryKey: serverKeys.tile(serverId, dimension, x, z, modified),
 		queryFn: () => rpc.get_map_tile(serverId, dimension, x, z),
 		// Keep showing the previous image while a redrawn tile loads (no flicker)
 		placeholderData: keepPreviousData,

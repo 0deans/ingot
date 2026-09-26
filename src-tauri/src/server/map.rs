@@ -17,6 +17,8 @@ const TILE: usize = 512;
 pub struct MapRegion {
     pub x: i32,
     pub z: i32,
+    /// When the region file last changed (unix seconds), so the UI refetches only changed tiles
+    pub modified: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -64,11 +66,16 @@ fn list_regions(dir: &Path) -> Vec<MapRegion> {
     let Ok(entries) = std::fs::read_dir(dir) else { return Vec::new() };
     entries
         .flatten()
-        .filter(|e| e.metadata().map(|m| m.len() > 8192).unwrap_or(false))
         .filter_map(|e| {
+            let meta = e.metadata().ok().filter(|m| m.len() > 8192)?;
+            let modified = meta
+                .modified()
+                .ok()
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map_or(0, |d| d.as_secs() as u32);
             let name = e.file_name().to_string_lossy().into_owned();
             let mut parts = name.strip_prefix("r.")?.strip_suffix(".mca")?.split('.');
-            Some(MapRegion { x: parts.next()?.parse().ok()?, z: parts.next()?.parse().ok()? })
+            Some(MapRegion { x: parts.next()?.parse().ok()?, z: parts.next()?.parse().ok()?, modified })
         })
         .collect()
 }
@@ -222,13 +229,21 @@ fn read_chunks(region_path: &Path) -> Result<Vec<(usize, usize, Chunk)>, String>
             continue;
         }
         if let Ok(chunk) = fastnbt::from_bytes::<Chunk>(&raw) {
-            let fully_generated = chunk.status.as_deref().is_none_or(|s| s.ends_with("full"));
-            if fully_generated {
+            if has_terrain(chunk.status.as_deref()) {
                 chunks.push((i % 32, i / 32, chunk));
             }
         }
     }
     Ok(chunks)
+}
+
+/// Whether a chunk has its surface blocks yet. A running server writes loaded chunks
+/// in batches, so many are still saved at an earlier generation step; drawing only
+/// "full" ones leaves holes all over the explored area.
+fn has_terrain(status: Option<&str>) -> bool {
+    let Some(status) = status else { return true };
+    let step = status.trim_start_matches("minecraft:");
+    matches!(step, "surface" | "carvers" | "features" | "initialize_light" | "light" | "spawn" | "full")
 }
 
 fn render_region(region_path: &Path, ceiling: bool) -> Result<Vec<u8>, String> {
@@ -550,3 +565,4 @@ mod tests {
         println!("tile r.{}.{} {} bytes in {:?}", r.x, r.z, url.len(), start.elapsed());
     }
 }
+

@@ -13,8 +13,8 @@ import {
 	Share2,
 	Wifi,
 } from "lucide-react"
-import { type ReactNode, useEffect, useRef, useState } from "react"
-import type { ServerConfig, ServerStats } from "@/bindings"
+import { type ReactNode, useRef, useState } from "react"
+import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { formatBytes } from "@/lib/minecraft"
@@ -267,7 +267,13 @@ function Chart({
 		<div className="flex flex-col gap-1">
 			<div
 				ref={ref}
-				className="relative h-20 w-full touch-pan-y"
+				role="img"
+				aria-label={
+					values.length > 0 ? `Latest: ${format(values[values.length - 1])}` : "No data yet"
+				}
+				// Press-and-hold reads values: no text selection or long-press menu on touch
+				className="relative h-20 w-full touch-pan-y select-none [-webkit-touch-callout:none]"
+				onContextMenu={(e) => e.preventDefault()}
 				onPointerMove={(e) => pick(e.clientX)}
 				onPointerDown={(e) => pick(e.clientX)}
 				onPointerLeave={() => setHover(null)}
@@ -437,7 +443,7 @@ function Metric({
 				}
 			: null
 	return (
-		<div className="flex min-w-0 flex-col gap-3 rounded-xl bg-zinc-950/60 p-3">
+		<div className="flex min-w-0 select-none flex-col gap-3 rounded-xl bg-zinc-950/60 p-3">
 			<div className="flex min-w-0 items-baseline justify-between gap-3">
 				<p className="flex shrink-0 items-center gap-1.5 text-[11px] text-zinc-500 uppercase tracking-wider">
 					<Icon className="size-3.5 self-center" style={{ color }} /> {label}
@@ -466,15 +472,8 @@ function Metric({
 /** CPU, memory and TPS of the running server, with the last two minutes as graphs */
 export function PerformanceCard({ server }: { server: ServerConfig }) {
 	const { isRunning } = useServerStatus(server.id)
-	const { data } = useServerStats(server.id, isRunning)
-	const [history, setHistory] = useState<ServerStats[]>([])
-
-	useEffect(() => {
-		if (!isRunning) setHistory([])
-	}, [isRunning])
-	useEffect(() => {
-		if (data) setHistory((h) => [...h.slice(-(HISTORY - 1)), data])
-	}, [data])
+	// The backend records samples while the server runs, so history survives leaving this page
+	const { data: history = [] } = useServerStats(server.id, isRunning)
 
 	if (!isRunning) return null
 	const latest = history[history.length - 1]

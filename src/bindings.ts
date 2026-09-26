@@ -209,6 +209,8 @@ export type MapDimension = {
 export type MapRegion = {
 	x: number,
 	z: number,
+	/**  When the region file last changed (unix seconds), so the UI refetches only changed tiles */
+	modified: number,
 };
 
 export type MemorySettings = {
@@ -658,8 +660,11 @@ export type Router = {
 		get_server_plugin_versions: (serverId: string, source: PluginSource, projectId: string, compatibleOnly: boolean) => Promise<PluginVersion[]>,
 		get_server_properties: (serverId: string) => Promise<ServerProperties>,
 		get_server_properties_all: (serverId: string) => Promise<PropertyEntry[]>,
-		/**  CPU, memory and TPS of a running server */
-		get_server_stats: (serverId: string) => Promise<ServerStats>,
+		/**
+		 *  CPU, memory and TPS of a running server
+		 *  CPU/RAM/TPS samples of the last two minutes (recorded in the background)
+		 */
+		get_server_stats: (serverId: string) => Promise<ServerStats[]>,
 		/**  Disk space used by the server folder, by category, and space left on the device */
 		get_server_storage: (serverId: string) => Promise<ServerStorage>,
 		get_server_whitelist: (serverId: string) => Promise<WhitelistEntry[]>,

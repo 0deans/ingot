@@ -2,7 +2,8 @@
 //! (on Android the Java server runs under PRoot, so children are included) and TPS.
 
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
 
@@ -103,6 +104,86 @@ pub async fn stats(pm: &ServerProcessManager, server_id: &str, pid: u32, has_tps
         system_memory_total_mb: mb(total),
         tps,
     }
+}
+
+/// Samples kept per server: two minutes at one sample every SAMPLE_INTERVAL
+pub const HISTORY_LEN: usize = 60;
+const SAMPLE_INTERVAL: Duration = Duration::from_secs(2);
+
+/// Recent samples per running server. Recorded in the background so the graphs keep
+/// their history while the UI shows other pages (or other servers).
+static HISTORIES: LazyLock<Mutex<HashMap<String, VecDeque<ServerStats>>>> =
+    LazyLock::new(Default::default);
+/// Servers with a sampler task running
+static SAMPLING: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(Default::default);
+
+async fn running_pid(pm: &ServerProcessManager, server_id: &str) -> Option<u32> {
+    pm.get_running_servers()
+        .await
+        .into_iter()
+        .find(|s| s.server_id == server_id && s.pid > 0)
+        .map(|s| s.pid)
+}
+
+/// Starts recording stats for a server unless already recording. The task ends (and
+/// drops the history) once the server stops; a restart begins a fresh history.
+pub fn ensure_sampler(pm: &'static ServerProcessManager, server_id: &str, has_tps: bool) {
+    {
+        let Ok(mut sampling) = SAMPLING.lock() else { return };
+        if !sampling.insert(server_id.to_string()) {
+            return;
+        }
+    }
+    let server_id = server_id.to_string();
+    tauri::async_runtime::spawn(async move {
+        // The process can take a moment to appear after a start request
+        let mut missing = 0;
+        let mut last_pid = None;
+        loop {
+            match running_pid(pm, &server_id).await {
+                Some(pid) => {
+                    missing = 0;
+                    if last_pid.is_some_and(|last| last != pid) {
+                        // New process (restart, wake from sleep): old numbers don't apply
+                        if let Ok(mut h) = HISTORIES.lock() {
+                            h.remove(&server_id);
+                        }
+                    }
+                    last_pid = Some(pid);
+                    let sample = stats(pm, &server_id, pid, has_tps).await;
+                    if let Ok(mut h) = HISTORIES.lock() {
+                        let history = h.entry(server_id.clone()).or_default();
+                        if history.len() >= HISTORY_LEN {
+                            history.pop_front();
+                        }
+                        history.push_back(sample);
+                    }
+                }
+                None => {
+                    missing += 1;
+                    if missing > 15 {
+                        break;
+                    }
+                }
+            }
+            tokio::time::sleep(SAMPLE_INTERVAL).await;
+        }
+        if let Ok(mut h) = HISTORIES.lock() {
+            h.remove(&server_id);
+        }
+        if let Ok(mut sampling) = SAMPLING.lock() {
+            sampling.remove(&server_id);
+        }
+    });
+}
+
+/// Recorded samples, oldest first
+pub fn history(server_id: &str) -> Vec<ServerStats> {
+    HISTORIES
+        .lock()
+        .ok()
+        .and_then(|h| h.get(server_id).map(|q| q.iter().cloned().collect()))
+        .unwrap_or_default()
 }
 
 /// Interfaces that aren't the real local network (VPNs, virtual switches, containers)

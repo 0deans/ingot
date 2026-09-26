@@ -10,12 +10,12 @@ import {
 	useOnlinePlayers,
 	useServerStatus,
 } from "@/services/server-data"
-import { rpc } from "@/services/server-service"
 import { EmptyState, PlayerAvatar } from "../shared/primitives"
 import { PlayerSheet } from "./player-sheet"
 import { type MapView, WorldMap } from "./world-map"
 
-const LIVE_INTERVAL_MS = 20_000
+/** How often to look for region files the server has saved since */
+const LIVE_INTERVAL_MS = 10_000
 
 export function MapPanel({
 	server,
@@ -33,7 +33,6 @@ export function MapPanel({
 	const { data: online = [] } = useOnlinePlayers(server.id, isRunning, 1500)
 	const [dimension, setDimension] = useState(focus?.dimension ?? "minecraft:overworld")
 	const [view, setView] = useState<MapView | null>(null)
-	const [revision, setRevision] = useState(0)
 	const [refreshing, setRefreshing] = useState(false)
 	const [selected, setSelected] = useState<string | null>(null)
 
@@ -69,24 +68,22 @@ export function MapPanel({
 		}
 	}, [focus])
 
-	// Live updates: while people play, save regularly and redraw changed regions
+	// The map never makes the server save: it re-lists regions now and then and redraws
+	// only the files the server has written since (on its own schedule)
 	const live = isRunning && online.length > 0
 	useEffect(() => {
 		if (!live) return
-		const timer = setInterval(async () => {
-			await rpc.save_server_world(server.id, false).catch(() => {})
-			await queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) })
-			setRevision((r) => r + 1)
-		}, LIVE_INTERVAL_MS)
+		const timer = setInterval(
+			() => queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) }),
+			LIVE_INTERVAL_MS,
+		)
 		return () => clearInterval(timer)
 	}, [live, server.id, queryClient])
 
 	const refresh = async () => {
 		setRefreshing(true)
 		try {
-			if (isRunning) await rpc.save_server_world(server.id, true).catch(() => {})
 			await queryClient.invalidateQueries({ queryKey: serverKeys.dimensions(server.id) })
-			setRevision((r) => r + 1)
 		} finally {
 			setRefreshing(false)
 		}
@@ -118,7 +115,6 @@ export function MapPanel({
 				serverId={server.id}
 				dimension={current.id}
 				regions={current.regions}
-				revision={revision}
 				players={players}
 				view={view}
 				onViewChange={setView}

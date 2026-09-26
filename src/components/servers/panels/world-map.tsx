@@ -25,7 +25,6 @@ export function WorldMap({
 	serverId,
 	dimension,
 	regions,
-	revision,
 	players,
 	view,
 	onViewChange,
@@ -35,7 +34,6 @@ export function WorldMap({
 	serverId: string
 	dimension: string
 	regions: MapRegion[]
-	revision: number
 	players: PlayerDetails[]
 	view: MapView
 	onViewChange: (view: MapView) => void
@@ -202,7 +200,6 @@ export function WorldMap({
 						serverId={serverId}
 						dimension={dimension}
 						region={r}
-						revision={revision}
 						pixelated={view.scale >= 1}
 					/>
 				))}
@@ -287,16 +284,14 @@ const RegionTile = memo(function RegionTile({
 	serverId,
 	dimension,
 	region,
-	revision,
 	pixelated,
 }: {
 	serverId: string
 	dimension: string
 	region: MapRegion
-	revision: number
 	pixelated: boolean
 }) {
-	const { data, isLoading } = useMapTile(serverId, dimension, region.x, region.z, revision)
+	const { data, isLoading } = useMapTile(serverId, dimension, region.x, region.z, region.modified)
 	return (
 		<div
 			className="absolute"
