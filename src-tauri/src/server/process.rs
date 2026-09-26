@@ -31,6 +31,9 @@ struct ActiveServer {
 pub struct ServerProcessManager {
     servers: Arc<Mutex<HashMap<String, ActiveServer>>>,
     sleeping_servers: Arc<Mutex<std::collections::HashSet<String>>>,
+    /// Servers between "Start" and a spawned process (jar download, sandbox setup).
+    /// A std Mutex so the guard in `launch_server` can release it in `Drop`.
+    starting_servers: Arc<std::sync::Mutex<std::collections::HashSet<String>>>,
 }
 
 impl ServerProcessManager {
@@ -38,6 +41,7 @@ impl ServerProcessManager {
         Self {
             servers: Arc::new(Mutex::new(HashMap::new())),
             sleeping_servers: Arc::new(Mutex::new(std::collections::HashSet::new())),
+            starting_servers: Arc::new(std::sync::Mutex::new(std::collections::HashSet::new())),
         }
     }
 
@@ -61,6 +65,9 @@ impl ServerProcessManager {
     }
 
     pub async fn get_server_status(&self, server_id: &str) -> ServerStatus {
+        if self.is_starting(server_id) {
+            return ServerStatus::Starting;
+        }
         let guard = self.servers.lock().await;
         if let Some(s) = guard.get(server_id) {
             return s.status.clone();
@@ -70,6 +77,13 @@ impl ServerProcessManager {
             return ServerStatus::Sleeping;
         }
         ServerStatus::Stopped
+    }
+
+    fn is_starting(&self, server_id: &str) -> bool {
+        self.starting_servers
+            .lock()
+            .map(|s| s.contains(server_id))
+            .unwrap_or(false)
     }
 
     pub async fn set_server_status(&self, server_id: &str, status: ServerStatus) {
@@ -242,6 +256,49 @@ fn find_java_console_bin(path: &Path) -> Option<PathBuf> {
     None
 }
 
+/// Strips ANSI escape sequences, carriage returns and JLine's "> " prompt
+/// from a console line so it renders cleanly in the UI
+fn clean_console_line(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    let mut chars = raw.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\u{1b}' {
+            // CSI sequence: ESC [ params... final byte (0x40-0x7E)
+            if chars.peek() == Some(&'[') {
+                chars.next();
+                for c in chars.by_ref() {
+                    if ('\u{40}'..='\u{7e}').contains(&c) {
+                        break;
+                    }
+                }
+            }
+            continue;
+        }
+        if c != '\r' {
+            out.push(c);
+        }
+    }
+    let mut trimmed = out.trim_start();
+    while let Some(rest) = trimmed.strip_prefix('>') {
+        trimmed = rest.trim_start();
+    }
+    trimmed.trim_end().to_string()
+}
+
+/// Removes a server from the "starting" set when launch finishes or fails
+struct StartingGuard {
+    set: Arc<std::sync::Mutex<std::collections::HashSet<String>>>,
+    server_id: String,
+}
+
+impl Drop for StartingGuard {
+    fn drop(&mut self) {
+        if let Ok(mut set) = self.set.lock() {
+            set.remove(&self.server_id);
+        }
+    }
+}
+
 /// Launches the Minecraft server process
 pub async fn launch_server<R: Runtime, FLog, FStatus>(
     app: tauri::AppHandle<R>,
@@ -256,13 +313,62 @@ where
     FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
 {
     let server_id = config.id.clone();
-    let server_dir = get_server_dir(&app, &server_id)?;
 
-    // Check if already running
+    // Check if already running or starting, and claim the "starting" slot atomically
     let cur_status = pm.get_server_status(&server_id).await;
     if cur_status != ServerStatus::Stopped && cur_status != ServerStatus::Sleeping {
         return Err("Server is already running".to_string());
     }
+    let claimed = pm
+        .starting_servers
+        .lock()
+        .map(|mut s| s.insert(server_id.clone()))
+        .unwrap_or(false);
+    if !claimed {
+        return Err("Server is already starting".to_string());
+    }
+    let _starting = StartingGuard {
+        set: pm.starting_servers.clone(),
+        server_id: server_id.clone(),
+    };
+
+    let on_status = Arc::new(on_status);
+    let status_cb = on_status.clone();
+    let on_log = Arc::new(on_log);
+    let log_cb = on_log.clone();
+    let result = launch_server_inner(app, pm.clone(), client, config, move |e| log_cb(e), move |e| status_cb(e)).await;
+
+    if let Err(ref e) = result {
+        on_log(ServerLogEvent {
+            server_id: server_id.clone(),
+            line: format!("[Ingot] Failed to start: {e}"),
+            level: "error".to_string(),
+        });
+    }
+    if result.is_err() && pm.get_server_status(&server_id).await != ServerStatus::Running {
+        on_status(ServerStatusEvent {
+            server_id: server_id.clone(),
+            status: ServerStatus::Stopped,
+            pid: None,
+        });
+    }
+    result
+}
+
+async fn launch_server_inner<R: Runtime, FLog, FStatus>(
+    app: tauri::AppHandle<R>,
+    pm: ServerProcessManager,
+    client: reqwest::Client,
+    config: ServerConfig,
+    on_log: FLog,
+    on_status: FStatus,
+) -> Result<u32, String>
+where
+    FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
+    FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
+{
+    let server_id = config.id.clone();
+    let server_dir = get_server_dir(&app, &server_id)?;
 
     pm.set_server_status(&server_id, ServerStatus::Starting).await;
     on_status(ServerStatusEvent {
@@ -271,7 +377,28 @@ where
         pid: None,
     });
 
+    // Setup steps are reported as console lines (and kept for the console history)
+    let on_log = Arc::new(on_log);
+    let setup_log: Arc<std::sync::Mutex<Vec<String>>> = Arc::default();
+    let step = {
+        let on_log = on_log.clone();
+        let setup_log = setup_log.clone();
+        let server_id = server_id.clone();
+        move |msg: &str| {
+            let line = format!("[Ingot] {msg}");
+            if let Ok(mut log) = setup_log.lock() {
+                log.push(line.clone());
+            }
+            on_log(ServerLogEvent {
+                server_id: server_id.clone(),
+                line,
+                level: "info".to_string(),
+            });
+        }
+    };
+
     // 1. Ensure server.jar is downloaded
+    step("Checking server files...");
     let core_type = config.core.clone();
     let game_ver = config.game_version.clone();
     let build_num = config.build_number.as_deref();
@@ -302,7 +429,9 @@ where
 
     // 4. Build execution command (Pumpkin native vs Android PRoot sandbox vs Desktop Java)
     let mut cmd = if config.core == ServerCoreType::Pumpkin {
-        crate::server::pumpkin::build_pumpkin_command(&server_dir, config.port)
+        step("Preparing Pumpkin server...");
+        let bin = crate::server::pumpkin::ensure_pumpkin_binary(&client, &server_dir).await?;
+        crate::server::pumpkin::build_pumpkin_command(&bin, &server_dir, config.port)?
     } else {
         // Construct command arguments with Aikar's G1GC flags
         let mut args: Vec<String> = Vec::new();
@@ -342,17 +471,36 @@ where
             args.extend(custom_args.clone());
         }
 
+        // Paper/Spigot: plain console without JLine prompts or ANSI colors, since
+        // output goes to a pipe rendered by our UI (ignored by vanilla)
+        args.push("-Dterminal.jline=false".into());
+        args.push("-Dterminal.ansi=false".into());
+
         args.push("-jar".into());
         args.push("server.jar".into());
         args.push("nogui".into());
 
         if crate::server::sandbox::is_android_sandbox() {
-            let rootfs = crate::server::sandbox::ensure_sandbox_rootfs(&app, &client, |msg, prog| {
-                eprintln!("[Sandbox] {msg} ({:.0}%)", prog * 100.0);
-            })
-            .await?;
-            let dummy_java = PathBuf::from("/usr/bin/java");
-            crate::server::sandbox::build_server_command(Some(&rootfs), &server_dir, &dummy_java, &args)?
+            step("Preparing Linux sandbox...");
+            // Report each distinct message once, plus every 10% of the download
+            let last_reported = std::sync::Mutex::new((String::new(), 0u32));
+            let sandbox_step = step.clone();
+            let (sandbox_dir, rootfs, guest_java) =
+                crate::server::sandbox::ensure_sandbox_rootfs(&app, &client, required_java, move |msg, prog| {
+                    let pct = (prog * 100.0) as u32;
+                    let Ok(mut last) = last_reported.lock() else { return };
+                    if last.0 != msg || pct >= last.1 + 10 {
+                        *last = (msg.to_string(), pct);
+                        sandbox_step(&format!("{msg} ({pct}%)"));
+                    }
+                })
+                .await?;
+            crate::server::sandbox::build_server_command(
+                Some((&sandbox_dir, &rootfs)),
+                &server_dir,
+                Path::new(&guest_java),
+                &args,
+            )?
         } else {
             let java_bin = if let Some(ref path) = config.java_path {
                 let p = PathBuf::from(path);
@@ -372,6 +520,7 @@ where
         }
     };
 
+    step("Launching server process...");
     cmd.stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -405,7 +554,8 @@ where
 
     let stdin_arc = Arc::new(Mutex::new(stdin));
     let child_arc = Arc::new(Mutex::new(child));
-    let log_history = Arc::new(Mutex::new(Vec::<String>::new()));
+    let setup_lines = setup_log.lock().map(|l| l.clone()).unwrap_or_default();
+    let log_history = Arc::new(Mutex::new(setup_lines));
     let online_players: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 
     let now = SystemTime::now()
@@ -441,14 +591,16 @@ where
     let s_id_out = server_id.clone();
     let logs_out = log_history.clone();
     let players_out = online_players.clone();
-    let on_log_arc = Arc::new(on_log);
+    let on_log_arc = on_log;
     let on_log_out = on_log_arc.clone();
     tokio::spawn(async move {
         let mut lines = BufReader::new(stdout).lines();
-        while let Ok(Some(line)) = lines.next_line().await {
-            let level = if line.contains("[WARN]") || line.contains("WARN:") {
+        while let Ok(Some(raw)) = lines.next_line().await {
+            let line = clean_console_line(&raw);
+            // Vanilla logs "[Server thread/WARN]", Paper logs "[12:00:00 WARN]"
+            let level = if line.contains("WARN]") || line.contains("WARN:") {
                 "warn".to_string()
-            } else if line.contains("[ERROR]") || line.contains("ERROR:") || line.contains("Exception:") {
+            } else if line.contains("ERROR]") || line.contains("ERROR:") || line.contains("Exception:") {
                 "error".to_string()
             } else {
                 "info".to_string()
@@ -507,7 +659,8 @@ where
     let on_log_err = on_log_arc.clone();
     tokio::spawn(async move {
         let mut lines = BufReader::new(stderr).lines();
-        while let Ok(Some(line)) = lines.next_line().await {
+        while let Ok(Some(raw)) = lines.next_line().await {
+            let line = clean_console_line(&raw);
             {
                 let mut guard = logs_err.lock().await;
                 guard.push(line.clone());

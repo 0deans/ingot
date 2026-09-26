@@ -48,6 +48,15 @@ async function initListeners() {
 				})
 			} else if (event.status === "stopped") {
 				cachedRunning.delete(event.serverId)
+			} else if (event.status === "starting" && !cachedRunning.has(event.serverId)) {
+				// No process yet (downloading / preparing sandbox), but show it as starting
+				cachedRunning.set(event.serverId, {
+					serverId: event.serverId,
+					pid: 0,
+					port: 25565,
+					uptimeSeconds: 0,
+					status: "starting",
+				})
 			} else {
 				const existing = cachedRunning.get(event.serverId)
 				if (existing) {

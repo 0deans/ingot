@@ -19,6 +19,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import Slider from "@/components/ui/slider"
+import { isMobileEnvironment } from "@/lib/platform"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
 
@@ -79,12 +80,13 @@ export default function NewServerDialog({
 	onOpenChange,
 	onServerCreated,
 }: NewServerDialogProps) {
+	const isMobile = isMobileEnvironment()
 	const [name, setName] = useState("")
-	const [core, setCore] = useState<ServerCoreType>("paper")
+	const [core, setCore] = useState<ServerCoreType>(isMobile ? "pumpkin" : "paper")
 	const [versions, setVersions] = useState<string[]>([])
 	const [selectedVersion, setSelectedVersion] = useState("")
 	const [port, setPort] = useState(25565)
-	const [ramMb, setRamMb] = useState(4096)
+	const [ramMb, setRamMb] = useState(isMobile ? 1024 : 4096)
 	const [isLoadingVersions, setIsLoadingVersions] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -227,6 +229,7 @@ export default function NewServerDialog({
 						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 							{SERVER_CORES.map((c) => {
 								const isSelected = core === c.id
+								const isRecommended = isMobile ? c.id === "pumpkin" : c.recommended
 								return (
 									<button
 										key={c.id}
@@ -246,10 +249,12 @@ export default function NewServerDialog({
 													"rounded-full px-2 py-0.5 font-medium text-[10px]",
 													isSelected
 														? "bg-emerald-500/20 text-emerald-300"
-														: "bg-zinc-800 text-zinc-400",
+														: isRecommended
+															? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+															: "bg-zinc-800 text-zinc-400",
 												)}
 											>
-												{c.badge}
+												{isMobile && c.id === "pumpkin" ? "Mobile Native" : c.badge}
 											</span>
 										</div>
 										<p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground leading-relaxed">
@@ -259,6 +264,12 @@ export default function NewServerDialog({
 								)
 							})}
 						</div>
+						{isMobile && core !== "pumpkin" && (
+							<p className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-[11px] text-amber-400/90 leading-relaxed">
+								Note: Java cores require the unprivileged Linux runtime environment. PumpkinMC is
+								recommended on Android as it runs natively with instant boot and &lt; 60MB RAM.
+							</p>
+						)}
 					</div>
 
 					{/* Version & Port Row */}

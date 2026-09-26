@@ -27,3 +27,12 @@ dist-ssr
 *.key
 *.pub
 .tauri
+
+# Android native binaries (large, downloaded via scripts/download-android-libs.ps1)
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libpumpkin.so
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libplayit.so
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libproot.so
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libproot-loader.so
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libproot-loader32.so
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libtalloc.so
+src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libandroid-shmem.so

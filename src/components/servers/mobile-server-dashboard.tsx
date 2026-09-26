@@ -20,7 +20,18 @@ import { MobileConsoleSheet } from "@/components/servers/mobile-console-sheet"
 import NewServerDialog from "@/components/servers/new-server-dialog"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { serverService, useRunningServers, useServers } from "@/services/server-service"
+import {
+	serverService,
+	useRunningServers,
+	useServerLogs,
+	useServers,
+} from "@/services/server-service"
+
+/** Injected by MainActivity.kt; controls the Android foreground service */
+interface IngotHostBridge {
+	start(title: string, detail: string): void
+	stop(): void
+}
 
 export const MobileServerDashboard = memo(() => {
 	const { servers } = useServers()
@@ -39,8 +50,11 @@ export const MobileServerDashboard = memo(() => {
 		claimUrl: null,
 		publicAddress: null,
 		pingMs: null,
+		message: null,
 	})
 	const [isTunnelLoading, setIsTunnelLoading] = useState(false)
+	const [isStartRequested, setIsStartRequested] = useState(false)
+	const [startError, setStartError] = useState<string | null>(null)
 
 	// Default to first server if not selected
 	useEffect(() => {
@@ -51,7 +65,17 @@ export const MobileServerDashboard = memo(() => {
 
 	const currentServer = servers.find((s) => s.id === selectedServerId) || servers[0]
 	const runningInfo = currentServer ? runningMap.get(currentServer.id) : undefined
-	const currentStatus: ServerStatus = runningInfo ? runningInfo.status : "stopped"
+	const reportedStatus: ServerStatus = runningInfo ? runningInfo.status : "stopped"
+	// Show "starting" immediately on tap, before the backend's first status event arrives
+	const currentStatus: ServerStatus =
+		isStartRequested && reportedStatus === "stopped" ? "starting" : reportedStatus
+
+	// Latest setup step ("[Ingot] ...") to show while the server is starting
+	const { logs } = useServerLogs(currentServer?.id ?? null)
+	const latestStep = [...logs]
+		.reverse()
+		.find((line) => line.startsWith("[Ingot]"))
+		?.replace("[Ingot] ", "")
 
 	// Fetch playit status periodically
 	const refreshPlayit = useCallback(async () => {
@@ -65,19 +89,49 @@ export const MobileServerDashboard = memo(() => {
 		}
 	}, [])
 
+	// Poll quickly while the tunnel is being set up so each step shows up promptly
+	const isTunnelSettingUp = playitStatus.isRunning && playitStatus.status !== "connected"
 	useEffect(() => {
 		refreshPlayit()
-		const interval = setInterval(refreshPlayit, 5000)
+		const interval = setInterval(refreshPlayit, isTunnelSettingUp ? 1000 : 5000)
 		return () => clearInterval(interval)
-	}, [refreshPlayit])
+	}, [refreshPlayit, isTunnelSettingUp])
+
+	// Keep the Android foreground service up while anything is hosted. Without it the
+	// app is "cached" as soon as it leaves the screen and Android cuts off its network.
+	const activeServers = [...runningMap.values()].filter((s) => s.status !== "stopped")
+	const isHosting = activeServers.length > 0 || playitStatus.isRunning || isStartRequested
+	const hostTitle =
+		activeServers.length > 0
+			? `Hosting ${activeServers.length === 1 ? (servers.find((s) => s.id === activeServers[0].serverId)?.name ?? "server") : `${activeServers.length} servers`}`
+			: "Ingot tunnel active"
+	const hostDetail = playitStatus.publicAddress
+		? `Public address: ${playitStatus.publicAddress}`
+		: playitStatus.isRunning
+			? "playit.gg tunnel connecting..."
+			: "Local network only"
+	useEffect(() => {
+		const host = (window as Window & { IngotHost?: IngotHostBridge }).IngotHost
+		if (!host) return
+		if (isHosting) {
+			host.start(hostTitle, hostDetail)
+		} else {
+			host.stop()
+		}
+	}, [isHosting, hostTitle, hostDetail])
 
 	// Handlers for server actions
 	const handleStartServer = async () => {
-		if (!currentServer) return
+		if (!currentServer || isStartRequested) return
+		setStartError(null)
+		setIsStartRequested(true)
 		try {
 			await serverService.startServer(currentServer.id)
 		} catch (e) {
 			console.error("Failed to start server:", e)
+			setStartError(String(e))
+		} finally {
+			setIsStartRequested(false)
 		}
 	}
 
@@ -105,6 +159,15 @@ export const MobileServerDashboard = memo(() => {
 			if (playitStatus.isRunning) {
 				await serverService.stopPlayitTunnel()
 			} else {
+				// Show progress immediately instead of waiting for the first status poll
+				setPlayitStatus((prev) => ({
+					...prev,
+					isRunning: true,
+					status: "starting",
+					claimUrl: null,
+					publicAddress: null,
+					message: null,
+				}))
 				await serverService.startPlayitTunnel(currentServer?.playitSecretKey)
 			}
 			await refreshPlayit()
@@ -242,9 +305,27 @@ export const MobileServerDashboard = memo(() => {
 						</div>
 					)}
 
+					{/* Start Error */}
+					{startError && currentStatus === "stopped" && (
+						<div className="mt-4 whitespace-pre-wrap break-words rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-red-300 text-xs">
+							<p className="font-semibold">Failed to start</p>
+							<p className="mt-1 text-[11px] text-red-300/90">{startError}</p>
+						</div>
+					)}
+
 					{/* Action Buttons Row */}
 					<div className="mt-5 grid grid-cols-2 gap-2">
-						{currentStatus === "stopped" ? (
+						{currentStatus === "starting" ? (
+							<div className="col-span-2 flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-xs">
+								<RefreshCw className="size-4 shrink-0 animate-spin text-blue-400" />
+								<div className="min-w-0">
+									<p className="font-semibold text-blue-300">Starting server...</p>
+									<p className="mt-0.5 truncate text-[11px] text-zinc-400">
+										{latestStep ?? "Preparing..."}
+									</p>
+								</div>
+							</div>
+						) : currentStatus === "stopped" ? (
 							<Button
 								onClick={handleStartServer}
 								className="col-span-2 h-11 bg-emerald-600 font-semibold text-sm shadow-emerald-900/20 shadow-lg hover:bg-emerald-500"
@@ -326,6 +407,11 @@ export const MobileServerDashboard = memo(() => {
 					</div>
 
 					{/* Tunnel Status Details */}
+					{playitStatus.status === "error" && playitStatus.message && (
+						<div className="mt-3.5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-red-300 text-xs">
+							{playitStatus.message}
+						</div>
+					)}
 					{playitStatus.isRunning && (
 						<div className="mt-3.5 space-y-2 border-zinc-800/60 border-t pt-3">
 							{playitStatus.status === "claiming" && playitStatus.claimUrl ? (
@@ -379,10 +465,25 @@ export const MobileServerDashboard = memo(() => {
 										</div>
 									</div>
 								</div>
+							) : playitStatus.status === "no_tunnel" && playitStatus.message ? (
+								<div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-200 text-xs">
+									{playitStatus.message}
+									<a
+										href="https://playit.gg/account/tunnels"
+										target="_blank"
+										rel="noreferrer"
+										className="mt-2 block font-semibold text-amber-300 underline"
+									>
+										Open playit.gg tunnels ↗
+									</a>
+								</div>
 							) : (
 								<div className="flex items-center gap-2 text-xs text-zinc-400">
 									<RefreshCw className="size-3 animate-spin text-sky-400" />
-									Connecting to Playit routing edge...
+									{playitStatus.message ??
+										(playitStatus.status === "starting"
+											? "Starting playit agent..."
+											: "Connecting to playit.gg...")}
 								</div>
 							)}
 						</div>

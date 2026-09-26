@@ -15,7 +15,8 @@
 		"lint": "biome lint",
 		"preview": "vite preview",
 		"bump": "bumpp",
-		"tauri": "tauri"
+		"tauri": "tauri",
+		"android:dev": "tauri android dev --host 127.0.0.1"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.8.0",

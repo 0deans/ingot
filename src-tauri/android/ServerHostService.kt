@@ -7,11 +7,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 
 /**
  * Android Foreground Service to host Minecraft servers with guaranteed persistence.
@@ -29,16 +31,15 @@ class ServerHostService : Service() {
         const val ACTION_START = "org.ingot.server.START"
         const val ACTION_STOP = "org.ingot.server.STOP"
         const val ACTION_UPDATE_STATUS = "org.ingot.server.UPDATE_STATUS"
-        const val EXTRA_SERVER_NAME = "server_name"
-        const val EXTRA_STATUS = "status"
-        const val EXTRA_PLAYERS = "players"
-        const val EXTRA_TUNNEL_URL = "tunnel_url"
+        const val EXTRA_TITLE = "title"
+        const val EXTRA_DETAIL = "detail"
 
-        fun start(context: Context, serverName: String, status: String = "Starting") {
+        /** Starts the service, or updates its notification if already running */
+        fun start(context: Context, title: String, detail: String) {
             val intent = Intent(context, ServerHostService::class.java).apply {
                 action = ACTION_START
-                putExtra(EXTRA_SERVER_NAME, serverName)
-                putExtra(EXTRA_STATUS, status)
+                putExtra(EXTRA_TITLE, title)
+                putExtra(EXTRA_DETAIL, detail)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -68,13 +69,16 @@ class ServerHostService : Service() {
             return START_NOT_STICKY
         }
 
-        val serverName = intent?.getStringExtra(EXTRA_SERVER_NAME) ?: "Minecraft Server"
-        val status = intent?.getStringExtra(EXTRA_STATUS) ?: "Running"
-        val players = intent?.getStringExtra(EXTRA_PLAYERS) ?: "0"
-        val tunnelUrl = intent?.getStringExtra(EXTRA_TUNNEL_URL)
+        val title = intent?.getStringExtra(EXTRA_TITLE) ?: "Ingot server host"
+        val detail = intent?.getStringExtra(EXTRA_DETAIL) ?: "Running"
 
-        val notification = buildNotification(serverName, status, players, tunnelUrl)
-        startForeground(NOTIFICATION_ID, notification)
+        val notification = buildNotification(title, detail)
+        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        } else {
+            0
+        }
+        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
 
         return START_STICKY
     }
@@ -133,12 +137,7 @@ class ServerHostService : Service() {
         }
     }
 
-    private fun buildNotification(
-        serverName: String,
-        status: String,
-        players: String,
-        tunnelUrl: String?
-    ): Notification {
+    private fun buildNotification(title: String, detail: String): Notification {
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -147,29 +146,12 @@ class ServerHostService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val stopIntent = Intent(this, ServerHostService::class.java).apply {
-            action = ACTION_STOP
-        }
-        val stopPendingIntent = PendingIntent.getService(
-            this,
-            1,
-            stopIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val contentText = when {
-            status.equals("sleeping", ignoreCase = true) -> "💤 Standby (Sleeping) • Connect to wake"
-            tunnelUrl != null -> "Online: $players players • Tunnel: $tunnelUrl"
-            else -> "Online: $players players • Local Port: 25565"
-        }
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Ingot: $serverName ($status)")
-            .setContentText(contentText)
+            .setContentTitle(title)
+            .setContentText(detail)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop Server", stopPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()

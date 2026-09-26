@@ -1,5 +1,7 @@
 pub mod config;
 pub mod downloader;
+#[cfg(target_os = "android")]
+pub mod memfd;
 pub mod process;
 pub mod proxy;
 pub mod pumpkin;

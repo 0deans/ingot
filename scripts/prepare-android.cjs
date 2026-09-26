@@ -17,13 +17,20 @@ function main() {
 		process.exit(1)
 	}
 
-	// 1. Copy Kotlin Foreground Service
+	// 1. Copy Kotlin Foreground Service and MainActivity
 	fs.mkdirSync(JAVA_PKG_DIR, { recursive: true })
 	const serviceSrc = path.join(ROOT_DIR, "src-tauri", "android", "ServerHostService.kt")
 	const serviceDest = path.join(JAVA_PKG_DIR, "ServerHostService.kt")
 	if (fs.existsSync(serviceSrc)) {
 		fs.copyFileSync(serviceSrc, serviceDest)
 		console.log("Copied ServerHostService.kt ->", serviceDest)
+	}
+
+	const activitySrc = path.join(ROOT_DIR, "src-tauri", "android", "MainActivity.kt")
+	const activityDest = path.join(JAVA_PKG_DIR, "MainActivity.kt")
+	if (fs.existsSync(activitySrc)) {
+		fs.copyFileSync(activitySrc, activityDest)
+		console.log("Copied MainActivity.kt ->", activityDest)
 	}
 
 	// 2. Patch AndroidManifest.xml
@@ -65,6 +72,14 @@ function main() {
 			console.log("Injected ServerHostService into AndroidManifest.xml")
 		}
 
+		if (!manifest.includes("windowSoftInputMode")) {
+			manifest = manifest.replace(
+				'android:name=".MainActivity"',
+				'android:windowSoftInputMode="adjustResize"\n            android:name=".MainActivity"',
+			)
+			console.log("Injected windowSoftInputMode into AndroidManifest.xml")
+		}
+
 		fs.writeFileSync(MANIFEST_PATH, manifest, "utf8")
 	}
 
@@ -76,6 +91,30 @@ function main() {
 	if (fs.existsSync(localProot)) {
 		fs.copyFileSync(localProot, prootDest)
 		console.log("Copied local libproot.so ->", prootDest)
+	}
+
+	// 4. Ensure dark theme background for status bar & navigation bar
+	const resDir = path.join(ANDROID_APP_DIR, "res")
+	const colorsPath = path.join(resDir, "values", "colors.xml")
+	if (fs.existsSync(colorsPath)) {
+		let colors = fs.readFileSync(colorsPath, "utf8")
+		if (!colors.includes('name="background"')) {
+			colors = colors.replace('</resources>', '    <color name="background">#09090b</color>\n</resources>')
+			fs.writeFileSync(colorsPath, colors, "utf8")
+		}
+	}
+	for (const valuesFolder of ["values", "values-night"]) {
+		const themesPath = path.join(resDir, valuesFolder, "themes.xml")
+		if (fs.existsSync(themesPath)) {
+			let themes = fs.readFileSync(themesPath, "utf8")
+			if (!themes.includes("android:windowBackground")) {
+				themes = themes.replace(
+					'<style name="Theme.ingot" parent="Theme.MaterialComponents.DayNight.NoActionBar">',
+					'<style name="Theme.ingot" parent="Theme.MaterialComponents.DayNight.NoActionBar">\n        <item name="android:windowBackground">@color/background</item>',
+				)
+				fs.writeFileSync(themesPath, themes, "utf8")
+			}
+		}
 	}
 
 	console.log("Android project prepared successfully!")

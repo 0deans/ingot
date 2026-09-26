@@ -2030,6 +2030,7 @@ dependencies = [
  "flate2",
  "indexmap 2.14.2",
  "keyring",
+ "libc",
  "reqwest 0.12.28",
  "serde",
  "serde_json",

@@ -7,6 +7,9 @@ import { defineConfig } from "vite"
 import pkg from "./package.json" with { type: "json" }
 
 const host = process.env.TAURI_DEV_HOST
+// Over USB (`--host 127.0.0.1`) tauri only runs `adb reverse` for port 1420, so HMR
+// must share that port; a separate 1421 socket would be unreachable from the phone.
+const isLoopback = host === "127.0.0.1" || host === "localhost"
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
@@ -29,13 +32,14 @@ export default defineConfig(() => ({
 		port: 1420,
 		strictPort: true,
 		host: host || false,
-		hmr: host
-			? {
-					protocol: "ws",
-					host,
-					port: 1421,
-				}
-			: undefined,
+		hmr:
+			host && !isLoopback
+				? {
+						protocol: "ws",
+						host,
+						port: 1421,
+					}
+				: undefined,
 		watch: {
 			// 3. tell Vite to ignore watching `src-tauri`
 			ignored: ["**/src-tauri/**"],

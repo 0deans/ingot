@@ -61,6 +61,8 @@ pub struct PlayitTunnelStatus {
     pub claim_url: Option<String>,
     pub public_address: Option<String>,
     pub ping_ms: Option<u32>,
+    /// Human-readable detail for "no_tunnel" / "error" states
+    pub message: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

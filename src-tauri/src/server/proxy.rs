@@ -148,7 +148,7 @@ pub fn make_sleeping_status_json(server_name: &str, max_players: u32, protocol: 
             "sample": []
         },
         "description": {
-            "text": format!("§b§l{} §7(Android Host)\n§e💤 Server is sleeping to save battery. Connect to wake!", server_name)
+            "text": format!("§b§l{} §7(Android Host)\n§e💤 Sleeping §7- §fjoin to wake it up!", server_name)
         }
     });
     json.to_string()
@@ -167,7 +167,7 @@ pub fn make_booting_status_json(server_name: &str, max_players: u32, protocol: i
             "sample": []
         },
         "description": {
-            "text": format!("§b§l{} §7(Android Host)\n§6⚡ Server is booting up! Please wait...", server_name)
+            "text": format!("§b§l{} §7(Android Host)\n§6⚡ Starting up §7- §fretry in a moment", server_name)
         }
     });
     json.to_string()

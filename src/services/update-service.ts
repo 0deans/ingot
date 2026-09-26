@@ -1,6 +1,7 @@
 import { relaunch } from "@tauri-apps/plugin-process"
 import { check, type Update } from "@tauri-apps/plugin-updater"
 import { useEffect, useState } from "react"
+import { isMobileEnvironment } from "@/lib/platform"
 
 export type UpdateStatus =
 	| "idle"
@@ -71,8 +72,10 @@ export const updateService = {
 	},
 
 	async checkForUpdates(silent = false): Promise<UpdateInfo | null> {
-		if (!isTauri) {
-			console.log("[Updater] Not running in Tauri environment.")
+		if (!isTauri || isMobileEnvironment()) {
+			if (!isTauri) {
+				console.log("[Updater] Not running in Tauri environment.")
+			}
 			if (!silent) {
 				updateState({
 					status: "up-to-date",
@@ -211,8 +214,8 @@ export const updateService = {
 	},
 }
 
-// Auto-check silently 3.5s after app starts in background
-if (typeof window !== "undefined" && isTauri) {
+// Auto-check silently 3.5s after app starts in background (desktop only)
+if (typeof window !== "undefined" && isTauri && !isMobileEnvironment()) {
 	setTimeout(() => {
 		updateService.checkForUpdates(true).catch(() => {})
 	}, 3500)
