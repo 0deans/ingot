@@ -64,7 +64,7 @@ function DialogContent({
 					className,
 					// Bottom sheet: full width, anchored to the bottom, slides up
 					isMobile &&
-						"translate-0 top-auto bottom-0 left-0 max-h-[92dvh] w-full max-w-none rounded-t-3xl rounded-b-none border-zinc-800 border-t bg-zinc-950 pt-6 ring-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] data-closed:translate-y-full data-ending-style:translate-y-full data-open:translate-y-0 data-starting-style:translate-y-full data-closed:scale-100 data-ending-style:scale-100 data-starting-style:scale-100 data-closed:opacity-100 data-ending-style:opacity-100 data-starting-style:opacity-100",
+						"translate-0 top-auto bottom-0 left-0 max-h-[92dvh] w-full max-w-none rounded-t-[20px] rounded-b-none border-zinc-800 border-t bg-zinc-950 pt-6 ring-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] data-closed:translate-y-full data-ending-style:translate-y-full data-open:translate-y-0 data-starting-style:translate-y-full data-closed:scale-100 data-ending-style:scale-100 data-starting-style:scale-100 data-closed:opacity-100 data-ending-style:opacity-100 data-starting-style:opacity-100",
 				)}
 				{...props}
 			>

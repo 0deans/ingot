@@ -77,107 +77,137 @@ export function StatusPill({ status }: { status: ServerStatus }) {
 	)
 }
 
+/** Minecraft's connection bars: all five lit when online, crossed out when not */
+function SignalBars({ online }: { online: boolean }) {
+	return (
+		<span className="flex h-3 items-end gap-px" aria-hidden>
+			{[0.35, 0.5, 0.65, 0.8, 1].map((h) => (
+				<span
+					key={h}
+					className={cn("w-[3px]", online ? "bg-emerald-400" : "bg-zinc-700")}
+					style={{ height: `${h * 100}%` }}
+				/>
+			))}
+		</span>
+	)
+}
+
+/**
+ * The server as players see it in Minecraft's multiplayer list (icon, name, MOTD,
+ * player count), with start/sleep/stop underneath
+ */
 function ServerHero({ server }: { server: ServerConfig }) {
-	const { status } = useServerStatus(server.id)
+	const { status, isRunning } = useServerStatus(server.id)
 	const { data: icon } = useServerIcon(server.id)
 	const { values } = useServerPropertiesAll(server.id)
+	const { data: players = [] } = useOnlinePlayers(server.id, isRunning)
 	const controls = useServerControls(server.id)
 	const step = useStartupStep(server.id)
 	const shownStatus: ServerStatus =
 		controls.isStartRequested && status === "stopped" ? "starting" : status
+	const online = shownStatus === "running" || shownStatus === "sleeping"
+	const maxPlayers = values.get("max-players") || "20"
 
 	return (
-		<Card className="relative overflow-hidden">
-			<div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-emerald-500/[0.07] to-transparent" />
-			<div className="relative flex flex-col gap-4 p-4 sm:p-5">
-				<div className="flex items-start gap-3.5">
-					<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
-						{icon ? (
-							<img
-								src={icon}
-								alt=""
-								className="size-full object-cover [image-rendering:pixelated]"
-							/>
-						) : (
-							<Server className="size-6 text-zinc-500" />
-						)}
-					</div>
-					{/* Name and status are already in the page header / mobile top bar */}
-					<div className="min-w-0 flex-1 pt-0.5">
-						<MotdText
-							motd={values.get("motd") || server.name}
-							className="text-[13px] leading-relaxed"
-						/>
-						<p className="mt-1.5 font-mono text-[11px] text-zinc-500">localhost:{server.port}</p>
-					</div>
+		<Card className="flex flex-col gap-3 p-3 sm:p-4">
+			<p className="px-1 text-[10px] text-zinc-500 uppercase tracking-wider">How players see it</p>
+			<div className="flex items-center gap-3 rounded-xl bg-black/50 p-2.5 ring-1 ring-white/5">
+				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-900">
+					{icon ? (
+						<img src={icon} alt="" className="size-full object-cover [image-rendering:pixelated]" />
+					) : (
+						<Server className="size-6 text-zinc-600" />
+					)}
 				</div>
-
-				{shownStatus === "starting" && (
-					<div className="flex items-center gap-2.5 rounded-xl border border-sky-500/20 bg-sky-500/[0.07] px-3 py-2.5">
-						<Loader2 className="size-4 shrink-0 animate-spin text-sky-400" />
-						<span className="truncate text-sky-200 text-xs">{step ?? "Preparing..."}</span>
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+					<div className="flex items-center gap-2">
+						<p className="min-w-0 flex-1 truncate font-semibold text-sm text-zinc-100">
+							{server.name}
+						</p>
+						<span className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-zinc-400">
+							{online ? `${players.length}/${maxPlayers}` : ""}
+							<SignalBars online={online} />
+						</span>
 					</div>
+					{online ? (
+						<MotdText motd={values.get("motd") || server.name} className="text-[11px]" />
+					) : (
+						<p className="font-mono text-[11px] text-rose-400/80">
+							{shownStatus === "starting"
+								? "Starting up..."
+								: shownStatus === "stopping"
+									? "Shutting down..."
+									: "Can't connect to server"}
+						</p>
+					)}
+				</div>
+			</div>
+
+			{shownStatus === "starting" && (
+				<div className="flex items-center gap-2.5 rounded-xl bg-sky-500/[0.07] px-3 py-2.5 ring-1 ring-sky-500/20">
+					<Loader2 className="size-4 shrink-0 animate-spin text-sky-400" />
+					<span className="truncate text-sky-200 text-xs">{step ?? "Preparing..."}</span>
+				</div>
+			)}
+			{shownStatus === "sleeping" && (
+				<div className="rounded-xl bg-violet-500/[0.07] px-3 py-2.5 text-violet-200 text-xs ring-1 ring-violet-500/20">
+					Sleeping to save resources. It wakes up automatically when a player joins.
+				</div>
+			)}
+			{controls.error && shownStatus === "stopped" && (
+				<ErrorNote>
+					<span className="font-semibold">Failed to start. </span>
+					{controls.error}
+				</ErrorNote>
+			)}
+
+			<div className="flex gap-2">
+				{shownStatus === "stopped" && (
+					<Button
+						onClick={controls.start}
+						className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+					>
+						<Play className="size-4 fill-current" /> Start server
+					</Button>
 				)}
 				{shownStatus === "sleeping" && (
-					<div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.07] px-3 py-2.5 text-violet-200 text-xs">
-						Sleeping to save resources. It wakes up automatically when a player joins.
-					</div>
+					<Button
+						onClick={controls.start}
+						className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+					>
+						<Zap className="size-4" /> Wake up
+					</Button>
 				)}
-				{controls.error && shownStatus === "stopped" && (
-					<ErrorNote>
-						<span className="font-semibold">Failed to start. </span>
-						{controls.error}
-					</ErrorNote>
+				{shownStatus === "running" && (
+					<Button
+						variant="ghost"
+						onClick={controls.sleep}
+						className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900 text-zinc-200 hover:bg-zinc-800"
+					>
+						<Moon className="size-4" /> Sleep
+					</Button>
 				)}
-
-				<div className="flex gap-2">
-					{shownStatus === "stopped" && (
-						<Button
-							onClick={controls.start}
-							className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white shadow-emerald-950/40 shadow-lg hover:bg-emerald-500"
-						>
-							<Play className="size-4 fill-current" /> Start server
-						</Button>
-					)}
-					{shownStatus === "sleeping" && (
-						<Button
-							onClick={controls.start}
-							className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
-						>
-							<Zap className="size-4" /> Wake up
-						</Button>
-					)}
-					{shownStatus === "running" && (
-						<Button
-							variant="outline"
-							onClick={controls.sleep}
-							className="h-11 flex-1 gap-2 rounded-xl border-zinc-800"
-						>
-							<Moon className="size-4" /> Sleep
-						</Button>
-					)}
-					{(shownStatus === "running" || shownStatus === "sleeping") && (
-						<Button
-							variant="destructive"
-							onClick={controls.stop}
-							disabled={controls.isStopping}
-							className="h-11 flex-1 gap-2 rounded-xl"
-						>
-							{controls.isStopping ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								<Square className="size-4 fill-current" />
-							)}
-							Stop
-						</Button>
-					)}
-					{(shownStatus === "starting" || shownStatus === "stopping") && (
-						<Button disabled className="h-11 flex-1 gap-2 rounded-xl">
+				{online && (
+					<Button
+						variant="ghost"
+						onClick={controls.stop}
+						disabled={controls.isStopping}
+						className="h-11 flex-1 gap-2 rounded-xl bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200"
+					>
+						{controls.isStopping ? (
 							<Loader2 className="size-4 animate-spin" />
-							{shownStatus === "starting" ? "Starting..." : "Stopping..."}
-						</Button>
-					)}
-				</div>
+						) : (
+							<Square className="size-3.5 fill-current" />
+						)}
+						Stop
+					</Button>
+				)}
+				{(shownStatus === "starting" || shownStatus === "stopping") && (
+					<Button disabled variant="ghost" className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900">
+						<Loader2 className="size-4 animate-spin" />
+						{shownStatus === "starting" ? "Starting..." : "Stopping..."}
+					</Button>
+				)}
 			</div>
 		</Card>
 	)
