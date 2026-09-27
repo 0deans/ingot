@@ -23,6 +23,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { sanitizeHtml } from "@/lib/sanitize-html"
 import {
 	type ContentSource,
 	contentService,
@@ -82,16 +83,21 @@ function formatError(err: unknown): string {
 	return String(err)
 }
 
+/**
+ * Description HTML from Modrinth/CurseForge, safe to render. CurseForge sends HTML and
+ * Markdown may embed it, so every path goes through the sanitizer: inside the app's
+ * WebView, script in a description could reach the Tauri backend.
+ */
 function renderDescriptionHtml(body: string, isHtml: boolean): string {
 	if (!body) return ""
-	if (isHtml) return body
+	if (isHtml) return sanitizeHtml(body)
 
 	try {
 		const parsed = marked.parse(body)
-		return typeof parsed === "string" ? parsed : body
+		return sanitizeHtml(typeof parsed === "string" ? parsed : body)
 	} catch (e) {
 		console.error("Failed to parse markdown with marked:", e)
-		return body
+		return sanitizeHtml(body)
 	}
 }
 
@@ -172,6 +178,18 @@ export const ContentDetailsDialog = memo(
 		}, [lightboxIndex, details?.screenshots])
 
 		// Extract available game versions for dropdown
+		// Sanitizing parses the whole description; do it once per description, not per render
+		const descriptionHtml = useMemo(
+			() =>
+				details?.body
+					? renderDescriptionHtml(
+							details.body,
+							item?.source === "curseforge" || details.body.trim().startsWith("<"),
+						)
+					: "",
+			[details?.body, item?.source],
+		)
+
 		const availableGameVersions = useMemo(() => {
 			if (!details) return []
 			const set = new Set<string>()
@@ -576,13 +594,8 @@ export const ContentDetailsDialog = memo(
 														}
 													}}
 													aria-label="Project description"
-													// biome-ignore lint/security/noDangerouslySetInnerHtml: Sanitized markdown & HTML parser
-													dangerouslySetInnerHTML={{
-														__html: renderDescriptionHtml(
-															details.body,
-															item.source === "curseforge" || details.body.trim().startsWith("<"),
-														),
-													}}
+													// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized in renderDescriptionHtml
+													dangerouslySetInnerHTML={{ __html: descriptionHtml }}
 												/>
 											) : (
 												<p className="text-muted-foreground text-xs">
