@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::sync::{LazyLock, Mutex};
+use std::sync::{Arc, LazyLock, Mutex};
 use std::time::SystemTime;
 
 const TILE: usize = 512;
@@ -445,37 +445,57 @@ fn render_saved(region_path: &Path, ceiling: bool) -> Result<Raster, String> {
 /// Draws the plugin's live chunks over the saved ones, where they're newer
 fn apply_live_chunks(raster: &mut Raster, live_region: &Path) {
     let Ok(entries) = std::fs::read_dir(live_region) else { return };
-    let mut kind_cache: HashMap<String, Kind> = HashMap::new();
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().into_owned();
         let Some((cx, cz)) = name.strip_suffix(".bin").and_then(|n| n.split_once('.')) else { continue };
         let (Ok(cx), Ok(cz)) = (cx.parse::<i32>(), cz.parse::<i32>()) else { continue };
         let (lx, lz) = (cx.rem_euclid(32) as usize, cz.rem_euclid(32) as usize);
-        let taken = entry.metadata().ok().and_then(|m| m.modified().ok()).map_or(0, secs);
+        let Some(modified) = entry.metadata().ok().and_then(|m| m.modified().ok()) else { continue };
+        let taken = secs(modified);
         // The server saved this chunk after the plugin captured it: the saved one wins
         if taken < raster.chunk_times[lz * 32 + lx] {
             continue;
         }
-        let Ok(bytes) = std::fs::read(entry.path()) else { continue };
-        let Some(columns) = decode_live_chunk(&bytes) else { continue };
+        let Some(surface) = live_surface(&entry.path(), modified) else { continue };
         raster.chunk_times[lz * 32 + lx] = taken;
-        for (i, runs) in columns.iter().enumerate() {
-            let blocks = runs.iter().flat_map(|(name, top, len)| {
-                let kind = *kind_cache.entry(name.clone()).or_insert_with(|| classify(name));
-                (0..*len as i32).map(move |d| (top - d, kind))
-            });
-            // The plugin already starts below the Nether roof
-            raster.set(lx * 16 + i % 16, lz * 16 + i / 16, surface(blocks, false));
+        for (i, column) in surface.iter().enumerate() {
+            raster.set(lx * 16 + i % 16, lz * 16 + i / 16, *column);
         }
     }
 }
 
-/// One column of a live chunk: runs of (block id, top y, length) from the top down
-type LiveColumn = Vec<(String, i32, u16)>;
+/// A live chunk resolved to what the map shows in each column (index z * 16 + x)
+type LiveSurface = [Option<([u8; 3], i32, bool)>; 256];
+
+/// Resolved live chunks by file and its modification time: re-rendering a region then
+/// only reads and decodes the chunks the plugin rewrote since, not all of them
+static LIVE_CHUNKS: LazyLock<Mutex<HashMap<PathBuf, (SystemTime, Arc<LiveSurface>)>>> =
+    LazyLock::new(Default::default);
+/// About 12 MB of resolved chunks; cleared when full (rare: four fully explored regions)
+const LIVE_CHUNK_CACHE: usize = 4096;
+
+fn live_surface(path: &Path, modified: SystemTime) -> Option<Arc<LiveSurface>> {
+    if let Ok(cache) = LIVE_CHUNKS.lock() {
+        if let Some((time, surface)) = cache.get(path) {
+            if *time == modified {
+                return Some(surface.clone());
+            }
+        }
+    }
+    let surface: Arc<LiveSurface> = Arc::from(decode_live_chunk(&std::fs::read(path).ok()?)?);
+    if let Ok(mut cache) = LIVE_CHUNKS.lock() {
+        if cache.len() >= LIVE_CHUNK_CACHE {
+            cache.clear();
+        }
+        cache.insert(path.to_path_buf(), (modified, surface.clone()));
+    }
+    Some(surface)
+}
 
 /// Reads the plugin's chunk format: "IGC" + version 1, a palette of block ids, then 256
-/// columns (index z * 16 + x) of runs. Big endian, as Java's DataOutputStream writes.
-fn decode_live_chunk(bytes: &[u8]) -> Option<Vec<LiveColumn>> {
+/// columns (index z * 16 + x) of runs (palette index, top y, length) from the top down.
+/// Big endian, as Java's DataOutputStream writes. Resolves each column to its surface.
+fn decode_live_chunk(bytes: &[u8]) -> Option<Box<LiveSurface>> {
     let mut pos = 0;
     let mut take = |n: usize| -> Option<&[u8]> {
         let slice = bytes.get(pos..pos + n)?;
@@ -486,25 +506,28 @@ fn decode_live_chunk(bytes: &[u8]) -> Option<Vec<LiveColumn>> {
         return None;
     }
     let u16_at = |b: &[u8]| u16::from_be_bytes([b[0], b[1]]);
+    // Classify each block id once per chunk, not once per run
     let palette_len = u16_at(take(2)?);
-    let mut palette = Vec::with_capacity(palette_len as usize);
+    let mut kinds = Vec::with_capacity(palette_len as usize);
     for _ in 0..palette_len {
         let len = u16_at(take(2)?) as usize;
-        palette.push(String::from_utf8_lossy(take(len)?).into_owned());
+        kinds.push(classify(std::str::from_utf8(take(len)?).ok()?));
     }
-    let mut columns = Vec::with_capacity(256);
-    for _ in 0..256 {
-        let runs = u16_at(take(2)?);
-        let mut column = Vec::with_capacity(runs as usize);
-        for _ in 0..runs {
+    let mut surface: Box<LiveSurface> = Box::new([None; 256]);
+    let mut runs = Vec::new();
+    for column in surface.iter_mut() {
+        runs.clear();
+        for _ in 0..u16_at(take(2)?) {
             let run = take(6)?;
-            let name = palette.get(u16_at(run) as usize)?.clone();
+            let kind = *kinds.get(u16_at(run) as usize)?;
             let top = i16::from_be_bytes([run[2], run[3]]) as i32;
-            column.push((name, top, u16_at(&run[4..])));
+            runs.push((kind, top, u16_at(&run[4..]) as i32));
         }
-        columns.push(column);
+        let blocks = runs.iter().flat_map(|&(kind, top, len)| (0..len).map(move |d| (top - d, kind)));
+        // The plugin already starts below the Nether roof
+        *column = surface_of(blocks, false);
     }
-    Some(columns)
+    Some(surface)
 }
 
 /// Finds the visible surface of one column in a saved chunk: (color, height, is_water)
@@ -514,12 +537,12 @@ fn column(sections: &[ResolvedSection], x: usize, z: usize, ceiling: bool) -> Op
         // In the Nether, start below the bedrock roof
         .filter(|s| !(ceiling && s.y * 16 > 120))
         .flat_map(|s| (0..16).rev().map(move |ly| (s.y * 16 + ly as i32, s.kind_at(x, ly, z))));
-    surface(blocks, ceiling)
+    surface_of(blocks, ceiling)
 }
 
 /// The visible surface from blocks listed top-down: (color, height, is_water).
 /// With `ceiling`, skips down to the first open space first (the Nether roof).
-fn surface(blocks: impl Iterator<Item = (i32, Kind)>, ceiling: bool) -> Option<([u8; 3], i32, bool)> {
+fn surface_of(blocks: impl Iterator<Item = (i32, Kind)>, ceiling: bool) -> Option<([u8; 3], i32, bool)> {
     const WATER: [u8; 3] = [52, 94, 196];
     let mut searching_for_air = ceiling;
     let mut water_top: Option<i32> = None;
@@ -723,6 +746,10 @@ fn classify(id: &str) -> Kind {
 mod tests {
     use super::*;
 
+    pub(super) fn live_chunk_bytes_pub() -> Vec<u8> {
+        live_chunk_bytes()
+    }
+
     /// A live chunk as the plugin's DataOutputStream writes it
     fn live_chunk_bytes() -> Vec<u8> {
         let mut out = b"IGC\x01".to_vec();
@@ -748,9 +775,14 @@ mod tests {
     #[test]
     fn decodes_and_renders_live_chunks() {
         let columns = decode_live_chunk(&live_chunk_bytes()).unwrap();
-        assert_eq!(columns.len(), 256);
-        assert_eq!(columns[0], vec![("minecraft:water".to_string(), 62, 3), ("minecraft:sand".to_string(), 59, 1)]);
+        // Column 0: 3 water over sand -> water surface at the top of the water
+        let (_, height, water) = columns[0].unwrap();
+        assert!(water && height == 62);
+        // The rest: grass at y=70
+        let (_, height, water) = columns[1].unwrap();
+        assert!(!water && height == 70);
         assert!(decode_live_chunk(b"IGC\x02").is_none(), "unknown versions are ignored");
+        assert!(decode_live_chunk(b"IGC\x01\x00").is_none(), "truncated files are ignored");
 
         // A region the server never saved still gets a tile from live chunks alone
         let dir = std::env::temp_dir().join(format!("ingot-live-{}", std::process::id()));
@@ -801,3 +833,35 @@ mod tests {
     }
 }
 
+
+#[cfg(test)]
+mod perf {
+    #[test]
+    #[ignore]
+    fn live_region_timing() {
+        let dir = std::env::temp_dir().join(format!("ingot-perf-{}", std::process::id()));
+        let region = super::live_dir(&dir, "minecraft:overworld").join("0.0");
+        std::fs::create_dir_all(&region).unwrap();
+        let bytes = super::tests::live_chunk_bytes_pub();
+        for cx in 0..32 {
+            for cz in 0..32 {
+                std::fs::write(region.join(format!("{cx}.{cz}.bin")), &bytes).unwrap();
+            }
+        }
+        for run in 0..3 {
+            let t = std::time::Instant::now();
+            let mut raster = super::Raster::empty();
+            super::apply_live_chunks(&mut raster, &region);
+            let applied = t.elapsed();
+            let png = raster.to_png().unwrap();
+            println!("run {run}: apply {:?}, png {:?} ({} KB)", applied, t.elapsed() - applied, png.len() / 1024);
+        }
+        let t = std::time::Instant::now();
+        let url = super::tile(&dir, "minecraft:overworld", 0, 0).unwrap().unwrap();
+        println!("tile() cold {:?} ({} KB data url)", t.elapsed(), url.len() / 1024);
+        let t = std::time::Instant::now();
+        super::tile(&dir, "minecraft:overworld", 0, 0).unwrap();
+        println!("tile() cached {:?}", t.elapsed());
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+}

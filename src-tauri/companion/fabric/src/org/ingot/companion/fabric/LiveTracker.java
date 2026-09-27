@@ -37,8 +37,8 @@ public final class LiveTracker {
     private static final class State {
         /** Chunks to capture (packed x/z) */
         final Set<Long> dirty = ConcurrentHashMap.newKeySet();
-        /** Chunks written at least once; later changes come from block updates */
-        final Set<Long> captured = ConcurrentHashMap.newKeySet();
+        /** What was written and when: skips identical and too-frequent writes */
+        final LiveChunk.Tracker tracker = new LiveChunk.Tracker();
         int ticks;
     }
 
@@ -50,14 +50,23 @@ public final class LiveTracker {
     });
     private static final Path LIVE_DIR = LiveChunk.liveDir();
 
+    /** The last level looked up: block changes come in bursts from the same world */
+    private static volatile ServerLevel lastLevel;
+    private static volatile State lastState;
+
     private LiveTracker() {}
 
     private static long key(int chunkX, int chunkZ) {
-        return (chunkX & 0xFFFFFFFFL) | ((chunkZ & 0xFFFFFFFFL) << 32);
+        return LiveChunk.key(chunkX, chunkZ);
     }
 
     private static State state(ServerLevel level) {
-        return STATES.computeIfAbsent(level, l -> new State());
+        State cached = lastState;
+        if (lastLevel == level && cached != null) return cached;
+        State state = STATES.computeIfAbsent(level, l -> new State());
+        lastState = state;
+        lastLevel = level;
+        return state;
     }
 
     /** From LevelChunk.setBlockState: every block change goes through it */
@@ -84,7 +93,7 @@ public final class LiveTracker {
                     int x = center.x() + dx;
                     int z = center.z() + dz;
                     long key = key(x, z);
-                    if (!state.captured.contains(key) && level.getChunkSource().getChunkNow(x, z) != null) {
+                    if (!state.tracker.captured(key) && level.getChunkSource().getChunkNow(x, z) != null) {
                         state.dirty.add(key);
                     }
                 }
@@ -93,20 +102,25 @@ public final class LiveTracker {
     }
 
     private static void drain(ServerLevel level, State state) {
+        long now = System.currentTimeMillis();
         Iterator<Long> it = state.dirty.iterator();
-        for (int i = 0; i < CHUNKS_PER_DRAIN && it.hasNext(); i++) {
+        int captured = 0;
+        // Bounded, so a queue full of cooling-down chunks can't turn into a long scan
+        for (int scanned = 0; captured < CHUNKS_PER_DRAIN && scanned < CHUNKS_PER_DRAIN * 4 && it.hasNext(); scanned++) {
             long key = it.next();
+            // Written moments ago: stays queued and is captured once the cooldown passes
+            if (state.tracker.coolingDown(key, now)) continue;
             it.remove();
             int x = (int) key;
             int z = (int) (key >>> 32);
             LevelChunk chunk = level.getChunkSource().getChunkNow(x, z);
             if (chunk == null) continue;
-            state.captured.add(key);
-            capture(level, chunk, x, z);
+            captured++;
+            capture(level, state, chunk, x, z, now);
         }
     }
 
-    private static void capture(ServerLevel level, LevelChunk chunk, int chunkX, int chunkZ) {
+    private static void capture(ServerLevel level, State state, LevelChunk chunk, int chunkX, int chunkZ, long now) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
@@ -118,7 +132,7 @@ public final class LiveTracker {
                     // The y of the highest non-air block (ChunkAccess already subtracts
                     // one from the heightmap's first free y)
                     (x, z) -> chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z),
-                    (BlockState state) -> BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(),
+                    (BlockState block) -> BuiltInRegistries.BLOCK.getKey(block.getBlock()).toString(),
                     BlockState::isAir,
                     BlockState::canOcclude,
                     level.dimensionType().hasCeiling(),
@@ -127,6 +141,8 @@ public final class LiveTracker {
         } catch (Exception e) {
             return;
         }
+        // Most changes are below the surface: nothing new to write
+        if (!state.tracker.changed(key(chunkX, chunkZ), data, now)) return;
         WRITER.execute(() -> {
             try {
                 LiveChunk.write(LIVE_DIR, dimension, chunkX, chunkZ, data);

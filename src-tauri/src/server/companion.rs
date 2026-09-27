@@ -12,7 +12,7 @@ use super::plugins;
 const PAPER_JAR: &[u8] = include_bytes!("../../companion/ingot-companion-paper.jar");
 const FABRIC_JAR: &[u8] = include_bytes!("../../companion/ingot-companion-fabric.jar");
 /// Must match VERSION in scripts/build-companion.mjs (checked by a test)
-pub const BUNDLED_VERSION: &str = "1.1.0";
+pub const BUNDLED_VERSION: &str = "1.2.0";
 /// `name` in plugin.yml / fabric.mod.json; identifies it however the jar is named
 pub const PLUGIN_NAME: &str = "Ingot";
 const FILE_NAME: &str = "ingot-companion.jar";

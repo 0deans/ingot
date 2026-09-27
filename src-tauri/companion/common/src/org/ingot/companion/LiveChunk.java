@@ -101,6 +101,50 @@ public final class LiveChunk {
         return bytes.toByteArray();
     }
 
+    /** Chunk x/z packed into one key */
+    public static long key(int chunkX, int chunkZ) {
+        return (chunkX & 0xFFFFFFFFL) | ((chunkZ & 0xFFFFFFFFL) << 32);
+    }
+
+    /**
+     * Per-dimension bookkeeping that keeps the server's work down. Ingot re-renders a map
+     * region whenever one of its chunk files changes, so writes are worth avoiding:
+     * <ul>
+     *   <li>most block changes (mining, redstone, chests) don't change the surface, and
+     *       an identical file isn't written again</li>
+     *   <li>a chunk that keeps changing (flowing water, farms) is written at most every
+     *       {@link #MIN_INTERVAL_MS}; the map only looks every few seconds anyway</li>
+     * </ul>
+     * Thread-safe: captures and writes may happen on different threads.
+     */
+    public static final class Tracker {
+        public static final long MIN_INTERVAL_MS = 2000;
+
+        private final Map<Long, Long> lastWrite = new java.util.concurrent.ConcurrentHashMap<>();
+        private final Map<Long, Long> lastHash = new java.util.concurrent.ConcurrentHashMap<>();
+
+        /** Written recently; capturing again should wait (the chunk stays queued) */
+        public boolean coolingDown(long key, long now) {
+            Long last = lastWrite.get(key);
+            return last != null && now - last < MIN_INTERVAL_MS;
+        }
+
+        /** Captured at least once since the server started (it can't change while unloaded) */
+        public boolean captured(long key) {
+            return lastHash.containsKey(key);
+        }
+
+        /** Records a capture; false when the data is what's already on disk, so skip the write */
+        public boolean changed(long key, byte[] data, long now) {
+            java.util.zip.CRC32C crc = new java.util.zip.CRC32C();
+            crc.update(data);
+            long hash = ((long) data.length << 32) ^ crc.getValue();
+            lastWrite.put(key, now);
+            Long previous = lastHash.put(key, hash);
+            return previous == null || previous != hash;
+        }
+    }
+
     /** Where live chunks go: the server folder, which is the server's working directory */
     public static Path liveDir() {
         return Path.of(System.getProperty("user.dir"), ".ingot", "live");

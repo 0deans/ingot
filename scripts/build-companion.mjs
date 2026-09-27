@@ -13,7 +13,7 @@ import { execFileSync } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
 
-const VERSION = "1.1.0"
+const VERSION = "1.2.0"
 /** Oldest Minecraft the Fabric mod supports; compiling against it proves compatibility */
 const FABRIC_MINECRAFT = "26.1"
 

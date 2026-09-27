@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,7 @@ import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
@@ -50,17 +52,31 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class IngotCompanion extends JavaPlugin implements Listener {
     /** Chunks snapshotted per drain; spreads bursts (flying, explosions) over ticks */
     private static final int CHUNKS_PER_DRAIN = 48;
+    /**
+     * Ticks between re-checking the chunks around each player, and how far. Events don't
+     * cover commands (/fill, /setblock), WorldEdit or other plugins changing blocks; this
+     * catches those. Unchanged chunks cost a snapshot but no write (see LiveChunk.Tracker).
+     */
+    private static final long SWEEP_TICKS = 200L;
+    private static final int SWEEP_RADIUS = 3;
 
     private record ChunkKey(UUID world, int x, int z) {}
 
     private final Set<ChunkKey> dirty = ConcurrentHashMap.newKeySet();
+    /** Per world: what was written, and when (skips identical and too-frequent writes) */
+    private final Map<UUID, LiveChunk.Tracker> trackers = new ConcurrentHashMap<>();
     private Path liveDir;
+
+    private LiveChunk.Tracker tracker(World world) {
+        return trackers.computeIfAbsent(world.getUID(), id -> new LiveChunk.Tracker());
+    }
 
     @Override
     public void onEnable() {
         liveDir = LiveChunk.liveDir();
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> drain(), 20L, 10L);
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> sweep(), SWEEP_TICKS, SWEEP_TICKS);
         // Everything loaded before the plugin (spawn area, players already online)
         for (World world : getServer().getWorlds()) {
             try {
@@ -93,7 +109,11 @@ public final class IngotCompanion extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkLoad(ChunkLoadEvent event) {
-        markDirty(event.getWorld(), event.getChunk().getX(), event.getChunk().getZ());
+        int x = event.getChunk().getX();
+        int z = event.getChunk().getZ();
+        // Already captured this run: it can't have changed while it was unloaded
+        if (tracker(event.getWorld()).captured(LiveChunk.key(x, z))) return;
+        markDirty(event.getWorld(), x, z);
     }
 
     /** Last chance to capture the chunk; runs on the thread that owns it */
@@ -164,16 +184,39 @@ public final class IngotCompanion extends JavaPlugin implements Listener {
         for (BlockState state : event.getBlocks()) markDirty(state.getLocation());
     }
 
+    /** Queues the chunks around each player, reading their position on their own thread */
+    private void sweep() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            player.getScheduler().run(this, task -> {
+                World world = player.getWorld();
+                int cx = player.getLocation().getBlockX() >> 4;
+                int cz = player.getLocation().getBlockZ() >> 4;
+                for (int dx = -SWEEP_RADIUS; dx <= SWEEP_RADIUS; dx++) {
+                    for (int dz = -SWEEP_RADIUS; dz <= SWEEP_RADIUS; dz++) markDirty(world, cx + dx, cz + dz);
+                }
+            }, null);
+        }
+    }
+
     // ─── Capturing ───────────────────────────────────────────────────────────
 
     /** Snapshots a batch of changed chunks, each on the thread that owns it */
     private void drain() {
+        long now = System.currentTimeMillis();
         Iterator<ChunkKey> it = dirty.iterator();
-        for (int i = 0; i < CHUNKS_PER_DRAIN && it.hasNext(); i++) {
+        int scheduled = 0;
+        // Bounded, so a queue full of cooling-down chunks can't turn into a long scan
+        for (int scanned = 0; scheduled < CHUNKS_PER_DRAIN && scanned < CHUNKS_PER_DRAIN * 4 && it.hasNext(); scanned++) {
             ChunkKey key = it.next();
-            it.remove();
             World world = getServer().getWorld(key.world());
-            if (world == null) continue;
+            if (world == null) {
+                it.remove();
+                continue;
+            }
+            // Written moments ago: stays queued and is captured once the cooldown passes
+            if (tracker(world).coolingDown(LiveChunk.key(key.x(), key.z()), now)) continue;
+            it.remove();
+            scheduled++;
             getServer().getRegionScheduler().run(this, world, key.x(), key.z(), task -> {
                 if (world.isChunkLoaded(key.x(), key.z())) capture(world, world.getChunkAt(key.x(), key.z()));
             });
@@ -187,6 +230,8 @@ public final class IngotCompanion extends JavaPlugin implements Listener {
         int minY = world.getMinHeight();
         int maxY = world.getMaxHeight() - 1;
         String dimension = world.getKey().toString();
+        LiveChunk.Tracker tracker = tracker(world);
+        long key = LiveChunk.key(chunk.getX(), chunk.getZ());
         getServer().getAsyncScheduler().runNow(this, task -> {
             try {
                 byte[] data = LiveChunk.encode(
@@ -198,6 +243,8 @@ public final class IngotCompanion extends JavaPlugin implements Listener {
                         nether,
                         minY,
                         maxY);
+                // Most changes are below the surface: nothing new to write
+                if (!tracker.changed(key, data, System.currentTimeMillis())) return;
                 LiveChunk.write(liveDir, dimension, chunk.getX(), chunk.getZ(), data);
             } catch (IOException | RuntimeException e) {
                 getLogger().fine("Couldn't write live map data: " + e);
