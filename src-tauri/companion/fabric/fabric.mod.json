@@ -1,0 +1,17 @@
+{
+	"schemaVersion": 1,
+	"id": "ingot",
+	"version": "${version}",
+	"name": "Ingot",
+	"description": "Live world map for the Ingot app. Reads chunks from memory; never saves the world.",
+	"authors": ["Ingot"],
+	"contact": {
+		"homepage": "https://github.com/0deans/ingot"
+	},
+	"environment": "server",
+	"mixins": ["ingot.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": ">=26.1"
+	}
+}

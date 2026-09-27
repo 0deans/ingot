@@ -1,0 +1,10 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "org.ingot.companion.fabric.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"server": ["LevelChunkMixin", "ServerLevelMixin"],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

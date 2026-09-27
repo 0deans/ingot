@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useCompanionStatus, usePluginActions } from "@/services/server-data"
 import { Card } from "../shared/primitives"
+import { addonKind } from "./plugins-panel"
 
 /**
- * Ingot's own plugin, shown apart from the user's plugins. Never installed or updated
+ * Ingot's own plugin (a mod on Fabric), shown apart from the user's. Never installed or updated
  * behind the user's back (only when a server is created); they can remove it and
  * install it again here.
  */
@@ -19,6 +20,7 @@ export function CompanionCard({
 }) {
 	const { data: status } = useCompanionStatus(server.id)
 	const actions = usePluginActions(server.id)
+	const noun = addonKind(server.core)?.noun ?? "plugin"
 	if (!status?.supported) return null
 
 	const installed = status.fileName !== null
@@ -29,7 +31,7 @@ export function CompanionCard({
 	const install = async () => {
 		try {
 			await actions.installCompanion.mutateAsync()
-			onChanged(installed ? "Updated the Ingot plugin." : "Installed the Ingot plugin.")
+			onChanged(installed ? `Updated the Ingot ${noun}.` : `Installed the Ingot ${noun}.`)
 		} catch (e) {
 			onChanged(String(e), true)
 		}
@@ -38,7 +40,7 @@ export function CompanionCard({
 		if (!status.fileName) return
 		try {
 			await actions.remove.mutateAsync(status.fileName)
-			onChanged("Removed the Ingot plugin. The map now updates when the server saves.")
+			onChanged(`Removed the Ingot ${noun}. The map now updates when the server saves.`)
 		} catch (e) {
 			onChanged(String(e), true)
 		}
@@ -47,7 +49,7 @@ export function CompanionCard({
 		if (!status.fileName) return
 		try {
 			await actions.toggle.mutateAsync({ fileName: status.fileName, enabled: true })
-			onChanged("Enabled the Ingot plugin.")
+			onChanged(`Enabled the Ingot ${noun}.`)
 		} catch (e) {
 			onChanged(String(e), true)
 		}
@@ -105,8 +107,8 @@ export function CompanionCard({
 					type="button"
 					onClick={remove}
 					disabled={busy}
-					title="Remove the Ingot plugin"
-					aria-label="Remove the Ingot plugin"
+					title={`Remove the Ingot ${noun}`}
+					aria-label={`Remove the Ingot ${noun}`}
 					className="flex size-8 shrink-0 items-center justify-center text-zinc-500 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-50"
 				>
 					{actions.remove.isPending ? (

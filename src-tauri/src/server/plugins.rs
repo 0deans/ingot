@@ -551,7 +551,7 @@ pub fn list_installed(server_dir: &Path, core: &ServerCoreType) -> Result<Vec<In
                 source: track.map(|t| t.source),
                 project_id: track.map(|t| t.project_id.clone()),
                 icon_url: track.and_then(|t| t.icon_url.clone()),
-                system: *core != ServerCoreType::Fabric && name == super::companion::PLUGIN_NAME,
+                system: name == super::companion::PLUGIN_NAME,
                 name,
             })
         })

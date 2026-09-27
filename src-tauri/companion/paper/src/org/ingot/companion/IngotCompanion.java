@@ -1,16 +1,9 @@
 package org.ingot.companion;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,17 +41,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Feeds Ingot's live map. Reads the surface of chunks straight from memory whenever
- * they load, change or unload, and writes one small file per chunk to
- * {@code .ingot/live/<namespace>/<dimension>/<rx>.<rz>/<cx>.<cz>.bin} in the server
- * folder. Never saves the world; Ingot shows whichever is newer, this or the saved chunk.
+ * they load, change or unload, and writes them in Ingot's live chunk format (see
+ * {@link LiveChunk}). Never saves the world; Ingot shows whichever is newer, this or the
+ * saved chunk.
  *
  * <p>Uses Paper's region schedulers, so the same jar runs on Paper, Purpur and Folia.
  */
 public final class IngotCompanion extends JavaPlugin implements Listener {
     /** Chunks snapshotted per drain; spreads bursts (flying, explosions) over ticks */
     private static final int CHUNKS_PER_DRAIN = 48;
-    /** Blocks walked down per column at most (deep oceans are one long water run) */
-    private static final int MAX_DEPTH = 384;
 
     private record ChunkKey(UUID world, int x, int z) {}
 
@@ -67,7 +58,7 @@ public final class IngotCompanion extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        liveDir = Path.of(System.getProperty("user.dir"), ".ingot", "live");
+        liveDir = LiveChunk.liveDir();
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> drain(), 20L, 10L);
         // Everything loaded before the plugin (spawn area, players already online)
@@ -198,80 +189,20 @@ public final class IngotCompanion extends JavaPlugin implements Listener {
         String dimension = world.getKey().toString();
         getServer().getAsyncScheduler().runNow(this, task -> {
             try {
-                write(dimension, chunk.getX(), chunk.getZ(), encode(snapshot, nether, minY, maxY));
+                byte[] data = LiveChunk.encode(
+                        snapshot::getBlockType,
+                        snapshot::getHighestBlockYAt,
+                        material -> material.getKey().toString(),
+                        Material::isAir,
+                        Material::isOccluding,
+                        nether,
+                        minY,
+                        maxY);
+                LiveChunk.write(liveDir, dimension, chunk.getX(), chunk.getZ(), data);
             } catch (IOException | RuntimeException e) {
                 getLogger().fine("Couldn't write live map data: " + e);
             }
         });
-    }
-
-    /**
-     * Per column, the blocks from the surface down to the first opaque one, as runs of
-     * equal blocks. Ingot colors them with its own rules, so live and saved chunks match.
-     *
-     * <p>Format (big endian): "IGC" + version byte, palette (u16 count, UTF strings),
-     * then 256 columns (index z * 16 + x): u16 run count, runs of (u16 palette index,
-     * i16 top y, u16 length) from the top down.
-     */
-    private static byte[] encode(ChunkSnapshot snapshot, boolean nether, int minY, int maxY) throws IOException {
-        Map<Material, Integer> palette = new HashMap<>();
-        List<String> names = new ArrayList<>();
-        List<int[]> columns = new ArrayList<>(256);
-        for (int z = 0; z < 16; z++) {
-            for (int x = 0; x < 16; x++) {
-                // The Nether is read below its bedrock roof, like Ingot's renderer does
-                int top = nether ? Math.min(127, maxY) : Math.min(snapshot.getHighestBlockYAt(x, z), maxY);
-                List<Integer> runs = new ArrayList<>();
-                boolean belowRoof = !nether;
-                int lastIndex = -1;
-                int walked = 0;
-                for (int y = top; y >= minY && walked < MAX_DEPTH; y--, walked++) {
-                    Material material = snapshot.getBlockType(x, y, z);
-                    if (!belowRoof) {
-                        if (material.isAir()) belowRoof = true;
-                        continue;
-                    }
-                    int index = palette.computeIfAbsent(material, m -> {
-                        names.add(m.getKey().toString());
-                        return names.size() - 1;
-                    });
-                    if (index == lastIndex) {
-                        runs.set(runs.size() - 1, runs.get(runs.size() - 1) + 1);
-                    } else {
-                        runs.add(index);
-                        runs.add(y);
-                        runs.add(1);
-                        lastIndex = index;
-                    }
-                    if (material.isOccluding()) break;
-                }
-                columns.add(runs.stream().mapToInt(Integer::intValue).toArray());
-            }
-        }
-
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream(4096);
-        try (DataOutputStream out = new DataOutputStream(bytes)) {
-            out.writeBytes("IGC");
-            out.writeByte(1);
-            out.writeShort(names.size());
-            for (String name : names) out.writeUTF(name);
-            for (int[] runs : columns) {
-                out.writeShort(runs.length / 3);
-                for (int value : runs) out.writeShort(value);
-            }
-        }
-        return bytes.toByteArray();
-    }
-
-    private void write(String dimension, int chunkX, int chunkZ, byte[] data) throws IOException {
-        String[] key = dimension.split(":", 2);
-        Path dir = liveDir.resolve(key[0]).resolve(key[1]).resolve((chunkX >> 5) + "." + (chunkZ >> 5));
-        Files.createDirectories(dir);
-        Path file = dir.resolve(chunkX + "." + chunkZ + ".bin");
-        Path tmp = dir.resolve(chunkX + "." + chunkZ + ".tmp");
-        Files.write(tmp, data);
-        // Replace in one step so Ingot never reads half a file
-        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 
     @Override

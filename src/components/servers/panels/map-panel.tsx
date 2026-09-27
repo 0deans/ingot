@@ -14,9 +14,10 @@ import {
 } from "@/services/server-data"
 import { EmptyState, PlayerAvatar } from "../shared/primitives"
 import { PlayerSheet } from "./player-sheet"
+import { addonKind } from "./plugins-panel"
 import { type MapView, WorldMap } from "./world-map"
 
-/** How often to look for changed regions: live chunks from the Ingot plugin, else saves */
+/** How often to look for changed regions: live chunks from Ingot's plugin/mod, else saves */
 const LIVE_INTERVAL_MS = 3_000
 const SAVED_INTERVAL_MS = 10_000
 
@@ -79,7 +80,7 @@ export function MapPanel({
 	}, [focus])
 
 	// The map never makes the server save. It re-lists regions now and then and redraws
-	// the ones that changed: live chunks the Ingot plugin reads from memory, or whatever
+	// the ones that changed: live chunks Ingot's plugin (or Fabric mod) reads from memory, or whatever
 	// the server saved on its own schedule.
 	const live = isRunning && companionReady && installedAt !== server.id
 	useEffect(() => {
@@ -174,7 +175,7 @@ export function MapPanel({
 				<div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
 					{live && (
 						<span
-							title="The Ingot plugin keeps the map current from server memory"
+							title="Ingot keeps the map current from server memory"
 							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
 						>
 							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
@@ -194,7 +195,7 @@ export function MapPanel({
 								if (isRunning) setInstalledAt(server.id)
 							}}
 							disabled={installCompanion.isPending}
-							title="Install the Ingot plugin to update the map in real time, without saving the world"
+							title={`Install the Ingot ${addonKind(server.core)?.noun ?? "plugin"} to update the map in real time, without saving the world`}
 							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
 						>
 							{installCompanion.isPending ? (

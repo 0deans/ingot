@@ -1,7 +1,7 @@
-//! The Ingot companion plugin (Paper, Purpur, Folia): feeds the live map from server
-//! memory so it never has to save the world. Built by `scripts/build-companion.mjs`
-//! and embedded here. Shown as a system plugin the user can remove and install again;
-//! only installed automatically when a server is created.
+//! Ingot's companion: feeds the live map from server memory so it never has to save the
+//! world. A plugin for Paper, Purpur and Folia and a mod for Fabric, both built by
+//! `scripts/build-companion.mjs` and embedded here. Shown as a system entry the user can
+//! remove and install again; only installed automatically when a server is created.
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -9,17 +9,18 @@ use std::path::Path;
 use super::config::ServerCoreType;
 use super::plugins;
 
-const JAR: &[u8] = include_bytes!("../../companion/ingot-companion.jar");
+const PAPER_JAR: &[u8] = include_bytes!("../../companion/ingot-companion-paper.jar");
+const FABRIC_JAR: &[u8] = include_bytes!("../../companion/ingot-companion-fabric.jar");
 /// Must match VERSION in scripts/build-companion.mjs (checked by a test)
-pub const BUNDLED_VERSION: &str = "1.0.0";
-/// `name` in the plugin's plugin.yml; identifies it however the jar is named
+pub const BUNDLED_VERSION: &str = "1.1.0";
+/// `name` in plugin.yml / fabric.mod.json; identifies it however the jar is named
 pub const PLUGIN_NAME: &str = "Ingot";
 const FILE_NAME: &str = "ingot-companion.jar";
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct CompanionStatus {
-    /// Paper, Purpur or Folia on 1.20.1 or newer
+    /// Paper, Purpur or Folia 1.20.1+, or Fabric on Minecraft 26.1+
     pub supported: bool,
     /// Jar file name when installed (may be disabled)
     pub file_name: Option<String>,
@@ -28,15 +29,31 @@ pub struct CompanionStatus {
     pub bundled_version: String,
 }
 
-/// Paper-family servers new enough for the plugin's API (region schedulers, 1.20.1+)
-pub fn supported(core: &ServerCoreType, game_version: &str) -> bool {
-    if !matches!(core, ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia) {
-        return false;
-    }
+/// (major, minor, patch) of versions like "1.21.4" or "26.1"
+fn version_parts(game_version: &str) -> (u32, u32, u32) {
     let parts: Vec<u32> = game_version.split('.').map(|p| p.parse().unwrap_or(0)).collect();
     let part = |i: usize| parts.get(i).copied().unwrap_or(0);
-    // Year-based versions (26.1+) come after 1.x
-    part(0) > 1 || (part(0) == 1 && (part(1) > 20 || (part(1) == 20 && part(2) >= 1)))
+    (part(0), part(1), part(2))
+}
+
+/// The companion jar for this server, if it can run one:
+/// - Paper family from 1.20.1 (needs the region schedulers Folia introduced)
+/// - Fabric from Minecraft 26.1, the first version without obfuscation, which the mod
+///   relies on to use Mojang's names without remapping
+fn jar_for(core: &ServerCoreType, game_version: &str) -> Option<&'static [u8]> {
+    let v = version_parts(game_version);
+    match core {
+        // Year-based versions (26.1+) come after 1.x
+        ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia => {
+            (v.0 > 1 || (v.0 == 1 && (v.1 > 20 || (v.1 == 20 && v.2 >= 1)))).then_some(PAPER_JAR)
+        }
+        ServerCoreType::Fabric => (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR),
+        ServerCoreType::Vanilla | ServerCoreType::Pumpkin => None,
+    }
+}
+
+pub fn supported(core: &ServerCoreType, game_version: &str) -> bool {
+    jar_for(core, game_version).is_some()
 }
 
 pub fn status(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> CompanionStatus {
@@ -53,43 +70,69 @@ pub fn status(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> C
     }
 }
 
-/// Installs or updates the plugin. Replaces an existing copy (enabled or not) so there's
-/// only ever one. Takes effect on the next server start.
+/// Installs or updates the companion (into plugins/ or mods/). Replaces an existing copy
+/// (enabled or not) so there's only ever one. Takes effect on the next server start.
 pub fn install(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> Result<(), String> {
-    if !supported(core, game_version) {
-        return Err("The Ingot plugin needs Paper, Purpur or Folia 1.20.1 or newer".into());
-    }
-    let dir = server_dir.join("plugins");
-    std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to create plugins folder: {e}"))?;
+    let (Some(jar), Some(platform)) = (jar_for(core, game_version), plugins::platform(core)) else {
+        return Err("Ingot's live map needs Paper, Purpur or Folia 1.20.1+, or Fabric on Minecraft 26.1+".into());
+    };
+    let dir = server_dir.join(platform.folder);
+    std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to create the {} folder: {e}", platform.folder))?;
     for existing in plugins::list_installed(server_dir, core)?.into_iter().filter(|p| p.system) {
         let _ = std::fs::remove_file(dir.join(&existing.file_name));
     }
     let tmp = dir.join(format!("{FILE_NAME}.part"));
-    std::fs::write(&tmp, JAR).map_err(|e| format!("Failed to install the Ingot plugin: {e}"))?;
-    std::fs::rename(&tmp, dir.join(FILE_NAME)).map_err(|e| format!("Failed to install the Ingot plugin: {e}"))
+    std::fs::write(&tmp, jar).map_err(|e| format!("Failed to install Ingot's live map: {e}"))?;
+    std::fs::rename(&tmp, dir.join(FILE_NAME)).map_err(|e| format!("Failed to install Ingot's live map: {e}"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn bundled_jar_matches_version() {
-        let mut zip = zip::ZipArchive::new(std::io::Cursor::new(JAR)).unwrap();
-        let mut yml = String::new();
-        std::io::Read::read_to_string(&mut zip.by_name("plugin.yml").unwrap(), &mut yml).unwrap();
-        assert!(yml.contains(&format!("name: {PLUGIN_NAME}\n")));
-        assert!(yml.contains(&format!("version: \"{BUNDLED_VERSION}\"")), "rebuild with scripts/build-companion.mjs");
+    fn read(jar: &[u8], name: &str) -> String {
+        let mut zip = zip::ZipArchive::new(std::io::Cursor::new(jar)).unwrap();
+        let mut text = String::new();
+        std::io::Read::read_to_string(&mut zip.by_name(name).unwrap(), &mut text).unwrap();
+        text
     }
 
     #[test]
-    fn supports_paper_family_from_1_20_1() {
+    fn bundled_jars_match_version() {
+        let yml = read(PAPER_JAR, "plugin.yml");
+        assert!(yml.contains(&format!("name: {PLUGIN_NAME}\n")));
+        assert!(yml.contains(&format!("version: \"{BUNDLED_VERSION}\"")), "rebuild with scripts/build-companion.mjs");
+
+        let json: serde_json::Value = serde_json::from_str(&read(FABRIC_JAR, "fabric.mod.json")).unwrap();
+        assert_eq!(json["name"], PLUGIN_NAME);
+        assert_eq!(json["version"], BUNDLED_VERSION, "rebuild with scripts/build-companion.mjs");
+        assert_eq!(json["environment"], "server");
+        assert!(read(FABRIC_JAR, "ingot.mixins.json").contains("LevelChunkMixin"));
+    }
+
+    #[test]
+    fn supported_versions() {
         assert!(supported(&ServerCoreType::Paper, "26.2"));
         assert!(supported(&ServerCoreType::Folia, "1.21.4"));
         assert!(supported(&ServerCoreType::Purpur, "1.20.1"));
         assert!(!supported(&ServerCoreType::Paper, "1.20"));
         assert!(!supported(&ServerCoreType::Paper, "1.19.4"));
-        assert!(!supported(&ServerCoreType::Fabric, "26.2"));
+        assert!(supported(&ServerCoreType::Fabric, "26.1"));
+        assert!(supported(&ServerCoreType::Fabric, "26.3"));
+        assert!(!supported(&ServerCoreType::Fabric, "1.21.11"), "obfuscated versions need remapping");
         assert!(!supported(&ServerCoreType::Vanilla, "26.2"));
+        assert!(!supported(&ServerCoreType::Pumpkin, "26.2"));
+    }
+
+    #[test]
+    fn installs_into_the_right_folder() {
+        let dir = std::env::temp_dir().join(format!("ingot-companion-{}", std::process::id()));
+        install(&dir, &ServerCoreType::Fabric, "26.2").unwrap();
+        assert!(dir.join("mods").join(FILE_NAME).is_file());
+        let status = status(&dir, &ServerCoreType::Fabric, "26.2");
+        assert_eq!(status.installed_version.as_deref(), Some(BUNDLED_VERSION));
+        install(&dir, &ServerCoreType::Paper, "26.2").unwrap();
+        assert!(dir.join("plugins").join(FILE_NAME).is_file());
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }
