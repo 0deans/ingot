@@ -1,8 +1,25 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { save as saveDialog } from "@tauri-apps/plugin-dialog"
-import { ArrowUpDown, Copy, FileArchive, Loader2, Package, Share2, Upload } from "lucide-react"
+import {
+	ArrowUpDown,
+	CheckCircle2,
+	Copy,
+	FileArchive,
+	Loader2,
+	Package,
+	Share2,
+	Undo2,
+	Upload,
+} from "lucide-react"
 import { useRef, useState } from "react"
-import type { ExportMode, ImportedServer, ServerConfig } from "@/bindings"
+import type {
+	ExportMode,
+	ImportedServer,
+	ItemAction,
+	ServerConfig,
+	ServerCoreType,
+	VersionPlan,
+} from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import {
@@ -12,13 +29,27 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
+import {
+	loaderName,
+	PlanReview,
+	planSide,
+	planSummary,
+} from "@/components/version-change/plan-review"
+import { formatBytes } from "@/lib/minecraft"
 import { canShareFiles, shareFile } from "@/lib/share"
 import { useServerStatus } from "@/services/server-data"
 import { rpc, serverService } from "@/services/server-service"
 import { Card, CardHeader, ErrorNote } from "../shared/primitives"
 
-type Busy = "export-configs" | "export-full" | "copy" | "version" | null
+type Busy = "export-configs" | "export-full" | "copy" | "version" | "undo" | null
+
+/** The last version change, while it can still be undone */
+function useVersionBackup(serverId: string) {
+	return useQuery({
+		queryKey: ["server-version-backup", serverId],
+		queryFn: () => rpc.get_server_version_backup(serverId),
+	})
+}
 
 /** Export, copy and change version */
 export function TransferCard({ server }: { server: ServerConfig }) {
@@ -27,6 +58,10 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 	const [busy, setBusy] = useState<Busy>(null)
 	const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
 	const [versionOpen, setVersionOpen] = useState(false)
+	const queryClient = useQueryClient()
+	const { data: versionBackup } = useVersionBackup(server.id)
+	const refreshBackup = () =>
+		queryClient.invalidateQueries({ queryKey: ["server-version-backup", server.id] })
 
 	const run = async (kind: Busy, task: () => Promise<string | null>) => {
 		setBusy(kind)
@@ -58,6 +93,21 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 			if (!dest) return null
 			const path = await rpc.export_server(server.id, mode, dest)
 			return `Saved to ${path}`
+		})
+
+	const undoVersion = () =>
+		run("undo", async () => {
+			const restored = await rpc.undo_server_version_change(server.id)
+			await serverService.refreshServers()
+			await refreshBackup()
+			return `Back on ${restored.gameVersion}, exactly as before.`
+		})
+
+	const discardBackup = () =>
+		run("undo", async () => {
+			await rpc.discard_server_version_backup(server.id)
+			await refreshBackup()
+			return null
 		})
 
 	const copy = () =>
@@ -109,6 +159,43 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 						onClick={() => setVersionOpen(true)}
 					/>
 				</div>
+				{versionBackup && (
+					<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+						<p className="min-w-0 flex-1 text-xs text-zinc-400">
+							Changed from{" "}
+							{versionBackup.fromLoader === versionBackup.toLoader
+								? versionBackup.fromGameVersion
+								: `${loaderName(versionBackup.fromLoader)} ${versionBackup.fromGameVersion}`}
+							. Backup {formatBytes(versionBackup.bytes)}
+							{versionBackup.worldsBackedUp ? ", worlds included" : ""}.
+						</p>
+						<div className="flex gap-1.5">
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={discardBackup}
+								disabled={busy !== null}
+								className="h-8 rounded-lg text-xs text-zinc-500"
+							>
+								Delete backup
+							</Button>
+							<Button
+								size="sm"
+								onClick={undoVersion}
+								disabled={busy !== null || !stopped}
+								title={stopped ? undefined : "Stop the server first"}
+								className="h-8 gap-1.5 rounded-lg text-xs"
+							>
+								{busy === "undo" ? (
+									<Loader2 className="size-3.5 animate-spin" />
+								) : (
+									<Undo2 className="size-3.5" />
+								)}
+								Undo, back to {versionBackup.fromGameVersion}
+							</Button>
+						</div>
+					</div>
+				)}
 				{notice &&
 					(notice.ok ? (
 						<p className="break-all rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-emerald-200 text-xs">
@@ -118,12 +205,18 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 						<ErrorNote>{notice.text}</ErrorNote>
 					))}
 			</div>
-			<ChangeVersionDialog
-				server={server}
-				open={versionOpen}
-				onOpenChange={setVersionOpen}
-				onDone={(text) => setNotice({ ok: true, text })}
-			/>
+			{/* Mounted only while open, so every opening starts from the version picker */}
+			{versionOpen && (
+				<ChangeVersionDialog
+					server={server}
+					open={versionOpen}
+					onOpenChange={setVersionOpen}
+					onDone={(text) => {
+						setNotice({ ok: true, text })
+						refreshBackup()
+					}}
+				/>
+			)}
 		</Card>
 	)
 }
@@ -163,16 +256,13 @@ function ActionButton({
 	)
 }
 
-/** Numeric comparison of versions like "1.21.4" and "26.2" */
-function compareVersions(a: string, b: string): number {
-	const pa = a.split(".").map((n) => Number.parseInt(n, 10) || 0)
-	const pb = b.split(".").map((n) => Number.parseInt(n, 10) || 0)
-	for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-		const d = (pa[i] ?? 0) - (pb[i] ?? 0)
-		if (d !== 0) return d
-	}
-	return 0
-}
+/** Cores a server can switch to without starting over (the checks happen in Rust too) */
+const CORE_FAMILIES: ServerCoreType[][] = [
+	["paper", "purpur", "folia"],
+	["fabric", "quilt", "neoforge", "forge"],
+]
+
+type Stage = "pick" | "checking" | "review" | "applying" | "done"
 
 function ChangeVersionDialog({
 	server,
@@ -185,106 +275,212 @@ function ChangeVersionDialog({
 	onOpenChange: (open: boolean) => void
 	onDone: (text: string) => void
 }) {
+	const cores = CORE_FAMILIES.find((family) => family.includes(server.core)) ?? [server.core]
+	const [core, setCore] = useState<ServerCoreType>(server.core)
 	const { data: versions = [], isLoading } = useQuery({
-		queryKey: ["core-versions", server.core],
-		queryFn: () => serverService.getAvailableServerCoreVersions(server.core),
+		queryKey: ["core-versions", core],
+		queryFn: () => serverService.getAvailableServerCoreVersions(core),
 		enabled: open,
 		staleTime: 10 * 60_000,
 	})
 	const [version, setVersion] = useState<string | null>(null)
-	const [keepBackup, setKeepBackup] = useState(true)
-	const [busy, setBusy] = useState(false)
+	const [stage, setStage] = useState<Stage>("pick")
+	const [plan, setPlan] = useState<VersionPlan | null>(null)
+	const [choices, setChoices] = useState<ItemAction[]>([])
+	const [backupWorlds, setBackupWorlds] = useState(true)
+	const [downgradeOk, setDowngradeOk] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const target = version ?? versions.find((v) => v !== server.gameVersion) ?? null
-	const downgrade = target !== null && compareVersions(target, server.gameVersion) < 0
+	const target =
+		(version && versions.includes(version) ? version : null) ??
+		versions.find((v) => v !== server.gameVersion || core !== server.core) ??
+		null
+	const unchanged = target === server.gameVersion && core === server.core
+	const busy = stage === "checking" || stage === "applying"
+
+	const check = async () => {
+		if (!target) return
+		setError(null)
+		setStage("checking")
+		try {
+			const result = await rpc.check_server_version_change(server.id, target, core)
+			setPlan(result)
+			setChoices(result.items.map((i) => i.action))
+			setBackupWorlds(true)
+			setDowngradeOk(false)
+			setStage("review")
+		} catch (e) {
+			setError(String(e))
+			setStage("pick")
+		}
+	}
 
 	const apply = async () => {
-		if (!target) return
-		setBusy(true)
+		if (!plan) return
 		setError(null)
+		setStage("applying")
 		try {
-			let backupName: string | null = null
-			if (keepBackup) {
-				const backup = await rpc.duplicate_server(
-					server.id,
-					`${server.name} (${server.gameVersion} backup)`,
-					null,
-					null,
-				)
-				backupName = backup.name
-			}
-			await rpc.change_server_version(server.id, target, null)
+			await rpc.apply_server_version_change(
+				{ ...plan, items: plan.items.map((item, i) => ({ ...item, action: choices[i] })) },
+				backupWorlds,
+			)
 			await serverService.refreshServers()
-			onOpenChange(false)
+			setStage("done")
 			onDone(
-				`${server.name} will start on ${target}.${backupName ? ` Your ${server.gameVersion} version is saved as "${backupName}".` : ""}`,
+				`${server.name} will start on ${planSide(plan, "to")}. You can undo it here if something doesn't work.`,
 			)
 		} catch (e) {
 			setError(String(e))
-		} finally {
-			setBusy(false)
+			setStage("review")
 		}
 	}
 
 	const options = versions.map((v) => ({
 		value: v,
-		label: v === server.gameVersion ? `${v} (current)` : v,
+		label: v === server.gameVersion && core === server.core ? `${v} (current)` : v,
 	}))
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="gap-4 p-5 sm:max-w-md">
+		<Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
+			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-2xl">
 				<DialogTitle className="text-base">Change Minecraft version</DialogTitle>
-				<p className="text-sm text-zinc-400 leading-relaxed">
-					The server downloads the new version on its next start, and Minecraft converts the world.
-					Converted worlds can't be opened by older versions.
-				</p>
-				{isLoading ? (
-					<div className="flex justify-center py-4">
-						<Loader2 className="size-5 animate-spin text-zinc-500" />
-					</div>
-				) : (
-					<Select items={options} value={target} onValueChange={(v) => v && setVersion(v)}>
-						<SelectTrigger className="h-11 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{options.map((o) => (
-								<SelectItem key={o.value} value={o.value} disabled={o.value === server.gameVersion}>
-									{o.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+
+				{(stage === "pick" || stage === "checking") && (
+					<>
+						<p className="text-sm text-zinc-400 leading-relaxed">
+							Ingot checks every {cores.includes("paper") ? "plugin" : "mod"} first and changes
+							nothing until you apply. Everything is backed up, so you can undo it.
+						</p>
+						{cores.length > 1 && (
+							<div className="grid gap-1.5">
+								<span className="font-medium text-xs text-zinc-400">Server type</span>
+								<div className="flex flex-wrap gap-1.5">
+									{cores.map((id) => (
+										<button
+											key={id}
+											type="button"
+											disabled={busy}
+											onClick={() => {
+												setCore(id)
+												setVersion(null)
+											}}
+											className={
+												core === id
+													? "rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-sm text-white"
+													: "rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200"
+											}
+										>
+											{loaderName(id)}
+											{id === server.core && (
+												<span className="ml-1 text-[10px] text-zinc-500">now</span>
+											)}
+										</button>
+									))}
+								</div>
+							</div>
+						)}
+						{isLoading ? (
+							<div className="flex justify-center py-4">
+								<Loader2 className="size-5 animate-spin text-zinc-500" />
+							</div>
+						) : (
+							<Select items={options} value={target} onValueChange={(v) => v && setVersion(v)}>
+								<SelectTrigger className="h-11 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{options.map((o) => (
+										<SelectItem key={o.value} value={o.value}>
+											{o.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+					</>
 				)}
-				<div className="flex items-center justify-between gap-3 rounded-xl bg-zinc-900/60 p-3">
-					<div>
-						<p className="font-medium text-sm text-zinc-100">Keep a backup copy</p>
-						<p className="text-xs text-zinc-500">
-							Saves the current server so you can switch back.
+
+				{stage === "review" && plan && (
+					<div className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2">
+						<PlanReview
+							plan={plan}
+							choices={choices}
+							onChoose={(index, action) =>
+								setChoices((prev) => prev.map((c, i) => (i === index ? action : c)))
+							}
+							backupWorlds={backupWorlds}
+							onBackupWorlds={setBackupWorlds}
+							downgradeOk={downgradeOk}
+							onDowngradeOk={setDowngradeOk}
+							emptyText="No plugins or mods to check. Only the version changes."
+							rounded
+						/>
+					</div>
+				)}
+
+				{stage === "applying" && (
+					<div className="flex flex-col items-center gap-3 py-8 text-center">
+						<Loader2 className="size-7 animate-spin text-emerald-400" />
+						<p className="font-medium text-sm text-zinc-200">Applying...</p>
+						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
+							Downloading and checking the new files, then backing up the current ones. Nothing
+							changes until everything is ready.
 						</p>
 					</div>
-					<Switch
-						checked={keepBackup}
-						onCheckedChange={setKeepBackup}
-						aria-label="Keep a backup copy"
-					/>
-				</div>
-				{downgrade && (
-					<ErrorNote>
-						{target} is older than {server.gameVersion}. Downgrading usually breaks the world
-						{keepBackup ? "; the backup keeps your current world safe." : ". Keep a backup!"}
-					</ErrorNote>
 				)}
+
+				{stage === "done" && plan && (
+					<div className="flex flex-col items-center gap-3 py-6 text-center">
+						<CheckCircle2 className="size-8 text-emerald-400" />
+						<p className="font-semibold text-sm text-white">Ready for {planSide(plan, "to")}</p>
+						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
+							The new version downloads on the next start. If something doesn&apos;t work, undo it
+							from Backup &amp; version: everything goes back exactly as it was.
+						</p>
+					</div>
+				)}
+
 				{error && <ErrorNote>{error}</ErrorNote>}
-				<Button
-					onClick={apply}
-					disabled={!target || busy}
-					className="h-11 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
-				>
-					{busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUpDown className="size-4" />}
-					{keepBackup ? "Back up and switch" : "Switch version"}
-				</Button>
+
+				<div className="flex items-center justify-between gap-2">
+					<p className="text-[11px] text-zinc-500">
+						{stage === "review" && plan && planSummary(plan, choices)}
+					</p>
+					<div className="flex gap-2">
+						{stage === "review" && (
+							<Button variant="ghost" onClick={() => setStage("pick")} className="rounded-xl">
+								Back
+							</Button>
+						)}
+						{(stage === "pick" || stage === "checking") && (
+							<Button
+								onClick={check}
+								disabled={!target || unchanged || busy}
+								className="h-11 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+							>
+								{busy ? (
+									<Loader2 className="size-4 animate-spin" />
+								) : (
+									<ArrowUpDown className="size-4" />
+								)}
+								{busy ? "Checking..." : "Check compatibility"}
+							</Button>
+						)}
+						{stage === "review" && plan && (
+							<Button
+								onClick={apply}
+								disabled={plan.downgrade && !downgradeOk}
+								className="h-11 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+							>
+								Move to {planSide(plan, "to")}
+							</Button>
+						)}
+						{stage === "done" && (
+							<Button onClick={() => onOpenChange(false)} className="h-11 rounded-xl">
+								Done
+							</Button>
+						)}
+					</div>
+				</div>
 			</DialogContent>
 		</Dialog>
 	)

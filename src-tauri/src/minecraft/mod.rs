@@ -8,4 +8,3 @@ pub mod loader;
 pub mod screenshots;
 pub mod sync;
 pub mod version;
-pub mod version_change;

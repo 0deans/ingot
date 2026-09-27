@@ -292,27 +292,6 @@ pub fn duplicate<R: Runtime>(
     Ok(created)
 }
 
-/// Switches a server to another version in place: the next start downloads the new
-/// server jar and Minecraft upgrades the world (which can't be undone)
-pub fn change_version<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    server: &ServerConfig,
-    game_version: &str,
-    build_number: Option<String>,
-) -> Result<ServerConfig, String> {
-    let dir = config::get_server_dir(app, &server.id)?;
-    let jar = dir.join("server.jar");
-    if jar.exists() {
-        fs::remove_file(&jar).map_err(|e| format!("Failed to remove old server.jar: {e}"))?;
-    }
-    super::installer::uninstall(&dir, &server.core)?;
-    let mut updated = server.clone();
-    updated.game_version = game_version.to_string();
-    updated.build_number = build_number;
-    config::update_server(app, updated.clone())?;
-    Ok(updated)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

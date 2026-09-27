@@ -12,6 +12,7 @@ pub mod keyring_store;
 pub mod minecraft;
 pub mod server;
 pub mod system;
+pub mod version_change;
 #[cfg(desktop)]
 pub mod tray;
 

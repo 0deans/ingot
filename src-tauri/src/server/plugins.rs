@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
@@ -111,7 +111,7 @@ pub struct Platform {
     /// "plugins" or "mods"
     pub folder: &'static str,
     modrinth_type: &'static str,
-    modrinth_loaders: &'static [&'static str],
+    pub(crate) modrinth_loaders: &'static [&'static str],
     hangar: bool,
 }
 
@@ -482,6 +482,42 @@ fn write_tracking(server_dir: &Path, tracked: &[TrackedPlugin]) {
     if let Ok(raw) = serde_json::to_string_pretty(tracked) {
         let _ = std::fs::write(path, raw);
     }
+}
+
+/// Plugins installed from Hangar: file name -> (project, version, title, icon). Hangar has
+/// no lookup by file, so this is how a version change recognises them.
+pub(crate) fn tracked_hangar(server_dir: &Path) -> HashMap<String, (String, String, String, Option<String>)> {
+    read_tracking(server_dir)
+        .into_iter()
+        .filter(|t| t.source == PluginSource::Hangar)
+        .map(|t| (t.file_name, (t.project_id, t.version_id, t.title, t.icon_url)))
+        .collect()
+}
+
+/// After a version change: remembers the files it installed (from Modrinth or Hangar)
+/// in place of the ones they replaced
+pub(crate) fn track_version_change(server_dir: &Path, items: &[crate::version_change::PlanItem]) {
+    use crate::version_change::{ItemAction, Source};
+    let mut tracked = read_tracking(server_dir);
+    for item in items.iter().filter(|i| matches!(i.action, ItemAction::Update | ItemAction::Add)) {
+        let source = match item.source {
+            Some(Source::Modrinth) => PluginSource::Modrinth,
+            Some(Source::Hangar) => PluginSource::Hangar,
+            _ => continue,
+        };
+        let (Some(target), Some(project)) = (&item.target, &item.project_id) else { continue };
+        tracked.retain(|t| Some(&t.file_name) != item.file_name.as_ref() && &t.project_id != project);
+        tracked.push(TrackedPlugin {
+            file_name: target.file_name.clone(),
+            source,
+            project_id: project.clone(),
+            version_id: target.version_id.clone(),
+            version_number: target.version_number.clone(),
+            title: item.title.clone(),
+            icon_url: item.icon_url.clone(),
+        });
+    }
+    write_tracking(server_dir, &tracked);
 }
 
 /// Only plain jar names inside the plugins/mods folder

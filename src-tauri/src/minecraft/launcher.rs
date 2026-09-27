@@ -841,14 +841,16 @@ where
     let inst_dir_clone = instance_dir.clone();
 
     tokio::spawn(async move {
-        match child.wait().await {
+        let clean = match child.wait().await {
             Ok(status) => {
                 println!("[Launcher] Minecraft process exited with status: {}", status);
+                status.success()
             }
             Err(e) => {
                 eprintln!("[Launcher] Error waiting for Minecraft process: {e}");
+                false
             }
-        }
+        };
 
         // Clean up temporary Quick Play junction if it exists
         let qp_junction = inst_dir_clone.join("saves").join("qp_world");
@@ -875,6 +877,20 @@ where
         drop(lock);
 
         let _ = update_last_played(&app_clone, &inst_id_clone, elapsed);
+
+        // The first start after a version change: a crash is reported with its suspects
+        let since = UNIX_EPOCH + std::time::Duration::from_secs(now.saturating_sub(1));
+        if let Some(crash) = crate::version_change::crash::after_exit(
+            &inst_dir_clone,
+            clean,
+            crate::version_change::TargetKind::Instance,
+            &inst_id_clone,
+            &inst_clone.name,
+            &["mods"],
+            since,
+        ) {
+            crate::ipc::emit_version_change_crash(&app_clone, crash);
+        }
 
         on_status_clone(InstanceStatusEvent {
             instance_id: inst_id_clone,

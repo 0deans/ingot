@@ -11,6 +11,7 @@ import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
 import FirstLaunchLanguageDialog from "@/components/settings/first-launch-language-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import VersionChangeCrashDialog from "@/components/version-change/crash-dialog"
 import { isMobileEnvironment } from "@/lib/platform"
 import { useScrollRestoration } from "@/lib/scroll-restoration"
 
@@ -40,6 +41,7 @@ const RootLayout = () => {
 					<Outlet />
 				</main>
 				<FirstLaunchLanguageDialog />
+				<VersionChangeCrashDialog />
 			</TooltipProvider>
 		)
 	}
@@ -54,6 +56,7 @@ const RootLayout = () => {
 				</main>
 			</WindowFrame>
 			<FirstLaunchLanguageDialog />
+			<VersionChangeCrashDialog />
 		</TooltipProvider>
 	)
 }

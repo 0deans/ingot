@@ -11,7 +11,9 @@ use crate::minecraft::loader;
 use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
-use crate::minecraft::version_change::{self, VersionBackup, VersionPlan};
+use crate::version_change::crash::VersionChangeCrash;
+use crate::version_change::targets::{self as change_targets, loader_id, parse_loader};
+use crate::version_change::{self, PlanRequest, TargetKind, VersionBackup, VersionPlan};
 use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
 use crate::server::live::{KnownPlayer, PlayerDetails};
 use crate::server::map::MapDimension;
@@ -176,12 +178,13 @@ pub trait AppApi {
 
     async fn kill_instance(instance_id: String) -> Result<(), String>;
 
-    /// Works out what moving an instance to another Minecraft version means for its
-    /// mods, resource packs and shaders. Changes nothing.
+    /// Works out what moving an instance to another Minecraft version (and optionally
+    /// another loader) means for its mods, resource packs and shaders. Changes nothing.
     async fn check_instance_version_change(
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
         game_version: String,
+        loader: ModLoaderType,
         loader_version: Option<String>,
     ) -> Result<VersionPlan, String>;
 
@@ -208,6 +211,16 @@ pub trait AppApi {
     async fn discard_instance_version_backup(
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
+    ) -> Result<(), String>;
+
+    /// Turns off a mod or plugin the crash after a version change blamed (undo turns it
+    /// back on)
+    async fn turn_off_after_version_change(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        target_kind: TargetKind,
+        target_id: String,
+        folder: String,
+        file_name: String,
     ) -> Result<(), String>;
 
     async fn get_running_instances() -> Result<Vec<RunningInstanceSummary>, String>;
@@ -652,13 +665,43 @@ pub trait AppApi {
         build_number: Option<String>,
     ) -> Result<ServerConfig, String>;
 
-    /// Switches a server to another version in place
-    async fn change_server_version(
+    /// Works out what moving a server to another Minecraft version (and optionally a
+    /// related core, e.g. Paper to Purpur) means for its plugins or mods. Changes nothing.
+    async fn check_server_version_change(
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
         game_version: String,
-        build_number: Option<String>,
+        core: ServerCoreType,
+    ) -> Result<VersionPlan, String>;
+
+    /// Carries out a reviewed plan, all or nothing, keeping a backup for undo
+    async fn apply_server_version_change(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        plan: VersionPlan,
+        backup_worlds: bool,
     ) -> Result<ServerConfig, String>;
+
+    /// The last version change of a server, if it can be undone
+    async fn get_server_version_backup(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Option<VersionBackup>, String>;
+
+    /// Restores the server exactly as it was before its last version change
+    async fn undo_server_version_change(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<ServerConfig, String>;
+
+    /// Deletes the backup of the server's last version change
+    async fn discard_server_version_backup(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
+
+    /// The first start after a version change crashed
+    #[taurpc(event)]
+    async fn on_version_change_crash(event: VersionChangeCrash);
 
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
@@ -940,22 +983,30 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
         game_version: String,
+        loader: ModLoaderType,
         loader_version: Option<String>,
     ) -> Result<VersionPlan, String> {
         let instance = find_instance(&app_handle, &instance_id)?;
-        if instance.loader != ModLoaderType::Vanilla && loader_version.is_none() {
-            return Err(format!("Pick a {:?} version for Minecraft {game_version}", instance.loader));
+        if loader != ModLoaderType::Vanilla && loader_version.is_none() {
+            let name = version_change::loader_label(&loader_id(&loader));
+            return Err(format!("Pick a {name} version for Minecraft {game_version}"));
         }
-        // Worlds can't go back to an older version: compare release dates
-        let cache_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?.join("cache");
-        let manifest = version::fetch_version_manifest(get_http_client(), &cache_dir).await?;
-        let released = |id: &str| manifest.versions.iter().find(|v| v.id == id).map(|v| v.release_time.clone());
-        let downgrade = match (released(&instance.game_version), released(&game_version)) {
-            (Some(from), Some(to)) => to < from,
-            _ => false,
-        };
+        let downgrade = is_downgrade(&app_handle, &instance.game_version, &game_version).await?;
         let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
-        version_change::check(get_http_client(), &instance_dir, &instance, &game_version, loader_version, downgrade).await
+        let (from, to) = (loader_id(&instance.loader), loader_id(&loader));
+        let target = change_targets::instance(&instance_dir, &from, &to);
+        let request = PlanRequest {
+            target_kind: TargetKind::Instance,
+            target_id: instance_id,
+            from_game_version: instance.game_version.clone(),
+            from_loader: from,
+            from_loader_version: instance.loader_version.clone(),
+            to_game_version: game_version,
+            to_loader: to,
+            to_loader_version: loader_version.filter(|_| loader != ModLoaderType::Vanilla),
+            downgrade,
+        };
+        version_change::check(get_http_client(), &target, request).await
     }
 
     async fn apply_instance_version_change(
@@ -964,13 +1015,24 @@ impl AppApi for AppApiImpl {
         plan: VersionPlan,
         backup_worlds: bool,
     ) -> Result<InstanceConfig, String> {
-        if get_process_manager().is_running(&plan.instance_id).await {
+        if get_process_manager().is_running(&plan.target_id).await {
             return Err("Close the game first".into());
         }
-        let instance = find_instance(&app_handle, &plan.instance_id)?;
-        let instance_dir = instance::get_instance_dir(&app_handle, &plan.instance_id)?;
-        let updated =
-            version_change::apply(get_http_client(), &instance_dir, &instance, &plan, backup_worlds, |_| {}).await?;
+        let instance = find_instance(&app_handle, &plan.target_id)?;
+        if plan.target_kind != TargetKind::Instance
+            || plan.from_game_version != instance.game_version
+            || plan.from_loader != loader_id(&instance.loader)
+        {
+            return Err("The instance changed since it was checked. Check again.".into());
+        }
+        let mut updated = instance.clone();
+        updated.game_version = plan.to_game_version.clone();
+        updated.loader = parse_loader(&plan.to_loader)?;
+        updated.loader_version = plan.to_loader_version.clone();
+
+        let instance_dir = instance::get_instance_dir(&app_handle, &plan.target_id)?;
+        let target = change_targets::instance(&instance_dir, &plan.from_loader, &plan.to_loader);
+        version_change::apply(get_http_client(), &target, &plan, backup_worlds, |_| {}).await?;
         instance::update_instance(&app_handle, updated.clone())?;
         Ok(updated)
     }
@@ -994,9 +1056,13 @@ impl AppApi for AppApiImpl {
         }
         let instance = find_instance(&app_handle, &instance_id)?;
         let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
-        let restored = version_change::undo(&instance_dir, &instance)?;
-        instance::update_instance(&app_handle, restored.clone())?;
-        Ok(restored)
+        let restored = version_change::undo(&instance_dir, &instance.game_version, &loader_id(&instance.loader))?;
+        let mut updated = instance.clone();
+        updated.game_version = restored.game_version;
+        updated.loader = parse_loader(&restored.loader)?;
+        updated.loader_version = restored.loader_version;
+        instance::update_instance(&app_handle, updated.clone())?;
+        Ok(updated)
     }
 
     async fn discard_instance_version_backup(
@@ -1006,6 +1072,31 @@ impl AppApi for AppApiImpl {
     ) -> Result<(), String> {
         let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
         version_change::discard_backup(&instance_dir)
+    }
+
+    async fn turn_off_after_version_change(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        target_kind: TargetKind,
+        target_id: String,
+        folder: String,
+        file_name: String,
+    ) -> Result<(), String> {
+        let root = match target_kind {
+            TargetKind::Instance => {
+                if get_process_manager().is_running(&target_id).await {
+                    return Err("Close the game first".into());
+                }
+                instance::get_instance_dir(&app_handle, &target_id)?
+            }
+            TargetKind::Server => {
+                if get_server_process_manager().get_server_status(&target_id).await != server::ServerStatus::Stopped {
+                    return Err("Stop the server first".into());
+                }
+                server_with_config(&app_handle, &target_id)?.0
+            }
+        };
+        version_change::crash::disable(&root, &folder, &file_name)
     }
 
     async fn get_running_instances(self) -> Result<Vec<RunningInstanceSummary>, String> {
@@ -2052,22 +2143,98 @@ impl AppApi for AppApiImpl {
         .map_err(|e| e.to_string())?
     }
 
-    async fn change_server_version(
+    async fn check_server_version_change(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
         game_version: String,
-        build_number: Option<String>,
+        core: ServerCoreType,
+    ) -> Result<VersionPlan, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        if !change_targets::can_switch(&config.core, &core) {
+            return Err(format!("A {} server can't become a {core} server; create a new one instead", config.core));
+        }
+        let downgrade = is_downgrade(&app_handle, &config.game_version, &game_version).await?;
+        let target = change_targets::server(&dir, &core);
+        let request = PlanRequest {
+            target_kind: TargetKind::Server,
+            target_id: server_id,
+            from_game_version: config.game_version.clone(),
+            from_loader: loader_id(&config.core),
+            from_loader_version: config.build_number.clone(),
+            to_game_version: game_version,
+            to_loader: loader_id(&core),
+            to_loader_version: None,
+            downgrade,
+        };
+        version_change::check(get_http_client(), &target, request).await
+    }
+
+    async fn apply_server_version_change(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        plan: VersionPlan,
+        backup_worlds: bool,
     ) -> Result<ServerConfig, String> {
-        if get_server_process_manager()
-            .get_server_status(&server_id)
-            .await
-            != server::ServerStatus::Stopped
-        {
+        if get_server_process_manager().get_server_status(&plan.target_id).await != server::ServerStatus::Stopped {
             return Err("Stop the server before changing its version".to_string());
         }
-        let (_, config) = server_with_config(&app_handle, &server_id)?;
-        server::transfer::change_version(&app_handle, &config, &game_version, build_number)
+        let (dir, config) = server_with_config(&app_handle, &plan.target_id)?;
+        let core: ServerCoreType = parse_loader(&plan.to_loader)?;
+        if plan.target_kind != TargetKind::Server
+            || plan.from_game_version != config.game_version
+            || plan.from_loader != loader_id(&config.core)
+            || !change_targets::can_switch(&config.core, &core)
+        {
+            return Err("The server changed since it was checked. Check again.".into());
+        }
+        let target = change_targets::server(&dir, &core);
+        version_change::apply(get_http_client(), &target, &plan, backup_worlds, |_| {}).await?;
+        server::plugins::track_version_change(&dir, &plan.items);
+
+        // The newest build of the new version is downloaded on the next start
+        let mut updated = config.clone();
+        updated.game_version = plan.to_game_version.clone();
+        updated.core = core;
+        updated.build_number = None;
+        server::update_server(&app_handle, updated.clone())?;
+        Ok(updated)
+    }
+
+    async fn get_server_version_backup(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Option<VersionBackup>, String> {
+        let (dir, _) = server_with_config(&app_handle, &server_id)?;
+        Ok(version_change::last_backup(&dir))
+    }
+
+    async fn undo_server_version_change(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<ServerConfig, String> {
+        if get_server_process_manager().get_server_status(&server_id).await != server::ServerStatus::Stopped {
+            return Err("Stop the server first".to_string());
+        }
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        let restored = version_change::undo(&dir, &config.game_version, &loader_id(&config.core))?;
+        let mut updated = config.clone();
+        updated.game_version = restored.game_version;
+        updated.core = parse_loader(&restored.loader)?;
+        updated.build_number = restored.loader_version;
+        server::update_server(&app_handle, updated.clone())?;
+        Ok(updated)
+    }
+
+    async fn discard_server_version_backup(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        let (dir, _) = server_with_config(&app_handle, &server_id)?;
+        version_change::discard_backup(&dir)
     }
 }
 
@@ -2106,6 +2273,22 @@ fn server_with_config<R: Runtime>(
 }
 
 /// Paper and its forks answer the `tps` command
+/// Whether going from one Minecraft version to another goes back in time (worlds can't
+/// follow). Versions Mojang doesn't list (Pumpkin's) never count as older.
+async fn is_downgrade<R: Runtime>(app: &tauri::AppHandle<R>, from: &str, to: &str) -> Result<bool, String> {
+    let cache_dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("cache");
+    let manifest = version::fetch_version_manifest(get_http_client(), &cache_dir).await?;
+    let released = |id: &str| manifest.versions.iter().find(|v| v.id == id).map(|v| v.release_time.clone());
+    Ok(matches!((released(from), released(to)), (Some(from), Some(to)) if to < from))
+}
+
+/// Tells the frontend the first start after a version change crashed
+pub fn emit_version_change_crash<R: Runtime>(app: &tauri::AppHandle<R>, event: VersionChangeCrash) {
+    if let Err(e) = TauRpcAppApiEventTrigger::new(app.clone()).on_version_change_crash(event) {
+        eprintln!("[IPC] Failed to emit on_version_change_crash: {e}");
+    }
+}
+
 fn find_instance<R: Runtime>(app: &tauri::AppHandle<R>, instance_id: &str) -> Result<InstanceConfig, String> {
     instance::load_instances(app)?
         .into_iter()

@@ -678,6 +678,7 @@ where
     let (line_tx, _) = tokio::sync::broadcast::channel::<String>(512);
     let pending_queries = Arc::new(std::sync::atomic::AtomicUsize::new(0));
     let ready = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let ready_flag = ready.clone();
     let online_players: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 
     let now = SystemTime::now()
@@ -715,6 +716,7 @@ where
 
     // 7. Background task: Read STDOUT
     let s_id_out = server_id.clone();
+    let server_dir_out = server_dir.clone();
     let logs_out = log_history.clone();
     let players_out = online_players.clone();
     let on_log_arc = on_log;
@@ -726,6 +728,8 @@ where
             // Vanilla/Paper/Fabric: "Done (12.345s)! For help, type "help""
             if line.contains("Done (") && line.contains("For help") {
                 ready.store(true, std::sync::atomic::Ordering::SeqCst);
+                // Started fine after a version change: nothing more to watch
+                crate::version_change::crash::first_start_ok(&server_dir_out);
             }
             let _ = line_tx.send(line.clone());
             if pending_queries.load(std::sync::atomic::Ordering::SeqCst) > 0
@@ -818,9 +822,30 @@ where
     let s_id_exit = server_id.clone();
     let on_status_arc = Arc::new(on_status);
     let on_status_exit = on_status_arc.clone();
+    let started_at = std::time::SystemTime::now() - Duration::from_secs(2);
+    let (app_exit, dir_exit, name_exit, core_exit) = (app.clone(), server_dir.clone(), config.name.clone(), config.core.clone());
+    let ready_exit = ready_flag.clone();
     tokio::spawn(async move {
         let mut child = child_arc.lock().await;
-        let _ = child.wait().await;
+        let exited = child.wait().await;
+        // Stopped by the user before it was ready, or crashed on the way up?
+        let stopping = pm_exit.get_server_status(&s_id_exit).await == ServerStatus::Stopping;
+        let started = ready_exit.load(std::sync::atomic::Ordering::SeqCst);
+        if !started && !stopping {
+            let clean = exited.is_ok_and(|s| s.success());
+            let folder = crate::server::plugins::platform(&core_exit).map(|p| p.folder);
+            if let Some(crash) = crate::version_change::crash::after_exit(
+                &dir_exit,
+                clean,
+                crate::version_change::TargetKind::Server,
+                &s_id_exit,
+                &name_exit,
+                folder.as_slice(),
+                started_at,
+            ) {
+                crate::ipc::emit_version_change_crash(&app_exit, crash);
+            }
+        }
 
         {
             let mut guard = pm_exit.servers.lock().await;

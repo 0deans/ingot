@@ -283,9 +283,26 @@ pub async fn ensure_server_jar(
                 .map(|l| &l.loader.version)
                 .ok_or_else(|| format!("No Fabric loader found for {}", game_version))?;
 
+            // The server launcher is built by a given installer version (the URL
+            // without one no longer exists)
+            let installers: Vec<serde_json::Value> = client
+                .get("https://meta.fabricmc.net/v2/versions/installer")
+                .send()
+                .await
+                .map_err(|e| format!("Failed to fetch Fabric installers: {e}"))?
+                .json()
+                .await
+                .map_err(|e| format!("Failed to parse Fabric installers: {e}"))?;
+            let installer = installers
+                .iter()
+                .find(|i| i.get("stable").and_then(|s| s.as_bool()) == Some(true))
+                .or_else(|| installers.first())
+                .and_then(|i| i.get("version").and_then(|v| v.as_str()))
+                .ok_or("No Fabric installer found")?;
+
             let server_jar_url = format!(
-                "https://meta.fabricmc.net/v2/versions/loader/{}/{}/server/jar",
-                game_version, loader_ver
+                "https://meta.fabricmc.net/v2/versions/loader/{}/{}/{}/server/jar",
+                game_version, loader_ver, installer
             );
 
             download_file_chunked(client, &server_jar_url, &dest_jar, None, None).await?;

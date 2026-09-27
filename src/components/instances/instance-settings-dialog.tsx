@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Slider from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
+import { loaderName } from "@/components/version-change/plan-review"
 import { formatBytes } from "@/lib/minecraft"
 import { instanceService, rpc } from "@/services/instance-service"
 import {
@@ -45,6 +46,13 @@ interface InstanceSettingsDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onSave?: (updated: InstanceConfig) => Promise<void> | void
+}
+
+/** "1.21.4", or "Fabric 1.21.4" when the loader changed too */
+function backupSide(backup: VersionBackup, side: "from" | "to"): string {
+	const version = side === "from" ? backup.fromGameVersion : backup.toGameVersion
+	if (backup.fromLoader === backup.toLoader) return version
+	return `${loaderName(side === "from" ? backup.fromLoader : backup.toLoader)} ${version}`
 }
 
 const STEP_MB = 256
@@ -346,8 +354,8 @@ export const InstanceSettingsDialog = ({
 							{versionBackup && (
 								<div className="flex flex-wrap items-center justify-between gap-2 border-zinc-800/80 border-t pt-3">
 									<p className="text-[11px] text-zinc-400">
-										Changed from {versionBackup.fromGameVersion} to {versionBackup.toGameVersion}.
-										Backup {formatBytes(versionBackup.bytes)}
+										Changed from {backupSide(versionBackup, "from")} to{" "}
+										{backupSide(versionBackup, "to")}. Backup {formatBytes(versionBackup.bytes)}
 										{versionBackup.worldsBackedUp ? ", worlds included" : ""}.
 									</p>
 									<div className="flex gap-1.5">
@@ -371,7 +379,7 @@ export const InstanceSettingsDialog = ({
 											) : (
 												<Undo2 className="size-3" />
 											)}
-											Undo, back to {versionBackup.fromGameVersion}
+											Undo, back to {backupSide(versionBackup, "from")}
 										</Button>
 									</div>
 								</div>

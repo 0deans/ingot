@@ -6,7 +6,7 @@ use std::path::Path;
 use tauri::Runtime;
 use zip::ZipArchive;
 
-const CURSEFORGE_API_KEY: &str = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm";
+pub(crate) const CURSEFORGE_API_KEY: &str = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm";
 
 #[taurpc::ipc_type]
 #[derive(Debug)]
