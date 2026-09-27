@@ -42,7 +42,8 @@
 		"screenshots": "Screenshots",
 		"servers": "Dedicated Servers",
 		"settings": "Settings",
-		"language": "Language"
+		"language": "Language",
+		"theme": "Theme"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} is ready to install!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Language",
 			"description": "Choose the display language for the launcher interface. New locale files in src/locales/ hot-reload automatically."
+		},
+		"theme": {
+			"title": "Appearance & Theme",
+			"description": "Choose your preferred color theme or automatically follow your system preference.",
+			"auto": "Auto (System)",
+			"autoDesc": "Automatically switch between dark and light based on OS settings",
+			"dark": "Dark",
+			"darkDesc": "Dark theme designed for low-light environments",
+			"light": "Light",
+			"lightDesc": "Clean, bright interface for daytime use"
 		},
 		"accounts": {
 			"title": "Accounts & Authentication",

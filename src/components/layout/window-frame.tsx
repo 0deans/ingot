@@ -56,7 +56,7 @@ const WindowFrame = ({ title = "Ingot", children }: WindowFrameProps) => {
 	}, [router])
 
 	return (
-		<div className="relative flex h-screen w-screen flex-col overflow-hidden bg-radial-[at_top_center] from-zinc-900/60 via-zinc-950 to-black text-foreground antialiased selection:bg-primary/20">
+		<div className="relative flex h-screen w-screen flex-col overflow-hidden bg-radial-[at_top_center] from-zinc-900/60 via-zinc-950 to-background text-foreground antialiased selection:bg-primary/20 dark:to-black">
 			<Titlebar title={title} />
 			<div className="flex flex-1 overflow-hidden">{children}</div>
 		</div>

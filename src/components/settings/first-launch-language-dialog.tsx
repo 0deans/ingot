@@ -1,4 +1,4 @@
-import { Check, Globe } from "lucide-react"
+import { Check, Globe, Monitor, Moon, Sun } from "lucide-react"
 import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +10,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog"
 import { useLanguage } from "@/i18n/use-language"
+import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
 export const FirstLaunchLanguageDialog = () => {
@@ -23,6 +24,7 @@ export const FirstLaunchLanguageDialog = () => {
 		confirmLanguage,
 		t,
 	} = useLanguage()
+	const { themeMode, setThemeMode } = useTheme()
 
 	if (!isFirstLaunchPending) {
 		return null
@@ -43,13 +45,57 @@ export const FirstLaunchLanguageDialog = () => {
 		>
 			<DialogContent className="max-w-md border-border/60 bg-zinc-950 p-6 shadow-2xl backdrop-blur-2xl">
 				<DialogHeader className="gap-2">
-					<div className="flex items-center gap-2.5 text-emerald-400">
-						<div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
-							<Globe className="size-5" />
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex items-center gap-2.5 text-emerald-400">
+							<div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+								<Globe className="size-5" />
+							</div>
+							<DialogTitle className="font-semibold text-foreground text-lg">
+								{t("onboarding.selectLanguageTitle")}
+							</DialogTitle>
 						</div>
-						<DialogTitle className="font-semibold text-lg text-white">
-							{t("onboarding.selectLanguageTitle")}
-						</DialogTitle>
+
+						<div className="flex items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900/80 p-0.5">
+							<button
+								type="button"
+								onClick={() => setThemeMode("auto")}
+								title={t("settings.theme.auto")}
+								className={cn(
+									"inline-flex size-6 items-center justify-center rounded-md transition-colors",
+									themeMode === "auto"
+										? "bg-primary text-primary-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+							>
+								<Monitor className="size-3.5" />
+							</button>
+							<button
+								type="button"
+								onClick={() => setThemeMode("dark")}
+								title={t("settings.theme.dark")}
+								className={cn(
+									"inline-flex size-6 items-center justify-center rounded-md transition-colors",
+									themeMode === "dark"
+										? "bg-primary text-primary-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+							>
+								<Moon className="size-3.5" />
+							</button>
+							<button
+								type="button"
+								onClick={() => setThemeMode("light")}
+								title={t("settings.theme.light")}
+								className={cn(
+									"inline-flex size-6 items-center justify-center rounded-md transition-colors",
+									themeMode === "light"
+										? "bg-primary text-primary-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+							>
+								<Sun className="size-3.5" />
+							</button>
+						</div>
 					</div>
 					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
 						{t("onboarding.selectLanguageSubtitle")}

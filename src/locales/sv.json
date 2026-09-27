@@ -42,7 +42,8 @@
 		"screenshots": "Skärmbilder",
 		"servers": "Dedikerade servrar",
 		"settings": "Inställningar",
-		"language": "Språk"
+		"language": "Språk",
+		"theme": "Tema"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} är redo att installeras!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Språk",
 			"description": "Välj visningsspråk för launcherns gränssnitt. Nya språkfiler i src/locales/ laddas om automatiskt."
+		},
+		"theme": {
+			"title": "Utseende & tema",
+			"description": "Välj ditt föredragna färgtema eller följ automatiskt systemets inställning.",
+			"auto": "Auto (System)",
+			"autoDesc": "Växla automatiskt mellan mörkt och ljust läge baserat på OS-inställningar",
+			"dark": "Mörkt",
+			"darkDesc": "Mörkt tema utformat för miljöer med svagt ljus",
+			"light": "Ljust",
+			"lightDesc": "Rent och ljust gränssnitt för användning dagtid"
 		},
 		"accounts": {
 			"title": "Konton & autentisering",

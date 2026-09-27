@@ -42,7 +42,8 @@
 		"screenshots": "游戏截图",
 		"servers": "独立服务器",
 		"settings": "设置",
-		"language": "语言"
+		"language": "语言",
+		"theme": "主题"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} 已准备好安装！",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "语言 (Language)",
 			"description": "选择启动器界面的显示语言。添加到 src/locales/ 的新语言文件会自动热重载。"
+		},
+		"theme": {
+			"title": "外观与主题",
+			"description": "选择您偏好的配色主题，或自动跟随系统外观设置。",
+			"auto": "自动 (跟随系统)",
+			"autoDesc": "根据操作系统设置自动在深色和浅色主题之间切换",
+			"dark": "深色",
+			"darkDesc": "专为暗光环境设计的深色主题",
+			"light": "浅色",
+			"lightDesc": "清爽明亮的日间界面主题"
 		},
 		"accounts": {
 			"title": "账号与身份验证",

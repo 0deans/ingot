@@ -42,7 +42,8 @@
 		"screenshots": "Ekran Görüntüleri",
 		"servers": "Özel Sunucular",
 		"settings": "Ayarlar",
-		"language": "Dil"
+		"language": "Dil",
+		"theme": "Tema"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} kuruluma hazır!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Dil",
 			"description": "Başlatıcı arayüzü için görüntüleme dilini seçin. src/locales/ klasöründeki yeni dil dosyaları otomatik olarak yüklenir."
+		},
+		"theme": {
+			"title": "Görünüm ve Tema",
+			"description": "Tercih ettiğiniz renk temasını seçin veya sistem tercihini otomatik olarak takip edin.",
+			"auto": "Otomatik (Sistem)",
+			"autoDesc": "İşletim sistemi ayarlarına göre koyu ve açık tema arasında otomatik geçiş yap",
+			"dark": "Koyu",
+			"darkDesc": "Düşük ışıklı ortamlar için tasarlanmış koyu tema",
+			"light": "Açık",
+			"lightDesc": "Gündüz kullanımı için temiz ve aydınlık arayüz"
 		},
 		"accounts": {
 			"title": "Hesaplar ve Kimlik Doğrulama",

@@ -42,7 +42,8 @@
 		"screenshots": "Snímky obrazovky",
 		"servers": "Dedikované servery",
 		"settings": "Nastavení",
-		"language": "Jazyk"
+		"language": "Jazyk",
+		"theme": "Motiv"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} je připraven k instalaci!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Jazyk",
 			"description": "Zvolte jazyk zobrazení rozhraní launcheru. Nové jazykové soubory v src/locales/ se načítají automaticky."
+		},
+		"theme": {
+			"title": "Vzhled a motiv",
+			"description": "Zvolte preferovaný barevný motiv nebo automaticky sledujte nastavení systému.",
+			"auto": "Auto (Systém)",
+			"autoDesc": "Automaticky přepínat mezi tmavým a světlým motivem podle OS",
+			"dark": "Tmavý",
+			"darkDesc": "Tmavý motiv navržený pro prostředí se slabým osvětlením",
+			"light": "Světlý",
+			"lightDesc": "Čisté a světlé rozhraní pro denní používání"
 		},
 		"accounts": {
 			"title": "Účty a ověřování",

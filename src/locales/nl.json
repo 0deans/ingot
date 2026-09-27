@@ -42,7 +42,8 @@
 		"screenshots": "Screenshots",
 		"servers": "Dedicated servers",
 		"settings": "Instellingen",
-		"language": "Taal"
+		"language": "Taal",
+		"theme": "Thema"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} is klaar om te installeren!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Taal",
 			"description": "Kies de weergavetaal voor de launcher-interface. Nieuwe taalbestanden in src/locales/ worden automatisch herladen."
+		},
+		"theme": {
+			"title": "Uiterlijk & thema",
+			"description": "Kies je gewenste kleurthema of volg automatisch je systeemvoorkeur.",
+			"auto": "Auto (Systeem)",
+			"autoDesc": "Schakel automatisch tussen donker en licht op basis van systeeminstellingen",
+			"dark": "Donker",
+			"darkDesc": "Donker thema ontworpen voor omgevingen met weinig licht",
+			"light": "Licht",
+			"lightDesc": "Heldere, frisse interface voor gebruik overdag"
 		},
 		"accounts": {
 			"title": "Accounts & authenticatie",

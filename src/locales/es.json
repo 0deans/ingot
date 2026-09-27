@@ -42,7 +42,8 @@
 		"screenshots": "Capturas",
 		"servers": "Servidores dedicados",
 		"settings": "Configuración",
-		"language": "Idioma"
+		"language": "Idioma",
+		"theme": "Tema"
 	},
 	"updateBanner": {
 		"readyToInstall": "¡Ingot v{{version}} está listo para instalar!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Idioma",
 			"description": "Elige el idioma de la interfaz del launcher. Los nuevos archivos en src/locales/ se recargan automáticamente."
+		},
+		"theme": {
+			"title": "Apariencia y tema",
+			"description": "Elige tu tema de color preferido o sigue automáticamente la preferencia del sistema.",
+			"auto": "Auto (Sistema)",
+			"autoDesc": "Cambiar automáticamente entre oscuro y claro según el sistema operativo",
+			"dark": "Oscuro",
+			"darkDesc": "Tema oscuro diseñado para entornos con poca luz",
+			"light": "Claro",
+			"lightDesc": "Interfaz limpia y brillante para uso diurno"
 		},
 		"accounts": {
 			"title": "Cuentas y autenticación",

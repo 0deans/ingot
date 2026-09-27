@@ -42,7 +42,8 @@
 		"screenshots": "Capturi de ecran",
 		"servers": "Servere dedicate",
 		"settings": "Setări",
-		"language": "Limbă"
+		"language": "Limbă",
+		"theme": "Temă"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} este pregătit pentru instalare!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Limbă",
 			"description": "Alege limba de afișare pentru interfața launcherului. Fișierele noi din src/locales/ se reîncarcă automat."
+		},
+		"theme": {
+			"title": "Aspect și temă",
+			"description": "Alege tema de culoare preferată sau urmează automat preferința sistemului.",
+			"auto": "Auto (Sistem)",
+			"autoDesc": "Comută automat între întunecat și luminos în funcție de setările SO",
+			"dark": "Întunecat",
+			"darkDesc": "Temă întunecată concepută pentru medii cu lumină redusă",
+			"light": "Luminos",
+			"lightDesc": "Interfață curată și luminoasă pentru utilizare pe timp de zi"
 		},
 		"accounts": {
 			"title": "Conturi și autentificare",

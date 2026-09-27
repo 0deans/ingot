@@ -42,7 +42,8 @@
 		"screenshots": "Ảnh chụp màn hình",
 		"servers": "Máy chủ riêng",
 		"settings": "Cài đặt",
-		"language": "Ngôn ngữ"
+		"language": "Ngôn ngữ",
+		"theme": "Giao diện"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} đã sẵn sàng để cài đặt!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Ngôn ngữ",
 			"description": "Chọn ngôn ngữ hiển thị cho giao diện trình khởi chạy. Các tệp ngôn ngữ mới trong src/locales/ sẽ tự động được nạp."
+		},
+		"theme": {
+			"title": "Giao diện & Chủ đề",
+			"description": "Chọn chủ đề màu yêu thích hoặc tự động theo cài đặt hệ thống.",
+			"auto": "Tự động (Hệ thống)",
+			"autoDesc": "Tự động chuyển đổi giữa tối và sáng theo cài đặt hệ điều hành",
+			"dark": "Tối",
+			"darkDesc": "Chủ đề tối dịu mắt cho môi trường thiếu sáng",
+			"light": "Sáng",
+			"lightDesc": "Giao diện sáng sủa, rõ nét khi dùng ban ngày"
 		},
 		"accounts": {
 			"title": "Tài khoản & Xác thực",

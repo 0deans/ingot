@@ -42,7 +42,8 @@
 		"screenshots": "Tangkapan Layar",
 		"servers": "Server Khusus",
 		"settings": "Pengaturan",
-		"language": "Bahasa"
+		"language": "Bahasa",
+		"theme": "Tema"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} siap dipasang!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Bahasa",
 			"description": "Pilih bahasa tampilan untuk antarmuka launcher. File bahasa baru di src/locales/ dimuat ulang secara otomatis."
+		},
+		"theme": {
+			"title": "Tampilan & Tema",
+			"description": "Pilih tema warna pilihan Anda atau ikuti preferensi sistem secara otomatis.",
+			"auto": "Otomatis (Sistem)",
+			"autoDesc": "Beralih otomatis antara gelap dan terang berdasarkan pengaturan OS",
+			"dark": "Gelap",
+			"darkDesc": "Tema gelap yang nyaman untuk lingkungan minim cahaya",
+			"light": "Terang",
+			"lightDesc": "Antarmuka bersih dan cerah untuk penggunaan siang hari"
 		},
 		"accounts": {
 			"title": "Akun & Autentikasi",

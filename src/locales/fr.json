@@ -42,7 +42,8 @@
 		"screenshots": "Captures d'écran",
 		"servers": "Serveurs dédiés",
 		"settings": "Paramètres",
-		"language": "Langue"
+		"language": "Langue",
+		"theme": "Thème"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} est prêt à être installé !",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Langue",
 			"description": "Choisissez la langue d'affichage de l'interface du launcher. Les nouveaux fichiers dans src/locales/ sont rechargés automatiquement."
+		},
+		"theme": {
+			"title": "Apparence et thème",
+			"description": "Choisissez votre thème de couleur préféré ou suivez automatiquement le système.",
+			"auto": "Auto (Système)",
+			"autoDesc": "Basculer automatiquement entre sombre et clair selon les paramètres système",
+			"dark": "Sombre",
+			"darkDesc": "Thème sombre conçu pour les environnements peu éclairés",
+			"light": "Clair",
+			"lightDesc": "Interface claire et lumineuse pour une utilisation de jour"
 		},
 		"accounts": {
 			"title": "Comptes et authentification",

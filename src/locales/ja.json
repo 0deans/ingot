@@ -42,7 +42,8 @@
 		"screenshots": "スクリーンショット",
 		"servers": "専用サーバー",
 		"settings": "設定",
-		"language": "言語"
+		"language": "言語",
+		"theme": "テーマ"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} のインストール準備ができました！",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "言語 (Language)",
 			"description": "ランチャー画面の表示言語を選択します。src/locales/ に追加された言語ファイルは自動的にホットリロードされます。"
+		},
+		"theme": {
+			"title": "外観とテーマ",
+			"description": "お好みのカラーテーマを選択するか、システム設定に自動的に合わせます。",
+			"auto": "自動 (システム)",
+			"autoDesc": "OSの設定に応じてダークとライトを自動的に切り替えます",
+			"dark": "ダーク",
+			"darkDesc": "暗い環境向けに設計されたダークテーマ",
+			"light": "ライト",
+			"lightDesc": "日中の使用に適した明るく見やすいインターフェース"
 		},
 		"accounts": {
 			"title": "アカウントと認証",

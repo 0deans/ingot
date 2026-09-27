@@ -34,6 +34,7 @@ import LanguageSettings from "@/components/settings/language-settings"
 import { LicensesSettings } from "@/components/settings/licenses"
 import MemoryAllocation from "@/components/settings/memory-allocation"
 import SyncSettings from "@/components/settings/sync-settings"
+import ThemeSettings from "@/components/settings/theme-settings"
 import UpdateSettings from "@/components/settings/update-settings"
 import WindowSettings from "@/components/settings/window-settings"
 import { Button } from "@/components/ui/button"
@@ -168,6 +169,9 @@ const SettingsPage = () => {
 				<div className="flex flex-col gap-6">
 					{/* Language Settings */}
 					<LanguageSettings />
+
+					{/* Appearance & Theme Settings */}
+					<ThemeSettings />
 
 					{/* Accounts & Security */}
 					<div className="flex flex-col gap-3 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">

@@ -42,7 +42,8 @@
 		"screenshots": "Screenshots",
 		"servers": "Dedizierte Server",
 		"settings": "Einstellungen",
-		"language": "Sprache"
+		"language": "Sprache",
+		"theme": "Design"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} ist bereit zur Installation!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Sprache",
 			"description": "Wähle die Anzeigesprache für die Launcher-Oberfläche. Neue Sprachdateien in src/locales/ werden automatisch geladen."
+		},
+		"theme": {
+			"title": "Erscheinungsbild & Design",
+			"description": "Wähle dein bevorzugtes Farbschema oder folge automatisch der Systemeinstellung.",
+			"auto": "Auto (System)",
+			"autoDesc": "Automatisch je nach Betriebssystem zwischen Dunkel und Hell wechseln",
+			"dark": "Dunkel",
+			"darkDesc": "Dunkles Design für Umgebungen mit wenig Licht",
+			"light": "Hell",
+			"lightDesc": "Klare, helle Oberfläche für die Nutzung bei Tageslicht"
 		},
 		"accounts": {
 			"title": "Konten & Authentifizierung",

@@ -42,7 +42,8 @@
 		"screenshots": "Capturas de tela",
 		"servers": "Servidores dedicados",
 		"settings": "Configurações",
-		"language": "Idioma"
+		"language": "Idioma",
+		"theme": "Tema"
 	},
 	"updateBanner": {
 		"readyToInstall": "O Ingot v{{version}} está pronto para instalar!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Idioma",
 			"description": "Escolha o idioma de exibição da interface do launcher. Novos arquivos em src/locales/ são recarregados automaticamente."
+		},
+		"theme": {
+			"title": "Aparência e tema",
+			"description": "Escolha seu tema de cores preferido ou siga automaticamente a preferência do sistema.",
+			"auto": "Auto (Sistema)",
+			"autoDesc": "Alternar automaticamente entre escuro e claro com base nas configurações do SO",
+			"dark": "Escuro",
+			"darkDesc": "Tema escuro projetado para ambientes com pouca luz",
+			"light": "Claro",
+			"lightDesc": "Interface limpa e clara para uso diurno"
 		},
 		"accounts": {
 			"title": "Contas e autenticação",

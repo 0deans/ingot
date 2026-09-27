@@ -42,7 +42,8 @@
 		"screenshots": "Képernyőképek",
 		"servers": "Dedikált szerverek",
 		"settings": "Beállítások",
-		"language": "Nyelv"
+		"language": "Nyelv",
+		"theme": "Téma"
 	},
 	"updateBanner": {
 		"readyToInstall": "Az Ingot v{{version}} készen áll a telepítésre!",
@@ -224,6 +225,16 @@
 		"language": {
 			"title": "Nyelv",
 			"description": "Válaszd ki az indító felületének megjelenítési nyelvét. Az src/locales/ mappába kerülő új nyelvi fájlok automatikusan betöltődnek."
+		},
+		"theme": {
+			"title": "Megjelenés és téma",
+			"description": "Válaszd ki a kedvenc színtémádat, vagy kövesd automatikusan a rendszerbeállítást.",
+			"auto": "Automatikus (Rendszer)",
+			"autoDesc": "Automatikus váltás a sötét és világos mód között az operációs rendszer alapján",
+			"dark": "Sötét",
+			"darkDesc": "Sötét téma gyengén megvilágított környezethez",
+			"light": "Világos",
+			"lightDesc": "Letisztult, világos felület nappali használatra"
 		},
 		"accounts": {
 			"title": "Fiókok és hitelesítés",
