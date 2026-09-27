@@ -241,8 +241,7 @@ export const serverService = {
 		const wanted = [port, internalPort(port)]
 		return cachedServers.some(
 			(s) =>
-				s.id !== excludeServerId &&
-				[s.port, internalPort(s.port)].some((p) => wanted.includes(p)),
+				s.id !== excludeServerId && [s.port, internalPort(s.port)].some((p) => wanted.includes(p)),
 		)
 	},
 
