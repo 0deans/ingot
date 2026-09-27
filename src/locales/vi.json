@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Đóng trình khởi chạy",
-				"description": "Đóng hoàn toàn Ingot sau khi trò chơi bắt đầu"
+				"description": "Đóng hoàn toàn Ingot sau khi trò chơi bắt đầu (ẩn xuống khay khi máy chủ đang chạy)"
 			}
 		},
 		"window": {

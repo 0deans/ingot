@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Chiudi launcher",
-				"description": "Chiudi completamente Ingot dopo l'avvio del gioco"
+				"description": "Chiudi completamente Ingot dopo l'avvio del gioco (se un server è attivo, si nasconde nell'area di notifica)"
 			}
 		},
 		"window": {

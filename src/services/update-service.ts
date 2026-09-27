@@ -2,6 +2,7 @@ import { relaunch } from "@tauri-apps/plugin-process"
 import { check, type Update } from "@tauri-apps/plugin-updater"
 import { useEffect, useState } from "react"
 import { isMobileEnvironment } from "@/lib/platform"
+import { quitService } from "@/services/quit-service"
 
 export type UpdateStatus =
 	| "idle"
@@ -133,7 +134,12 @@ export const updateService = {
 		}
 	},
 
-	async downloadAndInstall(): Promise<void> {
+	/** Installing ends Ingot: running servers are stopped first (asked) */
+	downloadAndInstall(): Promise<void> {
+		return quitService.guard("update", () => updateService.installNow())
+	},
+
+	async installNow(): Promise<void> {
 		if (!activeUpdateHandle) {
 			throw new Error("No update available to download.")
 		}
@@ -193,7 +199,11 @@ export const updateService = {
 		}
 	},
 
-	async relaunchApp(): Promise<void> {
+	relaunchApp(): Promise<void> {
+		return quitService.guard("restart", () => updateService.restartNow())
+	},
+
+	async restartNow(): Promise<void> {
 		try {
 			await relaunch()
 		} catch (err) {

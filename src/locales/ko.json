@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "런처 닫기",
-				"description": "게임 시작 후 Ingot 완전히 종료"
+				"description": "게임 시작 후 Ingot 완전히 종료 (서버 실행 중에는 트레이로 숨김)"
 			}
 		},
 		"window": {

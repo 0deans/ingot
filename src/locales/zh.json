@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "关闭启动器",
-				"description": "游戏启动后完全退出 Ingot"
+				"description": "游戏启动后完全退出 Ingot（服务器运行时隐藏到托盘）"
 			}
 		},
 		"window": {

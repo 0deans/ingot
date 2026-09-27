@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Zavřít launcher",
-				"description": "Úplně ukončit Ingot po spuštění hry"
+				"description": "Úplně ukončit Ingot po spuštění hry (když běží server, skryje se do oznamovací oblasti)"
 			}
 		},
 		"window": {

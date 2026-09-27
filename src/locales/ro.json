@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Închide launcherul",
-				"description": "Închide complet Ingot după pornirea jocului"
+				"description": "Închide complet Ingot după pornirea jocului (cât rulează un server, se ascunde în zona de notificare)"
 			}
 		},
 		"window": {

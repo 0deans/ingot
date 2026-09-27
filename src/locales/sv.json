@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Stäng launcher",
-				"description": "Stäng Ingot helt efter att spelet har startat"
+				"description": "Stäng Ingot helt efter att spelet har startat (döljs i systemfältet medan en server körs)"
 			}
 		},
 		"window": {

@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "ランチャーを閉じる",
-				"description": "ゲーム起動後に Ingot を完全に終了します"
+				"description": "ゲーム起動後に Ingot を完全に終了します（サーバー実行中はトレイに格納）"
 			}
 		},
 		"window": {

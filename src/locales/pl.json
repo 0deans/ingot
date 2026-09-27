@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Zamknij launcher",
-				"description": "Zamknij całkowicie Ingot po uruchomieniu gry"
+				"description": "Zamknij całkowicie Ingot po uruchomieniu gry (gdy działa serwer, chowa się do zasobnika)"
 			}
 		},
 		"window": {

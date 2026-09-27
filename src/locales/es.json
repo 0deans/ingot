@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Cerrar launcher",
-				"description": "Cerrar Ingot por completo después de iniciar el juego"
+				"description": "Cerrar Ingot por completo después de iniciar el juego (si hay un servidor en marcha, se oculta en la bandeja)"
 			}
 		},
 		"window": {

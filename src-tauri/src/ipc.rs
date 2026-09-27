@@ -27,6 +27,8 @@ use crate::server::{
     ServerPingResponse, ServerProcessManager, ServerProperties, ServerStatusEvent, WhitelistEntry,
 };
 use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
+use crate::running::{BusyServer, LeftoverServer, QuitRequest};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::OnceLock;
 use tauri::{Manager, Runtime};
 
@@ -223,7 +225,9 @@ pub trait AppApi {
         file_name: String,
     ) -> Result<(), String>;
 
-    async fn get_running_instances() -> Result<Vec<RunningInstanceSummary>, String>;
+    async fn get_running_instances(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<RunningInstanceSummary>, String>;
 
     async fn get_available_game_versions(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -703,6 +707,34 @@ pub trait AppApi {
     #[taurpc(event)]
     async fn on_version_change_crash(event: VersionChangeCrash);
 
+    /// What would stop Ingot from simply quitting now: running or sleeping servers
+    async fn get_quit_blockers(app_handle: tauri::AppHandle<impl Runtime>) -> Result<QuitRequest, String>;
+
+    /// Stops every running server (each saves its worlds) and waits until they've exited
+    async fn stop_all_servers() -> Result<(), String>;
+
+    /// Quits Ingot. Games keep running; servers should be stopped first
+    async fn quit_app(app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), String>;
+
+    /// Servers still running from before Ingot last closed, without their console
+    async fn get_leftover_servers(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<LeftoverServer>, String>;
+
+    /// Ends a leftover server (there's no console to ask it to save first)
+    async fn stop_leftover_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
+
+    /// Closing Ingot was asked for while servers run: the user picks what happens
+    #[taurpc(event)]
+    async fn on_quit_requested(event: QuitRequest);
+
+    /// A start ran into servers left running from before Ingot closed
+    #[taurpc(event)]
+    async fn on_leftover_servers(servers: Vec<LeftoverServer>);
+
     #[taurpc(event)]
     async fn on_memory_changed(settings: MemorySettings);
 
@@ -942,6 +974,8 @@ impl AppApi for AppApiImpl {
             .find(|i| i.id == instance_id)
             .ok_or_else(|| format!("Instance not found: {}", instance_id))?;
 
+        // A game still running from before Ingot closed is this instance too
+        adopt_running_games(&app_handle).await;
         let pm = get_process_manager().clone();
         let client = get_http_client().clone();
         let app = app_handle.clone();
@@ -1099,7 +1133,11 @@ impl AppApi for AppApiImpl {
         version_change::crash::disable(&root, &folder, &file_name)
     }
 
-    async fn get_running_instances(self) -> Result<Vec<RunningInstanceSummary>, String> {
+    async fn get_running_instances(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<RunningInstanceSummary>, String> {
+        adopt_running_games(&app_handle).await;
         Ok(get_process_manager().get_running_instances().await)
     }
 
@@ -1439,6 +1477,18 @@ impl AppApi for AppApiImpl {
             .find(|s| s.id == server_id)
             .ok_or_else(|| format!("Server not found: {}", server_id))?;
 
+        // Still running from before Ingot closed: it holds the port and the world
+        let leftovers = leftover_servers(&app_handle).await;
+        if leftovers.iter().any(|l| l.server_id == config.id) {
+            if let Err(e) = TauRpcAppApiEventTrigger::new(app_handle.clone()).on_leftover_servers(leftovers) {
+                eprintln!("[IPC] Failed to emit on_leftover_servers: {e}");
+            }
+            return Err(format!(
+                "\"{}\" is still running from before Ingot closed. Stop it first, then start it again.",
+                config.name
+            ));
+        }
+
         // Two servers can't listen on the same ports; say which one is in the way
         // instead of failing halfway through the start. Sleeping servers count too:
         // their proxy keeps the public port open to wake them.
@@ -1567,6 +1617,52 @@ impl AppApi for AppApiImpl {
 
     async fn get_running_servers(self) -> Result<Vec<RunningServerSummary>, String> {
         Ok(get_server_process_manager().get_running_servers().await)
+    }
+
+    async fn get_quit_blockers(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<QuitRequest, String> {
+        Ok(quit_request(&app_handle).await)
+    }
+
+    async fn stop_all_servers(self) -> Result<(), String> {
+        stop_all_servers().await;
+        Ok(())
+    }
+
+    async fn quit_app(self, app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), String> {
+        quit_now(&app_handle);
+        Ok(())
+    }
+
+    async fn get_leftover_servers(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<LeftoverServer>, String> {
+        Ok(leftover_servers(&app_handle).await)
+    }
+
+    async fn stop_leftover_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        let leftover = leftover_servers(&app_handle)
+            .await
+            .into_iter()
+            .find(|l| l.server_id == server_id)
+            .ok_or("That server isn't running any more")?;
+        crate::running::kill_tree(leftover.pid);
+        // Wait for it to be gone, so the port and the world are free for a start
+        for _ in 0..20 {
+            if crate::running::process_start(leftover.pid).is_none() {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+        }
+        crate::running::remove(&app_handle, crate::running::Kind::Server, &server_id, leftover.pid);
+        Ok(())
     }
 
     async fn get_server_logs(self, server_id: String) -> Result<Vec<String>, String> {
@@ -2287,6 +2383,141 @@ pub fn emit_version_change_crash<R: Runtime>(app: &tauri::AppHandle<R>, event: V
     if let Err(e) = TauRpcAppApiEventTrigger::new(app.clone()).on_version_change_crash(event) {
         eprintln!("[IPC] Failed to emit on_version_change_crash: {e}");
     }
+}
+
+/// Set once quitting is decided, so the exit isn't stopped again
+static QUITTING: AtomicBool = AtomicBool::new(false);
+static GAMES_ADOPTED: tokio::sync::OnceCell<()> = tokio::sync::OnceCell::const_new();
+
+/// Re-attaches the games that were running when Ingot last closed (once per run)
+pub(crate) async fn adopt_running_games<R: Runtime>(app: &tauri::AppHandle<R>) {
+    GAMES_ADOPTED
+        .get_or_init(|| async {
+            let app_stat = app.clone();
+            let on_status = std::sync::Arc::new(move |ev: InstanceStatusEvent| {
+                if let Err(e) = TauRpcAppApiEventTrigger::new(app_stat.clone()).on_instance_status_changed(ev) {
+                    eprintln!("[IPC] Failed to emit on_instance_status_changed: {e}");
+                }
+            });
+            launcher::adopt_running(app.clone(), get_process_manager().clone(), on_status).await;
+        })
+        .await;
+}
+
+/// Servers that are running, starting or sleeping
+pub(crate) async fn busy_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<BusyServer> {
+    let pm = get_server_process_manager();
+    let configs = server::load_servers(app).unwrap_or_default();
+    let mut busy = Vec::new();
+    for config in configs {
+        let status = pm.get_server_status(&config.id).await;
+        if status != server::ServerStatus::Stopped {
+            busy.push(BusyServer {
+                server_id: config.id,
+                name: config.name,
+                sleeping: status == server::ServerStatus::Sleeping,
+            });
+        }
+    }
+    busy
+}
+
+async fn quit_request<R: Runtime>(app: &tauri::AppHandle<R>) -> QuitRequest {
+    QuitRequest {
+        servers: busy_servers(app).await,
+        games: get_process_manager().get_running_instances().await.len() as u32,
+    }
+}
+
+/// Stops every server and waits for them: each gets 30 seconds to save its worlds
+/// before it's ended
+pub(crate) async fn stop_all_servers() {
+    let pm = get_server_process_manager();
+    let supervisor = get_server_supervisor_manager();
+    // Sleeping ones only have a proxy; stop those too so nothing wakes up meanwhile
+    for id in pm.sleeping_ids().await {
+        supervisor.release(&id).await;
+        pm.set_server_status(&id, server::ServerStatus::Stopped).await;
+    }
+    // A server still starting may get its process meanwhile: look again after each round
+    for _ in 0..3 {
+        let ids = pm.process_ids().await;
+        if ids.is_empty() {
+            break;
+        }
+        let mut waits = Vec::new();
+        for id in ids {
+            supervisor.release(&id).await;
+            let _ = pm.stop_server_within(&id, std::time::Duration::from_secs(30)).await;
+            waits.push(tokio::spawn(async move {
+                get_server_process_manager()
+                    .wait_stopped(&id, std::time::Duration::from_secs(35))
+                    .await
+            }));
+        }
+        for wait in waits {
+            let _ = wait.await;
+        }
+    }
+}
+
+/// Quits for real, past the checks
+pub(crate) fn quit_now<R: Runtime>(app: &tauri::AppHandle<R>) {
+    QUITTING.store(true, Ordering::SeqCst);
+    app.exit(0);
+}
+
+pub(crate) fn is_quitting() -> bool {
+    QUITTING.load(Ordering::SeqCst)
+}
+
+/// Closing the window, Quit in the tray, or any other exit: quits right away unless a
+/// server runs, then shows the window and asks what to do
+pub(crate) fn request_quit<R: Runtime>(app: &tauri::AppHandle<R>) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let request = quit_request(&app).await;
+        if request.servers.is_empty() {
+            quit_now(&app);
+            return;
+        }
+        #[cfg(desktop)]
+        crate::tray::restore_main_window(&app);
+        if let Err(e) = TauRpcAppApiEventTrigger::new(app.clone()).on_quit_requested(request) {
+            eprintln!("[IPC] Failed to emit on_quit_requested: {e}");
+            // Nobody to ask: never leave a server behind without its console
+            stop_all_servers().await;
+            quit_now(&app);
+        }
+    });
+}
+
+/// Servers from the saved list that are still running but aren't Ingot's children now
+async fn leftover_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<LeftoverServer> {
+    let pm = get_server_process_manager();
+    let configs = server::load_servers(app).unwrap_or_default();
+    let mut leftovers = Vec::new();
+    for entry in crate::running::load(app, crate::running::Kind::Server) {
+        if pm.owns(&entry.id, entry.pid).await {
+            continue;
+        }
+        if !crate::running::is_alive(&entry) {
+            crate::running::remove(app, crate::running::Kind::Server, &entry.id, entry.pid);
+            continue;
+        }
+        let name = configs
+            .iter()
+            .find(|c| c.id == entry.id)
+            .map(|c| c.name.clone())
+            .unwrap_or_else(|| "A server".to_string());
+        leftovers.push(LeftoverServer {
+            server_id: entry.id,
+            name,
+            pid: entry.pid,
+            started_at: entry.started_at,
+        });
+    }
+    leftovers
 }
 
 fn find_instance<R: Runtime>(app: &tauri::AppHandle<R>, instance_id: &str) -> Result<InstanceConfig, String> {

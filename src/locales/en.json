@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Close Launcher",
-				"description": "Close Ingot completely after game starts"
+				"description": "Close Ingot completely after game starts (hides to the tray while a server is running)"
 			}
 		},
 		"window": {

@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Indító bezárása",
-				"description": "Az Ingot teljes bezárása a játék elindulása után"
+				"description": "Az Ingot teljes bezárása a játék elindulása után (ha fut egy szerver, a tálcára kerül)"
 			}
 		},
 		"window": {

@@ -10,6 +10,7 @@ pub const USER_AGENT: &str = concat!(
 pub mod ipc;
 pub mod keyring_store;
 pub mod minecraft;
+pub mod running;
 pub mod server;
 pub mod system;
 pub mod version_change;
@@ -66,11 +67,34 @@ pub fn run() {
                     eprintln!("[Tray] Failed to setup tray: {e}");
                 }
             }
+            // Games still running from last time show as running again
+            let handle = _app.handle().clone();
+            tauri::async_runtime::spawn(async move { ipc::adopt_running_games(&handle).await });
             Ok(())
         })
+        .on_window_event(|window, event| {
+            // Closing the window quits, but a running server's console lives in Ingot:
+            // ask first instead of leaving it running out of reach
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "main" && !ipc::is_quitting() {
+                    api.prevent_close();
+                    ipc::request_quit(tauri::Manager::app_handle(window));
+                }
+            }
+        })
         .invoke_handler(router.into_handler())
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app, _event| {
+            // Any other way out (the tray, the launcher closing itself) goes through the same check
+            #[cfg(desktop)]
+            if let tauri::RunEvent::ExitRequested { api, code: Some(_), .. } = _event {
+                if !ipc::is_quitting() {
+                    api.prevent_exit();
+                    ipc::request_quit(_app);
+                }
+            }
+        });
 }
 
 

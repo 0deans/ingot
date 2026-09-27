@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Fermer le launcher",
-				"description": "Fermer complètement Ingot après le démarrage du jeu"
+				"description": "Fermer complètement Ingot après le démarrage du jeu (si un serveur tourne, se réduit dans la zone de notification)"
 			}
 		},
 		"window": {

@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Launcher schließen",
-				"description": "Ingot nach dem Spielstart vollständig beenden"
+				"description": "Ingot nach dem Spielstart vollständig beenden (bei laufendem Server nur in den Infobereich)"
 			}
 		},
 		"window": {

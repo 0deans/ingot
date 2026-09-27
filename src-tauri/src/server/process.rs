@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::Runtime;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::process::{Child, ChildStdin};
+use tokio::process::ChildStdin;
 use tokio::sync::Mutex;
 
 struct ActiveServer {
@@ -22,7 +22,6 @@ struct ActiveServer {
     started_at: u64,
     status: ServerStatus,
     stdin: Arc<Mutex<ChildStdin>>,
-    child: Arc<Mutex<Child>>,
     log_history: Arc<Mutex<Vec<String>>>,
     online_players: Arc<Mutex<Vec<String>>>,
     /// Every cleaned stdout line, for capturing command replies
@@ -198,11 +197,17 @@ impl ServerProcessManager {
     }
 
     pub async fn stop_server(&self, server_id: &str) -> Result<(), String> {
-        let (stdin_arc, child_arc) = {
+        self.stop_server_within(server_id, Duration::from_secs(10)).await
+    }
+
+    /// Asks the server to stop (it saves its worlds first) and ends it if it hasn't
+    /// exited after `timeout`
+    pub async fn stop_server_within(&self, server_id: &str, timeout: Duration) -> Result<(), String> {
+        let (stdin_arc, pid) = {
             let mut guard = self.servers.lock().await;
             if let Some(s) = guard.get_mut(server_id) {
                 s.status = ServerStatus::Stopping;
-                (s.stdin.clone(), s.child.clone())
+                (s.stdin.clone(), s.pid)
             } else {
                 return Err(format!("Server is not running: {server_id}"));
             }
@@ -215,54 +220,69 @@ impl ServerProcessManager {
             let _ = stdin.flush().await;
         }
 
-        // Wait asynchronously for up to 10 seconds for graceful shutdown
+        // The exit task (which holds the child while it waits) removes the server once
+        // the process is gone
         let server_id_clone = server_id.to_string();
         let servers_map = self.servers.clone();
         tokio::spawn(async move {
-            for _ in 0..20 {
+            let deadline = tokio::time::Instant::now() + timeout;
+            while tokio::time::Instant::now() < deadline {
                 tokio::time::sleep(Duration::from_millis(500)).await;
-                let is_exited = {
-                    let mut child = child_arc.lock().await;
-                    match child.try_wait() {
-                        Ok(Some(_)) => true,
-                        _ => false,
-                    }
-                };
-                if is_exited {
-                    let mut guard = servers_map.lock().await;
-                    guard.remove(&server_id_clone);
+                if !has_process(&servers_map, &server_id_clone, pid).await {
                     return;
                 }
             }
-
-            // Force kill if timed out
             eprintln!("[ServerManager] Graceful stop timed out for {server_id_clone}, killing process...");
-            let mut child = child_arc.lock().await;
-            let _ = child.kill().await;
-            let mut guard = servers_map.lock().await;
-            guard.remove(&server_id_clone);
+            crate::running::kill_tree(pid);
         });
 
         Ok(())
     }
 
+    /// Waits until the server's process has exited, up to `timeout`
+    pub async fn wait_stopped(&self, server_id: &str, timeout: Duration) -> bool {
+        let deadline = tokio::time::Instant::now() + timeout;
+        loop {
+            if !self.servers.lock().await.contains_key(server_id) {
+                return true;
+            }
+            if tokio::time::Instant::now() >= deadline {
+                return false;
+            }
+            tokio::time::sleep(Duration::from_millis(250)).await;
+        }
+    }
+
+    /// Servers with a running process
+    pub async fn process_ids(&self) -> Vec<String> {
+        self.servers.lock().await.keys().cloned().collect()
+    }
+
+    pub async fn sleeping_ids(&self) -> Vec<String> {
+        self.sleeping_servers.lock().await.iter().cloned().collect()
+    }
+
+    /// Whether this exact process is one Ingot is running now
+    pub async fn owns(&self, server_id: &str, pid: u32) -> bool {
+        has_process(&self.servers, server_id, pid).await
+    }
+
     pub async fn kill_server(&self, server_id: &str) -> Result<(), String> {
-        let child_arc = {
-            let mut guard = self.servers.lock().await;
-            if let Some(s) = guard.remove(server_id) {
-                s.child
-            } else {
-                return Err(format!("Server is not running: {server_id}"));
+        let pid = {
+            let guard = self.servers.lock().await;
+            match guard.get(server_id) {
+                Some(s) => s.pid,
+                None => return Err(format!("Server is not running: {server_id}")),
             }
         };
-
-        let mut child = child_arc.lock().await;
-        child
-            .kill()
-            .await
-            .map_err(|e| format!("Failed to kill server process: {e}"))?;
+        // By pid: the exit task holds the child while it waits, and cleans up after it
+        crate::running::kill_tree(pid);
         Ok(())
     }
+}
+
+async fn has_process(servers: &Mutex<HashMap<String, ActiveServer>>, server_id: &str, pid: u32) -> bool {
+    servers.lock().await.get(server_id).is_some_and(|s| s.pid == pid)
 }
 
 /// Helper to locate java.exe (or java) for console use
@@ -697,7 +717,6 @@ where
                 started_at: now,
                 status: ServerStatus::Running,
                 stdin: stdin_arc.clone(),
-                child: child_arc.clone(),
                 log_history: log_history.clone(),
                 online_players: online_players.clone(),
                 line_tx: line_tx.clone(),
@@ -707,6 +726,7 @@ where
             },
         );
     }
+    crate::running::add(&app, crate::running::Kind::Server, &server_id, pid, now);
 
     on_status(ServerStatusEvent {
         server_id: server_id.clone(),
@@ -847,6 +867,7 @@ where
             }
         }
 
+        crate::running::remove(&app_exit, crate::running::Kind::Server, &s_id_exit, pid);
         {
             let mut guard = pm_exit.servers.lock().await;
             guard.remove(&s_id_exit);

@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Launcher sluiten",
-				"description": "Ingot volledig sluiten nadat het spel is gestart"
+				"description": "Ingot volledig sluiten nadat het spel is gestart (verbergt naar het systeemvak zolang een server draait)"
 			}
 		},
 		"window": {

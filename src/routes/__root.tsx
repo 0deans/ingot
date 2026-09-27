@@ -6,9 +6,11 @@ import {
 	useRouterState,
 } from "@tanstack/react-router"
 import { memo, useEffect } from "react"
+import QuitDialog from "@/components/layout/quit-dialog"
 import Sidebar from "@/components/layout/sidebar"
 import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
+import LeftoverServersDialog from "@/components/servers/leftover-servers-dialog"
 import FirstLaunchLanguageDialog from "@/components/settings/first-launch-language-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import VersionChangeCrashDialog from "@/components/version-change/crash-dialog"
@@ -42,6 +44,7 @@ const RootLayout = () => {
 				</main>
 				<FirstLaunchLanguageDialog />
 				<VersionChangeCrashDialog />
+				<LeftoverServersDialog />
 			</TooltipProvider>
 		)
 	}
@@ -57,6 +60,8 @@ const RootLayout = () => {
 			</WindowFrame>
 			<FirstLaunchLanguageDialog />
 			<VersionChangeCrashDialog />
+			<LeftoverServersDialog />
+			<QuitDialog />
 		</TooltipProvider>
 	)
 }

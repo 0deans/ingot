@@ -804,6 +804,7 @@ where
             },
         );
     }
+    crate::running::add(&app, crate::running::Kind::Game, &instance_id, pid, now);
 
     on_status(InstanceStatusEvent {
         instance_id: instance_id.clone(),
@@ -821,11 +822,17 @@ where
         }
         crate::system::BEHAVIOR_CLOSE => {
             let _ = update_last_played(&app, &instance_id, 0);
-            let app_exit = app.clone();
-            tokio::spawn(async move {
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                app_exit.exit(0);
-            });
+            // A running server needs Ingot (its console lives here): hide to the tray instead.
+            // The game itself is fine, it's picked up again when Ingot opens.
+            if crate::ipc::busy_servers(&app).await.is_empty() {
+                let app_exit = app.clone();
+                tokio::spawn(async move {
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                    crate::ipc::quit_now(&app_exit);
+                });
+            } else if let Some(window) = app.get_webview_window("main") {
+                let _ = window.hide();
+            }
         }
         _ => {
             // BEHAVIOR_KEEP_OPEN: keep launcher open as is
@@ -835,10 +842,8 @@ where
     // Background task to monitor child exit
     let pm_clone = process_manager.clone();
     let app_clone = app.clone();
-    let inst_id_clone = instance_id.clone();
-    let on_status_clone = Arc::new(on_status);
+    let on_status_clone: StatusFn = Arc::new(on_status);
     let inst_clone = instance.clone();
-    let inst_dir_clone = instance_dir.clone();
 
     tokio::spawn(async move {
         let clean = match child.wait().await {
@@ -851,9 +856,37 @@ where
                 false
             }
         };
+        let ended = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(now);
+        finish_game(&app_clone, &pm_clone, &inst_clone, pid, now, ended, clean, &on_status_clone).await;
+    });
 
+    Ok(pid)
+}
+
+type StatusFn = Arc<dyn Fn(InstanceStatusEvent) + Send + Sync>;
+
+/// Everything that happens once a game has exited: playtime, sync, the crash check after
+/// a version change, and bringing the launcher back
+#[allow(clippy::too_many_arguments)]
+async fn finish_game<R: Runtime>(
+    app: &AppHandle<R>,
+    pm: &ProcessManager,
+    instance: &InstanceConfig,
+    pid: u32,
+    started_at: u64,
+    ended_at: u64,
+    clean: bool,
+    on_status: &StatusFn,
+) {
+    let instance_id = instance.id.clone();
+    crate::running::remove(app, crate::running::Kind::Game, &instance_id, pid);
+
+    if let Ok(instance_dir) = get_instance_dir(app, &instance_id) {
         // Clean up temporary Quick Play junction if it exists
-        let qp_junction = inst_dir_clone.join("saves").join("qp_world");
+        let qp_junction = instance_dir.join("saves").join("qp_world");
         if qp_junction.exists() {
             #[cfg(target_os = "windows")]
             let _ = std::fs::remove_dir(&qp_junction);
@@ -862,62 +895,124 @@ where
         }
 
         // Run post-exit synchronization
-        if let Err(e) = crate::minecraft::sync::sync_after_exit(&app_clone, &inst_clone, &inst_dir_clone) {
+        if let Err(e) = crate::minecraft::sync::sync_after_exit(app, instance, &instance_dir) {
             eprintln!("[Launcher] Warning: Post-exit sync failed: {e}");
         }
 
-        let elapsed = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_secs().saturating_sub(now))
-            .unwrap_or(0);
-
-        let mut lock = pm_clone.running.lock().await;
-        lock.remove(&inst_id_clone);
-        let no_more_running = lock.is_empty();
-        drop(lock);
-
-        let _ = update_last_played(&app_clone, &inst_id_clone, elapsed);
-
         // The first start after a version change: a crash is reported with its suspects
-        let since = UNIX_EPOCH + std::time::Duration::from_secs(now.saturating_sub(1));
+        let since = UNIX_EPOCH + std::time::Duration::from_secs(started_at.saturating_sub(1));
         if let Some(crash) = crate::version_change::crash::after_exit(
-            &inst_dir_clone,
+            &instance_dir,
             clean,
             crate::version_change::TargetKind::Instance,
-            &inst_id_clone,
-            &inst_clone.name,
+            &instance_id,
+            &instance.name,
             &["mods"],
             since,
         ) {
-            crate::ipc::emit_version_change_crash(&app_clone, crash);
+            crate::ipc::emit_version_change_crash(app, crash);
         }
+    }
 
-        on_status_clone(InstanceStatusEvent {
-            instance_id: inst_id_clone,
-            is_running: false,
-            pid: 0,
-            started_at: 0,
-        });
+    let mut lock = pm.running.lock().await;
+    // Only this game: Stop may have removed it, and it may have been started again since
+    if lock.get(&instance_id).is_some_and(|c| c.pid == pid) {
+        lock.remove(&instance_id);
+    }
+    let no_more_running = lock.is_empty();
+    drop(lock);
 
-        // If launcher behavior is hide to tray (or window was hidden), restore window on game exit
-        let current_settings = crate::system::load_settings(&app_clone);
-        if no_more_running {
-            let should_restore = current_settings.launcher_behavior == crate::system::BEHAVIOR_HIDE_TO_TRAY
-                || app_clone
-                    .get_webview_window("main")
-                    .map(|w| w.is_visible().unwrap_or(true) == false)
-                    .unwrap_or(false);
-            if should_restore {
-                #[cfg(desktop)]
-                crate::tray::restore_main_window(&app_clone);
-                #[cfg(not(desktop))]
-                if let Some(window) = app_clone.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
-            }
-        }
+    let _ = update_last_played(app, &instance_id, ended_at.saturating_sub(started_at));
+
+    on_status(InstanceStatusEvent {
+        instance_id,
+        is_running: false,
+        pid: 0,
+        started_at: 0,
     });
 
-    Ok(pid)
+    // If launcher behavior is hide to tray (or window was hidden), restore window on game exit
+    let current_settings = crate::system::load_settings(app);
+    if no_more_running {
+        let should_restore = current_settings.launcher_behavior == crate::system::BEHAVIOR_HIDE_TO_TRAY
+            || app
+                .get_webview_window("main")
+                .map(|w| w.is_visible().unwrap_or(true) == false)
+                .unwrap_or(false);
+        if should_restore {
+            #[cfg(desktop)]
+            crate::tray::restore_main_window(app);
+            #[cfg(not(desktop))]
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }
+    }
+}
+
+/// Picks up the games that were running when Ingot last closed. Games still running are
+/// shown as running again and watched until they exit; games that exited meanwhile get
+/// their playtime (up to their last log write) and after-exit steps now.
+pub async fn adopt_running<R: Runtime>(app: AppHandle<R>, pm: ProcessManager, on_status: StatusFn) {
+    let entries = crate::running::load(&app, crate::running::Kind::Game);
+    if entries.is_empty() {
+        return;
+    }
+    let instances = crate::minecraft::instance::load_instances(&app).unwrap_or_default();
+    for entry in entries {
+        let Some(instance) = instances.iter().find(|i| i.id == entry.id).cloned() else {
+            crate::running::remove(&app, crate::running::Kind::Game, &entry.id, entry.pid);
+            continue;
+        };
+
+        if !crate::running::is_alive(&entry) {
+            // Ended while Ingot was closed: the game writes its log until it quits
+            let ended = get_instance_dir(&app, &entry.id)
+                .ok()
+                .and_then(|dir| fs::metadata(dir.join("logs").join("latest.log")).ok())
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+                .map(|d| d.as_secs())
+                .filter(|&t| t > entry.started_at)
+                .unwrap_or(entry.started_at);
+            finish_game(&app, &pm, &instance, entry.pid, entry.started_at, ended, true, &on_status).await;
+            continue;
+        }
+
+        {
+            let mut lock = pm.running.lock().await;
+            if lock.contains_key(&entry.id) {
+                continue;
+            }
+            lock.insert(
+                entry.id.clone(),
+                ActiveChild {
+                    pid: entry.pid,
+                    started_at: entry.started_at,
+                },
+            );
+        }
+        println!("[Launcher] Re-attached to {} (pid {})", instance.name, entry.pid);
+        on_status(InstanceStatusEvent {
+            instance_id: entry.id.clone(),
+            is_running: true,
+            pid: entry.pid,
+            started_at: entry.started_at,
+        });
+
+        // Not our child any more, so there's no exit to wait on: check every 2 seconds
+        let (app, pm, on_status) = (app.clone(), pm.clone(), on_status.clone());
+        tokio::spawn(async move {
+            while crate::running::is_alive(&entry) {
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+            }
+            let ended = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(entry.started_at);
+            // The exit code is gone: a crash report since the start counts as a crash
+            finish_game(&app, &pm, &instance, entry.pid, entry.started_at, ended, true, &on_status).await;
+        });
+    }
 }

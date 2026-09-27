@@ -43,7 +43,7 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::err
                 restore_main_window(app);
             }
             "quit" => {
-                app.exit(0);
+                crate::ipc::request_quit(app);
             }
             _ => {}
         })

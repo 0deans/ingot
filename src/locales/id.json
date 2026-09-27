@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Tutup Launcher",
-				"description": "Tutup Ingot sepenuhnya setelah game dimulai"
+				"description": "Tutup Ingot sepenuhnya setelah game dimulai (disembunyikan ke tray selama server berjalan)"
 			}
 		},
 		"window": {

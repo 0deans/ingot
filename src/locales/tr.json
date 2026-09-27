@@ -277,7 +277,7 @@
 			},
 			"close": {
 				"label": "Başlatıcıyı Kapat",
-				"description": "Oyun başladıktan sonra Ingot'u tamamen kapat"
+				"description": "Oyun başladıktan sonra Ingot'u tamamen kapat (sunucu çalışırken tepsiye gizlenir)"
 			}
 		},
 		"window": {
