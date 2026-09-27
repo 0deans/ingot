@@ -106,6 +106,7 @@
 			"requires120": "Richiede Minecraft 1.20+",
 			"openFolderTooltip": "Apri la cartella dell'istanza in Esplora file",
 			"settingsTooltip": "Impostazioni istanza (RAM, argomenti JVM)",
+			"duplicateTooltip": "Duplica",
 			"deleteTooltip": "Elimina istanza"
 		}
 	},

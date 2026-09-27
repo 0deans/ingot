@@ -106,6 +106,7 @@
 			"requires120": "Yêu cầu Minecraft 1.20+",
 			"openFolderTooltip": "Mở thư mục phiên bản trong File Explorer",
 			"settingsTooltip": "Cài đặt phiên bản (RAM, tham số JVM)",
+			"duplicateTooltip": "Nhân bản",
 			"deleteTooltip": "Xóa phiên bản"
 		}
 	},

@@ -162,6 +162,14 @@ pub trait AppApi {
         instance: InstanceConfig,
     ) -> Result<(), String>;
 
+    /// Copies an instance into a new, independent one (worlds optional)
+    async fn duplicate_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        name: String,
+        include_worlds: bool,
+    ) -> Result<InstanceConfig, String>;
+
     async fn open_instance_folder(
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
@@ -926,6 +934,24 @@ impl AppApi for AppApiImpl {
         instance_id: String,
     ) -> Result<(), String> {
         instance::delete_instance(&app_handle, &instance_id)
+    }
+
+    async fn duplicate_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        name: String,
+        include_worlds: bool,
+    ) -> Result<InstanceConfig, String> {
+        // A running game keeps writing its world: copy it once it's saved and closed
+        if include_worlds && get_process_manager().is_running(&instance_id).await {
+            return Err("Close the game first, so the worlds are copied as they were saved.".to_string());
+        }
+        tauri::async_runtime::spawn_blocking(move || {
+            instance::duplicate_instance(&app_handle, &instance_id, name, include_worlds)
+        })
+        .await
+        .map_err(|e| e.to_string())?
     }
 
     async fn update_instance(

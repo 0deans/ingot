@@ -106,6 +106,7 @@
 			"requires120": "Nécessite Minecraft 1.20+",
 			"openFolderTooltip": "Ouvrir le dossier de l'instance dans l'Explorateur",
 			"settingsTooltip": "Paramètres de l'instance (RAM, arguments JVM)",
+			"duplicateTooltip": "Dupliquer",
 			"deleteTooltip": "Supprimer l'instance"
 		}
 	},

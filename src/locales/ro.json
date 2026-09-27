@@ -106,6 +106,7 @@
 			"requires120": "Necesită Minecraft 1.20+",
 			"openFolderTooltip": "Deschide dosarul instanței în File Explorer",
 			"settingsTooltip": "Setări instanță (RAM, argumente JVM)",
+			"duplicateTooltip": "Duplică",
 			"deleteTooltip": "Șterge instanța"
 		}
 	},

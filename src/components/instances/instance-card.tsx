@@ -2,6 +2,7 @@ import {
 	ChevronDown,
 	Clock,
 	Compass,
+	Copy,
 	FolderOpen,
 	Globe,
 	HardDrive,
@@ -44,6 +45,7 @@ interface InstanceCardProps {
 	onStop: () => void
 	onSettings: () => void
 	onDelete: () => void
+	onDuplicate: () => void
 }
 
 function isVersionAtLeast(versionStr: string, targetMajor: number, targetMinor: number): boolean {
@@ -82,6 +84,7 @@ export const InstanceCard = ({
 	onStop,
 	onSettings,
 	onDelete,
+	onDuplicate,
 }: InstanceCardProps) => {
 	const { t } = useTranslation()
 	const isRunning = !!runningInfo
@@ -402,6 +405,16 @@ export const InstanceCard = ({
 						title={t("instances.card.openFolderTooltip")}
 					>
 						<FolderOpen className="size-3.5" />
+					</Button>
+
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={onDuplicate}
+						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+						title={t("instances.card.duplicateTooltip")}
+					>
+						<Copy className="size-3.5" />
 					</Button>
 
 					<Button

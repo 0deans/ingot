@@ -106,6 +106,7 @@
 			"requires120": "Minecraft 1.20+ gerektirir",
 			"openFolderTooltip": "Profil klasörünü Dosya Gezgini'nde aç",
 			"settingsTooltip": "Profil Ayarları (RAM, JVM argümanları)",
+			"duplicateTooltip": "Çoğalt",
 			"deleteTooltip": "Profili Sil"
 		}
 	},

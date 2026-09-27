@@ -106,6 +106,7 @@
 			"requires120": "Memerlukan Minecraft 1.20+",
 			"openFolderTooltip": "Buka folder instansi di File Explorer",
 			"settingsTooltip": "Pengaturan Instansi (RAM, argumen JVM)",
+			"duplicateTooltip": "Duplikat",
 			"deleteTooltip": "Hapus Instansi"
 		}
 	},

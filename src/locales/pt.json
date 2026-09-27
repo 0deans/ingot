@@ -106,6 +106,7 @@
 			"requires120": "Requer Minecraft 1.20+",
 			"openFolderTooltip": "Abrir pasta da instância no Explorador de Arquivos",
 			"settingsTooltip": "Configurações da instância (RAM, argumentos JVM)",
+			"duplicateTooltip": "Duplicar",
 			"deleteTooltip": "Excluir instância"
 		}
 	},

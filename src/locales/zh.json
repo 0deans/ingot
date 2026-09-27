@@ -106,6 +106,7 @@
 			"requires120": "需要 Minecraft 1.20+",
 			"openFolderTooltip": "在文件资源管理器中打开实例文件夹",
 			"settingsTooltip": "实例设置（内存、JVM 参数）",
+			"duplicateTooltip": "复制",
 			"deleteTooltip": "删除实例"
 		}
 	},

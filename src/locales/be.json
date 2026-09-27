@@ -106,6 +106,7 @@
 			"requires120": "Патрабуецца Minecraft 1.20+",
 			"openFolderTooltip": "Адкрыць папку зборкі ў Правадніку",
 			"settingsTooltip": "Налады зборкі (АЗП, аргументы JVM)",
+			"duplicateTooltip": "Дубляваць",
 			"deleteTooltip": "Выдаліць зборку"
 		}
 	},

@@ -106,6 +106,7 @@
 			"requires120": "Vereist Minecraft 1.20+",
 			"openFolderTooltip": "Instantiemap openen in Verkenner",
 			"settingsTooltip": "Instantie-instellingen (RAM, JVM-argumenten)",
+			"duplicateTooltip": "Dupliceren",
 			"deleteTooltip": "Instantie verwijderen"
 		}
 	},

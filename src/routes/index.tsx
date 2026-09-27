@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
+import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
 import InstanceSearchHeader from "@/components/instances/instance-search-header"
@@ -28,6 +29,7 @@ export const instancesSearchSchema = v.object({
 	action: v.optional(instancesActionSchema),
 	edit: v.optional(v.string()),
 	delete: v.optional(v.string()),
+	duplicate: v.optional(v.string()),
 })
 
 export type InstancesSearchParams = v.InferOutput<typeof instancesSearchSchema>
@@ -41,6 +43,7 @@ const InstancesPage = () => {
 	const action = search.action
 	const editId = search.edit
 	const deleteId = search.delete
+	const duplicateId = search.duplicate
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
 	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
@@ -73,6 +76,9 @@ const InstancesPage = () => {
 	const isImportOpen = action === "import"
 	const editingInstance = editId ? (instances.find((i) => i.id === editId) ?? null) : null
 	const deletingInstance = deleteId ? (instances.find((i) => i.id === deleteId) ?? null) : null
+	const duplicatingInstance = duplicateId
+		? (instances.find((i) => i.id === duplicateId) ?? null)
+		: null
 
 	const handleCreateInstance = async (
 		name: string,
@@ -136,7 +142,13 @@ const InstancesPage = () => {
 
 	const handleCloseAction = () => {
 		navigate({
-			search: (prev) => ({ ...prev, action: undefined, edit: undefined, delete: undefined }),
+			search: (prev) => ({
+				...prev,
+				action: undefined,
+				edit: undefined,
+				delete: undefined,
+				duplicate: undefined,
+			}),
 			replace: true,
 		})
 	}
@@ -287,6 +299,12 @@ const InstancesPage = () => {
 										replace: true,
 									})
 								}
+								onDuplicate={() =>
+									navigate({
+										search: (prev) => ({ ...prev, duplicate: inst.id }),
+										replace: true,
+									})
+								}
 							/>
 						))}
 
@@ -373,6 +391,14 @@ const InstancesPage = () => {
 					open={Boolean(deletingInstance)}
 					onOpenChange={(open) => !open && handleCloseAction()}
 					onConfirm={handleConfirmDelete}
+				/>
+
+				{/* Duplicate Instance Dialog */}
+				<DuplicateInstanceDialog
+					instance={duplicatingInstance}
+					open={Boolean(duplicatingInstance)}
+					isRunning={duplicatingInstance ? runningMap.has(duplicatingInstance.id) : false}
+					onOpenChange={(open) => !open && handleCloseAction()}
 				/>
 
 				{/* Sync Conflict Dialog */}

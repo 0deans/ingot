@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{Manager, Runtime};
 
@@ -171,6 +171,82 @@ pub fn create_instance<R: Runtime>(
     Ok(instance)
 }
 
+/// Top-level folders a copy leaves behind: regenerated, or the original's own history
+/// (its screenshots, and the undo backup of its last version change)
+const NOT_COPIED: &[&str] = &["logs", "crash-reports", "screenshots", ".ingot"];
+
+fn copy_instance_tree(from: &Path, to: &Path, top: bool, include_worlds: bool) -> Result<(), String> {
+    fs::create_dir_all(to).map_err(|e| format!("Failed to create {}: {e}", to.display()))?;
+    for entry in fs::read_dir(from).map_err(|e| format!("Failed to read {}: {e}", from.display()))?.flatten() {
+        let name = entry.file_name();
+        let name_str = name.to_string_lossy();
+        let Ok(kind) = entry.file_type() else { continue };
+        // Links and junctions (the Quick Play world link) point into the original
+        if kind.is_symlink() || name_str == "session.lock" || (top && NOT_COPIED.contains(&name_str.as_ref())) {
+            continue;
+        }
+        let dest = to.join(&name);
+        if kind.is_dir() {
+            if top && name_str == "saves" && !include_worlds {
+                fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+                continue;
+            }
+            copy_instance_tree(&entry.path(), &dest, false, include_worlds)?;
+        } else {
+            fs::copy(entry.path(), &dest).map_err(|e| format!("Failed to copy {name_str}: {e}"))?;
+        }
+    }
+    Ok(())
+}
+
+/// Copies an instance into a new, independent one: mods, configs, resource packs and
+/// settings, plus its worlds if asked. Playtime starts over.
+pub fn duplicate_instance<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    source_id: &str,
+    name: String,
+    include_worlds: bool,
+) -> Result<InstanceConfig, String> {
+    let name = name.trim().to_string();
+    if name.is_empty() {
+        return Err("Give the copy a name".to_string());
+    }
+    let source = load_instances(app)?
+        .into_iter()
+        .find(|i| i.id == source_id)
+        .ok_or_else(|| format!("Instance not found: {source_id}"))?;
+
+    let id = uuid::Uuid::new_v4().to_string();
+    let instances_dir = get_instances_dir(app)?;
+    // Copied under a temporary name, so a failure leaves no half instance behind
+    let part = instances_dir.join(format!("{id}.part"));
+    let _ = fs::remove_dir_all(&part);
+    let copied = copy_instance_tree(&instances_dir.join(&source.id), &part, true, include_worlds)
+        .and_then(|_| fs::rename(&part, instances_dir.join(&id)).map_err(|e| format!("Failed to finish the copy: {e}")));
+    if let Err(e) = copied {
+        let _ = fs::remove_dir_all(&part);
+        return Err(e);
+    }
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let copy = InstanceConfig {
+        id,
+        name,
+        created_at: now,
+        last_played: None,
+        total_play_time_seconds: 0,
+        last_synced_at: None,
+        ..source
+    };
+    let mut instances = load_instances(app)?;
+    instances.push(copy.clone());
+    save_instances(app, &instances)?;
+    Ok(copy)
+}
+
 pub fn delete_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
@@ -322,4 +398,50 @@ pub fn get_instance_worlds(instance_dir: &std::path::Path) -> Result<Vec<Instanc
 
     worlds.sort_by(|a, b| b.last_played.cmp(&a.last_played));
     Ok(worlds)
+}
+
+#[cfg(test)]
+mod duplicate_tests {
+    use super::*;
+
+    #[test]
+    fn copy_leaves_history_and_optionally_worlds_behind() {
+        let root = std::env::temp_dir().join(format!("ingot-dup-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let src = root.join("src");
+        for dir in ["mods", "config/sodium", "saves/World/region", "logs", "crash-reports", "screenshots", ".ingot/version-change"] {
+            fs::create_dir_all(src.join(dir)).unwrap();
+        }
+        for file in [
+            "options.txt",
+            "mods/sodium.jar",
+            "config/sodium/options.json",
+            "saves/World/level.dat",
+            "saves/World/session.lock",
+            "saves/World/region/r.0.0.mca",
+            "logs/latest.log",
+            "crash-reports/crash.txt",
+            "screenshots/a.png",
+            ".ingot/version-change/journal.json",
+        ] {
+            fs::write(src.join(file), file).unwrap();
+        }
+
+        let with = root.join("with");
+        copy_instance_tree(&src, &with, true, true).unwrap();
+        for kept in ["options.txt", "mods/sodium.jar", "config/sodium/options.json", "saves/World/level.dat", "saves/World/region/r.0.0.mca"] {
+            assert!(with.join(kept).is_file(), "{kept} should be copied");
+        }
+        for left in ["saves/World/session.lock", "logs", "crash-reports", "screenshots", ".ingot"] {
+            assert!(!with.join(left).exists(), "{left} should stay behind");
+        }
+
+        let without = root.join("without");
+        copy_instance_tree(&src, &without, true, false).unwrap();
+        assert!(without.join("mods/sodium.jar").is_file());
+        assert!(without.join("saves").is_dir());
+        assert_eq!(fs::read_dir(without.join("saves")).unwrap().count(), 0);
+
+        let _ = fs::remove_dir_all(&root);
+    }
 }

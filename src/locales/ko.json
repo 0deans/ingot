@@ -106,6 +106,7 @@
 			"requires120": "Minecraft 1.20+ 필요",
 			"openFolderTooltip": "파일 탐색기에서 인스턴스 폴더 열기",
 			"settingsTooltip": "인스턴스 설정 (RAM, JVM 인수)",
+			"duplicateTooltip": "복제",
 			"deleteTooltip": "인스턴스 삭제"
 		}
 	},

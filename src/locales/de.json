@@ -106,6 +106,7 @@
 			"requires120": "Erfordert Minecraft 1.20+",
 			"openFolderTooltip": "Instanzordner im Datei-Explorer öffnen",
 			"settingsTooltip": "Instanz-Einstellungen (RAM, JVM-Argumente)",
+			"duplicateTooltip": "Duplizieren",
 			"deleteTooltip": "Instanz löschen"
 		}
 	},

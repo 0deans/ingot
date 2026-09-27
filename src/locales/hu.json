@@ -106,6 +106,7 @@
 			"requires120": "Minecraft 1.20+ szükséges",
 			"openFolderTooltip": "Példány mappájának megnyitása a Fájlkezelőben",
 			"settingsTooltip": "Példány beállításai (RAM, JVM argumentumok)",
+			"duplicateTooltip": "Másolat készítése",
 			"deleteTooltip": "Példány törlése"
 		}
 	},

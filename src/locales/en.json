@@ -106,6 +106,7 @@
 			"requires120": "Requires Minecraft 1.20+",
 			"openFolderTooltip": "Open instance folder in File Explorer",
 			"settingsTooltip": "Instance Settings (RAM, JVM args)",
+			"duplicateTooltip": "Duplicate",
 			"deleteTooltip": "Delete Instance"
 		}
 	},

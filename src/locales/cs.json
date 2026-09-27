@@ -106,6 +106,7 @@
 			"requires120": "Vyžaduje Minecraft 1.20+",
 			"openFolderTooltip": "Otevřít složku instance v Průzkumníku",
 			"settingsTooltip": "Nastavení instance (RAM, argumenty JVM)",
+			"duplicateTooltip": "Duplikovat",
 			"deleteTooltip": "Smazat instanci"
 		}
 	},

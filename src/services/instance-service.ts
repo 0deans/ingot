@@ -116,6 +116,16 @@ export const instanceService = {
 		return created
 	},
 
+	async duplicateInstance(
+		instanceId: string,
+		name: string,
+		includeWorlds: boolean,
+	): Promise<InstanceConfig> {
+		const copy = await rpc.duplicate_instance(instanceId, name, includeWorlds)
+		await this.refreshInstances()
+		return copy
+	},
+
 	async deleteInstance(instanceId: string): Promise<void> {
 		cachedInstances = cachedInstances.filter((i) => i.id !== instanceId)
 		notifyInstances()

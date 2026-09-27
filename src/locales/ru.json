@@ -106,6 +106,7 @@
 			"requires120": "Требуется Minecraft 1.20+",
 			"openFolderTooltip": "Открыть папку сборки в Проводнике",
 			"settingsTooltip": "Настройки сборки (ОЗУ, аргументы JVM)",
+			"duplicateTooltip": "Дублировать",
 			"deleteTooltip": "Удалить сборку"
 		}
 	},

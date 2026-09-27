@@ -106,6 +106,7 @@
 			"requires120": "Minecraft 1.20+ қажет",
 			"openFolderTooltip": "Жинақ қалтасын ашу",
 			"settingsTooltip": "Жинақ баптаулары (ЖЖҚ, JVM аргументтері)",
+			"duplicateTooltip": "Көшірме жасау",
 			"deleteTooltip": "Жинақты жою"
 		}
 	},

@@ -106,6 +106,7 @@
 			"requires120": "Потрібен Minecraft 1.20+",
 			"openFolderTooltip": "Відкрити папку збірки у Провіднику",
 			"settingsTooltip": "Налаштування збірки (ОЗП, аргументи JVM)",
+			"duplicateTooltip": "Дублювати",
 			"deleteTooltip": "Видалити збірку"
 		}
 	},
