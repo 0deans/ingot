@@ -3,6 +3,7 @@ import { memo, useEffect, useState } from "react"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { NewServerWizard, NoServersState } from "@/components/servers/new-server-wizard"
 import { ImportServerButton } from "@/components/servers/panels/transfer-card"
+import { LicensesDialog } from "@/components/settings/licenses"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useAndroidHostService } from "@/services/hosting"
@@ -48,6 +49,7 @@ export const MobileServerDashboard = memo(() => {
 		write(TAB_KEY, next)
 	}
 	const [switcherOpen, setSwitcherOpen] = useState(false)
+	const [licensesOpen, setLicensesOpen] = useState(false)
 	const [wizardOpen, setWizardOpen] = useState(false)
 	const [mapFocus, setMapFocus] = useState<PlayerDetails | null>(null)
 
@@ -219,8 +221,19 @@ export const MobileServerDashboard = memo(() => {
 							select(created.id)
 						}}
 					/>
+					<button
+						type="button"
+						onClick={() => {
+							setSwitcherOpen(false)
+							setLicensesOpen(true)
+						}}
+						className="mt-1 self-center px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+					>
+						About &amp; licenses
+					</button>
 				</DialogContent>
 			</Dialog>
+			<LicensesDialog open={licensesOpen} onOpenChange={setLicensesOpen} />
 		</div>
 	)
 })

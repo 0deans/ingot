@@ -29,6 +29,7 @@ import {
 	AccountCardContent,
 	SortableAccountItem,
 } from "@/components/accounts/sortable-account-item"
+import { LicensesSettings } from "@/components/settings/licenses"
 import MemoryAllocation from "@/components/settings/memory-allocation"
 import SyncSettings from "@/components/settings/sync-settings"
 import UpdateSettings from "@/components/settings/update-settings"
@@ -338,6 +339,8 @@ const SettingsPage = () => {
 
 					{/* Application Updates */}
 					<UpdateSettings />
+
+					<LicensesSettings />
 				</div>
 
 				<AddAccountDialog

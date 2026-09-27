@@ -29,3 +29,7 @@ dist-ssr
 .tauri
 
 # Android native binaries (large, downloaded via scripts/download-android-libs.ps1)
+
+# Android signing keys: keep them out of git (CI gets the key from secrets)
+*.keystore
+*.jks

@@ -128,6 +128,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check release signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            echo "::error::Set the ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets: releases must always be signed with the same key (see scripts/sign-android-apk.sh)."
+            exit 1
+          fi
+
       - name: Setup Java 21
         uses: actions/setup-java@v5
         with:
@@ -181,31 +191,21 @@ jobs:
           NDK_HOME: ${{ env.NDK_HOME }}
         run: pnpm tauri android build --apk --target aarch64
 
-      - name: Sign APK and Attach to GitHub Release
+      - name: Sign APK with the release key and attach to the GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           mkdir -p output-apks
           RAW_APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
           echo "Found raw APK: $RAW_APK"
-
-          # 1. Generate release signing key
-          keytool -genkey -v -keystore release.jks -alias ingot -keyalg RSA -keysize 2048 -validity 10000 -storepass ingot123 -keypass ingot123 -dname "CN=Ingot, OU=Ingot, O=Ingot, L=Unknown, S=Unknown, C=US"
-
-          # 2. Locate apksigner and sign the APK
-          APKSIGNER=$(find /usr/local/lib/android/sdk/build-tools -name "apksigner" | sort -V | tail -n 1)
-          echo "Using apksigner: $APKSIGNER"
-          
           FINAL_APK="output-apks/Ingot-aarch64.apk"
-          $APKSIGNER sign --ks release.jks --ks-pass pass:ingot123 --out "$FINAL_APK" "$RAW_APK"
-
-          # 3. Verify signature
-          $APKSIGNER verify "$FINAL_APK"
+          bash scripts/sign-android-apk.sh "$RAW_APK" "$FINAL_APK"
           ls -lh output-apks/
 
           TAG="${{ github.ref_name }}"
           echo "Uploading $FINAL_APK to release $TAG..."
           gh release upload "$TAG" "$FINAL_APK" --clobber
-
-
