@@ -106,7 +106,7 @@ export const SearchableSelect = memo(
 						sideOffset={4}
 						align="start"
 					>
-						<PopoverPrimitive.Popup className="data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 z-50 flex w-(--anchor-width) min-w-56 max-w-sm flex-col rounded-lg border border-border/70 bg-zinc-950 p-1.5 text-popover-foreground shadow-2xl outline-none ring-1 ring-white/10 duration-100 data-closed:animate-out data-open:animate-in">
+						<PopoverPrimitive.Popup className="data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 z-50 flex w-(--anchor-width) min-w-56 max-w-sm flex-col rounded-lg border border-border/70 bg-zinc-950 p-1.5 text-popover-foreground shadow-2xl outline-none ring-1 ring-zinc-50/10 duration-100 data-closed:animate-out data-open:animate-in">
 							{/* Fixed Search Bar at top */}
 							<div className="relative flex items-center border-border/50 border-b px-2 pt-0.5 pb-1.5">
 								<Search className="size-3.5 shrink-0 text-muted-foreground" />
@@ -136,7 +136,7 @@ export const SearchableSelect = memo(
 							</div>
 
 							{/* Compact Scrollable List (max-h-48, around 5-6 items, with styled scrollbar) */}
-							<div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto pt-1 [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/35 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+							<div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto pt-1 [scrollbar-color:color-mix(in_oklab,var(--foreground)_20%,transparent)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-50/20 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-50/35 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
 								{filteredOptions.length === 0 ? (
 									<div className="px-3 py-4 text-center text-muted-foreground text-xs">
 										No matching versions

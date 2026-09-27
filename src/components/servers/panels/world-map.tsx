@@ -182,7 +182,7 @@ export function WorldMap({
 				className="pointer-events-none absolute inset-0 opacity-[0.07]"
 				style={{
 					backgroundImage:
-						"linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+						"linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
 					backgroundSize: `${REGION_BLOCKS * view.scale}px ${REGION_BLOCKS * view.scale}px`,
 					backgroundPosition: `${size.w / 2 - view.x * view.scale}px ${size.h / 2 - view.z * view.scale}px`,
 				}}
@@ -233,24 +233,24 @@ export function WorldMap({
 							alt={p.name}
 							className="size-7 rounded-md shadow-black/50 shadow-lg ring-2 ring-white transition-transform [image-rendering:pixelated] group-hover:scale-110"
 						/>
-						<span className="rounded-md bg-black/70 px-1.5 py-0.5 font-medium text-[10px] text-white backdrop-blur-sm">
+						<span className="rounded-md bg-zinc-950/80 px-1.5 py-0.5 font-medium text-[10px] text-zinc-50 backdrop-blur-sm">
 							{p.name}
 						</span>
 					</button>
 				))}
 			</div>
 
-			<div className="absolute right-3 bottom-3 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-black/60 backdrop-blur-md">
+			<div className="absolute right-3 bottom-3 flex flex-col overflow-hidden rounded-xl border border-zinc-50/10 bg-zinc-950/80 backdrop-blur-md">
 				<MapButton label="Zoom in" onClick={() => zoomAt(1.5, size.w / 2, size.h / 2)}>
 					<Plus className="size-4" />
 				</MapButton>
-				<div className="h-px bg-white/10" />
+				<div className="h-px bg-zinc-50/10" />
 				<MapButton label="Zoom out" onClick={() => zoomAt(1 / 1.5, size.w / 2, size.h / 2)}>
 					<Minus className="size-4" />
 				</MapButton>
 			</div>
 
-			<div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1 font-mono text-[10px] text-zinc-300 backdrop-blur-md">
+			<div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-zinc-950/80 px-2 py-1 font-mono text-[10px] text-zinc-300 backdrop-blur-md">
 				<Crosshair className="size-3" />
 				{Math.floor(cursor?.x ?? view.x)}, {Math.floor(cursor?.z ?? view.z)}
 			</div>
@@ -273,7 +273,7 @@ function MapButton({
 			aria-label={label}
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={onClick}
-			className="flex size-9 items-center justify-center text-zinc-200 transition-colors hover:bg-white/10"
+			className="flex size-9 items-center justify-center text-zinc-200 transition-colors hover:bg-zinc-50/10"
 		>
 			{children}
 		</button>
@@ -311,7 +311,7 @@ const RegionTile = memo(function RegionTile({
 					className={cn("size-full", pixelated && "[image-rendering:pixelated]")}
 				/>
 			) : (
-				isLoading && <div className="size-full animate-pulse bg-white/[0.03]" />
+				isLoading && <div className="size-full animate-pulse bg-zinc-50/[0.03]" />
 			)}
 		</div>
 	)

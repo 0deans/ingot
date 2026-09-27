@@ -40,13 +40,13 @@ export const InitialSyncDialog = ({
 						<div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
 							<RefreshCw className="size-5" />
 						</div>
-						<DialogTitle className="font-semibold text-lg text-white">
+						<DialogTitle className="font-semibold text-lg text-zinc-50">
 							Initial Synchronization
 						</DialogTitle>
 					</div>
 					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
 						You are enabling synchronization for{" "}
-						<strong className="text-white">{instanceName}</strong>. From where should we initially
+						<strong className="text-zinc-50">{instanceName}</strong>. From where should we initially
 						sync?
 					</DialogDescription>
 				</DialogHeader>

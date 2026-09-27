@@ -242,7 +242,7 @@ export default function ServerListView() {
 										<button
 											type="button"
 											onClick={() => srv && openPage(srv.id, "console")}
-											className="rounded p-0.5 text-emerald-300 transition-colors hover:text-white"
+											className="rounded p-0.5 text-emerald-300 transition-colors hover:text-zinc-50"
 											title={t("servers.openConsole")}
 										>
 											<Terminal className="size-3" />
@@ -368,13 +368,13 @@ export default function ServerListView() {
 									search: (prev) => ({ ...prev, action: "new" }),
 								})
 							}
-							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-zinc-950/30 p-6 text-muted-foreground transition-all duration-200 hover:border-emerald-500/60 hover:bg-zinc-900/40 hover:text-white"
+							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-zinc-950/30 p-6 text-muted-foreground transition-all duration-200 hover:border-emerald-500/60 hover:bg-zinc-900/40 hover:text-zinc-50"
 						>
 							<div className="flex size-11 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-inner transition-transform group-hover:scale-110">
 								<Plus className="size-5 text-zinc-400 group-hover:text-emerald-400" />
 							</div>
 							<div className="flex flex-col items-center gap-0.5 text-center">
-								<span className="font-semibold text-xs text-zinc-300 group-hover:text-white">
+								<span className="font-semibold text-xs text-zinc-300 group-hover:text-zinc-50">
 									{t("servers.createCardTitle")}
 								</span>
 								<span className="text-[11px] text-zinc-500">{t("servers.createCardSubtitle")}</span>

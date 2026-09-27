@@ -97,7 +97,7 @@ export const SyncMasterDialog = ({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2 text-emerald-400">
 						<UploadCloud className="size-5" />
-						<DialogTitle className="font-semibold text-lg text-white">{title}</DialogTitle>
+						<DialogTitle className="font-semibold text-lg text-zinc-50">{title}</DialogTitle>
 					</div>
 					<DialogDescription className="text-xs text-zinc-400 leading-relaxed">
 						{description}
@@ -113,7 +113,7 @@ export const SyncMasterDialog = ({
 									<Database className="size-4" />
 								</div>
 								<div>
-									<div className="font-medium text-white text-xs">Use Existing Shared Data</div>
+									<div className="font-medium text-xs text-zinc-50">Use Existing Shared Data</div>
 									<div className="text-[11px] text-zinc-400">
 										Keep current{" "}
 										<code className="rounded bg-zinc-900 px-1 py-0.5 font-mono text-[10px] text-emerald-300">

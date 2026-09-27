@@ -148,7 +148,7 @@ export default function ChangeVersionDialog({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={22} />
-						<DialogTitle className="font-semibold text-lg text-white">Change version</DialogTitle>
+						<DialogTitle className="font-semibold text-lg text-zinc-50">Change version</DialogTitle>
 					</div>
 					<DialogDescription className="text-muted-foreground text-xs">
 						Ingot checks every mod, resource pack and shader first and changes nothing until you
@@ -170,7 +170,7 @@ export default function ChangeVersionDialog({
 										className={cn(
 											"flex flex-col items-center gap-1 border p-2 text-[11px] transition-colors",
 											loader === id
-												? "border-emerald-500/60 bg-emerald-500/10 text-white"
+												? "border-emerald-500/60 bg-emerald-500/10 text-zinc-50"
 												: "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:text-zinc-200",
 										)}
 									>
@@ -290,7 +290,7 @@ export default function ChangeVersionDialog({
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
 						<CheckCircle2 className="size-8 text-emerald-400" />
-						<p className="font-semibold text-sm text-white">Now on {planSide(plan, "to")}</p>
+						<p className="font-semibold text-sm text-zinc-50">Now on {planSide(plan, "to")}</p>
 						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
 							Changed from {planSide(plan, "from")}. If something doesn&apos;t work, undo it from
 							this instance&apos;s settings: everything goes back exactly as it was.

@@ -111,7 +111,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="flex flex-col gap-3 p-3 sm:p-4">
 			<p className="px-1 text-[10px] text-zinc-500 uppercase tracking-wider">How players see it</p>
-			<div className="flex items-center gap-3 rounded-xl bg-black/50 p-2.5 ring-1 ring-white/5">
+			<div className="dark flex items-center gap-3 rounded-xl bg-zinc-950 p-2.5 ring-1 ring-zinc-50/5">
 				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-900">
 					{icon ? (
 						<img src={icon} alt="" className="size-full object-cover [image-rendering:pixelated]" />
@@ -284,7 +284,7 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 		<button
 			type="button"
 			onClick={onOpen}
-			className="flex min-w-0 flex-col rounded-2xl border border-zinc-800/80 bg-[#0a0a0c] text-left transition-colors hover:border-zinc-700"
+			className="flex min-w-0 flex-col rounded-2xl border border-zinc-800/80 bg-zinc-950 text-left transition-colors hover:border-zinc-700"
 		>
 			<div className="flex items-center justify-between px-4 pt-4 pb-2">
 				<span className="flex items-center gap-2 font-semibold text-sm text-zinc-100">

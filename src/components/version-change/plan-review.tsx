@@ -168,7 +168,7 @@ export function PlanReview({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-wrap items-center gap-2">
-				<span className="font-semibold text-sm text-white">
+				<span className="font-semibold text-sm text-zinc-50">
 					{planSide(plan, "from")} → {planSide(plan, "to")}
 				</span>
 				{groups.map(({ status, entries }) => (
@@ -367,7 +367,7 @@ function PlanRow({
 								"px-2 py-1 text-[11px] transition-colors",
 								rounded && "rounded-md",
 								choice === action
-									? "bg-zinc-800 font-medium text-white"
+									? "bg-zinc-800 font-medium text-zinc-50"
 									: "text-zinc-500 hover:text-zinc-200",
 							)}
 						>

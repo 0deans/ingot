@@ -44,12 +44,12 @@ export const SyncConflictDialog = ({
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
 							<ShieldAlert className="size-5" />
 						</div>
-						<DialogTitle className="font-semibold text-base text-white sm:text-lg">
+						<DialogTitle className="font-semibold text-base text-zinc-50 sm:text-lg">
 							Sync Conflict Detected
 						</DialogTitle>
 					</div>
 					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
-						<strong className="text-white">{conflict.instanceName}</strong> contains its own local
+						<strong className="text-zinc-50">{conflict.instanceName}</strong> contains its own local
 						configuration files that have never been synchronized with your shared storage.
 					</DialogDescription>
 				</DialogHeader>

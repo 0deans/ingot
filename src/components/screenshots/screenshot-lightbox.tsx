@@ -96,7 +96,7 @@ const ScreenshotLightbox = ({
 	const imageUrl = screenshotService.getImageUrl(screenshot.filePath)
 
 	return createPortal(
-		<div className="fixed inset-x-0 top-10 bottom-0 z-40 flex animate-in select-none items-center justify-center p-3 duration-200">
+		<div className="dark fixed inset-x-0 top-10 bottom-0 z-40 flex animate-in select-none items-center justify-center p-3 duration-200">
 			{/* Backdrop overlay button - clicking outside image closes lightbox */}
 			<button
 				type="button"
@@ -137,7 +137,7 @@ const ScreenshotLightbox = ({
 								<Button
 									size="icon"
 									variant="ghost"
-									className="size-8 rounded-full text-zinc-300 hover:bg-zinc-800 hover:text-white"
+									className="size-8 rounded-full text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50"
 									onClick={() => onReveal(screenshot)}
 								>
 									<FolderOpen className="size-4" />
@@ -171,7 +171,7 @@ const ScreenshotLightbox = ({
 								<Button
 									size="icon"
 									variant="ghost"
-									className="size-8 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-white"
+									className="size-8 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
 									onClick={onClose}
 								>
 									<X className="size-4" />
@@ -189,7 +189,7 @@ const ScreenshotLightbox = ({
 					size="icon"
 					variant="secondary"
 					aria-label="Previous screenshot"
-					className="absolute left-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-white active:scale-95"
+					className="absolute left-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-zinc-50 active:scale-95"
 					onClick={goToPrev}
 				>
 					<ChevronLeft className="size-6" />
@@ -201,7 +201,7 @@ const ScreenshotLightbox = ({
 				<img
 					src={imageUrl}
 					alt={screenshot.fileName}
-					className="pointer-events-auto max-h-[86vh] max-w-[92vw] select-none rounded-xl object-contain shadow-2xl shadow-black ring-1 ring-white/10 transition-all duration-200"
+					className="pointer-events-auto max-h-[86vh] max-w-[92vw] select-none rounded-xl object-contain shadow-2xl shadow-black ring-1 ring-zinc-50/10 transition-all duration-200"
 				/>
 			</div>
 
@@ -211,7 +211,7 @@ const ScreenshotLightbox = ({
 					size="icon"
 					variant="secondary"
 					aria-label="Next screenshot"
-					className="absolute right-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-white active:scale-95"
+					className="absolute right-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-zinc-50 active:scale-95"
 					onClick={goToNext}
 				>
 					<ChevronRight className="size-6" />

@@ -473,7 +473,7 @@ export const ContentDetailsDialog = memo(
 																activePhotoIndex < details.screenshots.length ? activePhotoIndex : 0
 															].title || item.title}
 														</span>
-														<span className="rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-zinc-300">
+														<span className="dark rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-zinc-300">
 															{activePhotoIndex + 1} / {details.screenshots.length}
 														</span>
 													</div>
@@ -506,7 +506,7 @@ export const ContentDetailsDialog = memo(
 																	className={`group relative h-18 w-28 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus:outline-hidden ${
 																		idx === activePhotoIndex
 																			? "border-primary opacity-100 shadow-md"
-																			: "border-transparent opacity-60 hover:border-white/20 hover:opacity-90"
+																			: "border-transparent opacity-60 hover:border-zinc-50/20 hover:opacity-90"
 																	}`}
 																>
 																	<img
@@ -766,11 +766,11 @@ export const ContentDetailsDialog = memo(
 					details?.screenshots?.[lightboxIndex] &&
 					typeof document !== "undefined" &&
 					createPortal(
-						<div className="fade-in-0 fixed inset-x-0 top-10 bottom-0 z-60 flex animate-in flex-col justify-between bg-black/95 p-4 backdrop-blur-md duration-200">
+						<div className="dark fade-in-0 fixed inset-x-0 top-10 bottom-0 z-60 flex animate-in flex-col justify-between bg-black/95 p-4 backdrop-blur-md duration-200">
 							{/* Top Bar */}
-							<div className="flex items-center justify-between text-white">
+							<div className="flex items-center justify-between text-zinc-50">
 								<div className="flex items-center gap-3">
-									<span className="rounded-md bg-white/10 px-2.5 py-1 font-medium text-xs">
+									<span className="rounded-md bg-zinc-50/10 px-2.5 py-1 font-medium text-xs">
 										{lightboxIndex + 1} / {details.screenshots.length}
 									</span>
 									<span className="truncate font-medium text-sm text-zinc-300">
@@ -782,7 +782,7 @@ export const ContentDetailsDialog = memo(
 										size="sm"
 										variant="ghost"
 										onClick={() => handleOpenUrl(details.screenshots[lightboxIndex].url)}
-										className="h-8 gap-1.5 text-xs text-zinc-300 hover:text-white"
+										className="h-8 gap-1.5 text-xs text-zinc-300 hover:text-zinc-50"
 									>
 										<ExternalLink className="size-3.5" />
 										Open Original
@@ -791,7 +791,7 @@ export const ContentDetailsDialog = memo(
 										type="button"
 										onClick={() => setLightboxIndex(null)}
 										aria-label="Close image preview"
-										className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+										className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-50/10 hover:text-zinc-50"
 									>
 										<X className="size-5" />
 									</button>
@@ -840,7 +840,7 @@ export const ContentDetailsDialog = memo(
 										className={`relative h-14 w-24 shrink-0 overflow-hidden rounded-md border-2 transition-all focus:outline-hidden ${
 											idx === lightboxIndex
 												? "border-primary opacity-100 shadow-md"
-												: "border-transparent opacity-50 hover:border-white/20 hover:opacity-80"
+												: "border-transparent opacity-50 hover:border-zinc-50/20 hover:opacity-80"
 										}`}
 									>
 										<img src={s.url} alt="" className="size-full object-cover" />

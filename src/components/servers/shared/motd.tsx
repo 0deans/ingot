@@ -112,7 +112,7 @@ export function ServerListPreview({
 	isRunning?: boolean
 }) {
 	return (
-		<div className="flex min-w-0 items-start gap-3 rounded-xl border border-zinc-800 bg-[#0e0e10] p-3 shadow-inner">
+		<div className="dark flex min-w-0 items-start gap-3 rounded-xl border border-zinc-800 bg-[#0e0e10] p-3 shadow-inner">
 			<div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-800">
 				{icon ? (
 					<img src={icon} alt="" className="size-full object-cover [image-rendering:pixelated]" />
@@ -122,7 +122,7 @@ export function ServerListPreview({
 			</div>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<div className="flex items-center justify-between gap-2">
-					<span className="truncate font-medium text-sm text-white">{name}</span>
+					<span className="truncate font-medium text-sm text-zinc-50">{name}</span>
 					<span className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-zinc-400">
 						{online}/{max}
 						<Signal className={cn("size-3", isRunning ? "text-emerald-400" : "text-zinc-600")} />

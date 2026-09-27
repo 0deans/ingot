@@ -188,7 +188,7 @@ export const InstanceCard = ({
 			{/* Main Info */}
 			<div className="my-4 flex flex-col gap-2">
 				<h3
-					className="truncate font-semibold text-base text-white tracking-tight"
+					className="truncate font-semibold text-base text-zinc-50 tracking-tight"
 					title={instance.name}
 				>
 					{instance.name}
@@ -398,7 +398,7 @@ export const InstanceCard = ({
 						variant="ghost"
 						size="icon"
 						onClick={() => instanceService.openInstanceFolder(instance.id)}
-						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
 						title={t("instances.card.openFolderTooltip")}
 					>
 						<FolderOpen className="size-3.5" />
@@ -408,7 +408,7 @@ export const InstanceCard = ({
 						variant="ghost"
 						size="icon"
 						onClick={onSettings}
-						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
 						title={t("instances.card.settingsTooltip")}
 					>
 						<Settings className="size-3.5" />

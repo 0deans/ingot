@@ -302,7 +302,7 @@ export const InstanceSettingsDialog = ({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={24} />
-						<DialogTitle className="font-semibold text-lg text-white">
+						<DialogTitle className="font-semibold text-lg text-zinc-50">
 							Instance Settings
 						</DialogTitle>
 					</div>
@@ -437,7 +437,7 @@ export const InstanceSettingsDialog = ({
 												key={p.label}
 												type="button"
 												onClick={() => applyPreset(p.min, p.max)}
-												className="rounded-md border border-zinc-800 bg-zinc-900/80 px-2.5 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+												className="rounded-md border border-zinc-800 bg-zinc-900/80 px-2.5 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-50"
 											>
 												{p.label}
 											</button>
@@ -597,7 +597,7 @@ export const InstanceSettingsDialog = ({
 															setInstanceWidth(p.w)
 															setInstanceHeight(p.h)
 														}}
-														className="rounded border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-300 hover:text-white"
+														className="rounded border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-300 hover:text-zinc-50"
 													>
 														{p.label}
 													</button>

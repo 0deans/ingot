@@ -246,7 +246,7 @@ export const ImportInstanceDialog = ({
 				<DialogHeader className="gap-1">
 					<div className="flex items-center gap-2 text-primary">
 						<FolderOpen className="size-5 shrink-0" />
-						<DialogTitle className="truncate font-semibold text-lg text-white">
+						<DialogTitle className="truncate font-semibold text-lg text-zinc-50">
 							{step === "launchers" && "Import from Another Launcher"}
 							{step === "instances" && `Select Instance (${selectedLauncher?.name})`}
 							{step === "options" && "Configure Import"}

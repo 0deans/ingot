@@ -59,7 +59,12 @@ export const LoaderIcon: React.FC<LoaderIconProps> = ({
 		<img
 			src={src}
 			alt={alt || defaultAlt}
-			className={cn("shrink-0 select-none object-contain", className)}
+			className={cn(
+				"shrink-0 select-none object-contain",
+				// Paper's and Folia's logos are plain white: dark on the light theme
+				(normalized === "paper" || normalized === "folia") && "invert dark:invert-0",
+				className,
+			)}
 			style={{
 				width: typeof size === "number" ? `${size}px` : size,
 				height: typeof size === "number" ? `${size}px` : size,

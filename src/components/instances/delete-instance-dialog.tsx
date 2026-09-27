@@ -48,7 +48,7 @@ export const DeleteInstanceDialog = ({
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive">
 						<AlertTriangle className="size-5" />
 					</div>
-					<DialogTitle className="font-semibold text-lg text-white">Delete Instance</DialogTitle>
+					<DialogTitle className="font-semibold text-lg text-zinc-50">Delete Instance</DialogTitle>
 					<DialogDescription className="text-xs text-zinc-400">
 						Are you sure you want to permanently delete this instance? This action cannot be undone.
 					</DialogDescription>
@@ -59,7 +59,7 @@ export const DeleteInstanceDialog = ({
 						<LoaderIcon loader={instance.loader} size={22} />
 					</div>
 					<div className="flex min-w-0 flex-col">
-						<span className="truncate font-semibold text-sm text-white">{instance.name}</span>
+						<span className="truncate font-semibold text-sm text-zinc-50">{instance.name}</span>
 						<span className="text-[11px] text-zinc-400">
 							{String(instance.loader).toUpperCase()} • {instance.gameVersion}
 						</span>

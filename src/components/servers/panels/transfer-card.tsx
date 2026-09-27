@@ -365,7 +365,7 @@ function ChangeVersionDialog({
 											}}
 											className={
 												core === id
-													? "rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-sm text-white"
+													? "rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-sm text-zinc-50"
 													: "rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200"
 											}
 										>
@@ -431,7 +431,7 @@ function ChangeVersionDialog({
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-6 text-center">
 						<CheckCircle2 className="size-8 text-emerald-400" />
-						<p className="font-semibold text-sm text-white">Ready for {planSide(plan, "to")}</p>
+						<p className="font-semibold text-sm text-zinc-50">Ready for {planSide(plan, "to")}</p>
 						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
 							The new version downloads on the next start. If something doesn&apos;t work, undo it
 							from Backup &amp; version: everything goes back exactly as it was.

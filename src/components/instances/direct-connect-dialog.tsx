@@ -152,7 +152,7 @@ export function DirectConnectDialog({
 								{recentServers.map((item) => (
 									<div
 										key={item}
-										className="group inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+										className="group inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-50"
 									>
 										<button
 											type="button"

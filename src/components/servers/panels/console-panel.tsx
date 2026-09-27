@@ -99,7 +99,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 	}
 
 	return (
-		<div className={cn("relative flex min-h-0 flex-col overflow-hidden bg-[#0a0a0c]", className)}>
+		<div className={cn("relative flex min-h-0 flex-col overflow-hidden bg-zinc-950", className)}>
 			<div className="flex shrink-0 items-center gap-1 px-2 pt-2">
 				<button
 					type="button"

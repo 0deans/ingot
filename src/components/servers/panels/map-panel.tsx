@@ -152,7 +152,7 @@ export function MapPanel({
 
 			{/* Top overlay: dimension switcher and refresh */}
 			<div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-				<div className="pointer-events-auto flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-black/60 p-1 backdrop-blur-md [scrollbar-width:none]">
+				<div className="pointer-events-auto flex gap-1 overflow-x-auto rounded-xl border border-zinc-50/10 bg-zinc-950/80 p-1 backdrop-blur-md [scrollbar-width:none]">
 					{dimensions?.map((d) => (
 						<button
 							key={d.id}
@@ -164,7 +164,7 @@ export function MapPanel({
 							className={cn(
 								"whitespace-nowrap rounded-lg px-3 py-1.5 font-medium text-xs transition-colors",
 								d.id === current.id
-									? "bg-white/15 text-white"
+									? "bg-zinc-50/15 text-zinc-50"
 									: "text-zinc-400 hover:text-zinc-200",
 							)}
 						>
@@ -176,14 +176,14 @@ export function MapPanel({
 					{live && (
 						<span
 							title="Ingot keeps the map current from server memory"
-							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
+							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
 						>
 							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
 							Live
 						</span>
 					)}
 					{isRunning && installedAt === server.id && (
-						<span className="flex h-9 items-center rounded-xl border border-amber-500/20 bg-black/60 px-2.5 font-medium text-[11px] text-amber-200 backdrop-blur-md">
+						<span className="flex h-9 items-center rounded-xl border border-amber-500/20 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-amber-200 backdrop-blur-md">
 							Restart to go live
 						</span>
 					)}
@@ -196,7 +196,7 @@ export function MapPanel({
 							}}
 							disabled={installCompanion.isPending}
 							title={`Install the Ingot ${addonKind(server.core)?.noun ?? "plugin"} to update the map in real time, without saving the world`}
-							className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
+							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
 						>
 							{installCompanion.isPending ? (
 								<Loader2 className="size-3.5 animate-spin" />
@@ -213,7 +213,7 @@ export function MapPanel({
 							onClick={refresh}
 							disabled={refreshing}
 							title="Check for newly saved areas"
-							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/60 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/80"
+							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
 						>
 							{refreshNote ? (
 								<Check className="size-3.5 text-emerald-400" />
@@ -240,10 +240,10 @@ export function MapPanel({
 							onClick={() =>
 								setView((v) => ({ x: p.x, z: p.z, scale: Math.max(v?.scale ?? 2, 2) }))
 							}
-							className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/60 py-1 pr-3 pl-1 text-left backdrop-blur-md transition-colors hover:bg-black/80"
+							className="flex items-center gap-2 rounded-xl border border-zinc-50/10 bg-zinc-950/80 py-1 pr-3 pl-1 text-left backdrop-blur-md transition-colors hover:bg-zinc-950"
 						>
 							<PlayerAvatar name={p.name} size={24} />
-							<span className="truncate font-medium text-white text-xs">{p.name}</span>
+							<span className="truncate font-medium text-xs text-zinc-50">{p.name}</span>
 						</button>
 					))}
 				</div>

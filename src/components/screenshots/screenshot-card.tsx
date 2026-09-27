@@ -107,7 +107,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								<Button
 									size="icon"
 									variant="secondary"
-									className="size-7 rounded-lg border border-zinc-700/60 bg-zinc-950/90 text-zinc-300 shadow-md hover:bg-zinc-800 hover:text-white"
+									className="size-7 rounded-lg border border-zinc-700/60 bg-zinc-950/90 text-zinc-300 shadow-md hover:bg-zinc-800 hover:text-zinc-50"
 									onClick={(e) => e.stopPropagation()}
 								>
 									<MoreVertical className="size-3.5" />

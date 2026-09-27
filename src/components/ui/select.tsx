@@ -68,7 +68,7 @@ function SelectContent({
 				<SelectPrimitive.Popup
 					data-slot="select-content"
 					className={cn(
-						"data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 z-50 max-h-64 min-w-(--anchor-width) origin-(--transform-origin) overflow-y-auto overflow-x-hidden rounded-lg border border-border/60 bg-popover p-1 text-popover-foreground shadow-xl outline-none ring-1 ring-foreground/10 duration-100 [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] data-closed:animate-out data-open:animate-in [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/35 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5",
+						"data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 z-50 max-h-64 min-w-(--anchor-width) origin-(--transform-origin) overflow-y-auto overflow-x-hidden rounded-lg border border-border/60 bg-popover p-1 text-popover-foreground shadow-xl outline-none ring-1 ring-foreground/10 duration-100 [scrollbar-color:color-mix(in_oklab,var(--foreground)_20%,transparent)_transparent] [scrollbar-width:thin] data-closed:animate-out data-open:animate-in [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-50/20 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-50/35 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5",
 						className,
 					)}
 					{...props}

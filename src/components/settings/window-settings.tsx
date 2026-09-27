@@ -155,7 +155,7 @@ export const WindowSettings = () => {
 									className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] transition-colors ${
 										isCurrent
 											? "border-sky-500/40 bg-sky-500/10 font-medium text-sky-400"
-											: "border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:border-zinc-700 hover:text-white"
+											: "border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:border-zinc-700 hover:text-zinc-50"
 									}`}
 								>
 									{isCurrent && <Check className="size-3" />}

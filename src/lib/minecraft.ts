@@ -52,25 +52,25 @@ export function dimensionStyle(id: string): DimensionStyle {
 			return {
 				label: "Overworld",
 				badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-				void: "#0b0f0c",
+				void: "color-mix(in oklab, var(--color-zinc-950) 93%, #1f7a45)",
 			}
 		case "minecraft:the_nether":
 			return {
 				label: "Nether",
 				badge: "border-rose-500/30 bg-rose-500/10 text-rose-300",
-				void: "#140807",
+				void: "color-mix(in oklab, var(--color-zinc-950) 92%, #8a2416)",
 			}
 		case "minecraft:the_end":
 			return {
 				label: "The End",
 				badge: "border-violet-500/30 bg-violet-500/10 text-violet-300",
-				void: "#0c0a14",
+				void: "color-mix(in oklab, var(--color-zinc-950) 92%, #4c2f8f)",
 			}
 		default:
 			return {
 				label: prettyId(id),
 				badge: "border-sky-500/30 bg-sky-500/10 text-sky-300",
-				void: "#0a0c10",
+				void: "color-mix(in oklab, var(--color-zinc-950) 93%, #2f4f7a)",
 			}
 	}
 }
