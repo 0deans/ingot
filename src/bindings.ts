@@ -24,7 +24,7 @@ export type AccountProfile = {
 };
 
 export type CompanionStatus = {
-	/**  Paper, Purpur or Folia on 1.20.1 or newer */
+	/**  Paper, Purpur or Folia 1.20.1+, or Fabric on Minecraft 26.1+ */
 	supported: boolean,
 	/**  Jar file name when installed (may be disabled) */
 	fileName: string | null,
@@ -291,6 +291,8 @@ export type PluginProject = {
 	downloads: number,
 	categories: string[],
 	pageUrl: string,
+	/**  A mod players must install too to join (it adds content their game must know) */
+	playersNeedIt: boolean,
 };
 
 export type PluginSearchResult = {
@@ -384,7 +386,7 @@ export type ServerConfig = {
 	lastRunAt: number | null,
 };
 
-export type ServerCoreType = "paper" | "purpur" | "fabric" | "vanilla" | "folia" | "pumpkin";
+export type ServerCoreType = "paper" | "purpur" | "fabric" | "vanilla" | "folia" | "pumpkin" | "neoforge";
 
 export type ServerLogEvent = {
 	serverId: string,

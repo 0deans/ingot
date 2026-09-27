@@ -56,6 +56,12 @@ const SERVER_CORES: {
 		badge: "Modded",
 	},
 	{
+		id: "neoforge",
+		name: "NeoForge",
+		tagline: "Modded server for NeoForge mods, the home of most big content mods",
+		badge: "Modded",
+	},
+	{
 		id: "folia",
 		name: "Folia",
 		tagline: "Multi-threaded regionized server by PaperMC for massive player counts",

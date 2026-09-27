@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::Runtime;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::process::{Child, ChildStdin, Command};
+use tokio::process::{Child, ChildStdin};
 use tokio::sync::Mutex;
 
 struct ActiveServer {
@@ -588,11 +588,8 @@ where
         args.push("-Dterminal.jline=false".into());
         args.push("-Dterminal.ansi=false".into());
 
-        args.push("-jar".into());
-        args.push("server.jar".into());
-        args.push("nogui".into());
-
-        if crate::server::sandbox::is_android_sandbox() {
+        // Java runs natively, or inside the Linux sandbox on Android: (sandbox, java)
+        let (sandbox, java_bin) = if crate::server::sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
             let (sandbox_dir, rootfs, guest_java) = crate::server::sandbox::ensure_sandbox_rootfs(
                 &app,
@@ -601,29 +598,44 @@ where
                 sandbox_progress(&step),
             )
             .await?;
-            crate::server::sandbox::build_server_command(
-                Some((&sandbox_dir, &rootfs)),
-                &server_dir,
-                Path::new(&guest_java),
-                &args,
-            )?
+            (Some((sandbox_dir, rootfs)), PathBuf::from(guest_java))
+        } else if let Some(ref path) = config.java_path {
+            let p = PathBuf::from(path);
+            (None, find_java_console_bin(&p).unwrap_or(p))
         } else {
-            let java_bin = if let Some(ref path) = config.java_path {
-                let p = PathBuf::from(path);
-                find_java_console_bin(&p).unwrap_or(p)
-            } else {
-                let resolved = ensure_java_runtime(&app, &client, required_java, None, None).await?;
-                find_java_console_bin(&resolved).ok_or_else(|| {
-                    format!(
-                        "Could not find java console binary in {}",
-                        resolved.display()
-                    )
-                })?
-            };
-            let mut c = Command::new(&java_bin);
-            c.args(&args).current_dir(&server_dir);
-            c
+            let resolved = ensure_java_runtime(&app, &client, required_java, None, None).await?;
+            let bin = find_java_console_bin(&resolved)
+                .ok_or_else(|| format!("Could not find java console binary in {}", resolved.display()))?;
+            (None, bin)
+        };
+        let java = |java_args: &[String]| {
+            crate::server::sandbox::build_server_command(
+                sandbox.as_ref().map(|(dir, rootfs)| (dir.as_path(), rootfs.as_path())),
+                &server_dir,
+                &java_bin,
+                java_args,
+            )
+        };
+
+        if config.core == ServerCoreType::NeoForge {
+            if crate::server::neoforge::args_file(&server_dir).is_none() {
+                step("Installing NeoForge (first start only, this can take a few minutes)...");
+            }
+            let args_file = crate::server::neoforge::ensure_installed(
+                &client,
+                &server_dir,
+                &game_ver,
+                config.build_number.as_deref(),
+                &java,
+            )
+            .await?;
+            args.push(format!("@{args_file}"));
+        } else {
+            args.push("-jar".into());
+            args.push("server.jar".into());
         }
+        args.push("nogui".into());
+        java(&args)?
     };
 
     step("Launching server process...");

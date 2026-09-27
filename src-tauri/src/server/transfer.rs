@@ -272,6 +272,9 @@ pub fn change_version<R: Runtime>(
     if jar.exists() {
         fs::remove_file(&jar).map_err(|e| format!("Failed to remove old server.jar: {e}"))?;
     }
+    if server.core == ServerCoreType::NeoForge {
+        super::neoforge::uninstall(&dir)?;
+    }
     let mut updated = server.clone();
     updated.game_version = game_version.to_string();
     updated.build_number = build_number;

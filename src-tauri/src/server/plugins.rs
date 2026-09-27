@@ -34,6 +34,8 @@ pub struct PluginProject {
     pub downloads: u32,
     pub categories: Vec<String>,
     pub page_url: String,
+    /// A mod players must install too to join (it adds content their game must know)
+    pub players_need_it: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -129,6 +131,12 @@ pub fn platform(core: &ServerCoreType) -> Option<Platform> {
             folder: "mods",
             modrinth_type: "mod",
             modrinth_loaders: &["fabric"],
+            hangar: false,
+        }),
+        ServerCoreType::NeoForge => Some(Platform {
+            folder: "mods",
+            modrinth_type: "mod",
+            modrinth_loaders: &["neoforge"],
             hangar: false,
         }),
         ServerCoreType::Vanilla | ServerCoreType::Pumpkin => None,
@@ -232,6 +240,7 @@ pub async fn search(
                             downloads: n(h, "downloads"),
                             categories: strings(h, "display_categories"),
                             page_url: format!("https://modrinth.com/{}/{}", platform.modrinth_type, s(h, "slug")),
+                            players_need_it: platform.modrinth_type == "mod" && s(h, "client_side") == "required",
                         })
                         .collect()
                 })
@@ -286,6 +295,7 @@ fn hangar_project(p: &Value) -> PluginProject {
         downloads: p.get("stats").map(|st| n(st, "downloads")).unwrap_or(0),
         categories: vec![s(p, "category").replace('_', " ")],
         page_url: format!("https://hangar.papermc.io/{owner}/{slug}"),
+        players_need_it: false,
     }
 }
 

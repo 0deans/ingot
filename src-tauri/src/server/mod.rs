@@ -7,6 +7,7 @@ pub mod proxy;
 pub mod pumpkin;
 pub mod live;
 pub mod map;
+pub mod neoforge;
 pub mod plugins;
 pub mod sandbox;
 pub mod slp;

@@ -24,6 +24,7 @@ const CORE_FILTERS: { id: v.InferOutput<typeof serverCoreSchema>; label: string 
 	{ id: "paper", label: "Paper" },
 	{ id: "purpur", label: "Purpur" },
 	{ id: "fabric", label: "Fabric" },
+	{ id: "neoforge", label: "NeoForge" },
 	{ id: "folia", label: "Folia" },
 	{ id: "vanilla", label: "Vanilla" },
 ]

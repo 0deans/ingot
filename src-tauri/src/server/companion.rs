@@ -48,7 +48,7 @@ fn jar_for(core: &ServerCoreType, game_version: &str) -> Option<&'static [u8]> {
             (v.0 > 1 || (v.0 == 1 && (v.1 > 20 || (v.1 == 20 && v.2 >= 1)))).then_some(PAPER_JAR)
         }
         ServerCoreType::Fabric => (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR),
-        ServerCoreType::Vanilla | ServerCoreType::Pumpkin => None,
+        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::NeoForge => None,
     }
 }
 

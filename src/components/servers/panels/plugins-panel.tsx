@@ -9,6 +9,7 @@ import {
 	RotateCw,
 	Search,
 	Trash2,
+	Users,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import type {
@@ -46,7 +47,7 @@ import { PluginDetailsSheet, PluginIcon } from "./plugin-details-sheet"
 
 /** What the server core can load; null = nothing */
 export function addonKind(core: ServerConfig["core"]): { noun: string; nouns: string } | null {
-	if (core === "fabric") return { noun: "mod", nouns: "Mods" }
+	if (core === "fabric" || core === "neoforge") return { noun: "mod", nouns: "Mods" }
 	if (core === "paper" || core === "purpur" || core === "folia")
 		return { noun: "plugin", nouns: "Plugins" }
 	return null
@@ -236,7 +237,7 @@ function InstalledList({
 				<EmptyState
 					icon={Package}
 					title={`No ${kind.nouns.toLowerCase()} yet`}
-					description={`Find ${kind.nouns.toLowerCase()} on Modrinth${server.core !== "fabric" && server.core !== "folia" ? " and Hangar" : ""} and install them in one tap.`}
+					description={`Find ${kind.nouns.toLowerCase()} on Modrinth${server.core === "paper" || server.core === "purpur" ? " and Hangar" : ""} and install them in one tap.`}
 					action={
 						<Button
 							onClick={onBrowse}
@@ -623,6 +624,15 @@ function ResultCard({
 					<p className="mt-1 line-clamp-2 text-xs text-zinc-400 leading-relaxed">
 						{project.description}
 					</p>
+					{project.playersNeedIt && (
+						<p
+							className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 font-medium text-[10px] text-amber-300"
+							title="Players must install this mod too, or they can't join"
+						>
+							<Users className="size-3" />
+							Players need it too
+						</p>
+					)}
 				</div>
 			</button>
 			<Button

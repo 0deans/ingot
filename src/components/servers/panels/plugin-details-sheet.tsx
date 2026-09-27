@@ -95,6 +95,12 @@ export function PluginDetailsSheet({
 									<p className="mt-1.5 text-sm text-zinc-300 leading-relaxed">
 										{shown.description}
 									</p>
+									{shown.playersNeedIt && (
+										<p className="mt-2 rounded-xl bg-amber-500/10 px-3 py-2 text-amber-200 text-xs leading-relaxed">
+											Players need this mod too: anyone joining must install it in their game, or
+											they can&apos;t join.
+										</p>
+									)}
 								</div>
 							</div>
 							<div className="flex gap-2">
