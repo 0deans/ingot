@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { FolderDown, Gamepad2, Layers, Plus, Square } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
@@ -32,6 +33,7 @@ export const instancesSearchSchema = v.object({
 export type InstancesSearchParams = v.InferOutput<typeof instancesSearchSchema>
 
 const InstancesPage = () => {
+	const { t } = useTranslation()
 	const search = Route.useSearch()
 	const navigate = Route.useNavigate()
 
@@ -180,7 +182,7 @@ const InstancesPage = () => {
 					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 shadow-emerald-950/10 shadow-lg backdrop-blur-md">
 						<div className="flex items-center gap-2 font-medium text-emerald-400 text-xs">
 							<span className="size-2 animate-ping rounded-full bg-emerald-400" />
-							Active Instances ({runningList.length}):
+							{t("instances.activeInstances", { count: runningList.length })}
 						</div>
 
 						<div className="flex flex-wrap items-center gap-2">
@@ -198,7 +200,7 @@ const InstancesPage = () => {
 											type="button"
 											onClick={() => handleStop(proc.instanceId)}
 											className="rounded p-0.5 text-emerald-400 transition-colors hover:bg-destructive/20 hover:text-destructive"
-											title="Stop process"
+											title={t("instances.stopProcess")}
 										>
 											<Square className="size-3 fill-current" />
 										</button>
@@ -213,7 +215,7 @@ const InstancesPage = () => {
 				<div className="flex items-center justify-between border-border/30 border-b pb-2">
 					<div className="flex items-center gap-2 font-semibold text-foreground text-sm">
 						<Layers className="size-4 text-primary" />
-						<span>All Instances</span>
+						<span>{t("instances.allInstances")}</span>
 						<span className="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-[11px] text-zinc-400">
 							{instances.length}
 						</span>
@@ -227,11 +229,10 @@ const InstancesPage = () => {
 							<Gamepad2 className="size-6 text-primary" />
 						</div>
 						<h3 className="mt-4 font-semibold text-base text-foreground">
-							No Instances Created Yet
+							{t("instances.emptyTitle")}
 						</h3>
 						<p className="mt-1.5 max-w-sm text-muted-foreground text-xs">
-							Create your first Minecraft instance to start playing. You can select Vanilla or mod
-							loaders like Fabric, Quilt, or Forge.
+							{t("instances.emptySubtitle")}
 						</p>
 						<div className="mt-5 flex items-center gap-3">
 							<Button
@@ -245,7 +246,7 @@ const InstancesPage = () => {
 								size="sm"
 							>
 								<Plus className="size-4" />
-								Create Your First Instance
+								{t("instances.createFirst")}
 							</Button>
 							<Button
 								variant="outline"
@@ -259,7 +260,7 @@ const InstancesPage = () => {
 								size="sm"
 							>
 								<FolderDown className="size-4" />
-								Import from Launcher
+								{t("instances.importFromLauncher")}
 							</Button>
 						</div>
 					</div>
@@ -305,20 +306,20 @@ const InstancesPage = () => {
 							</div>
 							<div className="flex flex-col items-center gap-0.5 text-center">
 								<span className="font-semibold text-xs text-zinc-300 group-hover:text-white">
-									Create New Instance
+									{t("instances.createCardTitle")}
 								</span>
-								<span className="text-[11px] text-zinc-500">Choose any version or mod loader</span>
+								<span className="text-[11px] text-zinc-500">
+									{t("instances.createCardSubtitle")}
+								</span>
 							</div>
 						</button>
 					</div>
 				) : (
 					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-zinc-900/10 p-12 text-center">
 						<p className="font-medium text-foreground text-sm">
-							No instances found matching "{searchQuery}"
+							{t("instances.noMatchTitle", { query: searchQuery })}
 						</p>
-						<p className="mt-1 text-muted-foreground text-xs">
-							Try searching for another name, version, or mod loader.
-						</p>
+						<p className="mt-1 text-muted-foreground text-xs">{t("instances.noMatchSubtitle")}</p>
 						<Button
 							variant="outline"
 							size="sm"
@@ -331,7 +332,7 @@ const InstancesPage = () => {
 							}}
 							className="mt-4 text-xs"
 						>
-							Clear Search
+							{t("common.clearSearch")}
 						</Button>
 					</div>
 				)}

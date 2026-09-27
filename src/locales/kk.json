@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Kazakh",
+		"nativeName": "Қазақша"
+	},
+	"common": {
+		"cancel": "Бас тарту",
+		"continue": "Жалғастыру",
+		"save": "Өзгерістерді сақтау",
+		"delete": "Жою",
+		"install": "Орнату",
+		"installed": "Орнатылған",
+		"search": "Іздеу...",
+		"active": "Белсенді",
+		"refresh": "Жаңарту",
+		"clearSearch": "Іздеуді тазарту",
+		"clearFilters": "Сүзгілерді тазарту",
+		"resetFilters": "Сүзгілерді қалпына келтіру",
+		"tryAgain": "Қайталап көру",
+		"openFolder": "Қалтаны ашу",
+		"view": "Көру",
+		"close": "Жабу",
+		"minimize": "Жиыру",
+		"maximize": "Жаю",
+		"restore": "Қалпына келтіру",
+		"justNow": "Жаңа ғана",
+		"never": "Ешқашан",
+		"minutesAgo": "{{count}} мин бұрын",
+		"hoursAgo": "{{count}} сағ бұрын",
+		"daysAgo": "{{count}} күн бұрын"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Тілді таңдаңыз",
+		"selectLanguageSubtitle": "Ingot интерфейсінің тілін таңдаңыз. Оны кез келген уақытта Баптаулар бөлімінде өзгерте аласыз.",
+		"detectedBadge": "Жүйе тілі",
+		"continueWith": "Жалғастыру ({{language}})"
+	},
+	"nav": {
+		"instances": "Жинақтар",
+		"discover": "Каталог",
+		"skins": "Скиндер каталогы",
+		"screenshots": "Скриншоттар",
+		"servers": "Арнайы серверлер",
+		"settings": "Баптаулар",
+		"language": "Тіл"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} орнатуға дайын!",
+		"downloading": "v{{version}} жаңартуы жүктелуде... ({{progress}}%)",
+		"available": "Жаңа нұсқа қолжетімді: Ingot v{{version}}",
+		"currentVersion": "Ағымдағы: v{{version}}",
+		"restartNow": "Қазір қайта қосу",
+		"updateNow": "Қазір жаңарту",
+		"dismiss": "Жасыру"
+	},
+	"accounts": {
+		"player": "Ойыншы",
+		"noAccount": "Аккаунт жоқ",
+		"addAccount": "Аккаунт қосу",
+		"addAccountEllipsis": "Аккаунт қосу...",
+		"manageAccounts": "Аккаунттарды басқару",
+		"userProfile": "Пайдаланушы профилі",
+		"securedViaEly": "Ely.by арқылы қорғалған",
+		"securedInVault": "Қоймада қорғалған",
+		"localProfile": "Жергілікті профиль",
+		"minecraftAccounts": "Minecraft аккаунттары",
+		"linkedCount": "{{count}} байланыстырылған",
+		"noAccountsYet": "Әзірге аккаунттар қосылмаған.",
+		"previewSkin": "3D скинді көру",
+		"removeAccount": "Аккаунтты өшіру",
+		"setAsActive": "Белсенді ету"
+	},
+	"instances": {
+		"searchPlaceholder": "Жинақтарды іздеу...",
+		"import": "Импорттау",
+		"newInstance": "Жаңа жинақ",
+		"activeInstances": "Белсенді жинақтар ({{count}}):",
+		"stopProcess": "Процесті тоқтату",
+		"allInstances": "Барлық жинақтар",
+		"emptyTitle": "Әзірге жинақтар жасалмаған",
+		"emptySubtitle": "Ойнауды бастау үшін алғашқы Minecraft жинағын жасаңыз. Vanilla немесе Fabric, Quilt, Forge сияқты мод жүктегіштерін таңдай аласыз.",
+		"createFirst": "Алғашқы жинақты жасау",
+		"importFromLauncher": "Басқа лаунчерден импорттау",
+		"createCardTitle": "Жаңа жинақ жасау",
+		"createCardSubtitle": "Кез келген нұсқаны немесе мод жүктегішін таңдаңыз",
+		"noMatchTitle": "«{{query}}» сұранысы бойынша жинақтар табылмады",
+		"noMatchSubtitle": "Басқа атауды, нұсқаны немесе мод жүктегішін іздеп көріңіз.",
+		"card": {
+			"neverPlayed": "Ешқашан қосылмаған",
+			"preparing": "Дайындалуда",
+			"preparingBtn": "Дайындалуда...",
+			"play": "Ойнау",
+			"stop": "Тоқтату",
+			"customRam": "(Арнайы)",
+			"customRamTooltip": "Бұл жинаққа арналған жеке жады шегі",
+			"globalRamTooltip": "Жалпы баптаулардан алынған",
+			"playedDuration": "{{duration}} ойналды",
+			"quickPlay": "Жылдам ойнау",
+			"quickPlayOptions": "Жылдам ойнау параметрлері",
+			"directConnect": "Тікелей қосылу...",
+			"directConnectDesc": "Серверге бірден қосылу",
+			"quickLoadWorld": "Әлемді жылдам жүктеу",
+			"quickLoadWorldDesc": "Сақталған әлемге бірден кіру",
+			"singleplayerSaves": "Жалғыз ойыншы әлемдері",
+			"scanningWorlds": "Әлемдер ізделуде...",
+			"noSavedWorlds": "Бұл жинақта сақталған әлемдер табылмады.",
+			"requires120": "Minecraft 1.20+ қажет",
+			"openFolderTooltip": "Жинақ қалтасын ашу",
+			"settingsTooltip": "Жинақ баптаулары (ЖЖҚ, JVM аргументтері)",
+			"deleteTooltip": "Жинақты жою"
+		}
+	},
+	"modpacks": {
+		"title": "Контент каталогы",
+		"subtitle": "Modrinth және CurseForge-тан модтарды, модпактарды, ресурспактарды және шейдерлерді іздеп, жинақтарыңызға тікелей орнатыңыз.",
+		"searchPlaceholder": "Модтарды, модпактарды, ресурспактарды, шейдерлерді іздеу...",
+		"categories": {
+			"all": "Барлық түрлері",
+			"modpack": "Модпактар",
+			"mod": "Модтар",
+			"resourcepack": "Ресурспактар",
+			"shader": "Шейдерлер"
+		},
+		"sources": {
+			"all": "Барлық дереккөздер",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Жүктегіш:",
+			"allLoaders": "Барлық жүктегіштер",
+			"version": "Нұсқа:",
+			"allVersions": "Барлық нұсқалар",
+			"sort": "Сұрыптау:",
+			"sortBy": "Сұрыптау реті"
+		},
+		"sorts": {
+			"downloads": "Көп жүктелгендер",
+			"relevance": "Сәйкестігі бойынша",
+			"updated": "Жақында жаңартылған",
+			"newest": "Ең жаңалары"
+		},
+		"searching": "Контент ізделуде...",
+		"foundResults": "Табылған нәтижелер: {{count}}",
+		"noResults": "Нәтиже жоқ",
+		"pageOf": "{{page}} / {{total}} бет",
+		"noMatchTitle": "Сүзгілерге сәйкес контент табылмады",
+		"noMatchSubtitle": "Іздеу сұранысын, мод жүктегішін немесе дереккөзді өзгертіп көріңіз.",
+		"resetAllFilters": "Барлық сүзгілерді тазарту",
+		"byAuthor": "авторы: {{author}}",
+		"noDescription": "Сипаттамасы жоқ.",
+		"details": "Толығырақ"
+	},
+	"skins": {
+		"title": "Скиндер каталогы",
+		"subtitle": "Ely.by скиндерін қараңыз, жеке топтамаңызды басқарыңыз немесе өз скиніңізді жүктеңіз.",
+		"tabs": {
+			"catalog": "Каталог",
+			"mySkins": "Менің скиндерім",
+			"upload": "Скин жүктеу"
+		},
+		"sorts": {
+			"wearers": "Танымал",
+			"latest": "Жаңа",
+			"views": "Қаралым саны",
+			"cubes": "Ұнатулар"
+		},
+		"models": {
+			"any": "Барлық модельдер",
+			"steve": "Классикалық (Steve)",
+			"slim": "Жіңішке (Alex)"
+		},
+		"searchPlaceholder": "Скиндерді аты немесе тег бойынша іздеу..."
+	},
+	"screenshots": {
+		"title": "Скриншоттар",
+		"subtitle": "Барлық жинақтарыңызда түсірілген ойын ішіндегі скриншоттар галереясы",
+		"refreshTooltip": "Скриншоттарды жаңарту",
+		"searchPlaceholder": "Скриншоттарды іздеу...",
+		"allInstances": "Барлық жинақтар",
+		"allInstancesCount": "Барлық жинақтар ({{count}})",
+		"selectedInstance": "Таңдалған жинақ",
+		"sorts": {
+			"date-desc": "Алдымен жаңалары",
+			"date-asc": "Алдымен ескілері",
+			"name-asc": "Атауы (А-Я)",
+			"name-desc": "Атауы (Я-А)",
+			"size-desc": "Өлшемі үлкендері",
+			"size-asc": "Өлшемі кішілері"
+		},
+		"emptyTitle": "Скриншоттар табылмады",
+		"emptySubtitlePrefix": "Minecraft ойнау кезінде скриншот түсіру үшін",
+		"emptySubtitleSuffix": "пернесін басыңыз. Олар осы галереяда автоматты түрде пайда болады.",
+		"checkAgain": "Қайта тексеру",
+		"noMatchTitle": "Сәйкес скриншоттар жоқ",
+		"noMatchSubtitle": "Іздеу сұранысына немесе сүзгіге сәйкес скриншоттар табылмады.",
+		"deleteDialog": {
+			"title": "Скриншотты жою",
+			"description": "Бұл скриншотты біржола жойғыңыз келетініне сенімдісіз бе? Бұл әрекетті қайтару мүмкін емес.",
+			"deleting": "Жойылуда...",
+			"deletePermanently": "Біржола жою"
+		}
+	},
+	"servers": {
+		"title": "Арнайы серверлер",
+		"subtitle": "Paper, Purpur, Fabric, Folia және Vanilla ядроларында жергілікті Minecraft серверлерін жасаңыз, баптаңыз және басқарыңыз.",
+		"createServer": "Сервер жасау",
+		"activeServers": "Белсенді серверлер ({{count}}):",
+		"openConsole": "Консольді ашу",
+		"stopServer": "Серверді тоқтату",
+		"searchPlaceholder": "Серверлерді атауы, нұсқасы, порты бойынша іздеу...",
+		"allCores": "Барлық ядролар",
+		"emptyTitle": "Әзірге серверлер жасалмаған",
+		"emptySubtitle": "Алғашқы жергілікті Minecraft серверіңізді жасаңыз. Ingot сервердің JAR файлын автоматты түрде жүктеп, EULA қабылдайды, портты баптайды және Java ортасын дайындайды.",
+		"createFirst": "Алғашқы серверді жасау",
+		"createCardTitle": "Жаңа сервер жасау",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia немесе Vanilla",
+		"noMatchTitle": "Сүзгілерге сәйкес серверлер жоқ",
+		"noMatchSubtitle": "Іздеу сұранысын өзгертіңіз немесе «Барлық ядролар» таңдаңыз."
+	},
+	"settings": {
+		"title": "Лаунчер баптаулары",
+		"subtitle": "Аккаунттарды, тілді, Java орталарын, ЖЖҚ бөлуді және лаунчер тәртібін баптау.",
+		"language": {
+			"title": "Интерфейс тілі",
+			"description": "Лаунчер интерфейсінің тілін таңдаңыз. src/locales/ қалтасындағы жаңа тіл файлдары автоматты түрде жүктеледі."
+		},
+		"accounts": {
+			"title": "Аккаунттар мен авторизация",
+			"description": "Ely.by аккаунттарын немесе жергілікті профильдерді қосыңыз. Токендер операциялық жүйенің құпия қоймасында сақталады.",
+			"keyringActive": "Жүйелік кілттер қоймасы белсенді: токендер Windows тіркелгі деректері диспетчері (DPAPI) / Keychain арқылы шифрланады.",
+			"empty": "Әзірге аккаунттар қосылмаған. Ely.by арқылы кіру үшін «Аккаунт қосу» түймесін басыңыз."
+		},
+		"memory": {
+			"title": "Жадыны бөлу (ЖЖҚ / RAM)",
+			"description": "Java мен Minecraft жинақтары үшін бастапқы (Min) және максималды (Max) жедел жады шегін орнатыңыз.",
+			"totalRam": "Барлық ЖЖҚ",
+			"availableNow": "Қазіргі бос жады көлемі:",
+			"freePercent": "{{percent}}% бос",
+			"distribution": "Компьютердің ЖЖҚ бөлінісі",
+			"allocated": "Бөлінген:",
+			"sliderTitle": "Жады ауқымының жүгірткісі",
+			"sliderHint": "Жүгірткі 1: Min (-Xms) • Жүгірткі 2: Max (-Xmx)",
+			"minMemoryLabel": "Бастапқы жады (Min / -Xms)",
+			"maxMemoryLabel": "Максималды жады (Max / -Xmx)",
+			"highMemoryWarningTitle": "Жоғары жады жүктемесі туралы ескерту",
+			"highMemoryWarningDesc": "{{maxGb}} ГБ бөлу (барлық {{totalGb}} ГБ ЖЖҚ-ның 80%-ынан астамы) фондық бағдарламалардың, Discord немесе Windows жүйесінің қатып қалуына әкелуі мүмкін.",
+			"memoryNoticeTitle": "Жады туралы ескертпе",
+			"memoryNoticeDesc": "Максималды ЖЖҚ қазіргі бос жадыдан ({{availableGb}} ГБ) асып түседі. Ауыр жинақтарды іске қоспас бұрын ауыр фондық қолданбаларды жабыңыз.",
+			"recommendedPresets": "Ұсынылатын пресеттер:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Модтармен",
+				"heavy": "Ауыр модпак",
+				"safeMax": "Қауіпсіз макс."
+			}
+		},
+		"behavior": {
+			"title": "Лаунчер тәртібі",
+			"description": "Жинақ іске қосылған кезде лаунчердің не істейтінін таңдаңыз.",
+			"keepOpen": {
+				"label": "Ашық қалдыру",
+				"description": "Ойын кезінде лаунчерді фонда ашық қалдыру"
+			},
+			"hideToTray": {
+				"label": "Трейге жасыру",
+				"description": "Жүйелік трейге жиырып, ойыннан шыққанда қалпына келтіру"
+			},
+			"close": {
+				"label": "Лаунчерді жабу",
+				"description": "Ойын қосылғаннан кейін Ingot-ты толығымен жабу"
+			}
+		},
+		"window": {
+			"title": "Терезе және экран",
+			"description": "Жинақтар үшін терезенің стандартты өлшемдерін және толық экран режимін баптаңыз.",
+			"fullscreenTitle": "Толық экранда қосу",
+			"fullscreenDesc": "Minecraft-ты бірден толық экран режимінде іске қосу",
+			"resolutionTitle": "Терезенің стандартты ажыратымдылығы",
+			"resolutionDesc": "Ойын терезесінің ені мен биіктігін орнату",
+			"presets": "Пресеттер:",
+			"defaultPreset": "Әдепкі"
+		},
+		"sync": {
+			"title": "Ойын деректерін синхрондау",
+			"description": "Minecraft баптауларын, серверлер тізімін және ресурстарды барлық жинақтар арасында бірыңғай ұстаңыз.",
+			"items": {
+				"syncOptions": {
+					"title": "Ойын баптауларын синхрондау",
+					"description": "Графика баптаулары, дыбыс деңгейі, FOV, пернелер және арнайы мүмкіндіктер"
+				},
+				"syncServers": {
+					"title": "Желілік серверлерді синхрондау",
+					"description": "Сақталған серверлердің ортақ тізімін барлық жинақтарда сақтау"
+				},
+				"syncResourcePacks": {
+					"title": "Ресурспактарды синхрондау",
+					"description": "Барлық жүктелген текстуралар мен ресурспактарды жинақтар арасында бөлісу"
+				},
+				"syncCommandHistory": {
+					"title": "Командалар тарихын синхрондау",
+					"description": "Чат пен консоль командаларының тарихын сақтау"
+				},
+				"syncCreativeHotbars": {
+					"title": "Шығармашылық панельдерді синхрондау",
+					"description": "Шығармашылық режимде сақталған жылдам панельдерді әлемдер арасында бөлісу"
+				}
+			}
+		},
+		"updates": {
+			"title": "Жаңартулар мен нұсқа",
+			"description": "Ingot жаңартуларын басқарып, әрдайым соңғы функциялар мен қауіпсіздік түзетулерін пайдаланыңыз.",
+			"releaseChannel": "Жаңарту арнасы",
+			"lastChecked": "Соңғы тексеру: {{time}}",
+			"checking": "Тексерілуде...",
+			"checkForUpdates": "Жаңартуларды тексеру",
+			"versionAvailable": "v{{version}} нұсқасы қолжетімді!",
+			"changelog": "Өзгерістер тізімі",
+			"downloadAndInstall": "Жаңартуды жүктеу және орнату",
+			"downloading": "Ingot v{{version}} жүктелуде...",
+			"installedTitle": "Жаңарту сәтті орнатылды!",
+			"installedDesc": "Жаңа нұсқаны іске қосу үшін Ingot-ты қайта қосыңыз.",
+			"restartIngot": "Ingot-ты қайта қосу",
+			"upToDate": "Ingot ең соңғы нұсқаға дейін жаңартылған.",
+			"errorTitle": "Жаңартуларды тексеру мүмкін болмады"
+		},
+		"licenses": {
+			"title": "Үшінші тарап лицензиялары",
+			"description": "Ingot құрамына кіретін немесе жүктейтін ашық бастапқы кодты бағдарламалар.",
+			"dialogSubtitle": "Ingot басқа жобалардың бағдарламалық жасақтамасын пайдаланады. Олардың әрқайсысы өз лицензиясымен таратылады; бастапқы код пен лицензия мәтінін көру үшін атауын басыңыз.",
+			"trademark": "Minecraft — Mojang AB компаниясының сауда белгісі. Ingot Mojang немесе Microsoft компанияларымен байланысты емес."
+		}
+	}
+}

@@ -1,5 +1,6 @@
 import { FolderDown, Plus, Search } from "lucide-react"
 import { memo } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -16,6 +17,8 @@ const InstanceSearchHeader = ({
 	onOpenNewInstance,
 	onOpenImport,
 }: InstanceSearchHeaderProps) => {
+	const { t } = useTranslation()
+
 	return (
 		<div className="flex items-center justify-between gap-4">
 			<div className="relative max-w-sm flex-1">
@@ -23,7 +26,7 @@ const InstanceSearchHeader = ({
 				<Input
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
-					placeholder="Search instances..."
+					placeholder={t("instances.searchPlaceholder")}
 					className="border-border/50 bg-zinc-900/50 pl-9 focus-visible:ring-1"
 				/>
 			</div>
@@ -32,12 +35,12 @@ const InstanceSearchHeader = ({
 				{onOpenImport && (
 					<Button variant="outline" onClick={onOpenImport} className="gap-2">
 						<FolderDown className="size-4" />
-						Import
+						{t("instances.import")}
 					</Button>
 				)}
 				<Button onClick={onOpenNewInstance} className="gap-2">
 					<Plus className="size-4" />
-					New Instance
+					{t("instances.newInstance")}
 				</Button>
 			</div>
 		</div>

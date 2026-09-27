@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Dutch",
+		"nativeName": "Nederlands"
+	},
+	"common": {
+		"cancel": "Annuleren",
+		"continue": "Doorgaan",
+		"save": "Wijzigingen opslaan",
+		"delete": "Verwijderen",
+		"install": "Installeren",
+		"installed": "Geïnstalleerd",
+		"search": "Zoeken...",
+		"active": "Actief",
+		"refresh": "Vernieuwen",
+		"clearSearch": "Zoekopdracht wissen",
+		"clearFilters": "Filters wissen",
+		"resetFilters": "Filters herstellen",
+		"tryAgain": "Opnieuw proberen",
+		"openFolder": "Map openen",
+		"view": "Bekijken",
+		"close": "Sluiten",
+		"minimize": "Minimaliseren",
+		"maximize": "Maximaliseren",
+		"restore": "Herstellen",
+		"justNow": "Zojuist",
+		"never": "Nooit",
+		"minutesAgo": "{{count}}m geleden",
+		"hoursAgo": "{{count}}u geleden",
+		"daysAgo": "{{count}}d geleden"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Kies je taal",
+		"selectLanguageSubtitle": "Selecteer je gewenste weergavetaal voor Ingot. Je kunt dit op elk moment wijzigen in de Instellingen.",
+		"detectedBadge": "Systeemstandaard",
+		"continueWith": "Doorgaan in het {{language}}"
+	},
+	"nav": {
+		"instances": "Instanties",
+		"discover": "Ontdekken",
+		"skins": "Skincatalogus",
+		"screenshots": "Screenshots",
+		"servers": "Dedicated servers",
+		"settings": "Instellingen",
+		"language": "Taal"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} is klaar om te installeren!",
+		"downloading": "Update v{{version}} downloaden... ({{progress}}%)",
+		"available": "Nieuwe versie beschikbaar: Ingot v{{version}}",
+		"currentVersion": "Huidig: v{{version}}",
+		"restartNow": "Nu herstarten",
+		"updateNow": "Nu updaten",
+		"dismiss": "Sluiten"
+	},
+	"accounts": {
+		"player": "Speler",
+		"noAccount": "Geen account",
+		"addAccount": "Account toevoegen",
+		"addAccountEllipsis": "Account toevoegen...",
+		"manageAccounts": "Accounts beheren",
+		"userProfile": "Gebruikersprofiel",
+		"securedViaEly": "Beveiligd via Ely.by",
+		"securedInVault": "Beveiligd in kluis",
+		"localProfile": "Lokaal profiel",
+		"minecraftAccounts": "Minecraft-accounts",
+		"linkedCount": "{{count}} gekoppeld",
+		"noAccountsYet": "Nog geen accounts ingesteld.",
+		"previewSkin": "3D-skin bekijken",
+		"removeAccount": "Account verwijderen",
+		"setAsActive": "Instellen als actief"
+	},
+	"instances": {
+		"searchPlaceholder": "Instanties zoeken...",
+		"import": "Importeren",
+		"newInstance": "Nieuwe instantie",
+		"activeInstances": "Actieve instanties ({{count}}):",
+		"stopProcess": "Proces stoppen",
+		"allInstances": "Alle instanties",
+		"emptyTitle": "Nog geen instanties aangemaakt",
+		"emptySubtitle": "Maak je eerste Minecraft-instantie aan om te beginnen met spelen. Je kunt kiezen voor Vanilla of modloaders zoals Fabric, Quilt of Forge.",
+		"createFirst": "Maak je eerste instantie",
+		"importFromLauncher": "Importeren uit launcher",
+		"createCardTitle": "Nieuwe instantie maken",
+		"createCardSubtitle": "Kies een versie of modloader",
+		"noMatchTitle": "Geen instanties gevonden voor \"{{query}}\"",
+		"noMatchSubtitle": "Probeer te zoeken op een andere naam, versie of modloader.",
+		"card": {
+			"neverPlayed": "Nooit gespeeld",
+			"preparing": "Voorbereiden",
+			"preparingBtn": "Voorbereiden...",
+			"play": "Spelen",
+			"stop": "Stoppen",
+			"customRam": "(Aangepast)",
+			"customRamTooltip": "Aangepaste geheugenlimiet per instantie",
+			"globalRamTooltip": "Overgenomen van globale instellingen",
+			"playedDuration": "{{duration}} gespeeld",
+			"quickPlay": "Snel spelen",
+			"quickPlayOptions": "Opties voor snel spelen",
+			"directConnect": "Direct verbinden...",
+			"directConnectDesc": "Direct deelnemen aan een server",
+			"quickLoadWorld": "Wereld snel laden",
+			"quickLoadWorldDesc": "Spring direct in een opgeslagen wereld",
+			"singleplayerSaves": "Singleplayer-werelden",
+			"scanningWorlds": "Werelden scannen...",
+			"noSavedWorlds": "Geen opgeslagen werelden gevonden in deze instantie.",
+			"requires120": "Vereist Minecraft 1.20+",
+			"openFolderTooltip": "Instantiemap openen in Verkenner",
+			"settingsTooltip": "Instantie-instellingen (RAM, JVM-argumenten)",
+			"deleteTooltip": "Instantie verwijderen"
+		}
+	},
+	"modpacks": {
+		"title": "Content ontdekken",
+		"subtitle": "Zoek en installeer mods, modpacks, resourcepacks en shaders rechtstreeks in je instanties vanaf Modrinth en CurseForge.",
+		"searchPlaceholder": "Zoek mods, modpacks, resourcepacks, shaders...",
+		"categories": {
+			"all": "Alle typen",
+			"modpack": "Modpacks",
+			"mod": "Mods",
+			"resourcepack": "Resourcepacks",
+			"shader": "Shaders"
+		},
+		"sources": {
+			"all": "Alle bronnen",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Loader:",
+			"allLoaders": "Alle loaders",
+			"version": "Versie:",
+			"allVersions": "Alle versies",
+			"sort": "Sorteren:",
+			"sortBy": "Sorteren op"
+		},
+		"sorts": {
+			"downloads": "Meeste downloads",
+			"relevance": "Relevantie",
+			"updated": "Recent bijgewerkt",
+			"newest": "Nieuwste"
+		},
+		"searching": "Content zoeken...",
+		"foundResults": "{{count}} resultaten gevonden",
+		"noResults": "Geen resultaten",
+		"pageOf": "Pagina {{page}} van {{total}}",
+		"noMatchTitle": "Geen content komt overeen met je filters",
+		"noMatchSubtitle": "Probeer je zoekopdracht aan te passen, van modloader te wisselen of een andere bron te kiezen.",
+		"resetAllFilters": "Alle filters herstellen",
+		"byAuthor": "door {{author}}",
+		"noDescription": "Geen beschrijving beschikbaar.",
+		"details": "Details"
+	},
+	"skins": {
+		"title": "Skincatalogus",
+		"subtitle": "Blader door Ely.by-skins, beheer je eigen collectie of upload een aangepaste skin.",
+		"tabs": {
+			"catalog": "Catalogus",
+			"mySkins": "Mijn skins",
+			"upload": "Skin uploaden"
+		},
+		"sorts": {
+			"wearers": "Populair",
+			"latest": "Nieuwste",
+			"views": "Weergaven",
+			"cubes": "Likes"
+		},
+		"models": {
+			"any": "Alle modellen",
+			"steve": "Klassiek (Steve)",
+			"slim": "Slank (Alex)"
+		},
+		"searchPlaceholder": "Zoek skins op gebruikersnaam of tag..."
+	},
+	"screenshots": {
+		"title": "Screenshots",
+		"subtitle": "Galerij van in-game gemaakte screenshots uit al je instanties",
+		"refreshTooltip": "Screenshots vernieuwen",
+		"searchPlaceholder": "Screenshots zoeken...",
+		"allInstances": "Alle instanties",
+		"allInstancesCount": "Alle instanties ({{count}})",
+		"selectedInstance": "Geselecteerde instantie",
+		"sorts": {
+			"date-desc": "Nieuwste eerst",
+			"date-asc": "Oudste eerst",
+			"name-asc": "Naam (A-Z)",
+			"name-desc": "Naam (Z-A)",
+			"size-desc": "Grootste eerst",
+			"size-asc": "Kleinste eerst"
+		},
+		"emptyTitle": "Geen screenshots gevonden",
+		"emptySubtitlePrefix": "Maak screenshots tijdens het spelen van Minecraft door op",
+		"emptySubtitleSuffix": "te drukken. Ze verschijnen automatisch in deze galerij.",
+		"checkAgain": "Opnieuw controleren",
+		"noMatchTitle": "Geen overeenkomende screenshots",
+		"noMatchSubtitle": "Geen screenshots komen overeen met je zoekopdracht of filter. Wis je filters om meer te zien.",
+		"deleteDialog": {
+			"title": "Screenshot verwijderen",
+			"description": "Weet je zeker dat je deze screenshot definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+			"deleting": "Verwijderen...",
+			"deletePermanently": "Definitief verwijderen"
+		}
+	},
+	"servers": {
+		"title": "Dedicated servers",
+		"subtitle": "Maak, configureer en beheer lokale Minecraft-servers met Paper-, Purpur-, Fabric-, Folia- en Vanilla-cores.",
+		"createServer": "Server maken",
+		"activeServers": "Actieve servers ({{count}}):",
+		"openConsole": "Console openen",
+		"stopServer": "Server stoppen",
+		"searchPlaceholder": "Zoek servers op naam, versie, poort...",
+		"allCores": "Alle cores",
+		"emptyTitle": "Nog geen servers aangemaakt",
+		"emptySubtitle": "Maak je eerste lokale Minecraft-server. Ingot downloadt automatisch de server-JAR, accepteert de EULA, configureert de poort en stelt Java in.",
+		"createFirst": "Maak je eerste server",
+		"createCardTitle": "Nieuwe server maken",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia of Vanilla",
+		"noMatchTitle": "Geen servers komen overeen met je filters",
+		"noMatchSubtitle": "Probeer je zoekopdracht te wijzigen of selecteer \"Alle cores\"."
+	},
+	"settings": {
+		"title": "Launcher-instellingen",
+		"subtitle": "Configureer accounts, taal, Java-runtimes, RAM-toewijzing en launchergedrag.",
+		"language": {
+			"title": "Taal",
+			"description": "Kies de weergavetaal voor de launcher-interface. Nieuwe taalbestanden in src/locales/ worden automatisch herladen."
+		},
+		"accounts": {
+			"title": "Accounts & authenticatie",
+			"description": "Koppel je Ely.by- of offline-accounts. Gevoelige tokens worden veilig opgeslagen in de systeemkluis.",
+			"keyringActive": "Systeemsleutelhanger actief: Tokens worden versleuteld via Windows Referentiebeheer (DPAPI) / Keychain.",
+			"empty": "Nog geen accounts ingesteld. Klik op \"Account toevoegen\" om te beginnen met Ely.by."
+		},
+		"memory": {
+			"title": "Geheugentoewijzing (RAM)",
+			"description": "Configureer de minimale (Min) en maximale (Max) RAM-limieten voor Java en Minecraft-instanties.",
+			"totalRam": "Totaal RAM",
+			"availableNow": "Momenteel beschikbaar geheugen:",
+			"freePercent": "{{percent}}% vrij",
+			"distribution": "Systeem-RAM-verdeling",
+			"allocated": "Toegewezen:",
+			"sliderTitle": "Schuifregelaar voor bereik",
+			"sliderHint": "Regelaar 1: Min (-Xms) • Regelaar 2: Max (-Xmx)",
+			"minMemoryLabel": "Startgeheugen (Min / -Xms)",
+			"maxMemoryLabel": "Maximaal geheugen (Max / -Xmx)",
+			"highMemoryWarningTitle": "Waarschuwing voor hoog geheugengebruik",
+			"highMemoryWarningDesc": "Het toewijzen van {{maxGb}} GB (> 80% van je {{totalGb}} GB totale RAM) kan ervoor zorgen dat achtergrondprogramma's, Discord of Windows vastlopen.",
+			"memoryNoticeTitle": "Geheugenmelding",
+			"memoryNoticeDesc": "Maximaal RAM is groter dan het momenteel vrije geheugen ({{availableGb}} GB). Sluit zware achtergrondapps voordat je grote modpacks start.",
+			"recommendedPresets": "Aanbevolen voorinstellingen:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Gemod",
+				"heavy": "Zwaar pakket",
+				"safeMax": "Veilig max."
+			}
+		},
+		"behavior": {
+			"title": "Launchergedrag",
+			"description": "Kies wat er gebeurt wanneer een instantie wordt gestart.",
+			"keepOpen": {
+				"label": "Open houden",
+				"description": "Op de achtergrond geopend blijven tijdens het spelen"
+			},
+			"hideToTray": {
+				"label": "Verbergen naar systeemvak",
+				"description": "Minimaliseren naar het systeemvak en herstellen na afsluiten van het spel"
+			},
+			"close": {
+				"label": "Launcher sluiten",
+				"description": "Ingot volledig sluiten nadat het spel is gestart"
+			}
+		},
+		"window": {
+			"title": "Venster & weergave",
+			"description": "Configureer de standaard vensterafmetingen en starten in volledig scherm voor je instanties.",
+			"fullscreenTitle": "Starten in volledig scherm",
+			"fullscreenDesc": "Start Minecraft direct in volledig scherm",
+			"resolutionTitle": "Standaard vensterresolutie",
+			"resolutionDesc": "Stel een aangepaste breedte en hoogte in voor het spelvenster",
+			"presets": "Voorinstellingen:",
+			"defaultPreset": "Standaard"
+		},
+		"sync": {
+			"title": "Spelgegevens synchroniseren",
+			"description": "Houd je Minecraft-instellingen, servers en bronnen gelijk tussen al je instanties.",
+			"items": {
+				"syncOptions": {
+					"title": "Spelopties synchroniseren",
+					"description": "Video-instellingen, audiovolume, FOV, toetsenborden en toegankelijkheid"
+				},
+				"syncServers": {
+					"title": "Multiplayerservers synchroniseren",
+					"description": "Houd je opgeslagen serverlijst gelijk in alle instanties"
+				},
+				"syncResourcePacks": {
+					"title": "Resourcepacks synchroniseren",
+					"description": "Deel alle gedownloade texture- en resourcepacks tussen instanties"
+				},
+				"syncCommandHistory": {
+					"title": "Opdrachtgeschiedenis synchroniseren",
+					"description": "Behoud chat- en console-opdrachtgeschiedenis tussen sessies"
+				},
+				"syncCreativeHotbars": {
+					"title": "Opgeslagen creative-hotbars synchroniseren",
+					"description": "Deel opgeslagen hotbar-indelingen in creative-modus tussen werelden"
+				}
+			}
+		},
+		"updates": {
+			"title": "Updates & versie",
+			"description": "Beheer Ingot-updates en zorg dat je altijd over de nieuwste functies en beveiligingsupdates beschikt.",
+			"releaseChannel": "Releasekanaal",
+			"lastChecked": "Laatst gecontroleerd: {{time}}",
+			"checking": "Controleren...",
+			"checkForUpdates": "Controleren op updates",
+			"versionAvailable": "Versie v{{version}} is beschikbaar!",
+			"changelog": "Wijzigingslogboek",
+			"downloadAndInstall": "Update downloaden & installeren",
+			"downloading": "Ingot v{{version}} downloaden...",
+			"installedTitle": "Update succesvol geïnstalleerd!",
+			"installedDesc": "Herstart Ingot om de nieuwe versie te starten.",
+			"restartIngot": "Ingot herstarten",
+			"upToDate": "Ingot is up-to-date. Je gebruikt de nieuwste versie.",
+			"errorTitle": "Kon niet controleren op updates"
+		},
+		"licenses": {
+			"title": "Licenties van derden",
+			"description": "Open-sourcesoftware die Ingot bevat of downloadt.",
+			"dialogSubtitle": "Ingot gebruikt deze software van andere projecten. Elk project valt onder zijn eigen licentie; klik op een naam voor de broncode en volledige licentie.",
+			"trademark": "Minecraft is een handelsmerk van Mojang AB. Ingot is niet gelieerd aan Mojang of Microsoft."
+		}
+	}
+}

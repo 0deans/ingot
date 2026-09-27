@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Swedish",
+		"nativeName": "Svenska"
+	},
+	"common": {
+		"cancel": "Avbryt",
+		"continue": "Fortsätt",
+		"save": "Spara ändringar",
+		"delete": "Ta bort",
+		"install": "Installera",
+		"installed": "Installerad",
+		"search": "Sök...",
+		"active": "Aktiv",
+		"refresh": "Uppdatera",
+		"clearSearch": "Rensa sökning",
+		"clearFilters": "Rensa filter",
+		"resetFilters": "Återställ filter",
+		"tryAgain": "Försök igen",
+		"openFolder": "Öppna mapp",
+		"view": "Visa",
+		"close": "Stäng",
+		"minimize": "Minimera",
+		"maximize": "Maximera",
+		"restore": "Återställ",
+		"justNow": "Just nu",
+		"never": "Aldrig",
+		"minutesAgo": "{{count}}m sedan",
+		"hoursAgo": "{{count}}t sedan",
+		"daysAgo": "{{count}}d sedan"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Välj ditt språk",
+		"selectLanguageSubtitle": "Välj önskat visningsspråk för Ingot. Du kan ändra detta när som helst i Inställningar.",
+		"detectedBadge": "Systemstandard",
+		"continueWith": "Fortsätt på {{language}}"
+	},
+	"nav": {
+		"instances": "Instanser",
+		"discover": "Upptäck",
+		"skins": "Skinkatalog",
+		"screenshots": "Skärmbilder",
+		"servers": "Dedikerade servrar",
+		"settings": "Inställningar",
+		"language": "Språk"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} är redo att installeras!",
+		"downloading": "Laddar ner uppdatering v{{version}}... ({{progress}}%)",
+		"available": "Ny version tillgänglig: Ingot v{{version}}",
+		"currentVersion": "Nuvarande: v{{version}}",
+		"restartNow": "Starta om nu",
+		"updateNow": "Uppdatera nu",
+		"dismiss": "Avvisa"
+	},
+	"accounts": {
+		"player": "Spelare",
+		"noAccount": "Inget konto",
+		"addAccount": "Lägg till konto",
+		"addAccountEllipsis": "Lägg till konto...",
+		"manageAccounts": "Hantera konton",
+		"userProfile": "Användarprofil",
+		"securedViaEly": "Säkrad via Ely.by",
+		"securedInVault": "Säkrad i valv",
+		"localProfile": "Lokal profil",
+		"minecraftAccounts": "Minecraft-konton",
+		"linkedCount": "{{count}} länkade",
+		"noAccountsYet": "Inga konton konfigurerade än.",
+		"previewSkin": "Förhandsgranska 3D-skin",
+		"removeAccount": "Ta bort konto",
+		"setAsActive": "Ange som aktiv"
+	},
+	"instances": {
+		"searchPlaceholder": "Sök instanser...",
+		"import": "Importera",
+		"newInstance": "Ny instans",
+		"activeInstances": "Aktiva instanser ({{count}}):",
+		"stopProcess": "Stoppa process",
+		"allInstances": "Alla instanser",
+		"emptyTitle": "Inga instanser skapade än",
+		"emptySubtitle": "Skapa din första Minecraft-instans för att börja spela. Du kan välja Vanilla eller modladdare som Fabric, Quilt eller Forge.",
+		"createFirst": "Skapa din första instans",
+		"importFromLauncher": "Importera från launcher",
+		"createCardTitle": "Skapa ny instans",
+		"createCardSubtitle": "Välj valfri version eller modladdare",
+		"noMatchTitle": "Inga instanser hittades för \"{{query}}\"",
+		"noMatchSubtitle": "Prova att söka efter ett annat namn, en annan version eller modladdare.",
+		"card": {
+			"neverPlayed": "Aldrig spelad",
+			"preparing": "Förbereder",
+			"preparingBtn": "Förbereder...",
+			"play": "Spela",
+			"stop": "Stoppa",
+			"customRam": "(Anpassad)",
+			"customRamTooltip": "Anpassad minnesgräns per instans",
+			"globalRamTooltip": "Ärvd från globala inställningar",
+			"playedDuration": "{{duration}} spelat",
+			"quickPlay": "Snabbspel",
+			"quickPlayOptions": "Alternativ för snabbspel",
+			"directConnect": "Direktanslut...",
+			"directConnectDesc": "Gå med i en server direkt",
+			"quickLoadWorld": "Snabbladda värld",
+			"quickLoadWorldDesc": "Hoppa rakt in i en sparad värld",
+			"singleplayerSaves": "Enspelarvärldar",
+			"scanningWorlds": "Skannar världar...",
+			"noSavedWorlds": "Inga sparade världar hittades i denna instans.",
+			"requires120": "Kräver Minecraft 1.20+",
+			"openFolderTooltip": "Öppna instansmapp i Utforskaren",
+			"settingsTooltip": "Instansinställningar (RAM, JVM-argument)",
+			"deleteTooltip": "Ta bort instans"
+		}
+	},
+	"modpacks": {
+		"title": "Upptäck innehåll",
+		"subtitle": "Sök och installera moddar, modpaket, resurspaket och shaders direkt i dina instanser från Modrinth och CurseForge.",
+		"searchPlaceholder": "Sök moddar, modpaket, resurspaket, shaders...",
+		"categories": {
+			"all": "Alla typer",
+			"modpack": "Modpaket",
+			"mod": "Moddar",
+			"resourcepack": "Resurspaket",
+			"shader": "Shaders"
+		},
+		"sources": {
+			"all": "Alla källor",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Laddare:",
+			"allLoaders": "Alla laddare",
+			"version": "Version:",
+			"allVersions": "Alla versioner",
+			"sort": "Sortera:",
+			"sortBy": "Sortera efter"
+		},
+		"sorts": {
+			"downloads": "Flest nedladdningar",
+			"relevance": "Relevans",
+			"updated": "Nyligen uppdaterade",
+			"newest": "Nyaste"
+		},
+		"searching": "Söker innehåll...",
+		"foundResults": "Hittade {{count}} resultat",
+		"noResults": "Inga resultat",
+		"pageOf": "Sida {{page}} av {{total}}",
+		"noMatchTitle": "Inget innehåll matchar dina filter",
+		"noMatchSubtitle": "Prova att justera din sökning, byta modladdare eller källa.",
+		"resetAllFilters": "Återställ alla filter",
+		"byAuthor": "av {{author}}",
+		"noDescription": "Ingen beskrivning angiven.",
+		"details": "Detaljer"
+	},
+	"skins": {
+		"title": "Skinkatalog",
+		"subtitle": "Bläddra bland Ely.by-skins, hantera din egen samling eller ladda upp ett eget skin.",
+		"tabs": {
+			"catalog": "Katalog",
+			"mySkins": "Mina skins",
+			"upload": "Ladda upp skin"
+		},
+		"sorts": {
+			"wearers": "Populära",
+			"latest": "Senaste",
+			"views": "Visningar",
+			"cubes": "Gillamarkeringar"
+		},
+		"models": {
+			"any": "Alla modeller",
+			"steve": "Klassisk (Steve)",
+			"slim": "Smal (Alex)"
+		},
+		"searchPlaceholder": "Sök skins efter användarnamn eller tagg..."
+	},
+	"screenshots": {
+		"title": "Skärmbilder",
+		"subtitle": "Galleri med skärmbilder tagna i spelet från alla dina instanser",
+		"refreshTooltip": "Uppdatera skärmbilder",
+		"searchPlaceholder": "Sök skärmbilder...",
+		"allInstances": "Alla instanser",
+		"allInstancesCount": "Alla instanser ({{count}})",
+		"selectedInstance": "Vald instans",
+		"sorts": {
+			"date-desc": "Nyaste först",
+			"date-asc": "Äldsta först",
+			"name-asc": "Namn (A-Ö)",
+			"name-desc": "Namn (Ö-A)",
+			"size-desc": "Störst storlek",
+			"size-asc": "Minst storlek"
+		},
+		"emptyTitle": "Inga skärmbilder hittades",
+		"emptySubtitlePrefix": "Ta skärmbilder medan du spelar Minecraft genom att trycka på",
+		"emptySubtitleSuffix": ". De visas automatiskt i detta galleri.",
+		"checkAgain": "Kontrollera igen",
+		"noMatchTitle": "Inga matchande skärmbilder",
+		"noMatchSubtitle": "Inga skärmbilder matchar din sökning eller ditt filter.",
+		"deleteDialog": {
+			"title": "Ta bort skärmbild",
+			"description": "Är du säker på att du vill ta bort den här skärmbilden permanent? Detta kan inte ångras.",
+			"deleting": "Tar bort...",
+			"deletePermanently": "Ta bort permanent"
+		}
+	},
+	"servers": {
+		"title": "Dedikerade servrar",
+		"subtitle": "Skapa, konfigurera och hantera lokala Minecraft-servrar med Paper-, Purpur-, Fabric-, Folia- och Vanilla-kärnor.",
+		"createServer": "Skapa server",
+		"activeServers": "Aktiva servrar ({{count}}):",
+		"openConsole": "Öppna konsol",
+		"stopServer": "Stoppa server",
+		"searchPlaceholder": "Sök servrar efter namn, version, port...",
+		"allCores": "Alla kärnor",
+		"emptyTitle": "Inga servrar skapade än",
+		"emptySubtitle": "Skapa din första lokala Minecraft-server. Ingot laddar automatiskt ner server-JAR, godkänner EULA, konfigurerar porten och ställer in Java.",
+		"createFirst": "Skapa din första server",
+		"createCardTitle": "Skapa ny server",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia eller Vanilla",
+		"noMatchTitle": "Inga servrar matchar dina filter",
+		"noMatchSubtitle": "Prova att ändra din sökning eller välj \"Alla kärnor\"."
+	},
+	"settings": {
+		"title": "Launcher-inställningar",
+		"subtitle": "Konfigurera konton, språk, Java-miljöer, RAM-allokering och launcher-beteende.",
+		"language": {
+			"title": "Språk",
+			"description": "Välj visningsspråk för launcherns gränssnitt. Nya språkfiler i src/locales/ laddas om automatiskt."
+		},
+		"accounts": {
+			"title": "Konton & autentisering",
+			"description": "Anslut dina Ely.by- eller offlinekonton. Känsliga tokens lagras säkert i operativsystemets autentiseringsvalv.",
+			"keyringActive": "Systemets nyckelring är aktiv: Tokens krypteras med Windows Autentiseringshanteraren (DPAPI) / Keychain.",
+			"empty": "Inga konton konfigurerade än. Klicka på \"Lägg till konto\" för att komma igång med Ely.by."
+		},
+		"memory": {
+			"title": "Minnesallokering (RAM)",
+			"description": "Konfigurera minsta (Min) och högsta (Max) RAM-gränser för Java och Minecraft-instanser.",
+			"totalRam": "Totalt RAM",
+			"availableNow": "Tillgängligt minne på datorn just nu:",
+			"freePercent": "{{percent}}% ledigt",
+			"distribution": "Systemets RAM-fördelning",
+			"allocated": "Allokerat:",
+			"sliderTitle": "Reglage för minnesintervall",
+			"sliderHint": "Reglage 1: Min (-Xms) • Reglage 2: Max (-Xmx)",
+			"minMemoryLabel": "Startminne (Min / -Xms)",
+			"maxMemoryLabel": "Maximalt minne (Max / -Xmx)",
+			"highMemoryWarningTitle": "Varning för hög minnesanvändning",
+			"highMemoryWarningDesc": "Att allokera {{maxGb}} GB (> 80 % av dina {{totalGb}} GB totalt RAM) kan göra att bakgrundsappar, Discord eller Windows slutar svara.",
+			"memoryNoticeTitle": "Minnesnotis",
+			"memoryNoticeDesc": "Max RAM överstiger ledigt minne just nu ({{availableGb}} GB). Stäng tunga bakgrundsappar innan du startar stora instanser.",
+			"recommendedPresets": "Rekommenderade förval:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Moddad",
+				"heavy": "Tungt paket",
+				"safeMax": "Säkert max"
+			}
+		},
+		"behavior": {
+			"title": "Launcher-beteende",
+			"description": "Välj vad som händer när en instans startas.",
+			"keepOpen": {
+				"label": "Håll öppen",
+				"description": "Håll öppen i bakgrunden medan du spelar"
+			},
+			"hideToTray": {
+				"label": "Dölj till systemfältet",
+				"description": "Minimera till systemfältet och återställ när spelet avslutas"
+			},
+			"close": {
+				"label": "Stäng launcher",
+				"description": "Stäng Ingot helt efter att spelet har startat"
+			}
+		},
+		"window": {
+			"title": "Fönster & skärm",
+			"description": "Konfigurera standardfönsterstorlek och helskärmsläge vid start.",
+			"fullscreenTitle": "Starta i helskärm",
+			"fullscreenDesc": "Starta Minecraft direkt i helskärmsläge",
+			"resolutionTitle": "Standardupplösning för fönster",
+			"resolutionDesc": "Ange anpassad bredd och höjd för spelfönstret",
+			"presets": "Förval:",
+			"defaultPreset": "Standard"
+		},
+		"sync": {
+			"title": "Synkronisering av speldata",
+			"description": "Håll dina Minecraft-inställningar, servrar och resurser synkroniserade mellan alla instanser.",
+			"items": {
+				"syncOptions": {
+					"title": "Synkronisera spelalternativ",
+					"description": "Videoinställningar, ljudvolym, FOV, kortkommandon och hjälpmedel"
+				},
+				"syncServers": {
+					"title": "Synkronisera flerspelarservrar",
+					"description": "Håll din sparade serverlista gemensam i alla instanser"
+				},
+				"syncResourcePacks": {
+					"title": "Synkronisera resurspaket",
+					"description": "Dela alla nedladdade textur- och resurspaket mellan instanser"
+				},
+				"syncCommandHistory": {
+					"title": "Synkronisera kommandohistorik",
+					"description": "Bevara chatt- och konsolkommandohistorik mellan starter"
+				},
+				"syncCreativeHotbars": {
+					"title": "Synkronisera sparade kreativ-hotbars",
+					"description": "Dela sparade hotbar-layouter i kreativt läge mellan världar"
+				}
+			}
+		},
+		"updates": {
+			"title": "Uppdateringar & version",
+			"description": "Hantera Ingot-uppdateringar och se till att du har de senaste funktionerna och säkerhetsfixarna.",
+			"releaseChannel": "Uppdateringskanal",
+			"lastChecked": "Senast kontrollerad: {{time}}",
+			"checking": "Kontrollerar...",
+			"checkForUpdates": "Sök efter uppdateringar",
+			"versionAvailable": "Version v{{version}} är tillgänglig!",
+			"changelog": "Ändringslogg",
+			"downloadAndInstall": "Ladda ner & installera uppdatering",
+			"downloading": "Laddar ner Ingot v{{version}}...",
+			"installedTitle": "Uppdateringen har installerats!",
+			"installedDesc": "Starta om Ingot för att köra den nya versionen.",
+			"restartIngot": "Starta om Ingot",
+			"upToDate": "Ingot är uppdaterad. Du kör den senaste versionen.",
+			"errorTitle": "Kunde inte söka efter uppdateringar"
+		},
+		"licenses": {
+			"title": "Tredjepartslicenser",
+			"description": "Programvara med öppen källkod som Ingot inkluderar eller laddar ner.",
+			"dialogSubtitle": "Ingot använder denna programvara från andra projekt. Var och en lyder under sin egen licens; klicka på ett namn för källkod och fullständig licens.",
+			"trademark": "Minecraft är ett varumärke som tillhör Mojang AB. Ingot är inte anslutet till Mojang eller Microsoft."
+		}
+	}
+}

@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Turkish",
+		"nativeName": "Türkçe"
+	},
+	"common": {
+		"cancel": "İptal",
+		"continue": "Devam Et",
+		"save": "Değişiklikleri Kaydet",
+		"delete": "Sil",
+		"install": "Yükle",
+		"installed": "Yüklendi",
+		"search": "Ara...",
+		"active": "Aktif",
+		"refresh": "Yenile",
+		"clearSearch": "Aramayı Temizle",
+		"clearFilters": "Filtreleri Temizle",
+		"resetFilters": "Filtreleri Sıfırla",
+		"tryAgain": "Tekrar Dene",
+		"openFolder": "Klasörü Aç",
+		"view": "Görüntüle",
+		"close": "Kapat",
+		"minimize": "Küçült",
+		"maximize": "Büyüt",
+		"restore": "Geri Yükle",
+		"justNow": "Az önce",
+		"never": "Hiçbir zaman",
+		"minutesAgo": "{{count}}dk önce",
+		"hoursAgo": "{{count}}sa önce",
+		"daysAgo": "{{count}}g önce"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Dilinizi Seçin",
+		"selectLanguageSubtitle": "Ingot için tercih ettiğiniz görüntüleme dilini seçin. Bunu istediğiniz zaman Ayarlar'dan değiştirebilirsiniz.",
+		"detectedBadge": "Sistem Varsayılanı",
+		"continueWith": "{{language}} ile devam et"
+	},
+	"nav": {
+		"instances": "Profiller",
+		"discover": "Keşfet",
+		"skins": "Skin Kataloğu",
+		"screenshots": "Ekran Görüntüleri",
+		"servers": "Özel Sunucular",
+		"settings": "Ayarlar",
+		"language": "Dil"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} kuruluma hazır!",
+		"downloading": "v{{version}} güncellemesi indiriliyor... (%{{progress}})",
+		"available": "Yeni sürüm mevcut: Ingot v{{version}}",
+		"currentVersion": "Mevcut: v{{version}}",
+		"restartNow": "Şimdi Yeniden Başlat",
+		"updateNow": "Şimdi Güncelle",
+		"dismiss": "Kapat"
+	},
+	"accounts": {
+		"player": "Oyuncu",
+		"noAccount": "Hesap Yok",
+		"addAccount": "Hesap Ekle",
+		"addAccountEllipsis": "Hesap Ekle...",
+		"manageAccounts": "Hesapları Yönet",
+		"userProfile": "Kullanıcı profili",
+		"securedViaEly": "Ely.by ile korunuyor",
+		"securedInVault": "Kasada korunuyor",
+		"localProfile": "Yerel Profil",
+		"minecraftAccounts": "Minecraft Hesapları",
+		"linkedCount": "{{count}} bağlı",
+		"noAccountsYet": "Henüz yapılandırılmış hesap yok.",
+		"previewSkin": "3D skini önizle",
+		"removeAccount": "Hesabı kaldır",
+		"setAsActive": "Aktif Olarak Ayarla"
+	},
+	"instances": {
+		"searchPlaceholder": "Profillerde ara...",
+		"import": "İçe Aktar",
+		"newInstance": "Yeni Profil",
+		"activeInstances": "Aktif Profiller ({{count}}):",
+		"stopProcess": "İşlemi durdur",
+		"allInstances": "Tüm Profiller",
+		"emptyTitle": "Henüz Profil Oluşturulmadı",
+		"emptySubtitle": "Oynamaya başlamak için ilk Minecraft profilinizi oluşturun. Vanilla veya Fabric, Quilt ya da Forge gibi mod yükleyicileri seçebilirsiniz.",
+		"createFirst": "İlk Profilinizi Oluşturun",
+		"importFromLauncher": "Başka Başlatıcıdan İçe Aktar",
+		"createCardTitle": "Yeni Profil Oluştur",
+		"createCardSubtitle": "Herhangi bir sürüm veya mod yükleyici seçin",
+		"noMatchTitle": "\"{{query}}\" ile eşleşen profil bulunamadı",
+		"noMatchSubtitle": "Başka bir ad, sürüm veya mod yükleyici aramayı deneyin.",
+		"card": {
+			"neverPlayed": "Hiç oynanmadı",
+			"preparing": "Hazırlanıyor",
+			"preparingBtn": "Hazırlanıyor...",
+			"play": "Oyna",
+			"stop": "Durdur",
+			"customRam": "(Özel)",
+			"customRamTooltip": "Bu profile özel bellek sınırı",
+			"globalRamTooltip": "Genel ayarlardan devralındı",
+			"playedDuration": "{{duration}} oynandı",
+			"quickPlay": "Hızlı Oyna",
+			"quickPlayOptions": "Hızlı Oyna seçenekleri",
+			"directConnect": "Doğrudan Bağlan...",
+			"directConnectDesc": "Bir sunucuya doğrudan katıl",
+			"quickLoadWorld": "Dünyayı Hızlı Yükle",
+			"quickLoadWorldDesc": "Doğrudan kayıtlı bir dünyaya gir",
+			"singleplayerSaves": "Tek Oyunculu Kayıtlar",
+			"scanningWorlds": "Dünyalar taranıyor...",
+			"noSavedWorlds": "Bu profilde kayıtlı dünya bulunamadı.",
+			"requires120": "Minecraft 1.20+ gerektirir",
+			"openFolderTooltip": "Profil klasörünü Dosya Gezgini'nde aç",
+			"settingsTooltip": "Profil Ayarları (RAM, JVM argümanları)",
+			"deleteTooltip": "Profili Sil"
+		}
+	},
+	"modpacks": {
+		"title": "İçerik Keşfet",
+		"subtitle": "Modrinth ve CurseForge üzerinden modları, mod paketlerini, kaynak paketlerini ve shader'ları doğrudan profillerinize arayıp yükleyin.",
+		"searchPlaceholder": "Mod, mod paketi, kaynak paketi, shader ara...",
+		"categories": {
+			"all": "Tüm Türler",
+			"modpack": "Mod Paketleri",
+			"mod": "Modlar",
+			"resourcepack": "Kaynak Paketleri",
+			"shader": "Shader'lar"
+		},
+		"sources": {
+			"all": "Tüm Kaynaklar",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Yükleyici:",
+			"allLoaders": "Tüm Yükleyiciler",
+			"version": "Sürüm:",
+			"allVersions": "Tüm Sürümler",
+			"sort": "Sırala:",
+			"sortBy": "Sıralama ölçütü"
+		},
+		"sorts": {
+			"downloads": "En Çok İndirilen",
+			"relevance": "Alaka Düzeyi",
+			"updated": "Son Güncellenen",
+			"newest": "En Yeni"
+		},
+		"searching": "İçerik aranıyor...",
+		"foundResults": "{{count}} sonuç bulundu",
+		"noResults": "Sonuç yok",
+		"pageOf": "Sayfa {{page}} / {{total}}",
+		"noMatchTitle": "Filtrelerinizle eşleşen içerik yok",
+		"noMatchSubtitle": "Arama sorgunuzu değiştirmeyi, mod yükleyiciyi veya kaynağı değiştirmeyi deneyin.",
+		"resetAllFilters": "Tüm filtreleri sıfırla",
+		"byAuthor": "{{author}} tarafından",
+		"noDescription": "Açıklama bulunmuyor.",
+		"details": "Detaylar"
+	},
+	"skins": {
+		"title": "Skin Kataloğu",
+		"subtitle": "Ely.by skinlerine göz atın, kişisel koleksiyonunuzu yönetin veya özel bir skin yükleyin.",
+		"tabs": {
+			"catalog": "Katalog",
+			"mySkins": "Skinlerim",
+			"upload": "Skin Yükle"
+		},
+		"sorts": {
+			"wearers": "Popüler",
+			"latest": "En Yeni",
+			"views": "Görüntülenme",
+			"cubes": "Beğeni"
+		},
+		"models": {
+			"any": "Tüm Modeller",
+			"steve": "Klasik (Steve)",
+			"slim": "İnce (Alex)"
+		},
+		"searchPlaceholder": "Kullanıcı adı veya etikete göre skin ara..."
+	},
+	"screenshots": {
+		"title": "Ekran Görüntüleri",
+		"subtitle": "Tüm profillerinizde oyun içinde alınan ekran görüntülerinin galerisi",
+		"refreshTooltip": "Ekran Görüntülerini Yenile",
+		"searchPlaceholder": "Ekran görüntülerinde ara...",
+		"allInstances": "Tüm Profiller",
+		"allInstancesCount": "Tüm Profiller ({{count}})",
+		"selectedInstance": "Seçili Profil",
+		"sorts": {
+			"date-desc": "Önce En Yeni",
+			"date-asc": "Önce En Eski",
+			"name-asc": "Ad (A-Z)",
+			"name-desc": "Ad (Z-A)",
+			"size-desc": "En Büyük Boyut",
+			"size-asc": "En Küçük Boyut"
+		},
+		"emptyTitle": "Ekran görüntüsü bulunamadı",
+		"emptySubtitlePrefix": "Minecraft oynarken ekran görüntüsü almak için",
+		"emptySubtitleSuffix": "tuşuna basın. Görüntüler otomatik olarak bu galeride görünecektir.",
+		"checkAgain": "Tekrar Kontrol Et",
+		"noMatchTitle": "Eşleşen ekran görüntüsü yok",
+		"noMatchSubtitle": "Arama sorgunuzla veya filtrenizle eşleşen ekran görüntüsü yok. Daha fazlasını görmek için filtreleri temizleyin.",
+		"deleteDialog": {
+			"title": "Ekran Görüntüsünü Sil",
+			"description": "Bu ekran görüntüsünü kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+			"deleting": "Siliniyor...",
+			"deletePermanently": "Kalıcı Olarak Sil"
+		}
+	},
+	"servers": {
+		"title": "Özel Sunucular",
+		"subtitle": "Paper, Purpur, Fabric, Folia ve Vanilla çekirdekleriyle yerel Minecraft sunucuları oluşturun, yapılandırın ve yönetin.",
+		"createServer": "Sunucu Oluştur",
+		"activeServers": "Aktif Sunucular ({{count}}):",
+		"openConsole": "Konsolu Aç",
+		"stopServer": "Sunucuyu Durdur",
+		"searchPlaceholder": "Ad, sürüm veya porta göre sunucu ara...",
+		"allCores": "Tüm Çekirdekler",
+		"emptyTitle": "Henüz Sunucu Oluşturulmadı",
+		"emptySubtitle": "İlk yerel Minecraft sunucunuzu oluşturun. Ingot sunucu JAR dosyasını otomatik olarak indirir, EULA'yı kabul eder, portu yapılandırır ve Java çalışma ortamını kurar.",
+		"createFirst": "İlk Sunucunuzu Oluşturun",
+		"createCardTitle": "Yeni Sunucu Oluştur",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia veya Vanilla",
+		"noMatchTitle": "Filtrelerinizle eşleşen sunucu yok",
+		"noMatchSubtitle": "Arama sorgunuzu değiştirmeyi veya \"Tüm Çekirdekler\"i seçmeyi deneyin."
+	},
+	"settings": {
+		"title": "Başlatıcı Ayarları",
+		"subtitle": "Hesapları, dili, Java çalışma ortamlarını, RAM ayırmayı ve başlatıcı davranışını yapılandırın.",
+		"language": {
+			"title": "Dil",
+			"description": "Başlatıcı arayüzü için görüntüleme dilini seçin. src/locales/ klasöründeki yeni dil dosyaları otomatik olarak yüklenir."
+		},
+		"accounts": {
+			"title": "Hesaplar ve Kimlik Doğrulama",
+			"description": "Ely.by veya çevrimdışı hesaplarınızı bağlayın. Hassas belirteçler işletim sistemi Kimlik Bilgisi Kasası'nda güvenle saklanır.",
+			"keyringActive": "Yerel İS Anahtarlığı aktif: Belirteçler Windows Kimlik Bilgisi Yöneticisi (DPAPI) / Keychain kullanılarak şifrelenir.",
+			"empty": "Henüz yapılandırılmış hesap yok. Ely.by ile başlamak için \"Hesap Ekle\"ye tıklayın."
+		},
+		"memory": {
+			"title": "Bellek Ayırma (RAM)",
+			"description": "Java ve Minecraft profilleri için başlangıç (Min) ve maksimum (Max) RAM sınırlarını yapılandırın.",
+			"totalRam": "Toplam RAM",
+			"availableNow": "Şu anda kullanılabilir sistem belleği:",
+			"freePercent": "%{{percent}} Boş",
+			"distribution": "Sistem RAM Dağılımı",
+			"allocated": "Ayrılan:",
+			"sliderTitle": "Aralık Ayırma Kaydırıcısı",
+			"sliderHint": "Kaydırıcı 1: Min (-Xms) • Kaydırıcı 2: Max (-Xmx)",
+			"minMemoryLabel": "Başlangıç Belleği (Min / -Xms)",
+			"maxMemoryLabel": "Maksimum Bellek (Max / -Xmx)",
+			"highMemoryWarningTitle": "Yüksek Bellek Uyarısı",
+			"highMemoryWarningDesc": "{{maxGb}} GB (toplam {{totalGb}} GB RAM'inizin %80'inden fazlası) ayırmak arka plan uygulamalarının, Discord'un veya Windows'un yanıt vermemesine neden olabilir.",
+			"memoryNoticeTitle": "Bellek Bildirimi",
+			"memoryNoticeDesc": "Maksimum RAM şu anda boş olan bellekten ({{availableGb}} GB) daha yüksek. Ağır profilleri başlatmadan önce arka plandaki ağır uygulamaları kapatın.",
+			"recommendedPresets": "Önerilen Ön Ayarlar:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Modlu",
+				"heavy": "Ağır Paket",
+				"safeMax": "Güvenli Maks."
+			}
+		},
+		"behavior": {
+			"title": "Başlatıcı Davranışı",
+			"description": "Bir profil başlatıldığında ne olacağını seçin.",
+			"keepOpen": {
+				"label": "Açık Tut",
+				"description": "Oynarken arka planda açık kalsın"
+			},
+			"hideToTray": {
+				"label": "Sistem Tepsisine Gizle",
+				"description": "Tepsiye küçült ve oyundan çıkınca geri yükle"
+			},
+			"close": {
+				"label": "Başlatıcıyı Kapat",
+				"description": "Oyun başladıktan sonra Ingot'u tamamen kapat"
+			}
+		},
+		"window": {
+			"title": "Pencere ve Görünüm",
+			"description": "Profilleriniz için varsayılan pencere boyutlarını ve tam ekran başlatma modunu yapılandırın.",
+			"fullscreenTitle": "Tam Ekranda Başlat",
+			"fullscreenDesc": "Minecraft'ı doğrudan tam ekran modunda başlat",
+			"resolutionTitle": "Varsayılan Pencere Çözünürlüğü",
+			"resolutionDesc": "Oyun penceresi için özel genişlik ve yükseklik belirleyin",
+			"presets": "Ön Ayarlar:",
+			"defaultPreset": "Varsayılan"
+		},
+		"sync": {
+			"title": "Oyun Verisi Senkronizasyonu",
+			"description": "Minecraft ayarlarınızı, sunucularınızı ve kaynaklarınızı tüm profiller arasında senkronize tutun.",
+			"items": {
+				"syncOptions": {
+					"title": "Oyun Seçeneklerini Senkronize Et",
+					"description": "Görüntü ayarları, ses düzeyi, FOV, tuş atamaları ve erişilebilirlik"
+				},
+				"syncServers": {
+					"title": "Çok Oyunculu Sunucuları Senkronize Et",
+					"description": "Kayıtlı sunucu listenizi tüm profillerde ortak tutun"
+				},
+				"syncResourcePacks": {
+					"title": "Kaynak Paketlerini Senkronize Et",
+					"description": "İndirilen tüm doku ve kaynak paketlerini profiller arasında paylaşın"
+				},
+				"syncCommandHistory": {
+					"title": "Komut Geçmişini Senkronize Et",
+					"description": "Sohbet ve konsol komut geçmişini oturumlar arasında koruyun"
+				},
+				"syncCreativeHotbars": {
+					"title": "Kayıtlı Yaratıcı Mod Araç Çubuklarını Senkronize Et",
+					"description": "Yaratıcı modda kaydedilen araç çubuğu düzenlerini dünyalar arasında paylaşın"
+				}
+			}
+		},
+		"updates": {
+			"title": "Güncellemeler ve Sürüm",
+			"description": "Ingot güncellemelerini yönetin ve en son özelliklerle güvenlik düzeltmelerine sahip olduğunuzdan emin olun.",
+			"releaseChannel": "Sürüm Kanalı",
+			"lastChecked": "Son kontrol: {{time}}",
+			"checking": "Kontrol ediliyor...",
+			"checkForUpdates": "Güncellemeleri Kontrol Et",
+			"versionAvailable": "Sürüm v{{version}} mevcut!",
+			"changelog": "Değişiklik Günlüğü",
+			"downloadAndInstall": "Güncellemeyi İndir ve Kur",
+			"downloading": "Ingot v{{version}} indiriliyor...",
+			"installedTitle": "Güncelleme başarıyla kuruldu!",
+			"installedDesc": "Yeni sürümü başlatmak için Ingot'u yeniden başlatın.",
+			"restartIngot": "Ingot'u Yeniden Başlat",
+			"upToDate": "Ingot güncel. En son sürümü kullanıyorsunuz.",
+			"errorTitle": "Güncellemeler kontrol edilemedi"
+		},
+		"licenses": {
+			"title": "Üçüncü taraf lisansları",
+			"description": "Ingot'un içerdiği veya indirdiği açık kaynaklı yazılımlar.",
+			"dialogSubtitle": "Ingot diğer projelerden bu yazılımları kullanır. Her biri kendi lisansı altındadır; kaynak kodunu ve tam lisansını görmek için bir ada tıklayın.",
+			"trademark": "Minecraft, Mojang AB'nin ticari markasıdır. Ingot, Mojang veya Microsoft ile bağlantılı değildir."
+		}
+	}
+}

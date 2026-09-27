@@ -2,6 +2,7 @@ import { PhysicalPosition } from "@tauri-apps/api/dpi"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Copy, Minus, Square, X } from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 /** Finger travel (CSS px) before a touch on the titlebar turns into a window drag */
 const DRAG_THRESHOLD = 6
@@ -26,6 +27,7 @@ interface TitlebarProps {
 }
 
 const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
+	const { t } = useTranslation()
 	const [isMaximized, setIsMaximized] = useState(false)
 
 	const isTauri =
@@ -217,7 +219,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 				<button
 					type="button"
 					onClick={handleMinimize}
-					aria-label="Minimize"
+					aria-label={t("common.minimize")}
 					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 				>
 					<Minus className="size-3.5" />
@@ -226,7 +228,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 				<button
 					type="button"
 					onClick={handleToggleMaximize}
-					aria-label={isMaximized ? "Restore" : "Maximize"}
+					aria-label={isMaximized ? t("common.restore") : t("common.maximize")}
 					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 				>
 					{isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
@@ -235,7 +237,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 				<button
 					type="button"
 					onClick={handleClose}
-					aria-label="Close"
+					aria-label={t("common.close")}
 					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
 				>
 					<X className="size-3.5" />

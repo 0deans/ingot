@@ -13,6 +13,7 @@ import {
 	X,
 } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
 import { Button } from "@/components/ui/button"
 import {
@@ -51,16 +52,8 @@ const SORT_OPTIONS: SortOption[] = [
 	"size-asc",
 ]
 
-const SORT_LABELS: Record<SortOption, string> = {
-	"date-desc": "Newest First",
-	"date-asc": "Oldest First",
-	"name-asc": "Name (A-Z)",
-	"name-desc": "Name (Z-A)",
-	"size-desc": "Largest Size",
-	"size-asc": "Smallest Size",
-}
-
 const ScreenshotsView = () => {
+	const { t } = useTranslation()
 	const {
 		screenshots,
 		isLoading,
@@ -170,10 +163,10 @@ const ScreenshotsView = () => {
 	}, [screenshots, selectedInstanceId, searchQuery, sortBy])
 
 	const selectedInstanceLabel = useMemo(() => {
-		if (selectedInstanceId === "all") return "All Instances"
+		if (selectedInstanceId === "all") return t("screenshots.allInstances")
 		const found = instanceOptions.find((opt) => opt.id === selectedInstanceId)
-		return found ? found.name : "Selected Instance"
-	}, [selectedInstanceId, instanceOptions])
+		return found ? found.name : t("screenshots.selectedInstance")
+	}, [selectedInstanceId, instanceOptions, t])
 
 	const handleDeleteConfirm = async () => {
 		if (!screenshotToDelete) return
@@ -204,14 +197,12 @@ const ScreenshotsView = () => {
 					</div>
 					<div>
 						<div className="flex items-center gap-2">
-							<h1 className="font-semibold text-lg tracking-tight">Screenshots</h1>
+							<h1 className="font-semibold text-lg tracking-tight">{t("screenshots.title")}</h1>
 							<span className="rounded-full bg-zinc-800/80 px-2 py-0.5 font-medium text-xs text-zinc-400">
 								{screenshots.length}
 							</span>
 						</div>
-						<p className="text-muted-foreground text-xs">
-							Gallery of in-game screenshots captured across all your instances
-						</p>
+						<p className="text-muted-foreground text-xs">{t("screenshots.subtitle")}</p>
 					</div>
 				</div>
 
@@ -226,7 +217,7 @@ const ScreenshotsView = () => {
 						}
 					>
 						<FolderOpen className="size-3.5" />
-						<span>Open Folder</span>
+						<span>{t("common.openFolder")}</span>
 					</Button>
 
 					<Tooltip>
@@ -243,7 +234,7 @@ const ScreenshotsView = () => {
 								</Button>
 							}
 						/>
-						<TooltipContent side="bottom">Refresh Screenshots</TooltipContent>
+						<TooltipContent side="bottom">{t("screenshots.refreshTooltip")}</TooltipContent>
 					</Tooltip>
 				</div>
 			</header>
@@ -255,7 +246,7 @@ const ScreenshotsView = () => {
 						<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							type="text"
-							placeholder="Search screenshots..."
+							placeholder={t("screenshots.searchPlaceholder")}
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
 							className="h-9 w-full bg-zinc-900/60 px-8 text-xs placeholder:text-muted-foreground/60"
@@ -303,7 +294,7 @@ const ScreenshotsView = () => {
 									})
 								}
 							>
-								All Instances ({screenshots.length})
+								{t("screenshots.allInstancesCount", { count: screenshots.length })}
 							</DropdownMenuItem>
 							{instanceOptions.map((opt) => {
 								const count = screenshots.filter((s) => s.instanceId === opt.id).length
@@ -331,7 +322,7 @@ const ScreenshotsView = () => {
 							render={
 								<Button variant="outline" size="sm" className="h-9 gap-2 bg-zinc-900/60 text-xs">
 									<ArrowUpDown className="size-3.5 text-muted-foreground" />
-									<span>{SORT_LABELS[sortBy]}</span>
+									<span>{t(`screenshots.sorts.${sortBy}`)}</span>
 									<ChevronDown className="size-3.5 opacity-60" />
 								</Button>
 							}
@@ -347,7 +338,7 @@ const ScreenshotsView = () => {
 										})
 									}
 								>
-									{SORT_LABELS[opt]}
+									{t(`screenshots.sorts.${opt}`)}
 								</DropdownMenuItem>
 							))}
 						</DropdownMenuContent>
@@ -384,18 +375,20 @@ const ScreenshotsView = () => {
 							<Camera className="size-7" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="font-semibold text-base text-zinc-200">No screenshots found</h3>
+							<h3 className="font-semibold text-base text-zinc-200">
+								{t("screenshots.emptyTitle")}
+							</h3>
 							<p className="max-w-md text-muted-foreground text-xs">
-								Take screenshots while playing Minecraft by pressing{" "}
+								{t("screenshots.emptySubtitlePrefix")}{" "}
 								<kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
 									F2
 								</kbd>
-								. They will automatically show up in this gallery.
+								{t("screenshots.emptySubtitleSuffix")}
 							</p>
 						</div>
 						<Button variant="outline" size="sm" className="mt-2 text-xs" onClick={() => refresh()}>
 							<RefreshCw className="mr-2 size-3.5" />
-							Check Again
+							{t("screenshots.checkAgain")}
 						</Button>
 					</div>
 				) : (
@@ -405,10 +398,11 @@ const ScreenshotsView = () => {
 							<ImageOff className="size-7" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="font-semibold text-base text-zinc-200">No matching screenshots</h3>
+							<h3 className="font-semibold text-base text-zinc-200">
+								{t("screenshots.noMatchTitle")}
+							</h3>
 							<p className="max-w-md text-muted-foreground text-xs">
-								No screenshots match your search query or filter. Try clearing your filters to see
-								more.
+								{t("screenshots.noMatchSubtitle")}
 							</p>
 						</div>
 						<Button
@@ -422,7 +416,7 @@ const ScreenshotsView = () => {
 								})
 							}}
 						>
-							Clear Filters
+							{t("common.clearFilters")}
 						</Button>
 					</div>
 				)}
@@ -463,11 +457,8 @@ const ScreenshotsView = () => {
 			>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Delete Screenshot</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to permanently delete this screenshot? This action cannot be
-							undone.
-						</DialogDescription>
+						<DialogTitle>{t("screenshots.deleteDialog.title")}</DialogTitle>
+						<DialogDescription>{t("screenshots.deleteDialog.description")}</DialogDescription>
 					</DialogHeader>
 
 					{screenshotToDelete && (
@@ -502,7 +493,7 @@ const ScreenshotsView = () => {
 							}
 							disabled={isDeleting}
 						>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							variant="destructive"
@@ -512,7 +503,11 @@ const ScreenshotsView = () => {
 							className="gap-1.5"
 						>
 							<Trash2 className="size-3.5" />
-							<span>{isDeleting ? "Deleting..." : "Delete Permanently"}</span>
+							<span>
+								{isDeleting
+									? t("screenshots.deleteDialog.deleting")
+									: t("screenshots.deleteDialog.deletePermanently")}
+							</span>
 						</Button>
 					</DialogFooter>
 				</DialogContent>

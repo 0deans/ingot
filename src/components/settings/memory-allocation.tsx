@@ -1,5 +1,6 @@
 import { AlertTriangle, Cpu, Info, Sparkles } from "lucide-react"
 import { memo, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Slider from "@/components/ui/slider"
@@ -13,6 +14,7 @@ function formatMbToGb(mb: number): string {
 }
 
 const MemoryAllocation = () => {
+	const { t } = useTranslation()
 	const { memory, systemMemory, setMemorySettings } = useMemorySettings()
 
 	const [minRam, setMinRam] = useState(memory.minRamMb)
@@ -76,15 +78,13 @@ const MemoryAllocation = () => {
 		<div className="flex flex-col gap-4 rounded-xl border border-border/40 bg-zinc-900/40 p-5">
 			<div className="flex items-start justify-between">
 				<div>
-					<h3 className="font-semibold text-foreground text-sm">Memory Allocation (RAM)</h3>
-					<p className="text-muted-foreground text-xs">
-						Configure initial (Min) and maximum (Max) RAM limits for Java and Minecraft instances.
-					</p>
+					<h3 className="font-semibold text-foreground text-sm">{t("settings.memory.title")}</h3>
+					<p className="text-muted-foreground text-xs">{t("settings.memory.description")}</p>
 				</div>
 				<div className="flex items-center gap-1.5 rounded-md border border-border/60 bg-zinc-950/80 px-2.5 py-1 text-xs">
 					<Cpu className="size-3.5 text-primary" />
 					<span className="font-medium text-foreground">{formatMbToGb(totalRamMb)} GB</span>
-					<span className="text-muted-foreground">Total RAM</span>
+					<span className="text-muted-foreground">{t("settings.memory.totalRam")}</span>
 				</div>
 			</div>
 
@@ -96,23 +96,24 @@ const MemoryAllocation = () => {
 						<span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
 					</span>
 					<span className="text-muted-foreground">
-						Available machine memory right now:{" "}
+						{t("settings.memory.availableNow")}{" "}
 						<strong className="text-foreground">{formatMbToGb(availableRamMb)} GB</strong>
 						{" ("}
 						{availableRamMb} MB{")"}
 					</span>
 				</div>
 				<span className="font-mono text-[11px] text-muted-foreground">
-					{Math.round(availablePercent)}% Free
+					{t("settings.memory.freePercent", { percent: Math.round(availablePercent) })}
 				</span>
 			</div>
 
 			{/* Visual Allocation Scale Bar */}
 			<div className="flex flex-col gap-1.5 pt-1">
 				<div className="flex justify-between text-[11px]">
-					<span className="text-muted-foreground">Machine RAM Distribution</span>
+					<span className="text-muted-foreground">{t("settings.memory.distribution")}</span>
 					<span className="font-mono text-muted-foreground">
-						Allocated: <strong className="text-primary">{formatMbToGb(maxRam)} GB</strong> /{" "}
+						{t("settings.memory.allocated")}{" "}
+						<strong className="text-primary">{formatMbToGb(maxRam)} GB</strong> /{" "}
 						{formatMbToGb(totalRamMb)} GB
 					</span>
 				</div>
@@ -156,9 +157,9 @@ const MemoryAllocation = () => {
 			{/* Dual Slider Control */}
 			<div className="flex flex-col gap-2 pt-2">
 				<div className="flex items-center justify-between text-xs">
-					<span className="font-medium text-foreground">Range Allocation Slider</span>
+					<span className="font-medium text-foreground">{t("settings.memory.sliderTitle")}</span>
 					<span className="text-[11px] text-muted-foreground">
-						Thumb 1: Min (-Xms) &bull; Thumb 2: Max (-Xmx)
+						{t("settings.memory.sliderHint")}
 					</span>
 				</div>
 				<Slider
@@ -178,7 +179,7 @@ const MemoryAllocation = () => {
 				<div className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-zinc-950/40 p-3">
 					<div className="flex items-center justify-between">
 						<label htmlFor="min-ram-input" className="font-medium text-foreground text-xs">
-							Initial Memory (Min / -Xms)
+							{t("settings.memory.minMemoryLabel")}
 						</label>
 						<span className="font-mono text-muted-foreground text-xs">
 							{formatMbToGb(minRam)} GB
@@ -202,7 +203,7 @@ const MemoryAllocation = () => {
 				<div className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-zinc-950/40 p-3">
 					<div className="flex items-center justify-between">
 						<label htmlFor="max-ram-input" className="font-medium text-foreground text-xs">
-							Maximum Memory (Max / -Xmx)
+							{t("settings.memory.maxMemoryLabel")}
 						</label>
 						<span className="font-mono text-muted-foreground text-xs">
 							{formatMbToGb(maxRam)} GB
@@ -229,11 +230,12 @@ const MemoryAllocation = () => {
 				<div className="flex items-start gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-amber-400 text-xs">
 					<AlertTriangle className="mt-0.5 size-4 shrink-0" />
 					<div className="flex flex-col gap-0.5">
-						<span className="font-semibold">High Memory Warning</span>
+						<span className="font-semibold">{t("settings.memory.highMemoryWarningTitle")}</span>
 						<span className="text-[11px] text-amber-300/90">
-							Allocating {formatMbToGb(maxRam)} GB (&gt; 80% of your {formatMbToGb(totalRamMb)} GB
-							total RAM) may cause background applications, Discord, or Windows to become
-							unresponsive.
+							{t("settings.memory.highMemoryWarningDesc", {
+								maxGb: formatMbToGb(maxRam),
+								totalGb: formatMbToGb(totalRamMb),
+							})}
 						</span>
 					</div>
 				</div>
@@ -243,10 +245,11 @@ const MemoryAllocation = () => {
 				<div className="flex items-start gap-2.5 rounded-lg border border-sky-500/20 bg-sky-500/10 p-2.5 text-sky-400 text-xs">
 					<Info className="mt-0.5 size-4 shrink-0" />
 					<div className="flex flex-col gap-0.5">
-						<span className="font-semibold">Memory Notice</span>
+						<span className="font-semibold">{t("settings.memory.memoryNoticeTitle")}</span>
 						<span className="text-[11px] text-sky-300/90">
-							Max RAM is greater than currently free memory ({formatMbToGb(availableRamMb)} GB).
-							Ensure heavy background apps are closed before launching heavy instances.
+							{t("settings.memory.memoryNoticeDesc", {
+								availableGb: formatMbToGb(availableRamMb),
+							})}
 						</span>
 					</div>
 				</div>
@@ -256,7 +259,9 @@ const MemoryAllocation = () => {
 			<div className="flex flex-col gap-2 pt-1">
 				<div className="flex items-center gap-1 text-muted-foreground text-xs">
 					<Sparkles className="size-3.5 text-primary" />
-					<span className="font-medium text-foreground">Recommended Presets:</span>
+					<span className="font-medium text-foreground">
+						{t("settings.memory.recommendedPresets")}
+					</span>
 				</div>
 				<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 					<Button
@@ -265,7 +270,7 @@ const MemoryAllocation = () => {
 						onClick={() => applyPreset(1024, 3072)}
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
-						<span className="font-semibold text-xs">Vanilla</span>
+						<span className="font-semibold text-xs">{t("settings.memory.presets.vanilla")}</span>
 						<span className="text-[10px] text-muted-foreground">1.0 GB &ndash; 3.0 GB</span>
 					</Button>
 					<Button
@@ -274,7 +279,7 @@ const MemoryAllocation = () => {
 						onClick={() => applyPreset(2048, 6144)}
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
-						<span className="font-semibold text-xs">Modded</span>
+						<span className="font-semibold text-xs">{t("settings.memory.presets.modded")}</span>
 						<span className="text-[10px] text-muted-foreground">2.0 GB &ndash; 6.0 GB</span>
 					</Button>
 					<Button
@@ -283,7 +288,7 @@ const MemoryAllocation = () => {
 						onClick={() => applyPreset(4096, 8192)}
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
-						<span className="font-semibold text-xs">Heavy Pack</span>
+						<span className="font-semibold text-xs">{t("settings.memory.presets.heavy")}</span>
 						<span className="text-[10px] text-muted-foreground">4.0 GB &ndash; 8.0 GB</span>
 					</Button>
 					<Button
@@ -292,7 +297,7 @@ const MemoryAllocation = () => {
 						onClick={() => applyPreset(2048, Math.floor((totalRamMb * 0.75) / 512) * 512)}
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
-						<span className="font-semibold text-xs">Safe Max</span>
+						<span className="font-semibold text-xs">{t("settings.memory.presets.safeMax")}</span>
 						<span className="text-[10px] text-muted-foreground">
 							2.0 GB &ndash; {formatMbToGb(Math.floor((totalRamMb * 0.75) / 512) * 512)} GB
 						</span>

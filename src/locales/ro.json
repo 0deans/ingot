@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Romanian",
+		"nativeName": "Română"
+	},
+	"common": {
+		"cancel": "Anulează",
+		"continue": "Continuă",
+		"save": "Salvează modificările",
+		"delete": "Șterge",
+		"install": "Instalează",
+		"installed": "Instalat",
+		"search": "Caută...",
+		"active": "Activ",
+		"refresh": "Reîmprospătează",
+		"clearSearch": "Șterge căutarea",
+		"clearFilters": "Șterge filtrele",
+		"resetFilters": "Resetează filtrele",
+		"tryAgain": "Încearcă din nou",
+		"openFolder": "Deschide dosarul",
+		"view": "Vizualizează",
+		"close": "Închide",
+		"minimize": "Minimizează",
+		"maximize": "Maximizează",
+		"restore": "Restaurează",
+		"justNow": "Chiar acum",
+		"never": "Niciodată",
+		"minutesAgo": "acum {{count}}m",
+		"hoursAgo": "acum {{count}}h",
+		"daysAgo": "acum {{count}}z"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Alege limba",
+		"selectLanguageSubtitle": "Selectează limba de afișare preferată pentru Ingot. O poți schimba oricând din Setări.",
+		"detectedBadge": "Implicit sistem",
+		"continueWith": "Continuă în {{language}}"
+	},
+	"nav": {
+		"instances": "Instanțe",
+		"discover": "Descoperă",
+		"skins": "Catalog de skinuri",
+		"screenshots": "Capturi de ecran",
+		"servers": "Servere dedicate",
+		"settings": "Setări",
+		"language": "Limbă"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} este pregătit pentru instalare!",
+		"downloading": "Se descarcă actualizarea v{{version}}... ({{progress}}%)",
+		"available": "Versiune nouă disponibilă: Ingot v{{version}}",
+		"currentVersion": "Curentă: v{{version}}",
+		"restartNow": "Repornește acum",
+		"updateNow": "Actualizează acum",
+		"dismiss": "Ascunde"
+	},
+	"accounts": {
+		"player": "Jucător",
+		"noAccount": "Fără cont",
+		"addAccount": "Adaugă cont",
+		"addAccountEllipsis": "Adaugă cont...",
+		"manageAccounts": "Gestionează conturile",
+		"userProfile": "Profil utilizator",
+		"securedViaEly": "Securizat prin Ely.by",
+		"securedInVault": "Securizat în seif",
+		"localProfile": "Profil local",
+		"minecraftAccounts": "Conturi Minecraft",
+		"linkedCount": "{{count}} conectate",
+		"noAccountsYet": "Niciun cont configurat încă.",
+		"previewSkin": "Previzualizare 3D skin",
+		"removeAccount": "Elimină contul",
+		"setAsActive": "Setează ca activ"
+	},
+	"instances": {
+		"searchPlaceholder": "Caută instanțe...",
+		"import": "Importă",
+		"newInstance": "Instanță nouă",
+		"activeInstances": "Instanțe active ({{count}}):",
+		"stopProcess": "Oprește procesul",
+		"allInstances": "Toate instanțele",
+		"emptyTitle": "Nicio instanță creată încă",
+		"emptySubtitle": "Creează prima ta instanță Minecraft pentru a începe să joci. Poți alege Vanilla sau încărcătoare de moduri precum Fabric, Quilt sau Forge.",
+		"createFirst": "Creează prima instanță",
+		"importFromLauncher": "Importă din alt launcher",
+		"createCardTitle": "Creează instanță nouă",
+		"createCardSubtitle": "Alege orice versiune sau încărcător de moduri",
+		"noMatchTitle": "Nicio instanță găsită pentru „{{query}}”",
+		"noMatchSubtitle": "Încearcă să cauți alt nume, versiune sau încărcător de moduri.",
+		"card": {
+			"neverPlayed": "Jucat niciodată",
+			"preparing": "Se pregătește",
+			"preparingBtn": "Se pregătește...",
+			"play": "Joacă",
+			"stop": "Oprește",
+			"customRam": "(Personalizat)",
+			"customRamTooltip": "Limită de memorie personalizată per instanță",
+			"globalRamTooltip": "Moștenit din setările globale",
+			"playedDuration": "{{duration}} jucate",
+			"quickPlay": "Joc rapid",
+			"quickPlayOptions": "Opțiuni joc rapid",
+			"directConnect": "Conectare directă...",
+			"directConnectDesc": "Conectează-te direct la un server",
+			"quickLoadWorld": "Încărcare rapidă lume",
+			"quickLoadWorldDesc": "Intră direct într-o lume salvată",
+			"singleplayerSaves": "Lumi singleplayer",
+			"scanningWorlds": "Se scanează lumile...",
+			"noSavedWorlds": "Nu s-au găsit lumi salvate în această instanță.",
+			"requires120": "Necesită Minecraft 1.20+",
+			"openFolderTooltip": "Deschide dosarul instanței în File Explorer",
+			"settingsTooltip": "Setări instanță (RAM, argumente JVM)",
+			"deleteTooltip": "Șterge instanța"
+		}
+	},
+	"modpacks": {
+		"title": "Descoperă conținut",
+		"subtitle": "Caută și instalează moduri, modpack-uri, pachete de resurse și shadere direct în instanțele tale de pe Modrinth și CurseForge.",
+		"searchPlaceholder": "Caută moduri, modpack-uri, pachete de resurse, shadere...",
+		"categories": {
+			"all": "Toate tipurile",
+			"modpack": "Modpack-uri",
+			"mod": "Moduri",
+			"resourcepack": "Pachete de resurse",
+			"shader": "Shadere"
+		},
+		"sources": {
+			"all": "Toate sursele",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Încărcător:",
+			"allLoaders": "Toate încărcătoarele",
+			"version": "Versiune:",
+			"allVersions": "Toate versiunile",
+			"sort": "Sortare:",
+			"sortBy": "Sortează după"
+		},
+		"sorts": {
+			"downloads": "Cele mai descărcate",
+			"relevance": "Relevanță",
+			"updated": "Actualizate recent",
+			"newest": "Cele mai noi"
+		},
+		"searching": "Se caută conținut...",
+		"foundResults": "{{count}} rezultate găsite",
+		"noResults": "Niciun rezultat",
+		"pageOf": "Pagina {{page}} din {{total}}",
+		"noMatchTitle": "Niciun conținut nu corespunde filtrelor",
+		"noMatchSubtitle": "Încearcă să modifici căutarea, încărcătorul de moduri sau sursa.",
+		"resetAllFilters": "Resetează toate filtrele",
+		"byAuthor": "de {{author}}",
+		"noDescription": "Nicio descriere disponibilă.",
+		"details": "Detalii"
+	},
+	"skins": {
+		"title": "Catalog de skinuri",
+		"subtitle": "Răsfoiește skinuri Ely.by, gestionează-ți colecția personală sau încarcă un skin personalizat.",
+		"tabs": {
+			"catalog": "Catalog",
+			"mySkins": "Skinurile mele",
+			"upload": "Încarcă skin"
+		},
+		"sorts": {
+			"wearers": "Populare",
+			"latest": "Cele mai noi",
+			"views": "Vizualizări",
+			"cubes": "Aprecieri"
+		},
+		"models": {
+			"any": "Toate modelele",
+			"steve": "Clasic (Steve)",
+			"slim": "Subțire (Alex)"
+		},
+		"searchPlaceholder": "Caută skinuri după nume sau etichetă..."
+	},
+	"screenshots": {
+		"title": "Capturi de ecran",
+		"subtitle": "Galerie cu capturile de ecran realizate în joc din toate instanțele tale",
+		"refreshTooltip": "Reîmprospătează capturile",
+		"searchPlaceholder": "Caută capturi de ecran...",
+		"allInstances": "Toate instanțele",
+		"allInstancesCount": "Toate instanțele ({{count}})",
+		"selectedInstance": "Instanța selectată",
+		"sorts": {
+			"date-desc": "Cele mai noi primele",
+			"date-asc": "Cele mai vechi primele",
+			"name-asc": "Nume (A-Z)",
+			"name-desc": "Nume (Z-A)",
+			"size-desc": "Dimensiunea cea mai mare",
+			"size-asc": "Dimensiunea cea mai mică"
+		},
+		"emptyTitle": "Nicio captură de ecran găsită",
+		"emptySubtitlePrefix": "Fă capturi de ecran în timp ce joci Minecraft apăsând",
+		"emptySubtitleSuffix": ". Acestea vor apărea automat în această galerie.",
+		"checkAgain": "Verifică din nou",
+		"noMatchTitle": "Nicio captură potrivită",
+		"noMatchSubtitle": "Nicio captură de ecran nu corespunde căutării sau filtrului tău.",
+		"deleteDialog": {
+			"title": "Șterge captura de ecran",
+			"description": "Sigur vrei să ștergi definitiv această captură de ecran? Această acțiune este ireversibilă.",
+			"deleting": "Se șterge...",
+			"deletePermanently": "Șterge definitiv"
+		}
+	},
+	"servers": {
+		"title": "Servere dedicate",
+		"subtitle": "Creează, configurează și gestionează servere Minecraft locale cu nuclee Paper, Purpur, Fabric, Folia și Vanilla.",
+		"createServer": "Creează server",
+		"activeServers": "Servere active ({{count}}):",
+		"openConsole": "Deschide consola",
+		"stopServer": "Oprește serverul",
+		"searchPlaceholder": "Caută servere după nume, versiune, port...",
+		"allCores": "Toate nucleele",
+		"emptyTitle": "Niciun server creat încă",
+		"emptySubtitle": "Creează primul tău server Minecraft local. Ingot va descărca automat JAR-ul serverului, va accepta EULA, va configura portul și va pregăti Java.",
+		"createFirst": "Creează primul server",
+		"createCardTitle": "Creează server nou",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia sau Vanilla",
+		"noMatchTitle": "Niciun server nu corespunde filtrelor",
+		"noMatchSubtitle": "Încearcă să schimbi căutarea sau să selectezi „Toate nucleele”."
+	},
+	"settings": {
+		"title": "Setări launcher",
+		"subtitle": "Configurează conturile, limba, mediile Java, alocarea RAM și comportamentul launcherului.",
+		"language": {
+			"title": "Limbă",
+			"description": "Alege limba de afișare pentru interfața launcherului. Fișierele noi din src/locales/ se reîncarcă automat."
+		},
+		"accounts": {
+			"title": "Conturi și autentificare",
+			"description": "Conectează-ți conturile Ely.by sau profilurile offline. Tokenurile sunt păstrate în siguranță în seiful sistemului de operare.",
+			"keyringActive": "Keyring nativ SO activ: Tokenurile sunt criptate folosind Windows Credential Manager (DPAPI) / Keychain.",
+			"empty": "Niciun cont configurat încă. Apasă pe „Adaugă cont” pentru a începe cu Ely.by."
+		},
+		"memory": {
+			"title": "Alocare memorie (RAM)",
+			"description": "Configurează limitele inițială (Min) și maximă (Max) de RAM pentru Java și instanțele Minecraft.",
+			"totalRam": "RAM total",
+			"availableNow": "Memorie disponibilă în sistem chiar acum:",
+			"freePercent": "{{percent}}% liber",
+			"distribution": "Distribuția RAM a sistemului",
+			"allocated": "Alocat:",
+			"sliderTitle": "Cursor interval alocare",
+			"sliderHint": "Cursor 1: Min (-Xms) • Cursor 2: Max (-Xmx)",
+			"minMemoryLabel": "Memorie inițială (Min / -Xms)",
+			"maxMemoryLabel": "Memorie maximă (Max / -Xmx)",
+			"highMemoryWarningTitle": "Avertisment utilizare ridicată de memorie",
+			"highMemoryWarningDesc": "Alocarea a {{maxGb}} GB (> 80% din totalul de {{totalGb}} GB RAM) poate face ca aplicațiile din fundal, Discord sau Windows să nu mai răspundă.",
+			"memoryNoticeTitle": "Notificare memorie",
+			"memoryNoticeDesc": "RAM-ul maxim depășește memoria liberă actuală ({{availableGb}} GB). Închide aplicațiile solicitante înainte de a porni instanțe mari.",
+			"recommendedPresets": "Presetări recomandate:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Cu moduri",
+				"heavy": "Modpack mare",
+				"safeMax": "Max. sigur"
+			}
+		},
+		"behavior": {
+			"title": "Comportament launcher",
+			"description": "Alege ce se întâmplă când este pornită o instanță.",
+			"keepOpen": {
+				"label": "Păstrează deschis",
+				"description": "Rămâne deschis în fundal în timpul jocului"
+			},
+			"hideToTray": {
+				"label": "Ascunde în bara de sistem",
+				"description": "Minimizează în system tray și restaurează la ieșirea din joc"
+			},
+			"close": {
+				"label": "Închide launcherul",
+				"description": "Închide complet Ingot după pornirea jocului"
+			}
+		},
+		"window": {
+			"title": "Fereastră și afișare",
+			"description": "Configurează dimensiunile implicite ale ferestrei și pornirea în ecran complet.",
+			"fullscreenTitle": "Pornește în ecran complet",
+			"fullscreenDesc": "Lansează Minecraft direct în modul ecran complet",
+			"resolutionTitle": "Rezoluție implicită fereastră",
+			"resolutionDesc": "Setează lățimea și înălțimea personalizate pentru fereastra jocului",
+			"presets": "Presetări:",
+			"defaultPreset": "Implicit"
+		},
+		"sync": {
+			"title": "Sincronizare date joc",
+			"description": "Păstrează opțiunile Minecraft, serverele și pachetele de resurse sincronizate între toate instanțele.",
+			"items": {
+				"syncOptions": {
+					"title": "Sincronizează opțiunile jocului",
+					"description": "Setări video, volum audio, FOV, taste și accesibilitate"
+				},
+				"syncServers": {
+					"title": "Sincronizează serverele multiplayer",
+					"description": "Păstrează lista de servere salvate comună în toate instanțele"
+				},
+				"syncResourcePacks": {
+					"title": "Sincronizează pachetele de resurse",
+					"description": "Partajează toate pachetele de texturi și resurse descărcate între instanțe"
+				},
+				"syncCommandHistory": {
+					"title": "Sincronizează istoricul comenzilor",
+					"description": "Păstrează istoricul comenzilor din chat și consolă între sesiuni"
+				},
+				"syncCreativeHotbars": {
+					"title": "Sincronizează barele rapide din modul creativ",
+					"description": "Partajează barele de acces rapid salvate în modul creativ între lumi"
+				}
+			}
+		},
+		"updates": {
+			"title": "Actualizări și versiune",
+			"description": "Gestionează actualizările Ingot și asigură-te că folosești cele mai noi funcții și remedieri de securitate.",
+			"releaseChannel": "Canal de lansare",
+			"lastChecked": "Ultima verificare: {{time}}",
+			"checking": "Se verifică...",
+			"checkForUpdates": "Verifică actualizări",
+			"versionAvailable": "Versiunea v{{version}} este disponibilă!",
+			"changelog": "Jurnal modificări",
+			"downloadAndInstall": "Descarcă și instalează actualizarea",
+			"downloading": "Se descarcă Ingot v{{version}}...",
+			"installedTitle": "Actualizare instalată cu succes!",
+			"installedDesc": "Repornește Ingot pentru a lansa noua versiune.",
+			"restartIngot": "Repornește Ingot",
+			"upToDate": "Ingot este la zi. Rulezi cea mai recentă versiune.",
+			"errorTitle": "Nu s-au putut verifica actualizările"
+		},
+		"licenses": {
+			"title": "Licențe terțe",
+			"description": "Software open-source inclus sau descărcat de Ingot.",
+			"dialogSubtitle": "Ingot folosește acest software din alte proiecte. Fiecare are propria licență; apasă pe un nume pentru codul sursă și licența completă.",
+			"trademark": "Minecraft este o marcă înregistrată a Mojang AB. Ingot nu este afiliat cu Mojang sau Microsoft."
+		}
+	}
+}

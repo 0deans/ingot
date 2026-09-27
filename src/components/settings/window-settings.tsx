@@ -1,5 +1,6 @@
 import { Check, Maximize2, Monitor, RotateCcw } from "lucide-react"
 import { memo, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
@@ -14,6 +15,7 @@ const RESOLUTION_PRESETS = [
 ]
 
 export const WindowSettings = () => {
+	const { t } = useTranslation()
 	const { windowSettings, setWindowSettings } = useWindowSettings()
 	const [width, setWidth] = useState(windowSettings.width)
 	const [height, setHeight] = useState(windowSettings.height)
@@ -59,11 +61,9 @@ export const WindowSettings = () => {
 			<div className="flex flex-col gap-1">
 				<div className="flex items-center gap-2">
 					<Monitor className="size-4 text-sky-400" />
-					<h3 className="font-semibold text-foreground text-sm">Window & Display</h3>
+					<h3 className="font-semibold text-foreground text-sm">{t("settings.window.title")}</h3>
 				</div>
-				<p className="text-muted-foreground text-xs">
-					Configure default window dimensions and fullscreen startup mode for your instances.
-				</p>
+				<p className="text-muted-foreground text-xs">{t("settings.window.description")}</p>
 			</div>
 
 			{/* Fullscreen Option */}
@@ -74,10 +74,10 @@ export const WindowSettings = () => {
 					</div>
 					<div>
 						<div className="font-medium text-foreground text-xs sm:text-sm">
-							Start in Fullscreen
+							{t("settings.window.fullscreenTitle")}
 						</div>
 						<div className="text-[11px] text-muted-foreground">
-							Launch Minecraft directly into borderless or exclusive fullscreen
+							{t("settings.window.fullscreenDesc")}
 						</div>
 					</div>
 				</div>
@@ -91,10 +91,10 @@ export const WindowSettings = () => {
 					<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<div className="font-medium text-foreground text-xs sm:text-sm">
-								Default Window Resolution
+								{t("settings.window.resolutionTitle")}
 							</div>
 							<div className="text-[11px] text-muted-foreground">
-								Set custom width and height for game window
+								{t("settings.window.resolutionDesc")}
 							</div>
 						</div>
 
@@ -141,7 +141,9 @@ export const WindowSettings = () => {
 
 					{/* Quick Presets */}
 					<div className="flex flex-wrap items-center gap-1.5 pt-1">
-						<span className="mr-1 text-[11px] text-muted-foreground">Presets:</span>
+						<span className="mr-1 text-[11px] text-muted-foreground">
+							{t("settings.window.presets")}
+						</span>
 						{RESOLUTION_PRESETS.map((preset) => {
 							const isCurrent =
 								windowSettings.width === preset.width && windowSettings.height === preset.height
@@ -158,7 +160,13 @@ export const WindowSettings = () => {
 								>
 									{isCurrent && <Check className="size-3" />}
 									<span>{preset.label}</span>
-									<span className="text-[10px] text-muted-foreground">({preset.description})</span>
+									<span className="text-[10px] text-muted-foreground">
+										(
+										{preset.description === "Default"
+											? t("settings.window.defaultPreset")
+											: preset.description}
+										)
+									</span>
 								</button>
 							)
 						})}

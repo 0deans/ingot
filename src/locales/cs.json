@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Czech",
+		"nativeName": "Čeština"
+	},
+	"common": {
+		"cancel": "Zrušit",
+		"continue": "Pokračovat",
+		"save": "Uložit změny",
+		"delete": "Smazat",
+		"install": "Instalovat",
+		"installed": "Nainstalováno",
+		"search": "Hledat...",
+		"active": "Aktivní",
+		"refresh": "Obnovit",
+		"clearSearch": "Vymazat hledání",
+		"clearFilters": "Vymazat filtry",
+		"resetFilters": "Resetovat filtry",
+		"tryAgain": "Zkusit znovu",
+		"openFolder": "Otevřít složku",
+		"view": "Zobrazit",
+		"close": "Zavřít",
+		"minimize": "Minimalizovat",
+		"maximize": "Maximalizovat",
+		"restore": "Obnovit",
+		"justNow": "Právě teď",
+		"never": "Nikdy",
+		"minutesAgo": "před {{count}} min",
+		"hoursAgo": "před {{count}} hod",
+		"daysAgo": "před {{count}} dny"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Vyberte svůj jazyk",
+		"selectLanguageSubtitle": "Zvolte preferovaný jazyk rozhraní aplikace Ingot. Kdykoli jej můžete změnit v Nastavení.",
+		"detectedBadge": "Výchozí systémový",
+		"continueWith": "Pokračovat ({{language}})"
+	},
+	"nav": {
+		"instances": "Instance",
+		"discover": "Objevovat",
+		"skins": "Katalog skinů",
+		"screenshots": "Snímky obrazovky",
+		"servers": "Dedikované servery",
+		"settings": "Nastavení",
+		"language": "Jazyk"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} je připraven k instalaci!",
+		"downloading": "Stahování aktualizace v{{version}}... ({{progress}}%)",
+		"available": "Nová verze k dispozici: Ingot v{{version}}",
+		"currentVersion": "Aktuální: v{{version}}",
+		"restartNow": "Restartovat nyní",
+		"updateNow": "Aktualizovat nyní",
+		"dismiss": "Skrýt"
+	},
+	"accounts": {
+		"player": "Hráč",
+		"noAccount": "Žádný účet",
+		"addAccount": "Přidat účet",
+		"addAccountEllipsis": "Přidat účet...",
+		"manageAccounts": "Spravovat účty",
+		"userProfile": "Uživatelský profil",
+		"securedViaEly": "Zabezpečeno přes Ely.by",
+		"securedInVault": "Zabezpečeno v trezoru",
+		"localProfile": "Místní profil",
+		"minecraftAccounts": "Účty Minecraft",
+		"linkedCount": "{{count}} propojeno",
+		"noAccountsYet": "Zatím nejsou nastaveny žádné účty.",
+		"previewSkin": "3D náhled skinu",
+		"removeAccount": "Odebrat účet",
+		"setAsActive": "Nastavit jako aktivní"
+	},
+	"instances": {
+		"searchPlaceholder": "Hledat instance...",
+		"import": "Importovat",
+		"newInstance": "Nová instance",
+		"activeInstances": "Aktivní instance ({{count}}):",
+		"stopProcess": "Zastavit proces",
+		"allInstances": "Všechny instance",
+		"emptyTitle": "Zatím nebyly vytvořeny žádné instance",
+		"emptySubtitle": "Vytvořte svou první instanci Minecraftu a začněte hrát. Můžete zvolit Vanilla nebo zavaděče modů jako Fabric, Quilt či Forge.",
+		"createFirst": "Vytvořit první instanci",
+		"importFromLauncher": "Importovat z jiného launcheru",
+		"createCardTitle": "Vytvořit novou instanci",
+		"createCardSubtitle": "Zvolte libovolnou verzi nebo zavaděč modů",
+		"noMatchTitle": "Žádné instance neodpovídají „{{query}}“",
+		"noMatchSubtitle": "Zkuste hledat jiný název, verzi nebo zavaděč modů.",
+		"card": {
+			"neverPlayed": "Nikdy nehráno",
+			"preparing": "Příprava",
+			"preparingBtn": "Příprava...",
+			"play": "Hrát",
+			"stop": "Zastavit",
+			"customRam": "(Vlastní)",
+			"customRamTooltip": "Vlastní limit paměti pro tuto instanci",
+			"globalRamTooltip": "Převzato z globálního nastavení",
+			"playedDuration": "Odehráno {{duration}}",
+			"quickPlay": "Rychlá hra",
+			"quickPlayOptions": "Možnosti rychlé hry",
+			"directConnect": "Přímé připojení...",
+			"directConnectDesc": "Připojit se přímo na server",
+			"quickLoadWorld": "Rychle načíst svět",
+			"quickLoadWorldDesc": "Skočit rovnou do uloženého světa",
+			"singleplayerSaves": "Světy pro jednoho hráče",
+			"scanningWorlds": "Hledání světů...",
+			"noSavedWorlds": "V této instanci nebyly nalezeny žádné uložené světy.",
+			"requires120": "Vyžaduje Minecraft 1.20+",
+			"openFolderTooltip": "Otevřít složku instance v Průzkumníku",
+			"settingsTooltip": "Nastavení instance (RAM, argumenty JVM)",
+			"deleteTooltip": "Smazat instanci"
+		}
+	},
+	"modpacks": {
+		"title": "Objevovat obsah",
+		"subtitle": "Vyhledávejte a instalujte mody, modpacky, balíčky zdrojů a shadery přímo do svých instancí z Modrinth a CurseForge.",
+		"searchPlaceholder": "Hledat mody, modpacky, balíčky zdrojů, shadery...",
+		"categories": {
+			"all": "Všechny typy",
+			"modpack": "Modpacky",
+			"mod": "Mody",
+			"resourcepack": "Balíčky zdrojů",
+			"shader": "Shadery"
+		},
+		"sources": {
+			"all": "Všechny zdroje",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Zavaděč:",
+			"allLoaders": "Všechny zavaděče",
+			"version": "Verze:",
+			"allVersions": "Všechny verze",
+			"sort": "Řadit:",
+			"sortBy": "Řadit podle"
+		},
+		"sorts": {
+			"downloads": "Nejvíce stažení",
+			"relevance": "Relevance",
+			"updated": "Nedávno aktualizované",
+			"newest": "Nejnovější"
+		},
+		"searching": "Vyhledávání obsahu...",
+		"foundResults": "Nalezeno výsledků: {{count}}",
+		"noResults": "Žádné výsledky",
+		"pageOf": "Stránka {{page}} z {{total}}",
+		"noMatchTitle": "Žádný obsah neodpovídá filtrům",
+		"noMatchSubtitle": "Zkuste upravit hledaný výraz, změnit zavaděč modů nebo přepnout zdroj.",
+		"resetAllFilters": "Resetovat všechny filtry",
+		"byAuthor": "od {{author}}",
+		"noDescription": "Popis není k dispozici.",
+		"details": "Podrobnosti"
+	},
+	"skins": {
+		"title": "Katalog skinů",
+		"subtitle": "Prohlížejte skiny z Ely.by, spravujte vlastní sbírku nebo nahrajte vlastní skin.",
+		"tabs": {
+			"catalog": "Katalog",
+			"mySkins": "Moje skiny",
+			"upload": "Nahrát skin"
+		},
+		"sorts": {
+			"wearers": "Populární",
+			"latest": "Nejnovější",
+			"views": "Zobrazení",
+			"cubes": "To se mi líbí"
+		},
+		"models": {
+			"any": "Všechny modely",
+			"steve": "Klasický (Steve)",
+			"slim": "Tenký (Alex)"
+		},
+		"searchPlaceholder": "Hledat skiny podle jména nebo štítku..."
+	},
+	"screenshots": {
+		"title": "Snímky obrazovky",
+		"subtitle": "Galerie snímků obrazovky pořízených ve hře napříč všemi vašimi instancemi",
+		"refreshTooltip": "Obnovit snímky",
+		"searchPlaceholder": "Hledat snímky obrazovky...",
+		"allInstances": "Všechny instance",
+		"allInstancesCount": "Všechny instance ({{count}})",
+		"selectedInstance": "Vybraná instance",
+		"sorts": {
+			"date-desc": "Od nejnovějších",
+			"date-asc": "Od nejstarších",
+			"name-asc": "Název (A-Z)",
+			"name-desc": "Název (Z-A)",
+			"size-desc": "Největší velikost",
+			"size-asc": "Nejmenší velikost"
+		},
+		"emptyTitle": "Nebyly nalezeny žádné snímky obrazovky",
+		"emptySubtitlePrefix": "Pořizujte snímky obrazovky během hraní Minecraftu stisknutím klávesy",
+		"emptySubtitleSuffix": ". Automaticky se zobrazí v této galerii.",
+		"checkAgain": "Zkontrolovat znovu",
+		"noMatchTitle": "Žádné odpovídající snímky",
+		"noMatchSubtitle": "Žádné snímky neodpovídají vašemu hledání nebo filtru. Vymažte filtry pro zobrazení všech.",
+		"deleteDialog": {
+			"title": "Smazat snímek obrazovky",
+			"description": "Opravdu chcete tento snímek obrazovky trvale smazat? Tuto akci nelze vrátit zpět.",
+			"deleting": "Mazání...",
+			"deletePermanently": "Smazat trvale"
+		}
+	},
+	"servers": {
+		"title": "Dedikované servery",
+		"subtitle": "Vytvářejte, konfigurujte a spravujte lokální servery Minecraft s jádry Paper, Purpur, Fabric, Folia a Vanilla.",
+		"createServer": "Vytvořit server",
+		"activeServers": "Aktivní servery ({{count}}):",
+		"openConsole": "Otevřít konzoli",
+		"stopServer": "Zastavit server",
+		"searchPlaceholder": "Hledat servery podle názvu, verze, portu...",
+		"allCores": "Všechna jádra",
+		"emptyTitle": "Zatím nebyly vytvořeny žádné servery",
+		"emptySubtitle": "Vytvořte svůj první lokální server Minecraft. Ingot automaticky stáhne JAR serveru, přijme EULA, nastaví port a připraví prostředí Java.",
+		"createFirst": "Vytvořit první server",
+		"createCardTitle": "Vytvořit nový server",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia nebo Vanilla",
+		"noMatchTitle": "Žádný server neodpovídá filtrům",
+		"noMatchSubtitle": "Zkuste změnit hledaný výraz nebo vybrat „Všechna jádra“."
+	},
+	"settings": {
+		"title": "Nastavení launcheru",
+		"subtitle": "Nastavte účty, jazyk, prostředí Java, přidělení paměti RAM a chování launcheru.",
+		"language": {
+			"title": "Jazyk",
+			"description": "Zvolte jazyk zobrazení rozhraní launcheru. Nové jazykové soubory v src/locales/ se načítají automaticky."
+		},
+		"accounts": {
+			"title": "Účty a ověřování",
+			"description": "Připojte své účty Ely.by nebo offline profily. Citlivé tokeny jsou bezpečně uloženy v systémovém trezoru.",
+			"keyringActive": "Systémová klíčenka aktivní: Tokeny jsou šifrovány pomocí Správce pověření systému Windows (DPAPI) / Keychain.",
+			"empty": "Zatím nejsou nastaveny žádné účty. Klikněte na „Přidat účet“ a začněte s Ely.by."
+		},
+		"memory": {
+			"title": "Přidělení paměti (RAM)",
+			"description": "Nastavte počáteční (Min) a maximální (Max) limity paměti RAM pro Javu a instance Minecraftu.",
+			"totalRam": "Celková RAM",
+			"availableNow": "Aktuálně volná paměť počítače:",
+			"freePercent": "{{percent}}% volných",
+			"distribution": "Rozložení paměti RAM počítače",
+			"allocated": "Přiděleno:",
+			"sliderTitle": "Posuvník rozsahu paměti",
+			"sliderHint": "Posuvník 1: Min (-Xms) • Posuvník 2: Max (-Xmx)",
+			"minMemoryLabel": "Počáteční paměť (Min / -Xms)",
+			"maxMemoryLabel": "Maximální paměť (Max / -Xmx)",
+			"highMemoryWarningTitle": "Varování před vysokým využitím paměti",
+			"highMemoryWarningDesc": "Přidělení {{maxGb}} GB (> 80 % z vašich {{totalGb}} GB celkové RAM) může způsobit zamrzání aplikací na pozadí, Discordu nebo systému Windows.",
+			"memoryNoticeTitle": "Upozornění na paměť",
+			"memoryNoticeDesc": "Maximální RAM překračuje aktuálně volnou paměť ({{availableGb}} GB). Před spuštěním náročných modpacků ukončete náročné aplikace na pozadí.",
+			"recommendedPresets": "Doporučené předvolby:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "S mody",
+				"heavy": "Velký modpack",
+				"safeMax": "Bezpečné max."
+			}
+		},
+		"behavior": {
+			"title": "Chování launcheru",
+			"description": "Zvolte, co se má stát po spuštění instance.",
+			"keepOpen": {
+				"label": "Ponechat otevřený",
+				"description": "Zůstat otevřený na pozadí během hraní"
+			},
+			"hideToTray": {
+				"label": "Skrýt do oznamovací oblasti",
+				"description": "Minimalizovat do lišty a obnovit po ukončení hry"
+			},
+			"close": {
+				"label": "Zavřít launcher",
+				"description": "Úplně ukončit Ingot po spuštění hry"
+			}
+		},
+		"window": {
+			"title": "Okno a zobrazení",
+			"description": "Nastavte výchozí rozměry okna a spouštění v režimu celé obrazovky pro vaše instance.",
+			"fullscreenTitle": "Spouštět na celou obrazovku",
+			"fullscreenDesc": "Spustit Minecraft přímo v režimu celé obrazovky",
+			"resolutionTitle": "Výchozí rozlišení okna",
+			"resolutionDesc": "Nastavte vlastní šířku a výšku herního okna",
+			"presets": "Předvolby:",
+			"defaultPreset": "Výchozí"
+		},
+		"sync": {
+			"title": "Synchronizace herních dat",
+			"description": "Udržujte nastavení Minecraftu, seznam serverů a balíčky zdrojů sjednocené napříč všemi instancemi.",
+			"items": {
+				"syncOptions": {
+					"title": "Synchronizovat nastavení hry",
+					"description": "Nastavení grafiky, hlasitost zvuku, FOV, ovládání a přístupnost"
+				},
+				"syncServers": {
+					"title": "Synchronizovat servery pro více hráčů",
+					"description": "Udržovat jednotný seznam uložených serverů ve všech instancích"
+				},
+				"syncResourcePacks": {
+					"title": "Synchronizovat balíčky zdrojů",
+					"description": "Sdílet všechny stažené balíčky textur a zdrojů mezi instancemi"
+				},
+				"syncCommandHistory": {
+					"title": "Synchronizovat historii příkazů",
+					"description": "Zachovat historii příkazů v chatu a konzoli mezi spuštěními"
+				},
+				"syncCreativeHotbars": {
+					"title": "Synchronizovat lišty kreativního režimu",
+					"description": "Sdílet uložené rychlé lišty v kreativním režimu mezi světy"
+				}
+			}
+		},
+		"updates": {
+			"title": "Aktualizace a verze",
+			"description": "Spravujte aktualizace aplikace Ingot a používejte vždy nejnovější funkce a bezpečnostní opravy.",
+			"releaseChannel": "Kanál vydání",
+			"lastChecked": "Naposledy zkontrolováno: {{time}}",
+			"checking": "Kontrola...",
+			"checkForUpdates": "Zkontrolovat aktualizace",
+			"versionAvailable": "Verze v{{version}} je k dispozici!",
+			"changelog": "Seznam změn",
+			"downloadAndInstall": "Stáhnout a nainstalovat aktualizaci",
+			"downloading": "Stahování Ingot v{{version}}...",
+			"installedTitle": "Aktualizace byla úspěšně nainstalována!",
+			"installedDesc": "Restartujte Ingot pro spuštění nové verze.",
+			"restartIngot": "Restartovat Ingot",
+			"upToDate": "Ingot je aktuální. Používáte nejnovější verzi.",
+			"errorTitle": "Nepodařilo se zkontrolovat aktualizace"
+		},
+		"licenses": {
+			"title": "Licence třetích stran",
+			"description": "Open-source software, který Ingot obsahuje nebo stahuje.",
+			"dialogSubtitle": "Ingot využívá tento software z jiných projektů. Každý z nich podléhá vlastní licenci; kliknutím na název zobrazíte zdrojový kód a plné znění licence.",
+			"trademark": "Minecraft je ochranná známka společnosti Mojang AB. Ingot není spojen se společnostmi Mojang ani Microsoft."
+		}
+	}
+}

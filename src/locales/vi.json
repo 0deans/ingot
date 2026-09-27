@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Vietnamese",
+		"nativeName": "Tiếng Việt"
+	},
+	"common": {
+		"cancel": "Hủy",
+		"continue": "Tiếp tục",
+		"save": "Lưu thay đổi",
+		"delete": "Xóa",
+		"install": "Cài đặt",
+		"installed": "Đã cài đặt",
+		"search": "Tìm kiếm...",
+		"active": "Đang dùng",
+		"refresh": "Làm mới",
+		"clearSearch": "Xóa tìm kiếm",
+		"clearFilters": "Xóa bộ lọc",
+		"resetFilters": "Đặt lại bộ lọc",
+		"tryAgain": "Thử lại",
+		"openFolder": "Mở thư mục",
+		"view": "Xem",
+		"close": "Đóng",
+		"minimize": "Thu nhỏ",
+		"maximize": "Phóng to",
+		"restore": "Khôi phục",
+		"justNow": "Vừa xong",
+		"never": "Chưa từng",
+		"minutesAgo": "{{count}} phút trước",
+		"hoursAgo": "{{count}} giờ trước",
+		"daysAgo": "{{count}} ngày trước"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Chọn ngôn ngữ của bạn",
+		"selectLanguageSubtitle": "Chọn ngôn ngữ hiển thị ưa thích cho Ingot. Bạn có thể thay đổi bất cứ lúc nào trong phần Cài đặt.",
+		"detectedBadge": "Mặc định hệ thống",
+		"continueWith": "Tiếp tục bằng {{language}}"
+	},
+	"nav": {
+		"instances": "Phiên bản",
+		"discover": "Khám phá",
+		"skins": "Kho Skin",
+		"screenshots": "Ảnh chụp màn hình",
+		"servers": "Máy chủ riêng",
+		"settings": "Cài đặt",
+		"language": "Ngôn ngữ"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} đã sẵn sàng để cài đặt!",
+		"downloading": "Đang tải bản cập nhật v{{version}}... ({{progress}}%)",
+		"available": "Đã có phiên bản mới: Ingot v{{version}}",
+		"currentVersion": "Hiện tại: v{{version}}",
+		"restartNow": "Khởi động lại ngay",
+		"updateNow": "Cập nhật ngay",
+		"dismiss": "Bỏ qua"
+	},
+	"accounts": {
+		"player": "Người chơi",
+		"noAccount": "Chưa có tài khoản",
+		"addAccount": "Thêm tài khoản",
+		"addAccountEllipsis": "Thêm tài khoản...",
+		"manageAccounts": "Quản lý tài khoản",
+		"userProfile": "Hồ sơ người dùng",
+		"securedViaEly": "Bảo mật qua Ely.by",
+		"securedInVault": "Bảo mật trong két sắt hệ thống",
+		"localProfile": "Hồ sơ ngoại tuyến",
+		"minecraftAccounts": "Tài khoản Minecraft",
+		"linkedCount": "Đã liên kết {{count}}",
+		"noAccountsYet": "Chưa có tài khoản nào được thiết lập.",
+		"previewSkin": "Xem trước skin 3D",
+		"removeAccount": "Xóa tài khoản",
+		"setAsActive": "Đặt làm tài khoản chính"
+	},
+	"instances": {
+		"searchPlaceholder": "Tìm kiếm phiên bản...",
+		"import": "Nhập",
+		"newInstance": "Phiên bản mới",
+		"activeInstances": "Đang chạy ({{count}}):",
+		"stopProcess": "Dừng tiến trình",
+		"allInstances": "Tất cả phiên bản",
+		"emptyTitle": "Chưa có phiên bản nào được tạo",
+		"emptySubtitle": "Tạo phiên bản Minecraft đầu tiên để bắt đầu chơi. Bạn có thể chọn bản gốc (Vanilla) hoặc các trình nạp mod như Fabric, Quilt hay Forge.",
+		"createFirst": "Tạo phiên bản đầu tiên",
+		"importFromLauncher": "Nhập từ trình khởi chạy khác",
+		"createCardTitle": "Tạo phiên bản mới",
+		"createCardSubtitle": "Chọn bất kỳ phiên bản hoặc trình nạp mod nào",
+		"noMatchTitle": "Không tìm thấy phiên bản nào khớp với \"{{query}}\"",
+		"noMatchSubtitle": "Hãy thử tìm theo tên, phiên bản hoặc trình nạp mod khác.",
+		"card": {
+			"neverPlayed": "Chưa từng chơi",
+			"preparing": "Đang chuẩn bị",
+			"preparingBtn": "Đang chuẩn bị...",
+			"play": "Chơi",
+			"stop": "Dừng",
+			"customRam": "(Tùy chỉnh)",
+			"customRamTooltip": "Giới hạn RAM riêng cho phiên bản này",
+			"globalRamTooltip": "Kế thừa từ cài đặt chung",
+			"playedDuration": "Đã chơi {{duration}}",
+			"quickPlay": "Chơi nhanh",
+			"quickPlayOptions": "Tùy chọn chơi nhanh",
+			"directConnect": "Kết nối trực tiếp...",
+			"directConnectDesc": "Vào thẳng một máy chủ",
+			"quickLoadWorld": "Tải nhanh thế giới",
+			"quickLoadWorldDesc": "Vào thẳng thế giới đã lưu",
+			"singleplayerSaves": "Thế giới chơi đơn",
+			"scanningWorlds": "Đang quét thế giới...",
+			"noSavedWorlds": "Không tìm thấy thế giới đã lưu nào trong phiên bản này.",
+			"requires120": "Yêu cầu Minecraft 1.20+",
+			"openFolderTooltip": "Mở thư mục phiên bản trong File Explorer",
+			"settingsTooltip": "Cài đặt phiên bản (RAM, tham số JVM)",
+			"deleteTooltip": "Xóa phiên bản"
+		}
+	},
+	"modpacks": {
+		"title": "Khám phá nội dung",
+		"subtitle": "Tìm kiếm và cài đặt mod, modpack, gói tài nguyên và shader trực tiếp vào các phiên bản của bạn từ Modrinth và CurseForge.",
+		"searchPlaceholder": "Tìm kiếm mod, modpack, gói tài nguyên, shader...",
+		"categories": {
+			"all": "Tất cả loại",
+			"modpack": "Modpack",
+			"mod": "Mod",
+			"resourcepack": "Gói tài nguyên",
+			"shader": "Shader"
+		},
+		"sources": {
+			"all": "Tất cả nguồn",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Trình nạp:",
+			"allLoaders": "Tất cả trình nạp",
+			"version": "Phiên bản:",
+			"allVersions": "Tất cả phiên bản",
+			"sort": "Sắp xếp:",
+			"sortBy": "Sắp xếp theo"
+		},
+		"sorts": {
+			"downloads": "Tải nhiều nhất",
+			"relevance": "Phù hợp nhất",
+			"updated": "Mới cập nhật",
+			"newest": "Mới nhất"
+		},
+		"searching": "Đang tìm kiếm nội dung...",
+		"foundResults": "Tìm thấy {{count}} kết quả",
+		"noResults": "Không có kết quả",
+		"pageOf": "Trang {{page}} / {{total}}",
+		"noMatchTitle": "Không có nội dung nào khớp với bộ lọc",
+		"noMatchSubtitle": "Hãy thử thay đổi từ khóa tìm kiếm, trình nạp mod hoặc nguồn.",
+		"resetAllFilters": "Đặt lại tất cả bộ lọc",
+		"byAuthor": "bởi {{author}}",
+		"noDescription": "Không có mô tả.",
+		"details": "Chi tiết"
+	},
+	"skins": {
+		"title": "Kho Skin",
+		"subtitle": "Duyệt skin từ Ely.by, quản lý bộ sưu tập cá nhân hoặc tải lên skin tùy chỉnh.",
+		"tabs": {
+			"catalog": "Kho Skin",
+			"mySkins": "Skin của tôi",
+			"upload": "Tải skin lên"
+		},
+		"sorts": {
+			"wearers": "Phổ biến",
+			"latest": "Mới nhất",
+			"views": "Lượt xem",
+			"cubes": "Lượt thích"
+		},
+		"models": {
+			"any": "Tất cả kiểu dáng",
+			"steve": "Cổ điển (Steve)",
+			"slim": "Thon gọn (Alex)"
+		},
+		"searchPlaceholder": "Tìm skin theo tên người dùng hoặc thẻ..."
+	},
+	"screenshots": {
+		"title": "Ảnh chụp màn hình",
+		"subtitle": "Thư viện ảnh chụp trong trò chơi từ tất cả các phiên bản của bạn",
+		"refreshTooltip": "Làm mới ảnh chụp",
+		"searchPlaceholder": "Tìm kiếm ảnh chụp màn hình...",
+		"allInstances": "Tất cả phiên bản",
+		"allInstancesCount": "Tất cả phiên bản ({{count}})",
+		"selectedInstance": "Phiên bản đã chọn",
+		"sorts": {
+			"date-desc": "Mới nhất trước",
+			"date-asc": "Cũ nhất trước",
+			"name-asc": "Tên (A-Z)",
+			"name-desc": "Tên (Z-A)",
+			"size-desc": "Dung lượng lớn nhất",
+			"size-asc": "Dung lượng nhỏ nhất"
+		},
+		"emptyTitle": "Không tìm thấy ảnh chụp màn hình",
+		"emptySubtitlePrefix": "Chụp ảnh màn hình khi đang chơi Minecraft bằng cách nhấn",
+		"emptySubtitleSuffix": ". Ảnh sẽ tự động xuất hiện trong thư viện này.",
+		"checkAgain": "Kiểm tra lại",
+		"noMatchTitle": "Không có ảnh chụp khớp",
+		"noMatchSubtitle": "Không có ảnh chụp màn hình nào khớp với tìm kiếm hoặc bộ lọc của bạn.",
+		"deleteDialog": {
+			"title": "Xóa ảnh chụp màn hình",
+			"description": "Bạn có chắc chắn muốn xóa vĩnh viễn ảnh chụp màn hình này không? Hành động này không thể hoàn tác.",
+			"deleting": "Đang xóa...",
+			"deletePermanently": "Xóa vĩnh viễn"
+		}
+	},
+	"servers": {
+		"title": "Máy chủ riêng",
+		"subtitle": "Tạo, cấu hình và quản lý máy chủ Minecraft cục bộ với nhân Paper, Purpur, Fabric, Folia và Vanilla.",
+		"createServer": "Tạo máy chủ",
+		"activeServers": "Máy chủ đang chạy ({{count}}):",
+		"openConsole": "Mở bảng điều khiển",
+		"stopServer": "Dừng máy chủ",
+		"searchPlaceholder": "Tìm máy chủ theo tên, phiên bản, cổng...",
+		"allCores": "Tất cả nhân",
+		"emptyTitle": "Chưa có máy chủ nào được tạo",
+		"emptySubtitle": "Tạo máy chủ Minecraft cục bộ đầu tiên của bạn. Ingot sẽ tự động tải JAR máy chủ, chấp nhận EULA, cấu hình cổng và thiết lập Java.",
+		"createFirst": "Tạo máy chủ đầu tiên",
+		"createCardTitle": "Tạo máy chủ mới",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia hoặc Vanilla",
+		"noMatchTitle": "Không có máy chủ nào khớp với bộ lọc",
+		"noMatchSubtitle": "Hãy thử thay đổi từ khóa tìm kiếm hoặc chọn \"Tất cả nhân\"."
+	},
+	"settings": {
+		"title": "Cài đặt trình khởi chạy",
+		"subtitle": "Cấu hình tài khoản, ngôn ngữ, môi trường Java, phân bổ RAM và hành vi trình khởi chạy.",
+		"language": {
+			"title": "Ngôn ngữ",
+			"description": "Chọn ngôn ngữ hiển thị cho giao diện trình khởi chạy. Các tệp ngôn ngữ mới trong src/locales/ sẽ tự động được nạp."
+		},
+		"accounts": {
+			"title": "Tài khoản & Xác thực",
+			"description": "Kết nối tài khoản Ely.by hoặc ngoại tuyến của bạn. Mã thông báo được bảo mật trong Kho thông tin xác thực của hệ điều hành.",
+			"keyringActive": "Chuỗi khóa hệ điều hành đang bật: Mã thông báo được mã hóa qua Windows Credential Manager (DPAPI) / Keychain.",
+			"empty": "Chưa có tài khoản nào được thiết lập. Nhấn \"Thêm tài khoản\" để bắt đầu với Ely.by."
+		},
+		"memory": {
+			"title": "Phân bổ bộ nhớ (RAM)",
+			"description": "Cấu hình giới hạn RAM ban đầu (Min) và tối đa (Max) cho Java và các phiên bản Minecraft.",
+			"totalRam": "Tổng RAM",
+			"availableNow": "Bộ nhớ trống hiện tại của máy:",
+			"freePercent": "Trống {{percent}}%",
+			"distribution": "Phân bổ RAM hệ thống",
+			"allocated": "Đã cấp phát:",
+			"sliderTitle": "Thanh trượt phạm vi bộ nhớ",
+			"sliderHint": "Nút 1: Min (-Xms) • Nút 2: Max (-Xmx)",
+			"minMemoryLabel": "Bộ nhớ ban đầu (Min / -Xms)",
+			"maxMemoryLabel": "Bộ nhớ tối đa (Max / -Xmx)",
+			"highMemoryWarningTitle": "Cảnh báo mức bộ nhớ cao",
+			"highMemoryWarningDesc": "Cấp phát {{maxGb}} GB (> 80% tổng {{totalGb}} GB RAM) có thể khiến các ứng dụng chạy nền, Discord hoặc Windows bị treo.",
+			"memoryNoticeTitle": "Lưu ý bộ nhớ",
+			"memoryNoticeDesc": "RAM tối đa lớn hơn lượng bộ nhớ trống hiện tại ({{availableGb}} GB). Hãy đóng các ứng dụng nặng trước khi chạy gói mod lớn.",
+			"recommendedPresets": "Mức đề xuất:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Có Mod",
+				"heavy": "Modpack nặng",
+				"safeMax": "Tối đa an toàn"
+			}
+		},
+		"behavior": {
+			"title": "Hành vi trình khởi chạy",
+			"description": "Chọn hành động khi một phiên bản trò chơi được khởi chạy.",
+			"keepOpen": {
+				"label": "Giữ mở",
+				"description": "Tiếp tục mở ở chế độ nền trong khi chơi"
+			},
+			"hideToTray": {
+				"label": "Ẩn xuống khay hệ thống",
+				"description": "Thu nhỏ xuống khay hệ thống và khôi phục khi thoát trò chơi"
+			},
+			"close": {
+				"label": "Đóng trình khởi chạy",
+				"description": "Đóng hoàn toàn Ingot sau khi trò chơi bắt đầu"
+			}
+		},
+		"window": {
+			"title": "Cửa sổ & Hiển thị",
+			"description": "Cấu hình kích thước cửa sổ mặc định và chế độ khởi động toàn màn hình.",
+			"fullscreenTitle": "Khởi động toàn màn hình",
+			"fullscreenDesc": "Mở Minecraft trực tiếp ở chế độ toàn màn hình",
+			"resolutionTitle": "Độ phân giải cửa sổ mặc định",
+			"resolutionDesc": "Đặt chiều rộng và chiều cao tùy chỉnh cho cửa sổ trò chơi",
+			"presets": "Mức đặt sẵn:",
+			"defaultPreset": "Mặc định"
+		},
+		"sync": {
+			"title": "Đồng bộ dữ liệu trò chơi",
+			"description": "Giữ nguyên cài đặt Minecraft, danh sách máy chủ và gói tài nguyên đồng nhất giữa mọi phiên bản.",
+			"items": {
+				"syncOptions": {
+					"title": "Đồng bộ tùy chọn trò chơi",
+					"description": "Cài đặt đồ họa, âm lượng, FOV, phím tắt và trợ năng"
+				},
+				"syncServers": {
+					"title": "Đồng bộ máy chủ nhiều người chơi",
+					"description": "Duy trì danh sách máy chủ đã lưu thống nhất trên mọi phiên bản"
+				},
+				"syncResourcePacks": {
+					"title": "Đồng bộ gói tài nguyên",
+					"description": "Chia sẻ tất cả gói tài nguyên và texture đã tải giữa các phiên bản"
+				},
+				"syncCommandHistory": {
+					"title": "Đồng bộ lịch sử lệnh",
+					"description": "Lưu giữ lịch sử trò chuyện và lệnh bảng điều khiển giữa các lần chơi"
+				},
+				"syncCreativeHotbars": {
+					"title": "Đồng bộ thanh công cụ Sáng tạo",
+					"description": "Chia sẻ thanh công cụ nhanh đã lưu trong chế độ Sáng tạo giữa các thế giới"
+				}
+			}
+		},
+		"updates": {
+			"title": "Cập nhật & Phiên bản",
+			"description": "Quản lý bản cập nhật Ingot và đảm bảo bạn luôn sử dụng các tính năng mới nhất.",
+			"releaseChannel": "Kênh phát hành",
+			"lastChecked": "Kiểm tra lần cuối: {{time}}",
+			"checking": "Đang kiểm tra...",
+			"checkForUpdates": "Kiểm tra cập nhật",
+			"versionAvailable": "Phiên bản v{{version}} đã sẵn sàng!",
+			"changelog": "Nhật ký thay đổi",
+			"downloadAndInstall": "Tải xuống & Cài đặt bản cập nhật",
+			"downloading": "Đang tải Ingot v{{version}}...",
+			"installedTitle": "Cập nhật thành công!",
+			"installedDesc": "Khởi động lại Ingot để chạy phiên bản mới.",
+			"restartIngot": "Khởi động lại Ingot",
+			"upToDate": "Ingot đã ở phiên bản mới nhất.",
+			"errorTitle": "Không thể kiểm tra cập nhật"
+		},
+		"licenses": {
+			"title": "Giấy phép bên thứ ba",
+			"description": "Phần mềm mã nguồn mở mà Ingot bao gồm hoặc tải xuống.",
+			"dialogSubtitle": "Ingot sử dụng các phần mềm từ những dự án khác. Mỗi dự án có giấy phép riêng; nhấn vào tên để xem mã nguồn và toàn bộ giấy phép.",
+			"trademark": "Minecraft là thương hiệu của Mojang AB. Ingot không liên kết với Mojang hay Microsoft."
+		}
+	}
+}

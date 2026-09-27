@@ -3,6 +3,7 @@ import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/rea
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import React from "react"
 import ReactDOM from "react-dom/client"
+import "@/i18n"
 import "./index.css"
 import { recordLocation } from "./lib/tab-history"
 import { routeTree } from "./routeTree.gen"

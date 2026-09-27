@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Russian",
+		"nativeName": "Русский"
+	},
+	"common": {
+		"cancel": "Отмена",
+		"continue": "Продолжить",
+		"save": "Сохранить",
+		"delete": "Удалить",
+		"install": "Установить",
+		"installed": "Установлено",
+		"search": "Поиск...",
+		"active": "Активно",
+		"refresh": "Обновить",
+		"clearSearch": "Очистить поиск",
+		"clearFilters": "Сбросить фильтры",
+		"resetFilters": "Сбросить фильтры",
+		"tryAgain": "Повторить",
+		"openFolder": "Открыть папку",
+		"view": "Открыть",
+		"close": "Закрыть",
+		"minimize": "Свернуть",
+		"maximize": "Развернуть",
+		"restore": "Восстановить",
+		"justNow": "Только что",
+		"never": "Никогда",
+		"minutesAgo": "{{count}} мин. назад",
+		"hoursAgo": "{{count}} ч. назад",
+		"daysAgo": "{{count}} дн. назад"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Выберите язык",
+		"selectLanguageSubtitle": "Выберите предпочитаемый язык интерфейса Ingot. Вы всегда сможете изменить его в настройках.",
+		"detectedBadge": "Системный",
+		"continueWith": "Продолжить на языке: {{language}}"
+	},
+	"nav": {
+		"instances": "Сборки",
+		"discover": "Каталог",
+		"skins": "Каталог скинов",
+		"screenshots": "Скриншоты",
+		"servers": "Серверы",
+		"settings": "Настройки",
+		"language": "Язык"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} готов к установке!",
+		"downloading": "Загрузка обновления v{{version}}... ({{progress}}%)",
+		"available": "Доступна новая версия: Ingot v{{version}}",
+		"currentVersion": "Текущая: v{{version}}",
+		"restartNow": "Перезапустить",
+		"updateNow": "Обновить сейчас",
+		"dismiss": "Скрыть"
+	},
+	"accounts": {
+		"player": "Игрок",
+		"noAccount": "Нет аккаунта",
+		"addAccount": "Добавить аккаунт",
+		"addAccountEllipsis": "Добавить аккаунт...",
+		"manageAccounts": "Управление аккаунтами",
+		"userProfile": "Профиль игрока",
+		"securedViaEly": "Защищено через Ely.by",
+		"securedInVault": "Защищено в хранилище",
+		"localProfile": "Локальный профиль",
+		"minecraftAccounts": "Аккаунты Minecraft",
+		"linkedCount": "{{count}} привязано",
+		"noAccountsYet": "Аккаунты ещё не добавлены.",
+		"previewSkin": "3D предпросмотр скина",
+		"removeAccount": "Удалить аккаунт",
+		"setAsActive": "Сделать активным"
+	},
+	"instances": {
+		"searchPlaceholder": "Поиск сборок...",
+		"import": "Импорт",
+		"newInstance": "Новая сборка",
+		"activeInstances": "Запущенные сборки ({{count}}):",
+		"stopProcess": "Остановить процесс",
+		"allInstances": "Все сборки",
+		"emptyTitle": "Сборки ещё не созданы",
+		"emptySubtitle": "Создайте свою первую сборку Minecraft, чтобы начать играть. Доступны Vanilla, Fabric, Quilt, NeoForge и Forge.",
+		"createFirst": "Создать первую сборку",
+		"importFromLauncher": "Импорт из лаунчера",
+		"createCardTitle": "Создать новую сборку",
+		"createCardSubtitle": "Выберите любую версию или мод-лоадер",
+		"noMatchTitle": "Не найдено сборок по запросу «{{query}}»",
+		"noMatchSubtitle": "Попробуйте ввести другое название, версию или мод-лоадер.",
+		"card": {
+			"neverPlayed": "Не запускалась",
+			"preparing": "Подготовка",
+			"preparingBtn": "Подготовка...",
+			"play": "Играть",
+			"stop": "Стоп",
+			"customRam": "(Своя)",
+			"customRamTooltip": "Индивидуальный лимит памяти для сборки",
+			"globalRamTooltip": "Используются глобальные настройки памяти",
+			"playedDuration": "{{duration}} в игре",
+			"quickPlay": "Быстрый вход",
+			"quickPlayOptions": "Параметры быстрого входа",
+			"directConnect": "Прямое подключение...",
+			"directConnectDesc": "Зайти сразу на сервер",
+			"quickLoadWorld": "Загрузить мир",
+			"quickLoadWorldDesc": "Сразу войти в одиночное сохранение",
+			"singleplayerSaves": "Одиночные миры",
+			"scanningWorlds": "Поиск миров...",
+			"noSavedWorlds": "В этой сборке нет сохранённых миров.",
+			"requires120": "Требуется Minecraft 1.20+",
+			"openFolderTooltip": "Открыть папку сборки в Проводнике",
+			"settingsTooltip": "Настройки сборки (ОЗУ, аргументы JVM)",
+			"deleteTooltip": "Удалить сборку"
+		}
+	},
+	"modpacks": {
+		"title": "Каталог контента",
+		"subtitle": "Ищите и устанавливайте моды, модпаки, ресурспаки и шейдеры напрямую в ваши сборки из Modrinth и CurseForge.",
+		"searchPlaceholder": "Поиск модов, модпаков, ресурспаков, шейдеров...",
+		"categories": {
+			"all": "Все типы",
+			"modpack": "Модпаки",
+			"mod": "Моды",
+			"resourcepack": "Ресурспаки",
+			"shader": "Шейдеры"
+		},
+		"sources": {
+			"all": "Все источники",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Лоадер:",
+			"allLoaders": "Все лоадеры",
+			"version": "Версия:",
+			"allVersions": "Все версии",
+			"sort": "Сортировка:",
+			"sortBy": "Сортировать по"
+		},
+		"sorts": {
+			"downloads": "По скачиваниям",
+			"relevance": "По релевантности",
+			"updated": "Недавно обновлённые",
+			"newest": "Новые"
+		},
+		"searching": "Поиск контента...",
+		"foundResults": "Найдено результатов: {{count}}",
+		"noResults": "Нет результатов",
+		"pageOf": "Страница {{page}} из {{total}}",
+		"noMatchTitle": "Контент по вашим фильтрам не найден",
+		"noMatchSubtitle": "Попробуйте изменить поисковый запрос, мод-лоадер или источник.",
+		"resetAllFilters": "Сбросить все фильтры",
+		"byAuthor": "от {{author}}",
+		"noDescription": "Описание отсутствует.",
+		"details": "Подробнее"
+	},
+	"skins": {
+		"title": "Каталог скинов",
+		"subtitle": "Просматривайте каталог скинов Ely.by, управляйте своей коллекцией или загрузите собственный скин.",
+		"tabs": {
+			"catalog": "Каталог",
+			"mySkins": "Мои скины",
+			"upload": "Загрузить скин"
+		},
+		"sorts": {
+			"wearers": "Популярные",
+			"latest": "Новые",
+			"views": "По просмотрам",
+			"cubes": "По лайкам"
+		},
+		"models": {
+			"any": "Все модели",
+			"steve": "Классическая (Steve)",
+			"slim": "Тонкие руки (Alex)"
+		},
+		"searchPlaceholder": "Поиск скинов по нику или тегу..."
+	},
+	"screenshots": {
+		"title": "Скриншоты",
+		"subtitle": "Галерея внутриигровых скриншотов со всех ваших сборок",
+		"refreshTooltip": "Обновить скриншоты",
+		"searchPlaceholder": "Поиск скриншотов...",
+		"allInstances": "Все сборки",
+		"allInstancesCount": "Все сборки ({{count}})",
+		"selectedInstance": "Выбранная сборка",
+		"sorts": {
+			"date-desc": "Сначала новые",
+			"date-asc": "Сначала старые",
+			"name-asc": "Имя (А-Я)",
+			"name-desc": "Имя (Я-А)",
+			"size-desc": "Сначала большие",
+			"size-asc": "Сначала маленькие"
+		},
+		"emptyTitle": "Скриншоты не найдены",
+		"emptySubtitlePrefix": "Делайте скриншоты во время игры в Minecraft клавишей",
+		"emptySubtitleSuffix": ". Они автоматически появятся в этой галерее.",
+		"checkAgain": "Проверить снова",
+		"noMatchTitle": "Подходящие скриншоты не найдены",
+		"noMatchSubtitle": "Ни один скриншот не соответствует вашему запросу или фильтру. Попробуйте сбросить фильтры.",
+		"deleteDialog": {
+			"title": "Удалить скриншот",
+			"description": "Вы уверены, что хотите навсегда удалить этот скриншот? Это действие нельзя отменить.",
+			"deleting": "Удаление...",
+			"deletePermanently": "Удалить навсегда"
+		}
+	},
+	"servers": {
+		"title": "Выделенные серверы",
+		"subtitle": "Создавайте, настраивайте и управляйте локальными серверами Minecraft на ядрах Paper, Purpur, Fabric, Folia и Vanilla.",
+		"createServer": "Создать сервер",
+		"activeServers": "Активные серверы ({{count}}):",
+		"openConsole": "Открыть консоль",
+		"stopServer": "Остановить сервер",
+		"searchPlaceholder": "Поиск серверов по имени, версии, порту...",
+		"allCores": "Все ядра",
+		"emptyTitle": "Серверы ещё не созданы",
+		"emptySubtitle": "Создайте свой первый локальный сервер Minecraft. Ingot автоматически скачает JAR-файл сервера, примет EULA, настроит порт и подготовит среду Java.",
+		"createFirst": "Создать первый сервер",
+		"createCardTitle": "Создать новый сервер",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia или Vanilla",
+		"noMatchTitle": "Серверы не соответствуют фильтрам",
+		"noMatchSubtitle": "Попробуйте изменить поисковый запрос или выбрать «Все ядра»."
+	},
+	"settings": {
+		"title": "Настройки лаунчера",
+		"subtitle": "Настройте аккаунты, язык интерфейса, выделение памяти ОЗУ и поведение лаунчера.",
+		"language": {
+			"title": "Язык интерфейса",
+			"description": "Выберите язык отображения интерфейса лаунчера. Новые файлы локализации в src/locales/ подгружаются автоматически."
+		},
+		"accounts": {
+			"title": "Аккаунты и авторизация",
+			"description": "Подключите аккаунты Ely.by или оффлайн-профили. Токены надёжно защищены в системном хранилище ОС.",
+			"keyringActive": "Системное хранилище активно: токены зашифрованы через Диспетчер учётных данных Windows (DPAPI) / Keychain.",
+			"empty": "Аккаунты ещё не настроены. Нажмите «Добавить аккаунт», чтобы войти через Ely.by."
+		},
+		"memory": {
+			"title": "Выделение памяти (ОЗУ)",
+			"description": "Настройте начальный (Мин.) и максимальный (Макс.) лимиты ОЗУ для Java и сборок Minecraft.",
+			"totalRam": "Всего ОЗУ",
+			"availableNow": "Доступно памяти прямо сейчас:",
+			"freePercent": "{{percent}}% свободно",
+			"distribution": "Распределение памяти компьютера",
+			"allocated": "Выделено:",
+			"sliderTitle": "Ползунок диапазона памяти",
+			"sliderHint": "Ползунок 1: Мин. (-Xms) • Ползунок 2: Макс. (-Xmx)",
+			"minMemoryLabel": "Начальная память (Мин. / -Xms)",
+			"maxMemoryLabel": "Максимальная память (Макс. / -Xmx)",
+			"highMemoryWarningTitle": "Предупреждение о высоком расходе ОЗУ",
+			"highMemoryWarningDesc": "Выделение {{maxGb}} ГБ (> 80% от общих {{totalGb}} ГБ ОЗУ) может привести к зависанию фоновых программ, Discord или Windows.",
+			"memoryNoticeTitle": "Обратите внимание",
+			"memoryNoticeDesc": "Макс. ОЗУ превышает текущий объём свободной памяти ({{availableGb}} ГБ). Закройте ресурсоёмкие программы перед запуском тяжёлых сборок.",
+			"recommendedPresets": "Рекомендуемые пресеты:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "С модами",
+				"heavy": "Тяжёлая сборка",
+				"safeMax": "Безопасный макс."
+			}
+		},
+		"behavior": {
+			"title": "Поведение лаунчера",
+			"description": "Выберите, что происходит при запуске сборки.",
+			"keepOpen": {
+				"label": "Оставлять открытым",
+				"description": "Оставаться открытым в фоновом режиме во время игры"
+			},
+			"hideToTray": {
+				"label": "Сворачивать в трей",
+				"description": "Сворачивать в системный трей и восстанавливать после выхода"
+			},
+			"close": {
+				"label": "Закрывать лаунчер",
+				"description": "Полностью закрывать Ingot после запуска игры"
+			}
+		},
+		"window": {
+			"title": "Окно и экран",
+			"description": "Настройте стандартные размеры окна и полноэкранный режим запуска для ваших сборок.",
+			"fullscreenTitle": "Запускать в полноэкранном режиме",
+			"fullscreenDesc": "Запускать Minecraft сразу в полноэкранном режиме",
+			"resolutionTitle": "Разрешение окна по умолчанию",
+			"resolutionDesc": "Задайте ширину и высоту игрового окна",
+			"presets": "Пресеты:",
+			"defaultPreset": "Стандарт"
+		},
+		"sync": {
+			"title": "Синхронизация игровых данных",
+			"description": "Синхронизируйте настройки Minecraft, список серверов и ресурсы между всеми сборками.",
+			"items": {
+				"syncOptions": {
+					"title": "Синхронизировать настройки игры",
+					"description": "Настройки графики, громкость звука, FOV, управление и спец. возможности"
+				},
+				"syncServers": {
+					"title": "Синхронизировать список серверов",
+					"description": "Единый список сохранённых серверов во всех сборках"
+				},
+				"syncResourcePacks": {
+					"title": "Синхронизировать ресурспаки",
+					"description": "Общие текстурпаки и ресурспаки для всех сборок"
+				},
+				"syncCommandHistory": {
+					"title": "Синхронизировать историю команд",
+					"description": "Сохранять историю чата и консольных команд между запусками"
+				},
+				"syncCreativeHotbars": {
+					"title": "Синхронизировать панели креатива",
+					"description": "Общие сохранённые хотбары творческого режима во всех мирах"
+				}
+			}
+		},
+		"updates": {
+			"title": "Обновления и версия",
+			"description": "Управляйте обновлениями Ingot для получения новых функций и исправлений безопасности.",
+			"releaseChannel": "Канал релизов",
+			"lastChecked": "Последняя проверка: {{time}}",
+			"checking": "Проверка...",
+			"checkForUpdates": "Проверить обновления",
+			"versionAvailable": "Доступна версия v{{version}}!",
+			"changelog": "Список изменений",
+			"downloadAndInstall": "Скачать и установить обновление",
+			"downloading": "Загрузка Ingot v{{version}}...",
+			"installedTitle": "Обновление успешно установлено!",
+			"installedDesc": "Перезапустите Ingot для запуска новой версии.",
+			"restartIngot": "Перезапустить Ingot",
+			"upToDate": "У вас установлена самая последняя версия Ingot.",
+			"errorTitle": "Не удалось проверить обновления"
+		},
+		"licenses": {
+			"title": "Лицензии стороннего ПО",
+			"description": "Программное обеспечение с открытым исходным кодом, которое включает или загружает Ingot.",
+			"dialogSubtitle": "Ingot использует эти компоненты сторонних проектов. Нажмите на название, чтобы открыть исходный код и полный текст лицензии.",
+			"trademark": "Minecraft является товарным знаком Mojang AB. Ingot не связан с Mojang или Microsoft."
+		}
+	}
+}

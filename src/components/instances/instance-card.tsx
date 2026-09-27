@@ -12,6 +12,7 @@ import {
 	Trash2,
 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type {
 	InstanceConfig,
 	InstanceWorldSummary,
@@ -72,15 +73,6 @@ function formatDuration(seconds: number): string {
 	return `${hours}h ${remMinutes}m`
 }
 
-function formatLastPlayed(timestamp?: number | null): string {
-	if (!timestamp) return "Never played"
-	const diff = Math.floor(Date.now() / 1000) - timestamp
-	if (diff < 60) return "Just now"
-	if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-	if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-	return new Date(timestamp * 1000).toLocaleDateString()
-}
-
 export const InstanceCard = ({
 	instance,
 	runningInfo,
@@ -91,6 +83,7 @@ export const InstanceCard = ({
 	onSettings,
 	onDelete,
 }: InstanceCardProps) => {
+	const { t } = useTranslation()
 	const isRunning = !!runningInfo
 	const isDownloading = !!progress && !isRunning
 
@@ -100,6 +93,15 @@ export const InstanceCard = ({
 	const [directConnectOpen, setDirectConnectOpen] = useState(false)
 
 	const supportsSingleplayerQP = isVersionAtLeast(instance.gameVersion, 1, 20)
+
+	const formatLastPlayed = (timestamp?: number | null): string => {
+		if (!timestamp) return t("instances.card.neverPlayed")
+		const diff = Math.floor(Date.now() / 1000) - timestamp
+		if (diff < 60) return t("common.justNow")
+		if (diff < 3600) return t("common.minutesAgo", { count: Math.floor(diff / 60) })
+		if (diff < 86400) return t("common.hoursAgo", { count: Math.floor(diff / 3600) })
+		return new Date(timestamp * 1000).toLocaleDateString()
+	}
 
 	const loadWorlds = async () => {
 		if (!supportsSingleplayerQP) return
@@ -171,7 +173,9 @@ export const InstanceCard = ({
 					) : isDownloading ? (
 						<span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-medium text-[11px] text-amber-400 shadow-sm">
 							<Loader2 className="size-3 animate-spin" />
-							{progress.percentage != null ? `${progress.percentage.toFixed(0)}%` : "Preparing"}
+							{progress.percentage != null
+								? `${progress.percentage.toFixed(0)}%`
+								: t("instances.card.preparing")}
 						</span>
 					) : (
 						<span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/80 px-2.5 py-0.5 text-[11px] text-zinc-400">
@@ -193,13 +197,19 @@ export const InstanceCard = ({
 				<div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
 					<span
 						className="inline-flex items-center gap-1 rounded-md border border-zinc-800/80 bg-zinc-900/60 px-2 py-0.5"
-						title={hasCustomRam ? "Per-instance memory override" : "Inherited from global settings"}
+						title={
+							hasCustomRam
+								? t("instances.card.customRamTooltip")
+								: t("instances.card.globalRamTooltip")
+						}
 					>
 						<HardDrive className="size-3 text-sky-400" />
 						<span>
 							{effectiveRamGb} GB RAM
 							{hasCustomRam && (
-								<span className="ml-1 font-medium text-[10px] text-sky-400">(Custom)</span>
+								<span className="ml-1 font-medium text-[10px] text-sky-400">
+									{t("instances.card.customRam")}
+								</span>
 							)}
 						</span>
 					</span>
@@ -207,7 +217,11 @@ export const InstanceCard = ({
 					{instance.totalPlayTimeSeconds > 0 && (
 						<span className="inline-flex items-center gap-1 rounded-md border border-zinc-800/80 bg-zinc-900/60 px-2 py-0.5">
 							<Clock className="size-3 text-emerald-400" />
-							<span>{formatDuration(instance.totalPlayTimeSeconds)} played</span>
+							<span>
+								{t("instances.card.playedDuration", {
+									duration: formatDuration(instance.totalPlayTimeSeconds),
+								})}
+							</span>
 						</span>
 					)}
 				</div>
@@ -246,7 +260,7 @@ export const InstanceCard = ({
 							className="h-8 gap-1.5 px-3.5 font-medium text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98]"
 						>
 							<Square className="size-3.5 fill-current" />
-							<span>Stop</span>
+							<span>{t("instances.card.stop")}</span>
 						</Button>
 					) : isDownloading ? (
 						<Button
@@ -255,7 +269,7 @@ export const InstanceCard = ({
 							className="h-8 gap-1.5 px-3.5 font-medium text-xs opacity-75"
 						>
 							<Loader2 className="size-3.5 animate-spin" />
-							<span>Preparing...</span>
+							<span>{t("instances.card.preparingBtn")}</span>
 						</Button>
 					) : (
 						<div className="inline-flex items-center rounded-md shadow-emerald-950/40 shadow-md">
@@ -265,7 +279,7 @@ export const InstanceCard = ({
 								className="h-8 gap-1.5 rounded-r-none border-emerald-700/60 border-r bg-emerald-600 px-3.5 font-semibold text-white text-xs hover:bg-emerald-500 active:scale-[0.98]"
 							>
 								<Play className="size-3.5 fill-current" />
-								<span>Play</span>
+								<span>{t("instances.card.play")}</span>
 							</Button>
 							<DropdownMenu
 								onOpenChange={(open) => {
@@ -277,7 +291,7 @@ export const InstanceCard = ({
 										<Button
 											size="sm"
 											className="h-8 rounded-l-none bg-emerald-600 px-1.5 text-white hover:bg-emerald-500"
-											title="Quick Play options"
+											title={t("instances.card.quickPlayOptions")}
 										>
 											<ChevronDown className="size-3.5" />
 										</Button>
@@ -285,7 +299,7 @@ export const InstanceCard = ({
 								/>
 								<DropdownMenuContent align="start" className="w-56">
 									<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
-										Quick Play
+										{t("instances.card.quickPlay")}
 									</DropdownMenuLabel>
 									<DropdownMenuItem
 										onClick={() => setDirectConnectOpen(true)}
@@ -293,9 +307,11 @@ export const InstanceCard = ({
 									>
 										<Globe className="size-4 text-emerald-400" />
 										<div className="flex flex-col">
-											<span className="font-medium text-xs">Direct Connect...</span>
+											<span className="font-medium text-xs">
+												{t("instances.card.directConnect")}
+											</span>
 											<span className="text-[10px] text-muted-foreground">
-												Join a server directly
+												{t("instances.card.directConnectDesc")}
 											</span>
 										</div>
 									</DropdownMenuItem>
@@ -305,24 +321,26 @@ export const InstanceCard = ({
 											<DropdownMenuSubTrigger className="cursor-pointer gap-2">
 												<Compass className="size-4 text-sky-400" />
 												<div className="flex flex-col text-left">
-													<span className="font-medium text-xs">Quick Load World</span>
+													<span className="font-medium text-xs">
+														{t("instances.card.quickLoadWorld")}
+													</span>
 													<span className="text-[10px] text-muted-foreground">
-														Jump straight into a save
+														{t("instances.card.quickLoadWorldDesc")}
 													</span>
 												</div>
 											</DropdownMenuSubTrigger>
 											<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
 												<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
-													Singleplayer Saves
+													{t("instances.card.singleplayerSaves")}
 												</DropdownMenuLabel>
 												{loadingWorlds ? (
 													<div className="flex items-center gap-2 p-2.5 text-muted-foreground text-xs">
 														<Loader2 className="size-3.5 animate-spin" />
-														<span>Scanning worlds...</span>
+														<span>{t("instances.card.scanningWorlds")}</span>
 													</div>
 												) : worlds.length === 0 ? (
 													<div className="p-2.5 text-xs text-zinc-400">
-														No saved worlds found in this instance.
+														{t("instances.card.noSavedWorlds")}
 													</div>
 												) : (
 													worlds.map((w) => (
@@ -359,8 +377,12 @@ export const InstanceCard = ({
 										<DropdownMenuItem disabled className="gap-2 opacity-50">
 											<Compass className="size-4 text-zinc-500" />
 											<div className="flex flex-col">
-												<span className="font-medium text-xs">Quick Load World</span>
-												<span className="text-[10px] text-zinc-500">Requires Minecraft 1.20+</span>
+												<span className="font-medium text-xs">
+													{t("instances.card.quickLoadWorld")}
+												</span>
+												<span className="text-[10px] text-zinc-500">
+													{t("instances.card.requires120")}
+												</span>
 											</div>
 										</DropdownMenuItem>
 									)}
@@ -377,7 +399,7 @@ export const InstanceCard = ({
 						size="icon"
 						onClick={() => instanceService.openInstanceFolder(instance.id)}
 						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-						title="Open instance folder in File Explorer"
+						title={t("instances.card.openFolderTooltip")}
 					>
 						<FolderOpen className="size-3.5" />
 					</Button>
@@ -387,7 +409,7 @@ export const InstanceCard = ({
 						size="icon"
 						onClick={onSettings}
 						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-						title="Instance Settings (RAM, JVM args)"
+						title={t("instances.card.settingsTooltip")}
 					>
 						<Settings className="size-3.5" />
 					</Button>
@@ -398,7 +420,7 @@ export const InstanceCard = ({
 							size="icon"
 							onClick={onDelete}
 							className="size-8 text-zinc-400 hover:bg-destructive/15 hover:text-destructive"
-							title="Delete Instance"
+							title={t("instances.card.deleteTooltip")}
 						>
 							<Trash2 className="size-3.5" />
 						</Button>

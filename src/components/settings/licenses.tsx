@@ -1,6 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener"
 import { ExternalLink, Scale } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { FadeScroll } from "@/components/servers/shared/primitives"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -124,14 +125,14 @@ export function LicensesDialog({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
+	const { t } = useTranslation()
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="flex max-h-[85vh] flex-col gap-3 p-0 sm:max-w-lg">
 				<div className="px-5 pt-5">
-					<DialogTitle className="text-base">Third-party licenses</DialogTitle>
+					<DialogTitle className="text-base">{t("settings.licenses.title")}</DialogTitle>
 					<p className="mt-1 text-xs text-zinc-500 leading-relaxed">
-						Ingot uses this software from other projects. Each one is under its own license; tap a
-						name for its source code and full license.
+						{t("settings.licenses.dialogSubtitle")}
 					</p>
 				</div>
 				<FadeScroll className="flex min-h-0 flex-col gap-5 px-5 pb-5">
@@ -164,7 +165,7 @@ export function LicensesDialog({
 						</section>
 					))}
 					<p className="text-[11px] text-zinc-600 leading-relaxed">
-						Minecraft is a trademark of Mojang AB. Ingot is not affiliated with Mojang or Microsoft.
+						{t("settings.licenses.trademark")}
 					</p>
 				</FadeScroll>
 			</DialogContent>
@@ -174,20 +175,19 @@ export function LicensesDialog({
 
 /** Settings card that opens the licenses list */
 export function LicensesSettings() {
+	const { t } = useTranslation()
 	const [open, setOpen] = useState(false)
 	return (
 		<div className="flex items-center justify-between gap-4 border border-border/30 bg-zinc-950/40 p-4">
 			<div className="flex min-w-0 items-center gap-3">
 				<Scale className="size-4 shrink-0 text-muted-foreground" />
 				<div className="min-w-0">
-					<p className="font-medium text-sm">Third-party licenses</p>
-					<p className="text-muted-foreground text-xs">
-						Open-source software Ingot includes or downloads.
-					</p>
+					<p className="font-medium text-sm">{t("settings.licenses.title")}</p>
+					<p className="text-muted-foreground text-xs">{t("settings.licenses.description")}</p>
 				</div>
 			</div>
 			<Button variant="outline" size="sm" onClick={() => setOpen(true)} className="shrink-0">
-				View
+				{t("common.view")}
 			</Button>
 			<LicensesDialog open={open} onOpenChange={setOpen} />
 		</div>

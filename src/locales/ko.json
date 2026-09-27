@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Korean",
+		"nativeName": "한국어"
+	},
+	"common": {
+		"cancel": "취소",
+		"continue": "계속",
+		"save": "변경사항 저장",
+		"delete": "삭제",
+		"install": "설치",
+		"installed": "설치됨",
+		"search": "검색...",
+		"active": "활성",
+		"refresh": "새로고침",
+		"clearSearch": "검색 지우기",
+		"clearFilters": "필터 초기화",
+		"resetFilters": "필터 재설정",
+		"tryAgain": "다시 시도",
+		"openFolder": "폴더 열기",
+		"view": "보기",
+		"close": "닫기",
+		"minimize": "최소화",
+		"maximize": "최대화",
+		"restore": "이전 크기로",
+		"justNow": "방금 전",
+		"never": "없음",
+		"minutesAgo": "{{count}}분 전",
+		"hoursAgo": "{{count}}시간 전",
+		"daysAgo": "{{count}}일 전"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "언어 선택",
+		"selectLanguageSubtitle": "Ingot에서 사용할 표시 언어를 선택하세요. 설정에서 언제든지 변경할 수 있습니다.",
+		"detectedBadge": "시스템 기본값",
+		"continueWith": "{{language}}로 계속하기"
+	},
+	"nav": {
+		"instances": "인스턴스",
+		"discover": "콘텐츠 탐색",
+		"skins": "스킨 카탈로그",
+		"screenshots": "스크린샷",
+		"servers": "전용 서버",
+		"settings": "설정",
+		"language": "언어"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} 설치 준비가 완료되었습니다!",
+		"downloading": "업데이트 v{{version}} 다운로드 중... ({{progress}}%)",
+		"available": "새 버전 사용 가능: Ingot v{{version}}",
+		"currentVersion": "현재 버전: v{{version}}",
+		"restartNow": "지금 재시작",
+		"updateNow": "지금 업데이트",
+		"dismiss": "닫기"
+	},
+	"accounts": {
+		"player": "플레이어",
+		"noAccount": "계정 없음",
+		"addAccount": "계정 추가",
+		"addAccountEllipsis": "계정 추가...",
+		"manageAccounts": "계정 관리",
+		"userProfile": "사용자 프로필",
+		"securedViaEly": "Ely.by로 보호됨",
+		"securedInVault": "보안 금고에 저장됨",
+		"localProfile": "로컬 프로필",
+		"minecraftAccounts": "Minecraft 계정",
+		"linkedCount": "{{count}}개 연결됨",
+		"noAccountsYet": "아직 설정된 계정이 없습니다.",
+		"previewSkin": "3D 스킨 미리보기",
+		"removeAccount": "계정 제거",
+		"setAsActive": "활성 계정으로 설정"
+	},
+	"instances": {
+		"searchPlaceholder": "인스턴스 검색...",
+		"import": "가져오기",
+		"newInstance": "새 인스턴스",
+		"activeInstances": "실행 중인 인스턴스 ({{count}}):",
+		"stopProcess": "프로세스 중지",
+		"allInstances": "모든 인스턴스",
+		"emptyTitle": "아직 생성된 인스턴스가 없습니다",
+		"emptySubtitle": "첫 번째 Minecraft 인스턴스를 만들어 플레이를 시작하세요. 바닐라 또는 Fabric, Quilt, Forge 같은 모드 로더를 선택할 수 있습니다.",
+		"createFirst": "첫 인스턴스 만들기",
+		"importFromLauncher": "다른 런처에서 가져오기",
+		"createCardTitle": "새 인스턴스 만들기",
+		"createCardSubtitle": "원하는 버전이나 모드 로더 선택",
+		"noMatchTitle": "\"{{query}}\"와(과) 일치하는 인스턴스가 없습니다",
+		"noMatchSubtitle": "다른 이름, 버전 또는 모드 로더로 검색해 보세요.",
+		"card": {
+			"neverPlayed": "플레이 기록 없음",
+			"preparing": "준비 중",
+			"preparingBtn": "준비 중...",
+			"play": "플레이",
+			"stop": "중지",
+			"customRam": "(사용자 지정)",
+			"customRamTooltip": "인스턴스 개별 메모리 설정",
+			"globalRamTooltip": "전역 설정에서 상속됨",
+			"playedDuration": "{{duration}} 플레이함",
+			"quickPlay": "빠른 플레이",
+			"quickPlayOptions": "빠른 플레이 옵션",
+			"directConnect": "직접 연결...",
+			"directConnectDesc": "서버에 바로 접속하기",
+			"quickLoadWorld": "월드 바로 불러오기",
+			"quickLoadWorldDesc": "저장된 싱글플레이 월드로 바로 이동",
+			"singleplayerSaves": "싱글플레이 월드",
+			"scanningWorlds": "월드 스캔 중...",
+			"noSavedWorlds": "이 인스턴스에 저장된 월드가 없습니다.",
+			"requires120": "Minecraft 1.20+ 필요",
+			"openFolderTooltip": "파일 탐색기에서 인스턴스 폴더 열기",
+			"settingsTooltip": "인스턴스 설정 (RAM, JVM 인수)",
+			"deleteTooltip": "인스턴스 삭제"
+		}
+	},
+	"modpacks": {
+		"title": "콘텐츠 탐색",
+		"subtitle": "Modrinth와 CurseForge에서 모드, 모드팩, 리소스팩, 셰이더를 검색하여 인스턴스에 바로 설치하세요.",
+		"searchPlaceholder": "모드, 모드팩, 리소스팩, 셰이더 검색...",
+		"categories": {
+			"all": "모든 유형",
+			"modpack": "모드팩",
+			"mod": "모드",
+			"resourcepack": "리소스팩",
+			"shader": "셰이더"
+		},
+		"sources": {
+			"all": "모든 출처",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "로더:",
+			"allLoaders": "모든 로더",
+			"version": "버전:",
+			"allVersions": "모든 버전",
+			"sort": "정렬:",
+			"sortBy": "정렬 기준"
+		},
+		"sorts": {
+			"downloads": "다운로드 순",
+			"relevance": "관련성 순",
+			"updated": "최근 업데이트 순",
+			"newest": "최신순"
+		},
+		"searching": "콘텐츠 검색 중...",
+		"foundResults": "결과 {{count}}개 찾음",
+		"noResults": "결과 없음",
+		"pageOf": "{{page}} / {{total}} 페이지",
+		"noMatchTitle": "필터와 일치하는 콘텐츠가 없습니다",
+		"noMatchSubtitle": "검색어를 수정하거나 모드 로더 또는 출처를 변경해 보세요.",
+		"resetAllFilters": "모든 필터 초기화",
+		"byAuthor": "제작: {{author}}",
+		"noDescription": "설명이 없습니다.",
+		"details": "상세 정보"
+	},
+	"skins": {
+		"title": "스킨 카탈로그",
+		"subtitle": "Ely.by 스킨을 둘러보고, 개인 컬렉션을 관리하거나 나만의 커스텀 스킨을 업로드하세요.",
+		"tabs": {
+			"catalog": "카탈로그",
+			"mySkins": "내 스킨",
+			"upload": "스킨 업로드"
+		},
+		"sorts": {
+			"wearers": "인기순",
+			"latest": "최신순",
+			"views": "조회수순",
+			"cubes": "좋아요순"
+		},
+		"models": {
+			"any": "모든 모델",
+			"steve": "클래식 (Steve)",
+			"slim": "슬림 (Alex)"
+		},
+		"searchPlaceholder": "사용자 이름이나 태그로 스킨 검색..."
+	},
+	"screenshots": {
+		"title": "스크린샷",
+		"subtitle": "모든 인스턴스에서 촬영한 인게임 스크린샷 갤러리",
+		"refreshTooltip": "스크린샷 새로고침",
+		"searchPlaceholder": "스크린샷 검색...",
+		"allInstances": "모든 인스턴스",
+		"allInstancesCount": "모든 인스턴스 ({{count}})",
+		"selectedInstance": "선택된 인스턴스",
+		"sorts": {
+			"date-desc": "최신순",
+			"date-asc": "오래된순",
+			"name-asc": "이름순 (A-Z)",
+			"name-desc": "이름순 (Z-A)",
+			"size-desc": "크기 큰 순",
+			"size-asc": "크기 작은 순"
+		},
+		"emptyTitle": "스크린샷이 없습니다",
+		"emptySubtitlePrefix": "Minecraft 플레이 중",
+		"emptySubtitleSuffix": "키를 눌러 스크린샷을 찍어보세요. 이 갤러리에 자동으로 표시됩니다.",
+		"checkAgain": "다시 확인",
+		"noMatchTitle": "일치하는 스크린샷 없음",
+		"noMatchSubtitle": "검색어나 필터와 일치하는 스크린샷이 없습니다. 필터를 초기화해 보세요.",
+		"deleteDialog": {
+			"title": "스크린샷 삭제",
+			"description": "이 스크린샷을 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+			"deleting": "삭제 중...",
+			"deletePermanently": "영구 삭제"
+		}
+	},
+	"servers": {
+		"title": "전용 서버",
+		"subtitle": "Paper, Purpur, Fabric, Folia 및 Vanilla 코어로 로컬 Minecraft 서버를 생성, 구성 및 관리하세요.",
+		"createServer": "서버 생성",
+		"activeServers": "실행 중인 서버 ({{count}}):",
+		"openConsole": "콘솔 열기",
+		"stopServer": "서버 중지",
+		"searchPlaceholder": "이름, 버전, 포트로 서버 검색...",
+		"allCores": "모든 코어",
+		"emptyTitle": "아직 생성된 서버가 없습니다",
+		"emptySubtitle": "첫 로컬 Minecraft 서버를 만들어 보세요. Ingot이 서버 JAR 다운로드, EULA 동의, 포트 설정 및 Java 런타임 구성을 자동으로 처리합니다.",
+		"createFirst": "첫 서버 만들기",
+		"createCardTitle": "새 서버 만들기",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia 또는 Vanilla",
+		"noMatchTitle": "필터와 일치하는 서버가 없습니다",
+		"noMatchSubtitle": "검색어를 변경하거나 \"모든 코어\"를 선택해 보세요."
+	},
+	"settings": {
+		"title": "런처 설정",
+		"subtitle": "계정, 언어, Java 런타임, RAM 할당 및 런처 동작을 구성합니다.",
+		"language": {
+			"title": "언어 (Language)",
+			"description": "런처 인터페이스의 표시 언어를 선택합니다. src/locales/의 새 언어 파일은 자동으로 핫 리로드됩니다."
+		},
+		"accounts": {
+			"title": "계정 및 인증",
+			"description": "Ely.by 또는 오프라인 계정을 연결하세요. 민감한 토큰은 OS 자격 증명 관리자에서 안전하게 보호됩니다.",
+			"keyringActive": "기본 OS 키링 활성화됨: 토큰이 Windows 자격 증명 관리자(DPAPI) / Keychain을 통해 암호화됩니다.",
+			"empty": "아직 설정된 계정이 없습니다. \"계정 추가\"를 클릭하여 Ely.by로 시작하세요."
+		},
+		"memory": {
+			"title": "메모리 할당 (RAM)",
+			"description": "Java 및 Minecraft 인스턴스의 초기(Min) 및 최대(Max) RAM 한도를 설정합니다.",
+			"totalRam": "전체 RAM",
+			"availableNow": "현재 사용 가능한 시스템 메모리:",
+			"freePercent": "{{percent}}% 여유",
+			"distribution": "시스템 RAM 분포",
+			"allocated": "할당됨:",
+			"sliderTitle": "할당 범위 슬라이더",
+			"sliderHint": "슬라이더 1: 최소 (-Xms) • 슬라이더 2: 최대 (-Xmx)",
+			"minMemoryLabel": "초기 메모리 (Min / -Xms)",
+			"maxMemoryLabel": "최대 메모리 (Max / -Xmx)",
+			"highMemoryWarningTitle": "높은 메모리 할당 경고",
+			"highMemoryWarningDesc": "{{maxGb}} GB(전체 {{totalGb}} GB RAM의 80% 초과)를 할당하면 백그라운드 앱, Discord 또는 Windows가 응답하지 않을 수 있습니다.",
+			"memoryNoticeTitle": "메모리 알림",
+			"memoryNoticeDesc": "최대 RAM이 현재 여유 메모리({{availableGb}} GB)보다 큽니다. 무거운 인스턴스를 실행하기 전에 백그라운드 앱을 종료하세요.",
+			"recommendedPresets": "추천 프리셋:",
+			"presets": {
+				"vanilla": "바닐라",
+				"modded": "모드 사용",
+				"heavy": "대형 모드팩",
+				"safeMax": "안전 최대치"
+			}
+		},
+		"behavior": {
+			"title": "런처 동작",
+			"description": "인스턴스가 실행될 때 런처의 동작을 선택합니다.",
+			"keepOpen": {
+				"label": "열어 두기",
+				"description": "플레이하는 동안 백그라운드에서 런처 유지"
+			},
+			"hideToTray": {
+				"label": "시스템 트레이로 숨기기",
+				"description": "트레이로 최소화하고 게임 종료 시 복원"
+			},
+			"close": {
+				"label": "런처 닫기",
+				"description": "게임 시작 후 Ingot 완전히 종료"
+			}
+		},
+		"window": {
+			"title": "창 및 디스플레이",
+			"description": "인스턴스의 기본 창 크기와 전체 화면 시작 모드를 설정합니다.",
+			"fullscreenTitle": "전체 화면으로 시작",
+			"fullscreenDesc": "Minecraft를 전체 화면 모드로 바로 실행",
+			"resolutionTitle": "기본 창 해상도",
+			"resolutionDesc": "게임 창의 사용자 지정 너비와 높이 설정",
+			"presets": "프리셋:",
+			"defaultPreset": "기본값"
+		},
+		"sync": {
+			"title": "게임 데이터 동기화",
+			"description": "모든 인스턴스 간에 Minecraft 설정, 서버 목록 및 에셋을 동일하게 유지합니다.",
+			"items": {
+				"syncOptions": {
+					"title": "게임 옵션 동기화",
+					"description": "비디오 설정, 오디오 볼륨, 시야각(FOV), 키 설정 및 접근성"
+				},
+				"syncServers": {
+					"title": "멀티플레이 서버 동기화",
+					"description": "저장된 서버 목록을 모든 인스턴스에서 통합 유지"
+				},
+				"syncResourcePacks": {
+					"title": "리소스팩 동기화",
+					"description": "다운로드한 모든 텍스처 및 리소스팩을 인스턴스 간에 공유"
+				},
+				"syncCommandHistory": {
+					"title": "명령어 기록 동기화",
+					"description": "실행 간 채팅 및 콘솔 명령어 기록 보존"
+				},
+				"syncCreativeHotbars": {
+					"title": "저장된 크리에이티브 단축바 동기화",
+					"description": "크리에이티브 모드에서 저장한 단축바 레이아웃을 월드 간에 공유"
+				}
+			}
+		},
+		"updates": {
+			"title": "업데이트 및 버전",
+			"description": "Ingot 업데이트를 관리하고 최신 기능과 보안 패치를 유지하세요.",
+			"releaseChannel": "릴리스 채널",
+			"lastChecked": "마지막 확인: {{time}}",
+			"checking": "확인 중...",
+			"checkForUpdates": "업데이트 확인",
+			"versionAvailable": "버전 v{{version}}을(를) 사용할 수 있습니다!",
+			"changelog": "변경 로그",
+			"downloadAndInstall": "업데이트 다운로드 및 설치",
+			"downloading": "Ingot v{{version}} 다운로드 중...",
+			"installedTitle": "업데이트가 성공적으로 설치되었습니다!",
+			"installedDesc": "새 버전을 실행하려면 Ingot을 재시작하세요.",
+			"restartIngot": "Ingot 재시작",
+			"upToDate": "Ingot이 최신 상태입니다.",
+			"errorTitle": "업데이트를 확인할 수 없습니다"
+		},
+		"licenses": {
+			"title": "오픈소스 라이선스",
+			"description": "Ingot에 포함되거나 다운로드되는 오픈소스 소프트웨어입니다.",
+			"dialogSubtitle": "Ingot은 다른 프로젝트의 소프트웨어를 사용합니다. 각 항목은 고유한 라이선스를 따르며, 이름을 클릭하면 소스 코드와 전체 라이선스를 볼 수 있습니다.",
+			"trademark": "Minecraft는 Mojang AB의 상표입니다. Ingot은 Mojang 또는 Microsoft와 제휴 관계가 아닙니다."
+		}
+	}
+}

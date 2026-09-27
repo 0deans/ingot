@@ -17,6 +17,7 @@ import {
 	X,
 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import { ContentDetailsDialog } from "@/components/content/content-details-dialog"
 import { InstallDialog } from "@/components/content/install-dialog"
@@ -57,18 +58,14 @@ export const modpacksSearchSchema = v.object({
 export type ModpacksSearchParams = v.InferOutput<typeof modpacksSearchSchema>
 
 const CATEGORIES = [
-	{ id: "all" as const, label: "All Types", icon: Sparkles },
-	{ id: "modpack" as const, label: "Modpacks", icon: Package },
-	{ id: "mod" as const, label: "Mods", icon: Box },
-	{ id: "resourcepack" as const, label: "Resource Packs", icon: Paintbrush },
-	{ id: "shader" as const, label: "Shaders", icon: SunMedium },
+	{ id: "all" as const, icon: Sparkles },
+	{ id: "modpack" as const, icon: Package },
+	{ id: "mod" as const, icon: Box },
+	{ id: "resourcepack" as const, icon: Paintbrush },
+	{ id: "shader" as const, icon: SunMedium },
 ]
 
-const SOURCES = [
-	{ id: "all" as const, label: "All Sources" },
-	{ id: "modrinth" as const, label: "Modrinth" },
-	{ id: "curseforge" as const, label: "CurseForge" },
-]
+const SOURCES = [{ id: "all" as const }, { id: "modrinth" as const }, { id: "curseforge" as const }]
 
 const LOADERS = [
 	{ id: "", label: "All Loaders" },
@@ -91,10 +88,10 @@ const POPULAR_VERSIONS = [
 ]
 
 const SORTS = [
-	{ id: "downloads" as const, label: "Most Downloads" },
-	{ id: "relevance" as const, label: "Relevance" },
-	{ id: "updated" as const, label: "Recently Updated" },
-	{ id: "newest" as const, label: "Newest" },
+	{ id: "downloads" as const },
+	{ id: "relevance" as const },
+	{ id: "updated" as const },
+	{ id: "newest" as const },
 ]
 
 function formatDownloads(count: number): string {
@@ -135,6 +132,7 @@ export const modpacksQueryOptions = (search: ModpacksSearchParams) =>
 	})
 
 const ModpacksPage = () => {
+	const { t } = useTranslation()
 	const search = Route.useSearch()
 	const navigate = Route.useNavigate()
 
@@ -301,12 +299,11 @@ const ModpacksPage = () => {
 				<div className="flex flex-col gap-2">
 					<div className="flex items-center gap-2">
 						<Sparkles className="size-6 text-primary" />
-						<h1 className="font-bold text-2xl text-foreground tracking-tight">Discover Content</h1>
+						<h1 className="font-bold text-2xl text-foreground tracking-tight">
+							{t("modpacks.title")}
+						</h1>
 					</div>
-					<p className="text-muted-foreground text-sm">
-						Search and install mods, modpacks, resource packs, and shaders directly into your
-						instances from Modrinth and CurseForge.
-					</p>
+					<p className="text-muted-foreground text-sm">{t("modpacks.subtitle")}</p>
 				</div>
 
 				{/* Search & Category Tabs */}
@@ -319,7 +316,7 @@ const ModpacksPage = () => {
 								type="text"
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
-								placeholder="Search mods, modpacks, resource packs, shaders..."
+								placeholder={t("modpacks.searchPlaceholder")}
 								className="h-10 px-9 text-sm"
 							/>
 							{searchInput && (
@@ -332,7 +329,7 @@ const ModpacksPage = () => {
 											replace: true,
 										})
 									}}
-									aria-label="Clear search"
+									aria-label={t("common.clearSearch")}
 									className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 								>
 									<X className="size-4" />
@@ -354,7 +351,7 @@ const ModpacksPage = () => {
 									}`}
 								>
 									{s.id === "curseforge" && <Flame className="size-3.5 text-orange-400" />}
-									{s.label}
+									{t(`modpacks.sources.${s.id}`)}
 								</button>
 							))}
 						</div>
@@ -377,7 +374,7 @@ const ModpacksPage = () => {
 									}`}
 								>
 									<IconComponent className="size-3.5" />
-									{cat.label}
+									{t(`modpacks.categories.${cat.id}`)}
 								</button>
 							)
 						})}
@@ -387,18 +384,18 @@ const ModpacksPage = () => {
 					<div className="flex flex-wrap items-center gap-3">
 						{/* Loader Selector */}
 						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground text-xs">Loader:</span>
+							<span className="text-muted-foreground text-xs">{t("modpacks.filters.loader")}</span>
 							<Select
 								value={activeLoader || "all"}
 								onValueChange={(val) => handleLoaderChange(!val || val === "all" ? "" : val)}
 							>
 								<SelectTrigger className="h-8 w-28 text-xs">
-									<SelectValue placeholder="All Loaders" />
+									<SelectValue placeholder={t("modpacks.filters.allLoaders")} />
 								</SelectTrigger>
 								<SelectContent>
 									{LOADERS.map((ldr) => (
 										<SelectItem key={ldr.id || "all"} value={ldr.id || "all"}>
-											{ldr.label}
+											{ldr.id ? ldr.label : t("modpacks.filters.allLoaders")}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -407,18 +404,18 @@ const ModpacksPage = () => {
 
 						{/* Version Selector */}
 						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground text-xs">Version:</span>
+							<span className="text-muted-foreground text-xs">{t("modpacks.filters.version")}</span>
 							<Select
 								value={activeVersion || "all"}
 								onValueChange={(val) => handleVersionChange(!val || val === "all" ? "" : val)}
 							>
 								<SelectTrigger className="h-8 w-32 text-xs">
-									<SelectValue placeholder="All Versions" />
+									<SelectValue placeholder={t("modpacks.filters.allVersions")} />
 								</SelectTrigger>
 								<SelectContent>
 									{POPULAR_VERSIONS.map((v) => (
 										<SelectItem key={v.id || "all"} value={v.id || "all"}>
-											{v.label}
+											{v.id ? v.label : t("modpacks.filters.allVersions")}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -427,18 +424,18 @@ const ModpacksPage = () => {
 
 						{/* Sort Selector */}
 						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground text-xs">Sort:</span>
+							<span className="text-muted-foreground text-xs">{t("modpacks.filters.sort")}</span>
 							<Select
 								value={activeSort}
 								onValueChange={(val) => val && v.is(sortSchema, val) && handleSortChange(val)}
 							>
 								<SelectTrigger className="h-8 w-36 text-xs">
-									<SelectValue placeholder="Sort by" />
+									<SelectValue placeholder={t("modpacks.filters.sortBy")} />
 								</SelectTrigger>
 								<SelectContent>
 									{SORTS.map((s) => (
 										<SelectItem key={s.id} value={s.id}>
-											{s.label}
+											{t(`modpacks.sorts.${s.id}`)}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -460,7 +457,7 @@ const ModpacksPage = () => {
 								className="h-8 gap-1 px-2.5 text-muted-foreground text-xs hover:text-foreground"
 							>
 								<X className="size-3" />
-								Reset filters
+								{t("common.resetFilters")}
 							</Button>
 						)}
 
@@ -473,7 +470,7 @@ const ModpacksPage = () => {
 							className="ml-auto h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
 						>
 							<RefreshCw className={`size-3.5 ${isBusy ? "animate-spin" : ""}`} />
-							Refresh
+							{t("common.refresh")}
 						</Button>
 					</div>
 				</div>
@@ -481,16 +478,11 @@ const ModpacksPage = () => {
 				{/* Results Meta */}
 				<div className="flex items-center justify-between">
 					<span className="text-muted-foreground text-xs">
-						{isLoading ? (
-							"Searching content..."
-						) : totalHits > 0 ? (
-							<>
-								Found <strong className="text-foreground">{totalHits.toLocaleString()}</strong>{" "}
-								results
-							</>
-						) : (
-							"No results"
-						)}
+						{isLoading
+							? t("modpacks.searching")
+							: totalHits > 0
+								? t("modpacks.foundResults", { count: totalHits })
+								: t("modpacks.noResults")}
 					</span>
 
 					{totalPages > 1 && (
@@ -505,7 +497,7 @@ const ModpacksPage = () => {
 								<ChevronLeft className="size-3.5" />
 							</Button>
 							<span className="text-muted-foreground text-xs">
-								Page {page + 1} of {Math.max(1, totalPages)}
+								{t("modpacks.pageOf", { page: page + 1, total: Math.max(1, totalPages) })}
 							</span>
 							<Button
 								size="sm"
@@ -550,19 +542,15 @@ const ModpacksPage = () => {
 							{error instanceof Error ? error.message : "Failed to load content"}
 						</p>
 						<Button size="sm" variant="outline" onClick={() => refetch()}>
-							Try Again
+							{t("common.tryAgain")}
 						</Button>
 					</div>
 				) : items.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border/40 bg-zinc-900/20 py-16 text-center">
 						<Sparkles className="size-10 text-muted-foreground/40" />
 						<div className="flex flex-col gap-1">
-							<p className="font-semibold text-foreground text-sm">
-								No content matches your filters
-							</p>
-							<p className="text-muted-foreground text-xs">
-								Try adjusting your search query, changing mod loaders, or switching sources.
-							</p>
+							<p className="font-semibold text-foreground text-sm">{t("modpacks.noMatchTitle")}</p>
+							<p className="text-muted-foreground text-xs">{t("modpacks.noMatchSubtitle")}</p>
 						</div>
 						<Button
 							size="sm"
@@ -570,7 +558,7 @@ const ModpacksPage = () => {
 							onClick={handleClearFilters}
 							className="mt-2 text-xs"
 						>
-							Reset all filters
+							{t("modpacks.resetAllFilters")}
 						</Button>
 					</div>
 				) : (
@@ -626,14 +614,14 @@ const ModpacksPage = () => {
 												{item.title}
 											</h3>
 											<span className="truncate text-muted-foreground text-xs">
-												by {item.author}
+												{t("modpacks.byAuthor", { author: item.author })}
 											</span>
 										</div>
 									</div>
 
 									{/* Description */}
 									<p className="line-clamp-2 text-muted-foreground text-xs leading-relaxed">
-										{item.description || "No description provided."}
+										{item.description || t("modpacks.noDescription")}
 									</p>
 
 									{/* Tags & Loaders */}
@@ -672,7 +660,7 @@ const ModpacksPage = () => {
 											className="h-7 px-2 text-muted-foreground text-xs hover:text-foreground"
 										>
 											<Info className="size-3" />
-											Details
+											{t("modpacks.details")}
 										</Button>
 
 										<Button
@@ -685,7 +673,7 @@ const ModpacksPage = () => {
 											className="h-7 gap-1 px-2.5 font-semibold text-xs"
 										>
 											<Download className="size-3" />
-											{item.projectType === "modpack" ? "Install" : "Add"}
+											{t("common.install")}
 										</Button>
 									</div>
 								</div>
@@ -707,7 +695,7 @@ const ModpacksPage = () => {
 							<ChevronLeft className="size-3.5" />
 						</Button>
 						<span className="text-muted-foreground text-xs">
-							Page {page + 1} of {Math.max(1, totalPages)}
+							{t("modpacks.pageOf", { page: page + 1, total: Math.max(1, totalPages) })}
 						</span>
 						<Button
 							size="sm"

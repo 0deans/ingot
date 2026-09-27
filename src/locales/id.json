@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Indonesian",
+		"nativeName": "Bahasa Indonesia"
+	},
+	"common": {
+		"cancel": "Batal",
+		"continue": "Lanjutkan",
+		"save": "Simpan Perubahan",
+		"delete": "Hapus",
+		"install": "Pasang",
+		"installed": "Terpasang",
+		"search": "Cari...",
+		"active": "Aktif",
+		"refresh": "Segarkan",
+		"clearSearch": "Hapus Pencarian",
+		"clearFilters": "Hapus Filter",
+		"resetFilters": "Atur ulang filter",
+		"tryAgain": "Coba Lagi",
+		"openFolder": "Buka Folder",
+		"view": "Lihat",
+		"close": "Tutup",
+		"minimize": "Perkecil",
+		"maximize": "Perbesar",
+		"restore": "Pulihkan",
+		"justNow": "Baru saja",
+		"never": "Tidak pernah",
+		"minutesAgo": "{{count}}m lalu",
+		"hoursAgo": "{{count}}j lalu",
+		"daysAgo": "{{count}}h lalu"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Pilih Bahasa Anda",
+		"selectLanguageSubtitle": "Pilih bahasa tampilan pilihan Anda untuk Ingot. Anda dapat mengubahnya kapan saja di Pengaturan.",
+		"detectedBadge": "Bawaan Sistem",
+		"continueWith": "Lanjutkan dalam {{language}}"
+	},
+	"nav": {
+		"instances": "Instansi",
+		"discover": "Jelajahi",
+		"skins": "Katalog Skin",
+		"screenshots": "Tangkapan Layar",
+		"servers": "Server Khusus",
+		"settings": "Pengaturan",
+		"language": "Bahasa"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} siap dipasang!",
+		"downloading": "Mengunduh pembaruan v{{version}}... ({{progress}}%)",
+		"available": "Versi baru tersedia: Ingot v{{version}}",
+		"currentVersion": "Saat ini: v{{version}}",
+		"restartNow": "Mulai Ulang Sekarang",
+		"updateNow": "Perbarui Sekarang",
+		"dismiss": "Tutup"
+	},
+	"accounts": {
+		"player": "Pemain",
+		"noAccount": "Tanpa Akun",
+		"addAccount": "Tambah Akun",
+		"addAccountEllipsis": "Tambah Akun...",
+		"manageAccounts": "Kelola Akun",
+		"userProfile": "Profil pengguna",
+		"securedViaEly": "Diamankan melalui Ely.by",
+		"securedInVault": "Diamankan di Brankas",
+		"localProfile": "Profil Lokal",
+		"minecraftAccounts": "Akun Minecraft",
+		"linkedCount": "{{count}} terhubung",
+		"noAccountsYet": "Belum ada akun yang dikonfigurasi.",
+		"previewSkin": "Pratinjau skin 3D",
+		"removeAccount": "Hapus akun",
+		"setAsActive": "Jadikan Aktif"
+	},
+	"instances": {
+		"searchPlaceholder": "Cari instansi...",
+		"import": "Impor",
+		"newInstance": "Instansi Baru",
+		"activeInstances": "Instansi Aktif ({{count}}):",
+		"stopProcess": "Hentikan proses",
+		"allInstances": "Semua Instansi",
+		"emptyTitle": "Belum Ada Instansi yang Dibuat",
+		"emptySubtitle": "Buat instansi Minecraft pertama Anda untuk mulai bermain. Anda dapat memilih Vanilla atau pemuat mod seperti Fabric, Quilt, atau Forge.",
+		"createFirst": "Buat Instansi Pertama Anda",
+		"importFromLauncher": "Impor dari Launcher Lain",
+		"createCardTitle": "Buat Instansi Baru",
+		"createCardSubtitle": "Pilih versi atau pemuat mod apa saja",
+		"noMatchTitle": "Tidak ada instansi yang cocok dengan \"{{query}}\"",
+		"noMatchSubtitle": "Coba cari nama, versi, atau pemuat mod lain.",
+		"card": {
+			"neverPlayed": "Belum pernah dimainkan",
+			"preparing": "Menyiapkan",
+			"preparingBtn": "Menyiapkan...",
+			"play": "Main",
+			"stop": "Berhenti",
+			"customRam": "(Kustom)",
+			"customRamTooltip": "Batas memori khusus untuk instansi ini",
+			"globalRamTooltip": "Diwarisi dari pengaturan global",
+			"playedDuration": "Dimainkan {{duration}}",
+			"quickPlay": "Main Cepat",
+			"quickPlayOptions": "Opsi Main Cepat",
+			"directConnect": "Koneksi Langsung...",
+			"directConnectDesc": "Bergabung langsung ke server",
+			"quickLoadWorld": "Muat Cepat Dunia",
+			"quickLoadWorldDesc": "Langsung masuk ke dunia tersimpan",
+			"singleplayerSaves": "Dunia Pemain Tunggal",
+			"scanningWorlds": "Memindai dunia...",
+			"noSavedWorlds": "Tidak ada dunia tersimpan di instansi ini.",
+			"requires120": "Memerlukan Minecraft 1.20+",
+			"openFolderTooltip": "Buka folder instansi di File Explorer",
+			"settingsTooltip": "Pengaturan Instansi (RAM, argumen JVM)",
+			"deleteTooltip": "Hapus Instansi"
+		}
+	},
+	"modpacks": {
+		"title": "Jelajahi Konten",
+		"subtitle": "Cari dan pasang mod, modpack, paket sumber daya, dan shader langsung ke instansi Anda dari Modrinth dan CurseForge.",
+		"searchPlaceholder": "Cari mod, modpack, paket sumber daya, shader...",
+		"categories": {
+			"all": "Semua Jenis",
+			"modpack": "Modpack",
+			"mod": "Mod",
+			"resourcepack": "Paket Sumber Daya",
+			"shader": "Shader"
+		},
+		"sources": {
+			"all": "Semua Sumber",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Pemuat:",
+			"allLoaders": "Semua Pemuat",
+			"version": "Versi:",
+			"allVersions": "Semua Versi",
+			"sort": "Urutkan:",
+			"sortBy": "Urutkan berdasarkan"
+		},
+		"sorts": {
+			"downloads": "Unduhan Terbanyak",
+			"relevance": "Relevansi",
+			"updated": "Baru Diperbarui",
+			"newest": "Terbaru"
+		},
+		"searching": "Mencari konten...",
+		"foundResults": "Ditemukan {{count}} hasil",
+		"noResults": "Tidak ada hasil",
+		"pageOf": "Halaman {{page}} dari {{total}}",
+		"noMatchTitle": "Tidak ada konten yang cocok dengan filter Anda",
+		"noMatchSubtitle": "Coba sesuaikan pencarian, ubah pemuat mod, atau ganti sumber.",
+		"resetAllFilters": "Atur ulang semua filter",
+		"byAuthor": "oleh {{author}}",
+		"noDescription": "Tidak ada deskripsi.",
+		"details": "Detail"
+	},
+	"skins": {
+		"title": "Katalog Skin",
+		"subtitle": "Jelajahi skin Ely.by, kelola koleksi pribadi Anda, atau unggah skin kustom.",
+		"tabs": {
+			"catalog": "Katalog",
+			"mySkins": "Skin Saya",
+			"upload": "Unggah Skin"
+		},
+		"sorts": {
+			"wearers": "Populer",
+			"latest": "Terbaru",
+			"views": "Dilihat",
+			"cubes": "Suka"
+		},
+		"models": {
+			"any": "Semua Model",
+			"steve": "Klasik (Steve)",
+			"slim": "Ramping (Alex)"
+		},
+		"searchPlaceholder": "Cari skin berdasarkan nama pengguna atau tag..."
+	},
+	"screenshots": {
+		"title": "Tangkapan Layar",
+		"subtitle": "Galeri tangkapan layar dalam game yang diambil di semua instansi Anda",
+		"refreshTooltip": "Segarkan Tangkapan Layar",
+		"searchPlaceholder": "Cari tangkapan layar...",
+		"allInstances": "Semua Instansi",
+		"allInstancesCount": "Semua Instansi ({{count}})",
+		"selectedInstance": "Instansi Terpilih",
+		"sorts": {
+			"date-desc": "Terbaru Lebih Dulu",
+			"date-asc": "Terlama Lebih Dulu",
+			"name-asc": "Nama (A-Z)",
+			"name-desc": "Nama (Z-A)",
+			"size-desc": "Ukuran Terbesar",
+			"size-asc": "Ukuran Terkecil"
+		},
+		"emptyTitle": "Tidak ada tangkapan layar",
+		"emptySubtitlePrefix": "Ambil tangkapan layar saat bermain Minecraft dengan menekan",
+		"emptySubtitleSuffix": ". Gambar akan otomatis muncul di galeri ini.",
+		"checkAgain": "Periksa Lagi",
+		"noMatchTitle": "Tidak ada tangkapan layar yang cocok",
+		"noMatchSubtitle": "Tidak ada tangkapan layar yang cocok dengan pencarian atau filter Anda.",
+		"deleteDialog": {
+			"title": "Hapus Tangkapan Layar",
+			"description": "Apakah Anda yakin ingin menghapus tangkapan layar ini secara permanen? Tindakan ini tidak dapat dibatalkan.",
+			"deleting": "Menghapus...",
+			"deletePermanently": "Hapus Permanen"
+		}
+	},
+	"servers": {
+		"title": "Server Khusus",
+		"subtitle": "Buat, konfigurasi, dan kelola server Minecraft lokal dengan inti Paper, Purpur, Fabric, Folia, dan Vanilla.",
+		"createServer": "Buat Server",
+		"activeServers": "Server Aktif ({{count}}):",
+		"openConsole": "Buka Konsol",
+		"stopServer": "Hentikan server",
+		"searchPlaceholder": "Cari server berdasarkan nama, versi, port...",
+		"allCores": "Semua Inti",
+		"emptyTitle": "Belum Ada Server yang Dibuat",
+		"emptySubtitle": "Buat server Minecraft lokal pertama Anda. Ingot akan otomatis mengunduh JAR server, menyetujui EULA, mengatur port, dan menyiapkan runtime Java.",
+		"createFirst": "Buat Server Pertama Anda",
+		"createCardTitle": "Buat Server Baru",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia, atau Vanilla",
+		"noMatchTitle": "Tidak ada server yang cocok dengan filter Anda",
+		"noMatchSubtitle": "Coba ubah pencarian Anda atau pilih \"Semua Inti\"."
+	},
+	"settings": {
+		"title": "Pengaturan Launcher",
+		"subtitle": "Konfigurasi akun, bahasa, runtime Java, alokasi RAM, dan perilaku launcher.",
+		"language": {
+			"title": "Bahasa",
+			"description": "Pilih bahasa tampilan untuk antarmuka launcher. File bahasa baru di src/locales/ dimuat ulang secara otomatis."
+		},
+		"accounts": {
+			"title": "Akun & Autentikasi",
+			"description": "Hubungkan akun Ely.by atau profil offline Anda. Token sensitif diamankan di Brankas Kredensial OS.",
+			"keyringActive": "Keyring OS asli aktif: Token dienkripsi menggunakan Windows Credential Manager (DPAPI) / Keychain.",
+			"empty": "Belum ada akun yang dikonfigurasi. Klik \"Tambah Akun\" untuk memulai dengan Ely.by."
+		},
+		"memory": {
+			"title": "Alokasi Memori (RAM)",
+			"description": "Konfigurasi batas RAM awal (Min) dan maksimum (Max) untuk Java dan instansi Minecraft.",
+			"totalRam": "Total RAM",
+			"availableNow": "Memori perangkat yang tersedia saat ini:",
+			"freePercent": "{{percent}}% Tersedia",
+			"distribution": "Distribusi RAM Perangkat",
+			"allocated": "Dialokasikan:",
+			"sliderTitle": "Penggeser Rentang Alokasi",
+			"sliderHint": "Penggeser 1: Min (-Xms) • Penggeser 2: Max (-Xmx)",
+			"minMemoryLabel": "Memori Awal (Min / -Xms)",
+			"maxMemoryLabel": "Memori Maksimum (Max / -Xmx)",
+			"highMemoryWarningTitle": "Peringatan Memori Tinggi",
+			"highMemoryWarningDesc": "Mengalokasikan {{maxGb}} GB (> 80% dari {{totalGb}} GB total RAM Anda) dapat menyebabkan aplikasi latar belakang, Discord, atau Windows menjadi tidak responsif.",
+			"memoryNoticeTitle": "Pemberitahuan Memori",
+			"memoryNoticeDesc": "RAM Maks lebih besar dari memori kosong saat ini ({{availableGb}} GB). Tutup aplikasi latar belakang yang berat sebelum menjalankan instansi besar.",
+			"recommendedPresets": "Preset yang Disarankan:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Bermod",
+				"heavy": "Paket Berat",
+				"safeMax": "Maks Aman"
+			}
+		},
+		"behavior": {
+			"title": "Perilaku Launcher",
+			"description": "Pilih apa yang terjadi saat instansi dijalankan.",
+			"keepOpen": {
+				"label": "Tetap Buka",
+				"description": "Tetap terbuka di latar belakang saat bermain"
+			},
+			"hideToTray": {
+				"label": "Sembunyikan ke Baki",
+				"description": "Perkecil ke baki sistem dan pulihkan saat keluar dari game"
+			},
+			"close": {
+				"label": "Tutup Launcher",
+				"description": "Tutup Ingot sepenuhnya setelah game dimulai"
+			}
+		},
+		"window": {
+			"title": "Jendela & Tampilan",
+			"description": "Konfigurasi dimensi jendela bawaan dan mode layar penuh saat memulai instansi Anda.",
+			"fullscreenTitle": "Mulai dalam Layar Penuh",
+			"fullscreenDesc": "Jalankan Minecraft langsung ke mode layar penuh",
+			"resolutionTitle": "Resolusi Jendela Bawaan",
+			"resolutionDesc": "Atur lebar dan tinggi khusus untuk jendela game",
+			"presets": "Preset:",
+			"defaultPreset": "Bawaan"
+		},
+		"sync": {
+			"title": "Sinkronisasi Data Game",
+			"description": "Jaga agar konfigurasi Minecraft, server, dan aset Anda tetap selaras di semua instansi.",
+			"items": {
+				"syncOptions": {
+					"title": "Sinkronkan Opsi Game",
+					"description": "Pengaturan video, volume audio, FOV, tombol kontrol, dan aksesibilitas"
+				},
+				"syncServers": {
+					"title": "Sinkronkan Server Multipemain",
+					"description": "Satukan daftar server tersimpan di semua instansi"
+				},
+				"syncResourcePacks": {
+					"title": "Sinkronkan Paket Sumber Daya",
+					"description": "Bagikan semua paket tekstur dan sumber daya yang diunduh antar instansi"
+				},
+				"syncCommandHistory": {
+					"title": "Sinkronkan Riwayat Perintah",
+					"description": "Simpan riwayat perintah obrolan dan konsol antar sesi"
+				},
+				"syncCreativeHotbars": {
+					"title": "Sinkronkan Hotbar Mode Kreatif",
+					"description": "Bagikan tata letak hotbar tersimpan dalam mode kreatif antar dunia"
+				}
+			}
+		},
+		"updates": {
+			"title": "Pembaruan & Versi",
+			"description": "Kelola pembaruan Ingot dan pastikan Anda menjalankan fitur serta perbaikan keamanan terbaru.",
+			"releaseChannel": "Saluran Rilis",
+			"lastChecked": "Terakhir diperiksa: {{time}}",
+			"checking": "Memeriksa...",
+			"checkForUpdates": "Periksa Pembaruan",
+			"versionAvailable": "Versi v{{version}} tersedia!",
+			"changelog": "Catatan Perubahan",
+			"downloadAndInstall": "Unduh & Pasang Pembaruan",
+			"downloading": "Mengunduh Ingot v{{version}}...",
+			"installedTitle": "Pembaruan berhasil dipasang!",
+			"installedDesc": "Mulai ulang Ingot untuk menjalankan versi baru.",
+			"restartIngot": "Mulai Ulang Ingot",
+			"upToDate": "Ingot sudah mutakhir. Anda menjalankan versi terbaru.",
+			"errorTitle": "Tidak dapat memeriksa pembaruan"
+		},
+		"licenses": {
+			"title": "Lisensi pihak ketiga",
+			"description": "Perangkat lunak sumber terbuka yang disertakan atau diunduh oleh Ingot.",
+			"dialogSubtitle": "Ingot menggunakan perangkat lunak ini dari proyek lain. Masing-masing berada di bawah lisensinya sendiri; ketuk nama untuk melihat kode sumber dan lisensi lengkapnya.",
+			"trademark": "Minecraft adalah merek dagang dari Mojang AB. Ingot tidak berafiliasi dengan Mojang atau Microsoft."
+		}
+	}
+}

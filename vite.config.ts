@@ -5,6 +5,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import pkg from "./package.json" with { type: "json" }
+import { i18nHmrPlugin } from "./plugins/vite-plugin-i18n-hmr.ts"
 
 const host = process.env.TAURI_DEV_HOST
 // Over USB (`--host 127.0.0.1`) tauri only runs `adb reverse` for port 1420, so HMR
@@ -16,7 +17,7 @@ export default defineConfig(() => ({
 	define: {
 		APP_VERSION: JSON.stringify(pkg.version),
 	},
-	plugins: [tanstackRouter({ autoCodeSplitting: true }), react(), tailwindcss()],
+	plugins: [tanstackRouter({ autoCodeSplitting: true }), react(), tailwindcss(), i18nHmrPlugin()],
 	resolve: {
 		alias: {
 			"@": path.resolve(import.meta.dirname, "./src"),

@@ -1,6 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router"
 import { Plus, RefreshCw, Search, Server, Square, Terminal, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
 import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,7 @@ const CORE_FILTERS: { id: v.InferOutput<typeof serverCoreSchema>; label: string 
 ]
 
 export default function ServerListView() {
+	const { t } = useTranslation()
 	const search = routeApi.useSearch()
 	const navigate = routeApi.useNavigate()
 
@@ -181,13 +183,10 @@ export default function ServerListView() {
 								<Server className="size-5" />
 							</div>
 							<h1 className="font-bold text-2xl text-foreground tracking-tight">
-								Dedicated Servers
+								{t("servers.title")}
 							</h1>
 						</div>
-						<p className="mt-1 text-muted-foreground text-xs">
-							Create, configure, and manage local Minecraft servers with Paper, Purpur, Fabric,
-							Folia, and Vanilla cores.
-						</p>
+						<p className="mt-1 text-muted-foreground text-xs">{t("servers.subtitle")}</p>
 					</div>
 
 					<div className="flex items-center gap-2">
@@ -199,7 +198,7 @@ export default function ServerListView() {
 							className="h-9 gap-1.5 text-xs"
 						>
 							<RefreshCw className={cn("size-3.5", isLoading && "animate-spin text-emerald-400")} />
-							<span>Refresh</span>
+							<span>{t("common.refresh")}</span>
 						</Button>
 
 						<Button
@@ -212,7 +211,7 @@ export default function ServerListView() {
 							className="h-9 gap-1.5 bg-emerald-600 font-semibold text-white text-xs shadow-emerald-950/20 shadow-md hover:bg-emerald-500"
 						>
 							<Plus className="size-4" />
-							<span>Create Server</span>
+							<span>{t("servers.createServer")}</span>
 						</Button>
 						<ImportServerButton
 							className="h-9 gap-1.5 text-xs"
@@ -226,7 +225,7 @@ export default function ServerListView() {
 					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 shadow-emerald-950/10 shadow-lg backdrop-blur-md">
 						<div className="flex items-center gap-2 font-medium text-emerald-400 text-xs">
 							<span className="size-2 animate-ping rounded-full bg-emerald-400" />
-							Active Servers ({runningList.length}):
+							{t("servers.activeServers", { count: runningList.length })}
 						</div>
 
 						<div className="flex flex-wrap items-center gap-2">
@@ -244,7 +243,7 @@ export default function ServerListView() {
 											type="button"
 											onClick={() => srv && openPage(srv.id, "console")}
 											className="rounded p-0.5 text-emerald-300 transition-colors hover:text-white"
-											title="Open Console"
+											title={t("servers.openConsole")}
 										>
 											<Terminal className="size-3" />
 										</button>
@@ -252,7 +251,7 @@ export default function ServerListView() {
 											type="button"
 											onClick={() => handleStop(proc.serverId)}
 											className="rounded p-0.5 text-emerald-400 transition-colors hover:bg-destructive/20 hover:text-destructive"
-											title="Stop server"
+											title={t("servers.stopServer")}
 										>
 											<Square className="size-3 fill-current" />
 										</button>
@@ -269,7 +268,7 @@ export default function ServerListView() {
 						<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							type="text"
-							placeholder="Search servers by name, version, port..."
+							placeholder={t("servers.searchPlaceholder")}
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
 							className="h-8.5 rounded-lg border-border/60 bg-zinc-900/50 pr-8 pl-8.5 text-foreground text-xs placeholder:text-muted-foreground focus-visible:ring-emerald-500/50"
@@ -308,7 +307,7 @@ export default function ServerListView() {
 										: "text-muted-foreground hover:text-foreground",
 								)}
 							>
-								{c.label}
+								{c.id === "all" ? t("servers.allCores") : c.label}
 							</button>
 						))}
 					</div>
@@ -320,10 +319,11 @@ export default function ServerListView() {
 						<div className="flex size-14 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 shadow-inner">
 							<Server className="size-7" />
 						</div>
-						<h3 className="mt-4 font-semibold text-base text-foreground">No Servers Created Yet</h3>
+						<h3 className="mt-4 font-semibold text-base text-foreground">
+							{t("servers.emptyTitle")}
+						</h3>
 						<p className="mt-1.5 max-w-md text-muted-foreground text-xs leading-relaxed">
-							Create your first local Minecraft server. Ingot will automatically download the server
-							JAR, accept the EULA, configure the port, and set up your Java runtime.
+							{t("servers.emptySubtitle")}
 						</p>
 						<Button
 							onClick={() =>
@@ -335,7 +335,7 @@ export default function ServerListView() {
 							size="sm"
 						>
 							<Plus className="size-4" />
-							Create Your First Server
+							{t("servers.createFirst")}
 						</Button>
 					</div>
 				) : filteredServers.length > 0 ? (
@@ -375,20 +375,16 @@ export default function ServerListView() {
 							</div>
 							<div className="flex flex-col items-center gap-0.5 text-center">
 								<span className="font-semibold text-xs text-zinc-300 group-hover:text-white">
-									Create New Server
+									{t("servers.createCardTitle")}
 								</span>
-								<span className="text-[11px] text-zinc-500">
-									Paper, Purpur, Fabric, Folia, or Vanilla
-								</span>
+								<span className="text-[11px] text-zinc-500">{t("servers.createCardSubtitle")}</span>
 							</div>
 						</button>
 					</div>
 				) : (
 					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-zinc-900/10 p-12 text-center">
-						<p className="font-medium text-foreground text-sm">No servers match your filters</p>
-						<p className="mt-1 text-muted-foreground text-xs">
-							Try changing your search query or selecting "All Cores".
-						</p>
+						<p className="font-medium text-foreground text-sm">{t("servers.noMatchTitle")}</p>
+						<p className="mt-1 text-muted-foreground text-xs">{t("servers.noMatchSubtitle")}</p>
 						<Button
 							variant="outline"
 							size="sm"
@@ -400,7 +396,7 @@ export default function ServerListView() {
 							}}
 							className="mt-4 text-xs"
 						>
-							Clear Filters
+							{t("common.clearFilters")}
 						</Button>
 					</div>
 				)}

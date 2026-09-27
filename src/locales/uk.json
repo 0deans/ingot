@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Ukrainian",
+		"nativeName": "Українська"
+	},
+	"common": {
+		"cancel": "Скасувати",
+		"continue": "Продовжити",
+		"save": "Зберегти зміни",
+		"delete": "Видалити",
+		"install": "Встановити",
+		"installed": "Встановлено",
+		"search": "Пошук...",
+		"active": "Активний",
+		"refresh": "Оновити",
+		"clearSearch": "Очистити пошук",
+		"clearFilters": "Очистити фільтри",
+		"resetFilters": "Скинути фільтри",
+		"tryAgain": "Спробувати знову",
+		"openFolder": "Відкрити папку",
+		"view": "Перегляд",
+		"close": "Закрити",
+		"minimize": "Згорнути",
+		"maximize": "Розгорнути",
+		"restore": "Відновити",
+		"justNow": "Щойно",
+		"never": "Ніколи",
+		"minutesAgo": "{{count}} хв тому",
+		"hoursAgo": "{{count}} год тому",
+		"daysAgo": "{{count}} дн тому"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Оберіть мову",
+		"selectLanguageSubtitle": "Виберіть бажану мову інтерфейсу Ingot. Ви зможете будь-коли змінити її в Налаштуваннях.",
+		"detectedBadge": "Мова системи",
+		"continueWith": "Продовжити ({{language}})"
+	},
+	"nav": {
+		"instances": "Збірки",
+		"discover": "Каталог",
+		"skins": "Каталог скінів",
+		"screenshots": "Знімки екрана",
+		"servers": "Виділені сервери",
+		"settings": "Налаштування",
+		"language": "Мова"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} готовий до встановлення!",
+		"downloading": "Завантаження оновлення v{{version}}... ({{progress}}%)",
+		"available": "Доступна нова версія: Ingot v{{version}}",
+		"currentVersion": "Поточна: v{{version}}",
+		"restartNow": "Перезапустити зараз",
+		"updateNow": "Оновити зараз",
+		"dismiss": "Закрити"
+	},
+	"accounts": {
+		"player": "Гравець",
+		"noAccount": "Немає акаунта",
+		"addAccount": "Додати акаунт",
+		"addAccountEllipsis": "Додати акаунт...",
+		"manageAccounts": "Керування акаунтами",
+		"userProfile": "Профіль користувача",
+		"securedViaEly": "Захищено через Ely.by",
+		"securedInVault": "Захищено у сховищі",
+		"localProfile": "Локальний профіль",
+		"minecraftAccounts": "Акаунти Minecraft",
+		"linkedCount": "{{count}} прив'язано",
+		"noAccountsYet": "Акаунти ще не налаштовані.",
+		"previewSkin": "3D-перегляд скіна",
+		"removeAccount": "Видалити акаунт",
+		"setAsActive": "Зробити активним"
+	},
+	"instances": {
+		"searchPlaceholder": "Пошук збірок...",
+		"import": "Імпорт",
+		"newInstance": "Нова збірка",
+		"activeInstances": "Активні збірки ({{count}}):",
+		"stopProcess": "Зупинити процес",
+		"allInstances": "Усі збірки",
+		"emptyTitle": "Збірок ще не створено",
+		"emptySubtitle": "Створіть свою першу збірку Minecraft, щоб почати грати. Ви можете обрати Vanilla або завантажувачі модів, такі як Fabric, Quilt чи Forge.",
+		"createFirst": "Створити першу збірку",
+		"importFromLauncher": "Імпортувати з лаунчера",
+		"createCardTitle": "Створити нову збірку",
+		"createCardSubtitle": "Будь-яка версія або завантажувач модів",
+		"noMatchTitle": "Не знайдено збірок за запитом «{{query}}»",
+		"noMatchSubtitle": "Спробуйте вказати іншу назву, версію або завантажувач модів.",
+		"card": {
+			"neverPlayed": "Ще не запускалася",
+			"preparing": "Підготовка",
+			"preparingBtn": "Підготовка...",
+			"play": "Грати",
+			"stop": "Зупинити",
+			"customRam": "(Власна)",
+			"customRamTooltip": "Індивідуальний ліміт пам'яті для збірки",
+			"globalRamTooltip": "Успадковано з глобальних налаштувань",
+			"playedDuration": "Зіграно {{duration}}",
+			"quickPlay": "Швидка гра",
+			"quickPlayOptions": "Параметри швидкої гри",
+			"directConnect": "Пряме підключення...",
+			"directConnectDesc": "Підключитися безпосередньо до сервера",
+			"quickLoadWorld": "Швидкий запуск світу",
+			"quickLoadWorldDesc": "Одразу завантажити збережений світ",
+			"singleplayerSaves": "Одиночні світи",
+			"scanningWorlds": "Сканування світів...",
+			"noSavedWorlds": "У цій збірці не знайдено збережених світів.",
+			"requires120": "Потрібен Minecraft 1.20+",
+			"openFolderTooltip": "Відкрити папку збірки у Провіднику",
+			"settingsTooltip": "Налаштування збірки (ОЗП, аргументи JVM)",
+			"deleteTooltip": "Видалити збірку"
+		}
+	},
+	"modpacks": {
+		"title": "Каталог контенту",
+		"subtitle": "Шукайте та встановлюйте моди, модпаки, ресурспаки та шейдери з Modrinth і CurseForge безпосередньо у ваші збірки.",
+		"searchPlaceholder": "Пошук модів, модпаків, ресурспаків, шейдерів...",
+		"categories": {
+			"all": "Усі типи",
+			"modpack": "Модпаки",
+			"mod": "Моди",
+			"resourcepack": "Ресурспаки",
+			"shader": "Шейдери"
+		},
+		"sources": {
+			"all": "Усі джерела",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Завантажувач:",
+			"allLoaders": "Усі завантажувачі",
+			"version": "Версія:",
+			"allVersions": "Усі версії",
+			"sort": "Сортування:",
+			"sortBy": "Сортувати за"
+		},
+		"sorts": {
+			"downloads": "За завантаженнями",
+			"relevance": "За релевантністю",
+			"updated": "Нещодавно оновлені",
+			"newest": "Найновіші"
+		},
+		"searching": "Пошук контенту...",
+		"foundResults": "Знайдено результатів: {{count}}",
+		"noResults": "Немає результатів",
+		"pageOf": "Сторінка {{page}} з {{total}}",
+		"noMatchTitle": "Нічого не знайдено за вибраними фільтрами",
+		"noMatchSubtitle": "Спробуйте змінити пошуковий запит, завантажувач модів або джерело.",
+		"resetAllFilters": "Скинути всі фільтри",
+		"byAuthor": "від {{author}}",
+		"noDescription": "Опис відсутній.",
+		"details": "Детальніше"
+	},
+	"skins": {
+		"title": "Каталог скінів",
+		"subtitle": "Переглядайте скіни Ely.by, керуйте власною колекцією або завантажте свій скін.",
+		"tabs": {
+			"catalog": "Каталог",
+			"mySkins": "Мої скіни",
+			"upload": "Завантажити скін"
+		},
+		"sorts": {
+			"wearers": "Популярні",
+			"latest": "Нові",
+			"views": "За переглядами",
+			"cubes": "За вподобаннями"
+		},
+		"models": {
+			"any": "Усі моделі",
+			"steve": "Класична (Steve)",
+			"slim": "Тонка (Alex)"
+		},
+		"searchPlaceholder": "Пошук скінів за ніком або тегом..."
+	},
+	"screenshots": {
+		"title": "Знімки екрана",
+		"subtitle": "Галерея ігрових скріншотів з усіх ваших збірок",
+		"refreshTooltip": "Оновити скріншоти",
+		"searchPlaceholder": "Пошук скріншотів...",
+		"allInstances": "Усі збірки",
+		"allInstancesCount": "Усі збірки ({{count}})",
+		"selectedInstance": "Вибрана збірка",
+		"sorts": {
+			"date-desc": "Спочатку нові",
+			"date-asc": "Спочатку старі",
+			"name-asc": "За назвою (А-Я)",
+			"name-desc": "За назвою (Я-А)",
+			"size-desc": "За розміром (більші)",
+			"size-asc": "За розміром (менші)"
+		},
+		"emptyTitle": "Скріншотів не знайдено",
+		"emptySubtitlePrefix": "Робіть знімки екрана під час гри в Minecraft, натискаючи",
+		"emptySubtitleSuffix": ". Вони автоматично з'являться в цій галереї.",
+		"checkAgain": "Перевірити знову",
+		"noMatchTitle": "Збігів не знайдено",
+		"noMatchSubtitle": "Жоден скріншот не відповідає вашому запиту чи фільтру. Спробуйте очистити фільтри.",
+		"deleteDialog": {
+			"title": "Видалити скріншот",
+			"description": "Ви впевнені, що хочете назавжди видалити цей скріншот? Цю дію неможливо скасувати.",
+			"deleting": "Видалення...",
+			"deletePermanently": "Видалити назавжди"
+		}
+	},
+	"servers": {
+		"title": "Виділені сервери",
+		"subtitle": "Створюйте, налаштовуйте та керуйте локальними серверами Minecraft на ядрах Paper, Purpur, Fabric, Folia та Vanilla.",
+		"createServer": "Створити сервер",
+		"activeServers": "Активні сервери ({{count}}):",
+		"openConsole": "Відкрити консоль",
+		"stopServer": "Зупинити сервер",
+		"searchPlaceholder": "Пошук серверів за назвою, версією, портом...",
+		"allCores": "Усі ядра",
+		"emptyTitle": "Серверів ще не створено",
+		"emptySubtitle": "Створіть свій перший локальний сервер Minecraft. Ingot автоматично завантажить JAR сервера, прийме EULA, налаштує порт і підготує середовище Java.",
+		"createFirst": "Створити перший сервер",
+		"createCardTitle": "Створити новий сервер",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia або Vanilla",
+		"noMatchTitle": "Жоден сервер не відповідає фільтрам",
+		"noMatchSubtitle": "Спробуйте змінити пошуковий запит або обрати «Усі ядра»."
+	},
+	"settings": {
+		"title": "Налаштування лаунчера",
+		"subtitle": "Керування акаунтами, мовою, середовищем Java, виділенням ОЗП та поведінкою лаунчера.",
+		"language": {
+			"title": "Мова інтерфейсу",
+			"description": "Оберіть мову відображення інтерфейсу лаунчера. Нові файли перекладів у src/locales/ підвантажуються автоматично."
+		},
+		"accounts": {
+			"title": "Акаунти й автентифікація",
+			"description": "Підключіть свої акаунти Ely.by або локальні профілі. Токени надійно захищені в системному сховищі облікових даних ОС.",
+			"keyringActive": "Системне сховище активне: токени шифруються через Диспетчер облікових даних Windows (DPAPI) / Keychain.",
+			"empty": "Акаунти ще не налаштовані. Натисніть «Додати акаунт», щоб увійти через Ely.by."
+		},
+		"memory": {
+			"title": "Виділення пам'яті (ОЗП)",
+			"description": "Налаштуйте початковий (Min) і максимальний (Max) ліміти оперативної пам'яті для Java та збірок Minecraft.",
+			"totalRam": "Усього ОЗП",
+			"availableNow": "Доступно вільної пам'яті зараз:",
+			"freePercent": "{{percent}}% вільно",
+			"distribution": "Розподіл ОЗП комп'ютера",
+			"allocated": "Виділено:",
+			"sliderTitle": "Повзунок діапазону пам'яті",
+			"sliderHint": "Повзунок 1: Min (-Xms) • Повзунок 2: Max (-Xmx)",
+			"minMemoryLabel": "Початкова пам'ять (Min / -Xms)",
+			"maxMemoryLabel": "Максимальна пам'ять (Max / -Xmx)",
+			"highMemoryWarningTitle": "Попередження про високе споживання пам'яті",
+			"highMemoryWarningDesc": "Виділення {{maxGb}} ГБ (> 80% від ваших {{totalGb}} ГБ ОЗП) може призвести до зависання фонових програм, Discord або самої ОС Windows.",
+			"memoryNoticeTitle": "Зверніть увагу на пам'ять",
+			"memoryNoticeDesc": "Максимальний ліміт ОЗП перевищує доступну зараз вільну пам'ять ({{availableGb}} ГБ). Закрийте важкі фонові програми перед запуском великих збірок.",
+			"recommendedPresets": "Рекомендовані пресети:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "З модами",
+				"heavy": "Важкий модпак",
+				"safeMax": "Безпечний макс."
+			}
+		},
+		"behavior": {
+			"title": "Поведінка лаунчера",
+			"description": "Оберіть, що має відбуватися після запуску збірки.",
+			"keepOpen": {
+				"label": "Залишати відкритим",
+				"description": "Залишати лаунчер відкритим у фоновому режимі під час гри"
+			},
+			"hideToTray": {
+				"label": "Ховати в трей",
+				"description": "Згортати в системний трей і відновлювати після виходу з гри"
+			},
+			"close": {
+				"label": "Закривати лаунчер",
+				"description": "Повністю закривати Ingot після запуску гри"
+			}
+		},
+		"window": {
+			"title": "Вікно та дисплей",
+			"description": "Налаштуйте стандартний розмір вікна та запуск у повноекранному режимі для ваших збірок.",
+			"fullscreenTitle": "Запускати на весь екран",
+			"fullscreenDesc": "Запускати Minecraft одразу в повноекранному режимі",
+			"resolutionTitle": "Стандартна роздільна здатність вікна",
+			"resolutionDesc": "Задайте власну ширину та висоту ігрового вікна",
+			"presets": "Пресети:",
+			"defaultPreset": "За замовчуванням"
+		},
+		"sync": {
+			"title": "Синхронізація ігрових даних",
+			"description": "Синхронізуйте налаштування Minecraft, список серверів і ресурси між усіма збірками.",
+			"items": {
+				"syncOptions": {
+					"title": "Синхронізувати налаштування гри",
+					"description": "Налаштування графіки, гучність звуку, поле зору (FOV), керування та спеціальні можливості"
+				},
+				"syncServers": {
+					"title": "Синхронізувати список серверів",
+					"description": "Єдиний список збережених мережевих серверів для всіх збірок"
+				},
+				"syncResourcePacks": {
+					"title": "Синхронізувати ресурспаки",
+					"description": "Спільні завантажені текстури та ресурспаки між усіма збірками"
+				},
+				"syncCommandHistory": {
+					"title": "Синхронізувати історію команд",
+					"description": "Зберігати історію чату та консольних команд між запусками"
+				},
+				"syncCreativeHotbars": {
+					"title": "Синхронізувати панелі творчого режиму",
+					"description": "Спільні збережені панелі швидкого доступу у творчому режимі між світами"
+				}
+			}
+		},
+		"updates": {
+			"title": "Оновлення та версія",
+			"description": "Керуйте оновленнями Ingot, щоб завжди мати найновіші функції та виправлення безпеки.",
+			"releaseChannel": "Канал оновлень",
+			"lastChecked": "Остання перевірка: {{time}}",
+			"checking": "Перевірка...",
+			"checkForUpdates": "Перевірити оновлення",
+			"versionAvailable": "Доступна версія v{{version}}!",
+			"changelog": "Список змін",
+			"downloadAndInstall": "Завантажити та встановити оновлення",
+			"downloading": "Завантаження Ingot v{{version}}...",
+			"installedTitle": "Оновлення успішно встановлено!",
+			"installedDesc": "Перезапустіть Ingot, щоб відкрити нову версію.",
+			"restartIngot": "Перезапустити Ingot",
+			"upToDate": "У вас встановлена найновіша версія Ingot.",
+			"errorTitle": "Не вдалося перевірити оновлення"
+		},
+		"licenses": {
+			"title": "Ліцензії сторонніх компонентів",
+			"description": "Програмне забезпечення з відкритим кодом, яке включає або завантажує Ingot.",
+			"dialogSubtitle": "Ingot використовує ці бібліотеки з інших проєктів. Кожна з них поширюється за власною ліцензією; натисніть на назву, щоб переглянути вихідний код і повний текст ліцензії.",
+			"trademark": "Minecraft є торговельною маркою Mojang AB. Ingot не пов'язаний з Mojang або Microsoft."
+		}
+	}
+}

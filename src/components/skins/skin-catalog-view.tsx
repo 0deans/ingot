@@ -24,6 +24,7 @@ import {
 	X,
 } from "lucide-react"
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import SkinViewer3D, { DEFAULT_STEVE_SKIN } from "@/components/accounts/skin-viewer-3d"
 import { Button } from "@/components/ui/button"
 import {
@@ -247,6 +248,7 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 	})
 
 export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountProfile | null }) {
+	const { t } = useTranslation()
 	const search = routeApi.useSearch()
 	const navigate = routeApi.useNavigate()
 
@@ -684,10 +686,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			{/* Page Header */}
 			<div className="flex shrink-0 flex-col justify-between gap-2 sm:flex-row sm:items-center">
 				<div>
-					<h1 className="font-bold text-foreground text-xl tracking-tight">Skins Catalog</h1>
-					<p className="text-muted-foreground text-xs">
-						Browse and apply community skins from Ely.by, or upload your own custom Minecraft skin.
-					</p>
+					<h1 className="font-bold text-foreground text-xl tracking-tight">{t("skins.title")}</h1>
+					<p className="text-muted-foreground text-xs">{t("skins.subtitle")}</p>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
@@ -727,7 +727,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							onClick={() => handleTabChange("catalog")}
 						>
 							<Search className="mr-1.5 size-3.5" />
-							Browse Catalog
+							{t("skins.tabs.catalog")}
 						</Button>
 						<Button
 							type="button"
@@ -742,7 +742,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							onClick={() => handleTabChange("my-skins")}
 						>
 							<User className="mr-1.5 size-3.5" />
-							My Uploads
+							{t("skins.tabs.mySkins")}
 						</Button>
 						<Button
 							type="button"
@@ -757,7 +757,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							onClick={() => handleTabChange("upload")}
 						>
 							<Upload className="mr-1.5 size-3.5" />
-							Upload Skin
+							{t("skins.tabs.upload")}
 						</Button>
 					</div>
 				</div>
@@ -942,11 +942,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-zinc-500" />
 									<Input
 										type="text"
-										placeholder={
-											activeTab === "my-skins"
-												? "Search my skins or tags..."
-												: "Search skins or tags..."
-										}
+										placeholder={t("skins.searchPlaceholder")}
 										value={searchInput}
 										onChange={(e) => setSearchInput(e.target.value)}
 										className="h-8 rounded-lg border-zinc-800 bg-zinc-900/80 pr-7 pl-8 text-xs text-zinc-200 placeholder:text-zinc-500 focus-visible:ring-emerald-500/50"
@@ -988,7 +984,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													})
 												}}
 											>
-												{m === "any" ? "All" : m === "steve" ? "Classic" : "Slim"}
+												{t(`skins.models.${m}`)}
 											</button>
 										))}
 									</div>
@@ -1003,7 +999,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900/80 text-[11px] text-zinc-300 hover:bg-zinc-800"
 												>
 													<ArrowUpDown className="size-3 text-zinc-400" />
-													<span>Sort: {SORT_OPTIONS.find((o) => o.id === sortOption)?.label}</span>
+													<span>{t(`skins.sorts.${sortOption}`)}</span>
 													<ChevronDown className="size-3 opacity-60" />
 												</Button>
 											}
@@ -1025,7 +1021,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														sortOption === s.id && "bg-zinc-900 font-medium text-emerald-400",
 													)}
 												>
-													<span>{s.label}</span>
+													<span>{t(`skins.sorts.${s.id}`)}</span>
 													{sortOption === s.id && <Check className="size-3 text-emerald-400" />}
 												</DropdownMenuItem>
 											))}
@@ -1038,7 +1034,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										onClick={() => refetch()}
 										disabled={isFetching}
 										className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900/80 px-2 text-[11px] text-zinc-300 hover:bg-zinc-800"
-										title="Refresh skins"
+										title={t("common.refresh")}
 									>
 										<RefreshCw
 											className={cn(
@@ -1046,7 +1042,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												isFetching && "animate-spin text-emerald-400",
 											)}
 										/>
-										<span className="hidden sm:inline">Refresh</span>
+										<span className="hidden sm:inline">{t("common.refresh")}</span>
 									</Button>
 
 									{totalItems > 0 && (

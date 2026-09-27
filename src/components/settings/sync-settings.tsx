@@ -1,5 +1,6 @@
 import { History, Layers, Palette, RefreshCw, Server, Sliders, UploadCloud } from "lucide-react"
 import { memo, useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { SharedSyncStatus, SyncSettings as SyncSettingsType } from "@/bindings"
 import SyncMasterDialog, {
 	type InitialSyncCategoryTarget,
@@ -9,11 +10,16 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { settingsService, useSyncSettings } from "@/services/settings-service"
 
+type SyncItemKey =
+	| "syncOptions"
+	| "syncServers"
+	| "syncResourcePacks"
+	| "syncCommandHistory"
+	| "syncCreativeHotbars"
+
 interface SyncItemConfig {
-	key: keyof SyncSettingsType
+	key: SyncItemKey
 	categoryName: string
-	title: string
-	description: string
 	file: string
 	icon: typeof Sliders
 	color: string
@@ -23,8 +29,6 @@ const SYNC_ITEMS: SyncItemConfig[] = [
 	{
 		key: "syncOptions",
 		categoryName: "options",
-		title: "Sync Game Options",
-		description: "Video settings, audio volume, FOV, keybindings, and accessibility",
 		file: "options.txt",
 		icon: Sliders,
 		color: "text-amber-400",
@@ -32,8 +36,6 @@ const SYNC_ITEMS: SyncItemConfig[] = [
 	{
 		key: "syncServers",
 		categoryName: "servers",
-		title: "Sync Multiplayer Servers",
-		description: "Keep your saved server list unified across all instances",
 		file: "servers.dat",
 		icon: Server,
 		color: "text-emerald-400",
@@ -41,8 +43,6 @@ const SYNC_ITEMS: SyncItemConfig[] = [
 	{
 		key: "syncResourcePacks",
 		categoryName: "resourcepacks",
-		title: "Sync Resource Packs",
-		description: "Share all downloaded texture and resource packs across instances",
 		file: "resourcepacks/",
 		icon: Layers,
 		color: "text-sky-400",
@@ -50,8 +50,6 @@ const SYNC_ITEMS: SyncItemConfig[] = [
 	{
 		key: "syncCommandHistory",
 		categoryName: "command_history",
-		title: "Sync Command History",
-		description: "Preserve chat and console command history across launches",
 		file: "command_history.txt",
 		icon: History,
 		color: "text-purple-400",
@@ -59,8 +57,6 @@ const SYNC_ITEMS: SyncItemConfig[] = [
 	{
 		key: "syncCreativeHotbars",
 		categoryName: "hotbar",
-		title: "Sync Saved Creative Hotbars",
-		description: "Share saved hotbar layouts in creative mode across worlds",
 		file: "hotbar.nbt",
 		icon: Palette,
 		color: "text-pink-400",
@@ -68,6 +64,7 @@ const SYNC_ITEMS: SyncItemConfig[] = [
 ]
 
 export const SyncSettings = () => {
+	const { t } = useTranslation()
 	const { syncSettings, setSyncSettings } = useSyncSettings()
 	const [sharedStatus, setSharedStatus] = useState<SharedSyncStatus | null>(null)
 	const [activeCategoryTarget, setActiveCategoryTarget] =
@@ -103,6 +100,7 @@ export const SyncSettings = () => {
 	}
 
 	const handleToggle = async (item: SyncItemConfig, checked: boolean) => {
+		const itemTitle = t(`settings.sync.items.${item.key}.title`)
 		if (!checked) {
 			try {
 				await setSyncSettings({
@@ -122,7 +120,7 @@ export const SyncSettings = () => {
 			setActiveCategoryTarget({
 				key: item.key,
 				categoryName: item.categoryName,
-				title: item.title,
+				title: itemTitle,
 				file: item.file,
 				hasSharedData: hasCategorySharedData(item.key),
 			})
@@ -176,11 +174,9 @@ export const SyncSettings = () => {
 			<div className="flex flex-col gap-1">
 				<div className="flex items-center gap-2">
 					<RefreshCw className="size-4 text-emerald-400" />
-					<h3 className="font-semibold text-foreground text-sm">Game Data Synchronization</h3>
+					<h3 className="font-semibold text-foreground text-sm">{t("settings.sync.title")}</h3>
 				</div>
-				<p className="text-muted-foreground text-xs">
-					Keep your Minecraft configurations, servers, and assets aligned across all instances.
-				</p>
+				<p className="text-muted-foreground text-xs">{t("settings.sync.description")}</p>
 			</div>
 
 			{/* Synchronization Toggles */}
@@ -188,6 +184,8 @@ export const SyncSettings = () => {
 				{SYNC_ITEMS.map((item) => {
 					const Icon = item.icon
 					const isChecked = Boolean(syncSettings[item.key])
+					const itemTitle = t(`settings.sync.items.${item.key}.title`)
+					const itemDesc = t(`settings.sync.items.${item.key}.description`)
 					return (
 						<div
 							key={item.key}
@@ -202,13 +200,13 @@ export const SyncSettings = () => {
 								<div>
 									<div className="flex items-center gap-2">
 										<span className="font-medium text-foreground text-xs sm:text-sm">
-											{item.title}
+											{itemTitle}
 										</span>
 										<code className="rounded bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
 											{item.file}
 										</code>
 									</div>
-									<div className="text-[11px] text-muted-foreground">{item.description}</div>
+									<div className="text-[11px] text-muted-foreground">{itemDesc}</div>
 								</div>
 							</div>
 
@@ -222,14 +220,14 @@ export const SyncSettings = () => {
 											setActiveCategoryTarget({
 												key: item.key,
 												categoryName: item.categoryName,
-												title: item.title,
+												title: itemTitle,
 												file: item.file,
 												hasSharedData: hasCategorySharedData(item.key),
 											})
 											setIsMasterOpen(true)
 										}}
 										className="size-7 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
-										title={`Re-initialize ${item.title} source`}
+										title={`Re-initialize ${itemTitle} source`}
 									>
 										<UploadCloud className="size-3.5" />
 									</Button>

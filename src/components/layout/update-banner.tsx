@@ -1,10 +1,12 @@
 import { CheckCircle2, Download, Loader2, RefreshCw, Sparkles, X } from "lucide-react"
 import { memo } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useUpdateService } from "@/services/update-service"
 
 export const UpdateBanner = () => {
+	const { t } = useTranslation()
 	const {
 		status,
 		updateInfo,
@@ -52,14 +54,17 @@ export const UpdateBanner = () => {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
 						<span className="font-medium text-xs">
 							{isReady
-								? `Ingot v${updateInfo.version} is ready to install!`
+								? t("updateBanner.readyToInstall", { version: updateInfo.version })
 								: isDownloading
-									? `Downloading update v${updateInfo.version}... (${downloadProgress}%)`
-									: `New version available: Ingot v${updateInfo.version}`}
+									? t("updateBanner.downloading", {
+											version: updateInfo.version,
+											progress: downloadProgress,
+										})
+									: t("updateBanner.available", { version: updateInfo.version })}
 						</span>
 						{!isDownloading && !isReady && (
 							<span className="text-[11px] text-muted-foreground">
-								Current: v{updateInfo.currentVersion}
+								{t("updateBanner.currentVersion", { version: updateInfo.currentVersion })}
 							</span>
 						)}
 					</div>
@@ -73,7 +78,7 @@ export const UpdateBanner = () => {
 							className="h-7 gap-1.5 bg-emerald-600 px-3 font-medium text-white text-xs hover:bg-emerald-500"
 						>
 							<RefreshCw className="size-3" />
-							<span>Restart Now</span>
+							<span>{t("updateBanner.restartNow")}</span>
 						</Button>
 					) : isDownloading ? (
 						<div className="flex items-center gap-2">
@@ -94,7 +99,7 @@ export const UpdateBanner = () => {
 							className="h-7 gap-1.5 bg-emerald-600 px-3 font-medium text-white text-xs hover:bg-emerald-500"
 						>
 							<Download className="size-3" />
-							<span>Update Now</span>
+							<span>{t("updateBanner.updateNow")}</span>
 						</Button>
 					)}
 
@@ -103,7 +108,7 @@ export const UpdateBanner = () => {
 							type="button"
 							onClick={dismissBanner}
 							className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-zinc-800 hover:text-foreground"
-							title="Dismiss"
+							title={t("updateBanner.dismiss")}
 						>
 							<X className="size-3.5" />
 						</button>

@@ -1,5 +1,6 @@
 import { Check, Eye, Settings, ShieldCheck, Trash2, UserPlus } from "lucide-react"
 import { memo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
 import SkinPreviewDialog from "@/components/accounts/skin-preview-dialog"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,7 @@ interface AccountSwitcherProps {
 }
 
 const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherProps) => {
+	const { t } = useTranslation()
 	const { accounts, activeAccount, setActiveAccount, removeAccount } = useAccounts()
 	const [isAddOpen, setIsAddOpen] = useState(false)
 	const [previewAccount, setPreviewAccount] = useState<AccountProfile | null>(null)
@@ -52,11 +54,11 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 						<TooltipTrigger
 							render={
 								<DropdownMenuTrigger
-									aria-label="User profile"
+									aria-label={t("accounts.userProfile")}
 									className="group relative flex size-10 items-center justify-center rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary/40"
 								>
 									<SkinAvatar
-										username={activeAccount ? activeAccount.username : "Player"}
+										username={activeAccount ? activeAccount.username : t("accounts.player")}
 										skinUrl={activeAccount?.skinUrl}
 										size={32}
 										className="transition-all group-hover:ring-2 group-hover:ring-primary/40"
@@ -64,14 +66,14 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 									{activeAccount?.accountType === "ely" && (
 										<span
 											className="absolute right-0.5 bottom-0.5 size-2.5 rounded-full border-2 border-zinc-950 bg-emerald-500"
-											title="Secured via Ely.by"
+											title={t("accounts.securedViaEly")}
 										/>
 									)}
 								</DropdownMenuTrigger>
 							}
 						/>
 						<TooltipContent side="right">
-							{activeAccount ? activeAccount.username : "Add Account"}
+							{activeAccount ? activeAccount.username : t("accounts.addAccount")}
 						</TooltipContent>
 					</Tooltip>
 				) : (
@@ -84,14 +86,14 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 						}
 					>
 						<SkinAvatar
-							username={activeAccount ? activeAccount.username : "Player"}
+							username={activeAccount ? activeAccount.username : t("accounts.player")}
 							skinUrl={activeAccount?.skinUrl}
 							size={34}
 						/>
 						<div className="flex min-w-0 flex-1 flex-col">
 							<div className="flex items-center gap-1.5">
 								<span className="truncate font-semibold text-foreground text-xs">
-									{activeAccount ? activeAccount.username : "No Account"}
+									{activeAccount ? activeAccount.username : t("accounts.noAccount")}
 								</span>
 								{activeAccount?.accountType === "ely" && (
 									<span className="inline-flex items-center rounded-xs bg-emerald-500/10 px-1 py-0.2 text-[9px] text-emerald-400">
@@ -108,10 +110,10 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 								{activeAccount?.accountType === "ely" ? (
 									<>
 										<ShieldCheck className="size-2.5 text-emerald-500/80" />
-										Secured in Vault
+										{t("accounts.securedInVault")}
 									</>
 								) : (
-									"Local Profile"
+									t("accounts.localProfile")
 								)}
 							</span>
 						</div>
@@ -126,15 +128,15 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 				>
 					<DropdownMenuGroup>
 						<DropdownMenuLabel className="flex items-center justify-between text-[11px]">
-							<span>Minecraft Accounts</span>
+							<span>{t("accounts.minecraftAccounts")}</span>
 							<span className="font-normal text-[10px] text-muted-foreground">
-								{accounts.length} linked
+								{t("accounts.linkedCount", { count: accounts.length })}
 							</span>
 						</DropdownMenuLabel>
 
 						{accounts.length === 0 ? (
 							<div className="p-2 text-center text-muted-foreground text-xs">
-								No accounts configured yet.
+								{t("accounts.noAccountsYet")}
 							</div>
 						) : (
 							accounts.map((acc) => {
@@ -169,7 +171,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 													e.stopPropagation()
 													setPreviewAccount(acc)
 												}}
-												title="Preview 3D skin"
+												title={t("accounts.previewSkin")}
 											>
 												<Eye className="size-3" />
 											</Button>
@@ -179,7 +181,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 												size="icon-xs"
 												className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
 												onClick={(e) => handleRemoveAccount(e, acc.id)}
-												title="Remove account"
+												title={t("accounts.removeAccount")}
 											>
 												<Trash2 className="size-3" />
 											</Button>
@@ -194,13 +196,13 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 
 					<DropdownMenuItem onClick={() => setIsAddOpen(true)} className="gap-2 text-xs">
 						<UserPlus className="size-3.5" />
-						<span>Add Account...</span>
+						<span>{t("accounts.addAccountEllipsis")}</span>
 					</DropdownMenuItem>
 
 					{onOpenSettings && (
 						<DropdownMenuItem onClick={onOpenSettings} className="gap-2 text-xs">
 							<Settings className="size-3.5" />
-							<span>Manage Accounts</span>
+							<span>{t("accounts.manageAccounts")}</span>
 						</DropdownMenuItem>
 					)}
 				</DropdownMenuContent>

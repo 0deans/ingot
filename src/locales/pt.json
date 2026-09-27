@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Portuguese",
+		"nativeName": "Português"
+	},
+	"common": {
+		"cancel": "Cancelar",
+		"continue": "Continuar",
+		"save": "Salvar alterações",
+		"delete": "Excluir",
+		"install": "Instalar",
+		"installed": "Instalado",
+		"search": "Pesquisar...",
+		"active": "Ativo",
+		"refresh": "Atualizar",
+		"clearSearch": "Limpar pesquisa",
+		"clearFilters": "Limpar filtros",
+		"resetFilters": "Redefinir filtros",
+		"tryAgain": "Tentar novamente",
+		"openFolder": "Abrir pasta",
+		"view": "Ver",
+		"close": "Fechar",
+		"minimize": "Minimizar",
+		"maximize": "Maximizar",
+		"restore": "Restaurar",
+		"justNow": "Agora mesmo",
+		"never": "Nunca",
+		"minutesAgo": "há {{count}}m",
+		"hoursAgo": "há {{count}}h",
+		"daysAgo": "há {{count}}d"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Escolha seu idioma",
+		"selectLanguageSubtitle": "Selecione o idioma de exibição de sua preferência para o Ingot. Você pode alterá-lo a qualquer momento nas Configurações.",
+		"detectedBadge": "Padrão do sistema",
+		"continueWith": "Continuar em {{language}}"
+	},
+	"nav": {
+		"instances": "Instâncias",
+		"discover": "Descobrir",
+		"skins": "Catálogo de skins",
+		"screenshots": "Capturas de tela",
+		"servers": "Servidores dedicados",
+		"settings": "Configurações",
+		"language": "Idioma"
+	},
+	"updateBanner": {
+		"readyToInstall": "O Ingot v{{version}} está pronto para instalar!",
+		"downloading": "Baixando atualização v{{version}}... ({{progress}}%)",
+		"available": "Nova versão disponível: Ingot v{{version}}",
+		"currentVersion": "Atual: v{{version}}",
+		"restartNow": "Reiniciar agora",
+		"updateNow": "Atualizar agora",
+		"dismiss": "Dispensar"
+	},
+	"accounts": {
+		"player": "Jogador",
+		"noAccount": "Sem conta",
+		"addAccount": "Adicionar conta",
+		"addAccountEllipsis": "Adicionar conta...",
+		"manageAccounts": "Gerenciar contas",
+		"userProfile": "Perfil do usuário",
+		"securedViaEly": "Protegido via Ely.by",
+		"securedInVault": "Protegido no cofre",
+		"localProfile": "Perfil local",
+		"minecraftAccounts": "Contas do Minecraft",
+		"linkedCount": "{{count}} vinculada(s)",
+		"noAccountsYet": "Nenhuma conta configurada ainda.",
+		"previewSkin": "Visualizar skin em 3D",
+		"removeAccount": "Remover conta",
+		"setAsActive": "Definir como ativa"
+	},
+	"instances": {
+		"searchPlaceholder": "Pesquisar instâncias...",
+		"import": "Importar",
+		"newInstance": "Nova instância",
+		"activeInstances": "Instâncias ativas ({{count}}):",
+		"stopProcess": "Parar processo",
+		"allInstances": "Todas as instâncias",
+		"emptyTitle": "Nenhuma instância criada ainda",
+		"emptySubtitle": "Crie sua primeira instância do Minecraft para começar a jogar. Você pode escolher Vanilla ou carregadores de mods como Fabric, Quilt ou Forge.",
+		"createFirst": "Criar primeira instância",
+		"importFromLauncher": "Importar de outro launcher",
+		"createCardTitle": "Criar nova instância",
+		"createCardSubtitle": "Escolha qualquer versão ou carregador de mods",
+		"noMatchTitle": "Nenhuma instância encontrada para \"{{query}}\"",
+		"noMatchSubtitle": "Tente pesquisar por outro nome, versão ou carregador de mods.",
+		"card": {
+			"neverPlayed": "Nunca jogado",
+			"preparing": "Preparando",
+			"preparingBtn": "Preparando...",
+			"play": "Jogar",
+			"stop": "Parar",
+			"customRam": "(Personalizada)",
+			"customRamTooltip": "Limite de memória personalizado para esta instância",
+			"globalRamTooltip": "Herdado das configurações globais",
+			"playedDuration": "{{duration}} jogados",
+			"quickPlay": "Jogo rápido",
+			"quickPlayOptions": "Opções de jogo rápido",
+			"directConnect": "Conexão direta...",
+			"directConnectDesc": "Entrar diretamente em um servidor",
+			"quickLoadWorld": "Carregar mundo rápido",
+			"quickLoadWorldDesc": "Entrar direto em um mundo salvo",
+			"singleplayerSaves": "Mundos um jogador",
+			"scanningWorlds": "Verificando mundos...",
+			"noSavedWorlds": "Nenhum mundo salvo encontrado nesta instância.",
+			"requires120": "Requer Minecraft 1.20+",
+			"openFolderTooltip": "Abrir pasta da instância no Explorador de Arquivos",
+			"settingsTooltip": "Configurações da instância (RAM, argumentos JVM)",
+			"deleteTooltip": "Excluir instância"
+		}
+	},
+	"modpacks": {
+		"title": "Descobrir conteúdo",
+		"subtitle": "Pesquise e instale mods, modpacks, pacotes de recursos e shaders diretamente em suas instâncias pelo Modrinth e CurseForge.",
+		"searchPlaceholder": "Pesquisar mods, modpacks, pacotes de recursos, shaders...",
+		"categories": {
+			"all": "Todos os tipos",
+			"modpack": "Modpacks",
+			"mod": "Mods",
+			"resourcepack": "Pacotes de recursos",
+			"shader": "Shaders"
+		},
+		"sources": {
+			"all": "Todas as fontes",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Carregador:",
+			"allLoaders": "Todos os carregadores",
+			"version": "Versão:",
+			"allVersions": "Todas as versões",
+			"sort": "Ordenar:",
+			"sortBy": "Ordenar por"
+		},
+		"sorts": {
+			"downloads": "Mais baixados",
+			"relevance": "Relevância",
+			"updated": "Atualizados recentemente",
+			"newest": "Mais recentes"
+		},
+		"searching": "Pesquisando conteúdo...",
+		"foundResults": "{{count}} resultados encontrados",
+		"noResults": "Sem resultados",
+		"pageOf": "Página {{page}} de {{total}}",
+		"noMatchTitle": "Nenhum conteúdo corresponde aos seus filtros",
+		"noMatchSubtitle": "Tente ajustar sua pesquisa, alterar o carregador de mods ou trocar a fonte.",
+		"resetAllFilters": "Redefinir todos os filtros",
+		"byAuthor": "por {{author}}",
+		"noDescription": "Nenhuma descrição fornecida.",
+		"details": "Detalhes"
+	},
+	"skins": {
+		"title": "Catálogo de skins",
+		"subtitle": "Explore skins do Ely.by, gerencie sua coleção pessoal ou envie uma skin personalizada.",
+		"tabs": {
+			"catalog": "Catálogo",
+			"mySkins": "Minhas skins",
+			"upload": "Enviar skin"
+		},
+		"sorts": {
+			"wearers": "Populares",
+			"latest": "Recentes",
+			"views": "Visualizações",
+			"cubes": "Curtidas"
+		},
+		"models": {
+			"any": "Todos os modelos",
+			"steve": "Clássico (Steve)",
+			"slim": "Fino (Alex)"
+		},
+		"searchPlaceholder": "Pesquisar skins por usuário ou tag..."
+	},
+	"screenshots": {
+		"title": "Capturas de tela",
+		"subtitle": "Galeria de capturas de tela tiradas no jogo em todas as suas instâncias",
+		"refreshTooltip": "Atualizar capturas",
+		"searchPlaceholder": "Pesquisar capturas...",
+		"allInstances": "Todas as instâncias",
+		"allInstancesCount": "Todas as instâncias ({{count}})",
+		"selectedInstance": "Instância selecionada",
+		"sorts": {
+			"date-desc": "Mais recentes primeiro",
+			"date-asc": "Mais antigas primeiro",
+			"name-asc": "Nome (A-Z)",
+			"name-desc": "Nome (Z-A)",
+			"size-desc": "Maior tamanho",
+			"size-asc": "Menor tamanho"
+		},
+		"emptyTitle": "Nenhuma captura de tela encontrada",
+		"emptySubtitlePrefix": "Tire capturas de tela enquanto joga Minecraft pressionando",
+		"emptySubtitleSuffix": ". Elas aparecerão automaticamente nesta galeria.",
+		"checkAgain": "Verificar novamente",
+		"noMatchTitle": "Nenhuma captura correspondente",
+		"noMatchSubtitle": "Nenhuma captura corresponde à sua pesquisa ou filtro. Limpe seus filtros para ver mais.",
+		"deleteDialog": {
+			"title": "Excluir captura de tela",
+			"description": "Tem certeza de que deseja excluir permanentemente esta captura de tela? Esta ação não pode ser desfeita.",
+			"deleting": "Excluindo...",
+			"deletePermanently": "Excluir permanentemente"
+		}
+	},
+	"servers": {
+		"title": "Servidores dedicados",
+		"subtitle": "Crie, configure e gerencie servidores locais de Minecraft com núcleos Paper, Purpur, Fabric, Folia e Vanilla.",
+		"createServer": "Criar servidor",
+		"activeServers": "Servidores ativos ({{count}}):",
+		"openConsole": "Abrir console",
+		"stopServer": "Parar servidor",
+		"searchPlaceholder": "Pesquisar servidores por nome, versão, porta...",
+		"allCores": "Todos os núcleos",
+		"emptyTitle": "Nenhum servidor criado ainda",
+		"emptySubtitle": "Crie seu primeiro servidor local de Minecraft. O Ingot baixará automaticamente o JAR do servidor, aceitará o EULA, configurará a porta e preparará o Java.",
+		"createFirst": "Criar primeiro servidor",
+		"createCardTitle": "Criar novo servidor",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia ou Vanilla",
+		"noMatchTitle": "Nenhum servidor corresponde aos seus filtros",
+		"noMatchSubtitle": "Tente alterar sua pesquisa ou selecionar \"Todos os núcleos\"."
+	},
+	"settings": {
+		"title": "Configurações do launcher",
+		"subtitle": "Configure contas, idioma, ambientes Java, alocação de RAM e comportamento do launcher.",
+		"language": {
+			"title": "Idioma",
+			"description": "Escolha o idioma de exibição da interface do launcher. Novos arquivos em src/locales/ são recarregados automaticamente."
+		},
+		"accounts": {
+			"title": "Contas e autenticação",
+			"description": "Conecte suas contas Ely.by ou perfis offline. Os tokens são protegidos no Cofre de Credenciais do sistema.",
+			"keyringActive": "Chaveiro nativo do SO ativo: Os tokens são criptografados usando o Gerenciador de Credenciais do Windows (DPAPI) / Keychain.",
+			"empty": "Nenhuma conta configurada ainda. Clique em \"Adicionar conta\" para começar com o Ely.by."
+		},
+		"memory": {
+			"title": "Alocação de memória (RAM)",
+			"description": "Configure os limites inicial (Min) e máximo (Max) de RAM para o Java e instâncias do Minecraft.",
+			"totalRam": "RAM total",
+			"availableNow": "Memória disponível na máquina agora:",
+			"freePercent": "{{percent}}% livre",
+			"distribution": "Distribuição de RAM do sistema",
+			"allocated": "Alocada:",
+			"sliderTitle": "Controle deslizante de alocação",
+			"sliderHint": "Controle 1: Min (-Xms) • Controle 2: Max (-Xmx)",
+			"minMemoryLabel": "Memória inicial (Min / -Xms)",
+			"maxMemoryLabel": "Memória máxima (Max / -Xmx)",
+			"highMemoryWarningTitle": "Aviso de uso elevado de memória",
+			"highMemoryWarningDesc": "Alocar {{maxGb}} GB (> 80% dos seus {{totalGb}} GB de RAM total) pode fazer com que aplicativos em segundo plano, o Discord ou o Windows parem de responder.",
+			"memoryNoticeTitle": "Aviso de memória",
+			"memoryNoticeDesc": "A RAM máxima excede a memória livre atual ({{availableGb}} GB). Feche aplicativos pesados antes de iniciar instâncias grandes.",
+			"recommendedPresets": "Predefinições recomendadas:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Com mods",
+				"heavy": "Modpack pesado",
+				"safeMax": "Máx. seguro"
+			}
+		},
+		"behavior": {
+			"title": "Comportamento do launcher",
+			"description": "Escolha o que acontece quando uma instância é iniciada.",
+			"keepOpen": {
+				"label": "Manter aberto",
+				"description": "Permanecer aberto em segundo plano enquanto joga"
+			},
+			"hideToTray": {
+				"label": "Ocultar na bandeja",
+				"description": "Minimizar para a bandeja do sistema e restaurar ao sair do jogo"
+			},
+			"close": {
+				"label": "Fechar launcher",
+				"description": "Fechar o Ingot completamente após o início do jogo"
+			}
+		},
+		"window": {
+			"title": "Janela e tela",
+			"description": "Configure as dimensões padrão da janela e o modo de tela cheia ao iniciar suas instâncias.",
+			"fullscreenTitle": "Iniciar em tela cheia",
+			"fullscreenDesc": "Abrir o Minecraft diretamente em tela cheia",
+			"resolutionTitle": "Resolução padrão da janela",
+			"resolutionDesc": "Defina a largura e a altura personalizadas para a janela do jogo",
+			"presets": "Predefinições:",
+			"defaultPreset": "Padrão"
+		},
+		"sync": {
+			"title": "Sincronização de dados do jogo",
+			"description": "Mantenha suas configurações do Minecraft, servidores e pacotes sincronizados em todas as instâncias.",
+			"items": {
+				"syncOptions": {
+					"title": "Sincronizar opções do jogo",
+					"description": "Configurações de vídeo, volume de áudio, FOV, atalhos de teclado e acessibilidade"
+				},
+				"syncServers": {
+					"title": "Sincronizar servidores multijogador",
+					"description": "Manter sua lista de servidores salvos unificada em todas as instâncias"
+				},
+				"syncResourcePacks": {
+					"title": "Sincronizar pacotes de recursos",
+					"description": "Compartilhar todos os pacotes de texturas e recursos baixados entre instâncias"
+				},
+				"syncCommandHistory": {
+					"title": "Sincronizar histórico de comandos",
+					"description": "Preservar o histórico de comandos do chat e console entre sessões"
+				},
+				"syncCreativeHotbars": {
+					"title": "Sincronizar barras rápidas do criativo",
+					"description": "Compartilhar barras rápidas salvas no modo criativo entre mundos"
+				}
+			}
+		},
+		"updates": {
+			"title": "Atualizações e versão",
+			"description": "Gerencie as atualizações do Ingot e garanta os recursos e correções de segurança mais recentes.",
+			"releaseChannel": "Canal de lançamento",
+			"lastChecked": "Última verificação: {{time}}",
+			"checking": "Verificando...",
+			"checkForUpdates": "Verificar atualizações",
+			"versionAvailable": "A versão v{{version}} está disponível!",
+			"changelog": "Notas da versão",
+			"downloadAndInstall": "Baixar e instalar atualização",
+			"downloading": "Baixando Ingot v{{version}}...",
+			"installedTitle": "Atualização instalada com sucesso!",
+			"installedDesc": "Reinicie o Ingot para abrir a nova versão.",
+			"restartIngot": "Reiniciar Ingot",
+			"upToDate": "O Ingot está atualizado. Você está usando a versão mais recente.",
+			"errorTitle": "Não foi possível verificar atualizações"
+		},
+		"licenses": {
+			"title": "Licenças de terceiros",
+			"description": "Software de código aberto que o Ingot inclui ou baixa.",
+			"dialogSubtitle": "O Ingot usa este software de outros projetos. Cada um possui sua própria licença; clique em um nome para ver o código-fonte e a licença completa.",
+			"trademark": "Minecraft é uma marca registrada da Mojang AB. O Ingot não é afiliado à Mojang ou à Microsoft."
+		}
+	}
+}

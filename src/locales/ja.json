@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Japanese",
+		"nativeName": "日本語"
+	},
+	"common": {
+		"cancel": "キャンセル",
+		"continue": "続行",
+		"save": "変更を保存",
+		"delete": "削除",
+		"install": "インストール",
+		"installed": "インストール済み",
+		"search": "検索...",
+		"active": "有効",
+		"refresh": "更新",
+		"clearSearch": "検索をクリア",
+		"clearFilters": "フィルターをクリア",
+		"resetFilters": "フィルターをリセット",
+		"tryAgain": "再試行",
+		"openFolder": "フォルダーを開く",
+		"view": "表示",
+		"close": "閉じる",
+		"minimize": "最小化",
+		"maximize": "最大化",
+		"restore": "元に戻す",
+		"justNow": "たった今",
+		"never": "なし",
+		"minutesAgo": "{{count}}分前",
+		"hoursAgo": "{{count}}時間前",
+		"daysAgo": "{{count}}日前"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "言語を選択",
+		"selectLanguageSubtitle": "Ingot の表示言語を選択してください。設定からいつでも変更できます。",
+		"detectedBadge": "システム標準",
+		"continueWith": "{{language}}で続行"
+	},
+	"nav": {
+		"instances": "インスタンス",
+		"discover": "コンテンツを探す",
+		"skins": "スキンカタログ",
+		"screenshots": "スクリーンショット",
+		"servers": "専用サーバー",
+		"settings": "設定",
+		"language": "言語"
+	},
+	"updateBanner": {
+		"readyToInstall": "Ingot v{{version}} のインストール準備ができました！",
+		"downloading": "アップデート v{{version}} をダウンロード中... ({{progress}}%)",
+		"available": "新しいバージョンが利用可能です: Ingot v{{version}}",
+		"currentVersion": "現在: v{{version}}",
+		"restartNow": "今すぐ再起動",
+		"updateNow": "今すぐ更新",
+		"dismiss": "閉じる"
+	},
+	"accounts": {
+		"player": "プレイヤー",
+		"noAccount": "未ログイン",
+		"addAccount": "アカウントを追加",
+		"addAccountEllipsis": "アカウントを追加...",
+		"manageAccounts": "アカウント管理",
+		"userProfile": "ユーザープロフィール",
+		"securedViaEly": "Ely.by で保護",
+		"securedInVault": "システム保管庫で保護",
+		"localProfile": "ローカルプロフィール",
+		"minecraftAccounts": "Minecraft アカウント",
+		"linkedCount": "{{count}} 件連携済み",
+		"noAccountsYet": "アカウントがまだ設定されていません。",
+		"previewSkin": "3D スキンをプレビュー",
+		"removeAccount": "アカウントを削除",
+		"setAsActive": "アクティブに設定"
+	},
+	"instances": {
+		"searchPlaceholder": "インスタンスを検索...",
+		"import": "インポート",
+		"newInstance": "新規インスタンス",
+		"activeInstances": "実行中のインスタンス ({{count}}):",
+		"stopProcess": "プロセスを停止",
+		"allInstances": "すべてのインスタンス",
+		"emptyTitle": "インスタンスがまだありません",
+		"emptySubtitle": "最初の Minecraft インスタンスを作成してプレイを始めましょう。バニラや Fabric、Quilt、Forge などの Mod ローダーを選択できます。",
+		"createFirst": "最初のインスタンスを作成",
+		"importFromLauncher": "他のランチャーからインポート",
+		"createCardTitle": "新しいインスタンスを作成",
+		"createCardSubtitle": "任意のバージョンや Mod ローダーを選択",
+		"noMatchTitle": "「{{query}}」に一致するインスタンスが見つかりません",
+		"noMatchSubtitle": "別の名前、バージョン、または Mod ローダーで検索してみてください。",
+		"card": {
+			"neverPlayed": "未プレイ",
+			"preparing": "準備中",
+			"preparingBtn": "準備中...",
+			"play": "プレイ",
+			"stop": "停止",
+			"customRam": "(カスタム)",
+			"customRamTooltip": "インスタンス個別のメモリ設定",
+			"globalRamTooltip": "全体設定から継承",
+			"playedDuration": "{{duration}} プレイ済み",
+			"quickPlay": "クイックプレイ",
+			"quickPlayOptions": "クイックプレイのオプション",
+			"directConnect": "ダイレクト接続...",
+			"directConnectDesc": "サーバーに直接参加する",
+			"quickLoadWorld": "ワールドを直接読み込む",
+			"quickLoadWorldDesc": "セーブデータへ直接ジャンプ",
+			"singleplayerSaves": "シングルプレイのワールド",
+			"scanningWorlds": "ワールドをスキャン中...",
+			"noSavedWorlds": "このインスタンスに保存されたワールドはありません。",
+			"requires120": "Minecraft 1.20 以上が必要",
+			"openFolderTooltip": "エクスプローラーでインスタンスのフォルダーを開く",
+			"settingsTooltip": "インスタンス設定 (RAM、JVM 引数)",
+			"deleteTooltip": "インスタンスを削除"
+		}
+	},
+	"modpacks": {
+		"title": "コンテンツを探す",
+		"subtitle": "Modrinth や CurseForge から Mod、Modパック、リソースパック、シェーダーを検索してインスタンスに直接インストールできます。",
+		"searchPlaceholder": "Mod、Modパック、リソースパック、シェーダーを検索...",
+		"categories": {
+			"all": "すべての種類",
+			"modpack": "Modパック",
+			"mod": "Mod",
+			"resourcepack": "リソースパック",
+			"shader": "シェーダー"
+		},
+		"sources": {
+			"all": "すべてのソース",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "ローダー:",
+			"allLoaders": "すべてのローダー",
+			"version": "バージョン:",
+			"allVersions": "すべてのバージョン",
+			"sort": "並び替え:",
+			"sortBy": "並び替え"
+		},
+		"sorts": {
+			"downloads": "ダウンロード数順",
+			"relevance": "関連度順",
+			"updated": "最近更新された順",
+			"newest": "新着順"
+		},
+		"searching": "コンテンツを検索中...",
+		"foundResults": "{{count}} 件見つかりました",
+		"noResults": "結果なし",
+		"pageOf": "{{page}} / {{total}} ページ",
+		"noMatchTitle": "条件に一致するコンテンツがありません",
+		"noMatchSubtitle": "検索キーワード、Mod ローダー、またはソースを変更してみてください。",
+		"resetAllFilters": "すべてのフィルターをリセット",
+		"byAuthor": "作成者: {{author}}",
+		"noDescription": "説明がありません。",
+		"details": "詳細"
+	},
+	"skins": {
+		"title": "スキンカタログ",
+		"subtitle": "Ely.by のスキンを探したり、マイコレクションの管理やカスタムスキンのアップロードができます。",
+		"tabs": {
+			"catalog": "カタログ",
+			"mySkins": "マイスキン",
+			"upload": "スキンをアップロード"
+		},
+		"sorts": {
+			"wearers": "人気順",
+			"latest": "新着順",
+			"views": "閲覧数順",
+			"cubes": "いいね順"
+		},
+		"models": {
+			"any": "すべて",
+			"steve": "クラシック (Steve)",
+			"slim": "スリム (Alex)"
+		},
+		"searchPlaceholder": "ユーザー名やタグでスキンを検索..."
+	},
+	"screenshots": {
+		"title": "スクリーンショット",
+		"subtitle": "すべてのインスタンスで撮影されたゲーム内スクリーンショットのギャラリー",
+		"refreshTooltip": "スクリーンショットを更新",
+		"searchPlaceholder": "スクリーンショットを検索...",
+		"allInstances": "すべてのインスタンス",
+		"allInstancesCount": "すべてのインスタンス ({{count}})",
+		"selectedInstance": "選択中のインスタンス",
+		"sorts": {
+			"date-desc": "新しい順",
+			"date-asc": "古い順",
+			"name-asc": "名前順 (A-Z)",
+			"name-desc": "名前順 (Z-A)",
+			"size-desc": "サイズが大きい順",
+			"size-asc": "サイズが小さい順"
+		},
+		"emptyTitle": "スクリーンショットが見つかりません",
+		"emptySubtitlePrefix": "Minecraft のプレイ中に",
+		"emptySubtitleSuffix": "を押すとスクリーンショットを撮影できます。撮影した画像はこのギャラリーに自動的に表示されます。",
+		"checkAgain": "再確認",
+		"noMatchTitle": "一致するスクリーンショットがありません",
+		"noMatchSubtitle": "検索キーワードやフィルターに一致するスクリーンショットがありません。フィルターをクリアしてください。",
+		"deleteDialog": {
+			"title": "スクリーンショットを削除",
+			"description": "このスクリーンショットを完全に削除してもよろしいですか？この操作は元に戻せません。",
+			"deleting": "削除中...",
+			"deletePermanently": "完全に削除"
+		}
+	},
+	"servers": {
+		"title": "専用サーバー",
+		"subtitle": "Paper、Purpur、Fabric、Folia、Vanilla コアを使用したローカル Minecraft サーバーの作成・設定・管理を行います。",
+		"createServer": "サーバーを作成",
+		"activeServers": "稼働中のサーバー ({{count}}):",
+		"openConsole": "コンソールを開く",
+		"stopServer": "サーバーを停止",
+		"searchPlaceholder": "名前、バージョン、ポート番号でサーバーを検索...",
+		"allCores": "すべてのコア",
+		"emptyTitle": "サーバーがまだ作成されていません",
+		"emptySubtitle": "最初のローカル Minecraft サーバーを作成しましょう。Ingot がサーバー JAR のダウンロード、EULA の同意、ポート設定、Java ランタイムの準備を自動で行います。",
+		"createFirst": "最初のサーバーを作成",
+		"createCardTitle": "新しいサーバーを作成",
+		"createCardSubtitle": "Paper、Purpur、Fabric、Folia、または Vanilla",
+		"noMatchTitle": "フィルターに一致するサーバーがありません",
+		"noMatchSubtitle": "検索キーワードを変更するか、「すべてのコア」を選択してみてください。"
+	},
+	"settings": {
+		"title": "ランチャー設定",
+		"subtitle": "アカウント、言語、Java ランタイム、メモリ割り当て、ランチャーの動作を設定します。",
+		"language": {
+			"title": "言語 (Language)",
+			"description": "ランチャー画面の表示言語を選択します。src/locales/ に追加された言語ファイルは自動的にホットリロードされます。"
+		},
+		"accounts": {
+			"title": "アカウントと認証",
+			"description": "Ely.by アカウントやオフラインプロフィールを接続します。トークンは OS の資格情報マネージャーで安全に保護されます。",
+			"keyringActive": "OS ネイティブキーリング有効: トークンは Windows 資格情報マネージャー (DPAPI) / Keychain で暗号化されています。",
+			"empty": "アカウントがまだ設定されていません。「アカウントを追加」をクリックして Ely.by を始めましょう。"
+		},
+		"memory": {
+			"title": "メモリ割り当て (RAM)",
+			"description": "Java と Minecraft インスタンスの初期 (Min) および最大 (Max) RAM 上限を設定します。",
+			"totalRam": "総メモリ",
+			"availableNow": "現在利用可能な空きメモリ:",
+			"freePercent": "{{percent}}% 空き",
+			"distribution": "システム RAM の内訳",
+			"allocated": "割り当て済み:",
+			"sliderTitle": "メモリ範囲スライダー",
+			"sliderHint": "つまみ 1: 最小 (-Xms) • つまみ 2: 最大 (-Xmx)",
+			"minMemoryLabel": "初期メモリ (Min / -Xms)",
+			"maxMemoryLabel": "最大メモリ (Max / -Xmx)",
+			"highMemoryWarningTitle": "高メモリ割り当ての警告",
+			"highMemoryWarningDesc": "{{maxGb}} GB（総 RAM {{totalGb}} GB の 80% 超）を割り当てると、バックグラウンドアプリや Discord、Windows が応答しなくなる可能性があります。",
+			"memoryNoticeTitle": "メモリに関する注意",
+			"memoryNoticeDesc": "最大 RAM が現在の空きメモリ ({{availableGb}} GB) を超えています。大規模なインスタンスを起動する前に重いアプリを終了してください。",
+			"recommendedPresets": "推奨プリセット:",
+			"presets": {
+				"vanilla": "バニラ",
+				"modded": "Mod 導入",
+				"heavy": "大型パック",
+				"safeMax": "安全上限"
+			}
+		},
+		"behavior": {
+			"title": "ランチャーの動作",
+			"description": "インスタンス起動時のランチャーの動作を選択します。",
+			"keepOpen": {
+				"label": "開いたままにする",
+				"description": "プレイ中もバックグラウンドで開いたままにします"
+			},
+			"hideToTray": {
+				"label": "トレイに隠す",
+				"description": "システムトレイに最小化し、ゲーム終了時に復元します"
+			},
+			"close": {
+				"label": "ランチャーを閉じる",
+				"description": "ゲーム起動後に Ingot を完全に終了します"
+			}
+		},
+		"window": {
+			"title": "ウィンドウと表示",
+			"description": "インスタンス起動時のデフォルトのウィンドウサイズとフルスクリーン設定を行います。",
+			"fullscreenTitle": "フルスクリーンで起動",
+			"fullscreenDesc": "Minecraft を直接フルスクリーンモードで起動します",
+			"resolutionTitle": "デフォルトのウィンドウ解像度",
+			"resolutionDesc": "ゲームウィンドウの幅と高さを指定します",
+			"presets": "プリセット:",
+			"defaultPreset": "デフォルト"
+		},
+		"sync": {
+			"title": "ゲームデータの同期",
+			"description": "Minecraft の設定、サーバーリスト、リソースをすべてのインスタンス間で同期します。",
+			"items": {
+				"syncOptions": {
+					"title": "ゲーム設定を同期",
+					"description": "ビデオ設定、音量、視野角 (FOV)、キー割り当て、アクセシビリティ"
+				},
+				"syncServers": {
+					"title": "マルチプレイサーバーを同期",
+					"description": "保存したサーバーリストをすべてのインスタンスで共有します"
+				},
+				"syncResourcePacks": {
+					"title": "リソースパックを同期",
+					"description": "ダウンロードしたすべてのテクスチャ・リソースパックをインスタンス間で共有します"
+				},
+				"syncCommandHistory": {
+					"title": "コマンド履歴を同期",
+					"description": "チャットおよびコンソールのコマンド履歴を維持します"
+				},
+				"syncCreativeHotbars": {
+					"title": "クリエイティブのホットバーを同期",
+					"description": "保存したクリエイティブモードのホットバーをワールド間で共有します"
+				}
+			}
+		},
+		"updates": {
+			"title": "アップデートとバージョン",
+			"description": "Ingot のアップデートを管理し、最新の機能とセキュリティ修正を適用します。",
+			"releaseChannel": "リリースチャンネル",
+			"lastChecked": "最終確認: {{time}}",
+			"checking": "確認中...",
+			"checkForUpdates": "アップデートを確認",
+			"versionAvailable": "バージョン v{{version}} が利用可能です！",
+			"changelog": "更新履歴",
+			"downloadAndInstall": "ダウンロードしてインストール",
+			"downloading": "Ingot v{{version}} をダウンロード中...",
+			"installedTitle": "アップデートが正常にインストールされました！",
+			"installedDesc": "新しいバージョンを起動するには Ingot を再起動してください。",
+			"restartIngot": "Ingot を再起動",
+			"upToDate": "Ingot は最新です。最新バージョンを使用しています。",
+			"errorTitle": "アップデートを確認できませんでした"
+		},
+		"licenses": {
+			"title": "サードパーティライセンス",
+			"description": "Ingot に含まれる、またはダウンロードされるオープンソースソフトウェア。",
+			"dialogSubtitle": "Ingot は他のプロジェクトのソフトウェアを使用しています。それぞれ独自のライセンスの下で提供されています。名前をクリックするとソースコードとライセンス全文を表示します。",
+			"trademark": "Minecraft は Mojang AB の商標です。Ingot は Mojang または Microsoft とは提携していません。"
+		}
+	}
+}

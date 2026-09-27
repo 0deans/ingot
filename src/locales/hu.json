@@ -1,0 +1,334 @@
+{
+	"_meta": {
+		"name": "Hungarian",
+		"nativeName": "Magyar"
+	},
+	"common": {
+		"cancel": "Mégse",
+		"continue": "Folytatás",
+		"save": "Módosítások mentése",
+		"delete": "Törlés",
+		"install": "Telepítés",
+		"installed": "Telepítve",
+		"search": "Keresés...",
+		"active": "Aktív",
+		"refresh": "Frissítés",
+		"clearSearch": "Keresés törlése",
+		"clearFilters": "Szűrők törlése",
+		"resetFilters": "Szűrők visszaállítása",
+		"tryAgain": "Próbáld újra",
+		"openFolder": "Mappa megnyitása",
+		"view": "Megtekintés",
+		"close": "Bezárás",
+		"minimize": "Kis méret",
+		"maximize": "Teljes méret",
+		"restore": "Előző méret",
+		"justNow": "Épp most",
+		"never": "Soha",
+		"minutesAgo": "{{count}} perce",
+		"hoursAgo": "{{count}} órája",
+		"daysAgo": "{{count}} napja"
+	},
+	"onboarding": {
+		"selectLanguageTitle": "Válassz nyelvet",
+		"selectLanguageSubtitle": "Válaszd ki az Ingot megjelenítési nyelvét. Ezt bármikor módosíthatod a Beállításokban.",
+		"detectedBadge": "Rendszer alapértelmezett",
+		"continueWith": "Folytatás ({{language}})"
+	},
+	"nav": {
+		"instances": "Példányok",
+		"discover": "Felfedezés",
+		"skins": "Skin katalógus",
+		"screenshots": "Képernyőképek",
+		"servers": "Dedikált szerverek",
+		"settings": "Beállítások",
+		"language": "Nyelv"
+	},
+	"updateBanner": {
+		"readyToInstall": "Az Ingot v{{version}} készen áll a telepítésre!",
+		"downloading": "Frissítés letöltése v{{version}}... ({{progress}}%)",
+		"available": "Új verzió érhető el: Ingot v{{version}}",
+		"currentVersion": "Jelenlegi: v{{version}}",
+		"restartNow": "Újraindítás most",
+		"updateNow": "Frissítés most",
+		"dismiss": "Elrejtés"
+	},
+	"accounts": {
+		"player": "Játékos",
+		"noAccount": "Nincs fiók",
+		"addAccount": "Fiók hozzáadása",
+		"addAccountEllipsis": "Fiók hozzáadása...",
+		"manageAccounts": "Fiókok kezelése",
+		"userProfile": "Felhasználói profil",
+		"securedViaEly": "Ely.by által védve",
+		"securedInVault": "Széfben tárolva",
+		"localProfile": "Helyi profil",
+		"minecraftAccounts": "Minecraft fiókok",
+		"linkedCount": "{{count}} összekapcsolva",
+		"noAccountsYet": "Még nincs beállított fiók.",
+		"previewSkin": "3D skin előnézet",
+		"removeAccount": "Fiók eltávolítása",
+		"setAsActive": "Beállítás aktívként"
+	},
+	"instances": {
+		"searchPlaceholder": "Példányok keresése...",
+		"import": "Importálás",
+		"newInstance": "Új példány",
+		"activeInstances": "Aktív példányok ({{count}}):",
+		"stopProcess": "Folyamat leállítása",
+		"allInstances": "Összes példány",
+		"emptyTitle": "Még nincsenek létrehozott példányok",
+		"emptySubtitle": "Hozd létre az első Minecraft példányodat a játékhoz. Választhatsz Vanilla verziót vagy olyan modbetöltőket, mint a Fabric, Quilt vagy Forge.",
+		"createFirst": "Első példány létrehozása",
+		"importFromLauncher": "Importálás másik indítóból",
+		"createCardTitle": "Új példány létrehozása",
+		"createCardSubtitle": "Válassz bármilyen verziót vagy modbetöltőt",
+		"noMatchTitle": "Nincs találat erre: „{{query}}”",
+		"noMatchSubtitle": "Próbálj meg más névre, verzióra vagy modbetöltőre keresni.",
+		"card": {
+			"neverPlayed": "Még nem játszott",
+			"preparing": "Előkészítés",
+			"preparingBtn": "Előkészítés...",
+			"play": "Játék",
+			"stop": "Leállítás",
+			"customRam": "(Egyéni)",
+			"customRamTooltip": "Egyéni memóriakorlát ehhez a példányhoz",
+			"globalRamTooltip": "Globális beállításokból örökölve",
+			"playedDuration": "{{duration}} játékidő",
+			"quickPlay": "Gyorsindítás",
+			"quickPlayOptions": "Gyorsindítási lehetőségek",
+			"directConnect": "Közvetlen csatlakozás...",
+			"directConnectDesc": "Csatlakozás közvetlenül egy szerverhez",
+			"quickLoadWorld": "Világ gyors betöltése",
+			"quickLoadWorldDesc": "Belépés közvetlenül egy mentett világba",
+			"singleplayerSaves": "Egyjátékos világok",
+			"scanningWorlds": "Világok keresése...",
+			"noSavedWorlds": "Nem található mentett világ ebben a példányban.",
+			"requires120": "Minecraft 1.20+ szükséges",
+			"openFolderTooltip": "Példány mappájának megnyitása a Fájlkezelőben",
+			"settingsTooltip": "Példány beállításai (RAM, JVM argumentumok)",
+			"deleteTooltip": "Példány törlése"
+		}
+	},
+	"modpacks": {
+		"title": "Tartalom felfedezése",
+		"subtitle": "Keress és telepíts modokat, modpackokat, erőforráscsomagokat és shadereket közvetlenül a példányaidba a Modrinth és a CurseForge kínálatából.",
+		"searchPlaceholder": "Modok, modpackok, erőforráscsomagok, shaderek keresése...",
+		"categories": {
+			"all": "Minden típus",
+			"modpack": "Modpackok",
+			"mod": "Modok",
+			"resourcepack": "Erőforráscsomagok",
+			"shader": "Shaderek"
+		},
+		"sources": {
+			"all": "Minden forrás",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"filters": {
+			"loader": "Betöltő:",
+			"allLoaders": "Minden betöltő",
+			"version": "Verzió:",
+			"allVersions": "Minden verzió",
+			"sort": "Rendezés:",
+			"sortBy": "Rendezés"
+		},
+		"sorts": {
+			"downloads": "Legtöbb letöltés",
+			"relevance": "Relevancia",
+			"updated": "Nemrég frissített",
+			"newest": "Legújabb"
+		},
+		"searching": "Tartalom keresése...",
+		"foundResults": "{{count}} találat",
+		"noResults": "Nincs találat",
+		"pageOf": "{{page}} / {{total}}. oldal",
+		"noMatchTitle": "Nincs a szűrőknek megfelelő tartalom",
+		"noMatchSubtitle": "Próbáld módosítani a keresést, a modbetöltőt vagy a forrást.",
+		"resetAllFilters": "Összes szűrő visszaállítása",
+		"byAuthor": "készítette: {{author}}",
+		"noDescription": "Nincs megadva leírás.",
+		"details": "Részletek"
+	},
+	"skins": {
+		"title": "Skin katalógus",
+		"subtitle": "Böngéssz az Ely.by skinek között, kezeld saját gyűjteményedet, vagy tölts fel egyéni skint.",
+		"tabs": {
+			"catalog": "Katalógus",
+			"mySkins": "Saját skinek",
+			"upload": "Skin feltöltése"
+		},
+		"sorts": {
+			"wearers": "Népszerű",
+			"latest": "Legújabb",
+			"views": "Megtekintések",
+			"cubes": "Kedvelések"
+		},
+		"models": {
+			"any": "Minden modell",
+			"steve": "Klasszikus (Steve)",
+			"slim": "Vékony (Alex)"
+		},
+		"searchPlaceholder": "Skinek keresése felhasználónév vagy címke alapján..."
+	},
+	"screenshots": {
+		"title": "Képernyőképek",
+		"subtitle": "Az összes példányban készített játékbeli képernyőképek galériája",
+		"refreshTooltip": "Képernyőképek frissítése",
+		"searchPlaceholder": "Képernyőképek keresése...",
+		"allInstances": "Összes példány",
+		"allInstancesCount": "Összes példány ({{count}})",
+		"selectedInstance": "Kiválasztott példány",
+		"sorts": {
+			"date-desc": "Legújabb elöl",
+			"date-asc": "Legrégebbi elöl",
+			"name-asc": "Név (A-Z)",
+			"name-desc": "Név (Z-A)",
+			"size-desc": "Legnagyobb méret",
+			"size-asc": "Legkisebb méret"
+		},
+		"emptyTitle": "Nem találhatók képernyőképek",
+		"emptySubtitlePrefix": "Készíts képernyőképeket Minecraft játék közben az",
+		"emptySubtitleSuffix": "billentyű megnyomásával. Automatikusan megjelennek ebben a galériában.",
+		"checkAgain": "Ellenőrzés újra",
+		"noMatchTitle": "Nincs egyező képernyőkép",
+		"noMatchSubtitle": "Egyetlen képernyőkép sem felel meg a keresésnek vagy a szűrőnek.",
+		"deleteDialog": {
+			"title": "Képernyőkép törlése",
+			"description": "Biztosan véglegesen törölni szeretnéd ezt a képernyőképet? Ez a művelet nem vonható vissza.",
+			"deleting": "Törlés...",
+			"deletePermanently": "Végleges törlés"
+		}
+	},
+	"servers": {
+		"title": "Dedikált szerverek",
+		"subtitle": "Helyi Minecraft szerverek létrehozása, beállítása és kezelése Paper, Purpur, Fabric, Folia és Vanilla alapokon.",
+		"createServer": "Szerver létrehozása",
+		"activeServers": "Aktív szerverek ({{count}}):",
+		"openConsole": "Konzol megnyitása",
+		"stopServer": "Szerver leállítása",
+		"searchPlaceholder": "Szerverek keresése név, verzió, port alapján...",
+		"allCores": "Minden típus",
+		"emptyTitle": "Még nincsenek létrehozott szerverek",
+		"emptySubtitle": "Hozd létre az első helyi Minecraft szerveredet. Az Ingot automatikusan letölti a szerver JAR fájlt, elfogadja az EULA-t, beállítja a portot és előkészíti a Javát.",
+		"createFirst": "Első szerver létrehozása",
+		"createCardTitle": "Új szerver létrehozása",
+		"createCardSubtitle": "Paper, Purpur, Fabric, Folia vagy Vanilla",
+		"noMatchTitle": "Nincs a szűrőknek megfelelő szerver",
+		"noMatchSubtitle": "Próbáld módosítani a keresést, vagy válaszd a „Minden típus” lehetőséget."
+	},
+	"settings": {
+		"title": "Indító beállításai",
+		"subtitle": "Fiókok, nyelv, Java környezetek, RAM kiosztás és az indító működésének beállítása.",
+		"language": {
+			"title": "Nyelv",
+			"description": "Válaszd ki az indító felületének megjelenítési nyelvét. Az src/locales/ mappába kerülő új nyelvi fájlok automatikusan betöltődnek."
+		},
+		"accounts": {
+			"title": "Fiókok és hitelesítés",
+			"description": "Kapcsold össze Ely.by vagy offline fiókjaidat. A tokeneket az operációs rendszer hitelesítőadat-kezelője védi.",
+			"keyringActive": "Natív rendszer-kulcskarika aktív: A tokenek a Windows Hitelesítőadat-kezelő (DPAPI) / Keychain segítségével vannak titkosítva.",
+			"empty": "Még nincs beállított fiók. Kattints a „Fiók hozzáadása” gombra az Ely.by használatához."
+		},
+		"memory": {
+			"title": "Memóriakiosztás (RAM)",
+			"description": "Állítsd be a kezdeti (Min) és maximális (Max) RAM korlátokat a Java és a Minecraft példányok számára.",
+			"totalRam": "Összes RAM",
+			"availableNow": "Jelenleg elérhető szabad memória:",
+			"freePercent": "{{percent}}% szabad",
+			"distribution": "Rendszer RAM megoszlása",
+			"allocated": "Kiosztva:",
+			"sliderTitle": "Memóriatartomány csúszka",
+			"sliderHint": "1. csúszka: Min (-Xms) • 2. csúszka: Max (-Xmx)",
+			"minMemoryLabel": "Kezdeti memória (Min / -Xms)",
+			"maxMemoryLabel": "Maximális memória (Max / -Xmx)",
+			"highMemoryWarningTitle": "Magas memóriahasználati figyelmeztetés",
+			"highMemoryWarningDesc": "{{maxGb}} GB kiosztása (a teljes {{totalGb}} GB RAM több mint 80%-a) a háttéralkalmazások, a Discord vagy a Windows lefagyását okozhatja.",
+			"memoryNoticeTitle": "Memória figyelmeztetés",
+			"memoryNoticeDesc": "A maximális RAM meghaladja a jelenleg szabad memóriát ({{availableGb}} GB). Zárd be a nagy igényű alkalmazásokat komolyabb példányok indítása előtt.",
+			"recommendedPresets": "Ajánlott előbeállítások:",
+			"presets": {
+				"vanilla": "Vanilla",
+				"modded": "Modolt",
+				"heavy": "Nagy csomag",
+				"safeMax": "Biztonságos max."
+			}
+		},
+		"behavior": {
+			"title": "Indító működése",
+			"description": "Válaszd ki, mi történjen egy példány elindításakor.",
+			"keepOpen": {
+				"label": "Nyitva tartás",
+				"description": "Maradjon nyitva a háttérben játék közben"
+			},
+			"hideToTray": {
+				"label": "Elrejtés a tálcára",
+				"description": "Kis méretre állítás a rendszertálcára, majd visszaállítás kilépéskor"
+			},
+			"close": {
+				"label": "Indító bezárása",
+				"description": "Az Ingot teljes bezárása a játék elindulása után"
+			}
+		},
+		"window": {
+			"title": "Ablak és megjelenítés",
+			"description": "Alapértelmezett ablakméret és teljes képernyős indítás beállítása a példányokhoz.",
+			"fullscreenTitle": "Indítás teljes képernyőn",
+			"fullscreenDesc": "A Minecraft indítása közvetlenül teljes képernyős módban",
+			"resolutionTitle": "Alapértelmezett ablakfelbontás",
+			"resolutionDesc": "Egyéni szélesség és magasság megadása a játékablakhoz",
+			"presets": "Előbeállítások:",
+			"defaultPreset": "Alapértelmezett"
+		},
+		"sync": {
+			"title": "Játékadatok szinkronizálása",
+			"description": "Tartsd összhangban a Minecraft beállításokat, szervereket és csomagokat az összes példány között.",
+			"items": {
+				"syncOptions": {
+					"title": "Játékbeállítások szinkronizálása",
+					"description": "Grafikai beállítások, hangerő, látószög (FOV), irányítás és kisegítő lehetőségek"
+				},
+				"syncServers": {
+					"title": "Többjátékos szerverek szinkronizálása",
+					"description": "Egységes mentett szerverlista fenntartása minden példányban"
+				},
+				"syncResourcePacks": {
+					"title": "Erőforráscsomagok szinkronizálása",
+					"description": "Minden letöltött textúra- és erőforráscsomag megosztása a példányok között"
+				},
+				"syncCommandHistory": {
+					"title": "Parancselőzmények szinkronizálása",
+					"description": "Chat- és konzolparancsok előzményeinek megőrzése az indítások között"
+				},
+				"syncCreativeHotbars": {
+					"title": "Kreatív eszköztárak szinkronizálása",
+					"description": "Mentett kreatív módú gyorselérési sávok megosztása a világok között"
+				}
+			}
+		},
+		"updates": {
+			"title": "Frissítések és verzió",
+			"description": "Kezeld az Ingot frissítéseit, hogy mindig a legújabb funkciókat és biztonsági javításokat használd.",
+			"releaseChannel": "Kiadási csatorna",
+			"lastChecked": "Utoljára ellenőrizve: {{time}}",
+			"checking": "Ellenőrzés...",
+			"checkForUpdates": "Frissítések keresése",
+			"versionAvailable": "Elérhető a(z) v{{version}} verzió!",
+			"changelog": "Változások naplója",
+			"downloadAndInstall": "Frissítés letöltése és telepítése",
+			"downloading": "Ingot v{{version}} letöltése...",
+			"installedTitle": "A frissítés sikeresen települt!",
+			"installedDesc": "Indítsd újra az Ingotot az új verzió használatához.",
+			"restartIngot": "Ingot újraindítása",
+			"upToDate": "Az Ingot naprakész. A legújabb verziót használod.",
+			"errorTitle": "Nem sikerült ellenőrizni a frissítéseket"
+		},
+		"licenses": {
+			"title": "Harmadik fél licencei",
+			"description": "Az Ingot által tartalmazott vagy letöltött nyílt forráskódú szoftverek.",
+			"dialogSubtitle": "Az Ingot más projektekből származó szoftvereket használ. Mindegyik saját licenc alatt áll; kattints egy névre a forráskód és a teljes licenc megtekintéséhez.",
+			"trademark": "A Minecraft a Mojang AB védjegye. Az Ingot nem áll kapcsolatban a Mojanggal vagy a Microsofttal."
+		}
+	}
+}

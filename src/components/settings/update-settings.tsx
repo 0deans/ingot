@@ -9,11 +9,13 @@ import {
 	Sparkles,
 } from "lucide-react"
 import { memo } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useUpdateService } from "@/services/update-service"
 
 export const UpdateSettings = () => {
+	const { t } = useTranslation()
 	const {
 		status,
 		updateInfo,
@@ -31,12 +33,12 @@ export const UpdateSettings = () => {
 	const isAvailable = status === "available"
 
 	const formatLastChecked = (timestamp: number | null) => {
-		if (!timestamp) return "Never"
+		if (!timestamp) return t("common.never")
 		const secondsAgo = Math.floor((Date.now() - timestamp) / 1000)
-		if (secondsAgo < 10) return "Just now"
-		if (secondsAgo < 60) return `${secondsAgo} seconds ago`
+		if (secondsAgo < 10) return t("common.justNow")
+		if (secondsAgo < 60) return `${secondsAgo}s`
 		const minutesAgo = Math.floor(secondsAgo / 60)
-		if (minutesAgo < 60) return `${minutesAgo} minute${minutesAgo > 1 ? "s" : ""} ago`
+		if (minutesAgo < 60) return t("common.minutesAgo", { count: minutesAgo })
 		return new Date(timestamp).toLocaleTimeString()
 	}
 
@@ -45,11 +47,9 @@ export const UpdateSettings = () => {
 			<div className="flex flex-col gap-1">
 				<div className="flex items-center gap-2">
 					<ArrowUpCircle className="size-4 text-emerald-400" />
-					<h3 className="font-semibold text-foreground text-sm">Updates & Version</h3>
+					<h3 className="font-semibold text-foreground text-sm">{t("settings.updates.title")}</h3>
 				</div>
-				<p className="text-muted-foreground text-xs">
-					Manage Ingot updates and ensure you are running the latest features and security fixes.
-				</p>
+				<p className="text-muted-foreground text-xs">{t("settings.updates.description")}</p>
 			</div>
 
 			<div className="flex flex-col gap-3 rounded-lg border border-border/30 bg-zinc-950/60 p-3.5">
@@ -64,11 +64,11 @@ export const UpdateSettings = () => {
 									Ingot v{updateInfo?.currentVersion || APP_VERSION}
 								</span>
 								<span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-									Release Channel
+									{t("settings.updates.releaseChannel")}
 								</span>
 							</div>
 							<div className="text-[11px] text-muted-foreground">
-								Last checked: {formatLastChecked(lastCheckedAt)}
+								{t("settings.updates.lastChecked", { time: formatLastChecked(lastCheckedAt) })}
 							</div>
 						</div>
 					</div>
@@ -81,7 +81,9 @@ export const UpdateSettings = () => {
 						className="h-8 gap-1.5 border-zinc-800 bg-zinc-900/80 text-xs hover:border-zinc-700 hover:text-foreground"
 					>
 						<RefreshCw className={cn("size-3.5", isChecking && "animate-spin text-emerald-400")} />
-						<span>{isChecking ? "Checking..." : "Check for Updates"}</span>
+						<span>
+							{isChecking ? t("settings.updates.checking") : t("settings.updates.checkForUpdates")}
+						</span>
 					</Button>
 				</div>
 
@@ -92,7 +94,7 @@ export const UpdateSettings = () => {
 							<div className="flex items-center gap-2">
 								<Sparkles className="size-4 text-emerald-400" />
 								<span className="font-medium text-emerald-300 text-xs">
-									Version v{updateInfo.version} is available!
+									{t("settings.updates.versionAvailable", { version: updateInfo.version })}
 								</span>
 							</div>
 							<a
@@ -101,7 +103,7 @@ export const UpdateSettings = () => {
 								rel="noreferrer"
 								className="flex items-center gap-1 text-[11px] text-emerald-400/80 hover:text-emerald-300 hover:underline"
 							>
-								<span>Changelog</span>
+								<span>{t("settings.updates.changelog")}</span>
 								<ExternalLink className="size-3" />
 							</a>
 						</div>
@@ -119,7 +121,7 @@ export const UpdateSettings = () => {
 								className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
 							>
 								<Download className="size-3.5" />
-								<span>Download & Install Update</span>
+								<span>{t("settings.updates.downloadAndInstall")}</span>
 							</Button>
 						</div>
 					</div>
@@ -131,7 +133,9 @@ export const UpdateSettings = () => {
 						<div className="flex items-center justify-between text-xs">
 							<div className="flex items-center gap-2 text-sky-300">
 								<Loader2 className="size-3.5 animate-spin" />
-								<span className="font-medium">Downloading Ingot v{updateInfo?.version}...</span>
+								<span className="font-medium">
+									{t("settings.updates.downloading", { version: updateInfo?.version })}
+								</span>
 							</div>
 							<span className="font-mono text-sky-400 text-xs">{downloadProgress}%</span>
 						</div>
@@ -151,10 +155,10 @@ export const UpdateSettings = () => {
 							<CheckCircle2 className="size-4 text-emerald-400" />
 							<div>
 								<div className="font-medium text-emerald-300 text-xs">
-									Update installed successfully!
+									{t("settings.updates.installedTitle")}
 								</div>
 								<div className="text-[11px] text-muted-foreground">
-									Restart Ingot to launch the new version.
+									{t("settings.updates.installedDesc")}
 								</div>
 							</div>
 						</div>
@@ -164,7 +168,7 @@ export const UpdateSettings = () => {
 							className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
 						>
 							<RefreshCw className="size-3.5" />
-							<span>Restart Ingot</span>
+							<span>{t("settings.updates.restartIngot")}</span>
 						</Button>
 					</div>
 				)}
@@ -173,7 +177,7 @@ export const UpdateSettings = () => {
 				{status === "up-to-date" && (
 					<div className="mt-1 flex items-center gap-2 text-emerald-400/90 text-xs">
 						<CheckCircle2 className="size-3.5 shrink-0" />
-						<span>Ingot is up to date. You are running the latest version.</span>
+						<span>{t("settings.updates.upToDate")}</span>
 					</div>
 				)}
 
@@ -182,7 +186,7 @@ export const UpdateSettings = () => {
 					<div className="mt-1 flex items-start gap-2 rounded-md border border-red-500/30 bg-red-950/20 p-2.5 text-red-300 text-xs">
 						<AlertCircle className="mt-0.5 size-3.5 shrink-0 text-red-400" />
 						<div className="flex-1">
-							<div className="font-medium">Could not check for updates</div>
+							<div className="font-medium">{t("settings.updates.errorTitle")}</div>
 							<div className="mt-0.5 text-[11px] text-red-400/80">{errorMessage}</div>
 						</div>
 					</div>

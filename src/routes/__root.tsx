@@ -9,6 +9,7 @@ import { memo, useEffect } from "react"
 import Sidebar from "@/components/layout/sidebar"
 import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
+import FirstLaunchLanguageDialog from "@/components/settings/first-launch-language-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { isMobileEnvironment } from "@/lib/platform"
 import { useScrollRestoration } from "@/lib/scroll-restoration"
@@ -38,6 +39,7 @@ const RootLayout = () => {
 				>
 					<Outlet />
 				</main>
+				<FirstLaunchLanguageDialog />
 			</TooltipProvider>
 		)
 	}
@@ -51,6 +53,7 @@ const RootLayout = () => {
 					<Outlet />
 				</main>
 			</WindowFrame>
+			<FirstLaunchLanguageDialog />
 		</TooltipProvider>
 	)
 }

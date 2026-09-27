@@ -22,6 +22,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { AppWindow, Layers, Minimize2, Plus, Power, ShieldCheck } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
 import SkinPreviewDialog from "@/components/accounts/skin-preview-dialog"
@@ -29,6 +30,7 @@ import {
 	AccountCardContent,
 	SortableAccountItem,
 } from "@/components/accounts/sortable-account-item"
+import LanguageSettings from "@/components/settings/language-settings"
 import { LicensesSettings } from "@/components/settings/licenses"
 import MemoryAllocation from "@/components/settings/memory-allocation"
 import SyncSettings from "@/components/settings/sync-settings"
@@ -65,31 +67,24 @@ const modifiers = [restrictToVerticalAxis, restrictToParentElement]
 
 const LAUNCHER_BEHAVIOR_OPTIONS: {
 	id: LauncherBehavior
-	label: string
-	description: string
 	icon: typeof AppWindow
 }[] = [
 	{
 		id: "keepOpen",
-		label: "Keep Open",
-		description: "Stay open in the background while playing",
 		icon: AppWindow,
 	},
 	{
 		id: "hideToTray",
-		label: "Hide to Tray",
-		description: "Minimize to tray and restore on game exit",
 		icon: Minimize2,
 	},
 	{
 		id: "close",
-		label: "Close Launcher",
-		description: "Close Ingot completely after game starts",
 		icon: Power,
 	},
 ]
 
 const SettingsPage = () => {
+	const { t } = useTranslation()
 	const search = Route.useSearch()
 	const navigate = Route.useNavigate()
 
@@ -164,21 +159,25 @@ const SettingsPage = () => {
 		<ScrollArea className="size-full flex-1" scrollFade>
 			<div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 p-4 pb-12 sm:p-5 lg:p-6">
 				<div>
-					<h1 className="font-bold text-2xl text-foreground tracking-tight">Launcher Settings</h1>
-					<p className="text-muted-foreground text-sm">
-						Configure accounts, Java runtimes, RAM allocation, and launcher behavior.
-					</p>
+					<h1 className="font-bold text-2xl text-foreground tracking-tight">
+						{t("settings.title")}
+					</h1>
+					<p className="text-muted-foreground text-sm">{t("settings.subtitle")}</p>
 				</div>
 
 				<div className="flex flex-col gap-6">
+					{/* Language Settings */}
+					<LanguageSettings />
+
 					{/* Accounts & Security */}
 					<div className="flex flex-col gap-3 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 							<div>
-								<h3 className="font-semibold text-foreground text-sm">Accounts & Authentication</h3>
+								<h3 className="font-semibold text-foreground text-sm">
+									{t("settings.accounts.title")}
+								</h3>
 								<p className="text-muted-foreground text-xs">
-									Connect your Ely.by or offline accounts. Sensitive tokens are secured in the OS
-									Credential Vault.
+									{t("settings.accounts.description")}
 								</p>
 							</div>
 							<div className="flex items-center gap-2">
@@ -192,17 +191,14 @@ const SettingsPage = () => {
 									className="gap-1.5 text-xs"
 								>
 									<Plus className="size-3.5" />
-									Add Account
+									{t("accounts.addAccount")}
 								</Button>
 							</div>
 						</div>
 
 						<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-emerald-400 text-xs">
 							<ShieldCheck className="size-4 shrink-0" />
-							<span>
-								Native OS Keyring active: Tokens are encrypted using Windows Credential Manager
-								(DPAPI) / Keychain.
-							</span>
+							<span>{t("settings.accounts.keyringActive")}</span>
 						</div>
 
 						<DndContext
@@ -225,7 +221,7 @@ const SettingsPage = () => {
 								>
 									{accounts.length === 0 ? (
 										<div className="p-4 text-center text-muted-foreground text-xs">
-											No accounts configured yet. Click "Add Account" to get started with Ely.by.
+											{t("settings.accounts.empty")}
 										</div>
 									) : (
 										accounts.map((acc) => (
@@ -273,11 +269,11 @@ const SettingsPage = () => {
 						<div className="flex flex-col gap-1">
 							<div className="flex items-center gap-2">
 								<Layers className="size-4 text-emerald-400" />
-								<h3 className="font-semibold text-foreground text-sm">Launcher Behavior</h3>
+								<h3 className="font-semibold text-foreground text-sm">
+									{t("settings.behavior.title")}
+								</h3>
 							</div>
-							<p className="text-muted-foreground text-xs">
-								Choose what happens when an instance is launched.
-							</p>
+							<p className="text-muted-foreground text-xs">{t("settings.behavior.description")}</p>
 						</div>
 						<div className="grid grid-cols-1 gap-2.5 pt-1 sm:grid-cols-3">
 							{LAUNCHER_BEHAVIOR_OPTIONS.map((opt) => {
@@ -308,7 +304,7 @@ const SettingsPage = () => {
 											</div>
 											{isSelected && (
 												<span className="rounded-full bg-primary/20 px-2 py-0.5 font-medium text-[10px] text-primary">
-													Active
+													{t("common.active")}
 												</span>
 											)}
 										</div>
@@ -319,10 +315,10 @@ const SettingsPage = () => {
 													isSelected ? "font-semibold text-foreground" : "text-zinc-300",
 												)}
 											>
-												{opt.label}
+												{t(`settings.behavior.${opt.id}.label`)}
 											</div>
 											<div className="mt-0.5 text-[11px] text-muted-foreground leading-tight">
-												{opt.description}
+												{t(`settings.behavior.${opt.id}.description`)}
 											</div>
 										</div>
 									</button>
