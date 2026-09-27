@@ -41,9 +41,7 @@
 		"skins": "Skincatalogus",
 		"screenshots": "Screenshots",
 		"servers": "Dedicated servers",
-		"settings": "Instellingen",
-		"language": "Taal",
-		"theme": "Thema"
+		"settings": "Instellingen"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} is klaar om te installeren!",

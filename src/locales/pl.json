@@ -41,9 +41,7 @@
 		"skins": "Katalog skórek",
 		"screenshots": "Zrzuty ekranu",
 		"servers": "Serwery dedykowane",
-		"settings": "Ustawienia",
-		"language": "Język",
-		"theme": "Motyw"
+		"settings": "Ustawienia"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} jest gotowy do instalacji!",

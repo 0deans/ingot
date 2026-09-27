@@ -41,9 +41,7 @@
 		"skins": "Catalog de skinuri",
 		"screenshots": "Capturi de ecran",
 		"servers": "Servere dedicate",
-		"settings": "Setări",
-		"language": "Limbă",
-		"theme": "Temă"
+		"settings": "Setări"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} este pregătit pentru instalare!",

@@ -41,9 +41,7 @@
 		"skins": "Skin Kataloğu",
 		"screenshots": "Ekran Görüntüleri",
 		"servers": "Özel Sunucular",
-		"settings": "Ayarlar",
-		"language": "Dil",
-		"theme": "Tema"
+		"settings": "Ayarlar"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} kuruluma hazır!",

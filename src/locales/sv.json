@@ -41,9 +41,7 @@
 		"skins": "Skinkatalog",
 		"screenshots": "Skärmbilder",
 		"servers": "Dedikerade servrar",
-		"settings": "Inställningar",
-		"language": "Språk",
-		"theme": "Tema"
+		"settings": "Inställningar"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} är redo att installeras!",

@@ -9,9 +9,16 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useLanguage } from "@/i18n/use-language"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
+
+const THEMES = [
+	{ mode: "auto", icon: Monitor, label: "settings.theme.auto" },
+	{ mode: "dark", icon: Moon, label: "settings.theme.dark" },
+	{ mode: "light", icon: Sun, label: "settings.theme.light" },
+] as const
 
 export const FirstLaunchLanguageDialog = () => {
 	const {
@@ -43,118 +50,92 @@ export const FirstLaunchLanguageDialog = () => {
 				}
 			}}
 		>
-			<DialogContent className="max-w-md border-border/60 bg-zinc-950 p-6 shadow-2xl backdrop-blur-2xl">
-				<DialogHeader className="gap-2">
-					<div className="flex items-center justify-between gap-2">
-						<div className="flex items-center gap-2.5 text-emerald-400">
-							<div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
-								<Globe className="size-5" />
-							</div>
-							<DialogTitle className="font-semibold text-foreground text-lg">
-								{t("onboarding.selectLanguageTitle")}
-							</DialogTitle>
+			<DialogContent className="flex max-h-[85vh] flex-col gap-4 border-border/60 bg-zinc-950 p-5 shadow-2xl sm:max-w-lg">
+				<DialogHeader className="gap-1.5 pr-8">
+					<div className="flex items-center gap-2.5">
+						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+							<Globe className="size-5" />
 						</div>
-
-						<div className="flex items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900/80 p-0.5">
-							<button
-								type="button"
-								onClick={() => setThemeMode("auto")}
-								title={t("settings.theme.auto")}
-								className={cn(
-									"inline-flex size-6 items-center justify-center rounded-md transition-colors",
-									themeMode === "auto"
-										? "bg-primary text-primary-foreground"
-										: "text-muted-foreground hover:text-foreground",
-								)}
-							>
-								<Monitor className="size-3.5" />
-							</button>
-							<button
-								type="button"
-								onClick={() => setThemeMode("dark")}
-								title={t("settings.theme.dark")}
-								className={cn(
-									"inline-flex size-6 items-center justify-center rounded-md transition-colors",
-									themeMode === "dark"
-										? "bg-primary text-primary-foreground"
-										: "text-muted-foreground hover:text-foreground",
-								)}
-							>
-								<Moon className="size-3.5" />
-							</button>
-							<button
-								type="button"
-								onClick={() => setThemeMode("light")}
-								title={t("settings.theme.light")}
-								className={cn(
-									"inline-flex size-6 items-center justify-center rounded-md transition-colors",
-									themeMode === "light"
-										? "bg-primary text-primary-foreground"
-										: "text-muted-foreground hover:text-foreground",
-								)}
-							>
-								<Sun className="size-3.5" />
-							</button>
-						</div>
+						<DialogTitle className="font-semibold text-foreground text-lg">
+							{t("onboarding.selectLanguageTitle")}
+						</DialogTitle>
 					</div>
-					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
+					<DialogDescription className="text-xs text-zinc-400 leading-relaxed">
 						{t("onboarding.selectLanguageSubtitle")}
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="grid max-h-72 grid-cols-1 gap-2 overflow-y-auto py-2 sm:grid-cols-2">
-					{locales.map((loc) => {
-						const isSelected = language === loc.code
-						const isSystemDefault = systemLanguage === loc.code
-						return (
-							<button
-								key={loc.code}
-								type="button"
-								onClick={() => previewLanguage(loc.code)}
-								className={cn(
-									"group flex flex-col items-start gap-1.5 rounded-xl border p-3.5 text-left transition-all",
-									isSelected
-										? "border-primary/60 bg-primary/10 shadow-sm"
-										: "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/80",
-								)}
-							>
-								<div className="flex w-full items-center justify-between gap-2">
-									<span className="rounded bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 uppercase">
-										{loc.code}
+				<ScrollArea scrollFade className="-mx-1 min-h-0 flex-1">
+					<div className="grid grid-cols-1 gap-1.5 p-1 sm:grid-cols-2">
+						{locales.map((loc) => {
+							const isSelected = language === loc.code
+							const isSystemDefault = systemLanguage === loc.code
+							return (
+								<button
+									key={loc.code}
+									type="button"
+									onClick={() => previewLanguage(loc.code)}
+									className={cn(
+										"flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
+										isSelected
+											? "border-emerald-500/50 bg-emerald-500/10"
+											: "border-zinc-800/80 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/70",
+									)}
+								>
+									<span className="min-w-0 flex-1">
+										<span
+											className={cn(
+												"block truncate font-medium text-sm",
+												isSelected ? "text-foreground" : "text-zinc-200",
+											)}
+										>
+											{loc.nativeName}
+										</span>
+										<span className="block truncate text-[11px] text-zinc-500">
+											{loc.name}
+											{isSystemDefault && (
+												<span className="text-emerald-400"> · {t("onboarding.detectedBadge")}</span>
+											)}
+										</span>
 									</span>
-									<div className="flex items-center gap-1.5">
-										{isSystemDefault && (
-											<span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-medium text-[10px] text-emerald-400">
-												{t("onboarding.detectedBadge")}
-											</span>
-										)}
-										{isSelected && (
-											<span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
-												<Check className="size-2.5" />
-											</span>
-										)}
-									</div>
-								</div>
-
-								<div className="mt-0.5">
-									<div
+									<span
 										className={cn(
-											"font-semibold text-sm",
-											isSelected ? "text-foreground" : "text-zinc-200",
+											"flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+											isSelected
+												? "border-emerald-500 bg-emerald-500 text-white"
+												: "border-zinc-700",
 										)}
 									>
-										{loc.nativeName}
-									</div>
-									<div className="text-[11px] text-muted-foreground">{loc.name}</div>
-								</div>
-							</button>
-						)
-					})}
-				</div>
+										{isSelected && <Check className="size-2.5" strokeWidth={3} />}
+									</span>
+								</button>
+							)
+						})}
+					</div>
+				</ScrollArea>
 
-				<DialogFooter className="pt-2">
-					<Button onClick={handleConfirm} className="w-full gap-2">
-						<span>
+				<DialogFooter className="flex flex-row items-center gap-2 border-zinc-800/80 border-t pt-4 sm:justify-between">
+					<div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900/60 p-0.5">
+						{THEMES.map(({ mode, icon: Icon, label }) => (
+							<button
+								key={mode}
+								type="button"
+								aria-pressed={themeMode === mode}
+								onClick={() => setThemeMode(mode)}
+								title={t(label)}
+								className={cn(
+									"inline-flex size-8 items-center justify-center rounded-md transition-colors",
+									themeMode === mode
+										? "bg-zinc-800 text-foreground"
+										: "text-zinc-500 hover:text-zinc-200",
+								)}
+							>
+								<Icon className="size-4" />
+							</button>
+						))}
+					</div>
+					<Button onClick={handleConfirm} className="h-9 min-w-0 flex-1 sm:flex-none sm:px-6">
+						<span className="truncate">
 							{t("onboarding.continueWith", {
 								language: currentLocale.nativeName,
 							})}

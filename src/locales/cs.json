@@ -41,9 +41,7 @@
 		"skins": "Katalog skinů",
 		"screenshots": "Snímky obrazovky",
 		"servers": "Dedikované servery",
-		"settings": "Nastavení",
-		"language": "Jazyk",
-		"theme": "Motiv"
+		"settings": "Nastavení"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} je připraven k instalaci!",

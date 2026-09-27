@@ -41,9 +41,7 @@
 		"skins": "スキンカタログ",
 		"screenshots": "スクリーンショット",
 		"servers": "専用サーバー",
-		"settings": "設定",
-		"language": "言語",
-		"theme": "テーマ"
+		"settings": "設定"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} のインストール準備ができました！",

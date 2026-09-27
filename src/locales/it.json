@@ -41,9 +41,7 @@
 		"skins": "Catalogo skin",
 		"screenshots": "Screenshot",
 		"servers": "Server dedicati",
-		"settings": "Impostazioni",
-		"language": "Lingua",
-		"theme": "Tema"
+		"settings": "Impostazioni"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} è pronto per l'installazione!",

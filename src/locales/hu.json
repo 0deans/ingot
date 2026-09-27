@@ -41,9 +41,7 @@
 		"skins": "Skin katalógus",
 		"screenshots": "Képernyőképek",
 		"servers": "Dedikált szerverek",
-		"settings": "Beállítások",
-		"language": "Nyelv",
-		"theme": "Téma"
+		"settings": "Beállítások"
 	},
 	"updateBanner": {
 		"readyToInstall": "Az Ingot v{{version}} készen áll a telepítésre!",

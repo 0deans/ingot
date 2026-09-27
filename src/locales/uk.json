@@ -41,9 +41,7 @@
 		"skins": "Каталог скінів",
 		"screenshots": "Знімки екрана",
 		"servers": "Виділені сервери",
-		"settings": "Налаштування",
-		"language": "Мова",
-		"theme": "Тема"
+		"settings": "Налаштування"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} готовий до встановлення!",

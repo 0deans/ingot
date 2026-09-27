@@ -41,9 +41,7 @@
 		"skins": "Kho Skin",
 		"screenshots": "Ảnh chụp màn hình",
 		"servers": "Máy chủ riêng",
-		"settings": "Cài đặt",
-		"language": "Ngôn ngữ",
-		"theme": "Giao diện"
+		"settings": "Cài đặt"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} đã sẵn sàng để cài đặt!",

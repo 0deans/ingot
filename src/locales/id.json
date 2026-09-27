@@ -41,9 +41,7 @@
 		"skins": "Katalog Skin",
 		"screenshots": "Tangkapan Layar",
 		"servers": "Server Khusus",
-		"settings": "Pengaturan",
-		"language": "Bahasa",
-		"theme": "Tema"
+		"settings": "Pengaturan"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} siap dipasang!",

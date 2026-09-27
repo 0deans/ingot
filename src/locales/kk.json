@@ -41,9 +41,7 @@
 		"skins": "Скиндер каталогы",
 		"screenshots": "Скриншоттар",
 		"servers": "Арнайы серверлер",
-		"settings": "Баптаулар",
-		"language": "Тіл",
-		"theme": "Тақырып"
+		"settings": "Баптаулар"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} орнатуға дайын!",

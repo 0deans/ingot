@@ -41,9 +41,7 @@
 		"skins": "스킨 카탈로그",
 		"screenshots": "스크린샷",
 		"servers": "전용 서버",
-		"settings": "설정",
-		"language": "언어",
-		"theme": "테마"
+		"settings": "설정"
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} 설치 준비가 완료되었습니다!",
