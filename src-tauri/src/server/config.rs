@@ -23,6 +23,8 @@ pub enum ServerCoreType {
     Folia,
     Pumpkin,
     NeoForge,
+    Forge,
+    Quilt,
 }
 
 impl Default for ServerCoreType {
@@ -41,6 +43,8 @@ impl std::fmt::Display for ServerCoreType {
             Self::Folia => write!(f, "Folia"),
             Self::Pumpkin => write!(f, "Pumpkin"),
             Self::NeoForge => write!(f, "NeoForge"),
+            Self::Forge => write!(f, "Forge"),
+            Self::Quilt => write!(f, "Quilt"),
         }
     }
 }

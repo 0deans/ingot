@@ -1178,7 +1178,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																	e.stopPropagation()
 																	handleRemoveCustomSkin(skin, e)
 																}}
-																className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-zinc-900/90 text-zinc-400 opacity-0 transition-all hover:bg-rose-500/20 hover:text-rose-400 group-hover:opacity-100"
+																className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-zinc-900/90 text-zinc-400 any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-rose-500/20 hover:text-rose-400 focus-visible:opacity-100 group-hover:opacity-100"
 																title="Delete custom skin"
 															>
 																<Trash2 className="size-3" />

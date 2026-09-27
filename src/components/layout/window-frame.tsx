@@ -34,12 +34,24 @@ const WindowFrame = ({ title = "Ingot", children }: WindowFrameProps) => {
 			}
 		}
 
+		// Long-pressing on a touchscreen opens the webview's own Back/Reload/Print menu; keep it
+		// only where it's useful (text fields and selected text). Dev builds keep it for Inspect.
+		const handleContextMenu = (e: MouseEvent) => {
+			if (import.meta.env.DEV || e.defaultPrevented) return
+			const target = e.target as HTMLElement | null
+			if (target?.closest("input, textarea, [contenteditable]:not([contenteditable=false])")) return
+			if (window.getSelection()?.toString()) return
+			e.preventDefault()
+		}
+
 		window.addEventListener("mouseup", handleMouseUp)
 		window.addEventListener("keydown", handleKeyDown)
+		window.addEventListener("contextmenu", handleContextMenu)
 
 		return () => {
 			window.removeEventListener("mouseup", handleMouseUp)
 			window.removeEventListener("keydown", handleKeyDown)
+			window.removeEventListener("contextmenu", handleContextMenu)
 		}
 	}, [router])
 

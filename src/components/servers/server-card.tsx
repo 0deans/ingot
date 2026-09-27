@@ -50,6 +50,10 @@ function getCoreBadgeStyle(core: ServerCoreType) {
 			return "border-sky-500/30 bg-sky-500/10 text-sky-400"
 		case "neoforge":
 			return "border-orange-500/30 bg-orange-500/10 text-orange-400"
+		case "forge":
+			return "border-blue-500/30 bg-blue-500/10 text-blue-400"
+		case "quilt":
+			return "border-violet-500/30 bg-violet-500/10 text-violet-400"
 		case "folia":
 			return "border-cyan-500/30 bg-cyan-500/10 text-cyan-400"
 		case "vanilla":

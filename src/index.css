@@ -144,6 +144,13 @@
 		overscroll-behavior: none;
 	}
 
+	/* A two-finger pinch would otherwise zoom the whole webview (the app has no way back
+	   from that on touch). Scrolling still works; the world map handles its own pinch. */
+	html {
+		touch-action: pan-x pan-y;
+		-webkit-tap-highlight-color: transparent;
+	}
+
 	/* ScrollArea Viewport: NEVER show native browser scrollbars because ScrollArea provides custom scrollbars */
 	[data-slot="scroll-area-viewport"] {
 		scrollbar-width: none;

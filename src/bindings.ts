@@ -24,7 +24,7 @@ export type AccountProfile = {
 };
 
 export type CompanionStatus = {
-	/**  Paper, Purpur or Folia 1.20.1+, or Fabric on Minecraft 26.1+ */
+	/**  Paper, Purpur or Folia 1.20.1+, or Fabric or Quilt on Minecraft 26.1+ */
 	supported: boolean,
 	/**  Jar file name when installed (may be disabled) */
 	fileName: string | null,
@@ -386,7 +386,7 @@ export type ServerConfig = {
 	lastRunAt: number | null,
 };
 
-export type ServerCoreType = "paper" | "purpur" | "fabric" | "vanilla" | "folia" | "pumpkin" | "neoforge";
+export type ServerCoreType = "paper" | "purpur" | "fabric" | "vanilla" | "folia" | "pumpkin" | "neoforge" | "forge" | "quilt";
 
 export type ServerLogEvent = {
 	serverId: string,
@@ -742,7 +742,7 @@ export type Router = {
 		save_server_world: (serverId: string, flush: boolean) => Promise<null>,
 		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
 		search_content: (source: string, projectType: string, query: string | null, gameVersion: string | null, loader: string | null, sort: string | null, page: number, pageSize: number) => Promise<ContentSearchResult>,
-		/**  Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric) for this server */
+		/**  Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric/NeoForge/Forge/Quilt) for this server */
 		search_server_plugins: (serverId: string, source: PluginSource, query: string, sort: string, compatibleOnly: boolean, page: number) => Promise<PluginSearchResult>,
 		send_server_command: (serverId: string, command: string) => Promise<null>,
 		set_active_account: (accountId: string) => Promise<null>,

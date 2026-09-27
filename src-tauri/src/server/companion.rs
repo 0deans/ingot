@@ -20,7 +20,7 @@ const FILE_NAME: &str = "ingot-companion.jar";
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct CompanionStatus {
-    /// Paper, Purpur or Folia 1.20.1+, or Fabric on Minecraft 26.1+
+    /// Paper, Purpur or Folia 1.20.1+, or Fabric or Quilt on Minecraft 26.1+
     pub supported: bool,
     /// Jar file name when installed (may be disabled)
     pub file_name: Option<String>,
@@ -38,7 +38,7 @@ fn version_parts(game_version: &str) -> (u32, u32, u32) {
 
 /// The companion jar for this server, if it can run one:
 /// - Paper family from 1.20.1 (needs the region schedulers Folia introduced)
-/// - Fabric from Minecraft 26.1, the first version without obfuscation, which the mod
+/// - Fabric (and Quilt, which runs Fabric mods) from Minecraft 26.1, the first version without obfuscation, which the mod
 ///   relies on to use Mojang's names without remapping
 fn jar_for(core: &ServerCoreType, game_version: &str) -> Option<&'static [u8]> {
     let v = version_parts(game_version);
@@ -47,8 +47,9 @@ fn jar_for(core: &ServerCoreType, game_version: &str) -> Option<&'static [u8]> {
         ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia => {
             (v.0 > 1 || (v.0 == 1 && (v.1 > 20 || (v.1 == 20 && v.2 >= 1)))).then_some(PAPER_JAR)
         }
-        ServerCoreType::Fabric => (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR),
-        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::NeoForge => None,
+        // Quilt runs Fabric mods
+        ServerCoreType::Fabric | ServerCoreType::Quilt => (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR),
+        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::NeoForge | ServerCoreType::Forge => None,
     }
 }
 
@@ -74,7 +75,7 @@ pub fn status(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> C
 /// (enabled or not) so there's only ever one. Takes effect on the next server start.
 pub fn install(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> Result<(), String> {
     let (Some(jar), Some(platform)) = (jar_for(core, game_version), plugins::platform(core)) else {
-        return Err("Ingot's live map needs Paper, Purpur or Folia 1.20.1+, or Fabric on Minecraft 26.1+".into());
+        return Err("Ingot's live map needs Paper, Purpur or Folia 1.20.1+, or Fabric or Quilt on Minecraft 26.1+".into());
     };
     let dir = server_dir.join(platform.folder);
     std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to create the {} folder: {e}", platform.folder))?;
@@ -119,6 +120,8 @@ mod tests {
         assert!(!supported(&ServerCoreType::Paper, "1.19.4"));
         assert!(supported(&ServerCoreType::Fabric, "26.1"));
         assert!(supported(&ServerCoreType::Fabric, "26.3"));
+        assert!(supported(&ServerCoreType::Quilt, "26.1.2"));
+        assert!(!supported(&ServerCoreType::NeoForge, "26.2"));
         assert!(!supported(&ServerCoreType::Fabric, "1.21.11"), "obfuscated versions need remapping");
         assert!(!supported(&ServerCoreType::Vanilla, "26.2"));
         assert!(!supported(&ServerCoreType::Pumpkin, "26.2"));

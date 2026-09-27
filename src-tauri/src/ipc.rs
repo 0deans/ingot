@@ -498,7 +498,7 @@ pub trait AppApi {
         name: String,
     ) -> Result<Vec<AccessEntry>, String>;
 
-    /// Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric) for this server
+    /// Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric/NeoForge/Forge/Quilt) for this server
     async fn search_server_plugins(
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,

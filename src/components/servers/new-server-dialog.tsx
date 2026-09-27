@@ -62,6 +62,18 @@ const SERVER_CORES: {
 		badge: "Modded",
 	},
 	{
+		id: "forge",
+		name: "Forge",
+		tagline: "The original modded server, for Forge mods on Minecraft 1.17 and newer",
+		badge: "Modded",
+	},
+	{
+		id: "quilt",
+		name: "Quilt",
+		tagline: "Fabric-compatible modded server that runs both Quilt and Fabric mods",
+		badge: "Modded",
+	},
+	{
 		id: "folia",
 		name: "Folia",
 		tagline: "Multi-threaded regionized server by PaperMC for massive player counts",

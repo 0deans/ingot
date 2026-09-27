@@ -166,7 +166,9 @@ pub async fn fetch_core_versions(
             Ok(versions)
         }
         ServerCoreType::Pumpkin => crate::server::pumpkin::fetch_pumpkin_versions(client).await,
-        ServerCoreType::NeoForge => crate::server::neoforge::fetch_game_versions(client).await,
+        ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
+            crate::server::installer::fetch_game_versions(client, core).await
+        }
     }
 }
 
@@ -178,9 +180,9 @@ pub async fn ensure_server_jar(
     game_version: &str,
     build_number: Option<&str>,
 ) -> Result<String, String> {
-    // Installed on start instead: its installer needs Java
-    if *core == ServerCoreType::NeoForge {
-        return Ok("NeoForge is installed when the server starts".to_string());
+    // Installed on start instead: their installers need Java
+    if crate::server::installer::uses_installer(core) {
+        return Ok(format!("{core} is installed when the server starts"));
     }
     let dest_jar = server_dir.join("server.jar");
     if dest_jar.exists() {
@@ -336,6 +338,6 @@ pub async fn ensure_server_jar(
             crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
             Ok("Pumpkin binary ready".to_string())
         }
-        ServerCoreType::NeoForge => unreachable!("handled above"),
+        ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => unreachable!("handled above"),
     }
 }

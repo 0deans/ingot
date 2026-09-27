@@ -12,6 +12,8 @@ export const serverCoreSchema = v.picklist([
 	"purpur",
 	"fabric",
 	"neoforge",
+	"forge",
+	"quilt",
 	"folia",
 	"vanilla",
 	"pumpkin",

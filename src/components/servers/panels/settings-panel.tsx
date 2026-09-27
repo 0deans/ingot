@@ -178,7 +178,12 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 						) : (
 							<ImagePlus className="size-5 text-zinc-500" />
 						)}
-						<span className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+						<span
+							className={cn(
+								"absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100",
+								iconBusy && "opacity-100",
+							)}
+						>
 							{iconBusy ? (
 								<Loader2 className="size-4 animate-spin text-white" />
 							) : (

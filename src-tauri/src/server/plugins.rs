@@ -139,6 +139,19 @@ pub fn platform(core: &ServerCoreType) -> Option<Platform> {
             modrinth_loaders: &["neoforge"],
             hangar: false,
         }),
+        ServerCoreType::Forge => Some(Platform {
+            folder: "mods",
+            modrinth_type: "mod",
+            modrinth_loaders: &["forge"],
+            hangar: false,
+        }),
+        // Quilt also runs Fabric mods
+        ServerCoreType::Quilt => Some(Platform {
+            folder: "mods",
+            modrinth_type: "mod",
+            modrinth_loaders: &["quilt", "fabric"],
+            hangar: false,
+        }),
         ServerCoreType::Vanilla | ServerCoreType::Pumpkin => None,
     }
 }
@@ -486,7 +499,8 @@ fn folder(server_dir: &Path, core: &ServerCoreType) -> Result<PathBuf, String> {
     Ok(server_dir.join(platform.folder))
 }
 
-/// name/version/description/authors from plugin.yml, paper-plugin.yml or fabric.mod.json
+/// name/version/description/authors from plugin.yml, paper-plugin.yml, fabric.mod.json,
+/// quilt.mod.json or (neoforge.)mods.toml
 fn read_jar_metadata(path: &Path) -> Option<(String, Option<String>, Option<String>, Vec<String>)> {
     let file = std::fs::File::open(path).ok()?;
     let mut zip = zip::ZipArchive::new(file).ok()?;
@@ -509,6 +523,40 @@ fn read_jar_metadata(path: &Path) -> Option<(String, Option<String>, Option<Stri
             .unwrap_or_default();
         let name = json.get("name").or_else(|| json.get("id"))?.as_str()?.to_string();
         return Some((name, json.get("version").and_then(Value::as_str).map(str::to_string), json.get("description").and_then(Value::as_str).map(str::to_string), authors));
+    }
+
+    if let Some(json) = read("quilt.mod.json").and_then(|t| serde_json::from_str::<Value>(&t).ok()) {
+        let loader = json.get("quilt_loader")?;
+        let meta = loader.get("metadata").cloned().unwrap_or(Value::Null);
+        let authors = meta
+            .get("contributors")
+            .and_then(Value::as_object)
+            .map(|c| c.keys().cloned().collect())
+            .unwrap_or_default();
+        let name = meta.get("name").or_else(|| loader.get("id"))?.as_str()?.to_string();
+        return Some((name, loader.get("version").and_then(Value::as_str).map(str::to_string), meta.get("description").and_then(Value::as_str).map(str::to_string), authors));
+    }
+
+    // NeoForge (neoforge.mods.toml) and Forge (mods.toml): the jar's first mod
+    if let Some(doc) = read("META-INF/neoforge.mods.toml")
+        .or_else(|| read("META-INF/mods.toml"))
+        .and_then(|t| t.parse::<toml_edit::DocumentMut>().ok())
+    {
+        let first = doc.get("mods")?.as_array_of_tables()?.iter().next()?;
+        let text = |key: &str| first.get(key).and_then(|v| v.as_str()).map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+        // "${file.jarVersion}" means the version is in the jar's manifest
+        let version = text("version").and_then(|v| {
+            if !v.starts_with("${") {
+                return Some(v);
+            }
+            read("META-INF/MANIFEST.MF")?
+                .lines()
+                .find_map(|l| l.strip_prefix("Implementation-Version:").map(|v| v.trim().to_string()))
+        });
+        let authors = doc.get("authors").and_then(|v| v.as_str()).or_else(|| first.get("authors").and_then(|v| v.as_str()));
+        let authors = authors.map(|a| a.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()).unwrap_or_default();
+        let name = text("displayName").or_else(|| text("modId"))?;
+        return Some((name, version, text("description"), authors));
     }
 
     let yaml = read("paper-plugin.yml").or_else(|| read("plugin.yml"))?;
@@ -759,6 +807,51 @@ mod tests {
         let list = [v("3-beta", "beta", true), v("2", "release", false), v("1", "release", true)];
         assert_eq!(pick_version(&list).map(|v| v.id.as_str()), Some("1"));
         assert_eq!(pick_version(&list[..1]).map(|v| v.id.as_str()), Some("3-beta"));
+    }
+
+    #[test]
+    fn reads_mod_metadata() {
+        let dir = std::env::temp_dir().join(format!("ingot-mod-meta-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let jar = |name: &str, files: &[(&str, &str)]| {
+            let path = dir.join(name);
+            let mut zip = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
+            for (file, text) in files {
+                zip.start_file(*file, zip::write::SimpleFileOptions::default()).unwrap();
+                std::io::Write::write_all(&mut zip, text.as_bytes()).unwrap();
+            }
+            zip.finish().unwrap();
+            read_jar_metadata(&path).unwrap()
+        };
+
+        let neoforge = jar(
+            "jei.jar",
+            &[
+                (
+                    "META-INF/neoforge.mods.toml",
+                    "modLoader=\"javafml\"\nauthors=\"mezz, Ingot\"\n[[mods]]\nmodId=\"jei\"\ndisplayName=\"Just Enough Items\"\nversion=\"${file.jarVersion}\"\ndescription='''\nShows recipes\n'''\n",
+                ),
+                ("META-INF/MANIFEST.MF", "Manifest-Version: 1.0\nImplementation-Version: 19.21.0\n"),
+            ],
+        );
+        assert_eq!(neoforge.0, "Just Enough Items");
+        assert_eq!(neoforge.1.as_deref(), Some("19.21.0"));
+        assert_eq!(neoforge.2.as_deref(), Some("Shows recipes"));
+        assert_eq!(neoforge.3, vec!["mezz", "Ingot"]);
+
+        let forge = jar("forge.jar", &[("META-INF/mods.toml", "[[mods]]\nmodId=\"create\"\nversion=\"6.0.6\"\n")]);
+        assert_eq!((forge.0.as_str(), forge.1.as_deref()), ("create", Some("6.0.6")));
+
+        let quilt = jar(
+            "quilt.jar",
+            &[(
+                "quilt.mod.json",
+                r#"{"quilt_loader":{"id":"qsl","version":"1.0.0","metadata":{"name":"Quilt Standard Libraries","contributors":{"QuiltMC":"Owner"}}}}"#,
+            )],
+        );
+        assert_eq!((quilt.0.as_str(), quilt.1.as_deref()), ("Quilt Standard Libraries", Some("1.0.0")));
+        assert_eq!(quilt.3, vec!["QuiltMC"]);
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     /// Hits the real APIs: cargo test -- --ignored plugins_live

@@ -617,19 +617,20 @@ where
             )
         };
 
-        if config.core == ServerCoreType::NeoForge {
-            if crate::server::neoforge::args_file(&server_dir).is_none() {
-                step("Installing NeoForge (first start only, this can take a few minutes)...");
+        if crate::server::installer::uses_installer(&config.core) {
+            if crate::server::installer::launch_args(&server_dir, &config.core).is_none() {
+                step(&format!("Installing {} (first start only, this can take a few minutes)...", config.core));
             }
-            let args_file = crate::server::neoforge::ensure_installed(
+            let launch = crate::server::installer::ensure_installed(
                 &client,
                 &server_dir,
+                &config.core,
                 &game_ver,
                 config.build_number.as_deref(),
                 &java,
             )
             .await?;
-            args.push(format!("@{args_file}"));
+            args.extend(launch);
         } else {
             args.push("-jar".into());
             args.push("server.jar".into());

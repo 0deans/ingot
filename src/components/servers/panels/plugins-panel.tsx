@@ -47,7 +47,8 @@ import { PluginDetailsSheet, PluginIcon } from "./plugin-details-sheet"
 
 /** What the server core can load; null = nothing */
 export function addonKind(core: ServerConfig["core"]): { noun: string; nouns: string } | null {
-	if (core === "fabric" || core === "neoforge") return { noun: "mod", nouns: "Mods" }
+	if (core === "fabric" || core === "neoforge" || core === "forge" || core === "quilt")
+		return { noun: "mod", nouns: "Mods" }
 	if (core === "paper" || core === "purpur" || core === "folia")
 		return { noun: "plugin", nouns: "Plugins" }
 	return null

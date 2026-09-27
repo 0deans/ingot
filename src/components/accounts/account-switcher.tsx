@@ -164,7 +164,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 											<Button
 												variant="ghost"
 												size="icon-xs"
-												className="opacity-0 transition-opacity hover:text-primary group-hover/item:opacity-100"
+												className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
 												onClick={(e) => {
 													e.stopPropagation()
 													setPreviewAccount(acc)
@@ -177,7 +177,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 											<Button
 												variant="ghost"
 												size="icon-xs"
-												className="opacity-0 transition-opacity hover:text-destructive group-hover/item:opacity-100"
+												className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
 												onClick={(e) => handleRemoveAccount(e, acc.id)}
 												title="Remove account"
 											>
