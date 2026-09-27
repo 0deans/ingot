@@ -132,6 +132,18 @@
 		@apply font-sans;
 	}
 
+	/* The app is a fixed window, never a scrolling page: without this, a touchscreen or
+	   trackpad pan (or anything poking out of the window) scrolls the whole document and
+	   shifts the app, showing the transparent window behind it. `clip` (unlike `hidden`)
+	   also can't be scrolled from code. Scroll areas inside the app work as before. */
+	html,
+	body,
+	#root {
+		height: 100%;
+		overflow: clip;
+		overscroll-behavior: none;
+	}
+
 	/* ScrollArea Viewport: NEVER show native browser scrollbars because ScrollArea provides custom scrollbars */
 	[data-slot="scroll-area-viewport"] {
 		scrollbar-width: none;
