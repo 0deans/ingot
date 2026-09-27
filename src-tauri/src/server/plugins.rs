@@ -757,6 +757,25 @@ pub async fn install(
     Ok(report)
 }
 
+/// Downloads plugins/mods installed through Ingot whose jar is missing, each at the
+/// version it had: a configs-only export carries the list but not the jars. Returns
+/// warnings for the ones that couldn't be downloaded.
+pub async fn restore_missing(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> Vec<String> {
+    let Ok(dir) = folder(server_dir, core) else { return Vec::new() };
+    let missing: Vec<TrackedPlugin> = read_tracking(server_dir)
+        .into_iter()
+        .filter(|t| !dir.join(&t.file_name).exists() && !dir.join(format!("{}.disabled", t.file_name)).exists())
+        .collect();
+    let mut warnings = Vec::new();
+    for t in missing {
+        match install(server_dir, core, game_version, t.source, &t.project_id, Some(&t.version_id)).await {
+            Ok(report) => warnings.extend(report.warnings),
+            Err(e) => warnings.push(format!("Couldn't download {}: {e}", t.title)),
+        }
+    }
+    warnings
+}
+
 /// Newer compatible versions of plugins installed through Ingot
 pub async fn check_updates(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> Vec<PluginUpdate> {
     let mut updates = Vec::new();

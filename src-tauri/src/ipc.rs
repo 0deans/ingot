@@ -18,7 +18,7 @@ use crate::server::plugins::{
     InstallReport, InstalledPlugin, PluginSearchResult, PluginSource, PluginUpdate, PluginVersion,
 };
 use crate::server::stats::ServerStats;
-use crate::server::transfer::ExportMode;
+use crate::server::transfer::{ExportMode, ImportedServer};
 use crate::server::{
     self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent,
     ServerPingResponse, ServerProcessManager, ServerProperties, ServerStatusEvent, WhitelistEntry,
@@ -601,11 +601,12 @@ pub trait AppApi {
         first: bool,
     ) -> Result<(), String>;
 
-    /// Creates a new server from an uploaded archive
+    /// Creates a new server from an uploaded archive, downloading the plugins/mods a
+    /// configs-only export lists but doesn't carry
     async fn import_server(
         app_handle: tauri::AppHandle<impl Runtime>,
         upload_id: String,
-    ) -> Result<ServerConfig, String>;
+    ) -> Result<ImportedServer, String>;
 
     /// Copies a server, optionally switching the copy to another version
     async fn duplicate_server(
@@ -1908,7 +1909,7 @@ impl AppApi for AppApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         upload_id: String,
-    ) -> Result<ServerConfig, String> {
+    ) -> Result<ImportedServer, String> {
         let path = import_upload_path(&app_handle, &upload_id)?;
         let app = app_handle.clone();
         let archive = path.clone();
@@ -1917,7 +1918,10 @@ impl AppApi for AppApiImpl {
                 .await
                 .map_err(|e| e.to_string())?;
         let _ = std::fs::remove_file(&path);
-        result
+        let created = result?;
+        let dir = server::get_server_dir(&app_handle, &created.id)?;
+        let warnings = server::plugins::restore_missing(&dir, &created.core, &created.game_version).await;
+        Ok(ImportedServer { server: created, warnings })
     }
 
     async fn duplicate_server(

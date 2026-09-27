@@ -123,6 +123,12 @@ export type ImportableInstance = {
 	screenshotsCount: number,
 };
 
+/**  An imported server, and plugins/mods that couldn't be downloaded again */
+export type ImportedServer = {
+	server: ServerConfig,
+	warnings: string[],
+};
+
 export type InstallReport = {
 	/**  Titles of everything installed, dependencies included */
 	installed: string[],
@@ -693,8 +699,11 @@ export type Router = {
 		greet: (name: string) => Promise<string>,
 		has_ely_web_credentials: (accountId: string) => Promise<boolean>,
 		import_instance: (options: ImportInstanceOptions) => Promise<ImportReport>,
-		/**  Creates a new server from an uploaded archive */
-		import_server: (uploadId: string) => Promise<ServerConfig>,
+		/**
+		 *  Creates a new server from an uploaded archive, downloading the plugins/mods a
+		 *  configs-only export lists but doesn't carry
+		 */
+		import_server: (uploadId: string) => Promise<ImportedServer>,
 		/**  Appends a base64 chunk of an archive being imported (first chunk truncates) */
 		import_upload_chunk: (uploadId: string, dataBase64: string, first: boolean) => Promise<null>,
 		/**  Installs or updates Ingot's companion plugin; applies on the next start */

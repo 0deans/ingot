@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { save as saveDialog } from "@tauri-apps/plugin-dialog"
 import { ArrowUpDown, Copy, FileArchive, Loader2, Package, Share2, Upload } from "lucide-react"
 import { useRef, useState } from "react"
-import type { ExportMode, ServerConfig } from "@/bindings"
+import type { ExportMode, ImportedServer, ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import {
@@ -79,7 +79,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 					<ActionButton
 						icon={canShareFiles() ? Share2 : Package}
 						label="Export configs"
-						hint="Settings only"
+						hint="Without worlds"
 						busy={busy === "export-configs"}
 						disabled={busy !== null}
 						onClick={() => exportServer("configs")}
@@ -301,11 +301,14 @@ export function ImportServerButton({
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [progress, setProgress] = useState<number | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	/** Imported, but some plugins/mods couldn't be downloaded: shown before moving on */
+	const [partial, setPartial] = useState<ImportedServer | null>(null)
 
 	const upload = async (file: File) => {
 		const chunkSize = 2 * 1024 * 1024
 		const uploadId = crypto.randomUUID()
 		setError(null)
+		setPartial(null)
 		setProgress(0)
 		try {
 			for (let offset = 0; offset < file.size || offset === 0; offset += chunkSize) {
@@ -318,9 +321,10 @@ export function ImportServerButton({
 				setProgress(Math.min(1, (offset + chunkSize) / Math.max(1, file.size)))
 				if (file.size === 0) break
 			}
-			const created = await rpc.import_server(uploadId)
+			const imported = await rpc.import_server(uploadId)
 			await serverService.refreshServers()
-			onImported?.(created)
+			if (imported.warnings.length > 0) setPartial(imported)
+			else onImported?.(imported.server)
 		} catch (e) {
 			setError(String(e))
 		} finally {
@@ -352,9 +356,35 @@ export function ImportServerButton({
 				) : (
 					<Upload className="size-4" />
 				)}
-				{progress !== null ? `Importing ${Math.round(progress * 100)}%` : "Import server"}
+				{progress === null
+					? "Import server"
+					: progress < 1
+						? `Importing ${Math.round(progress * 100)}%`
+						: "Setting up server..."}
 			</Button>
 			{error && <ErrorNote>{error}</ErrorNote>}
+			{partial && (
+				<div className="flex flex-col gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-amber-100 text-xs">
+					<p className="font-semibold">
+						Imported "{partial.server.name}", but some plugins or mods couldn&apos;t be downloaded:
+					</p>
+					<ul className="list-disc pl-4 text-amber-200/80">
+						{partial.warnings.map((w) => (
+							<li key={w}>{w}</li>
+						))}
+					</ul>
+					<Button
+						size="sm"
+						onClick={() => {
+							setPartial(null)
+							onImported?.(partial.server)
+						}}
+						className="self-start rounded-lg bg-amber-500/20 text-amber-50 hover:bg-amber-500/30"
+					>
+						Open server
+					</Button>
+				</div>
+			)}
 		</>
 	)
 }

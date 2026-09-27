@@ -21,6 +21,14 @@ pub enum ExportMode {
     Full,
 }
 
+/// An imported server, and plugins/mods that couldn't be downloaded again
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedServer {
+    pub server: ServerConfig,
+    pub warnings: Vec<String>,
+}
+
 /// What an export carries about the server, so an import can recreate it
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -38,6 +46,16 @@ struct Manifest {
 /// Regenerated automatically, machine-specific, or huge and re-downloadable
 const SKIP_DIRS: [&str; 7] = ["cache", "libraries", "versions", "logs", "crash-reports", "debug", ".ingot"];
 const SKIP_FILES: [&str; 3] = ["server.jar", "session.lock", "usercache.json"];
+/// Written by the Forge, NeoForge and Quilt installers, which run again after an import
+const INSTALLER_FILES: [&str; 5] = ["quilt-server-launch.jar", "run.bat", "run.sh", "user_jvm_args.txt", "README.txt"];
+/// The one file kept from .ingot: which plugins/mods came from Modrinth or Hangar (for
+/// updates, and to download them again when an export has no jars)
+const TRACKING: &str = ".ingot/plugins.json";
+
+/// Top-level files that are part of the loader install (see INSTALLER_FILES)
+fn is_installer_file(name: &str) -> bool {
+    INSTALLER_FILES.contains(&name) || (name.starts_with("forge-") && name.ends_with("-shim.jar"))
+}
 
 fn is_world_dir(dir: &Path) -> bool {
     dir.join("level.dat").exists() || dir.join("region").is_dir()
@@ -45,7 +63,8 @@ fn is_world_dir(dir: &Path) -> bool {
 
 fn is_config_file(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
-    [".yml", ".yaml", ".json", ".json5", ".toml", ".properties", ".conf", ".txt"]
+    // Scripts, quests and old-style configs are how mods are usually set up
+    [".yml", ".yaml", ".json", ".json5", ".toml", ".properties", ".conf", ".txt", ".cfg", ".ini", ".snbt", ".js", ".zs"]
         .iter()
         .any(|ext| lower.ends_with(ext))
         || lower == "server-icon.png"
@@ -63,6 +82,9 @@ fn collect(root: &Path, dir: &Path, mode: ExportMode, out: &mut Vec<PathBuf>) {
         }
         if kind.is_dir() {
             let top_level = dir == root;
+            if top_level && name == ".ingot" && root.join(TRACKING).is_file() {
+                out.push(PathBuf::from(TRACKING));
+            }
             if top_level && SKIP_DIRS.contains(&name.as_str()) {
                 continue;
             }
@@ -70,7 +92,10 @@ fn collect(root: &Path, dir: &Path, mode: ExportMode, out: &mut Vec<PathBuf>) {
                 continue;
             }
             collect(root, &path, mode, out);
-        } else if !SKIP_FILES.contains(&name.as_str()) && !name.ends_with(".part") {
+        } else if !SKIP_FILES.contains(&name.as_str())
+            && !name.ends_with(".part")
+            && !(dir == root && is_installer_file(&name))
+        {
             let keep = match mode {
                 ExportMode::Full => true,
                 ExportMode::Configs => is_config_file(&name),
@@ -216,6 +241,10 @@ fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), String> {
         if kind.is_dir() {
             // Only skip regenerated folders at the top level of the server
             if from.join("server.properties").exists() && (name_str == "cache" || name_str == "logs" || name_str == ".ingot") {
+                if name_str == ".ingot" && from.join(TRACKING).is_file() {
+                    fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+                    fs::copy(from.join(TRACKING), to.join(TRACKING)).map_err(|e| format!("Failed to copy the plugin list: {e}"))?;
+                }
                 continue;
             }
             copy_dir(&entry.path(), &dest, false)?;
@@ -249,6 +278,10 @@ pub fn duplicate<R: Runtime>(
     let from = config::get_server_dir(app, &source.id)?;
     let to = config::get_server_dir(app, &created.id)?;
     copy_dir(&from, &to, version_changes)?;
+    if version_changes {
+        // Forge, NeoForge and Quilt install themselves again for the new version
+        super::installer::uninstall(&to, &created.core)?;
+    }
     set_port(&to, created.port)?;
 
     created.jvm_args = source.jvm_args.clone();
@@ -288,7 +321,7 @@ mod tests {
     fn configs_export_skips_worlds_and_jars() {
         let root = std::env::temp_dir().join(format!("ingot-export-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
-        for dir in ["world/region", "plugins/LuckPerms", "logs", "config"] {
+        for dir in ["world/region", "plugins/LuckPerms", "logs", "config/ftbquests", "mods", ".ingot/map"] {
             fs::create_dir_all(root.join(dir)).unwrap();
         }
         for file in [
@@ -301,6 +334,14 @@ mod tests {
             "plugins/LuckPerms/config.yml",
             "logs/latest.log",
             "config/paper-global.yml",
+            "config/ftbquests/chapter.snbt",
+            "mods/create.jar",
+            ".ingot/plugins.json",
+            ".ingot/map/r.0.0.png",
+            "quilt-server-launch.jar",
+            "forge-26.1.2-64.1.0-shim.jar",
+            "run.bat",
+            "user_jvm_args.txt",
         ] {
             fs::write(root.join(file), "x").unwrap();
         }
@@ -313,12 +354,22 @@ mod tests {
         };
         assert_eq!(
             list(ExportMode::Configs),
-            ["config/paper-global.yml", "plugins/LuckPerms/config.yml", "server.properties", "whitelist.json"]
+            [
+                ".ingot/plugins.json",
+                "config/ftbquests/chapter.snbt",
+                "config/paper-global.yml",
+                "plugins/LuckPerms/config.yml",
+                "server.properties",
+                "whitelist.json"
+            ]
         );
         let full = list(ExportMode::Full);
         assert!(full.contains(&"world/region/r.0.0.mca".to_string()));
         assert!(full.contains(&"plugins/LuckPerms.jar".to_string()));
-        assert!(!full.iter().any(|f| f == "server.jar" || f.starts_with("logs/")));
+        assert!(full.contains(&"mods/create.jar".to_string()));
+        assert!(full.contains(&".ingot/plugins.json".to_string()));
+        assert!(!full.iter().any(|f| f == "server.jar" || f.starts_with("logs/") || f.starts_with(".ingot/map")));
+        assert!(!full.iter().any(|f| f.ends_with("-shim.jar") || f == "quilt-server-launch.jar" || f == "run.bat" || f == "user_jvm_args.txt"));
         let _ = fs::remove_dir_all(&root);
     }
 }
