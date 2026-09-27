@@ -117,7 +117,7 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 				options={[
 					{
 						value: "installed",
-						label: `Installed${installed.data ? ` · ${userPlugins.length}` : ""}`,
+						label: `Installed${installed.data ? ` · ${installed.data.length}` : ""}`,
 					},
 					{ value: "browse", label: `Browse ${kind.nouns.toLowerCase()}` },
 				]}
@@ -145,6 +145,7 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 					server={server}
 					kind={kind}
 					plugins={userPlugins}
+					hasSystem={userPlugins.length < (installed.data?.length ?? 0)}
 					loading={installed.isLoading}
 					onBrowse={() => setView("browse")}
 					onChanged={changed}
@@ -206,6 +207,7 @@ function InstalledList({
 	server,
 	kind,
 	plugins,
+	hasSystem,
 	loading,
 	onBrowse,
 	onChanged,
@@ -213,6 +215,8 @@ function InstalledList({
 	server: ServerConfig
 	kind: { noun: string; nouns: string }
 	plugins: InstalledPlugin[]
+	/** Ingot's own plugin/mod is installed (shown above this list) */
+	hasSystem: boolean
 	loading: boolean
 	onBrowse: () => void
 	onChanged: (text: string, error?: boolean) => void
@@ -230,6 +234,21 @@ function InstalledList({
 			<div className="flex justify-center py-10">
 				<Loader2 className="size-5 animate-spin text-zinc-500" />
 			</div>
+		)
+	}
+	// Only Ingot's own: a short hint instead of a big "nothing installed"
+	if (plugins.length === 0 && hasSystem) {
+		return (
+			<Card className="flex items-center justify-between gap-3 px-4 py-3">
+				<p className="text-sm text-zinc-400">No other {kind.nouns.toLowerCase()} yet.</p>
+				<Button
+					variant="outline"
+					onClick={onBrowse}
+					className="h-9 shrink-0 gap-2 rounded-xl border-zinc-800"
+				>
+					<Search className="size-4" /> Browse {kind.nouns.toLowerCase()}
+				</Button>
+			</Card>
 		)
 	}
 	if (plugins.length === 0) {
