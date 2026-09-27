@@ -193,6 +193,39 @@ async fn install_java(sandbox_dir: &Path, rootfs_dir: &Path, package: &str) -> R
 
 /// Ensures the Linux rootfs and a matching Java runtime are installed.
 /// Returns `(sandbox_dir, rootfs_dir, guest_java_path)`.
+/// Serializes sandbox setup: concurrent starts would race on extraction and apk's db lock
+static SETUP_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+/// The Alpine rootfs without Java, for servers that are a native Linux program
+/// (Pumpkin). Returns (sandbox_dir, rootfs_dir).
+pub async fn ensure_base_rootfs<R: Runtime, FProgress>(
+    app: &tauri::AppHandle<R>,
+    client: &reqwest::Client,
+    on_progress: FProgress,
+) -> Result<(PathBuf, PathBuf), String>
+where
+    FProgress: Fn(&str, f32) + Send + Sync + 'static,
+{
+    let _setup_guard = SETUP_LOCK.lock().await;
+    base_rootfs(app, client, &on_progress).await
+}
+
+async fn base_rootfs<R: Runtime, FProgress>(
+    app: &tauri::AppHandle<R>,
+    client: &reqwest::Client,
+    on_progress: &FProgress,
+) -> Result<(PathBuf, PathBuf), String>
+where
+    FProgress: Fn(&str, f32) + Send + Sync + 'static,
+{
+    let sandbox_dir = get_sandbox_dir(app)?;
+    let rootfs_dir = get_rootfs_dir(app)?;
+    if !is_rootfs_installed(&rootfs_dir) {
+        install_base_rootfs(client, &sandbox_dir, &rootfs_dir, on_progress).await?;
+    }
+    Ok((sandbox_dir, rootfs_dir))
+}
+
 pub async fn ensure_sandbox_rootfs<R: Runtime, FProgress>(
     app: &tauri::AppHandle<R>,
     client: &reqwest::Client,
@@ -202,16 +235,8 @@ pub async fn ensure_sandbox_rootfs<R: Runtime, FProgress>(
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
-    // Serialize setup: concurrent starts would race on extraction and on apk's db lock
-    static SETUP_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
     let _setup_guard = SETUP_LOCK.lock().await;
-
-    let sandbox_dir = get_sandbox_dir(app)?;
-    let rootfs_dir = get_rootfs_dir(app)?;
-
-    if !is_rootfs_installed(&rootfs_dir) {
-        install_base_rootfs(client, &sandbox_dir, &rootfs_dir, &on_progress).await?;
-    }
+    let (sandbox_dir, rootfs_dir) = base_rootfs(app, client, &on_progress).await?;
 
     let (major, package) = java_package(java_major);
     if let Some(java) = find_guest_java(&rootfs_dir, major) {

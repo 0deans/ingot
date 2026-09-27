@@ -29,20 +29,6 @@ pub fn get_pumpkin_binary_path(server_dir: &Path) -> PathBuf {
     server_dir.join(get_pumpkin_binary_name())
 }
 
-/// On Android, try to find `libpumpkin.so` in the native library directory.
-/// This is the fast path — if the APK was built with the binary bundled,
-/// we can execute it directly without memfd overhead.
-pub fn locate_pumpkin_bundled() -> Option<PathBuf> {
-    #[cfg(target_os = "android")]
-    if let Ok(lib_dir) = std::env::var("ANDROID_APP_LIB_DIR") {
-        let candidate = PathBuf::from(lib_dir).join("libpumpkin.so");
-        if candidate.exists() {
-            return Some(candidate);
-        }
-    }
-    None
-}
-
 /// Fetches available Pumpkin versions from GitHub Releases
 pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<String>, String> {
     let url = "https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases?per_page=10";
@@ -66,37 +52,14 @@ pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<Stri
     }
 }
 
-/// Ensures the Pumpkin native executable is available and returns its path.
-///
-/// On Android:
-///   1. If the APK was built with `libpumpkin.so` bundled → returns that path (executable directly).
-///   2. Otherwise → downloads to app-data cache dir and returns that path.
-///      The caller (`build_pumpkin_command`) will use `memfd_create` to execute it.
-///
-/// On Desktop: downloads the appropriate binary to the server directory if
-/// not already present.
+/// Ensures the Pumpkin executable is in the server folder and returns its path,
+/// downloading the build for this platform on first use. On Android that's the Linux
+/// musl build, which runs inside the PRoot sandbox's Alpine rootfs like Java does.
 pub async fn ensure_pumpkin_binary(
     client: &reqwest::Client,
     server_dir: &Path,
 ) -> Result<PathBuf, String> {
-    // Fast path: bundled in APK (preferred)
-    if let Some(bundled) = locate_pumpkin_bundled() {
-        return Ok(bundled);
-    }
-
-    // Determine where to cache the binary
-    #[cfg(target_os = "android")]
-    let bin_path = {
-        // On Android, download to a cache dir under app data.
-        // The binary lives here on disk but is executed via memfd (not directly).
-        let cache_dir = server_dir.join(".bin_cache");
-        let _ = std::fs::create_dir_all(&cache_dir);
-        cache_dir.join("pumpkin")
-    };
-
-    #[cfg(not(target_os = "android"))]
     let bin_path = get_pumpkin_binary_path(server_dir);
-
     if bin_path.exists() {
         if std::fs::metadata(&bin_path)
             .map(|m| m.len() > 1_000_000)
@@ -121,9 +84,11 @@ pub async fn ensure_pumpkin_binary(
         .await
         .map_err(|e| format!("Failed to parse Pumpkin release info: {e}"))?;
 
-    // Determine target asset name pattern for this platform
+    // Release asset for this platform (e.g. "pumpkin-ARM64-Linux-musl"). Matched by
+    // suffix: "ARM64-Linux" must not pick the musl build, and vice versa.
     let target_pattern = if cfg!(target_os = "android") {
-        "aarch64-android"
+        // Alpine uses musl, so the glibc build wouldn't start in the sandbox
+        "ARM64-Linux-musl"
     } else if cfg!(target_os = "windows") {
         if cfg!(target_arch = "aarch64") {
             "ARM64-Windows"
@@ -150,7 +115,7 @@ pub async fn ensure_pumpkin_binary(
                 && !a.name.ends_with(".md5")
                 && !a.name.contains("checksum")
         })
-        .find(|a| a.name.contains(target_pattern))
+        .find(|a| a.name.ends_with(target_pattern) || a.name.ends_with(&format!("{target_pattern}.exe")))
         .ok_or_else(|| {
             format!(
                 "No compatible Pumpkin binary found matching '{target_pattern}' in release {}",
@@ -178,7 +143,10 @@ pub async fn ensure_pumpkin_binary(
         .await
         .map_err(|e| format!("Failed to read Pumpkin binary stream: {e}"))?;
 
-    std::fs::write(&bin_path, &bytes)
+    // Write beside the target, then rename: an interrupted download never looks complete
+    let part = bin_path.with_extension("part");
+    std::fs::write(&part, &bytes)
+        .and_then(|()| std::fs::rename(&part, &bin_path))
         .map_err(|e| format!("Failed to write Pumpkin binary to {}: {e}", bin_path.display()))?;
 
     #[cfg(unix)]
@@ -242,40 +210,38 @@ pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<
     Ok(())
 }
 
-/// Builds the Command to run Pumpkin natively.
+/// Builds the command that runs Pumpkin, after pointing it at its ports.
 ///
-/// `binary_path` is the resolved executable path (from `ensure_pumpkin_binary`).
-///
-/// On Android, if the binary is NOT in `nativeLibraryDir` (i.e. it was downloaded
-/// to app-data which is noexec), we transparently use `memfd_create` to execute
-/// it from RAM — bypassing the W^X filesystem restriction.
+/// `sandbox` is the PRoot sandbox and rootfs on Android: Android won't run programs
+/// an app downloaded, so Pumpkin runs inside the Alpine rootfs through PRoot (the only
+/// bundled program), with the server folder mounted at /server.
 pub fn build_pumpkin_command(
     binary_path: &Path,
     server_dir: &Path,
     port: u16,
     public_port: u16,
+    sandbox: Option<(&Path, &Path)>,
 ) -> Result<Command, String> {
     set_ports(server_dir, port, public_port)?;
-
-    // On Android: if the binary is in nativeLibraryDir, exec directly.
-    // Otherwise (downloaded to noexec app-data) — use memfd to exec from RAM.
-    #[cfg(target_os = "android")]
-    {
-        let is_bundled = std::env::var("ANDROID_APP_LIB_DIR")
-            .ok()
-            .map(|lib_dir| binary_path.starts_with(&lib_dir))
-            .unwrap_or(false);
-
-        if !is_bundled {
-            eprintln!(
-                "[Pumpkin] Binary is on noexec fs ({}), using memfd_create to execute.",
-                binary_path.display()
-            );
-            return crate::server::memfd::memfd::command_from_noexec_path(binary_path, server_dir);
+    let mut cmd = match sandbox {
+        Some((sandbox_dir, rootfs)) => {
+            let name = binary_path
+                .file_name()
+                .ok_or("Invalid Pumpkin binary path")?
+                .to_string_lossy()
+                .into_owned();
+            let mut cmd = crate::server::sandbox::proot_command(
+                sandbox_dir,
+                Some(rootfs),
+                false,
+                &[(server_dir.to_path_buf(), "/server")],
+                "/server",
+            )?;
+            cmd.arg(format!("/server/{name}"));
+            cmd
         }
-    }
-
-    let mut cmd = Command::new(binary_path);
+        None => Command::new(binary_path),
+    };
     cmd.current_dir(server_dir);
     Ok(cmd)
 }

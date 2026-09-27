@@ -266,6 +266,24 @@ impl ServerProcessManager {
 }
 
 /// Helper to locate java.exe (or java) for console use
+/// Turns sandbox setup progress into startup steps: each distinct message once, plus
+/// every 10% of a download
+fn sandbox_progress<F>(step: &F) -> impl Fn(&str, f32) + Send + Sync + 'static
+where
+    F: Fn(&str) + Clone + Send + Sync + 'static,
+{
+    let last_reported = std::sync::Mutex::new((String::new(), 0u32));
+    let step = step.clone();
+    move |msg, prog| {
+        let pct = (prog * 100.0) as u32;
+        let Ok(mut last) = last_reported.lock() else { return };
+        if last.0 != msg || pct >= last.1 + 10 {
+            *last = (msg.to_string(), pct);
+            step(&format!("{msg} ({pct}%)"));
+        }
+    }
+}
+
 fn find_java_console_bin(path: &Path) -> Option<PathBuf> {
     #[cfg(target_os = "windows")]
     let bin_name = "java.exe";
@@ -500,7 +518,15 @@ where
     // 4. Build execution command (Pumpkin native vs Android PRoot sandbox vs Desktop Java)
     let mut cmd = if config.core == ServerCoreType::Pumpkin {
         step("Preparing Pumpkin server...");
+        step("Downloading Pumpkin (first start only)...");
         let bin = crate::server::pumpkin::ensure_pumpkin_binary(&client, &server_dir).await?;
+        // Android runs it inside the sandbox (it can't execute downloaded programs directly)
+        let sandbox = if crate::server::sandbox::is_android_sandbox() {
+            step("Preparing Linux sandbox...");
+            Some(crate::server::sandbox::ensure_base_rootfs(&app, &client, sandbox_progress(&step)).await?)
+        } else {
+            None
+        };
         // With sleep on, this runs on the internal port (public + 10000) behind the proxy
         let public_port = if config.sleep_enabled.unwrap_or(true) {
             if config.port >= 11024 {
@@ -511,7 +537,13 @@ where
         } else {
             config.port
         };
-        crate::server::pumpkin::build_pumpkin_command(&bin, &server_dir, config.port, public_port)?
+        crate::server::pumpkin::build_pumpkin_command(
+            &bin,
+            &server_dir,
+            config.port,
+            public_port,
+            sandbox.as_ref().map(|(dir, rootfs)| (dir.as_path(), rootfs.as_path())),
+        )?
     } else {
         // Construct command arguments with Aikar's G1GC flags
         let mut args: Vec<String> = Vec::new();
@@ -562,19 +594,13 @@ where
 
         if crate::server::sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
-            // Report each distinct message once, plus every 10% of the download
-            let last_reported = std::sync::Mutex::new((String::new(), 0u32));
-            let sandbox_step = step.clone();
-            let (sandbox_dir, rootfs, guest_java) =
-                crate::server::sandbox::ensure_sandbox_rootfs(&app, &client, required_java, move |msg, prog| {
-                    let pct = (prog * 100.0) as u32;
-                    let Ok(mut last) = last_reported.lock() else { return };
-                    if last.0 != msg || pct >= last.1 + 10 {
-                        *last = (msg.to_string(), pct);
-                        sandbox_step(&format!("{msg} ({pct}%)"));
-                    }
-                })
-                .await?;
+            let (sandbox_dir, rootfs, guest_java) = crate::server::sandbox::ensure_sandbox_rootfs(
+                &app,
+                &client,
+                required_java,
+                sandbox_progress(&step),
+            )
+            .await?;
             crate::server::sandbox::build_server_command(
                 Some((&sandbox_dir, &rootfs)),
                 &server_dir,

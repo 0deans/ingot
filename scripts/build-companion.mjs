@@ -21,7 +21,10 @@ const PAPER = "https://repo.papermc.io/repository/maven-public"
 const CENTRAL = "https://repo1.maven.org/maven2"
 // Only what javac needs to resolve the types the plugin touches
 const DEPENDENCIES = [
-	[PAPER, "io/papermc/paper/paper-api/1.20.1-R0.1-SNAPSHOT/paper-api-1.20.1-R0.1-20230921.165944-178.jar"],
+	[
+		PAPER,
+		"io/papermc/paper/paper-api/1.20.1-R0.1-SNAPSHOT/paper-api-1.20.1-R0.1-20230921.165944-178.jar",
+	],
 	[CENTRAL, "net/kyori/adventure-api/4.14.0/adventure-api-4.14.0.jar"],
 	[CENTRAL, "net/kyori/adventure-key/4.14.0/adventure-key-4.14.0.jar"],
 	[CENTRAL, "net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar"],
@@ -76,11 +79,18 @@ execFileSync(
 	{ stdio: "inherit" },
 )
 
-const pluginYml = fs.readFileSync(path.join(source, "plugin.yml"), "utf8").replace("${version}", VERSION)
+const pluginYml = fs
+	.readFileSync(path.join(source, "plugin.yml"), "utf8")
+	// biome-ignore lint/suspicious/noTemplateCurlyInString: a literal placeholder in plugin.yml
+	.replace("${version}", VERSION)
 fs.writeFileSync(path.join(work, "classes", "plugin.yml"), pluginYml)
 
 fs.rmSync(output, { force: true })
-execFileSync(jdkTool("jar"), ["--create", "--file", output, "-C", path.join(work, "classes"), "."], {
-	stdio: "inherit",
-})
+execFileSync(
+	jdkTool("jar"),
+	["--create", "--file", output, "-C", path.join(work, "classes"), "."],
+	{
+		stdio: "inherit",
+	},
+)
 console.log(`Built ${path.relative(root, output)} (${fs.statSync(output).size} bytes, v${VERSION})`)

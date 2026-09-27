@@ -2,8 +2,6 @@ pub mod companion;
 pub mod config;
 pub mod downloader;
 pub mod files;
-#[cfg(target_os = "android")]
-pub mod memfd;
 pub mod process;
 pub mod proxy;
 pub mod pumpkin;

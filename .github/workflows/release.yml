@@ -176,9 +176,6 @@ jobs:
       - name: Initialize Tauri Android project
         run: pnpm tauri android init --ci
 
-      - name: Inject Foreground Service and Android Manifest Permissions
-        run: node scripts/prepare-android.cjs
-
       - name: Build Android APK
         env:
           NDK_HOME: ${{ env.NDK_HOME }}

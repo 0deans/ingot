@@ -63,24 +63,15 @@ impl PlayitManager {
         guard.status.clone()
     }
 
-    /// Resolves or downloads the Playit agent binary.
-    /// On Android the binary is launched through PRoot, so it may live on the noexec
-    /// app-data partition; the bundled `libplayit.so` is still preferred.
+    /// Finds or downloads the playit agent, the first time someone goes public.
+    /// On Android it isn't bundled: it runs through PRoot (see `build_agent_command`),
+    /// which can start it from app storage where Android won't run programs itself.
     pub async fn ensure_playit_binary<R: Runtime>(
         &self,
         app: &tauri::AppHandle<R>,
         client: &reqwest::Client,
     ) -> Result<PathBuf, String> {
-        // 1. Fast path: bundled libplayit.so in nativeLibraryDir (APK bundle)
-        #[cfg(target_os = "android")]
-        if let Ok(lib_dir) = std::env::var("ANDROID_APP_LIB_DIR") {
-            let p = PathBuf::from(&lib_dir).join("libplayit.so");
-            if p.exists() {
-                return Ok(p);
-            }
-        }
-
-        // 2. Desktop: check system PATH
+        // 1. Desktop: an agent the user installed themselves
         #[cfg(not(target_os = "android"))]
         if let Ok(path) = std::env::var("PATH") {
             for dir in std::env::split_paths(&path) {
@@ -91,7 +82,7 @@ impl PlayitManager {
             }
         }
 
-        // 3. App-data cache dir (download target)
+        // 2. Previously downloaded, else download it
         let data_dir = app
             .path()
             .app_data_dir()
@@ -143,12 +134,11 @@ impl PlayitManager {
             .await
             .map_err(|e| format!("Failed to read playit binary bytes: {e}"))?;
 
-        std::fs::write(&target_path, &bytes).map_err(|e| {
-            format!(
-                "Failed to write playit binary to {}: {e}",
-                target_path.display()
-            )
-        })?;
+        // Write beside the target, then rename: an interrupted download never looks complete
+        let part = target_path.with_extension("part");
+        std::fs::write(&part, &bytes)
+            .and_then(|()| std::fs::rename(&part, &target_path))
+            .map_err(|e| format!("Failed to write playit binary to {}: {e}", target_path.display()))?;
 
         #[cfg(unix)]
         {
@@ -341,7 +331,8 @@ async fn run_agent_inner(ctx: &AgentContext, secret: Option<String>) -> Result<(
 
 /// Builds the daemon command. On Android, playit (a static musl binary) resolves DNS
 /// via `/etc/resolv.conf`, which Android doesn't have, so it runs under PRoot with
-/// a resolv.conf bound in. PRoot also lets it execute from noexec storage.
+/// a resolv.conf bound in. PRoot also runs it from app storage, where Android won't
+/// execute downloaded programs directly.
 fn build_agent_command(ctx: &AgentContext, secret: &str) -> Result<Command, String> {
     let mut cmd = if let Some(ref sandbox_dir) = ctx.sandbox_dir {
         let resolv = ctx.playit_dir.join("resolv.conf");

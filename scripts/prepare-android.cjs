@@ -80,17 +80,30 @@ function main() {
 			console.log("Injected windowSoftInputMode into AndroidManifest.xml")
 		}
 
+		// Release builds must unpack the bundled binaries (PRoot, Pumpkin, playit) to
+		// nativeLibraryDir: they're executed, and Android can't run them from inside the APK
+		if (!manifest.includes("android:extractNativeLibs")) {
+			manifest = manifest.replace(
+				"<application",
+				'<application\n        android:extractNativeLibs="true"',
+			)
+			console.log("Injected extractNativeLibs into AndroidManifest.xml")
+		}
+
 		fs.writeFileSync(MANIFEST_PATH, manifest, "utf8")
 	}
 
-	// 3. Ensure arm64 jniLibs directory exists
+	// 3. Bundled binaries: PRoot and its libraries (committed in src-tauri/android/jniLibs,
+	// see the README there). Everything else runs through PRoot and is downloaded on use.
 	fs.mkdirSync(JNI_ARM64_DIR, { recursive: true })
-	const prootDest = path.join(JNI_ARM64_DIR, "libproot.so")
-	const localProot = path.join(ROOT_DIR, "src-tauri", "android", "libproot.so")
-
-	if (fs.existsSync(localProot)) {
-		fs.copyFileSync(localProot, prootDest)
-		console.log("Copied local libproot.so ->", prootDest)
+	const bundledDir = path.join(ROOT_DIR, "src-tauri", "android", "jniLibs", "arm64-v8a")
+	for (const name of fs.readdirSync(bundledDir)) {
+		fs.copyFileSync(path.join(bundledDir, name), path.join(JNI_ARM64_DIR, name))
+	}
+	console.log("Copied bundled PRoot libraries")
+	// Binaries earlier versions bundled; left behind they'd still go into the APK
+	for (const stale of ["libpumpkin.so", "libplayit.so"]) {
+		fs.rmSync(path.join(JNI_ARM64_DIR, stale), { force: true })
 	}
 
 	const resDir = path.join(ANDROID_APP_DIR, "res")
@@ -112,7 +125,10 @@ function main() {
 	if (fs.existsSync(stringsPath)) {
 		const strings = fs
 			.readFileSync(stringsPath, "utf8")
-			.replace(/(<string name="(?:app_name|main_activity_title)">)[^<]*(<\/string>)/g, '$1"Ingot"$2')
+			.replace(
+				/(<string name="(?:app_name|main_activity_title)">)[^<]*(<\/string>)/g,
+				'$1"Ingot"$2',
+			)
 		fs.writeFileSync(stringsPath, strings, "utf8")
 	}
 
@@ -121,7 +137,10 @@ function main() {
 	if (fs.existsSync(colorsPath)) {
 		let colors = fs.readFileSync(colorsPath, "utf8")
 		if (!colors.includes('name="background"')) {
-			colors = colors.replace('</resources>', '    <color name="background">#09090b</color>\n</resources>')
+			colors = colors.replace(
+				"</resources>",
+				'    <color name="background">#09090b</color>\n</resources>',
+			)
 			fs.writeFileSync(colorsPath, colors, "utf8")
 		}
 	}

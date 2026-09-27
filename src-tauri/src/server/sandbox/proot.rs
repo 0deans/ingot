@@ -75,7 +75,7 @@ pub fn proot_command(
     guest_cwd: &str,
 ) -> Result<Command, String> {
     let proot = locate_proot_binary().ok_or_else(|| {
-        "PRoot binary not found. The APK must bundle libproot.so (run scripts/download-android-libs.ps1 before building).".to_string()
+        "PRoot binary not found. The APK must bundle libproot.so (scripts/prepare-android.cjs copies it from src-tauri/android/jniLibs).".to_string()
     })?;
 
     let tmp_dir = sandbox_dir.join("tmp");
