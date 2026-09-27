@@ -9,11 +9,16 @@ const DOUBLE_TAP_MS = 300
 
 interface TouchDrag {
 	pointerId: number
-	startX: number
-	startY: number
-	/** Window position (physical px) when the drag started; null until it has been read */
-	origin: { x: number; y: number } | null
+	/** Where the finger touched the titlebar (client CSS px); the window keeps it under the finger */
+	anchorX: number
+	anchorY: number
+	/** Window position (physical px) we last moved to; null until it has been read */
+	position: { x: number; y: number } | null
+	/** Newest finger position (client CSS px) not applied yet */
+	latest: { x: number; y: number } | null
 	dragging: boolean
+	/** A setPosition call is in flight */
+	moving: boolean
 }
 
 interface TitlebarProps {
@@ -47,46 +52,61 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 
 	// Tauri's data-tauri-drag-region only reacts to `mousedown`, which touch and pen input
 	// don't fire until the finger is lifted, so move the window by hand for those.
+	//
+	// The finger should stay on the same spot of the titlebar, so each move shifts the window
+	// by how far the finger has slid away from that spot (client coordinates). Screen
+	// coordinates can't be used: WebView2 derives them from a window position that lags
+	// behind while the window moves, which makes the window shake and trail the finger.
 	const touchDrag = useRef<TouchDrag | null>(null)
 	const lastTap = useRef(0)
-	const pendingPosition = useRef<{ x: number; y: number } | null>(null)
-	const moving = useRef(false)
 
-	/** Applies the latest requested position, never queueing more than one IPC call */
-	const flushPosition = async () => {
-		if (moving.current) return
-		moving.current = true
+	/** Moves the window after the finger, keeping at most one IPC call in flight */
+	const pump = async (drag: TouchDrag) => {
+		if (drag.moving) return
+		drag.moving = true
 		try {
-			while (pendingPosition.current) {
-				const { x, y } = pendingPosition.current
-				pendingPosition.current = null
-				await getCurrentWindow().setPosition(new PhysicalPosition(x, y))
+			while (drag.latest && drag.position) {
+				const ratio = window.devicePixelRatio
+				const dx = Math.round((drag.latest.x - drag.anchorX) * ratio)
+				const dy = Math.round((drag.latest.y - drag.anchorY) * ratio)
+				drag.latest = null
+				if (dx === 0 && dy === 0) continue
+				drag.position = { x: drag.position.x + dx, y: drag.position.y + dy }
+				await getCurrentWindow().setPosition(new PhysicalPosition(drag.position.x, drag.position.y))
 			}
 		} catch (error) {
 			console.error("Failed to move window:", error)
 		} finally {
-			moving.current = false
+			drag.moving = false
 		}
 	}
 
-	const beginTouchDrag = async (drag: TouchDrag, clientX: number, clientY: number) => {
+	const beginTouchDrag = async (drag: TouchDrag) => {
 		const appWindow = getCurrentWindow()
-		const innerWidth = window.innerWidth
 		if (await appWindow.isMaximized()) {
 			// Restore, keeping the finger at the same relative spot along the titlebar
-			await appWindow.unmaximize()
-			const size = await appWindow.outerSize()
 			const ratio = window.devicePixelRatio
-			drag.origin = {
-				x: Math.round(drag.startX * ratio - size.width * (clientX / innerWidth)),
-				y: Math.round((drag.startY - clientY) * ratio),
+			const before = await appWindow.innerPosition()
+			const fingerX = before.x + drag.anchorX * ratio
+			const fingerY = before.y + drag.anchorY * ratio
+			const relativeX = drag.anchorX / window.innerWidth
+			await appWindow.unmaximize()
+			const [outer, inner, size] = await Promise.all([
+				appWindow.outerPosition(),
+				appWindow.innerPosition(),
+				appWindow.innerSize(),
+			])
+			drag.anchorX = (size.width * relativeX) / ratio
+			drag.position = {
+				x: Math.round(outer.x + fingerX - drag.anchorX * ratio - inner.x),
+				y: Math.round(outer.y + fingerY - drag.anchorY * ratio - inner.y),
 			}
-			pendingPosition.current = drag.origin
-			flushPosition()
-			return
+			await appWindow.setPosition(new PhysicalPosition(drag.position.x, drag.position.y))
+		} else {
+			const pos = await appWindow.outerPosition()
+			drag.position = { x: pos.x, y: pos.y }
 		}
-		const pos = await appWindow.outerPosition()
-		drag.origin = { x: pos.x, y: pos.y }
+		pump(drag)
 	}
 
 	const onTouchPointerDown = (e: React.PointerEvent<HTMLElement>) => {
@@ -108,38 +128,38 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 		e.currentTarget.setPointerCapture(e.pointerId)
 		touchDrag.current = {
 			pointerId: e.pointerId,
-			startX: e.screenX,
-			startY: e.screenY,
-			origin: null,
+			anchorX: e.clientX,
+			anchorY: e.clientY,
+			position: null,
+			latest: null,
 			dragging: false,
+			moving: false,
 		}
 	}
 
 	const onTouchPointerMove = (e: React.PointerEvent<HTMLElement>) => {
 		const drag = touchDrag.current
 		if (!drag || drag.pointerId !== e.pointerId) return
-		const dx = e.screenX - drag.startX
-		const dy = e.screenY - drag.startY
+		drag.latest = { x: e.clientX, y: e.clientY }
 		if (!drag.dragging) {
-			if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+			if (Math.hypot(e.clientX - drag.anchorX, e.clientY - drag.anchorY) < DRAG_THRESHOLD) return
 			drag.dragging = true
 			lastTap.current = 0
-			beginTouchDrag(drag, e.clientX, e.clientY).catch((error) =>
-				console.error("Failed to start window drag:", error),
-			)
+			beginTouchDrag(drag).catch((error) => console.error("Failed to start window drag:", error))
 			return
 		}
-		if (!drag.origin) return
-		const ratio = window.devicePixelRatio
-		pendingPosition.current = {
-			x: Math.round(drag.origin.x + dx * ratio),
-			y: Math.round(drag.origin.y + dy * ratio),
-		}
-		flushPosition()
+		pump(drag)
 	}
 
 	const onTouchPointerUp = (e: React.PointerEvent<HTMLElement>) => {
-		if (touchDrag.current?.pointerId === e.pointerId) touchDrag.current = null
+		const drag = touchDrag.current
+		if (drag?.pointerId !== e.pointerId) return
+		touchDrag.current = null
+		// Land exactly where the finger was lifted
+		if (drag.dragging && e.type === "pointerup") {
+			drag.latest = { x: e.clientX, y: e.clientY }
+			pump(drag)
+		}
 	}
 
 	const handleMinimize = async () => {

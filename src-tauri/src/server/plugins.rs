@@ -501,7 +501,7 @@ fn folder(server_dir: &Path, core: &ServerCoreType) -> Result<PathBuf, String> {
 
 /// name/version/description/authors from plugin.yml, paper-plugin.yml, fabric.mod.json,
 /// quilt.mod.json or (neoforge.)mods.toml
-fn read_jar_metadata(path: &Path) -> Option<(String, Option<String>, Option<String>, Vec<String>)> {
+pub(crate) fn read_jar_metadata(path: &Path) -> Option<(String, Option<String>, Option<String>, Vec<String>)> {
     let file = std::fs::File::open(path).ok()?;
     let mut zip = zip::ZipArchive::new(file).ok()?;
     let mut read = |name: &str| -> Option<String> {

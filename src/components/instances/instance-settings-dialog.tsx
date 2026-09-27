@@ -1,5 +1,6 @@
 import {
 	AlertCircle,
+	ArrowUpDown,
 	CheckCircle2,
 	Cpu,
 	DownloadCloud,
@@ -9,10 +10,12 @@ import {
 	Monitor,
 	RefreshCw,
 	Terminal,
+	Undo2,
 	UploadCloud,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { InstanceConfig } from "@/bindings"
+import type { InstanceConfig, VersionBackup } from "@/bindings"
+import ChangeVersionDialog from "@/components/instances/change-version-dialog"
 import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -28,7 +31,8 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Slider from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
-import { instanceService } from "@/services/instance-service"
+import { formatBytes } from "@/lib/minecraft"
+import { instanceService, rpc } from "@/services/instance-service"
 import {
 	settingsService,
 	useMemorySettings,
@@ -85,6 +89,12 @@ export const InstanceSettingsDialog = ({
 	const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(instance?.lastSyncedAt ?? null)
 	const [isInitialSyncOpen, setIsInitialSyncOpen] = useState(false)
 
+	// Version change
+	const [versionOpen, setVersionOpen] = useState(false)
+	const [versionBackup, setVersionBackup] = useState<VersionBackup | null>(null)
+	const [versionBusy, setVersionBusy] = useState(false)
+	const [versionMsg, setVersionMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
 	// Manual sync actions state
 	const [isSyncing, setIsSyncing] = useState(false)
 	const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null)
@@ -125,6 +135,47 @@ export const InstanceSettingsDialog = ({
 			setSyncStatusType(null)
 		}
 	}, [instance, globalMemory, globalWindow, globalSync])
+
+	// By id: the instance object is replaced after a version change, and that must not
+	// clear the message about it
+	const instanceId = instance?.id
+	useEffect(() => {
+		if (!open || !instanceId) return
+		setVersionMsg(null)
+		rpc
+			.get_instance_version_backup(instanceId)
+			.then(setVersionBackup)
+			.catch(() => setVersionBackup(null))
+	}, [open, instanceId])
+
+	const handleUndoVersion = async () => {
+		if (!instance || !versionBackup) return
+		setVersionBusy(true)
+		setVersionMsg(null)
+		try {
+			const restored = await rpc.undo_instance_version_change(instance.id)
+			setVersionBackup(null)
+			setVersionMsg({ ok: true, text: `Back on ${restored.gameVersion}, exactly as before.` })
+			await onSave?.(restored)
+		} catch (e) {
+			setVersionMsg({ ok: false, text: String(e) })
+		} finally {
+			setVersionBusy(false)
+		}
+	}
+
+	const handleDiscardBackup = async () => {
+		if (!instance) return
+		setVersionBusy(true)
+		try {
+			await rpc.discard_instance_version_backup(instance.id)
+			setVersionBackup(null)
+		} catch (e) {
+			setVersionMsg({ ok: false, text: String(e) })
+		} finally {
+			setVersionBusy(false)
+		}
+	}
 
 	const handleToggleCustomSync = (checked: boolean) => {
 		if (checked && !lastSyncedAt) {
@@ -197,8 +248,10 @@ export const InstanceSettingsDialog = ({
 		try {
 			const parsedArgs = jvmArgsStr.trim().split(/\s+/).filter(Boolean)
 
+			// The version may have changed (or been undone) while this dialog was open
+			const latest = (await rpc.get_instances()).find((i) => i.id === instance.id) ?? instance
 			const updated: InstanceConfig = {
-				...instance,
+				...latest,
 				name: name.trim() || instance.name,
 				memoryMinMb: useCustomRam ? minRamMb : null,
 				memoryMaxMb: useCustomRam ? maxRamMb : null,
@@ -265,6 +318,73 @@ export const InstanceSettingsDialog = ({
 								placeholder="My Minecraft Instance"
 								className="h-9 border-zinc-800 bg-zinc-900/80 text-xs"
 							/>
+						</div>
+
+						{/* Minecraft version */}
+						<div className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+							<div className="flex items-center justify-between gap-3">
+								<div className="flex items-center gap-2">
+									<ArrowUpDown className="size-4 text-emerald-400" />
+									<div>
+										<h4 className="font-medium text-foreground text-xs">Minecraft version</h4>
+										<p className="text-[11px] text-muted-foreground">
+											{instance.gameVersion}
+											{instance.loaderVersion ? ` · loader ${instance.loaderVersion}` : ""}
+										</p>
+									</div>
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setVersionOpen(true)}
+									disabled={versionBusy}
+									className="h-8 text-xs"
+								>
+									Change version
+								</Button>
+							</div>
+							{versionBackup && (
+								<div className="flex flex-wrap items-center justify-between gap-2 border-zinc-800/80 border-t pt-3">
+									<p className="text-[11px] text-zinc-400">
+										Changed from {versionBackup.fromGameVersion} to {versionBackup.toGameVersion}.
+										Backup {formatBytes(versionBackup.bytes)}
+										{versionBackup.worldsBackedUp ? ", worlds included" : ""}.
+									</p>
+									<div className="flex gap-1.5">
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={handleDiscardBackup}
+											disabled={versionBusy}
+											className="h-7 text-[11px] text-zinc-500"
+										>
+											Delete backup
+										</Button>
+										<Button
+											size="sm"
+											onClick={handleUndoVersion}
+											disabled={versionBusy}
+											className="h-7 gap-1.5 text-[11px]"
+										>
+											{versionBusy ? (
+												<Loader2 className="size-3 animate-spin" />
+											) : (
+												<Undo2 className="size-3" />
+											)}
+											Undo, back to {versionBackup.fromGameVersion}
+										</Button>
+									</div>
+								</div>
+							)}
+							{versionMsg && (
+								<p
+									className={
+										versionMsg.ok ? "text-[11px] text-emerald-300" : "text-[11px] text-red-300"
+									}
+								>
+									{versionMsg.text}
+								</p>
+							)}
 						</div>
 
 						{/* Memory Override */}
@@ -649,6 +769,20 @@ export const InstanceSettingsDialog = ({
 				onChoose={handleInitialSyncChoice}
 				onCancel={() => setIsInitialSyncOpen(false)}
 			/>
+
+			{/* Mounted only while open, so every opening starts from the version picker */}
+			{versionOpen && (
+				<ChangeVersionDialog
+					instance={instance}
+					open={versionOpen}
+					onOpenChange={setVersionOpen}
+					onChanged={async (updated) => {
+						setVersionBackup(await rpc.get_instance_version_backup(updated.id).catch(() => null))
+						setVersionMsg(null)
+						await onSave?.(updated)
+					}}
+				/>
+			)}
 		</Dialog>
 	)
 }

@@ -11,6 +11,7 @@ use crate::minecraft::loader;
 use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
+use crate::minecraft::version_change::{self, VersionBackup, VersionPlan};
 use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
 use crate::server::live::{KnownPlayer, PlayerDetails};
 use crate::server::map::MapDimension;
@@ -174,6 +175,40 @@ pub trait AppApi {
     ) -> Result<Vec<instance::InstanceWorldSummary>, String>;
 
     async fn kill_instance(instance_id: String) -> Result<(), String>;
+
+    /// Works out what moving an instance to another Minecraft version means for its
+    /// mods, resource packs and shaders. Changes nothing.
+    async fn check_instance_version_change(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        game_version: String,
+        loader_version: Option<String>,
+    ) -> Result<VersionPlan, String>;
+
+    /// Carries out a reviewed plan, all or nothing, keeping a backup for undo
+    async fn apply_instance_version_change(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        plan: VersionPlan,
+        backup_worlds: bool,
+    ) -> Result<InstanceConfig, String>;
+
+    /// The last version change of an instance, if it can be undone
+    async fn get_instance_version_backup(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<Option<VersionBackup>, String>;
+
+    /// Restores the instance exactly as it was before its last version change
+    async fn undo_instance_version_change(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<InstanceConfig, String>;
+
+    /// Deletes the backup of the last version change (it can't be undone after)
+    async fn discard_instance_version_backup(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String>;
 
     async fn get_running_instances() -> Result<Vec<RunningInstanceSummary>, String>;
 
@@ -898,6 +933,79 @@ impl AppApi for AppApiImpl {
 
     async fn kill_instance(self, instance_id: String) -> Result<(), String> {
         get_process_manager().kill_instance(&instance_id).await
+    }
+
+    async fn check_instance_version_change(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        game_version: String,
+        loader_version: Option<String>,
+    ) -> Result<VersionPlan, String> {
+        let instance = find_instance(&app_handle, &instance_id)?;
+        if instance.loader != ModLoaderType::Vanilla && loader_version.is_none() {
+            return Err(format!("Pick a {:?} version for Minecraft {game_version}", instance.loader));
+        }
+        // Worlds can't go back to an older version: compare release dates
+        let cache_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?.join("cache");
+        let manifest = version::fetch_version_manifest(get_http_client(), &cache_dir).await?;
+        let released = |id: &str| manifest.versions.iter().find(|v| v.id == id).map(|v| v.release_time.clone());
+        let downgrade = match (released(&instance.game_version), released(&game_version)) {
+            (Some(from), Some(to)) => to < from,
+            _ => false,
+        };
+        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
+        version_change::check(get_http_client(), &instance_dir, &instance, &game_version, loader_version, downgrade).await
+    }
+
+    async fn apply_instance_version_change(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        plan: VersionPlan,
+        backup_worlds: bool,
+    ) -> Result<InstanceConfig, String> {
+        if get_process_manager().is_running(&plan.instance_id).await {
+            return Err("Close the game first".into());
+        }
+        let instance = find_instance(&app_handle, &plan.instance_id)?;
+        let instance_dir = instance::get_instance_dir(&app_handle, &plan.instance_id)?;
+        let updated =
+            version_change::apply(get_http_client(), &instance_dir, &instance, &plan, backup_worlds, |_| {}).await?;
+        instance::update_instance(&app_handle, updated.clone())?;
+        Ok(updated)
+    }
+
+    async fn get_instance_version_backup(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<Option<VersionBackup>, String> {
+        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
+        Ok(version_change::last_backup(&instance_dir))
+    }
+
+    async fn undo_instance_version_change(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<InstanceConfig, String> {
+        if get_process_manager().is_running(&instance_id).await {
+            return Err("Close the game first".into());
+        }
+        let instance = find_instance(&app_handle, &instance_id)?;
+        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
+        let restored = version_change::undo(&instance_dir, &instance)?;
+        instance::update_instance(&app_handle, restored.clone())?;
+        Ok(restored)
+    }
+
+    async fn discard_instance_version_backup(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String> {
+        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id)?;
+        version_change::discard_backup(&instance_dir)
     }
 
     async fn get_running_instances(self) -> Result<Vec<RunningInstanceSummary>, String> {
@@ -1998,6 +2106,13 @@ fn server_with_config<R: Runtime>(
 }
 
 /// Paper and its forks answer the `tps` command
+fn find_instance<R: Runtime>(app: &tauri::AppHandle<R>, instance_id: &str) -> Result<InstanceConfig, String> {
+    instance::load_instances(app)?
+        .into_iter()
+        .find(|i| i.id == instance_id)
+        .ok_or_else(|| format!("Instance not found: {instance_id}"))
+}
+
 fn core_has_tps(config: &server::ServerConfig) -> bool {
     matches!(
         config.core,
