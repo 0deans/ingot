@@ -23,11 +23,13 @@
 		"minimize": "最小化",
 		"maximize": "最大化",
 		"restore": "元に戻す",
-		"justNow": "たった今",
 		"never": "なし",
-		"minutesAgo": "{{count}}分前",
-		"hoursAgo": "{{count}}時間前",
-		"daysAgo": "{{count}}日前"
+		"unknown": "不明",
+		"deleting": "削除中...",
+		"stop": "停止",
+		"done": "完了",
+		"update": "更新",
+		"enable": "有効化"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "言語を選択",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "アカウントがまだ設定されていません。",
 		"previewSkin": "3D スキンをプレビュー",
 		"removeAccount": "アカウントを削除",
-		"setAsActive": "アクティブに設定"
+		"setAsActive": "アクティブに設定",
+		"offline": "オフライン",
+		"reorder": "アカウント {{name}} の順序を変更",
+		"dragToReorder": "ドラッグしてアカウントの順序を変更",
+		"clickToPreview": "クリックして3Dスキンをプレビュー",
+		"skin": "スキン"
 	},
 	"instances": {
 		"searchPlaceholder": "インスタンスを検索...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "エクスプローラーでインスタンスのフォルダーを開く",
 			"settingsTooltip": "インスタンス設定 (RAM、JVM 引数)",
 			"duplicateTooltip": "複製",
-			"deleteTooltip": "インスタンスを削除"
-		}
+			"deleteTooltip": "インスタンスを削除",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "コンテンツを探す",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "すべてのフィルターをリセット",
 		"byAuthor": "作成者: {{author}}",
 		"noDescription": "説明がありません。",
-		"details": "詳細"
+		"details": "詳細",
+		"loadFailed": "コンテンツの読み込みに失敗しました"
 	},
 	"skins": {
 		"title": "スキンカタログ",
@@ -199,6 +209,18 @@
 			"description": "このスクリーンショットを完全に削除してもよろしいですか？この操作は元に戻せません。",
 			"deleting": "削除中...",
 			"deletePermanently": "完全に削除"
+		},
+		"card": {
+			"view": "{{name}} を表示",
+			"unavailable": "画像を利用できません",
+			"fullscreen": "全画面表示",
+			"showInFolder": "フォルダーで表示"
+		},
+		"lightbox": {
+			"close": "プレビューを閉じる",
+			"closeEsc": "閉じる (Esc)",
+			"previous": "前のスクリーンショット",
+			"next": "次のスクリーンショット"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "新しいサーバーを作成",
 		"createCardSubtitle": "Paper、Purpur、Fabric、Folia、または Vanilla",
 		"noMatchTitle": "フィルターに一致するサーバーがありません",
-		"noMatchSubtitle": "検索キーワードを変更するか、「すべてのコア」を選択してみてください。"
+		"noMatchSubtitle": "検索キーワードを変更するか、「すべてのコア」を選択してみてください。",
+		"activeEntry": "{{name}} (ポート {{port}})"
 	},
 	"settings": {
 		"title": "ランチャー設定",
 		"subtitle": "アカウント、言語、Java ランタイム、メモリ割り当て、ランチャーの動作を設定します。",
 		"language": {
 			"title": "言語 (Language)",
-			"description": "ランチャー画面の表示言語を選択します。src/locales/ に追加された言語ファイルは自動的にホットリロードされます。"
+			"description": "ランチャーの表示言語を選択します。日付、数値、サイズ表記にも反映されます。"
 		},
 		"theme": {
 			"title": "外観とテーマ",
@@ -263,7 +286,14 @@
 				"modded": "Mod 導入",
 				"heavy": "大型パック",
 				"safeMax": "安全上限"
-			}
+			},
+			"zoneSafe": "安全動作ゾーン",
+			"zoneHigh": "高使用率ゾーン",
+			"zoneCritical": "システム危険ゾーン",
+			"minShort": "最小: {{value}}",
+			"maxShort": "最大: {{value}}",
+			"totalShort": "{{value}} (最大)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "ランチャーの動作",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "デフォルトのウィンドウ解像度",
 			"resolutionDesc": "ゲームウィンドウの幅と高さを指定します",
 			"presets": "プリセット:",
-			"defaultPreset": "デフォルト"
+			"defaultPreset": "デフォルト",
+			"resetTo": "{{size}} にリセット"
 		},
 		"sync": {
 			"title": "ゲームデータの同期",
@@ -315,7 +346,8 @@
 					"title": "クリエイティブのホットバーを同期",
 					"description": "保存したクリエイティブモードのホットバーをワールド間で共有します"
 				}
-			}
+			},
+			"reinitialize": "{{title}} の同期元を再初期化"
 		},
 		"updates": {
 			"title": "アップデートとバージョン",
@@ -340,5 +372,1195 @@
 			"dialogSubtitle": "Ingot は他のプロジェクトのソフトウェアを使用しています。それぞれ独自のライセンスの下で提供されています。名前をクリックするとソースコードとライセンス全文を表示します。",
 			"trademark": "Minecraft は Mojang AB の商標です。Ingot は Mojang または Microsoft とは提携していません。"
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "オーバーワールド",
+			"nether": "ネザー",
+			"end": "ジ・エンド"
+		},
+		"gamemodes": {
+			"survival": "サバイバル",
+			"creative": "クリエイティブ",
+			"adventure": "アドベンチャー",
+			"spectator": "スペクテイター"
+		}
+	},
+	"initialSync": {
+		"title": "初期同期",
+		"description": "<b>{{name}}</b> の同期を有効にしようとしています。どこから初期同期を行いますか？",
+		"fromInstance": "このインスタンスから",
+		"uploadToShared": "共有ストレージにアップロード",
+		"fromInstanceDesc": "このインスタンスの設定（options）とサーバー（servers）をマスターとして共有ストレージにコピーします。",
+		"fromShared": "共有ストレージから",
+		"downloadToInstance": "インスタンスにダウンロード",
+		"fromSharedDesc": "既存の共有設定とサーバー情報をこのインスタンスにダウンロードします。"
+	},
+	"deleteInstance": {
+		"title": "インスタンスを削除",
+		"description": "本当にこのインスタンスを完全に削除しますか？この操作は取り消せません。",
+		"note": "このインスタンスフォルダーに保存されているすべてのセーブデータ、ワールド、インストール済みMod、リソースパック、設定ファイルがディスクから削除されます。"
+	},
+	"deleteServer": {
+		"title": "サーバーを削除",
+		"confirm": "本当に <b>{{name}}</b> を削除しますか？",
+		"details": "サーバーの詳細:",
+		"detailsLine": "コア: {{core}} {{version}} • ポート: {{port}}",
+		"deleteFiles": "すべてのサーバーファイルを完全に削除",
+		"deleteFilesDesc": "コンピューターのディスクからワールドマップ、プレイヤーデータ、プラグイン、サーバーログが削除されます。"
+	},
+	"companion": {
+		"system": "システム",
+		"liveMap": "ライブマップ",
+		"disabled": "無効",
+		"notInstalled": "ライブマップ · 未インストール",
+		"updated_plugin": "Ingot プラグインを更新しました。",
+		"updated_mod": "Ingot Mod を更新しました。",
+		"installed_plugin": "Ingot プラグインをインストールしました。",
+		"installed_mod": "Ingot Mod をインストールしました。",
+		"removed_plugin": "Ingot プラグインを削除しました。マップはサーバーのセーブ時に更新されるようになります。",
+		"removed_mod": "Ingot Mod を削除しました。マップはサーバーのセーブ時に更新されるようになります。",
+		"enabled_plugin": "Ingot プラグインを有効化しました。",
+		"enabled_mod": "Ingot Mod を有効化しました。",
+		"remove_plugin": "Ingot プラグインを削除",
+		"remove_mod": "Ingot Mod を削除"
+	},
+	"syncConflict": {
+		"title": "同期の競合が検出されました",
+		"description": "<b>{{name}}</b> には、共有ストレージと一度も同期されていない独自のローカル設定ファイルが含まれています。",
+		"conflictingFiles": "競合しているファイル:",
+		"choose": "初期同期の解決方法を選択してください:",
+		"useShared": "共有設定を使用",
+		"overwritesLocal": "ローカルを上書き",
+		"useSharedDesc": "このインスタンスの設定（options）とサーバー（servers）を既存の共有設定で置き換えます。インスタンスファイルの自動バックアップ（<code>.bak</code>）が保存されます。",
+		"useInstance": "このインスタンスを共有マスターにする",
+		"overwritesShared": "共有側を上書き",
+		"useInstanceDesc": "このインスタンスの設定（options）とサーバー（servers）をマスターとして共有ストレージに反映します。既存の共有ファイルは <code>.bak</code> としてバックアップされます。",
+		"disable": "独立を維持（同期を無効化）",
+		"noChanges": "変更なし",
+		"disableDesc": "このインスタンスの同期を無効にして、サーバーや設定が他のインスタンスによって変更または置き換えられないようにします。"
+	},
+	"leftoverServers": {
+		"runningSince": "{{time}} から実行中",
+		"stopped": "停止済み",
+		"stopNote": "停止すると直ちに終了します。前回のオートセーブ以降の内容（最大でも数分程度）は失われますが、ワールド自体には問題ありません。",
+		"leaveRunning": "実行したままにする",
+		"title_other": "サーバーは前回から実行中です",
+		"description_other": "Ingot は停止せずに閉じられたため、コンソールが消えています: Ingot はコマンドを送信したり、ワールドを保存したりできません。彼らは停止するまでポートと世界を忙しくし続けます。"
+	},
+	"serverStatus": {
+		"running": "実行中",
+		"sleeping": "スリープ中",
+		"stopped": "停止",
+		"starting": "起動中",
+		"stopping": "停止中"
+	},
+	"serverTabs": {
+		"overview": "概要",
+		"console": "コンソール",
+		"players": "プレイヤー",
+		"map": "マップ",
+		"plugins": "プラグイン",
+		"mods": "Mod",
+		"settings": "設定",
+		"home": "ホーム"
+	},
+	"serverWorkspace": {
+		"back": "サーバー一覧に戻る"
+	},
+	"duplicateInstance": {
+		"title": "インスタンスを複製",
+		"defaultName": "{{name}} (コピー)",
+		"description": "同じMod、設定、リソースパック、オプションを持つ個別のコピーを作成します。一方への変更は他方に影響しないため、新しいバージョンやModを安全に試すことができます。",
+		"nameLabel": "コピーの名前",
+		"copyWorlds": "ワールドをコピー",
+		"noWorldsYet": "ワールドなし",
+		"copyWorldsDesc": "チェックを外すと、複製先はシングルプレイヤーのワールドがない状態で開始されます。",
+		"note": "プレイ時間はゼロから始まります。ログ、クラッシュレポート、スクリーンショットは元のインスタンスにのみ残ります。",
+		"running": "ゲームが実行中です。ワールドが保存された状態でコピーできるように先にゲームを閉じるか、ワールドを含めずにコピーしてください。",
+		"copying": "コピー中…",
+		"action": "複製"
+	},
+	"quitDialog": {
+		"title_quit": "終了する前にサーバーを停止しますか？",
+		"title_update": "アップデートのためにサーバーを停止しますか？",
+		"title_restart": "再起動のためにサーバーを停止しますか？",
+		"action_quit": "サーバーを停止して終了",
+		"action_update": "サーバーを停止して更新",
+		"action_restart": "サーバーを停止して再起動",
+		"stopping": "停止中…",
+		"keepInTray": "トレイで実行を続ける",
+		"asleep_other": "これらのサーバーはスリープ状態です。プレイヤーが参加すると起動しますが、それは Ingot が開いている間だけです。",
+		"consoles_other": "これらのサーバーのコンソールは、Ingot 内で実行されます。 Ingot が最初に閉じられると、それらを制御したり世界を保存したりする方法がなく、実行され続けます。",
+		"saving_other": "ワールドを保存して停止します。これには最大 30 秒かかる場合があります。",
+		"games_other": "どちらの方法でもゲームは実行され続けます。 Ingot を開くと、それらが再び取得されます。"
+	},
+	"crashDialog": {
+		"title": "{{name}} は {{version}} での初回起動時にクラッシュしました",
+		"suspects_plugin": "通常、新しいバージョンに対応していないプラグインが原因です。クラッシュレポートでは以下が指摘されています:",
+		"suspects_mod": "通常、新しいバージョンに対応していないModが原因です。クラッシュレポートでは以下が指摘されています:",
+		"suspects_either": "通常、新しいバージョンに対応していないプラグインまたはModが原因です。クラッシュレポートでは以下が指摘されています:",
+		"noSuspects_plugin": "クラッシュレポートには特定のプラグインが記載されていません。バージョンの変更を元に戻して更新を待つことができます。",
+		"noSuspects_mod": "クラッシュレポートには特定のModが記載されていません。バージョンの変更を元に戻して更新を待つことができます。",
+		"noSuspects_either": "クラッシュレポートには特定のプラグインやModが記載されていません。バージョンの変更を元に戻して更新を待つことができます。",
+		"turnOff": "無効にする",
+		"turnedOff": "無効化済み",
+		"details": "クラッシュの詳細",
+		"keepTrying": "このまま続行",
+		"undo": "バージョンの変更を元に戻す",
+		"undone": "以前と全く同じ {{version}} に戻しました。",
+		"tryAgain_server_other": "サーバーを再起動して、それらを使用せずに試してください。 「元に戻す」を実行しても、それらは再びオンになります。",
+		"tryAgain_game_other": "ゲームをもう一度開始して、それらなしで試してください。 「元に戻す」を実行しても、それらは再びオンになります。"
+	},
+	"skinPreview": {
+		"saving": "保存中...",
+		"saved": "保存しました！",
+		"error": "エラー",
+		"changeSkin": "スキンを変更",
+		"copyUrlTitle": "スキンテクスチャのURLをコピー",
+		"copied": "コピーしました",
+		"copyUrl": "URLをコピー",
+		"downloadTitle": "スキンテクスチャファイルをダウンロードフォルダーに保存",
+		"download": "ダウンロード"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "ホワイトリスト",
+			"ops": "オペレーター",
+			"bans": "BANリスト"
+		},
+		"whitelist": {
+			"title": "ホワイトリスト",
+			"empty": "ホワイトリストに登録されているプレイヤーはいません",
+			"description": "有効にすると、ここに登録されたプレイヤーのみが参加できます。",
+			"add": "追加"
+		},
+		"ops": {
+			"title": "オペレーター",
+			"empty": "オペレーターはいません",
+			"description": "オペレーターは /stop や /op を含むすべてのコマンドを実行できます。",
+			"add": "OPを付与"
+		},
+		"bans": {
+			"title": "BANされたプレイヤー",
+			"empty": "BANされたプレイヤーはいません",
+			"description": "BANされたプレイヤーは解除されるまで参加できません。",
+			"add": "BAN"
+		},
+		"whitelistOn": "ホワイトリスト 有効",
+		"whitelistOff": "ホワイトリスト 無効",
+		"onlyListed": "リストに登録されたプレイヤーのみが参加できます。",
+		"anyone": "誰でもこのサーバーに参加できます。",
+		"invalidName": "ユーザー名には半角英数字とアンダースコア（_）のみ使用できます",
+		"playerName": "プレイヤー名",
+		"permissionLevel": "権限レベル {{level}}",
+		"banned": "BAN済み",
+		"noUuid": "UUIDなし",
+		"remove": "{{name}} を削除"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Android アプリに含まれるもの",
+				"note": "Linux サンドボックス内の Android 上でサーバーソフトウェアを実行します。Termux プロジェクトのビルドを使用しています。"
+			},
+			"downloaded": {
+				"title": "必要時にダウンロードされるもの",
+				"note": "機能が初めて使用される際に公式ソースから取得されます。"
+			},
+			"servers": {
+				"title": "インストール可能なサーバーソフトウェア",
+				"note": "サーバー作成時に、それぞれの開発プロジェクトからダウンロードされます。"
+			}
+		},
+		"roles": {
+			"proot": "サーバー用 Linux サンドボックス",
+			"talloc": "PRoot で使用されるメモリライブラリ",
+			"shmem": "PRoot の共有メモリサポート",
+			"temurin": "デスクトップでのサーバーおよびゲーム用 Java",
+			"alpine": "OpenJDK を含む Android サンドボックスのベースシステム",
+			"pumpkin": "Pumpkin サーバー",
+			"playit": "サーバーの公開アドレス",
+			"paper": "Paper サーバー",
+			"folia": "Folia サーバー",
+			"purpur": "Purpur サーバー",
+			"fabric": "Fabric サーバー",
+			"vanilla": "Vanilla サーバー (Mojang製、オープンソースではありません)"
+		},
+		"names": {
+			"minecraftServer": "Minecraft サーバー"
+		},
+		"various": "各種オープンソースライセンス"
+	},
+	"directConnect": {
+		"title": "サーバーにダイレクト接続",
+		"description": "メインメニューをスキップして、<b>{{name}}</b> からマルチプレイヤーサーバーに直接接続して起動します。",
+		"address": "サーバーアドレス",
+		"addressPlaceholder": "例: mc.hypixel.net または localhost:25565",
+		"localServers": "設定済みのローカルサーバー",
+		"recent": "最近接続したサーバー",
+		"removeRecent": "履歴から削除",
+		"launch": "起動して接続"
+	},
+	"console": {
+		"autoScrollOn": "自動スクロール オン",
+		"autoScrollOff": "自動スクロール オフ",
+		"copyAll": "すべてコピー",
+		"clear": "消去",
+		"waiting": "出力を待機中...",
+		"offline": "サーバーはオフラインです",
+		"offlineHint": "コンソールを表示するにはサーバーを起動してください。",
+		"latest": "最新",
+		"placeholder": "コマンドを入力 (例: time set day)",
+		"send": "コマンドを送信"
+	},
+	"syncMaster": {
+		"setAsSource": "\"{{name}}\" をマスター同期元に設定します。",
+		"error": "エラー: {{error}}",
+		"categoryTitle": "初期同期: {{title}}",
+		"title": "マスター同期インスタンスを選択",
+		"categoryDescription": "共有ストレージが最初に {{file}} を取得する場所を選択してください:",
+		"description": "共有同期ストレージを設定するための既存のインスタンスを選択してください。その設定とデータが共有のベースラインになります。",
+		"useExisting": "既存の共有データを使用",
+		"keepCurrent": "共有ストレージ内の現在の <code>{{file}}</code> を維持",
+		"useShared": "共有データを使用",
+		"orCopyFrom": "または既存のインスタンスからコピー:",
+		"copyFrom": "既存のインスタンスからコピー:",
+		"noInstances": "インスタンスが見つかりません。",
+		"useThis": "これを使用",
+		"setAsMaster": "マスターに設定",
+		"noCopy": "まだデータをコピーしたくない場合:",
+		"startFresh": "新規 / 空の状態で開始"
+	},
+	"quickJoin": {
+		"title": "クイックプレイ — サーバーに参加",
+		"description": "Minecraft を起動して <b>{{name}}</b> ({{address}}) に直接参加します。",
+		"target": "対象: {{address}}",
+		"choose": "クライアントインスタンスを選択",
+		"noInstances": "Minecraft インスタンスが見つかりません",
+		"noInstancesHint": "サーバーに参加するには、まずクライアントインスタンスを作成してください。",
+		"createInstance": "インスタンスを作成",
+		"matches": "サーバーと一致",
+		"launch": "起動して参加"
+	},
+	"players": {
+		"tabs": {
+			"online": "オンライン",
+			"all": "すべてのプレイヤー",
+			"access": "アクセス管理"
+		},
+		"offlineHint": "参加中のプレイヤー、体力、インベントリ、現在地を表示するにはサーバーを起動してください。",
+		"starting": "サーバーを起動中...",
+		"startingHint": "ワールドが読み込まれるとプレイヤーが表示されます。",
+		"liveError": "ライブプレイヤーデータを読み込めませんでした: {{error}}。ライブデータには Java サーバー（Paper、Purpur、Fabric、Vanilla）が必要です。",
+		"checking": "オンライン状況を確認中...",
+		"nobody": "オンラインのプレイヤーはいません",
+		"nobodyHint": "プレイヤーが参加するとここに表示されます。",
+		"none": "プレイヤーはまだいません",
+		"noneHint": "このサーバーに参加したすべてのプレイヤーが、最後に保存されたインベントリとともにここに表示されます。",
+		"search": "プレイヤーを検索",
+		"onlineNow": "現在オンライン",
+		"lastSeen": "最終ログイン: {{time}}"
+	},
+	"map": {
+		"upToDate": "最新",
+		"noWorld": "ワールドがまだありません",
+		"noWorldHint": "サーバーを一度起動してワールドを生成してください。探索されたエリアがマップに表示されます。",
+		"liveTitle": "Ingot はサーバーメモリからマップを最新の状態に維持します",
+		"live": "ライブ",
+		"restartToGoLive": "再起動してライブを有効化",
+		"makeLiveTitle_plugin": "ワールドをセーブすることなくマップをリアルタイムで更新するには、Ingot プラグインをインストールしてください",
+		"makeLiveTitle_mod": "ワールドをセーブすることなくマップをリアルタイムで更新するには、Ingot Mod をインストールしてください",
+		"makeLive": "ライブ化",
+		"refreshTitle": "新しく保存されたエリアを確認",
+		"ariaLabel": "ワールドマップ。ドラッグで移動、スクロールまたはピンチでズーム。",
+		"zoomIn": "拡大",
+		"zoomOut": "縮小",
+		"updatedAreas_other": "{{count}} エリアを更新しました"
+	},
+	"pluginDetails": {
+		"byline": "作者: {{author}} · {{downloads}} 回ダウンロード",
+		"playersNeedIt": "参加するプレイヤーもこのModが必要です。参加者全員がゲームにインストールしていないと参加できません。",
+		"installing": "インストール中...",
+		"page": "ページ",
+		"noCompatible": "Minecraft {{version}} 用のバージョンはまだありません。「バージョン」タブから古いバージョンを選択することもできますが、動作しない可能性があります。",
+		"about": "詳細",
+		"versions": "バージョン",
+		"noDescription": "説明はありません。",
+		"onlyFor": "Minecraft {{version}} 用のバージョンのみ",
+		"noVersions": "バージョンがありません",
+		"noVersionsHint": "すべてのバージョンを表示してみてください。",
+		"website": "ウェブサイト",
+		"anyVersion": "すべてのバージョン"
+	},
+	"addAccount": {
+		"missingCredentials": "ユーザー名/メールアドレスとパスワードの両方を入力してください。",
+		"welcomeBack": "おかえりなさい、{{name}}！",
+		"elyFailed": "Ely.by への接続に失敗しました",
+		"missingNickname": "プレイヤーのニックネームを入力してください。",
+		"offlineCreated": "{{name}} のオフラインプロフィールを作成しました",
+		"offlineFailed": "オフラインアカウントの作成に失敗しました",
+		"description": "Ely.by アカウントを連携するか、オフラインプロフィールを設定してプレイします。",
+		"tokensSecure": "トークンは OS の認証情報保管庫で安全に暗号化されます。",
+		"usernameOrEmail": "ユーザー名またはメールアドレス",
+		"usernamePlaceholder": "例: notch または player@ely.by",
+		"password": "パスワード",
+		"connecting": "接続中...",
+		"logIn": "Ely.by にログイン",
+		"offlineNote": "オフラインアカウントはオンラインセッショントークンなしでプレイします。",
+		"nickname": "プレイヤーのニックネーム",
+		"nicknamePlaceholder": "例: Steve",
+		"adding": "追加中...",
+		"addProfile": "プロフィールを追加",
+		"microsoftTitle": "Microsoft / Xbox Live ログイン",
+		"microsoftSoon": "Mojang 公式の Microsoft アカウント OAuth 連携は今後のリリースで利用可能になる予定です。"
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "ゲームプレイ",
+			"players": "プレイヤー",
+			"world": "ワールド",
+			"network": "ネットワーク",
+			"advanced": "詳細設定"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "ゲームモード",
+				"description": "新規プレイヤーのモード。",
+				"options": {
+					"survival": "サバイバル",
+					"creative": "クリエイティブ",
+					"adventure": "アドベンチャー",
+					"spectator": "スペクテイター"
+				}
+			},
+			"difficulty": {
+				"label": "難易度",
+				"description": "mobの危険度。",
+				"options": {
+					"peaceful": "ピースフル",
+					"easy": "イージー",
+					"normal": "ノーマル",
+					"hard": "ハード"
+				}
+			},
+			"force-gamemode": {
+				"label": "ゲームモードの強制",
+				"description": "プレイヤーが参加するたびにデフォルトのモードに戻します。"
+			},
+			"hardcore": {
+				"label": "ハードコア",
+				"description": "プレイヤーは死亡時にスペクテイターモードに切り替わります。"
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "プレイヤー同士の攻撃を許可します。"
+			},
+			"allow-flight": {
+				"label": "飛行の許可",
+				"description": "飛行行為によるプレイヤーのキックを行いません（一部のModやプラグインで必要）。"
+			},
+			"spawn-protection": {
+				"label": "初期スポーン地点の保護",
+				"description": "オペレーターのみが建築可能なスポーン周辺の半径。0で無効化。"
+			},
+			"max-players": {
+				"label": "最大プレイヤー数",
+				"description": "同時にオンラインになれる最大プレイヤー数。"
+			},
+			"online-mode": {
+				"label": "オンラインモード",
+				"description": "Mojang でアカウントを照合します。無効にすると非公式や Ely.by アカウントを許可します。"
+			},
+			"player-idle-timeout": {
+				"label": "放置プレイヤーのキック",
+				"description": "指定した分数放置したプレイヤーをキックします。0で無効。"
+			},
+			"op-permission-level": {
+				"label": "オペレーター権限レベル",
+				"description": "オペレーターの権限範囲: 1 スポーン保護の無視 … 4 すべての権限。"
+			},
+			"hide-online-players": {
+				"label": "プレイヤーリストを非表示",
+				"description": "マルチプレイヤーメニューでオンラインプレイヤーを表示しません。"
+			},
+			"enforce-secure-profile": {
+				"label": "署名付きチャットを強制",
+				"description": "Mojang 署名付きのチャットキーを持つプレイヤーのみを許可します。"
+			},
+			"view-distance": {
+				"label": "描画距離",
+				"description": "プレイヤーが見通せる距離。値を小さくするとデバイスの負荷が軽くなります。"
+			},
+			"simulation-distance": {
+				"label": "シミュレーション距離",
+				"description": "プレイヤーの周囲でワールドの処理（tick）が行われる範囲。"
+			},
+			"level-seed": {
+				"label": "シード値",
+				"description": "新しいワールドのシード値。ワールドが最初に作成されるときのみ使用されます。",
+				"placeholder": "ランダム"
+			},
+			"level-type": {
+				"label": "ワールドタイプ",
+				"description": "ワールドが最初に作成されるときのみ使用されます。",
+				"options": {
+					"minecraft_normal": "デフォルト",
+					"minecraft_flat": "スーパーフラット",
+					"minecraft_large_biomes": "大きなバイオーム",
+					"minecraft_amplified": "アンプリファイド"
+				}
+			},
+			"generate-structures": {
+				"label": "構造物の生成",
+				"description": "新しいチャンクに村や寺院などの構造物を生成します。"
+			},
+			"allow-nether": {
+				"label": "ネザーを許可",
+				"description": "プレイヤーがネザーへ移動できるようにします。"
+			},
+			"max-world-size": {
+				"label": "ワールドボーダー半径",
+				"description": "中心からプレイヤーが移動できる最大距離。"
+			},
+			"server-port": {
+				"label": "ポート",
+				"description": "サーバーがリッスンするポート番号。"
+			},
+			"enable-status": {
+				"label": "サーバーリストに表示",
+				"description": "マルチプレイヤーメニューからのping（MOTD、プレイヤー数）に応答します。"
+			},
+			"network-compression-threshold": {
+				"label": "圧縮しきい値",
+				"description": "このサイズを超えるパケットを圧縮します。-1で圧縮を無効化。"
+			},
+			"enable-command-block": {
+				"label": "コマンドブロック",
+				"description": "コマンドブロックの実行を許可します。"
+			},
+			"sync-chunk-writes": {
+				"label": "チャンクの同期書き込み",
+				"description": "チャンクを同期書き込みします。より安全ですが、わずかに遅くなります。"
+			},
+			"max-tick-time": {
+				"label": "ウォッチドッグタイムアウト",
+				"description": "1tickにこれ以上の時間がかかった場合サーバーを停止します。-1で無効化。"
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "エンティティ表示距離",
+				"description": "エンティティ情報をプレイヤーに送信する距離の割合（%）。"
+			}
+		},
+		"units": {
+			"blocks": "ブロック",
+			"min": "分",
+			"chunks": "チャンク",
+			"bytes": "バイト",
+			"ms": "ミリ秒",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "ほとんどの変更はサーバー再起動後に適用されます。",
+		"badImage": "その画像を使用できませんでした: {{error}}",
+		"emptyName": "名前を空にすることはできません。",
+		"identity": "サーバーの表示情報",
+		"identityDesc": "マルチプレイヤーリストでのサーバーの表示方法。",
+		"name": "名前",
+		"motd": "説明文 (MOTD) · 2行まで、Enterで改行",
+		"motdReset": "リセット",
+		"saved": "保存済み",
+		"saveChanges": "変更を保存",
+		"memory": "RAM",
+		"memoryMobile": "スマートフォンのRAM容量より十分少なく設定してください。",
+		"memoryDesktop": "Java サーバーに割り当てる最大RAM。",
+		"portInUse": "ポート {{port}} は別のサーバーですでに使用されています。{{next}} を試してください。",
+		"gameSettings": "ゲーム設定",
+		"gameSettingsDesc": "server.properties の解説付き設定。",
+		"allOther": "その他すべてのプロパティ",
+		"filter": "プロパティを絞り込み",
+		"discard": "破棄",
+		"configFiles": "設定ファイル",
+		"configFilesDesc": "サーバーおよびプラグインの設定ファイル（YAML、JSON、TOML）。",
+		"saveFile": "ファイルを保存",
+		"manage": "管理",
+		"changed_other": "{{count}}"
+	},
+	"newInstance": {
+		"title": "新規インスタンスを作成",
+		"description": "Minecraft のバージョンとお好みの Mod ローダーを選択してください。Ingot が環境と Java を自動的に設定します。",
+		"modLoader": "Mod ローダー",
+		"minecraftVersion": "Minecraft バージョン",
+		"snapshots": "スナップショット",
+		"snapshotBadge": "スナップショット",
+		"latestBadge": "最新",
+		"loadingVersions": "バージョンを読み込み中...",
+		"selectVersion": "Minecraft バージョンを選択",
+		"searchVersion": "バージョンを検索 (例: 1.20, 1.16)...",
+		"loaderVersion": "ローダーのバージョン",
+		"noCompatible": "互換性のあるバージョンがありません",
+		"selectLoaderVersion": "ローダーのバージョンを選択",
+		"searchLoaderVersion": "ローダーのバージョンを検索...",
+		"name": "インスタンス名",
+		"namePlaceholder": "例: Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "サーバー設定",
+		"yourServers": "所有サーバー",
+		"newServer": "新規サーバー",
+		"about": "Ingot について & ライセンス"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "サーバーファイルを確認中...",
+			"preparingPumpkin": "Pumpkin サーバーを準備中...",
+			"downloadingPumpkin": "Pumpkin をダウンロード中 (初回起動のみ)...",
+			"preparingSandbox": "Linux サンドボックスを準備中...",
+			"downloadingSandbox": "Linux サンドボックスをダウンロード中...",
+			"extractingSandbox": "サンドボックスのファイルシステムを展開中...",
+			"installingJava": "サンドボックス内に Java {{version}} をインストール中...",
+			"sandboxReady": "サンドボックスの初期化が完了しました！",
+			"installingCore": "{{name}} をインストール中 (初回起動のみ、数分かかる場合があります)...",
+			"launching": "サーバープロセスを起動中...",
+			"failed": "起動に失敗しました: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Modrinth、CurseForge、Hangar にないため、Ingot で確認できません",
+			"beta": "ベータ版のため、不安定な可能性があります",
+			"alpha": "アルファ版のため、不安定な可能性があります",
+			"siteOnly": "この {{target}} バージョンは {{site}} からのみダウンロードできます",
+			"fabricOnly": "Fabric および Quilt でのみ必要です",
+			"noVersion": "{{target}} 用のバージョンはまだありません",
+			"pluginNotMarked": "{{version}} 用として明示されていませんが、ほとんどのプラグインは動作します",
+			"notUpdated": "{{version}} 用に更新されていませんが、通常は動作します",
+			"sameAs": "{{name}} と同じ",
+			"incompatible": "{{name}} と共存できません",
+			"needsTurnedOff": "無効化される {{name}} が必要です",
+			"needsMissing": "{{version}} で利用できない {{name}} が必要です",
+			"neededBy": "{{name}} に必要です"
+		},
+		"launch": {
+			"preparing": "起動の準備中",
+			"resolvingVersion": "バージョンを解決中",
+			"resolvingLoader": "Mod ローダーを解決中",
+			"checkingJava": "Java ランタイムを確認中",
+			"javaSetup": "Java のセットアップ",
+			"downloadingClient": "クライアントをダウンロード中",
+			"downloadingLibraries": "ライブラリをダウンロード中",
+			"downloadingAssets": "アセットをダウンロード中",
+			"verifying": "ファイルを検証中",
+			"auth": "認証のセットアップ",
+			"starting": "ゲームを起動中",
+			"fetchingMetadata": "バージョンのメタデータを取得中...",
+			"fetchingProfile": "{{loader}} プロファイルを取得中...",
+			"detectingJava": "Java 環境を検出中...",
+			"downloadingJavaProgress": "Java {{version}} ランタイムをダウンロード中 ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Java {{version}} ランタイムをダウンロード中...",
+			"extractingJava": "Java {{version}} ランタイムを展開中...",
+			"downloadingJar": "Minecraft クライアント jar をダウンロード中...",
+			"downloadingLibrariesCount": "{{count}} 個のライブラリをダウンロード中...",
+			"library": "ライブラリ {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "{{count}} 個のアセットをダウンロード中...",
+			"assets": "アセット {{current}}/{{total}}",
+			"verified": "すべてのゲームファイルが検証されました",
+			"authDetail": "Ely.by スキン & 認証エージェントをセットアップ中...",
+			"launching": "Minecraft プロセスを起動中...",
+			"connecting": "{{server}} に接続中...",
+			"loadingWorld": "ワールド {{world}} を読み込み中...",
+			"initializing": "起動シーケンスを初期化中..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "プレイヤーからの見え方",
+		"startingUp": "起動中...",
+		"shuttingDown": "終了中...",
+		"cantConnect": "サーバーに接続できません",
+		"preparing": "準備中...",
+		"sleepingNote": "リソースを節約するためにスリープしています。プレイヤーが参加すると自動的に復帰します。",
+		"failedToStart": "起動に失敗しました。",
+		"start": "サーバーを起動",
+		"wake": "復帰",
+		"sleep": "スリープ",
+		"starting": "起動中...",
+		"stopping": "停止中...",
+		"uptime": "稼働時間",
+		"native": "ネイティブ",
+		"noOutput": "出力はまだありません"
+	},
+	"serverCard": {
+		"offline": "オフライン",
+		"openPage": "サーバーページを開く",
+		"copyAddress": "クリックしてサーバーアドレスをコピー",
+		"noneOnline": "オンライン 0人",
+		"joinTitle": "Minecraft を起動してこのサーバーに接続",
+		"join": "参加",
+		"start": "起動",
+		"openFolder": "サーバーフォルダーを開く"
+	},
+	"versionChange": {
+		"title": "バージョンを変更",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "競合",
+			"missing": "未対応",
+			"unknown": "確認不可",
+			"newDependency": "新しい依存関係",
+			"update": "アップデート",
+			"works": "互換性あり",
+			"olderVersions": "古いバージョン"
+		},
+		"actions": {
+			"keep": "維持",
+			"update": "更新",
+			"disable": "無効化",
+			"add": "インストール",
+			"skip": "インストールしない"
+		},
+		"kinds": {
+			"resourcePack": "リソースパック",
+			"shader": "シェーダー",
+			"mod": "Mod",
+			"plugin": "プラグイン"
+		},
+		"downgradeTitle": "{{to}} は {{from}} より古いバージョンです",
+		"downgradeWarning": "新しいバージョンでプレイしたワールドは、通常古いバージョンでは開けず、破損する可能性があります。元に戻せるようにワールドのバックアップを有効にしておいてください。",
+		"downgradeOk": "理解した上で、古いバージョンに変更する",
+		"backupWorldsHint": "Minecraft はワールドを開いたときに不可逆なアップグレードを行います。バックアップがあれば、元に戻した際にワールドも復元されます。",
+		"openOn": "{{site}} で開く",
+		"new": "新規",
+		"instanceDescription": "Ingot はすべてのMod、リソースパック、シェーダーを事前に確認し、適用するまで何も変更しません。変更後は元に戻すことができます。",
+		"now": "現在",
+		"nowLabel": "現在",
+		"moveTo": "変更先",
+		"pickVersion": "バージョンを選択",
+		"searchVersion": "バージョンを検索...",
+		"loaderVersion": "{{loader}} バージョン",
+		"pickLoaderVersion": "ローダーのバージョンを選択",
+		"noLoaderFor": "{{version}} 用の {{loader}} はありません",
+		"noLoader": "このバージョン用の {{loader}} はありません",
+		"loaderSwitchNote": "Mod は特定のローダー向けに作成されています。Ingot は各Modの {{loader}} バージョンを探し、見つからないものは無効化します。",
+		"instanceEmpty": "確認対象のMod、リソースパック、シェーダーはありません。バージョンのみが変更されます。",
+		"applying": "適用中...",
+		"applyingHint": "新しいファイルをダウンロードして確認し、現在のファイルをバックアップしています。すべての準備が整うまで何も変更されません。",
+		"applyingWithWorlds": "新しいファイルをダウンロードして確認し、ワールドと現在のファイルをバックアップしています。すべての準備が整うまで何も変更されません。",
+		"nowOn": "現在のバージョン: {{version}}",
+		"instanceDone": "{{version}} から変更しました。問題が発生した場合は、このインスタンスの設定から元に戻せば、すべて以前の状態に復元されます。",
+		"back": "戻る",
+		"checking": "確認中...",
+		"check": "互換性を確認",
+		"moveToVersion": "{{version}} に変更",
+		"summary": {
+			"download_other": "{{count}} をダウンロードに変更しました ({{size}})",
+			"turnedOff_other": "{{count}} をオフにしました",
+			"conflictsKept_other": "{{count}} 競合を維持しました"
+		},
+		"backupWorlds_other": "ワールドをバックアップしました ({{count}} ワールド、{{size}})"
+	},
+	"errors": {
+		"launchInstance": "インスタンスの起動に失敗しました: {{error}}",
+		"resolveConflict": "競合の解決に失敗しました: {{error}}",
+		"deleteInstance": "インスタンスの削除に失敗しました: {{error}}",
+		"startServer": "サーバーの起動に失敗しました: {{error}}",
+		"deleteServer": "サーバーの削除に失敗しました: {{error}}",
+		"quickPlay": "サーバーへのクイックプレイに失敗しました: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "プレイヤーを読み込み中...",
+		"noData": "このプレイヤーのデータはまだありません。",
+		"health": "体力",
+		"hunger": "空腹度",
+		"air": "酸素",
+		"experience": "経験値",
+		"level": "レベル {{level}}",
+		"equipment": "装備",
+		"slots": {
+			"head": "頭",
+			"chest": "胴体",
+			"legs": "脚",
+			"feet": "足",
+			"offhand": "オフハンド"
+		},
+		"showOnMap": "マップ上に表示",
+		"inventory": "インベントリ",
+		"ender": "エンダーチェスト ({{count}})",
+		"effects": "エフェクト ({{count}})",
+		"onFire": "炎上中",
+		"durability": "耐久値 {{left}}/{{max}}",
+		"enchanted": "エンチャント付き",
+		"noEffects": "発動中のエフェクトはありません",
+		"heal": "回復",
+		"feed": "満腹にする",
+		"removeOp": "OPを剥奪",
+		"whitelisted": "ホワイトリスト登録済み",
+		"confirmKick": "{{name}} をキックしますか？",
+		"confirmBan": "{{name}} をBANしますか？",
+		"confirm": "確定",
+		"kick": "キック"
+	},
+	"transfer": {
+		"zipArchive": "Zip アーカイブ",
+		"savedTo": "{{path}} に保存しました",
+		"copyName": "{{name}} のコピー",
+		"created": "\"{{name}}\" を作成しました。",
+		"title": "バックアップ & バージョン",
+		"description": "共有やバックアップ用のエクスポート、サーバーのコピー、別の Minecraft バージョンへの移行を行います。",
+		"exportConfigs": "設定をエクスポート",
+		"withoutWorlds": "ワールドなし",
+		"exportAll": "すべてエクスポート",
+		"withWorlds": "ワールドを含む",
+		"makeCopy": "コピーを作成",
+		"secondServer": "もう1つのサーバー",
+		"stopFirst": "先にサーバーを停止してください",
+		"nowVersion": "現在 {{version}}",
+		"backup": "{{version}} から変更。バックアップ {{size}}。",
+		"backupWithWorlds": "{{version}} から変更。バックアップ {{size}} (ワールド含む)。",
+		"deleteBackup": "バックアップを削除",
+		"undo": "元に戻す ({{version}} に復元)",
+		"willStartOn": "{{name}} は {{version}} で起動します。問題が発生した場合はここで元に戻すことができます。",
+		"currentVersion": "{{version}} (現在)",
+		"changeTitle": "Minecraft バージョンを変更",
+		"changeDescription_plugin": "Ingot はすべてのプラグインを事前に確認し、適用するまで何も変更しません。すべてバックアップされるため元に戻すことができます。",
+		"changeDescription_mod": "Ingot はすべてのModを事前に確認し、適用するまで何も変更しません。すべてバックアップされるため元に戻すことができます。",
+		"serverType": "サーバータイプ",
+		"empty": "確認対象のプラグインやModはありません。バージョンのみが変更されます。",
+		"readyFor": "{{version}} の準備完了",
+		"doneNote": "新しいバージョンは次回の起動時にダウンロードされます。問題が発生した場合は「バックアップ & バージョン」から元に戻せば、すべて以前の状態に復元されます。",
+		"import": "サーバーをインポート",
+		"importing": "インポート中 {{percent}}",
+		"settingUp": "サーバーをセットアップ中...",
+		"partial": "\"{{name}}\" をインポートしましたが、一部のプラグインまたはModをダウンロードできませんでした:",
+		"openServer": "サーバーを開く"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "完全なプラグインサポートを備えた高性能な Spigot/Bukkit サーバー",
+			"badge": "高速 & 安定"
+		},
+		"purpur": {
+			"tagline": "多彩なカスタマイズ機能を備えた高機能 Paper フォーク",
+			"badge": "カスタマイズ自在"
+		},
+		"fabric": {
+			"tagline": "Fabric Mod 向けの軽量でモジュール化されたModサーバー",
+			"badge": "Mod対応"
+		},
+		"neoforge": {
+			"tagline": "大規模コンテンツModの中心となる NeoForge Mod 向けModサーバー",
+			"badge": "Mod対応"
+		},
+		"forge": {
+			"tagline": "Minecraft 1.17 以降の Forge Mod に対応した元祖Modサーバー",
+			"badge": "Mod対応"
+		},
+		"quilt": {
+			"tagline": "Quilt と Fabric の両方のModが動作する Fabric 互換Modサーバー",
+			"badge": "Mod対応"
+		},
+		"folia": {
+			"tagline": "大規模なプレイヤー数に対応した PaperMC によるマルチスレッド地域分割サーバー",
+			"badge": "マルチスレッド"
+		},
+		"pumpkin": {
+			"tagline": "Rust製の超軽量サーバー — 即時起動、RAM 60MB未満",
+			"badge": "モバイル最適化"
+		},
+		"vanilla": {
+			"tagline": "Mojang 公式のバニラ Minecraft サーバー",
+			"badge": "公式"
+		}
+	},
+	"wizard": {
+		"defaultName": "{{core}} サーバー",
+		"fetchFailed": "バージョンの取得に失敗しました。接続を確認してください。",
+		"enterName": "サーバー名を入力してください。",
+		"selectVersion": "Minecraft バージョンを選択してください。",
+		"invalidPort": "有効なポート番号（1024 ～ 65534）を入力してください。",
+		"portInUseTry": "ポート {{port}} は既に使用されています。{{next}} を試してください。",
+		"portInUse": "ポート {{port}} は既に使用されています。",
+		"createFailed": "サーバーの作成に失敗しました",
+		"stepEngine": "エンジンを選択",
+		"stepName": "サーバーに名前を付ける",
+		"stepMemory": "RAM & 確認",
+		"stepOf": "ステップ {{step}} / {{total}}",
+		"preparing": "サーバーを準備中…",
+		"serverName": "サーバー名",
+		"namePlaceholder": "例: {{core}} サバイバルサーバー",
+		"minecraftVersion": "Minecraft バージョン",
+		"selectVersionPlaceholder": "バージョンを選択",
+		"serverPort": "サーバーポート",
+		"portInUseShort": "ポート使用中",
+		"ready": "作成の準備完了",
+		"engine": "エンジン",
+		"version": "バージョン",
+		"ram": "RAM",
+		"memory": "RAM",
+		"heroLine1": "最初のサーバーを、",
+		"heroLine2": "ほんの数秒で。",
+		"heroText": "Ingot はこのデバイス上で Minecraft サーバーを直接ダウンロード、設定、実行します。どこからでも友達を招待できます。",
+		"createAServer": "サーバーを作成",
+		"createAServerHint": "Paper、PumpkinMC、Fabric など"
+	},
+	"plugins": {
+		"unsupported": "{{core}} サーバーではプラグインを使用できません",
+		"unsupportedHint": "プラグインを追加するには Paper または Purpur サーバーを、Mod を追加するには Fabric サーバーを作成してください。",
+		"installed": "{{name}} をインストールしました。",
+		"installedWith": "{{name}} と {{extras}} をインストールしました。",
+		"browse_plugin": "プラグインを探す",
+		"browse_mod": "Modを探す",
+		"restartToApply": "変更を適用するにはサーバーを再起動してください。",
+		"restart": "再起動",
+		"noOther_plugin": "他のプラグインはまだありません。",
+		"noOther_mod": "他のModはまだありません。",
+		"none_plugin": "プラグインはまだありません",
+		"none_mod": "Modはまだありません",
+		"find_plugin": "Modrinth でプラグインを探して、ワンタップでインストールできます。",
+		"find_mod": "Modrinth でModを探して、ワンタップでインストールできます。",
+		"findHangar_plugin": "Modrinth や Hangar でプラグインを探して、ワンタップでインストールできます。",
+		"findHangar_mod": "Modrinth や Hangar でModを探して、ワンタップでインストールできます。",
+		"updateAvailable": "利用可能なアップデート: {{version}}",
+		"enabled": "{{name}} を有効化しました。",
+		"disabled": "{{name}} を無効化しました。",
+		"enable": "{{name}} を有効化",
+		"disable": "{{name}} を無効化",
+		"updated": "{{name}} を更新しました。",
+		"removed": "{{name}} を削除しました。",
+		"unknownVersion": "不明なバージョン",
+		"byAuthors": "作者: {{authors}}",
+		"file": "ファイル",
+		"size": "サイズ",
+		"updateTo": "{{version}} に更新",
+		"reallyDelete": "本当に削除しますか？",
+		"sort": {
+			"downloads": "人気順",
+			"updated": "最近更新された順",
+			"newest": "新着順"
+		},
+		"searchPlaceholder_plugin": "プラグインを検索 (例: LuckPerms)",
+		"searchPlaceholder_mod": "Modを検索 (例: Lithium)",
+		"compatibleOnly": "{{version}} と互換性のある結果のみ表示",
+		"forVersion": "{{version}} 用",
+		"searchFailed": "検索に失敗しました: {{error}}",
+		"nothingFound": "見つかりませんでした",
+		"noneForVersion_plugin": "Minecraft {{version}} に一致するプラグインがありません。バージョンフィルターをオフにしてみてください。",
+		"noneForVersion_mod": "Minecraft {{version}} に一致するModがありません。バージョンフィルターをオフにしてみてください。",
+		"tryAnother": "別のキーワードで検索してみてください。",
+		"loadMore": "さらに読み込む",
+		"playersNeedItTitle": "プレイヤーもこのModをインストールしないと参加できません",
+		"playersNeedIt": "プレイヤー側にも必要",
+		"isInstalled": "{{name}} はインストール済みです",
+		"install": "{{name}} をインストール",
+		"results_other": "{{formatted}} の結果"
+	},
+	"join": {
+		"shareTitle": "{{name}} に参加",
+		"shareText": "私の Minecraft サーバー「{{name}}」に参加しよう！\nアドレス: {{address}}\nバージョン: Java Edition {{version}}",
+		"title": "プレイヤーを招待",
+		"description": "アドレスを共有して友達を招待しましょう。",
+		"sameWifi": "同じ Wi-Fi",
+		"copyLocal": "ローカルアドレスをコピー",
+		"anywhere": "どこからでも (playit.gg)",
+		"copyPublic": "公開アドレスをコピー",
+		"showQr": "QRコードを表示",
+		"linkPlayit": "playit.gg アカウントを連携",
+		"noTunnel": "接続されましたが、トンネルがまだありません。ポート {{port}} 用に<link>追加</link>してください。",
+		"connecting": "接続中...",
+		"notConnected": "未接続",
+		"stopPlayit": "playit を停止",
+		"goPublic": "公開する",
+		"share": "招待を共有",
+		"scan": "スキャンしてアドレスをコピー",
+		"qrAlt": "QRコード"
+	},
+	"stats": {
+		"latest": "最新: {{value}}",
+		"noData": "データがまだありません",
+		"now": "たった今",
+		"ago": "{{time}} 前",
+		"min": "最小",
+		"avg": "平均",
+		"peak": "ピーク",
+		"performance": "パフォーマンス",
+		"touchHint": "グラフをタップすると詳細が表示されます",
+		"ofDevice": "（デバイス全体）",
+		"allocated": "割り当て済み",
+		"deviceRam": "デバイスの RAM",
+		"free": "空き {{size}}",
+		"lag": "ラグ",
+		"smooth": "快適",
+		"slightLag": "軽度のラグ",
+		"lagging": "遅延発生中",
+		"used": "{{label}}: {{used}} / {{total}} 使用中"
+	},
+	"storage": {
+		"title": "ストレージ",
+		"worlds": "ワールド",
+		"plugins": "プラグイン & Mod",
+		"server": "サーバーファイル",
+		"backups": "バックアップ",
+		"logs": "ログ",
+		"other": "その他",
+		"device": "デバイスストレージ"
+	},
+	"instanceSettings": {
+		"pushFailed": "プッシュに失敗しました: {{error}}",
+		"pullFailed": "プルに失敗しました: {{error}}",
+		"saveFailed": "設定の保存に失敗しました: {{error}}",
+		"title": "インスタンス設定",
+		"description": "<b>{{name}}</b> の実行パラメータと RAM 制限を設定します。",
+		"namePlaceholder": "マイ Minecraft インスタンス",
+		"loader": "ローダー {{version}}",
+		"backup": "{{from}} から {{to}} に変更。バックアップ {{size}}。",
+		"backupWithWorlds": "{{from}} から {{to}} に変更。バックアップ {{size}} (ワールド含む)。",
+		"memoryOverride": "このインスタンスでグローバル RAM 設定を上書きする",
+		"minMemory": "初期メモリ (最小):",
+		"maxMemory": "最大メモリ (最大):",
+		"inheritMemory": "グローバル設定の継承: <b>{{min}} Min / {{max}} Max</b>。 「設定」ページで構成可能です。",
+		"jvmArgs": "JVM 引数",
+		"jvmArgsHint": "追加の Java 起動引数 (スペース区切り)",
+		"java": "カスタム Java 実行可能ファイル",
+		"javaHint": "自動管理の Adoptium ランタイムの場合は空白のままにします",
+		"windowOverride": "これのフルスクリーンとウィンドウ サイズをオーバーライドしますインスタンス",
+		"fullscreenHint": "全画面モードで直接起動",
+		"resolution": "解像度:",
+		"fullscreen": "全画面",
+		"inheritDisplay": "グローバル表示の継承: <b>{{value}}</b>。ランチャー設定で構成可能。",
+		"syncHint": "同期オプション、サーバー、パック、履歴、ホットバー",
+		"manualSync": "手動ストレージ同期",
+		"manualSyncHint": "この インスタンス のデータをエクスポートするか、共有ストレージから最新のファイルをプルします。",
+		"push": "共有ストレージへのプッシュ",
+		"pull": "共有ストレージからのプル",
+		"syncOptions": "ゲーム オプションの同期 (options.txt)",
+		"syncServers": "マルチプレイヤー サーバーの同期 (servers.dat)",
+		"syncPacks": "リソース パックの同期 (resourcepacks/)",
+		"syncHistory": "同期コマンド履歴(command_history.txt)",
+		"syncHotbars": "クリエイティブ ホットバーの同期 (hotbar.nbt)",
+		"inheritSync": "グローバル同期設定を継承しています。起動前と終了後に同期されます。"
+	},
+	"install": {
+		"loadFailed": "インストール オプションのロードに失敗しました",
+		"compatible": "互換性のある",
+		"all": "すべての",
+		"any": "任意の",
+		"modpackDone": "Modpack「{{name}}」は、新しい インスタンス として正常にインストールされました。",
+		"selectTarget": "ターゲットを選択 インスタンス...",
+		"added": "{{file}} を {{instance}} に追加しました。",
+		"modpackTitle": "Modpack をインストール",
+		"addTitle_mod": "インスタンス に MOD を追加",
+		"addTitle_resourcepack": "リソース パックを インスタンス に追加",
+		"addTitle_shader": "シェーダーを インスタンス に追加",
+		"addTitle_modpack": "Modpack を インスタンス に追加",
+		"addTitle_datapack": "データ パックを インスタンス に追加",
+		"addTitle_plugin": "インスタンス",
+		"modpackDescription": "にプラグインを追加 「{{title}}」から新しいMinecraft インスタンスを作成します。",
+		"description": "「{{title}}」を既存の インスタンス の 1 つにインストールします。",
+		"loading": "オプションを読み込み中...",
+		"retry": "再試行",
+		"modpackVersion": "Modpack バージョン",
+		"selectModpackVersion": "Modpack バージョンを選択...",
+		"loaders": "ローダー:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "MODを追加する前に、まず インスタンス タブから インスタンス を作成してくださいまたはリソースパック。",
+		"target": "ターゲット インスタンス",
+		"fileVersion": "ファイル バージョン",
+		"selectFileVersion": "ファイル バージョンを選択...",
+		"supports": "サポート:",
+		"createAndInstall": "作成およびインストール",
+		"installToInstance": "インスタンス にインストール",
+		"compatibleCount_other": "{{count}} 互換バージョン"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "リソース パック",
+		"shader": "シェーダー",
+		"datapack": "データ パック",
+		"plugin": "プラグイン"
+	},
+	"releaseTypes": {
+		"release": "",
+		"beta": "ベータ版をリリース",
+		"alpha": "アルファ"
+	},
+	"contentDetails": {
+		"loadFailed": "プロジェクト詳細のロードに失敗しました",
+		"addToInstance": "インスタンス に追加",
+		"versions": "バージョンとファイル",
+		"versionsCount": "バージョンとファイル ({{count}})",
+		"loading": "プロジェクト詳細を読み込み中...",
+		"gallery": "ギャラリー ({{count}})",
+		"clickToOpen": "クリック全画面で開く画像",
+		"viewFullscreen": "全画面表示",
+		"scrollLeft": "ギャラリーを左にスクロール",
+		"scrollRight": "ギャラリーを右にスクロール",
+		"source": "ソース コード",
+		"issues": "Issue Tracker",
+		"wiki": "Wiki",
+		"description": "説明",
+		"gameVersion": "ゲーム バージョン:",
+		"noMatch": "フィルター条件に一致するバージョンはありません。",
+		"openOriginal": "オリジナルを開く",
+		"previous": "前の画像",
+		"next": "次の画像",
+		"downloads_other": "{{formatted}} ダウンロード",
+		"followers_other": "{{formatted}} フォロワー",
+		"showing_other": "{{count}} バージョンの {{shown}} を表示中"
+	},
+	"importInstance": {
+		"selectLauncherDir": "{{launcher}} を選択 インスタンス ディレクトリ",
+		"selectDir": "Minecraft を選択 インスタンス ディレクトリ",
+		"done": "インスタンス は正常にインポートされました。",
+		"title": "別のランチャーからのインポート",
+		"selectInstance": "インスタンス ({{launcher}}) を選択します。",
+		"configure": "設定",
+		"description": "をインポートします。 既存の Minecraft インストール、MOD、ワールド、設定を Ingot に直接インポートします。",
+		"optionsDescription": "新しい Ingot インスタンス に転送するデータ コンポーネントを選択します。",
+		"detecting": "インストールされているランチャーを検出しています...",
+		"notDetected": "検出されません • クリックして",
+		"custom": "カスタム ディレクトリを見つけます",
+		"customHint": "ディスク上の任意の インスタンス フォルダーを選択します",
+		"backToLaunchers": "ランチャーに戻る",
+		"changeFolder": "フォルダーを変更します",
+		"filter": "フィルター インスタンス...",
+		"loadingInstances": "インスタンス を読み込み中...",
+		"noneFound": "このランチャー ディレクトリには インスタンス が見つかりません。",
+		"select": "",
+		"nameInIngot": "を選択します インスタンス Ingot の名前:",
+		"namePlaceholder": "インポートした インスタンス",
+		"source": "ソース: {{path}}",
+		"components": "インポートするコンポーネントを選択します:",
+		"mods": "Mods",
+		"configs": "Configs",
+		"configsHint": "設定と MOD 構成",
+		"worlds": "ワールドとセーブ",
+		"packs": "リソース パック",
+		"packsHint": "テクスチャとシェーダーパック",
+		"screenshotsHint": "ゲーム内のスクリーンショット",
+		"modData": "Mod データおよびその他",
+		"modDataHint": "ウェイポイント、回路図、記録など",
+		"options": "ゲームオプション",
+		"optionsHint": "options.txt およびキーバインド",
+		"servers": "マルチプレイヤーサーバー",
+		"serversHint": "servers.dat サーバーリスト",
+		"note": "すべてのコンポーネント上記はオプションです。 <b>Mod Data & Others</b> を有効にすると、カスタム MOD フォルダー (ミニマップ ウェイポイント、回路図、記録) が安全にコピーされます。余分なファイルを含まないクリーンなインポートを希望する場合は、チェックを外します。",
+		"importing": "インポート中...",
+		"import": "インポート インスタンス",
+		"found_other": "が見つかりました{{count}} インスタンス の {{launcher}}。どちらをインポートするかを選択します。",
+		"instancesFound_other": "{{count}} インスタンス が見つかりました",
+		"modsCount_other": "{{count}} mods",
+		"worldsCount_other": "{{count}} ワールド",
+		"screenshotsCount_other": "{{count}} スクリーンショット",
+		"modFiles_other": "{{count}} mod ファイル",
+		"singleplayerWorlds_other": "{{count}} シングルプレイヤー ワールド"
+	},
+	"skinViewer": {
+		"resetCamera": "3D カメラをリセット",
+		"pauseRotation": "自動回転を一時停止",
+		"autoRotate": "3D モデルの自動回転",
+		"idlePose": "アイドルポーズに切り替え",
+		"playWalk": "歩行アニメーションを再生",
+		"idleTitle": "アイドル呼吸アニメーション",
+		"idle": "アイドル",
+		"walkTitle": "歩行アニメーション",
+		"walk": "歩行",
+		"runTitle": "ランニングアニメーション",
+		"run": "実行",
+		"waveTitle": "腕を振るアニメーション",
+		"wave": "ウェーブ",
+		"pause": "アニメーションを一時停止する",
+		"outerOn": "アウター レイヤー オン",
+		"outerOff": "アウター レイヤー オフ",
+		"modelSlim": "モデル: スリム (アレックス)",
+		"modelClassic": "モデル: クラシック (スティーブ)"
+	},
+	"skinsPage": {
+		"customSkin": "カスタム スキン",
+		"currentActiveSkin": "現在のアクティブなスキン",
+		"activeAccountSkin": "アクティブなアカウントのスキン",
+		"loadFailed": "Ely.by からのスキンのロードに失敗しました",
+		"defaultSteve": "デフォルトの Steve",
+		"addAccountFirst": "まず、Ely.by アカウントを追加または選択してください。",
+		"elyOnlySync": "Ely.by アカウントのみがクラウド スキンの同期をサポートします。",
+		"customApplied": "カスタム スキンが {{name}} に適用されました!",
+		"skinApplied": "スキン #{{id}} が {{name}} に適用されました!",
+		"applyFailed": "スキンの適用に失敗しました。",
+		"enterPassword": "Ely.by パスワードを入力してください。",
+		"skinFromDate": "スキン {{date}}",
+		"uploadedApplied": "カスタム スキンがアップロードされ、{{name}} に適用されました。",
+		"pngOnly": "スキン ファイルは PNG 形式 (.png) である必要があります。",
+		"tooLarge": "スキン ファイルが大きすぎます (最大 2 MB)。",
+		"badSize": "無効なディメンション: {{size}}。標準の Minecraft スキンは 64x64 または 64x32 ピクセルである必要があります。",
+		"badImage": "画像を解析できませんでした。有効な PNG ファイルであることを確認してください。",
+		"elyOnlyUpload": "Ely.by アカウントのみがスキンのアップロードをサポートしています。",
+		"uploadFailed": "スキンのアップロードに失敗しました。",
+		"saved": "スキン #{{id}} が正常に保存されました。",
+		"downloadFailed": "ダウンロードに失敗しました。",
+		"urlCopied": "スキン テクスチャの URL がクリップボードにコピーされました。",
+		"activeAccount": "アクティブな Ely.by アカウント",
+		"noActiveAccount": "アクティブな Ely.by アカウントはありません",
+		"browse": "スキンの参照",
+		"preview3d": "3D プレビュー",
+		"currentSkin": "現在のスキン",
+		"skinNumber": "スキン #{{id}}",
+		"alexSlim3": "Alex (スリム 3px)",
+		"steveClassic4": "Steve (クラシック 4px)",
+		"currentSkinOf": "現在のスキン ({{name}})",
+		"applyTo": "{{name}} にスキンを適用",
+		"applyToAccount": "スキンをアカウントに適用します",
+		"downloadPng": "PNG をダウンロード",
+		"updating": "更新中...",
+		"loadingMine": "アップロードしたスキンを Ely.by からロードしています...",
+		"loading": "Ely.by からスキンをロードしています...",
+		"noMatchingUploads": "一致するアップロードされたスキンが見つかりません",
+		"noUploadsFor": "にアップロードされたスキンが見つかりません{{name}}",
+		"tryDifferent": "別の検索クエリまたはフィルターを試してください。",
+		"noUploadsHint": "Ely.by にカスタム スキンをまだアップロードしていません。スキンをアップロードして管理し、いつでも着用できます。",
+		"selectAccountHint": "アップロードしたスキンを表示するには、Ely.by アカウントを選択または追加してください。",
+		"uploadASkin": "スキンをアップロードします",
+		"noSkins": "スキンが見つかりませんでした",
+		"deleteCustom": "カスタム スキンの削除",
+		"slim": "スリム",
+		"classic": "クラシック",
+		"pageOf": "ページ <b>{{page}}</b> / {{total}}",
+		"total": "(合計 {{count}})",
+		"previous": "前",
+		"next": "次",
+		"alexSlim": "Alex (スリム)",
+		"steveClassic": "スティーブ (クラシック)",
+		"view3d": "3D ビュー",
+		"apply": "適用",
+		"livePreview": "ライブ 3D プレビュー",
+		"uploading": "アップロードと適用中...",
+		"uploadApply": "スキンのアップロードと適用",
+		"uploadTitle": "カスタム スキンのアップロード",
+		"uploadDescription": "Minecraft スキン テクスチャをコンピュータからアップロードして、Ely.by に直接適用します。",
+		"dropHint": "ここをクリックしてスキン PNG ファイルを参照またはドラッグ アンド ドロップします。",
+		"supports": "標準 Minecraft スキンをサポート (64×64 または 64×32 PNG、最大 2 MB)",
+		"dimensions": "寸法: {{value}}",
+		"size": "サイズ: {{value}}",
+		"armModel": "スキン アーム モデル",
+		"armModelHint": "このスキンがクラシック (4px) 腕用に作成されたか、スリム (3px) 腕用に作成されたかを選択します。",
+		"classicArms": "クラシック (アーム 4 ピクセル)",
+		"slimArms": "スリム (アーム 3 ピクセル)",
+		"targetAccount": "ターゲット Ely.by アカウント",
+		"noAccount": "アクティブなアカウントはありません",
+		"readyToApply": "適用する準備ができています",
+		"passwordTitle": "Ely.by パスワード認証",
+		"passwordDescription": "<b>{{name}}</b> の Ely.by スキンを変更するには、アカウントのパスワードを入力してください。ネイティブ OS キーリングで安全に暗号化されます。",
+		"passwordPlaceholder": "Ely.by パスワード",
+		"authorize": "承認および適用",
+		"count_other": "{{formatted}} スキン"
+	},
+	"select": {
+		"placeholder": "オプションを選択",
+		"noMatches": "一致するものはありません"
+	},
+	"hosting": {
+		"one": "ホスティング {{name}}",
+		"many": "ホスティング {{count}} サーバー",
+		"tunnel": "Ingot トンネルがアクティブ",
+		"publicAddress": "パブリック アドレス: {{address}}",
+		"connecting": "playit.gg トンネル接続中...",
+		"localOnly": "ローカル ネットワークのみ"
 	}
 }

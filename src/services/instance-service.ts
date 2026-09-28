@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { useEffect, useState } from "react"
 import {
 	createTauRPCProxy,
@@ -153,10 +154,10 @@ export const instanceService = {
 			totalSteps: 10,
 			percentage: 0,
 			detail: quickPlay?.server
-				? `Connecting to ${quickPlay.server}...`
+				? i18n.t("backend.launch.connecting", { server: quickPlay.server })
 				: quickPlay?.world
-					? `Loading world ${quickPlay.world}...`
-					: "Initializing launch sequence...",
+					? i18n.t("backend.launch.loadingWorld", { world: quickPlay.world })
+					: i18n.t("backend.launch.initializing"),
 		})
 		notifyProgress()
 		try {

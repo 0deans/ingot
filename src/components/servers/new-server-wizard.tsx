@@ -1,5 +1,7 @@
+import i18n from "i18next"
 import { AlertCircle, ArrowLeft, Check, Cpu, Loader2, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { ServerConfig, ServerCoreType } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { FadeScroll } from "@/components/servers/shared/primitives"
@@ -13,71 +15,53 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import Slider from "@/components/ui/slider"
+import { formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
+/** Taglines and badges are serverCores.<id>.tagline/badge in the locale files */
 const SERVER_CORES: {
 	id: ServerCoreType
 	name: string
-	tagline: string
-	badge: string
 }[] = [
 	{
 		id: "paper",
 		name: "Paper",
-		tagline: "High-performance Spigot/Bukkit server with full plugin support",
-		badge: "Fast & Stable",
 	},
 	{
 		id: "purpur",
 		name: "Purpur",
-		tagline: "Feature-rich Paper fork with incredible customization",
-		badge: "Customizable",
 	},
 	{
 		id: "fabric",
 		name: "Fabric",
-		tagline: "Lightweight, modular modded server for Fabric mods",
-		badge: "Modded",
 	},
 	{
 		id: "neoforge",
 		name: "NeoForge",
-		tagline: "Modded server for NeoForge mods, the home of most big content mods",
-		badge: "Modded",
 	},
 	{
 		id: "forge",
 		name: "Forge",
-		tagline: "The original modded server, for Forge mods on Minecraft 1.17 and newer",
-		badge: "Modded",
 	},
 	{
 		id: "quilt",
 		name: "Quilt",
-		tagline: "Fabric-compatible modded server that runs both Quilt and Fabric mods",
-		badge: "Modded",
 	},
 	{
 		id: "folia",
 		name: "Folia",
-		tagline: "Multi-threaded regionized server by PaperMC for massive player counts",
-		badge: "Multi-threaded",
 	},
 	{
 		id: "pumpkin",
 		name: "PumpkinMC",
-		tagline: "Ultra lightweight, Rust-powered — instant boot, < 60 MB RAM",
-		badge: "Mobile Native",
 	},
 	{
 		id: "vanilla",
 		name: "Vanilla",
-		tagline: "Official unmodded Minecraft server directly from Mojang",
-		badge: "Original",
 	},
 ]
 
@@ -117,6 +101,7 @@ function Steps({ current, total }: { current: number; total: number }) {
 // ─── Main wizard ───────────────────────────────────────────────────────────────
 
 export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewServerWizardProps) {
+	const { t } = useTranslation()
 	const isMobile = isMobileEnvironment()
 	const TOTAL_STEPS = 3
 
@@ -159,7 +144,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 				setSelectedVersion(best)
 			})
 			.catch(() => {
-				if (isMounted) setError("Failed to fetch versions. Check your connection.")
+				if (isMounted) setError(i18n.t("wizard.fetchFailed"))
 			})
 			.finally(() => {
 				if (isMounted) setIsLoadingVersions(false)
@@ -173,7 +158,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 		setCore(newCore)
 		const coreObj = SERVER_CORES.find((c) => c.id === newCore)
 		if (coreObj && (!name || SERVER_CORES.some((c) => name.startsWith(c.name)))) {
-			setName(`${coreObj.name} Server`)
+			setName(t("wizard.defaultName", { core: coreObj.name }))
 		}
 	}
 
@@ -181,19 +166,19 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 
 	const handleCreate = async () => {
 		if (!name.trim()) {
-			setError("Please enter a server name.")
+			setError(t("wizard.enterName"))
 			return
 		}
 		if (!selectedVersion) {
-			setError("Please select a Minecraft version.")
+			setError(t("wizard.selectVersion"))
 			return
 		}
 		if (!port || port < 1024 || port > 65534) {
-			setError("Please enter a valid port between 1024 and 65534.")
+			setError(t("wizard.invalidPort"))
 			return
 		}
 		if (isPortConflict) {
-			setError(`Port ${port} is already in use. Try ${serverService.getNextAvailablePort()}.`)
+			setError(t("wizard.portInUseTry", { port, next: serverService.getNextAvailablePort() }))
 			return
 		}
 
@@ -211,7 +196,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 			)
 			onServerCreated?.(created)
 		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : "Failed to create server")
+			setError(err instanceof Error ? err.message : t("wizard.createFailed"))
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -229,24 +214,24 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 			// auto-set a name when advancing
 			if (!name) {
 				const coreObj = SERVER_CORES.find((c) => c.id === core)
-				if (coreObj) setName(`${coreObj.name} Server`)
+				if (coreObj) setName(t("wizard.defaultName", { core: coreObj.name }))
 			}
 			setStep(1)
 		} else if (step === 1) {
 			if (!name.trim()) {
-				setError("Please enter a server name.")
+				setError(t("wizard.enterName"))
 				return
 			}
 			if (!selectedVersion) {
-				setError("Please select a version.")
+				setError(t("wizard.selectVersion"))
 				return
 			}
 			if (!port || port < 1024 || port > 65534) {
-				setError("Enter a valid port (1024 – 65534).")
+				setError(t("wizard.invalidPort"))
 				return
 			}
 			if (isPortConflict) {
-				setError(`Port ${port} is already in use.`)
+				setError(t("wizard.portInUse", { port }))
 				return
 			}
 			setStep(2)
@@ -267,13 +252,13 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 				<div className="flex flex-1 flex-col gap-0.5">
 					<p className="font-semibold text-sm text-zinc-100">
 						{step === 0
-							? "Choose your engine"
+							? t("wizard.stepEngine")
 							: step === 1
-								? "Name your server"
-								: "Memory & confirm"}
+								? t("wizard.stepName")
+								: t("wizard.stepMemory")}
 					</p>
 					<p className="text-[11px] text-zinc-500">
-						Step {step + 1} of {TOTAL_STEPS}
+						{t("wizard.stepOf", { step: step + 1, total: TOTAL_STEPS })}
 					</p>
 				</div>
 				<Steps current={step} total={TOTAL_STEPS} />
@@ -281,7 +266,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 
 			{/* ── Body (scrollable with fade) ── */}
 			<FadeScroll className="min-h-0 flex-1 px-4 pb-4 sm:px-6">
-				{step === 0 && <StepCore core={core} isMobile={isMobile} onSelect={handleSelectCore} />}
+				{step === 0 && <StepCore core={core} onSelect={handleSelectCore} />}
 				{step === 1 && (
 					<StepDetails
 						name={name}
@@ -324,7 +309,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 						onClick={goNext}
 						className="h-12 w-full rounded-2xl bg-emerald-600 font-semibold text-sm text-white hover:bg-emerald-500 active:bg-emerald-700"
 					>
-						Continue
+						{t("common.continue")}
 					</Button>
 				) : (
 					<Button
@@ -335,12 +320,12 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 						{isSubmitting ? (
 							<>
 								<Loader2 className="mr-2 size-4 animate-spin" />
-								Preparing server…
+								{t("wizard.preparing")}
 							</>
 						) : (
 							<>
 								<Plus className="mr-2 size-4" />
-								Create Server
+								{t("servers.createServer")}
 							</>
 						)}
 					</Button>
@@ -354,13 +339,12 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 
 function StepCore({
 	core,
-	isMobile,
 	onSelect,
 }: {
 	core: ServerCoreType
-	isMobile: boolean
 	onSelect: (c: ServerCoreType) => void
 }) {
+	const { t } = useTranslation()
 	return (
 		<div className="flex flex-col gap-2 pt-1">
 			{SERVER_CORES.map((c) => {
@@ -389,10 +373,12 @@ function StepCore({
 										isSelected ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-800 text-zinc-400",
 									)}
 								>
-									{isMobile && c.id === "pumpkin" ? "Mobile Native" : c.badge}
+									{t(`serverCores.${c.id}.badge`)}
 								</span>
 							</div>
-							<p className="mt-0.5 text-[11px] text-zinc-500 leading-snug">{c.tagline}</p>
+							<p className="mt-0.5 text-[11px] text-zinc-500 leading-snug">
+								{t(`serverCores.${c.id}.tagline`)}
+							</p>
 						</div>
 						<div
 							className={cn(
@@ -436,6 +422,7 @@ function StepDetails({
 	isMobile: boolean
 	core: ServerCoreType
 }) {
+	const { t } = useTranslation()
 	const coreObj = SERVER_CORES.find((c) => c.id === core)
 	return (
 		<div className="flex flex-col gap-4 pt-2">
@@ -446,18 +433,18 @@ function StepDetails({
 				</div>
 				<div>
 					<p className="font-medium text-sm text-zinc-200">{coreObj?.name}</p>
-					<p className="text-[11px] text-zinc-500">{coreObj?.badge}</p>
+					<p className="text-[11px] text-zinc-500">{t(`serverCores.${core}.badge`)}</p>
 				</div>
 			</div>
 
 			{/* Server name */}
 			<div className="flex flex-col gap-1.5">
 				<label htmlFor="wiz-name" className="font-medium text-xs text-zinc-300">
-					Server name
+					{t("wizard.serverName")}
 				</label>
 				<Input
 					id="wiz-name"
-					placeholder={`e.g. ${coreObj?.name ?? "My"} Survival Server`}
+					placeholder={t("wizard.namePlaceholder", { core: coreObj?.name ?? "Paper" })}
 					value={name}
 					onChange={(e) => onNameChange(e.target.value)}
 					className="h-11 rounded-xl border-zinc-800 bg-zinc-900 text-sm placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
@@ -467,16 +454,16 @@ function StepDetails({
 
 			{/* Version */}
 			<div className="flex flex-col gap-1.5">
-				<span className="font-medium text-xs text-zinc-300">Minecraft version</span>
+				<span className="font-medium text-xs text-zinc-300">{t("wizard.minecraftVersion")}</span>
 				{isLoadingVersions ? (
 					<div className="flex h-11 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-500">
 						<Loader2 className="size-3.5 animate-spin text-emerald-400" />
-						Loading versions…
+						{t("newInstance.loadingVersions")}
 					</div>
 				) : (
 					<Select value={selectedVersion} onValueChange={(val) => val && onVersionChange(val)}>
 						<SelectTrigger className="h-11 rounded-xl border-zinc-800 bg-zinc-900 text-sm">
-							<SelectValue placeholder="Select version" />
+							<SelectValue placeholder={t("wizard.selectVersionPlaceholder")} />
 						</SelectTrigger>
 						<SelectContent className="max-h-64">
 							{versions.map((ver) => (
@@ -494,10 +481,12 @@ function StepDetails({
 				<div className="flex flex-col gap-1.5">
 					<div className="flex items-center justify-between">
 						<label htmlFor="wiz-port" className="font-medium text-xs text-zinc-300">
-							Server port
+							{t("wizard.serverPort")}
 						</label>
 						{isPortConflict && (
-							<span className="font-medium text-[11px] text-rose-400">Port in use</span>
+							<span className="font-medium text-[11px] text-rose-400">
+								{t("wizard.portInUseShort")}
+							</span>
 						)}
 					</div>
 					<Input
@@ -535,29 +524,30 @@ function StepRam({
 	name: string
 	version: string
 }) {
+	const { t } = useTranslation()
 	const coreObj = SERVER_CORES.find((c) => c.id === core)
-	const ramLabel = ramMb >= 1024 ? `${(ramMb / 1024).toFixed(1)} GB` : `${ramMb} MB`
+	const ramLabel = formatMegabytes(ramMb)
 
 	return (
 		<div className="flex flex-col gap-4 pt-2">
 			{/* Summary card */}
 			<div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
-				<p className="mb-3 font-semibold text-sm text-zinc-200">Ready to create</p>
+				<p className="mb-3 font-semibold text-sm text-zinc-200">{t("wizard.ready")}</p>
 				<div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
 					<div>
-						<p className="text-zinc-500">Name</p>
+						<p className="text-zinc-500">{t("serverSettings.name")}</p>
 						<p className="truncate font-medium text-zinc-200">{name}</p>
 					</div>
 					<div>
-						<p className="text-zinc-500">Engine</p>
+						<p className="text-zinc-500">{t("wizard.engine")}</p>
 						<p className="font-medium text-zinc-200">{coreObj?.name}</p>
 					</div>
 					<div>
-						<p className="text-zinc-500">Version</p>
+						<p className="text-zinc-500">{t("wizard.version")}</p>
 						<p className="font-medium text-zinc-200">{version}</p>
 					</div>
 					<div>
-						<p className="text-zinc-500">RAM</p>
+						<p className="text-zinc-500">{t("wizard.ram")}</p>
 						<p className="font-medium text-emerald-400">{ramLabel}</p>
 					</div>
 				</div>
@@ -568,7 +558,7 @@ function StepRam({
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-1.5">
 						<Cpu className="size-3.5 text-emerald-400" />
-						<span className="font-medium text-sm text-zinc-200">Memory (RAM)</span>
+						<span className="font-medium text-sm text-zinc-200">{t("wizard.memory")}</span>
 					</div>
 					<span className="font-bold font-mono text-emerald-400 text-sm">{ramLabel}</span>
 				</div>
@@ -596,6 +586,7 @@ interface EmptyStateProps {
 
 /** Full-screen onboarding shown when the user hasn't created any server yet */
 export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
+	const { t } = useTranslation()
 	return (
 		<div className="flex h-full min-h-0 flex-col items-center justify-between gap-6 bg-zinc-950 px-6 py-10 text-center sm:justify-center sm:gap-10">
 			{/* Visual */}
@@ -612,13 +603,12 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 
 				<div>
 					<h1 className="font-bold text-2xl text-zinc-50 leading-tight">
-						Your first server,
+						{t("wizard.heroLine1")}
 						<br />
-						in seconds.
+						{t("wizard.heroLine2")}
 					</h1>
 					<p className="mt-2 max-w-xs text-sm text-zinc-400 leading-relaxed">
-						Ingot downloads, configures and runs a Minecraft server right on this device. Invite
-						friends from anywhere.
+						{t("wizard.heroText")}
 					</p>
 				</div>
 			</div>
@@ -634,8 +624,8 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 						<Server className="size-5" />
 					</div>
 					<div>
-						<p className="font-semibold text-sm text-zinc-100">Create a server</p>
-						<p className="text-[11px] text-zinc-500">Paper, PumpkinMC, Fabric and more</p>
+						<p className="font-semibold text-sm text-zinc-100">{t("wizard.createAServer")}</p>
+						<p className="text-[11px] text-zinc-500">{t("wizard.createAServerHint")}</p>
 					</div>
 					<Plus className="ml-auto size-5 shrink-0 text-emerald-400" />
 				</button>

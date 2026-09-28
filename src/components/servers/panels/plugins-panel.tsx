@@ -12,6 +12,7 @@ import {
 	Users,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type {
 	InstalledPlugin,
 	PluginProject,
@@ -46,11 +47,14 @@ import { CompanionCard } from "./companion-card"
 import { PluginDetailsSheet, PluginIcon } from "./plugin-details-sheet"
 
 /** What the server core can load; null = nothing */
-export function addonKind(core: ServerConfig["core"]): { noun: string; nouns: string } | null {
+type AddonKind = { kind: "mod" | "plugin"; noun: string; nouns: string }
+
+/** Whether a server runs plugins or mods. `kind` picks the right wording (i18next context). */
+export function addonKind(core: ServerConfig["core"]): AddonKind | null {
 	if (core === "fabric" || core === "neoforge" || core === "forge" || core === "quilt")
-		return { noun: "mod", nouns: "Mods" }
+		return { kind: "mod", noun: "mod", nouns: "Mods" }
 	if (core === "paper" || core === "purpur" || core === "folia")
-		return { noun: "plugin", nouns: "Plugins" }
+		return { kind: "plugin", noun: "plugin", nouns: "Plugins" }
 	return null
 }
 
@@ -60,6 +64,7 @@ interface Notice {
 }
 
 export function PluginsPanel({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const kind = addonKind(server.core)
 	const { isRunning } = useServerStatus(server.id)
 	const [view, setView] = useState<"installed" | "browse">("installed")
@@ -79,8 +84,10 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 			<Card>
 				<EmptyState
 					icon={Puzzle}
-					title={`${server.core === "pumpkin" ? "Pumpkin" : "Vanilla"} servers can't use plugins`}
-					description="Create a Paper or Purpur server to add plugins, or a Fabric server for mods."
+					title={t("plugins.unsupported", {
+						core: server.core === "pumpkin" ? "Pumpkin" : t("versionChange.vanilla"),
+					})}
+					description={t("plugins.unsupportedHint")}
 				/>
 			</Card>
 		)
@@ -98,12 +105,11 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 				projectId: project.id,
 				versionId: version?.id,
 			})
-			const extras = report.installed.filter((t) => t !== project.title)
-			changed(
-				`Installed ${project.title}${extras.length ? ` and ${extras.join(", ")}` : ""}.${
-					report.warnings.length ? ` ${report.warnings.join(". ")}.` : ""
-				}`,
-			)
+			const extras = report.installed.filter((title) => title !== project.title)
+			const done = extras.length
+				? t("plugins.installedWith", { name: project.title, extras: extras.join(", ") })
+				: t("plugins.installed", { name: project.title })
+			changed(report.warnings.length ? `${done} ${report.warnings.join(". ")}.` : done)
 		} catch (e) {
 			changed(String(e), true)
 		}
@@ -117,9 +123,11 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 				options={[
 					{
 						value: "installed",
-						label: `Installed${installed.data ? ` · ${installed.data.length}` : ""}`,
+						label: installed.data
+							? `${t("common.installed")} · ${installed.data.length}`
+							: t("common.installed"),
 					},
-					{ value: "browse", label: `Browse ${kind.nouns.toLowerCase()}` },
+					{ value: "browse", label: t("plugins.browse", { context: kind.kind }) },
 				]}
 			/>
 
@@ -166,6 +174,7 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 }
 
 function RestartBanner({ serverId, onDone }: { serverId: string; onDone: () => void }) {
+	const { t } = useTranslation()
 	const controls = useServerControls(serverId)
 	const [restarting, setRestarting] = useState(false)
 	const restart = async () => {
@@ -183,7 +192,7 @@ function RestartBanner({ serverId, onDone }: { serverId: string; onDone: () => v
 	}
 	return (
 		<div className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 py-2 pr-2 pl-3">
-			<span className="text-amber-200 text-xs">Restart the server to apply changes.</span>
+			<span className="text-amber-200 text-xs">{t("plugins.restartToApply")}</span>
 			<Button
 				size="sm"
 				onClick={restart}
@@ -195,7 +204,7 @@ function RestartBanner({ serverId, onDone }: { serverId: string; onDone: () => v
 				) : (
 					<RotateCw className="size-3.5" />
 				)}
-				Restart
+				{t("plugins.restart")}
 			</Button>
 		</div>
 	)
@@ -213,7 +222,7 @@ function InstalledList({
 	onChanged,
 }: {
 	server: ServerConfig
-	kind: { noun: string; nouns: string }
+	kind: AddonKind
 	plugins: InstalledPlugin[]
 	/** Ingot's own plugin/mod is installed (shown above this list) */
 	hasSystem: boolean
@@ -221,6 +230,7 @@ function InstalledList({
 	onBrowse: () => void
 	onChanged: (text: string, error?: boolean) => void
 }) {
+	const { t } = useTranslation()
 	const actions = usePluginActions(server.id)
 	const hasTracked = plugins.some((p) => p.projectId)
 	const updates = usePluginUpdates(server.id, hasTracked)
@@ -240,13 +250,13 @@ function InstalledList({
 	if (plugins.length === 0 && hasSystem) {
 		return (
 			<Card className="flex items-center justify-between gap-3 px-4 py-3">
-				<p className="text-sm text-zinc-400">No other {kind.nouns.toLowerCase()} yet.</p>
+				<p className="text-sm text-zinc-400">{t("plugins.noOther", { context: kind.kind })}</p>
 				<Button
 					variant="outline"
 					onClick={onBrowse}
 					className="h-9 shrink-0 gap-2 rounded-xl border-zinc-800"
 				>
-					<Search className="size-4" /> Browse {kind.nouns.toLowerCase()}
+					<Search className="size-4" /> {t("plugins.browse", { context: kind.kind })}
 				</Button>
 			</Card>
 		)
@@ -256,14 +266,18 @@ function InstalledList({
 			<Card>
 				<EmptyState
 					icon={Package}
-					title={`No ${kind.nouns.toLowerCase()} yet`}
-					description={`Find ${kind.nouns.toLowerCase()} on Modrinth${server.core === "paper" || server.core === "purpur" ? " and Hangar" : ""} and install them in one tap.`}
+					title={t("plugins.none", { context: kind.kind })}
+					description={
+						server.core === "paper" || server.core === "purpur"
+							? t("plugins.findHangar", { context: kind.kind })
+							: t("plugins.find", { context: kind.kind })
+					}
 					action={
 						<Button
 							onClick={onBrowse}
 							className="h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
 						>
-							<Search className="size-4" /> Browse {kind.nouns.toLowerCase()}
+							<Search className="size-4" /> {t("plugins.browse", { context: kind.kind })}
 						</Button>
 					}
 				/>
@@ -303,7 +317,7 @@ function InstalledList({
 									<p className="truncate text-[11px] text-zinc-500">
 										{update ? (
 											<span className="text-sky-300">
-												Update available: {update.latest.versionNumber}
+												{t("plugins.updateAvailable", { version: update.latest.versionNumber })}
 											</span>
 										) : (
 											(p.description ?? p.authors.join(", ")) || p.fileName
@@ -317,12 +331,20 @@ function InstalledList({
 								onCheckedChange={async (enabled) => {
 									try {
 										await actions.toggle.mutateAsync({ fileName: p.fileName, enabled })
-										onChanged(`${enabled ? "Enabled" : "Disabled"} ${p.name}.`)
+										onChanged(
+											enabled
+												? t("plugins.enabled", { name: p.name })
+												: t("plugins.disabled", { name: p.name }),
+										)
 									} catch (e) {
 										onChanged(String(e), true)
 									}
 								}}
-								aria-label={`${p.enabled ? "Disable" : "Enable"} ${p.name}`}
+								aria-label={
+									p.enabled
+										? t("plugins.disable", { name: p.name })
+										: t("plugins.enable", { name: p.name })
+								}
 							/>
 						</div>
 					)
@@ -343,7 +365,7 @@ function InstalledList({
 										source: current.source,
 										projectId: current.projectId,
 									})
-									onChanged(`Updated ${current.name}.`)
+									onChanged(t("plugins.updated", { name: current.name }))
 									setSelected(null)
 								} catch (e) {
 									onChanged(String(e), true)
@@ -352,7 +374,7 @@ function InstalledList({
 							onRemove={async () => {
 								try {
 									await actions.remove.mutateAsync(current.fileName)
-									onChanged(`Removed ${current.name}.`)
+									onChanged(t("plugins.removed", { name: current.name }))
 									setSelected(null)
 								} catch (e) {
 									onChanged(String(e), true)
@@ -379,6 +401,7 @@ function InstalledDetails({
 	onUpdate: () => void
 	onRemove: () => void
 }) {
+	const { t } = useTranslation()
 	const [confirm, setConfirm] = useState(false)
 	const pageUrl =
 		plugin.source === "modrinth" && plugin.projectId
@@ -393,8 +416,9 @@ function InstalledDetails({
 				<div className="min-w-0">
 					<DialogTitle className="truncate text-base">{plugin.name}</DialogTitle>
 					<p className="text-xs text-zinc-500">
-						{plugin.version ?? "Unknown version"}
-						{plugin.authors.length > 0 && ` · by ${plugin.authors.join(", ")}`}
+						{plugin.version ?? t("plugins.unknownVersion")}
+						{plugin.authors.length > 0 &&
+							` · ${t("plugins.byAuthors", { authors: plugin.authors.join(", ") })}`}
 					</p>
 				</div>
 			</div>
@@ -403,11 +427,11 @@ function InstalledDetails({
 			)}
 			<dl className="grid grid-cols-2 gap-2 text-xs">
 				<div className="rounded-xl bg-zinc-900/60 p-2.5">
-					<dt className="text-zinc-500">File</dt>
+					<dt className="text-zinc-500">{t("plugins.file")}</dt>
 					<dd className="truncate font-mono text-zinc-300">{plugin.fileName}</dd>
 				</div>
 				<div className="rounded-xl bg-zinc-900/60 p-2.5">
-					<dt className="text-zinc-500">Size</dt>
+					<dt className="text-zinc-500">{t("plugins.size")}</dt>
 					<dd className="text-zinc-300">{formatBytes(plugin.size)}</dd>
 				</div>
 			</dl>
@@ -423,7 +447,7 @@ function InstalledDetails({
 					) : (
 						<ArrowUpCircle className="size-4" />
 					)}
-					Update to {update.versionNumber}
+					{t("plugins.updateTo", { version: update.versionNumber })}
 				</Button>
 			)}
 			<div className="flex gap-2">
@@ -434,7 +458,7 @@ function InstalledDetails({
 						rel="noopener noreferrer"
 						className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-zinc-800 text-sm text-zinc-300 hover:bg-zinc-900"
 					>
-						<ExternalLink className="size-4" /> Page
+						<ExternalLink className="size-4" /> {t("pluginDetails.page")}
 					</a>
 				)}
 				{confirm ? (
@@ -445,7 +469,7 @@ function InstalledDetails({
 						className="h-10 flex-1 gap-1.5 rounded-xl"
 					>
 						{busy ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-						Really delete?
+						{t("plugins.reallyDelete")}
 					</Button>
 				) : (
 					<Button
@@ -453,7 +477,7 @@ function InstalledDetails({
 						onClick={() => setConfirm(true)}
 						className="h-10 flex-1 gap-1.5 rounded-xl"
 					>
-						<Trash2 className="size-4" /> Delete
+						<Trash2 className="size-4" /> {t("common.delete")}
 					</Button>
 				)}
 			</div>
@@ -463,11 +487,7 @@ function InstalledDetails({
 
 // ─── Browse ───────────────────────────────────────────────────────────────────
 
-const SORT_OPTIONS = [
-	{ value: "downloads", label: "Most popular" },
-	{ value: "updated", label: "Recently updated" },
-	{ value: "newest", label: "Newest" },
-]
+const SORT_VALUES = ["downloads", "updated", "newest"] as const
 
 function BrowseView({
 	server,
@@ -477,12 +497,14 @@ function BrowseView({
 	onInstall,
 }: {
 	server: ServerConfig
-	kind: { noun: string; nouns: string }
+	kind: AddonKind
 	installed: InstalledPlugin[]
 	installingId: string | null
 	onInstall: (project: PluginProject, version?: PluginVersion) => void
 }) {
+	const { t } = useTranslation()
 	const hangarAvailable = server.core === "paper" || server.core === "purpur"
+	const sortOptions = SORT_VALUES.map((value) => ({ value, label: t(`plugins.sort.${value}`) }))
 	const [source, setSource] = useState<PluginSource>("modrinth")
 	const [input, setInput] = useState("")
 	const [query, setQuery] = useState("")
@@ -491,8 +513,8 @@ function BrowseView({
 	const [selected, setSelected] = useState<PluginProject | null>(null)
 
 	useEffect(() => {
-		const t = setTimeout(() => setQuery(input.trim()), 350)
-		return () => clearTimeout(t)
+		const timer = setTimeout(() => setQuery(input.trim()), 350)
+		return () => clearTimeout(timer)
 	}, [input])
 
 	const search = usePluginSearch(server.id, source, query, sort, compatibleOnly)
@@ -509,7 +531,7 @@ function BrowseView({
 				<Input
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
-					placeholder={`Search ${kind.nouns.toLowerCase()}, e.g. ${kind.noun === "mod" ? "Lithium" : "LuckPerms"}`}
+					placeholder={t("plugins.searchPlaceholder", { context: kind.kind })}
 					autoCapitalize="off"
 					autoCorrect="off"
 					enterKeyHint="search"
@@ -529,12 +551,12 @@ function BrowseView({
 						className="min-w-44 flex-1 sm:flex-none"
 					/>
 				)}
-				<Select items={SORT_OPTIONS} value={sort} onValueChange={(v) => v && setSort(v)}>
+				<Select items={sortOptions} value={sort} onValueChange={(v) => v && setSort(v)}>
 					<SelectTrigger className="h-10 w-40 rounded-xl border-zinc-800 bg-zinc-900/60 text-xs">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
-						{SORT_OPTIONS.map((o) => (
+						{sortOptions.map((o) => (
 							<SelectItem key={o.value} value={o.value}>
 								{o.label}
 							</SelectItem>
@@ -545,13 +567,15 @@ function BrowseView({
 					<Switch
 						checked={compatibleOnly}
 						onCheckedChange={setCompatibleOnly}
-						aria-label={`Only show ${server.gameVersion} compatible results`}
+						aria-label={t("plugins.compatibleOnly", { version: server.gameVersion })}
 					/>
-					For {server.gameVersion}
+					{t("plugins.forVersion", { version: server.gameVersion })}
 				</div>
 			</div>
 
-			{search.error ? <ErrorNote>Search failed: {String(search.error)}</ErrorNote> : null}
+			{search.error ? (
+				<ErrorNote>{t("plugins.searchFailed", { error: String(search.error) })}</ErrorNote>
+			) : null}
 
 			{search.isLoading ? (
 				<div className="flex justify-center py-10">
@@ -561,17 +585,19 @@ function BrowseView({
 				<Card>
 					<EmptyState
 						icon={Search}
-						title="Nothing found"
+						title={t("plugins.nothingFound")}
 						description={
 							compatibleOnly
-								? `No ${kind.nouns.toLowerCase()} match for Minecraft ${server.gameVersion}. Try turning off the version filter.`
-								: "Try another search."
+								? t("plugins.noneForVersion", { context: kind.kind, version: server.gameVersion })
+								: t("plugins.tryAnother")
 						}
 					/>
 				</Card>
 			) : (
 				<>
-					<p className="px-1 text-[11px] text-zinc-500">{formatCount(total)} results</p>
+					<p className="px-1 text-[11px] text-zinc-500">
+						{t("plugins.results", { count: total, formatted: formatCount(total) })}
+					</p>
 					<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 						{results.map((p) => (
 							<ResultCard
@@ -594,7 +620,7 @@ function BrowseView({
 							{search.isFetchingNextPage ? (
 								<Loader2 className="size-4 animate-spin" />
 							) : (
-								"Load more"
+								t("plugins.loadMore")
 							)}
 						</Button>
 					)}
@@ -627,6 +653,7 @@ function ResultCard({
 	onOpen: () => void
 	onInstall: () => void
 }) {
+	const { t } = useTranslation()
 	return (
 		<div className="flex min-w-0 items-start gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-3 transition-colors hover:border-zinc-700">
 			<button
@@ -647,10 +674,10 @@ function ResultCard({
 					{project.playersNeedIt && (
 						<p
 							className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 font-medium text-[10px] text-amber-300"
-							title="Players must install this mod too, or they can't join"
+							title={t("plugins.playersNeedItTitle")}
 						>
 							<Users className="size-3" />
-							Players need it too
+							{t("plugins.playersNeedIt")}
 						</p>
 					)}
 				</div>
@@ -659,7 +686,11 @@ function ResultCard({
 				size="sm"
 				onClick={onInstall}
 				disabled={installed || installing}
-				aria-label={installed ? `${project.title} is installed` : `Install ${project.title}`}
+				aria-label={
+					installed
+						? t("plugins.isInstalled", { name: project.title })
+						: t("plugins.install", { name: project.title })
+				}
 				className={cn(
 					"size-9 shrink-0 rounded-xl p-0",
 					installed

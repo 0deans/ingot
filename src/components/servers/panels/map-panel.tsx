@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { Check, Loader2, Map as MapIcon, Radio, RefreshCw } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { dimensionStyle } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -32,6 +33,7 @@ export function MapPanel({
 	className?: string
 }) {
 	const queryClient = useQueryClient()
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	const { data: dimensions, isLoading, refetch } = useMapDimensions(server.id)
 	const { data: online = [] } = useOnlinePlayers(server.id, isRunning, 1500)
@@ -107,9 +109,7 @@ export function MapPanel({
 			(r) => !before.some((b) => b.x === r.x && b.z === r.z && b.modified === r.modified),
 		).length
 		setRefreshing(false)
-		setRefreshNote(
-			changed === 0 ? "Up to date" : `Updated ${changed} ${changed === 1 ? "area" : "areas"}`,
-		)
+		setRefreshNote(changed === 0 ? t("map.upToDate") : t("map.updatedAreas", { count: changed }))
 	}
 	useEffect(() => {
 		if (!refreshNote) return
@@ -128,11 +128,7 @@ export function MapPanel({
 	if (!current || !view) {
 		return (
 			<div className={cn("flex items-center justify-center", className)}>
-				<EmptyState
-					icon={MapIcon}
-					title="No world yet"
-					description="Start the server once so it generates a world. Explored areas will appear on the map."
-				/>
+				<EmptyState icon={MapIcon} title={t("map.noWorld")} description={t("map.noWorldHint")} />
 			</div>
 		)
 	}
@@ -175,16 +171,16 @@ export function MapPanel({
 				<div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
 					{live && (
 						<span
-							title="Ingot keeps the map current from server memory"
+							title={t("map.liveTitle")}
 							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
 						>
 							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
-							Live
+							{t("map.live")}
 						</span>
 					)}
 					{isRunning && installedAt === server.id && (
 						<span className="flex h-9 items-center rounded-xl border border-amber-500/20 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-amber-200 backdrop-blur-md">
-							Restart to go live
+							{t("map.restartToGoLive")}
 						</span>
 					)}
 					{companion?.supported && companion.fileName === null && (
@@ -195,7 +191,7 @@ export function MapPanel({
 								if (isRunning) setInstalledAt(server.id)
 							}}
 							disabled={installCompanion.isPending}
-							title={`Install the Ingot ${addonKind(server.core)?.noun ?? "plugin"} to update the map in real time, without saving the world`}
+							title={t("map.makeLiveTitle", { context: addonKind(server.core)?.kind ?? "plugin" })}
 							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
 						>
 							{installCompanion.isPending ? (
@@ -203,7 +199,7 @@ export function MapPanel({
 							) : (
 								<Radio className="size-3.5 text-emerald-400" />
 							)}
-							Make live
+							{t("map.makeLive")}
 						</button>
 					)}
 					{/* Live maps update themselves; otherwise re-read what the server saved */}
@@ -212,7 +208,7 @@ export function MapPanel({
 							type="button"
 							onClick={refresh}
 							disabled={refreshing}
-							title="Check for newly saved areas"
+							title={t("map.refreshTitle")}
 							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
 						>
 							{refreshNote ? (

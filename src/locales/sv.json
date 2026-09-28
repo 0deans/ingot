@@ -23,11 +23,13 @@
 		"minimize": "Minimera",
 		"maximize": "Maximera",
 		"restore": "Återställ",
-		"justNow": "Just nu",
 		"never": "Aldrig",
-		"minutesAgo": "{{count}}m sedan",
-		"hoursAgo": "{{count}}t sedan",
-		"daysAgo": "{{count}}d sedan"
+		"unknown": "Okänd",
+		"deleting": "Tar bort...",
+		"stop": "Stoppa",
+		"done": "Klar",
+		"update": "Uppdatera",
+		"enable": "Aktivera"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Välj ditt språk",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Inga konton konfigurerade än.",
 		"previewSkin": "Förhandsgranska 3D-skin",
 		"removeAccount": "Ta bort konto",
-		"setAsActive": "Ange som aktiv"
+		"setAsActive": "Ange som aktiv",
+		"offline": "Offline",
+		"reorder": "Flytta kontot {{name}}",
+		"dragToReorder": "Dra för att flytta kontot",
+		"clickToPreview": "Klicka för att se skinnet i 3D",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Sök instanser...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Öppna instansmapp i Utforskaren",
 			"settingsTooltip": "Instansinställningar (RAM, JVM-argument)",
 			"duplicateTooltip": "Duplicera",
-			"deleteTooltip": "Ta bort instans"
-		}
+			"deleteTooltip": "Ta bort instans",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Upptäck innehåll",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Återställ alla filter",
 		"byAuthor": "av {{author}}",
 		"noDescription": "Ingen beskrivning angiven.",
-		"details": "Detaljer"
+		"details": "Detaljer",
+		"loadFailed": "Det gick inte att läsa in innehållet"
 	},
 	"skins": {
 		"title": "Skinkatalog",
@@ -199,6 +209,18 @@
 			"description": "Är du säker på att du vill ta bort den här skärmbilden permanent? Detta kan inte ångras.",
 			"deleting": "Tar bort...",
 			"deletePermanently": "Ta bort permanent"
+		},
+		"card": {
+			"view": "Visa {{name}}",
+			"unavailable": "Bilden är inte tillgänglig",
+			"fullscreen": "Helskärm",
+			"showInFolder": "Visa i mappen"
+		},
+		"lightbox": {
+			"close": "Stäng förhandsvisningen",
+			"closeEsc": "Stäng (Esc)",
+			"previous": "Föregående skärmbild",
+			"next": "Nästa skärmbild"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Skapa ny server",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia eller Vanilla",
 		"noMatchTitle": "Inga servrar matchar dina filter",
-		"noMatchSubtitle": "Prova att ändra din sökning eller välj \"Alla kärnor\"."
+		"noMatchSubtitle": "Prova att ändra din sökning eller välj \"Alla kärnor\".",
+		"activeEntry": "{{name}} (port {{port}})"
 	},
 	"settings": {
 		"title": "Launcher-inställningar",
 		"subtitle": "Konfigurera konton, språk, Java-miljöer, RAM-allokering och launcher-beteende.",
 		"language": {
 			"title": "Språk",
-			"description": "Välj visningsspråk för launcherns gränssnitt. Nya språkfiler i src/locales/ laddas om automatiskt."
+			"description": "Välj språk för startprogrammet. Datum, tal och storlekar följer det också."
 		},
 		"theme": {
 			"title": "Utseende & tema",
@@ -263,7 +286,14 @@
 				"modded": "Moddad",
 				"heavy": "Tungt paket",
 				"safeMax": "Säkert max"
-			}
+			},
+			"zoneSafe": "Säker zon",
+			"zoneHigh": "Hög användning",
+			"zoneCritical": "Kritisk zon",
+			"minShort": "Min: {{value}}",
+			"maxShort": "Max: {{value}}",
+			"totalShort": "{{value}} (max)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Launcher-beteende",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Standardupplösning för fönster",
 			"resolutionDesc": "Ange anpassad bredd och höjd för spelfönstret",
 			"presets": "Förval:",
-			"defaultPreset": "Standard"
+			"defaultPreset": "Standard",
+			"resetTo": "Återställ till {{size}}"
 		},
 		"sync": {
 			"title": "Synkronisering av speldata",
@@ -315,7 +346,8 @@
 					"title": "Synkronisera sparade kreativ-hotbars",
 					"description": "Dela sparade hotbar-layouter i kreativt läge mellan världar"
 				}
-			}
+			},
+			"reinitialize": "Välj källa för {{title}} på nytt"
 		},
 		"updates": {
 			"title": "Uppdateringar & version",
@@ -340,5 +372,1222 @@
 			"dialogSubtitle": "Ingot använder denna programvara från andra projekt. Var och en lyder under sin egen licens; klicka på ett namn för källkod och fullständig licens.",
 			"trademark": "Minecraft är ett varumärke som tillhör Mojang AB. Ingot är inte anslutet till Mojang eller Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Övervärlden",
+			"nether": "Nether",
+			"end": "The End"
+		},
+		"gamemodes": {
+			"survival": "Överlevnad",
+			"creative": "Kreativt",
+			"adventure": "Äventyr",
+			"spectator": "Åskådare"
+		}
+	},
+	"initialSync": {
+		"title": "Första synkroniseringen",
+		"description": "Du slår på synkronisering för <b>{{name}}</b>. Var ska data hämtas från först?",
+		"fromInstance": "Från den här instansen",
+		"uploadToShared": "Ladda upp till delad lagring",
+		"fromInstanceDesc": "Kopiera instansens alternativ och servrar till den delade lagringen som huvudkopia.",
+		"fromShared": "Från delad lagring",
+		"downloadToInstance": "Ladda ned till instansen",
+		"fromSharedDesc": "Ladda ned befintliga delade alternativ och servrar till den här instansen."
+	},
+	"deleteInstance": {
+		"title": "Ta bort instans",
+		"description": "Vill du verkligen ta bort instansen permanent? Det går inte att ångra.",
+		"note": "Alla sparade spel, världar, installerade moddar, resurspaket och konfigurationsfiler i instansmappen tas bort från disken."
+	},
+	"deleteServer": {
+		"title": "Ta bort server",
+		"confirm": "Vill du verkligen ta bort <b>{{name}}</b>?",
+		"details": "Serveruppgifter:",
+		"detailsLine": "Kärna: {{core}} {{version}} • Port: {{port}}",
+		"deleteFiles": "Ta bort alla serverfiler permanent",
+		"deleteFilesDesc": "Inklusive kartor, spelardata, plugins och serverloggar på din disk."
+	},
+	"companion": {
+		"system": "System",
+		"liveMap": "Livekarta",
+		"disabled": "Avstängd",
+		"notInstalled": "Livekarta · inte installerad",
+		"updated_plugin": "Ingot-pluginet uppdaterat.",
+		"updated_mod": "Ingot-modden uppdaterad.",
+		"installed_plugin": "Ingot-pluginet installerat.",
+		"installed_mod": "Ingot-modden installerad.",
+		"removed_plugin": "Ingot-pluginet borttaget. Kartan uppdateras nu när servern sparar.",
+		"removed_mod": "Ingot-modden borttagen. Kartan uppdateras nu när servern sparar.",
+		"enabled_plugin": "Ingot-pluginet aktiverat.",
+		"enabled_mod": "Ingot-modden aktiverad.",
+		"remove_plugin": "Ta bort Ingot-pluginet",
+		"remove_mod": "Ta bort Ingot-modden"
+	},
+	"syncConflict": {
+		"title": "Synkroniseringskonflikt",
+		"description": "<b>{{name}}</b> har egna konfigurationsfiler som aldrig har synkroniserats med din delade lagring.",
+		"conflictingFiles": "Filer i konflikt:",
+		"choose": "Välj hur den första synkroniseringen ska lösas:",
+		"useShared": "Använd delade inställningar",
+		"overwritesLocal": "Skriver över lokalt",
+		"useSharedDesc": "Ersätt instansens alternativ och servrar med de delade inställningarna. En automatisk <code>.bak</code>-säkerhetskopia av dina filer sparas.",
+		"useInstance": "Gör den här instansen till huvudkälla",
+		"overwritesShared": "Skriver över delat",
+		"useInstanceDesc": "Skicka instansens alternativ och servrar till den delade lagringen som huvudkopia. Befintliga delade filer sparas som <code>.bak</code>.",
+		"disable": "Håll fristående (synk av)",
+		"noChanges": "Inga ändringar",
+		"disableDesc": "Stänger av synkronisering för instansen så att andra instanser aldrig ändrar eller ersätter dess servrar och inställningar."
+	},
+	"leftoverServers": {
+		"runningSince": "Igång sedan {{time}}",
+		"stopped": "Stoppad",
+		"stopNote": "Att stoppa avslutar den direkt. Allt sedan den senaste autosparningen (högst några minuter) går förlorat; själva världen klarar sig.",
+		"leaveRunning": "Låt den vara igång",
+		"title_one": "En server är fortfarande igång sedan förra gången",
+		"title_other": "Servrar är fortfarande igång sedan förra gången",
+		"description_one": "Ingot stängdes utan att stoppa den, så dess konsol är borta: Ingot kan inte skicka kommandon eller spara dess värld. Den håller porten och världen upptagna tills den stoppas.",
+		"description_other": "Ingot stängdes utan att stoppa dem, så deras konsoler är borta: Ingot kan inte skicka kommandon eller spara deras världar. De håller portarna och världarna upptagna tills de stoppas."
+	},
+	"serverStatus": {
+		"running": "Igång",
+		"sleeping": "Viloläge",
+		"stopped": "Stoppad",
+		"starting": "Startar",
+		"stopping": "Stoppar"
+	},
+	"serverTabs": {
+		"overview": "Översikt",
+		"console": "Konsol",
+		"players": "Spelare",
+		"map": "Karta",
+		"plugins": "Plugins",
+		"mods": "Moddar",
+		"settings": "Inställningar",
+		"home": "Start"
+	},
+	"serverWorkspace": {
+		"back": "Tillbaka till servrar"
+	},
+	"duplicateInstance": {
+		"title": "Duplicera instans",
+		"defaultName": "{{name}} (kopia)",
+		"description": "Skapar en separat kopia med samma moddar, konfigurationer, resurspaket och inställningar. Ändringar i den ena påverkar inte den andra, så kopian är ett säkert ställe att prova en ny version eller moddar.",
+		"nameLabel": "Kopians namn",
+		"copyWorlds": "Kopiera världar",
+		"noWorldsYet": "inga än",
+		"copyWorldsDesc": "Utan dem startar kopian utan enspelarvärldar.",
+		"note": "Speltiden börjar på noll. Loggar, kraschrapporter och skärmbilder stannar kvar i originalet.",
+		"running": "Spelet är igång. Stäng det först så att världarna kopieras som de sparades, eller kopiera utan världar.",
+		"copying": "Kopierar…",
+		"action": "Duplicera"
+	},
+	"quitDialog": {
+		"title_quit": "Stoppa dina servrar innan du avslutar?",
+		"title_update": "Stoppa dina servrar för att uppdatera?",
+		"title_restart": "Stoppa dina servrar för att starta om?",
+		"action_quit": "Stoppa servrar och avsluta",
+		"action_update": "Stoppa servrar och uppdatera",
+		"action_restart": "Stoppa servrar och starta om",
+		"stopping": "Stoppar…",
+		"keepInTray": "Fortsätt i systemfältet",
+		"asleep_one": "Den här servern är i viloläge. Den vaknar när en spelare går med, men bara medan Ingot är öppet.",
+		"asleep_other": "De här servrarna är i viloläge. De vaknar när en spelare går med, men bara medan Ingot är öppet.",
+		"consoles_one": "Serverns konsol körs i Ingot. Om Ingot stängs först fortsätter den att köra utan möjlighet att styra den eller spara dess värld.",
+		"consoles_other": "Servrarnas konsoler körs i Ingot. Om Ingot stängs först fortsätter de att köra utan möjlighet att styra dem eller spara deras världar.",
+		"saving_one": "Sparar världen och stoppar. Det kan ta upp till 30 sekunder.",
+		"saving_other": "Sparar världarna och stoppar. Det kan ta upp till 30 sekunder.",
+		"games_one": "Ditt spel fortsätter att köra i vilket fall som helst. Ingot tar upp det igen när du öppnar det.",
+		"games_other": "Dina spel fortsätter att köra i vilket fall som helst. Ingot tar upp dem igen när du öppnar det."
+	},
+	"crashDialog": {
+		"title": "{{name}} kraschade vid första starten på {{version}}",
+		"suspects_plugin": "Det är oftast ett plugin som inte fungerar med den nya versionen än. Kraschrapporten pekar på:",
+		"suspects_mod": "Det är oftast en mod som inte fungerar med den nya versionen än. Kraschrapporten pekar på:",
+		"suspects_either": "Det är oftast ett plugin eller en mod som inte fungerar med den nya versionen än. Kraschrapporten pekar på:",
+		"noSuspects_plugin": "Kraschrapporten nämner inget plugin. Du kan ångra ändringen och vänta på uppdateringar.",
+		"noSuspects_mod": "Kraschrapporten nämner ingen mod. Du kan ångra ändringen och vänta på uppdateringar.",
+		"noSuspects_either": "Kraschrapporten nämner varken plugin eller mod. Du kan ångra ändringen och vänta på uppdateringar.",
+		"turnOff": "Stäng av",
+		"turnedOff": "Avstängd",
+		"details": "Kraschdetaljer",
+		"keepTrying": "Fortsätt försöka",
+		"undo": "Ångra versionsbytet",
+		"undone": "Tillbaka på {{version}}, precis som förut.",
+		"tryAgain_server_one": "Starta servern igen för att prova utan den. Ångra slår på den igen.",
+		"tryAgain_server_other": "Starta servern igen för att prova utan dem. Ångra slår på dem igen.",
+		"tryAgain_game_one": "Starta spelet igen för att prova utan den. Ångra slår på den igen.",
+		"tryAgain_game_other": "Starta spelet igen för att prova utan dem. Ångra slår på dem igen."
+	},
+	"skinPreview": {
+		"saving": "Sparar...",
+		"saved": "Sparat!",
+		"error": "Fel",
+		"changeSkin": "Byt skin",
+		"copyUrlTitle": "Kopiera texturens URL",
+		"copied": "Kopierat",
+		"copyUrl": "Kopiera URL",
+		"downloadTitle": "Spara skintexturen i Hämtade filer",
+		"download": "Ladda ned"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Vitlista",
+			"ops": "Operatörer",
+			"bans": "Bannlysningar"
+		},
+		"whitelist": {
+			"title": "Vitlista",
+			"empty": "Ingen på vitlistan än",
+			"description": "När den är på kan bara de här spelarna gå med.",
+			"add": "Lägg till"
+		},
+		"ops": {
+			"title": "Operatörer",
+			"empty": "Inga operatörer",
+			"description": "Operatörer kan använda alla kommandon, även /stop och /op.",
+			"add": "Gör till OP"
+		},
+		"bans": {
+			"title": "Bannlysta spelare",
+			"empty": "Ingen är bannlyst",
+			"description": "Bannlysta spelare kan inte gå med förrän de benådas.",
+			"add": "Bannlys"
+		},
+		"whitelistOn": "Vitlista på",
+		"whitelistOff": "Vitlista av",
+		"onlyListed": "Bara spelare på listan kan gå med.",
+		"anyone": "Vem som helst kan gå med på servern.",
+		"invalidName": "Användarnamn får bara innehålla bokstäver, siffror och _",
+		"playerName": "Spelarnamn",
+		"permissionLevel": "Behörighetsnivå {{level}}",
+		"banned": "Bannlyst",
+		"noUuid": "Inget UUID",
+		"remove": "Ta bort {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Ingår i Android-appen",
+				"note": "Kör serverprogram på Android i en Linux-sandlåda. Byggt från Termux-projektet."
+			},
+			"downloaded": {
+				"title": "Laddas ned vid behov",
+				"note": "Hämtas från den officiella källan första gången en funktion använder det."
+			},
+			"servers": {
+				"title": "Serverprogram du kan installera",
+				"note": "Laddas ned för varje server du skapar, från projektet som gör det."
+			}
+		},
+		"roles": {
+			"proot": "Linux-sandlåda för servrar",
+			"talloc": "Minnesbibliotek som PRoot använder",
+			"shmem": "Stöd för delat minne till PRoot",
+			"temurin": "Java för servrar och spelet på datorn",
+			"alpine": "Bassystemet i Android-sandlådan, med dess OpenJDK",
+			"pumpkin": "Pumpkin-server",
+			"playit": "Offentlig adress till din server",
+			"paper": "Paper-servrar",
+			"folia": "Folia-servrar",
+			"purpur": "Purpur-servrar",
+			"fabric": "Fabric-servrar",
+			"vanilla": "Vanilla-servrar (från Mojang, inte öppen källkod)"
+		},
+		"names": {
+			"minecraftServer": "Minecraft-server"
+		},
+		"various": "Olika licenser för öppen källkod"
+	},
+	"directConnect": {
+		"title": "Anslut direkt till server",
+		"description": "Starta <b>{{name}}</b> direkt på en flerspelarserver, utan huvudmenyn.",
+		"address": "Serveradress",
+		"addressPlaceholder": "t.ex. mc.hypixel.net eller localhost:25565",
+		"localServers": "Konfigurerade lokala servrar",
+		"recent": "Senaste servrar",
+		"removeRecent": "Ta bort från senaste",
+		"launch": "Starta och anslut"
+	},
+	"console": {
+		"autoScrollOn": "Automatisk rullning på",
+		"autoScrollOff": "Automatisk rullning av",
+		"copyAll": "Kopiera allt",
+		"clear": "Rensa",
+		"waiting": "Väntar på utdata...",
+		"offline": "Servern är offline",
+		"offlineHint": "Starta servern för att se dess konsol.",
+		"latest": "Senaste",
+		"placeholder": "Skriv ett kommando, t.ex. time set day",
+		"send": "Skicka kommando"
+	},
+	"syncMaster": {
+		"setAsSource": "\"{{name}}\" är nu huvudkälla för synkronisering.",
+		"error": "Fel: {{error}}",
+		"categoryTitle": "Första synkroniseringen: {{title}}",
+		"title": "Välj huvudinstans för synk",
+		"categoryDescription": "Välj varifrån den delade lagringen först ska hämta {{file}}:",
+		"description": "Välj en befintlig instans för att fylla den delade lagringen. Dess inställningar och data blir den gemensamma grunden.",
+		"useExisting": "Använd befintliga delade data",
+		"keepCurrent": "Behåll nuvarande <code>{{file}}</code> i delad lagring",
+		"useShared": "Använd delad",
+		"orCopyFrom": "Eller kopiera från en befintlig instans:",
+		"copyFrom": "Kopiera från en befintlig instans:",
+		"noInstances": "Inga instanser hittades.",
+		"useThis": "Använd denna",
+		"setAsMaster": "Gör till huvudkälla",
+		"noCopy": "Vill du inte kopiera något än?",
+		"startFresh": "Börja från början"
+	},
+	"quickJoin": {
+		"title": "Snabbspel – gå med på server",
+		"description": "Starta Minecraft och gå direkt med på <b>{{name}}</b> ({{address}}).",
+		"target": "Mål: {{address}}",
+		"choose": "Välj klientinstans",
+		"noInstances": "Inga Minecraft-instanser hittades",
+		"noInstancesHint": "Skapa först en klientinstans för att gå med på din server.",
+		"createInstance": "Skapa instans",
+		"matches": "Matchar servern",
+		"launch": "Starta och gå med"
+	},
+	"players": {
+		"tabs": {
+			"online": "Online",
+			"all": "Alla spelare",
+			"access": "Åtkomst"
+		},
+		"offlineHint": "Starta servern för att se vem som spelar, med hälsa, förråd och plats.",
+		"starting": "Servern startar...",
+		"startingHint": "Spelare visas när världen har lästs in.",
+		"liveError": "Det gick inte att läsa spelardata live: {{error}}. Livedata kräver en Java-server (Paper, Purpur, Fabric eller Vanilla).",
+		"checking": "Kollar vem som är online...",
+		"nobody": "Ingen är online",
+		"nobodyHint": "Spelare visas här så snart de går med.",
+		"none": "Inga spelare än",
+		"noneHint": "Alla som har gått med på servern listas här, med sitt senast sparade förråd.",
+		"search": "Sök spelare",
+		"onlineNow": "Online nu",
+		"lastSeen": "Sågs senast {{time}}"
+	},
+	"map": {
+		"upToDate": "Aktuell",
+		"noWorld": "Ingen värld än",
+		"noWorldHint": "Starta servern en gång så att en värld skapas. Utforskade områden syns sedan på kartan.",
+		"liveTitle": "Ingot håller kartan aktuell från serverns minne",
+		"live": "Live",
+		"restartToGoLive": "Starta om för live",
+		"makeLiveTitle_plugin": "Installera Ingot-pluginet för att uppdatera kartan i realtid, utan att spara världen",
+		"makeLiveTitle_mod": "Installera Ingot-modden för att uppdatera kartan i realtid, utan att spara världen",
+		"makeLive": "Gå live",
+		"refreshTitle": "Sök efter nyligen sparade områden",
+		"ariaLabel": "Världskarta. Dra för att flytta, rulla eller nyp för att zooma.",
+		"zoomIn": "Zooma in",
+		"zoomOut": "Zooma ut",
+		"updatedAreas_one": "{{count}} område uppdaterat",
+		"updatedAreas_other": "{{count}} områden uppdaterade"
+	},
+	"pluginDetails": {
+		"byline": "av {{author}} · {{downloads}} nedladdningar",
+		"playersNeedIt": "Spelarna behöver också den här modden: den som vill gå med måste installera den i sitt spel.",
+		"installing": "Installerar...",
+		"page": "Sida",
+		"noCompatible": "Ingen version för Minecraft {{version}} än. Du kan välja en äldre under Versioner, men den kanske inte fungerar.",
+		"about": "Om",
+		"versions": "Versioner",
+		"noDescription": "Ingen beskrivning.",
+		"onlyFor": "Bara versioner för Minecraft {{version}}",
+		"noVersions": "Inga versioner",
+		"noVersionsHint": "Prova att visa alla versioner.",
+		"website": "Webbplats",
+		"anyVersion": "Alla versioner"
+	},
+	"addAccount": {
+		"missingCredentials": "Ange användarnamn/e-post och lösenord.",
+		"welcomeBack": "Välkommen tillbaka, {{name}}!",
+		"elyFailed": "Det gick inte att ansluta till Ely.by",
+		"missingNickname": "Ange ett spelarnamn.",
+		"offlineCreated": "Offlineprofil skapad för {{name}}",
+		"offlineFailed": "Det gick inte att skapa offlinekontot",
+		"description": "Anslut ditt Ely.by-konto eller skapa en offlineprofil för att spela.",
+		"tokensSecure": "Tokens krypteras i systemets autentiseringsvalv.",
+		"usernameOrEmail": "Användarnamn eller e-post",
+		"usernamePlaceholder": "t.ex. notch eller player@ely.by",
+		"password": "Lösenord",
+		"connecting": "Ansluter...",
+		"logIn": "Logga in på Ely.by",
+		"offlineNote": "Offlinekonton spelar utan onlinesessionstoken.",
+		"nickname": "Spelarnamn",
+		"nicknamePlaceholder": "t.ex. Steve",
+		"adding": "Lägger till...",
+		"addProfile": "Lägg till profil",
+		"microsoftTitle": "Microsoft-/Xbox Live-inloggning",
+		"microsoftSoon": "Officiell inloggning med Microsoft-konto kommer i en senare version."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Spel",
+			"players": "Spelare",
+			"world": "Värld",
+			"network": "Nätverk",
+			"advanced": "Avancerat"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Spelläge",
+				"description": "Läge för nya spelare.",
+				"options": {
+					"survival": "Överlevnad",
+					"creative": "Kreativt",
+					"adventure": "Äventyr",
+					"spectator": "Åskådare"
+				}
+			},
+			"difficulty": {
+				"label": "Svårighetsgrad",
+				"description": "Hur farliga monstren är.",
+				"options": {
+					"peaceful": "Fridfull",
+					"easy": "Lätt",
+					"normal": "Normal",
+					"hard": "Svår"
+				}
+			},
+			"force-gamemode": {
+				"label": "Tvinga spelläge",
+				"description": "Sätt tillbaka spelare i standardläget varje gång de går med."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "Spelare blir åskådare när de dör."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Spelare kan skada varandra."
+			},
+			"allow-flight": {
+				"label": "Tillåt flygning",
+				"description": "Sparka inte spelare som flyger (krävs för vissa moddar och plugins)."
+			},
+			"spawn-protection": {
+				"label": "Spawnskydd",
+				"description": "Radie kring spawn där bara operatörer får bygga. 0 stänger av det."
+			},
+			"max-players": {
+				"label": "Max antal spelare",
+				"description": "Hur många spelare som kan vara online samtidigt."
+			},
+			"online-mode": {
+				"label": "Onlineläge",
+				"description": "Kontrollera konton hos Mojang. Stäng av för att tillåta icke-premium- eller Ely.by-konton."
+			},
+			"player-idle-timeout": {
+				"label": "Sparka vid inaktivitet",
+				"description": "Sparka spelare efter så många inaktiva minuter. 0 sparkar aldrig."
+			},
+			"op-permission-level": {
+				"label": "Operatörsnivå",
+				"description": "Vad operatörer får göra: 1 kringgå spawnskyddet … 4 allt."
+			},
+			"hide-online-players": {
+				"label": "Dölj spelarlistan",
+				"description": "Visa inte vem som är online i flerspelarmenyn."
+			},
+			"enforce-secure-profile": {
+				"label": "Kräv signerad chatt",
+				"description": "Tillåt bara spelare med chattnycklar signerade av Mojang."
+			},
+			"view-distance": {
+				"label": "Siktavstånd",
+				"description": "Hur långt spelare ser. Lägre är lättare för enheten."
+			},
+			"simulation-distance": {
+				"label": "Simuleringsavstånd",
+				"description": "Hur långt runt spelarna världen fortsätter att gå."
+			},
+			"level-seed": {
+				"label": "Frö",
+				"description": "Frö för en ny värld. Används bara när världen skapas.",
+				"placeholder": "Slumpmässigt"
+			},
+			"level-type": {
+				"label": "Världstyp",
+				"description": "Används bara när världen skapas.",
+				"options": {
+					"minecraft_normal": "Standard",
+					"minecraft_flat": "Superplatt",
+					"minecraft_large_biomes": "Stora biom",
+					"minecraft_amplified": "Förstärkt"
+				}
+			},
+			"generate-structures": {
+				"label": "Generera strukturer",
+				"description": "Byar, tempel och andra strukturer i nya chunkar."
+			},
+			"allow-nether": {
+				"label": "Tillåt Nether",
+				"description": "Spelare får resa till Nether."
+			},
+			"max-world-size": {
+				"label": "Världsgränsens radie",
+				"description": "Längsta avstånd från mitten som spelare kan nå."
+			},
+			"server-port": {
+				"label": "Port",
+				"description": "Porten servern lyssnar på."
+			},
+			"enable-status": {
+				"label": "Visa i serverlistan",
+				"description": "Svara på ping från flerspelarmenyn (MOTD, antal spelare)."
+			},
+			"network-compression-threshold": {
+				"label": "Komprimeringströskel",
+				"description": "Komprimera paket större än så här. -1 stänger av komprimering."
+			},
+			"enable-command-block": {
+				"label": "Kommandoblock",
+				"description": "Tillåt att kommandoblock körs."
+			},
+			"sync-chunk-writes": {
+				"label": "Säker chunksparning",
+				"description": "Skriv chunkar synkront. Säkrare, lite långsammare."
+			},
+			"max-tick-time": {
+				"label": "Watchdog-tidsgräns",
+				"description": "Stoppa servern om ett tick tar längre tid än så här. -1 stänger av."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Avstånd för entiteter",
+				"description": "Hur långt entiteter skickas till spelare, i procent."
+			}
+		},
+		"units": {
+			"blocks": "block",
+			"min": "min",
+			"chunks": "chunkar",
+			"bytes": "byte",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "De flesta ändringar gäller efter att servern startats om.",
+		"badImage": "Det gick inte att använda bilden: {{error}}",
+		"emptyName": "Namnet får inte vara tomt.",
+		"identity": "Serverns identitet",
+		"identityDesc": "Hur din server ser ut i flerspelarlistan.",
+		"name": "Namn",
+		"motd": "Beskrivning (MOTD) · två rader, Enter för den andra",
+		"motdReset": "Återställ",
+		"saved": "Sparat",
+		"saveChanges": "Spara ändringar",
+		"memory": "Minne",
+		"memoryMobile": "Håll det långt under telefonens RAM.",
+		"memoryDesktop": "Max RAM för Java-servern.",
+		"portInUse": "Port {{port}} används redan av en annan server. Prova {{next}}.",
+		"gameSettings": "Spelinställningar",
+		"gameSettingsDesc": "server.properties, med förklaringar.",
+		"allOther": "Alla andra egenskaper",
+		"filter": "Filtrera egenskaper",
+		"discard": "Förkasta",
+		"configFiles": "Konfigurationsfiler",
+		"configFilesDesc": "Server- och pluginkonfigurationer (YAML, JSON, TOML).",
+		"saveFile": "Spara fil",
+		"manage": "Hantera",
+		"changed_one": "{{count}} ändrad",
+		"changed_other": "{{count}} ändrade"
+	},
+	"newInstance": {
+		"title": "Skapa ny instans",
+		"description": "Välj Minecraft-version och modladdare. Ingot konfigurerar miljön och Java automatiskt.",
+		"modLoader": "Modladdare",
+		"minecraftVersion": "Minecraft-version",
+		"snapshots": "Snapshots",
+		"snapshotBadge": "snapshot",
+		"latestBadge": "senaste",
+		"loadingVersions": "Läser in versioner...",
+		"selectVersion": "Välj Minecraft-version",
+		"searchVersion": "Sök version (t.ex. 1.20, 1.16)...",
+		"loaderVersion": "Laddarversion",
+		"noCompatible": "Inga kompatibla versioner",
+		"selectLoaderVersion": "Välj laddarversion",
+		"searchLoaderVersion": "Sök laddarversion...",
+		"name": "Instansens namn",
+		"namePlaceholder": "t.ex. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Serverinställningar",
+		"yourServers": "Dina servrar",
+		"newServer": "Ny server",
+		"about": "Om och licenser"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Kontrollerar serverfiler...",
+			"preparingPumpkin": "Förbereder Pumpkin-servern...",
+			"downloadingPumpkin": "Laddar ned Pumpkin (bara första starten)...",
+			"preparingSandbox": "Förbereder Linux-sandlådan...",
+			"downloadingSandbox": "Laddar ned Linux-sandlådan...",
+			"extractingSandbox": "Packar upp sandlådans filsystem...",
+			"installingJava": "Installerar Java {{version}} i sandlådan...",
+			"sandboxReady": "Sandlådan är klar!",
+			"installingCore": "Installerar {{name}} (bara första starten, det kan ta några minuter)...",
+			"launching": "Startar serverprocessen...",
+			"failed": "Det gick inte att starta: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Finns inte på Modrinth, CurseForge eller Hangar, så Ingot kan inte kontrollera den",
+			"beta": "Betaversion, kan vara instabil",
+			"alpha": "Alfaversion, kan vara instabil",
+			"siteOnly": "Versionen för {{target}} kan bara laddas ned från {{site}}",
+			"fabricOnly": "Behövs bara på Fabric och Quilt",
+			"noVersion": "Ingen version för {{target}} än",
+			"pluginNotMarked": "Inte markerad för {{version}} än; de flesta plugins fungerar ändå",
+			"notUpdated": "Inte uppdaterad för {{version}}; fungerar oftast ändå",
+			"sameAs": "Samma som {{name}}",
+			"incompatible": "Fungerar inte tillsammans med {{name}}",
+			"needsTurnedOff": "Behöver {{name}}, som stängs av",
+			"needsMissing": "Behöver {{name}}, som inte finns för {{version}}",
+			"neededBy": "Behövs av {{name}}"
+		},
+		"launch": {
+			"preparing": "Förbereder start",
+			"resolvingVersion": "Tar fram version",
+			"resolvingLoader": "Tar fram modladdare",
+			"checkingJava": "Kontrollerar Java",
+			"javaSetup": "Installerar Java",
+			"downloadingClient": "Laddar ned klienten",
+			"downloadingLibraries": "Laddar ned bibliotek",
+			"downloadingAssets": "Laddar ned resurser",
+			"verifying": "Kontrollerar filer",
+			"auth": "Inloggning",
+			"starting": "Startar spelet",
+			"fetchingMetadata": "Hämtar versionsdata...",
+			"fetchingProfile": "Hämtar {{loader}}-profilen...",
+			"detectingJava": "Hittar Java...",
+			"downloadingJavaProgress": "Laddar ned Java {{version}} ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Laddar ned Java {{version}}...",
+			"extractingJava": "Packar upp Java {{version}}...",
+			"downloadingJar": "Laddar ned Minecraft-klienten...",
+			"downloadingLibrariesCount": "Laddar ned {{count}} bibliotek...",
+			"library": "Bibliotek {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "Laddar ned {{count}} resurser...",
+			"assets": "Resurser {{current}}/{{total}}",
+			"verified": "Alla spelfiler kontrollerade",
+			"authDetail": "Konfigurerar Ely.by-skin och inloggningsagent...",
+			"launching": "Startar Minecraft...",
+			"connecting": "Ansluter till {{server}}...",
+			"loadingWorld": "Läser in världen {{world}}...",
+			"initializing": "Förbereder start..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Så ser spelarna den",
+		"startingUp": "Startar...",
+		"shuttingDown": "Stänger av...",
+		"cantConnect": "Det går inte att ansluta till servern",
+		"preparing": "Förbereder...",
+		"sleepingNote": "I viloläge för att spara resurser. Den vaknar av sig själv när en spelare går med.",
+		"failedToStart": "Det gick inte att starta.",
+		"start": "Starta servern",
+		"wake": "Väck",
+		"sleep": "Viloläge",
+		"starting": "Startar...",
+		"stopping": "Stoppar...",
+		"uptime": "Drifttid",
+		"native": "Inbyggd",
+		"noOutput": "Ingen utdata än"
+	},
+	"serverCard": {
+		"offline": "Offline",
+		"openPage": "Öppna serversidan",
+		"copyAddress": "Klicka för att kopiera serveradressen",
+		"noneOnline": "0 online",
+		"joinTitle": "Starta Minecraft och anslut till servern",
+		"join": "Gå med",
+		"start": "Starta",
+		"openFolder": "Öppna servermappen"
+	},
+	"versionChange": {
+		"title": "Byt version",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Konflikter",
+			"missing": "Inte tillgängliga än",
+			"unknown": "Kan inte kontrolleras",
+			"newDependency": "Nya beroenden",
+			"update": "Uppdateringar",
+			"works": "Redan kompatibla",
+			"olderVersions": "Äldre versioner"
+		},
+		"actions": {
+			"keep": "Behåll",
+			"update": "Uppdatera",
+			"disable": "Stäng av",
+			"add": "Installera",
+			"skip": "Installera inte"
+		},
+		"kinds": {
+			"resourcePack": "Resurspaket",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} är äldre än {{from}}",
+		"downgradeWarning": "Världar som spelats i en nyare version går oftast inte att öppna i en äldre och kan gå sönder. Låt säkerhetskopian av världarna vara på så att Ångra kan få tillbaka dem.",
+		"downgradeOk": "Jag förstår, byt till den äldre versionen ändå",
+		"backupWorldsHint": "Minecraft uppgraderar världar när de öppnas, och det går inte att ångra. Med en säkerhetskopia återställer Ångra även dem.",
+		"openOn": "Öppna på {{site}}",
+		"new": "ny",
+		"instanceDescription": "Ingot kontrollerar först varje mod, resurspaket och shader och ändrar inget förrän du tillämpar. Du kan ångra det efteråt.",
+		"now": "nu",
+		"nowLabel": "Nu",
+		"moveTo": "Byt till",
+		"pickVersion": "Välj en version",
+		"searchVersion": "Sök version...",
+		"loaderVersion": "{{loader}}-version",
+		"pickLoaderVersion": "Välj en laddarversion",
+		"noLoaderFor": "Ingen {{loader}} för {{version}}",
+		"noLoader": "Ingen {{loader}} för den här versionen",
+		"loaderSwitchNote": "Moddar görs för en laddare. Ingot letar efter {{loader}}-versionen av varje mod och stänger av dem som saknar en.",
+		"instanceEmpty": "Inga moddar, resurspaket eller shaders att kontrollera. Bara versionen ändras.",
+		"applying": "Tillämpar...",
+		"applyingHint": "Laddar ned och kontrollerar de nya filerna och säkerhetskopierar sedan de nuvarande. Inget ändras förrän allt är klart.",
+		"applyingWithWorlds": "Laddar ned och kontrollerar de nya filerna och säkerhetskopierar sedan dina världar och de nuvarande filerna. Inget ändras förrän allt är klart.",
+		"nowOn": "Nu på {{version}}",
+		"instanceDone": "Bytt från {{version}}. Om något inte fungerar, ångra det i instansens inställningar: allt blir precis som det var.",
+		"back": "Tillbaka",
+		"checking": "Kontrollerar...",
+		"check": "Kontrollera kompatibilitet",
+		"moveToVersion": "Byt till {{version}}",
+		"summary": {
+			"download_one": "{{count}} att ladda ned ({{size}})",
+			"download_other": "{{count}} att ladda ned ({{size}})",
+			"turnedOff_one": "{{count}} avstängd",
+			"turnedOff_other": "{{count}} avstängda",
+			"conflictsKept_one": "{{count}} konflikt behållen",
+			"conflictsKept_other": "{{count}} konflikter behållna"
+		},
+		"backupWorlds_one": "Säkerhetskopiera världar ({{count}} värld, {{size}})",
+		"backupWorlds_other": "Säkerhetskopiera världar ({{count}} världar, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Det gick inte att starta instansen: {{error}}",
+		"resolveConflict": "Det gick inte att lösa konflikten: {{error}}",
+		"deleteInstance": "Det gick inte att ta bort instansen: {{error}}",
+		"startServer": "Det gick inte att starta servern: {{error}}",
+		"deleteServer": "Det gick inte att ta bort servern: {{error}}",
+		"quickPlay": "Snabbspel på servern misslyckades: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Läser in spelare...",
+		"noData": "Inga data för spelaren än.",
+		"health": "Hälsa",
+		"hunger": "Hunger",
+		"air": "Luft",
+		"experience": "Erfarenhet",
+		"level": "Nivå {{level}}",
+		"equipment": "Utrustning",
+		"slots": {
+			"head": "Huvud",
+			"chest": "Bröst",
+			"legs": "Ben",
+			"feet": "Fötter",
+			"offhand": "Andra handen"
+		},
+		"showOnMap": "Visa på kartan",
+		"inventory": "Förråd",
+		"ender": "Enderkista ({{count}})",
+		"effects": "Effekter ({{count}})",
+		"onFire": "Brinner",
+		"durability": "{{left}}/{{max}} hållbarhet",
+		"enchanted": "Förtrollad",
+		"noEffects": "Inga aktiva effekter",
+		"heal": "Läk",
+		"feed": "Mata",
+		"removeOp": "Ta bort OP",
+		"whitelisted": "På vitlistan",
+		"confirmKick": "Sparka {{name}}?",
+		"confirmBan": "Bannlys {{name}}?",
+		"confirm": "Bekräfta",
+		"kick": "Sparka"
+	},
+	"transfer": {
+		"zipArchive": "ZIP-arkiv",
+		"savedTo": "Sparat i {{path}}",
+		"copyName": "{{name}} kopia",
+		"created": "\"{{name}}\" skapad.",
+		"title": "Säkerhetskopia och version",
+		"description": "Exportera för att dela eller säkerhetskopiera, kopiera servern eller byt till en annan Minecraft-version.",
+		"exportConfigs": "Exportera konfigurationer",
+		"withoutWorlds": "Utan världar",
+		"exportAll": "Exportera allt",
+		"withWorlds": "Med världar",
+		"makeCopy": "Gör en kopia",
+		"secondServer": "En andra server",
+		"stopFirst": "Stoppa servern först",
+		"nowVersion": "Nu {{version}}",
+		"backup": "Bytt från {{version}}. Säkerhetskopia {{size}}.",
+		"backupWithWorlds": "Bytt från {{version}}. Säkerhetskopia {{size}}, med världar.",
+		"deleteBackup": "Ta bort säkerhetskopian",
+		"undo": "Ångra, tillbaka till {{version}}",
+		"willStartOn": "{{name}} startar på {{version}}. Om något inte fungerar kan du ångra det här.",
+		"currentVersion": "{{version}} (nuvarande)",
+		"changeTitle": "Byt Minecraft-version",
+		"changeDescription_plugin": "Ingot kontrollerar först varje plugin och ändrar inget förrän du tillämpar. Allt säkerhetskopieras, så du kan ångra det.",
+		"changeDescription_mod": "Ingot kontrollerar först varje mod och ändrar inget förrän du tillämpar. Allt säkerhetskopieras, så du kan ångra det.",
+		"serverType": "Servertyp",
+		"empty": "Inga plugins eller moddar att kontrollera. Bara versionen ändras.",
+		"readyFor": "Redo för {{version}}",
+		"doneNote": "Den nya versionen laddas ned vid nästa start. Om något inte fungerar, ångra det under Säkerhetskopia och version: allt blir precis som det var.",
+		"import": "Importera server",
+		"importing": "Importerar {{percent}}",
+		"settingUp": "Konfigurerar servern...",
+		"partial": "\"{{name}}\" importerades, men vissa plugins eller moddar kunde inte laddas ned:",
+		"openServer": "Öppna servern"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Snabb Spigot/Bukkit-server med fullt pluginstöd",
+			"badge": "Snabb och stabil"
+		},
+		"purpur": {
+			"tagline": "Funktionsrik Paper-fork med otroligt många anpassningar",
+			"badge": "Anpassningsbar"
+		},
+		"fabric": {
+			"tagline": "Lätt, modulär moddserver för Fabric-moddar",
+			"badge": "Moddad"
+		},
+		"neoforge": {
+			"tagline": "Moddserver för NeoForge-moddar, hemmet för de flesta stora innehållsmoddar",
+			"badge": "Moddad"
+		},
+		"forge": {
+			"tagline": "Den ursprungliga moddservern, för Forge-moddar från Minecraft 1.17",
+			"badge": "Moddad"
+		},
+		"quilt": {
+			"tagline": "Fabric-kompatibel moddserver som kör både Quilt- och Fabric-moddar",
+			"badge": "Moddad"
+		},
+		"folia": {
+			"tagline": "Flertrådad regionsserver från PaperMC för väldigt många spelare",
+			"badge": "Flertrådad"
+		},
+		"pumpkin": {
+			"tagline": "Extremt lätt, skriven i Rust — startar direkt, < 60 MB RAM",
+			"badge": "Mobil inbyggd"
+		},
+		"vanilla": {
+			"tagline": "Officiell omodifierad Minecraft-server direkt från Mojang",
+			"badge": "Original"
+		}
+	},
+	"wizard": {
+		"defaultName": "{{core}}-server",
+		"fetchFailed": "Det gick inte att hämta versioner. Kontrollera anslutningen.",
+		"enterName": "Ange ett servernamn.",
+		"selectVersion": "Välj en Minecraft-version.",
+		"invalidPort": "Ange en giltig port (1024 – 65534).",
+		"portInUseTry": "Port {{port}} används redan. Prova {{next}}.",
+		"portInUse": "Port {{port}} används redan.",
+		"createFailed": "Det gick inte att skapa servern",
+		"stepEngine": "Välj motor",
+		"stepName": "Namnge din server",
+		"stepMemory": "Minne och bekräfta",
+		"stepOf": "Steg {{step}} av {{total}}",
+		"preparing": "Förbereder servern…",
+		"serverName": "Servernamn",
+		"namePlaceholder": "t.ex. {{core}} överlevnadsserver",
+		"minecraftVersion": "Minecraft-version",
+		"selectVersionPlaceholder": "Välj version",
+		"serverPort": "Serverport",
+		"portInUseShort": "Porten används",
+		"ready": "Redo att skapa",
+		"engine": "Motor",
+		"version": "Version",
+		"ram": "RAM",
+		"memory": "Minne (RAM)",
+		"heroLine1": "Din första server,",
+		"heroLine2": "på några sekunder.",
+		"heroText": "Ingot laddar ned, konfigurerar och kör en Minecraft-server direkt på den här enheten. Bjud in vänner var de än är.",
+		"createAServer": "Skapa en server",
+		"createAServerHint": "Paper, PumpkinMC, Fabric med flera"
+	},
+	"plugins": {
+		"unsupported": "{{core}}-servrar kan inte använda plugins",
+		"unsupportedHint": "Skapa en Paper- eller Purpur-server för plugins, eller en Fabric-server för moddar.",
+		"installed": "{{name}} installerat.",
+		"installedWith": "{{name}} och {{extras}} installerade.",
+		"browse_plugin": "Bläddra bland plugins",
+		"browse_mod": "Bläddra bland moddar",
+		"restartToApply": "Starta om servern för att tillämpa ändringarna.",
+		"restart": "Starta om",
+		"noOther_plugin": "Inga andra plugins än.",
+		"noOther_mod": "Inga andra moddar än.",
+		"none_plugin": "Inga plugins än",
+		"none_mod": "Inga moddar än",
+		"find_plugin": "Hitta plugins på Modrinth och installera dem med ett tryck.",
+		"find_mod": "Hitta moddar på Modrinth och installera dem med ett tryck.",
+		"findHangar_plugin": "Hitta plugins på Modrinth och Hangar och installera dem med ett tryck.",
+		"findHangar_mod": "Hitta moddar på Modrinth och Hangar och installera dem med ett tryck.",
+		"updateAvailable": "Uppdatering finns: {{version}}",
+		"enabled": "{{name}} aktiverad.",
+		"disabled": "{{name}} avstängd.",
+		"enable": "Aktivera {{name}}",
+		"disable": "Stäng av {{name}}",
+		"updated": "{{name}} uppdaterad.",
+		"removed": "{{name}} borttagen.",
+		"unknownVersion": "Okänd version",
+		"byAuthors": "av {{authors}}",
+		"file": "Fil",
+		"size": "Storlek",
+		"updateTo": "Uppdatera till {{version}}",
+		"reallyDelete": "Ta bort på riktigt?",
+		"sort": {
+			"downloads": "Populärast",
+			"updated": "Nyligen uppdaterade",
+			"newest": "Nyaste"
+		},
+		"searchPlaceholder_plugin": "Sök plugins, t.ex. LuckPerms",
+		"searchPlaceholder_mod": "Sök moddar, t.ex. Lithium",
+		"compatibleOnly": "Visa bara resultat som fungerar med {{version}}",
+		"forVersion": "För {{version}}",
+		"searchFailed": "Sökningen misslyckades: {{error}}",
+		"nothingFound": "Inget hittades",
+		"noneForVersion_plugin": "Inga plugins för Minecraft {{version}}. Prova att stänga av versionsfiltret.",
+		"noneForVersion_mod": "Inga moddar för Minecraft {{version}}. Prova att stänga av versionsfiltret.",
+		"tryAnother": "Prova en annan sökning.",
+		"loadMore": "Läs in fler",
+		"playersNeedItTitle": "Spelare måste också installera den här modden, annars kan de inte gå med",
+		"playersNeedIt": "Spelarna behöver den också",
+		"isInstalled": "{{name}} är installerad",
+		"install": "Installera {{name}}",
+		"results_one": "{{formatted}} resultat",
+		"results_other": "{{formatted}} resultat"
+	},
+	"join": {
+		"shareTitle": "Gå med på {{name}}",
+		"shareText": "Gå med på min Minecraft-server \"{{name}}\"!\nAdress: {{address}}\nVersion: Java Edition {{version}}",
+		"title": "Bjud in spelare",
+		"description": "Dela en adress så att vänner kan gå med.",
+		"sameWifi": "Samma wifi",
+		"copyLocal": "Kopiera lokal adress",
+		"anywhere": "Var som helst (playit.gg)",
+		"copyPublic": "Kopiera offentlig adress",
+		"showQr": "Visa QR-kod",
+		"linkPlayit": "Koppla ditt playit.gg-konto",
+		"noTunnel": "Ansluten, men ingen tunnel än. <link>Lägg till en</link> för port {{port}}.",
+		"connecting": "Ansluter...",
+		"notConnected": "Inte ansluten",
+		"stopPlayit": "Stoppa playit",
+		"goPublic": "Gör offentlig",
+		"share": "Dela inbjudan",
+		"scan": "Skanna för att kopiera adressen",
+		"qrAlt": "QR-kod"
+	},
+	"stats": {
+		"latest": "Senaste: {{value}}",
+		"noData": "Inga data än",
+		"now": "nu",
+		"ago": "för {{time}} sedan",
+		"min": "Min",
+		"avg": "Snitt",
+		"peak": "Topp",
+		"performance": "Prestanda",
+		"touchHint": "Tryck på ett diagram för detaljer",
+		"ofDevice": "av enheten",
+		"allocated": "Tilldelat",
+		"deviceRam": "Enhetens RAM",
+		"free": "{{size}} ledigt",
+		"lag": "Lagg",
+		"smooth": "Smidigt",
+		"slightLag": "Lite lagg",
+		"lagging": "Laggar",
+		"used": "{{label}}: {{used}} av {{total}} används"
+	},
+	"storage": {
+		"title": "Lagring",
+		"worlds": "Världar",
+		"plugins": "Plugins och moddar",
+		"server": "Serverfiler",
+		"backups": "Säkerhetskopior",
+		"logs": "Loggar",
+		"other": "Övrigt",
+		"device": "Enhetens lagring"
+	},
+	"instanceSettings": {
+		"pushFailed": "Det gick inte att skicka: {{error}}",
+		"pullFailed": "Det gick inte att hämta: {{error}}",
+		"saveFailed": "Det gick inte att spara inställningarna: {{error}}",
+		"title": "Instansinställningar",
+		"description": "Ställ in startparametrar och minnesgränser för <b>{{name}}</b>.",
+		"namePlaceholder": "Min Minecraft-instans",
+		"loader": "laddare {{version}}",
+		"backup": "Bytt från {{from}} till {{to}}. Säkerhetskopia {{size}}.",
+		"backupWithWorlds": "Bytt från {{from}} till {{to}}. Säkerhetskopia {{size}}, med världar.",
+		"memoryOverride": "Använd annat minne för den här instansen",
+		"minMemory": "Startminne (min):",
+		"maxMemory": "Maxminne (max):",
+		"inheritMemory": "Följer de globala inställningarna: <b>{{min}} min / {{max}} max</b>. Kan ändras på sidan Inställningar.",
+		"jvmArgs": "JVM-argument",
+		"jvmArgsHint": "Extra startargument för Java (separerade med mellanslag)",
+		"java": "Egen Java-körfil",
+		"javaHint": "Lämna tomt för den automatiskt hanterade Adoptium-körmiljön",
+		"windowOverride": "Använd annan helskärm och fönsterstorlek för den här instansen",
+		"fullscreenHint": "Starta direkt i helskärm",
+		"resolution": "Upplösning:",
+		"fullscreen": "Helskärm",
+		"inheritDisplay": "Följer den globala visningen: <b>{{value}}</b>. Kan ändras i startprogrammets inställningar.",
+		"syncHint": "Synkar alternativ, servrar, paket, historik och snabbfält",
+		"manualSync": "Manuell synkronisering",
+		"manualSyncHint": "Exportera instansens data eller hämta de senaste filerna från den delade lagringen.",
+		"push": "Skicka till delad lagring",
+		"pull": "Hämta från delad lagring",
+		"syncOptions": "Synka spelalternativ (options.txt)",
+		"syncServers": "Synka flerspelarservrar (servers.dat)",
+		"syncPacks": "Synka resurspaket (resourcepacks/)",
+		"syncHistory": "Synka kommandohistorik (command_history.txt)",
+		"syncHotbars": "Synka kreativa snabbfält (hotbar.nbt)",
+		"inheritSync": "Följer de globala synkinställningarna. Synkar före start och efter avslut."
+	},
+	"install": {
+		"loadFailed": "Det gick inte att läsa in installationsalternativen",
+		"compatible": "Kompatibel",
+		"all": "Alla",
+		"any": "Valfri",
+		"modpackDone": "Modpaketet \"{{name}}\" har installerats som en ny instans!",
+		"selectTarget": "Välj målinstans...",
+		"added": "{{file}} har lagts till i {{instance}}!",
+		"modpackTitle": "Installera modpaket",
+		"addTitle_mod": "Lägg till modden i en instans",
+		"addTitle_resourcepack": "Lägg till resurspaketet i en instans",
+		"addTitle_shader": "Lägg till shadern i en instans",
+		"addTitle_modpack": "Lägg till modpaketet i en instans",
+		"addTitle_datapack": "Lägg till datapaketet i en instans",
+		"addTitle_plugin": "Lägg till pluginet i en instans",
+		"modpackDescription": "Skapa en ny Minecraft-instans från \"{{title}}\".",
+		"description": "Installera \"{{title}}\" i en av dina instanser.",
+		"loading": "Läser in alternativ...",
+		"retry": "Försök igen",
+		"modpackVersion": "Modpaketets version",
+		"selectModpackVersion": "Välj modpaketets version...",
+		"loaders": "Laddare:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Skapa först en instans på fliken Instanser innan du lägger till moddar eller resurspaket.",
+		"target": "Målinstans",
+		"fileVersion": "Filversion",
+		"selectFileVersion": "Välj filversion...",
+		"supports": "Stöder:",
+		"createAndInstall": "Skapa och installera",
+		"installToInstance": "Installera i instansen",
+		"compatibleCount_one": "{{count}} kompatibel version",
+		"compatibleCount_other": "{{count}} kompatibla versioner"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpaket",
+		"resourcepack": "Resurspaket",
+		"shader": "Shader",
+		"datapack": "Datapaket",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Stabil",
+		"beta": "Beta",
+		"alpha": "Alfa"
+	},
+	"contentDetails": {
+		"loadFailed": "Det gick inte att läsa in projektinformationen",
+		"addToInstance": "Lägg till i en instans",
+		"versions": "Versioner och filer",
+		"versionsCount": "Versioner och filer ({{count}})",
+		"loading": "Läser in projektinformation...",
+		"gallery": "Galleri ({{count}})",
+		"clickToOpen": "Klicka på bilden för helskärm",
+		"viewFullscreen": "Visa i helskärm",
+		"scrollLeft": "Rulla galleriet åt vänster",
+		"scrollRight": "Rulla galleriet åt höger",
+		"source": "Källkod",
+		"issues": "Ärendehantering",
+		"wiki": "Wiki",
+		"description": "Beskrivning",
+		"gameVersion": "Spelversion:",
+		"noMatch": "Inga versioner matchar dina filter.",
+		"openOriginal": "Öppna originalet",
+		"previous": "Föregående bild",
+		"next": "Nästa bild",
+		"downloads_one": "{{formatted}} nedladdning",
+		"downloads_other": "{{formatted}} nedladdningar",
+		"followers_one": "{{formatted}} följare",
+		"followers_other": "{{formatted}} följare",
+		"showing_one": "{{shown}} av {{count}} version",
+		"showing_other": "{{shown}} av {{count}} versioner"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Välj instansmappen för {{launcher}}",
+		"selectDir": "Välj mappen för en Minecraft-instans",
+		"done": "Instansen har importerats!",
+		"title": "Importera från ett annat startprogram",
+		"selectInstance": "Välj instans ({{launcher}})",
+		"configure": "Konfigurera importen",
+		"description": "Importera Minecraft-installationer, moddar, världar och inställningar direkt till Ingot.",
+		"optionsDescription": "Välj vilka data som ska flyttas till din nya Ingot-instans.",
+		"detecting": "Letar efter installerade startprogram...",
+		"notDetected": "Hittades inte • Klicka för att leta upp",
+		"custom": "Egen mapp",
+		"customHint": "Välj valfri instansmapp på disken",
+		"backToLaunchers": "Tillbaka till startprogram",
+		"changeFolder": "Byt mapp",
+		"filter": "Filtrera instanser...",
+		"loadingInstances": "Läser in instanser...",
+		"noneFound": "Inga instanser hittades i den här mappen.",
+		"select": "Välj",
+		"nameInIngot": "Instansens namn i Ingot:",
+		"namePlaceholder": "Min importerade instans",
+		"source": "Källa: {{path}}",
+		"components": "Välj vad som ska importeras:",
+		"mods": "Moddar",
+		"configs": "Konfigurationer",
+		"configsHint": "Inställningar och moddkonfigurationer",
+		"worlds": "Världar och sparade spel",
+		"packs": "Resurspaket",
+		"packsHint": "Texturer och shaderpaket",
+		"screenshotsHint": "Skärmbilder från spelet",
+		"modData": "Modddata och övrigt",
+		"modDataHint": "Vägpunkter, schematics, inspelningar m.m.",
+		"options": "Spelalternativ",
+		"optionsHint": "options.txt och tangenter",
+		"servers": "Flerspelarservrar",
+		"serversHint": "Serverlistan servers.dat",
+		"note": "Allt ovan är valfritt. Med <b>Modddata och övrigt</b> kopieras moddarnas egna mappar (minikartans vägpunkter, schematics, inspelningar) säkert. Avmarkera för en ren import utan extra filer.",
+		"importing": "Importerar...",
+		"import": "Importera instans",
+		"found_one": "Hittade {{count}} instans i {{launcher}}. Välj vilken som ska importeras.",
+		"found_other": "Hittade {{count}} instanser i {{launcher}}. Välj vilken som ska importeras.",
+		"instancesFound_one": "{{count}} instans hittad",
+		"instancesFound_other": "{{count}} instanser hittade",
+		"modsCount_one": "{{count}} mod",
+		"modsCount_other": "{{count}} moddar",
+		"worldsCount_one": "{{count}} värld",
+		"worldsCount_other": "{{count}} världar",
+		"screenshotsCount_one": "{{count}} skärmbild",
+		"screenshotsCount_other": "{{count}} skärmbilder",
+		"modFiles_one": "{{count}} moddfil",
+		"modFiles_other": "{{count}} moddfiler",
+		"singleplayerWorlds_one": "{{count}} enspelarvärld",
+		"singleplayerWorlds_other": "{{count}} enspelarvärldar"
+	},
+	"skinViewer": {
+		"resetCamera": "Återställ 3D-kameran",
+		"pauseRotation": "Pausa rotationen",
+		"autoRotate": "Rotera 3D-modellen automatiskt",
+		"idlePose": "Byt till stillastående",
+		"playWalk": "Spela gånganimationen",
+		"idleTitle": "Andningsanimation",
+		"idle": "Stilla",
+		"walkTitle": "Gånganimation",
+		"walk": "Gå",
+		"runTitle": "Springanimation",
+		"run": "Spring",
+		"waveTitle": "Vinkanimation",
+		"wave": "Vinka",
+		"pause": "Pausa animationer",
+		"outerOn": "Yttre lager på",
+		"outerOff": "Yttre lager av",
+		"modelSlim": "Modell: smal (Alex)",
+		"modelClassic": "Modell: klassisk (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Eget skin",
+		"currentActiveSkin": "Aktivt skin",
+		"activeAccountSkin": "Det aktiva kontots skin",
+		"loadFailed": "Det gick inte att läsa in skins från Ely.by",
+		"defaultSteve": "Standard-Steve",
+		"addAccountFirst": "Lägg till eller välj ett Ely.by-konto först.",
+		"elyOnlySync": "Bara Ely.by-konton stöder skinsynk.",
+		"customApplied": "Eget skin tillämpat på {{name}}!",
+		"skinApplied": "Skin nr {{id}} tillämpat på {{name}}!",
+		"applyFailed": "Det gick inte att tillämpa skinnet.",
+		"enterPassword": "Ange ditt Ely.by-lösenord.",
+		"skinFromDate": "Skin {{date}}",
+		"uploadedApplied": "Eget skin uppladdat och tillämpat på {{name}}!",
+		"pngOnly": "Skinfilen måste vara i PNG-format (.png).",
+		"tooLarge": "Skinfilen är för stor (max 2 MB).",
+		"badSize": "Ogiltiga mått: {{size}}. Vanliga Minecraft-skins är 64x64 eller 64x32 pixlar.",
+		"badImage": "Det gick inte att läsa bilden. Kontrollera att det är en giltig PNG.",
+		"elyOnlyUpload": "Bara Ely.by-konton stöder uppladdning av skins.",
+		"uploadFailed": "Det gick inte att ladda upp skinnet.",
+		"saved": "Skin nr {{id}} sparat!",
+		"downloadFailed": "Nedladdningen misslyckades.",
+		"urlCopied": "Texturens URL har kopierats!",
+		"activeAccount": "Aktivt Ely.by-konto",
+		"noActiveAccount": "Inget aktivt Ely.by-konto",
+		"browse": "Bläddra bland skins",
+		"preview3d": "3D-förhandsvisning",
+		"currentSkin": "Nuvarande skin",
+		"skinNumber": "Skin nr {{id}}",
+		"alexSlim3": "Alex (smal, 3 px)",
+		"steveClassic4": "Steve (klassisk, 4 px)",
+		"currentSkinOf": "Nuvarande skin ({{name}})",
+		"applyTo": "Tillämpa skinnet på {{name}}",
+		"applyToAccount": "Tillämpa skinnet på kontot",
+		"downloadPng": "Ladda ned PNG",
+		"updating": "Uppdaterar...",
+		"loadingMine": "Läser in dina uppladdade skins från Ely.by...",
+		"loading": "Läser in skins från Ely.by...",
+		"noMatchingUploads": "Inga uppladdade skins matchar",
+		"noUploadsFor": "Inga uppladdade skins för {{name}}",
+		"tryDifferent": "Prova en annan sökning eller ett annat filter.",
+		"noUploadsHint": "Du har inte laddat upp några egna skins till Ely.by än. Ladda upp ett för att hantera och bära det när du vill.",
+		"selectAccountHint": "Välj eller lägg till ett Ely.by-konto för att se dina uppladdade skins.",
+		"uploadASkin": "Ladda upp ett skin",
+		"noSkins": "Inga skins hittades",
+		"deleteCustom": "Ta bort eget skin",
+		"slim": "Smal",
+		"classic": "Klassisk",
+		"pageOf": "Sida <b>{{page}}</b> av {{total}}",
+		"total": "({{count}} totalt)",
+		"previous": "Föregående",
+		"next": "Nästa",
+		"alexSlim": "Alex (smal)",
+		"steveClassic": "Steve (klassisk)",
+		"view3d": "3D-vy",
+		"apply": "Tillämpa",
+		"livePreview": "Live-förhandsvisning i 3D",
+		"uploading": "Laddar upp och tillämpar...",
+		"uploadApply": "Ladda upp och tillämpa skinnet",
+		"uploadTitle": "Ladda upp eget skin",
+		"uploadDescription": "Ladda upp en Minecraft-skintextur från datorn och tillämpa den direkt på Ely.by.",
+		"dropHint": "Klicka för att bläddra eller dra skinnets PNG hit",
+		"supports": "Vanliga Minecraft-skins (PNG 64×64 eller 64×32, upp till 2 MB)",
+		"dimensions": "Mått: {{value}}",
+		"size": "Storlek: {{value}}",
+		"armModel": "Skinnets armmodell",
+		"armModelHint": "Välj om skinnet är gjort för klassiska (4 px) eller smala (3 px) armar.",
+		"classicArms": "Klassisk (4 px-armar)",
+		"slimArms": "Smal (3 px-armar)",
+		"targetAccount": "Ely.by-konto att använda",
+		"noAccount": "Inget aktivt konto",
+		"readyToApply": "Redo att tillämpa",
+		"passwordTitle": "Behörighet med Ely.by-lösenord",
+		"passwordDescription": "Ange kontots lösenord för att ändra ditt Ely.by-skin för <b>{{name}}</b>. Det krypteras säkert i systemets nyckelring.",
+		"passwordPlaceholder": "Ely.by-lösenord",
+		"authorize": "Godkänn och tillämpa",
+		"count_one": "{{formatted}} skin",
+		"count_other": "{{formatted}} skins"
+	},
+	"select": {
+		"placeholder": "Välj ett alternativ",
+		"noMatches": "Inga träffar"
+	},
+	"hosting": {
+		"one": "Kör {{name}}",
+		"many": "Kör {{count}} servrar",
+		"tunnel": "Ingot-tunneln är aktiv",
+		"publicAddress": "Offentlig adress: {{address}}",
+		"connecting": "playit.gg-tunneln ansluter...",
+		"localOnly": "Bara lokalt nätverk"
 	}
 }

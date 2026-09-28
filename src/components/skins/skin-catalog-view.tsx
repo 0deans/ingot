@@ -1,5 +1,6 @@
 import { keepPreviousData, queryOptions, useQuery, useQueryClient } from "@tanstack/react-query"
 import { getRouteApi } from "@tanstack/react-router"
+import i18n from "i18next"
 import {
 	AlertCircle,
 	ArrowUpDown,
@@ -24,7 +25,7 @@ import {
 	X,
 } from "lucide-react"
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import SkinViewer3D, { DEFAULT_STEVE_SKIN } from "@/components/accounts/skin-viewer-3d"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,6 +45,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import SkinAvatar from "@/components/ui/skin-avatar"
+import { formatBytes, formatCount, formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { accountService, skinStorageService, useAccounts } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
@@ -52,11 +54,12 @@ import SkinPreviewCanvas from "./skin-preview-canvas"
 
 const routeApi = getRouteApi("/skins")
 
-const SORT_OPTIONS: { id: SkinSortOption; label: string }[] = [
-	{ id: "wearers", label: "Popular" },
-	{ id: "latest", label: "Latest" },
-	{ id: "views", label: "Views" },
-	{ id: "cubes", label: "Likes" },
+/** Labels are skins.sorts.<id> in the locale files */
+const SORT_OPTIONS: { id: SkinSortOption }[] = [
+	{ id: "wearers" },
+	{ id: "latest" },
+	{ id: "views" },
+	{ id: "cubes" },
 ]
 
 const MODEL_OPTIONS: readonly ("any" | "steve" | "slim")[] = ["any", "steve", "slim"]
@@ -64,10 +67,8 @@ const MODEL_OPTIONS: readonly ("any" | "steve" | "slim")[] = ["any", "steve", "s
 let lastKnownSkin: ElySkinItem | null = null
 
 function formatNumber(num?: number | null): string {
-	if (num === undefined || num === null || Number.isNaN(num)) return "0"
-	if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`
-	if (num >= 1_000) return `${(num / 1_000).toFixed(1)}k`
-	return String(num)
+	if (num === undefined || num === null || Number.isNaN(num)) return formatCount(0)
+	return formatCount(num)
 }
 
 function normalizeSkinItem(raw: ElySkinItem | Record<string, unknown>): ElySkinItem {
@@ -159,7 +160,7 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 					countWearers: 1,
 					countCubes: 0,
 					countViews: 0,
-					tags: [u.name || "Custom Skin"],
+					tags: [u.name || i18n.t("skinsPage.customSkin")],
 					isCustom: true,
 					name: u.name,
 					uploadedAt: u.uploadedAt,
@@ -194,8 +195,8 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 						countWearers: 1,
 						countCubes: 0,
 						countViews: 0,
-						tags: ["Current Active Skin", params.accountUsername || ""],
-						name: "Active Account Skin",
+						tags: [i18n.t("skinsPage.currentActiveSkin"), params.accountUsername || ""],
+						name: i18n.t("skinsPage.activeAccountSkin"),
 					})
 				}
 
@@ -291,7 +292,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	const catalogError = error
 		? error instanceof Error
 			? error.message
-			: "Failed to load skins from Ely.by"
+			: t("skinsPage.loadFailed")
 		: null
 	const isLoadingCatalog = isLoading
 
@@ -322,9 +323,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			countWearers: 0,
 			countCubes: 0,
 			countViews: 0,
-			tags: targetAccount ? [targetAccount.username] : ["Default Steve"],
+			tags: targetAccount ? [targetAccount.username] : [t("skinsPage.defaultSteve")],
 		}),
-		[targetAccount],
+		[targetAccount, t],
 	)
 
 	const activeSkin = useMemo(() => {
@@ -410,7 +411,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		if (!targetAccount) {
 			setApplyStatusMessage({
 				type: "error",
-				text: "Please add or select an Ely.by account first.",
+				text: t("skinsPage.addAccountFirst"),
 			})
 			return
 		}
@@ -418,7 +419,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		if (targetAccount.accountType !== "ely") {
 			setApplyStatusMessage({
 				type: "error",
-				text: "Only Ely.by accounts support cloud skins synchronization.",
+				text: t("skinsPage.elyOnlySync"),
 			})
 			return
 		}
@@ -445,13 +446,13 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				await accountService.uploadElySkin(targetAccount.id, skin.dataUrl)
 				setApplyStatusMessage({
 					type: "success",
-					text: `Custom skin applied to ${targetAccount.username}!`,
+					text: t("skinsPage.customApplied", { name: targetAccount.username }),
 				})
 			} else if (skin.id > 0) {
 				await accountService.applyElySkin(targetAccount.id, skin.id)
 				setApplyStatusMessage({
 					type: "success",
-					text: `Skin #${skin.id} applied to ${targetAccount.username}!`,
+					text: t("skinsPage.skinApplied", { id: skin.id, name: targetAccount.username }),
 				})
 			}
 			await queryClient.invalidateQueries({ queryKey: ["skins"] })
@@ -469,7 +470,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			} else {
 				setApplyStatusMessage({
 					type: "error",
-					text: msg || "Failed to apply skin.",
+					text: msg || t("skinsPage.applyFailed"),
 				})
 			}
 		} finally {
@@ -481,7 +482,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	const handleProcessPendingAction = async () => {
 		if (!pendingAction || !targetAccount) return
 		if (!passwordInput.trim()) {
-			setPasswordError("Please enter your Ely.by password.")
+			setPasswordError(t("skinsPage.enterPassword"))
 			return
 		}
 
@@ -493,12 +494,15 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				await accountService.applyElySkin(targetAccount.id, pendingAction.skinId, passwordInput)
 				setApplyStatusMessage({
 					type: "success",
-					text: `Skin #${pendingAction.skinId} applied to ${targetAccount.username}!`,
+					text: t("skinsPage.skinApplied", {
+						id: pendingAction.skinId,
+						name: targetAccount.username,
+					}),
 				})
 			} else if (pendingAction.type === "upload") {
 				skinStorageService.saveUploadedSkin(targetAccount.id, {
 					id: `custom_${Date.now()}`,
-					name: uploadedFileName || `Skin ${new Date().toLocaleDateString()}`,
+					name: uploadedFileName || t("skinsPage.skinFromDate", { date: formatDate(Date.now()) }),
 					dataUrl: pendingAction.dataUrl,
 					isSlim: uploadedModel === "slim",
 					uploadedAt: Date.now(),
@@ -506,7 +510,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				await accountService.uploadElySkin(targetAccount.id, pendingAction.dataUrl, passwordInput)
 				setApplyStatusMessage({
 					type: "success",
-					text: `Custom skin uploaded and applied to ${targetAccount.username}!`,
+					text: t("skinsPage.uploadedApplied", { name: targetAccount.username }),
 				})
 				handleTabChange("my-skins")
 			}
@@ -538,12 +542,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		setUploadValidationDetails(null)
 
 		if (!file.type.includes("png")) {
-			setUploadError("Skin file must be in PNG format (.png).")
+			setUploadError(t("skinsPage.pngOnly"))
 			return
 		}
 
 		if (file.size > 2 * 1024 * 1024) {
-			setUploadError("Skin file is too large (max 2 MB).")
+			setUploadError(t("skinsPage.tooLarge"))
 			return
 		}
 
@@ -564,9 +568,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 					(w === 128 && h === 64)
 
 				if (!isValidMinecraftSkin) {
-					setUploadError(
-						`Invalid dimensions: ${w}x${h}. Standard Minecraft skins must be 64x64 or 64x32 pixels.`,
-					)
+					setUploadError(t("skinsPage.badSize", { size: `${w}x${h}` }))
 					return
 				}
 
@@ -574,11 +576,11 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				setUploadedFileName(file.name)
 				setUploadValidationDetails({
 					dimensions: `${w}x${h} px`,
-					sizeKb: `${(file.size / 1024).toFixed(1)} KB`,
+					sizeKb: formatBytes(file.size),
 				})
 			}
 			img.onerror = () => {
-				setUploadError("Could not parse image. Please make sure it is a valid PNG file.")
+				setUploadError(t("skinsPage.badImage"))
 			}
 			img.src = dataUrl
 		}
@@ -607,7 +609,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		if (targetAccount.accountType !== "ely") {
 			setApplyStatusMessage({
 				type: "error",
-				text: "Only Ely.by accounts support skin upload.",
+				text: t("skinsPage.elyOnlyUpload"),
 			})
 			return
 		}
@@ -626,7 +628,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 			skinStorageService.saveUploadedSkin(targetAccount.id, {
 				id: `custom_${Date.now()}`,
-				name: uploadedFileName || `Skin ${new Date().toLocaleDateString()}`,
+				name: uploadedFileName || t("skinsPage.skinFromDate", { date: formatDate(Date.now()) }),
 				dataUrl: uploadedDataUrl,
 				isSlim: uploadedModel === "slim",
 				uploadedAt: Date.now(),
@@ -634,7 +636,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			await accountService.uploadElySkin(targetAccount.id, uploadedDataUrl)
 			setApplyStatusMessage({
 				type: "success",
-				text: `Custom skin uploaded and applied to ${targetAccount.username}!`,
+				text: t("skinsPage.uploadedApplied", { name: targetAccount.username }),
 			})
 			handleTabChange("my-skins")
 			await queryClient.invalidateQueries({ queryKey: ["skins"] })
@@ -648,7 +650,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			} else {
 				setApplyStatusMessage({
 					type: "error",
-					text: msg || "Failed to upload skin.",
+					text: msg || t("skinsPage.uploadFailed"),
 				})
 			}
 		} finally {
@@ -663,12 +665,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			if (!savedPath) return // User cancelled file dialog
 			setApplyStatusMessage({
 				type: "success",
-				text: `Skin #${skin.id} saved successfully!`,
+				text: t("skinsPage.saved", { id: skin.id }),
 			})
 		} catch (err: unknown) {
 			setApplyStatusMessage({
 				type: "error",
-				text: err instanceof Error ? err.message : "Download failed.",
+				text: err instanceof Error ? err.message : t("skinsPage.downloadFailed"),
 			})
 		}
 	}
@@ -677,7 +679,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		navigator.clipboard.writeText(url)
 		setApplyStatusMessage({
 			type: "success",
-			text: "Skin texture URL copied to clipboard!",
+			text: t("skinsPage.urlCopied"),
 		})
 	}
 
@@ -702,13 +704,13 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<span className="max-w-[120px] truncate font-medium">{targetAccount.username}</span>
 							<span
 								className="size-1.5 rounded-full bg-emerald-500"
-								title="Active Ely.by account"
+								title={t("skinsPage.activeAccount")}
 							/>
 						</div>
 					) : (
 						<div className="flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-1.5 text-amber-400 text-xs">
 							<AlertCircle className="size-3.5" />
-							<span>No active Ely account</span>
+							<span>{t("skinsPage.noActiveAccount")}</span>
 						</div>
 					)}
 
@@ -810,7 +812,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							>
 								<Grid className="size-3.5" />
 								<span>
-									{activeTab === "my-skins" ? "My Skins" : "Browse Skins"}{" "}
+									{activeTab === "my-skins" ? t("skins.tabs.mySkins") : t("skinsPage.browse")}{" "}
 									{totalItems > 0 ? `(${formatNumber(totalItems)})` : ""}
 								</span>
 							</button>
@@ -825,7 +827,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								onClick={() => setMobileView("preview")}
 							>
 								<Sparkles className="size-3.5 text-emerald-400" />
-								<span>3D Preview</span>
+								<span>{t("skinsPage.preview3d")}</span>
 							</button>
 						</div>
 
@@ -865,18 +867,18 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										onClick={() => setMobileView("catalog")}
 									>
 										<ChevronLeft className="mr-0.5 size-3.5" />
-										Catalog
+										{t("skins.tabs.catalog")}
 									</Button>
 									<span className="font-semibold text-xs text-zinc-200">
 										{activeSkin.name
 											? activeSkin.name
 											: activeSkin.id === 0
-												? "Current Skin"
-												: `Skin #${activeSkin.id}`}
+												? t("skinsPage.currentSkin")
+												: t("skinsPage.skinNumber", { id: activeSkin.id })}
 									</span>
 								</div>
 								<span className="pointer-events-auto rounded-full border border-zinc-800/80 bg-zinc-900/90 px-2.5 py-0.5 font-medium text-[10px] text-zinc-300 backdrop-blur-xs">
-									{activeSkin.isSlim ? "Alex (Slim 3px)" : "Steve (Classic 4px)"}
+									{activeSkin.isSlim ? t("skinsPage.alexSlim3") : t("skinsPage.steveClassic4")}
 								</span>
 							</div>
 
@@ -901,8 +903,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										<Sparkles className="size-4" />
 									)}
 									{activeSkin.id === 0 && !activeSkin.dataUrl
-										? `Current Skin (${targetAccount?.username || "Active"})`
-										: `Apply Skin to ${targetAccount ? targetAccount.username : "Account"}`}
+										? t("skinsPage.currentSkinOf", { name: targetAccount?.username ?? "" })
+										: targetAccount
+											? t("skinsPage.applyTo", { name: targetAccount.username })
+											: t("skinsPage.applyToAccount")}
 								</Button>
 
 								<div className="pointer-events-auto grid grid-cols-2 gap-2">
@@ -913,7 +917,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										onClick={() => handleDownloadSkin(activeSkin)}
 									>
 										<Download className="size-3.5" />
-										Download PNG
+										{t("skinsPage.downloadPng")}
 									</Button>
 									<Button
 										variant="outline"
@@ -922,7 +926,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										onClick={() => handleCopyUrl(activeSkin.skinUrl)}
 									>
 										<Copy className="size-3.5" />
-										Copy URL
+										{t("skinPreview.copyUrl")}
 									</Button>
 								</div>
 							</div>
@@ -1047,7 +1051,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 									{totalItems > 0 && (
 										<span className="hidden font-mono text-[11px] text-zinc-500 xl:inline">
-											{formatNumber(totalItems)} skins
+											{t("skinsPage.count", {
+												count: totalItems,
+												formatted: formatNumber(totalItems),
+											})}
 										</span>
 									)}
 								</div>
@@ -1058,7 +1065,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								{isFetching && skins.length > 0 && (
 									<div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 rounded-full border border-zinc-700/80 bg-zinc-900/95 px-2.5 py-1 text-[11px] text-zinc-300 shadow-md backdrop-blur-xs">
 										<Loader2 className="size-3 animate-spin text-emerald-400" />
-										<span>Updating...</span>
+										<span>{t("skinsPage.updating")}</span>
 									</div>
 								)}
 
@@ -1068,8 +1075,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											<Loader2 className="size-6 animate-spin text-emerald-400" />
 											<span className="text-xs">
 												{activeTab === "my-skins"
-													? "Loading your uploaded skins from Ely.by..."
-													: "Loading skins from Ely.by..."}
+													? t("skinsPage.loadingMine")
+													: t("skinsPage.loading")}
 											</span>
 										</div>
 									) : catalogError ? (
@@ -1083,7 +1090,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												className="h-7 text-xs"
 											>
 												<RefreshCw className="mr-1.5 size-3" />
-												Retry
+												{t("install.retry")}
 											</Button>
 										</div>
 									) : skins.length === 0 ? (
@@ -1095,17 +1102,17 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													</div>
 													<p className="font-medium text-xs text-zinc-300">
 														{searchQuery
-															? "No matching uploaded skins found"
+															? t("skinsPage.noMatchingUploads")
 															: targetAccount
-																? `No uploaded skins found for ${targetAccount.username}`
-																: "No active Ely.by account"}
+																? t("skinsPage.noUploadsFor", { name: targetAccount.username })
+																: t("skinsPage.noActiveAccount")}
 													</p>
 													<p className="max-w-xs text-[11px] text-zinc-500">
 														{searchQuery
-															? "Try a different search query or filter."
+															? t("skinsPage.tryDifferent")
 															: targetAccount
-																? "You haven't uploaded any custom skins to Ely.by yet. Upload a skin to manage and wear it anytime."
-																: "Please select or add an Ely.by account to view your uploaded skins."}
+																? t("skinsPage.noUploadsHint")
+																: t("skinsPage.selectAccountHint")}
 													</p>
 													{!searchQuery && targetAccount && (
 														<Button
@@ -1115,17 +1122,17 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															onClick={() => handleTabChange("upload")}
 														>
 															<Upload className="size-3.5" />
-															Upload a Skin
+															{t("skinsPage.uploadASkin")}
 														</Button>
 													)}
 												</>
 											) : (
 												<>
 													<Search className="size-8 opacity-40" />
-													<p className="font-medium text-xs text-zinc-400">No skins found</p>
-													<p className="text-[11px] text-zinc-500">
-														Try a different search query or filter.
+													<p className="font-medium text-xs text-zinc-400">
+														{t("skinsPage.noSkins")}
 													</p>
+													<p className="text-[11px] text-zinc-500">{t("skinsPage.tryDifferent")}</p>
 												</>
 											)}
 										</div>
@@ -1139,7 +1146,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													skin.name ||
 													(skin.tags.length > 0
 														? skin.tags[0].replace(/_/g, " ")
-														: `Skin #${skin.id}`)
+														: t("skinsPage.skinNumber", { id: skin.id }))
 
 												return (
 													<button
@@ -1175,7 +1182,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																	handleRemoveCustomSkin(skin, e)
 																}}
 																className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-zinc-900/90 text-zinc-400 any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-rose-500/20 hover:text-rose-400 focus-visible:opacity-100 group-hover:opacity-100"
-																title="Delete custom skin"
+																title={t("skinsPage.deleteCustom")}
 															>
 																<Trash2 className="size-3" />
 															</button>
@@ -1200,8 +1207,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																{title}
 															</span>
 															<div className="flex items-center justify-between text-[10px] text-zinc-500">
-																<span className="capitalize">
-																	{skin.isSlim ? "Slim" : "Classic"}
+																<span>
+																	{skin.isSlim ? t("skinsPage.slim") : t("skinsPage.classic")}
 																</span>
 																{skin.countWearers > 0 && (
 																	<span className="flex items-center gap-0.5 font-mono">
@@ -1221,9 +1228,15 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								{/* Pagination Bar */}
 								<div className="flex shrink-0 flex-col gap-2 border-border/30 border-t bg-zinc-950/40 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
 									<span className="text-[11px] text-zinc-400">
-										Page <strong className="text-zinc-200">{page}</strong> of {lastPage}
+										<Trans
+											i18nKey="skinsPage.pageOf"
+											values={{ page, total: lastPage }}
+											components={{ b: <strong className="text-zinc-200" /> }}
+										/>
 										{totalItems > 0 && (
-											<span className="ml-1 text-zinc-500">({formatNumber(totalItems)} total)</span>
+											<span className="ml-1 text-zinc-500">
+												{t("skinsPage.total", { count: formatNumber(totalItems) })}
+											</span>
 										)}
 									</span>
 									<div className="flex items-center gap-1.5">
@@ -1239,7 +1252,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											className="h-7 px-2 text-xs"
 										>
 											<ChevronLeft className="mr-0.5 size-3.5" />
-											Previous
+											{t("skinsPage.previous")}
 										</Button>
 										<Button
 											size="sm"
@@ -1252,7 +1265,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											}
 											className="h-7 px-2 text-xs"
 										>
-											Next
+											{t("skinsPage.next")}
 											<ChevronRight className="ml-0.5 size-3.5" />
 										</Button>
 									</div>
@@ -1271,11 +1284,11 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												{activeSkin.name
 													? activeSkin.name
 													: activeSkin.id === 0
-														? "Current Skin"
-														: `Skin #${activeSkin.id}`}
+														? t("skinsPage.currentSkin")
+														: t("skinsPage.skinNumber", { id: activeSkin.id })}
 											</p>
 											<span className="text-[10px] text-zinc-400">
-												{activeSkin.isSlim ? "Alex (Slim)" : "Steve (Classic)"}
+												{activeSkin.isSlim ? t("skinsPage.alexSlim") : t("skinsPage.steveClassic")}
 											</span>
 										</div>
 									</div>
@@ -1287,7 +1300,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											onClick={() => setMobileView("preview")}
 										>
 											<Eye className="size-3" />
-											3D View
+											{t("skinsPage.view3d")}
 										</Button>
 										<Button
 											size="xs"
@@ -1304,7 +1317,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											) : (
 												<Sparkles className="size-3" />
 											)}
-											Apply
+											{t("skinsPage.apply")}
 										</Button>
 									</div>
 								</div>
@@ -1339,9 +1352,13 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 							{/* Top Showcase Header (Floating Overlay) */}
 							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-zinc-950/90 via-zinc-950/50 to-transparent p-4 lg:p-5">
-								<span className="font-semibold text-xs text-zinc-200">Live 3D Preview</span>
+								<span className="font-semibold text-xs text-zinc-200">
+									{t("skinsPage.livePreview")}
+								</span>
 								<span className="pointer-events-auto rounded-full border border-zinc-800/80 bg-zinc-900/90 px-2.5 py-0.5 font-medium text-[10px] text-zinc-300 backdrop-blur-xs">
-									{uploadedModel === "default" ? "Steve (Classic 4px)" : "Alex (Slim 3px)"}
+									{uploadedModel === "default"
+										? t("skinsPage.steveClassic4")
+										: t("skinsPage.alexSlim3")}
 								</span>
 							</div>
 
@@ -1359,12 +1376,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									{isApplying ? (
 										<>
 											<Loader2 className="size-4 animate-spin" />
-											Uploading & Applying...
+											{t("skinsPage.uploading")}
 										</>
 									) : (
 										<>
 											<Upload className="size-4" />
-											Upload and Apply Skin
+											{t("skinsPage.uploadApply")}
 										</>
 									)}
 								</Button>
@@ -1375,10 +1392,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						<ScrollArea scrollFade className="flex-1" viewportClassName="p-5 lg:p-8">
 							<div className="mx-auto flex w-full max-w-xl flex-col gap-5">
 								<div>
-									<h2 className="font-semibold text-base text-zinc-100">Upload Custom Skin</h2>
-									<p className="mt-0.5 text-xs text-zinc-400">
-										Upload a Minecraft skin texture from your computer to apply directly to Ely.by.
-									</p>
+									<h2 className="font-semibold text-base text-zinc-100">
+										{t("skinsPage.uploadTitle")}
+									</h2>
+									<p className="mt-0.5 text-xs text-zinc-400">{t("skinsPage.uploadDescription")}</p>
 								</div>
 
 								{/* Drag & Drop Upload Zone */}
@@ -1411,17 +1428,17 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										<Upload className="size-5 text-emerald-400" />
 									</div>
 									<p className="font-medium text-xs text-zinc-200 sm:text-sm">
-										{uploadedFileName || "Click to browse or drag & drop skin PNG file here"}
+										{uploadedFileName || t("skinsPage.dropHint")}
 									</p>
-									<p className="mt-1 text-[11px] text-zinc-500">
-										Supports standard Minecraft skins (64×64 or 64×32 PNG, up to 2 MB)
-									</p>
+									<p className="mt-1 text-[11px] text-zinc-500">{t("skinsPage.supports")}</p>
 
 									{uploadValidationDetails && (
 										<div className="mt-3 flex items-center gap-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] text-emerald-300">
-											<span>Dimensions: {uploadValidationDetails.dimensions}</span>
+											<span>
+												{t("skinsPage.dimensions", { value: uploadValidationDetails.dimensions })}
+											</span>
 											<span>•</span>
-											<span>Size: {uploadValidationDetails.sizeKb}</span>
+											<span>{t("skinsPage.size", { value: uploadValidationDetails.sizeKb })}</span>
 										</div>
 									)}
 								</label>
@@ -1436,9 +1453,11 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								{/* Skin Arm Model Choice */}
 								<div className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
 									<div>
-										<span className="font-medium text-xs text-zinc-300">Skin Arm Model</span>
+										<span className="font-medium text-xs text-zinc-300">
+											{t("skinsPage.armModel")}
+										</span>
 										<p className="mt-0.5 text-[11px] text-zinc-500">
-											Choose whether this skin was made for Classic (4px) or Slim (3px) arms.
+											{t("skinsPage.armModelHint")}
 										</p>
 									</div>
 									<div className="grid grid-cols-2 gap-2.5 pt-1">
@@ -1453,7 +1472,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											onClick={() => setUploadedModel("default")}
 										>
 											<span className="font-semibold text-xs">Steve</span>
-											<span className="text-[10px] text-zinc-500">Classic (4px arms)</span>
+											<span className="text-[10px] text-zinc-500">
+												{t("skinsPage.classicArms")}
+											</span>
 										</button>
 										<button
 											type="button"
@@ -1466,7 +1487,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											onClick={() => setUploadedModel("slim")}
 										>
 											<span className="font-semibold text-xs">Alex</span>
-											<span className="text-[10px] text-zinc-500">Slim (3px arms)</span>
+											<span className="text-[10px] text-zinc-500">{t("skinsPage.slimArms")}</span>
 										</button>
 									</div>
 								</div>
@@ -1474,14 +1495,14 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								{/* Target Ely.by Account */}
 								<div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-3.5 text-xs">
 									<div>
-										<div className="text-[11px] text-zinc-400">Target Ely.by Account</div>
+										<div className="text-[11px] text-zinc-400">{t("skinsPage.targetAccount")}</div>
 										<div className="mt-0.5 font-semibold text-xs text-zinc-200">
-											{targetAccount ? targetAccount.username : "No active account"}
+											{targetAccount ? targetAccount.username : t("skinsPage.noAccount")}
 										</div>
 									</div>
 									{targetAccount && (
 										<span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-[10px] text-emerald-400">
-											Ready to apply
+											{t("skinsPage.readyToApply")}
 										</span>
 									)}
 								</div>
@@ -1499,11 +1520,14 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<KeyRound className="size-5 text-emerald-400" />
 						</div>
 						<DialogTitle className="text-base text-zinc-100">
-							Ely.by Password Authorization
+							{t("skinsPage.passwordTitle")}
 						</DialogTitle>
 						<DialogDescription className="text-xs text-zinc-400">
-							To modify your Ely.by skin for <strong>{targetAccount?.username}</strong>, please
-							enter your account password. It will be encrypted securely in your native OS Keyring.
+							<Trans
+								i18nKey="skinsPage.passwordDescription"
+								values={{ name: targetAccount?.username ?? "" }}
+								components={{ b: <strong /> }}
+							/>
 						</DialogDescription>
 					</DialogHeader>
 
@@ -1512,7 +1536,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<Lock className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-zinc-500" />
 							<Input
 								type="password"
-								placeholder="Ely.by Password"
+								placeholder={t("skinsPage.passwordPlaceholder")}
 								value={passwordInput}
 								onChange={(e) => setPasswordInput(e.target.value)}
 								onKeyDown={(e) => {
@@ -1533,7 +1557,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							onClick={() => setShowPasswordDialog(false)}
 							className="text-xs text-zinc-400 hover:text-zinc-200"
 						>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							size="sm"
@@ -1541,7 +1565,11 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							disabled={isApplying || !passwordInput.trim()}
 							className="bg-emerald-600 text-white text-xs hover:bg-emerald-500"
 						>
-							{isApplying ? <Loader2 className="size-3.5 animate-spin" /> : "Authorize & Apply"}
+							{isApplying ? (
+								<Loader2 className="size-3.5 animate-spin" />
+							) : (
+								t("skinsPage.authorize")
+							)}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

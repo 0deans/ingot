@@ -6,6 +6,7 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { Check, Eye, GripVertical, Trash2 } from "lucide-react"
 import { memo, type Ref } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import SkinAvatar from "@/components/ui/skin-avatar"
 import { cn } from "@/lib/utils"
@@ -34,6 +35,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 	dragHandleProps,
 	isDragging = false,
 }: AccountItemProps) {
+	const { t } = useTranslation()
 	return (
 		<div
 			ref={ref}
@@ -51,14 +53,14 @@ export const AccountCardContent = memo(function AccountCardContent({
 				{/* Drag handle */}
 				<button
 					type="button"
-					aria-label={`Reorder account ${account.username}`}
+					aria-label={t("accounts.reorder", { name: account.username })}
 					{...dragHandleProps}
 					style={{ touchAction: "none" }}
 					className={cn(
 						"flex size-8 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-zinc-800/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
 						(isDragging || isOverlay) && "cursor-grabbing bg-zinc-800/80 text-primary",
 					)}
-					title="Drag to reorder account"
+					title={t("accounts.dragToReorder")}
 				>
 					<GripVertical className="size-4" />
 				</button>
@@ -68,7 +70,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 					type="button"
 					onClick={() => onPreviewSkin(account)}
 					className="group/avatar relative shrink-0 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-					title="Click to preview 3D skin"
+					title={t("accounts.clickToPreview")}
 				>
 					<SkinAvatar
 						username={account.username}
@@ -93,12 +95,12 @@ export const AccountCardContent = memo(function AccountCardContent({
 						)}
 						{account.accountType === "offline" && (
 							<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1.5 py-0.5 font-medium text-[10px] text-zinc-400">
-								Offline
+								{t("accounts.offline")}
 							</span>
 						)}
 						{account.isActive && (
 							<span className="inline-flex items-center gap-1 rounded-xs bg-primary/20 px-1.5 py-0.5 font-medium text-[10px] text-primary">
-								<Check className="size-2.5" /> Active
+								<Check className="size-2.5" /> {t("common.active")}
 							</span>
 						)}
 					</div>
@@ -114,14 +116,14 @@ export const AccountCardContent = memo(function AccountCardContent({
 					size="xs"
 					onClick={() => onPreviewSkin(account)}
 					className="gap-1.5 text-xs"
-					title="Preview 3D skin"
+					title={t("accounts.previewSkin")}
 				>
 					<Eye className="size-3.5" />
-					Skin
+					{t("accounts.skin")}
 				</Button>
 				{!account.isActive && (
 					<Button variant="outline" size="xs" onClick={() => onSetActive(account.id)}>
-						Set Active
+						{t("accounts.setAsActive")}
 					</Button>
 				)}
 				<Button
@@ -129,7 +131,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 					size="icon-xs"
 					className="text-muted-foreground hover:text-destructive"
 					onClick={() => onRemove(account.id)}
-					title="Remove account"
+					title={t("accounts.removeAccount")}
 				>
 					<Trash2 className="size-3.5" />
 				</Button>

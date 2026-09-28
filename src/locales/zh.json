@@ -23,11 +23,13 @@
 		"minimize": "最小化",
 		"maximize": "最大化",
 		"restore": "还原",
-		"justNow": "刚刚",
 		"never": "从未",
-		"minutesAgo": "{{count}} 分钟前",
-		"hoursAgo": "{{count}} 小时前",
-		"daysAgo": "{{count}} 天前"
+		"unknown": "未知",
+		"deleting": "正在删除...",
+		"stop": "停止",
+		"done": "完成",
+		"update": "更新",
+		"enable": "启用"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "选择您的语言",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "尚未配置任何账号。",
 		"previewSkin": "预览 3D 皮肤",
 		"removeAccount": "移除账号",
-		"setAsActive": "设为当前账号"
+		"setAsActive": "设为当前账号",
+		"offline": "离线",
+		"reorder": "重新排序账号 {{name}}",
+		"dragToReorder": "拖动以重新排序账号",
+		"clickToPreview": "点击预览 3D 皮肤",
+		"skin": "皮肤"
 	},
 	"instances": {
 		"searchPlaceholder": "搜索实例...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "在文件资源管理器中打开实例文件夹",
 			"settingsTooltip": "实例设置（内存、JVM 参数）",
 			"duplicateTooltip": "复制",
-			"deleteTooltip": "删除实例"
-		}
+			"deleteTooltip": "删除实例",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "发现内容",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "重置所有筛选条件",
 		"byAuthor": "作者：{{author}}",
 		"noDescription": "暂无描述。",
-		"details": "详情"
+		"details": "详情",
+		"loadFailed": "加载内容失败"
 	},
 	"skins": {
 		"title": "皮肤目录",
@@ -199,6 +209,18 @@
 			"description": "确定要永久删除这张截图吗？此操作无法撤销。",
 			"deleting": "正在删除...",
 			"deletePermanently": "永久删除"
+		},
+		"card": {
+			"view": "查看 {{name}}",
+			"unavailable": "图片不可用",
+			"fullscreen": "全屏",
+			"showInFolder": "在文件夹中显示"
+		},
+		"lightbox": {
+			"close": "关闭预览",
+			"closeEsc": "关闭 (Esc)",
+			"previous": "上一张截图",
+			"next": "下一张截图"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "新建服务器",
 		"createCardSubtitle": "Paper、Purpur、Fabric、Folia 或 Vanilla",
 		"noMatchTitle": "没有符合筛选条件的服务器",
-		"noMatchSubtitle": "请尝试更改搜索词或选择“全部核心”。"
+		"noMatchSubtitle": "请尝试更改搜索词或选择“全部核心”。",
+		"activeEntry": "{{name}} (端口 {{port}})"
 	},
 	"settings": {
 		"title": "启动器设置",
 		"subtitle": "配置账号、界面语言、Java 运行时、内存分配以及启动器行为。",
 		"language": {
 			"title": "语言 (Language)",
-			"description": "选择启动器界面的显示语言。添加到 src/locales/ 的新语言文件会自动热重载。"
+			"description": "选择启动器的语言。日期、数字与文件大小也将采用对应的格式。"
 		},
 		"theme": {
 			"title": "外观与主题",
@@ -263,7 +286,14 @@
 				"modded": "轻度模组",
 				"heavy": "大型整合包",
 				"safeMax": "安全上限"
-			}
+			},
+			"zoneSafe": "安全运行区域",
+			"zoneHigh": "高占用区域",
+			"zoneCritical": "系统临界区域",
+			"minShort": "最小：{{value}}",
+			"maxShort": "最大：{{value}}",
+			"totalShort": "{{value}} (最大)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "启动器行为",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "默认窗口分辨率",
 			"resolutionDesc": "设置游戏窗口的自定义宽度和高度",
 			"presets": "预设：",
-			"defaultPreset": "默认"
+			"defaultPreset": "默认",
+			"resetTo": "重置为 {{size}}"
 		},
 		"sync": {
 			"title": "游戏数据同步",
@@ -315,7 +346,8 @@
 					"title": "同步创造模式快捷栏",
 					"description": "在不同存档世界之间共享已保存的创造模式快捷栏布局"
 				}
-			}
+			},
+			"reinitialize": "重新初始化 {{title}} 同步源"
 		},
 		"updates": {
 			"title": "更新与版本",
@@ -340,5 +372,1195 @@
 			"dialogSubtitle": "Ingot 使用了来自其他项目的开源软件。每个软件均遵循各自的许可证；点击名称可查看其源代码与完整许可证。",
 			"trademark": "Minecraft 是 Mojang AB 的商标。Ingot 与 Mojang 或 Microsoft 没有任何关联。"
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "主世界",
+			"nether": "下界",
+			"end": "末地"
+		},
+		"gamemodes": {
+			"survival": "生存",
+			"creative": "创造",
+			"adventure": "冒险",
+			"spectator": "旁观"
+		}
+	},
+	"initialSync": {
+		"title": "初始同步",
+		"description": "您正在为 <b>{{name}}</b> 启用同步。您希望从何处进行初始同步？",
+		"fromInstance": "从该实例",
+		"uploadToShared": "上传至共享存储",
+		"fromInstanceDesc": "将该实例的选项与服务器复制到共享存储中作为主副本。",
+		"fromShared": "从共享存储",
+		"downloadToInstance": "下载至实例",
+		"fromSharedDesc": "将现有的共享选项与服务器下载到该实例中。"
+	},
+	"deleteInstance": {
+		"title": "删除实例",
+		"description": "确定要永久删除此实例吗？此操作无法撤销。",
+		"note": "此实例文件夹中存储的所有存档、世界、已安装模组、资源包及配置文件都将从磁盘中删除。"
+	},
+	"deleteServer": {
+		"title": "删除服务器",
+		"confirm": "确定要删除 <b>{{name}}</b> 吗？",
+		"details": "服务器详情：",
+		"detailsLine": "核心：{{core}} {{version}} • 端口：{{port}}",
+		"deleteFiles": "永久删除所有服务器文件",
+		"deleteFilesDesc": "包括计算机磁盘上的世界地图、玩家数据、插件和服务器日志。"
+	},
+	"companion": {
+		"system": "系统",
+		"liveMap": "实时地图",
+		"disabled": "已禁用",
+		"notInstalled": "实时地图 · 未安装",
+		"updated_plugin": "已更新 Ingot 插件。",
+		"updated_mod": "已更新 Ingot 模组。",
+		"installed_plugin": "已安装 Ingot 插件。",
+		"installed_mod": "已安装 Ingot 模组。",
+		"removed_plugin": "已移除 Ingot 插件。地图现在将在服务器保存时更新。",
+		"removed_mod": "已移除 Ingot 模组。地图现在将在服务器保存时更新。",
+		"enabled_plugin": "已启用 Ingot 插件。",
+		"enabled_mod": "已启用 Ingot 模组。",
+		"remove_plugin": "移除 Ingot 插件",
+		"remove_mod": "移除 Ingot 模组"
+	},
+	"syncConflict": {
+		"title": "检测到同步冲突",
+		"description": "<b>{{name}}</b> 包含尚未与您的共享存储同步的本地配置文件。",
+		"conflictingFiles": "冲突文件：",
+		"choose": "选择如何解决此次初始同步冲突：",
+		"useShared": "使用共享设置",
+		"overwritesLocal": "覆盖本地",
+		"useSharedDesc": "使用现有的共享设置替换该实例的选项和服务器。系统将自动为您的实例文件保存 <code>.bak</code> 备份。",
+		"useInstance": "将该实例设为共享主副本",
+		"overwritesShared": "覆盖共享",
+		"useInstanceDesc": "将该实例的选项和服务器推送到共享存储中作为主副本。现有的共享文件将被备份为 <code>.bak</code>。",
+		"disable": "保持独立（禁用同步）",
+		"noChanges": "无更改",
+		"disableDesc": "禁用该实例的同步功能，使其服务器和设置永远不会被其他实例修改或替换。"
+	},
+	"leftoverServers": {
+		"runningSince": "自 {{time}} 起一直在运行",
+		"stopped": "已停止",
+		"stopNote": "停止操作将立即结束运行。自上次自动保存以来的数据（最多几分钟）将会丢失，世界本身不会受到损坏。",
+		"leaveRunning": "保持运行",
+		"title_other": "上次的服务器仍在运行",
+		"description_other": "Ingot 关闭时没有停止这些服务器，因此控制台已关闭：Ingot 无法向它们发送命令或保存世界。停止服务器前，它们会继续占用端口和世界文件。"
+	},
+	"serverStatus": {
+		"running": "运行中",
+		"sleeping": "休眠中",
+		"stopped": "已停止",
+		"starting": "正在启动",
+		"stopping": "正在停止"
+	},
+	"serverTabs": {
+		"overview": "概览",
+		"console": "控制台",
+		"players": "玩家",
+		"map": "地图",
+		"plugins": "插件",
+		"mods": "模组",
+		"settings": "设置",
+		"home": "主页"
+	},
+	"serverWorkspace": {
+		"back": "返回服务器列表"
+	},
+	"duplicateInstance": {
+		"title": "创建实例副本",
+		"defaultName": "{{name}} (副本)",
+		"description": "创建一份包含相同模组、配置、资源包和设置的独立副本。对其中一个实例的更改不会影响另一个，因此副本是尝试新版本或模组的安全选择。",
+		"nameLabel": "副本名称",
+		"copyWorlds": "复制世界",
+		"noWorldsYet": "暂无世界",
+		"copyWorldsDesc": "若不勾选，副本将不包含任何单人游戏世界。",
+		"note": "游玩时间将从零开始。日志、崩溃报告和截图仍保留在原实例中。",
+		"running": "游戏正在运行。请先关闭游戏，以便世界按已保存的状态复制，或者在不复制世界的情况下创建副本。",
+		"copying": "正在复制…",
+		"action": "创建副本"
+	},
+	"quitDialog": {
+		"title_quit": "退出前停止您的服务器？",
+		"title_update": "停止您的服务器以进行更新？",
+		"title_restart": "停止您的服务器以进行重启？",
+		"action_quit": "停止服务器并退出",
+		"action_update": "停止服务器并更新",
+		"action_restart": "停止服务器并重启",
+		"stopping": "正在停止…",
+		"keepInTray": "在托盘中保持运行",
+		"asleep_other": "这些服务器处于休眠状态。玩家加入时会唤醒它们，但仅当 Ingot 正在运行时有效。",
+		"consoles_other": "这些服务器的控制台在 Ingot 中运行。如果 Ingot 先关闭，服务器会继续运行，但您将无法控制它们或保存世界。",
+		"saving_other": "正在保存世界并停止服务器。这最多需要 30 秒。",
+		"games_other": "无论您如何操作，游戏都会继续运行。重新打开 Ingot 后，它会重新接管这些游戏。"
+	},
+	"crashDialog": {
+		"title": "{{name}} 在版本 {{version}} 上首次启动时崩溃",
+		"suspects_plugin": "这通常是因为某个插件尚不支持新版本。崩溃报告指向：",
+		"suspects_mod": "这通常是因为某个模组尚不支持新版本。崩溃报告指向：",
+		"suspects_either": "这通常是因为某个插件或模组尚不支持新版本。崩溃报告指向：",
+		"noSuspects_plugin": "崩溃报告中未指出具体的插件。您可以撤销更改并等待更新。",
+		"noSuspects_mod": "崩溃报告中未指出具体的模组。您可以撤销更改并等待更新。",
+		"noSuspects_either": "崩溃报告中未指出具体的插件或模组。您可以撤销更改并等待更新。",
+		"turnOff": "禁用",
+		"turnedOff": "已禁用",
+		"details": "崩溃详情",
+		"keepTrying": "继续尝试",
+		"undo": "撤销版本更改",
+		"undone": "已恢复为 {{version}}，与更改前完全一致。",
+		"tryAgain_server_other": "再次启动服务器，尝试不加载这些项目。撤销操作仍可重新启用它们。",
+		"tryAgain_game_other": "再次启动游戏，尝试不加载这些项目。撤销操作仍可重新启用它们。"
+	},
+	"skinPreview": {
+		"saving": "正在保存...",
+		"saved": "已保存！",
+		"error": "错误",
+		"changeSkin": "更换皮肤",
+		"copyUrlTitle": "复制皮肤材质 URL",
+		"copied": "已复制",
+		"copyUrl": "复制 URL",
+		"downloadTitle": "下载皮肤材质文件到“下载”文件夹",
+		"download": "下载"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "白名单",
+			"ops": "管理员 (OP)",
+			"bans": "封禁列表"
+		},
+		"whitelist": {
+			"title": "白名单",
+			"empty": "白名单中暂无玩家",
+			"description": "启用后，仅这些玩家可以加入。",
+			"add": "添加"
+		},
+		"ops": {
+			"title": "管理员 (OP)",
+			"empty": "暂无管理员",
+			"description": "管理员可以使用所有指令，包括 /stop 和 /op。",
+			"add": "设为 OP"
+		},
+		"bans": {
+			"title": "已封禁玩家",
+			"empty": "暂无被封禁的玩家",
+			"description": "被封禁的玩家在被赦免前无法加入。",
+			"add": "封禁"
+		},
+		"whitelistOn": "白名单开启",
+		"whitelistOff": "白名单关闭",
+		"onlyListed": "仅列表中的玩家可以加入。",
+		"anyone": "任何人都可以加入此服务器。",
+		"invalidName": "用户名只能包含字母、数字和下划线 (_)",
+		"playerName": "玩家名称",
+		"permissionLevel": "权限等级 {{level}}",
+		"banned": "已封禁",
+		"noUuid": "无 UUID",
+		"remove": "移除 {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "包含在 Android 应用中",
+				"note": "在 Android 上的 Linux 沙盒中运行服务器软件。构建自 Termux 项目。"
+			},
+			"downloaded": {
+				"title": "按需下载",
+				"note": "在某项功能首次使用时，从官方源获取。"
+			},
+			"servers": {
+				"title": "可安装的服务器软件",
+				"note": "在您创建每个服务器时，从对应的项目下载。"
+			}
+		},
+		"roles": {
+			"proot": "用于服务器的 Linux 沙盒",
+			"talloc": "PRoot 使用的内存库",
+			"shmem": "PRoot 的共享内存支持",
+			"temurin": "桌面端用于服务器和游戏的 Java",
+			"alpine": "Android 沙盒的基础系统，包括其 OpenJDK",
+			"pumpkin": "Pumpkin 服务器",
+			"playit": "服务器的公网地址",
+			"paper": "Paper 服务器",
+			"folia": "Folia 服务器",
+			"purpur": "Purpur 服务器",
+			"fabric": "Fabric 服务器",
+			"vanilla": "Vanilla 服务器（由 Mojang 开发，非开源）"
+		},
+		"names": {
+			"minecraftServer": "Minecraft 服务器"
+		},
+		"various": "各种开源许可证"
+	},
+	"directConnect": {
+		"title": "直连服务器",
+		"description": "启动 <b>{{name}}</b> 并直接进入多人服务器，跳过主菜单。",
+		"address": "服务器地址",
+		"addressPlaceholder": "例如 mc.hypixel.net 或 localhost:25565",
+		"localServers": "已配置的本地服务器",
+		"recent": "最近连接的服务器",
+		"removeRecent": "从最近列表中移除",
+		"launch": "启动并连接"
+	},
+	"console": {
+		"autoScrollOn": "自动滚动开启",
+		"autoScrollOff": "自动滚动关闭",
+		"copyAll": "复制全部",
+		"clear": "清空",
+		"waiting": "正在等待输出...",
+		"offline": "服务器已离线",
+		"offlineHint": "启动服务器以查看其控制台。",
+		"latest": "最新",
+		"placeholder": "输入指令，例如 time set day",
+		"send": "发送指令"
+	},
+	"syncMaster": {
+		"setAsSource": "将“{{name}}”设为主同步源。",
+		"error": "错误：{{error}}",
+		"categoryTitle": "初始同步：{{title}}",
+		"title": "选择主同步实例",
+		"categoryDescription": "选择共享存储初始获取 {{file}} 的来源：",
+		"description": "选择一个现有实例来填充共享同步存储。其设置和数据将作为共享基准。",
+		"useExisting": "使用现有共享数据",
+		"keepCurrent": "在共享存储中保留当前的 <code>{{file}}</code>",
+		"useShared": "使用共享数据",
+		"orCopyFrom": "或从现有实例复制：",
+		"copyFrom": "从现有实例复制：",
+		"noInstances": "未找到实例。",
+		"useThis": "使用此实例",
+		"setAsMaster": "设为主副本",
+		"noCopy": "暂不想复制任何数据？",
+		"startFresh": "全新空白开始"
+	},
+	"quickJoin": {
+		"title": "快速游玩 — 加入服务器",
+		"description": "启动 Minecraft 并直接加入 <b>{{name}}</b> ({{address}})。",
+		"target": "目标：{{address}}",
+		"choose": "选择客户端实例",
+		"noInstances": "未找到 Minecraft 实例",
+		"noInstancesHint": "请先创建一个客户端实例以加入您的服务器。",
+		"createInstance": "创建实例",
+		"matches": "与服务器版本匹配",
+		"launch": "启动并加入"
+	},
+	"players": {
+		"tabs": {
+			"online": "在线",
+			"all": "全部玩家",
+			"access": "访问权限"
+		},
+		"offlineHint": "启动服务器以查看在线玩家、生命值、物品栏和位置。",
+		"starting": "服务器正在启动...",
+		"startingHint": "世界加载完成后即可显示玩家。",
+		"liveError": "无法读取实时玩家数据：{{error}}。实时数据需要 Java 服务器（Paper、Purpur、Fabric 或 Vanilla）。",
+		"checking": "正在检查在线玩家...",
+		"nobody": "暂无在线玩家",
+		"nobodyHint": "玩家加入后将立即在此处显示。",
+		"none": "暂无玩家记录",
+		"noneHint": "加入过此服务器的所有玩家都将列在此处，并显示其最后保存的物品栏。",
+		"search": "搜索玩家",
+		"onlineNow": "当前在线",
+		"lastSeen": "最后在线时间 {{time}}"
+	},
+	"map": {
+		"upToDate": "已是最新",
+		"noWorld": "暂无世界",
+		"noWorldHint": "请先启动一次服务器以生成世界。已探索的区域将显示在地图上。",
+		"liveTitle": "Ingot 通过服务器内存保持地图最新",
+		"live": "实时",
+		"restartToGoLive": "重启以启用实时同步",
+		"makeLiveTitle_plugin": "安装 Ingot 插件即可实时更新地图，无需等待保存世界",
+		"makeLiveTitle_mod": "安装 Ingot 模组即可实时更新地图，无需等待保存世界",
+		"makeLive": "启用实时更新",
+		"refreshTitle": "检查最新保存的区域",
+		"ariaLabel": "世界地图。拖动以平移，滚动或捏合以缩放。",
+		"zoomIn": "放大",
+		"zoomOut": "缩小",
+		"updatedAreas_other": "已更新 {{count}} 个区域"
+	},
+	"pluginDetails": {
+		"byline": "作者：{{author}} · {{downloads}} 次下载",
+		"playersNeedIt": "玩家也需要此模组：任何加入服务器的玩家都必须在其游戏中安装该模组，否则无法加入。",
+		"installing": "正在安装...",
+		"page": "页面",
+		"noCompatible": "尚无适用于 Minecraft {{version}} 的版本。您仍可在“版本”列表中选择较旧的版本，但可能无法正常工作。",
+		"about": "关于",
+		"versions": "版本列表",
+		"noDescription": "暂无简介。",
+		"onlyFor": "仅显示适用于 Minecraft {{version}} 的版本",
+		"noVersions": "无可用版本",
+		"noVersionsHint": "请尝试显示所有版本。",
+		"website": "官方网站",
+		"anyVersion": "任意版本"
+	},
+	"addAccount": {
+		"missingCredentials": "请输入用户名/邮箱及密码。",
+		"welcomeBack": "欢迎回来，{{name}}！",
+		"elyFailed": "连接到 Ely.by 失败",
+		"missingNickname": "请输入玩家昵称。",
+		"offlineCreated": "已为 {{name}} 创建离线档案",
+		"offlineFailed": "创建离线账号失败",
+		"description": "连接您的 Ely.by 账号或配置离线档案以开始游玩。",
+		"tokensSecure": "令牌已安全加密存储在操作系统的凭据管理器中。",
+		"usernameOrEmail": "用户名或邮箱",
+		"usernamePlaceholder": "例如 notch 或 player@ely.by",
+		"password": "密码",
+		"connecting": "正在连接...",
+		"logIn": "登录至 Ely.by",
+		"offlineNote": "离线账号游玩时无需在线会话令牌。",
+		"nickname": "玩家昵称",
+		"nicknamePlaceholder": "例如 Steve",
+		"adding": "正在添加...",
+		"addProfile": "添加档案",
+		"microsoftTitle": "Microsoft / Xbox Live 登录",
+		"microsoftSoon": "Mojang 官方 Microsoft 账号 OAuth 集成将在后续版本中推出。"
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "游戏玩法",
+			"players": "玩家设置",
+			"world": "世界设置",
+			"network": "网络设置",
+			"advanced": "高级设置"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "游戏模式",
+				"description": "新加入玩家的默认游戏模式。",
+				"options": {
+					"survival": "生存",
+					"creative": "创造",
+					"adventure": "冒险",
+					"spectator": "旁观"
+				}
+			},
+			"difficulty": {
+				"label": "难度",
+				"description": "生物的危险程度。",
+				"options": {
+					"peaceful": "和平",
+					"easy": "简单",
+					"normal": "普通",
+					"hard": "困难"
+				}
+			},
+			"force-gamemode": {
+				"label": "强制游戏模式",
+				"description": "玩家每次重新加入时均恢复为默认模式。"
+			},
+			"hardcore": {
+				"label": "极限模式",
+				"description": "玩家死亡后将切换为旁观模式。"
+			},
+			"pvp": {
+				"label": "玩家对战 (PvP)",
+				"description": "玩家之间可以互相攻击。"
+			},
+			"allow-flight": {
+				"label": "允许飞行",
+				"description": "不因飞行而踢出玩家（某些模组和插件需要）。"
+			},
+			"spawn-protection": {
+				"label": "出生点保护",
+				"description": "出生点周围仅管理员可建筑的半径范围。设为 0 即关闭。"
+			},
+			"max-players": {
+				"label": "最大玩家数",
+				"description": "同时在线的最大玩家人数。"
+			},
+			"online-mode": {
+				"label": "正版验证 (在线模式)",
+				"description": "向 Mojang 验证账号。关闭后允许离线或 Ely.by 账号加入。"
+			},
+			"player-idle-timeout": {
+				"label": "挂机踢出时长",
+				"description": "挂机超过该分钟数后踢出玩家。设为 0 则不踢出。"
+			},
+			"op-permission-level": {
+				"label": "管理员权限等级",
+				"description": "管理员的操作权限：1 忽略出生点保护 … 4 拥有所有权限。"
+			},
+			"hide-online-players": {
+				"label": "隐藏玩家列表",
+				"description": "不在多人游戏菜单中显示在线玩家名单。"
+			},
+			"enforce-secure-profile": {
+				"label": "强制安全聊天签名",
+				"description": "仅允许拥有 Mojang 签名聊天密钥的玩家加入。"
+			},
+			"view-distance": {
+				"label": "视距",
+				"description": "玩家可看见的区块距离。数值越低对设备负担越小。"
+			},
+			"simulation-distance": {
+				"label": "模拟距离",
+				"description": "玩家周围世界保持运算更新的区块距离。"
+			},
+			"level-seed": {
+				"label": "世界种子",
+				"description": "新世界的种子。仅在世界初次创建时使用。",
+				"placeholder": "随机"
+			},
+			"level-type": {
+				"label": "世界类型",
+				"description": "仅在世界初次创建时使用。",
+				"options": {
+					"minecraft_normal": "默认",
+					"minecraft_flat": "超平坦",
+					"minecraft_large_biomes": "巨型生物群系",
+					"minecraft_amplified": "放大"
+				}
+			},
+			"generate-structures": {
+				"label": "生成结构",
+				"description": "在新生成的区块中生成村庄、神殿等建筑结构。"
+			},
+			"allow-nether": {
+				"label": "允许下界",
+				"description": "允许玩家前往下界维度。"
+			},
+			"max-world-size": {
+				"label": "世界边界半径",
+				"description": "玩家可从中心向外移动的最大方块距离。"
+			},
+			"server-port": {
+				"label": "服务器端口",
+				"description": "服务器监听的端口号。"
+			},
+			"enable-status": {
+				"label": "在服务器列表中显示状态",
+				"description": "响应来自多人游戏菜单的 Ping 请求（显示 MOTD、在线人数）。"
+			},
+			"network-compression-threshold": {
+				"label": "网络压缩阈值",
+				"description": "压缩大于此大小的数据包。-1 禁用压缩。"
+			},
+			"enable-command-block": {
+				"label": "命令方块",
+				"description": "允许命令方块执行命令。"
+			},
+			"sync-chunk-writes": {
+				"label": "安全区块写入",
+				"description": "同步写入区块。更安全，但稍慢。"
+			},
+			"max-tick-time": {
+				"label": "看门狗超时时间",
+				"description": "若单个 Tick 耗时超过此值则关闭服务器。-1 禁用。"
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "实体渲染距离",
+				"description": "向玩家同步实体的距离百分比。"
+			}
+		},
+		"units": {
+			"blocks": "方块",
+			"min": "分钟",
+			"chunks": "区块",
+			"bytes": "字节",
+			"ms": "毫秒",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "大多数更改将在服务器重启后生效。",
+		"badImage": "无法使用该图片：{{error}}",
+		"emptyName": "名称不能为空。",
+		"identity": "服务器标识",
+		"identityDesc": "服务器在多人游戏列表中的外观展示。",
+		"name": "名称",
+		"motd": "描述 (MOTD) · 最多两行，按 Enter 键换行",
+		"motdReset": "重置",
+		"saved": "已保存",
+		"saveChanges": "保存更改",
+		"memory": "RAM",
+		"memoryMobile": "请将其设置在远低于手机实际 RAM 的范围内。",
+		"memoryDesktop": "分配给 Java 服务器的最大 RAM。",
+		"portInUse": "端口 {{port}} 已被另一个服务器占用。请尝试 {{next}}。",
+		"gameSettings": "游戏设置",
+		"gameSettingsDesc": "server.properties 配置项及说明。",
+		"allOther": "所有其他属性",
+		"filter": "筛选属性",
+		"discard": "放弃更改",
+		"configFiles": "配置文件",
+		"configFilesDesc": "服务器及插件配置文件 (YAML, JSON, TOML)。",
+		"saveFile": "保存文件",
+		"manage": "管理",
+		"changed_other": "已更改 {{count}} 项"
+	},
+	"newInstance": {
+		"title": "新建实例",
+		"description": "选择您的 Minecraft 版本与偏好的模组加载器。Ingot 将自动配置环境与 Java。",
+		"modLoader": "模组加载器",
+		"minecraftVersion": "Minecraft 版本",
+		"snapshots": "快照版本",
+		"snapshotBadge": "快照",
+		"latestBadge": "最新",
+		"loadingVersions": "正在加载版本...",
+		"selectVersion": "选择 Minecraft 版本",
+		"searchVersion": "搜索版本（例如 1.20、1.16）...",
+		"loaderVersion": "加载器版本",
+		"noCompatible": "无兼容版本",
+		"selectLoaderVersion": "选择加载器版本",
+		"searchLoaderVersion": "搜索加载器版本...",
+		"name": "实例名称",
+		"namePlaceholder": "例如 Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "服务器设置",
+		"yourServers": "您的服务器",
+		"newServer": "新建服务器",
+		"about": "关于与开源许可"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "正在检查服务器文件...",
+			"preparingPumpkin": "正在准备 Pumpkin 服务器...",
+			"downloadingPumpkin": "正在下载 Pumpkin（仅首次启动）...",
+			"preparingSandbox": "正在准备 Linux 沙盒...",
+			"downloadingSandbox": "正在下载 Linux 沙盒...",
+			"extractingSandbox": "正在解压沙盒文件系统...",
+			"installingJava": "正在沙盒中安装 Java {{version}}...",
+			"sandboxReady": "沙盒初始化完成！",
+			"installingCore": "正在安装 {{name}}（仅首次启动，可能需要几分钟）...",
+			"launching": "正在启动服务器进程...",
+			"failed": "启动失败：{{error}}"
+		},
+		"notes": {
+			"unknownSource": "未收录在 Modrinth、CurseForge 或 Hangar 中，Ingot 无法检查",
+			"beta": "Beta 测试版，可能不稳定",
+			"alpha": "Alpha 测试版，可能不稳定",
+			"siteOnly": "其 {{target}} 版本仅能从 {{site}} 下载",
+			"fabricOnly": "仅在 Fabric 和 Quilt 上需要",
+			"noVersion": "尚无适用于 {{target}} 的版本",
+			"pluginNotMarked": "尚未标记支持 {{version}}；大多数插件仍可正常运行",
+			"notUpdated": "尚未针对 {{version}} 更新；通常仍可正常运行",
+			"sameAs": "与 {{name}} 相同",
+			"incompatible": "与 {{name}} 不兼容",
+			"needsTurnedOff": "需要正在被禁用的 {{name}}",
+			"needsMissing": "需要 {{name}}，但其没有适用于 {{version}} 的版本",
+			"neededBy": "被 {{name}} 所需"
+		},
+		"launch": {
+			"preparing": "正在准备启动",
+			"resolvingVersion": "正在解析版本",
+			"resolvingLoader": "正在解析模组加载器",
+			"checkingJava": "正在检查 Java 运行时",
+			"javaSetup": "Java 安装配置",
+			"downloadingClient": "正在下载客户端",
+			"downloadingLibraries": "正在下载运行库",
+			"downloadingAssets": "正在下载资源文件",
+			"verifying": "正在校验文件",
+			"auth": "身份验证配置",
+			"starting": "正在启动游戏",
+			"fetchingMetadata": "正在获取版本元数据...",
+			"fetchingProfile": "正在获取 {{loader}} 配置文件...",
+			"detectingJava": "正在检测 Java 环境...",
+			"downloadingJavaProgress": "正在下载 Java {{version}} 运行时 ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "正在下载 Java {{version}} 运行时...",
+			"extractingJava": "正在解压 Java {{version}} 运行时...",
+			"downloadingJar": "正在下载 Minecraft 客户端 Jar 文件...",
+			"downloadingLibrariesCount": "正在下载 {{count}} 个运行库...",
+			"library": "运行库 {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "正在下载 {{count}} 个资源文件...",
+			"assets": "资源文件 {{current}}/{{total}}",
+			"verified": "所有游戏文件已校验完毕",
+			"authDetail": "正在配置 Ely.by 皮肤与认证代理...",
+			"launching": "正在启动 Minecraft 进程...",
+			"connecting": "正在连接到 {{server}}...",
+			"loadingWorld": "正在加载世界 {{world}}...",
+			"initializing": "正在初始化启动流程..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "在其他玩家眼中的显示效果",
+		"startingUp": "正在启动...",
+		"shuttingDown": "正在关闭...",
+		"cantConnect": "无法连接到服务器",
+		"preparing": "正在准备...",
+		"sleepingNote": "已休眠以节省资源。当有玩家加入时将自动唤醒。",
+		"failedToStart": "启动失败。",
+		"start": "启动服务器",
+		"wake": "唤醒",
+		"sleep": "休眠",
+		"starting": "正在启动...",
+		"stopping": "正在停止...",
+		"uptime": "运行时间",
+		"native": "原生",
+		"noOutput": "暂无输出"
+	},
+	"serverCard": {
+		"offline": "离线",
+		"openPage": "打开服务器页面",
+		"copyAddress": "点击复制服务器地址",
+		"noneOnline": "0 人在线",
+		"joinTitle": "启动 Minecraft 并连接到此服务器",
+		"join": "加入",
+		"start": "启动",
+		"openFolder": "打开服务器文件夹"
+	},
+	"versionChange": {
+		"title": "更改版本",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "存在冲突",
+			"missing": "暂无可用版本",
+			"unknown": "无法检查",
+			"newDependency": "新增依赖项",
+			"update": "有可用更新",
+			"works": "已兼容",
+			"olderVersions": "旧版本"
+		},
+		"actions": {
+			"keep": "保留",
+			"update": "更新",
+			"disable": "关闭",
+			"add": "安装",
+			"skip": "不安装"
+		},
+		"kinds": {
+			"resourcePack": "资源包",
+			"shader": "着色器",
+			"mod": "Mod",
+			"plugin": "插件"
+		},
+		"downgradeTitle": "{{to}} 早于 {{from}}",
+		"downgradeWarning": "在较新版本中玩的世界通常无法在较旧版本中打开，并且可能会损坏。保持世界备份，以便撤消可以将它们恢复。",
+		"downgradeOk": "我明白，无论如何都要转到旧版本",
+		"backupWorldsHint": "Minecraft 在打开世界时会升级世界，并且无法逆转。通过备份，撤消也可以恢复它们。",
+		"openOn": "打开 {{site}}",
+		"new": "新",
+		"instanceDescription": "Ingot 首先检查每个 mod、资源包和着色器，在应用之前不会进行任何更改。您可以稍后撤消它。",
+		"now": "现在",
+		"nowLabel": "现在",
+		"moveTo": "移至",
+		"pickVersion": "选择一个版本",
+		"searchVersion": "搜索版本...",
+		"loaderVersion": "{{loader}} 版本",
+		"pickLoaderVersion": "选择加载程序版本",
+		"noLoaderFor": "否 {{loader}} {{version}}",
+		"noLoader": "此版本没有 {{loader}}",
+		"loaderSwitchNote": "模组是为一台装载机制作的。 Ingot 查找每个 mod 的 {{loader}} 版本，并关闭没有的版本。",
+		"instanceEmpty": "没有要检查的模组、资源包或着色器。仅版本发生变化。",
+		"applying": "正在应用...",
+		"applyingHint": "下载并检查新文件，然后备份当前文件。在一切准备就绪之前，一切都不会改变。",
+		"applyingWithWorlds": "下载并检查新文件，然后备份您的世界和当前世界。在一切准备就绪之前，一切都不会改变。",
+		"nowOn": "现在在 {{version}} 上",
+		"instanceDone": "从 {{version}} 更改。如果某些功能不起作用，请从 实例 的设置中撤消它：一切都会完全恢复原样。",
+		"back": "返回",
+		"checking": "正在检查...",
+		"check": "检查兼容性",
+		"moveToVersion": "移至 {{version}}",
+		"summary": {
+			"download_other": "需下载 {{count}} 项（{{size}}）",
+			"turnedOff_other": "已关闭 {{count}} 项",
+			"conflictsKept_other": "保留了 {{count}} 个冲突项"
+		},
+		"backupWorlds_other": "备份世界（{{count}} 个世界，{{size}}）"
+	},
+	"errors": {
+		"launchInstance": "无法启动 实例：{{error}}",
+		"resolveConflict": "无法解决冲突：{{error}}",
+		"deleteInstance": "无法删除 实例：{{error}}",
+		"startServer": "无法启动服务器：{{error}}",
+		"deleteServer": "无法删除服务器：{{error}}",
+		"quickPlay": "无法快速播放服务器: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "正在加载播放器...",
+		"noData": "该播放器还没有数据。",
+		"health": "健康",
+		"hunger": "饥饿",
+		"air": "空气",
+		"experience": "体验",
+		"level": "等级 {{level}}",
+		"equipment": "装备",
+		"slots": {
+			"head": "头部",
+			"chest": "胸部",
+			"legs": "腿",
+			"feet": "脚",
+			"offhand": "副手"
+		},
+		"showOnMap": "在地图上显示",
+		"inventory": "库存",
+		"ender": "末影箱 ({{count}})",
+		"effects": "效果 ({{count}})",
+		"onFire": "着火",
+		"durability": "{{left}}/{{max}} 耐久性",
+		"enchanted": "附魔",
+		"noEffects": "无主动效果",
+		"heal": "治疗",
+		"feed": "饲料",
+		"removeOp": "删除 OP",
+		"whitelisted": "白名单",
+		"confirmKick": "踢 {{name}}？",
+		"confirmBan": "禁止 {{name}}？",
+		"confirm": "确认",
+		"kick": "踢"
+	},
+	"transfer": {
+		"zipArchive": "Zip 存档",
+		"savedTo": "保存到 {{path}}",
+		"copyName": "{{name}} 复制",
+		"created": "创建“{{name}}”。",
+		"title": "备份和版本",
+		"description": "导出以共享或备份、复制服务器或移动到另一个 Minecraft 版本。",
+		"exportConfigs": "导出配置",
+		"withoutWorlds": "无世界",
+		"exportAll": "导出所有",
+		"withWorlds": "有世界",
+		"makeCopy": "制作副本",
+		"secondServer": "第二个服务器",
+		"stopFirst": "首先停止服务器",
+		"nowVersion": "现在 {{version}}",
+		"backup": "由 {{version}} 更改。备份{{size}}。",
+		"backupWithWorlds": "由 {{version}} 更改。备份 {{size}}，包括世界。",
+		"deleteBackup": "删除备份",
+		"undo": "撤消，回到{{version}}",
+		"willStartOn": "{{name}} 将在 {{version}} 上启动。如果某些操作不起作用，您可以在此处撤消它。",
+		"currentVersion": "{{version}}（当前）",
+		"changeTitle": "更改Minecraft版本",
+		"changeDescription_plugin": "Ingot 首先检查每个插件，在您申请之前不会进行任何更改。一切都已备份，因此您可以撤消它。",
+		"changeDescription_mod": "Ingot 首先检查每个模组，在您申请之前不会进行任何更改。一切都已备份，因此您可以撤消它。",
+		"serverType": "服务器类型",
+		"empty": "无需检查插件或模组。仅版本发生变化。",
+		"readyFor": "准备好{{version}}",
+		"doneNote": "新版本将在下次启动时下载。如果某些内容不起作用，请从备份和版本中撤消它：一切都会完全恢复原样。",
+		"import": "导入服务器",
+		"importing": "导入 {{percent}}",
+		"settingUp": "设置服务器...",
+		"partial": "导入“{{name}}”，但某些插件或 mod 无法下载：",
+		"openServer": "打开服务器"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "高性能 Spigot/Bukkit 服务器具有完整的插件支持",
+			"badge": "快速稳定"
+		},
+		"purpur": {
+			"tagline": "功能丰富的 Paper 前叉，具有令人难以置信的定制功能",
+			"badge": "可定制"
+		},
+		"fabric": {
+			"tagline": "适用于 Fabric mods 的轻量级模块化服务器",
+			"badge": "Modded"
+		},
+		"neoforge": {
+			"tagline": "NeoForge mods 的 Modded 服务器，大多数大型内容 mods 的家",
+			"badge": "Modded"
+		},
+		"forge": {
+			"tagline": "原始 modded 服务器，用于 Minecraft 1.17 和更高版本上的 Forge mods",
+			"badge": "Modded"
+		},
+		"quilt": {
+			"tagline": "Fabric 兼容 modded同时运行 Quilt 和 Fabric mods 的服务器",
+			"badge": "Modded"
+		},
+		"folia": {
+			"tagline": "由 PaperMC 提供的多线程区域化服务器，用于大量玩家",
+			"badge": "多线程"
+		},
+		"pumpkin": {
+			"tagline": "超轻量级、Rust 驱动 — 即时启动、< 60 MB RAM",
+			"badge": "移动原生"
+		},
+		"vanilla": {
+			"tagline": "直接来自 Mojang 的官方未修改 Minecraft 服务器",
+			"badge": "原始"
+		}
+	},
+	"wizard": {
+		"defaultName": "{{core}} 服务器",
+		"fetchFailed": "无法获取版本。检查您的连接。",
+		"enterName": "请输入服务器名称。",
+		"selectVersion": "请选择 Minecraft 版本。",
+		"invalidPort": "输入有效端口 (1024 – 65534)。",
+		"portInUseTry": "端口 {{port}} 已在使用中。尝试{{next}}。",
+		"portInUse": "端口 {{port}} 已在使用中。",
+		"createFailed": "无法创建服务器",
+		"stepEngine": "选择您的引擎",
+		"stepName": "命名您的服务器",
+		"stepMemory": "内存并确认",
+		"stepOf": "{{total}} 的步骤 {{step}}",
+		"preparing": "正在准备服务器...",
+		"serverName": "服务器名称",
+		"namePlaceholder": "例如{{core}} 生存服务器",
+		"minecraftVersion": "Minecraft 版本",
+		"selectVersionPlaceholder": "选择版本",
+		"serverPort": "服务器端口",
+		"portInUseShort": "正在使用的端口",
+		"ready": "准备创建",
+		"engine": "引擎",
+		"version": "版本",
+		"ram": "RAM",
+		"memory": "内存 (RAM)",
+		"heroLine1": "您的第一个服务器，",
+		"heroLine2": "在几秒钟内。",
+		"heroText": "Ingot 直接在此设备上下载、配置和运行 Minecraft 服务器。邀请来自任何地方的朋友。",
+		"createAServer": "创建服务器",
+		"createAServerHint": "Paper、PumpkinMC、Fabric 等"
+	},
+	"plugins": {
+		"unsupported": "{{core}} 服务器不能使用插件",
+		"unsupportedHint": "创建 Paper 或 Purpur 服务器来添加插件，或用于 mods 的 Fabric 服务器。",
+		"installed": "安装了 {{name}}。",
+		"installedWith": "安装了 {{name}} 和 {{extras}}。",
+		"browse_plugin": "浏览插件",
+		"browse_mod": "浏览模组",
+		"restartToApply": "重新启​​动服务器以应用更改。",
+		"restart": "重新启动",
+		"noOther_plugin": "还没有其他插件。",
+		"noOther_mod": "还没有其他模组。",
+		"none_plugin": "尚无插件",
+		"none_mod": "尚无模组",
+		"find_plugin": "在 Modrinth 上查找插件并一键安装。",
+		"find_mod": "在 Modrinth 上查找模组并一键安装。",
+		"findHangar_plugin": "在 Modrinth 和 Hangar 上查找插件并一键安装。",
+		"findHangar_mod": "在 Modrinth 和 Hangar 上查找模组并一键安装。",
+		"updateAvailable": "可用更新：{{version}}",
+		"enabled": "启用 {{name}}。",
+		"disabled": "禁用 {{name}}。",
+		"enable": "启用 {{name}}",
+		"disable": "禁用 {{name}}",
+		"updated": "更新了 {{name}}。",
+		"removed": "删除了 {{name}}。",
+		"unknownVersion": "未知版本",
+		"byAuthors": "by {{authors}}",
+		"file": "文件",
+		"size": "大小",
+		"updateTo": "更新为 {{version}}",
+		"reallyDelete": "真的删除吗？",
+		"sort": {
+			"downloads": "最受欢迎",
+			"updated": "最近更新",
+			"newest": "最新的"
+		},
+		"searchPlaceholder_plugin": "搜索插件，例如LuckPerms",
+		"searchPlaceholder_mod": "搜索模组，例如锂",
+		"compatibleOnly": "仅显示 {{version}} 兼容结果",
+		"forVersion": "对于 {{version}}",
+		"searchFailed": "搜索失败：{{error}}",
+		"nothingFound": "未找到",
+		"noneForVersion_plugin": "没有与 Minecraft {{version}} 匹配的插件。尝试关闭版本过滤器。",
+		"noneForVersion_mod": "没有与 Minecraft {{version}} 匹配的模组。尝试关闭版本过滤器。",
+		"tryAnother": "尝试其他搜索。",
+		"loadMore": "加载更多",
+		"playersNeedItTitle": "玩家也必须安装此模组，否则无法加入",
+		"playersNeedIt": "玩家也需要",
+		"isInstalled": "{{name}} 安装了",
+		"install": "安装 {{name}}",
+		"results_other": "{{formatted}} 个结果"
+	},
+	"join": {
+		"shareTitle": "加入 {{name}}",
+		"shareText": "加入我的 Minecraft 服务器“{{name}}”！\n地址： {{address}}\n版本：Java版本 {{version}}",
+		"title": "邀请玩家",
+		"description": "分享地址，以便朋友可以加入。",
+		"sameWifi": "相同 Wi-Fi",
+		"copyLocal": "复制本地地址",
+		"anywhere": "任何地方 (playit.gg)",
+		"copyPublic": "复制公共地址",
+		"showQr": "显示二维码",
+		"linkPlayit": "链接您的 playit.gg 帐户",
+		"noTunnel": "已连接，但尚未建立隧道。 <link>为端口{{port}}添加一个</link>。",
+		"connecting": "正在连接...",
+		"notConnected": "未连接",
+		"stopPlayit": "停止播放",
+		"goPublic": "公开",
+		"share": "分享邀请",
+		"scan": "扫描复制地址",
+		"qrAlt": "二维码"
+	},
+	"stats": {
+		"latest": "最新：{{value}}",
+		"noData": "尚无数据",
+		"now": "现在",
+		"ago": "{{time}} 之前",
+		"min": "最小值",
+		"avg": "平均值",
+		"peak": "峰值",
+		"performance": "性能",
+		"touchHint": "触摸图表了解详细信息",
+		"ofDevice": "设备",
+		"allocated": "已分配",
+		"deviceRam": "设备 RAM",
+		"free": "{{size}} 免费",
+		"lag": "滞后",
+		"smooth": "平滑",
+		"slightLag": "轻微滞后",
+		"lagging": "滞后",
+		"used": "{{label}}：{{total}} 的 {{used}} 使用"
+	},
+	"storage": {
+		"title": "存储",
+		"worlds": "世界",
+		"plugins": "插件和模组",
+		"server": "服务器文件",
+		"backups": "备份",
+		"logs": "日志",
+		"other": "其他",
+		"device": "设备存储"
+	},
+	"instanceSettings": {
+		"pushFailed": "推送失败：{{error}}",
+		"pullFailed": "拉取失败：{{error}}",
+		"saveFailed": "保存设置失败：{{error}}",
+		"title": "实例 设置",
+		"description": "配置 <b>{{name}}</b> 的执行参数和内存限制。",
+		"namePlaceholder": "我的 Minecraft 实例",
+		"loader": "加载程序 {{version}}",
+		"backup": "从 {{from}} 更改为 {{to}}。备份{{size}}。",
+		"backupWithWorlds": "从 {{from}} 更改为 {{to}}。备份 {{size}}，包括世界。",
+		"memoryOverride": "覆盖此 实例",
+		"minMemory": "初始内存（最小值）：",
+		"maxMemory": "最大内存（最大值）：",
+		"inheritMemory": "继承全局设置：<b>{{min}} Min / {{max}} Max</b>。可在“设置”页面上进行配置。",
+		"jvmArgs": "JVM 参数",
+		"jvmArgsHint": "额外的 Java 启动参数（空格分隔）",
+		"java": "自定义 Java 可执行文件",
+		"javaHint": "对于自动管理的 Adoptium 运行时留空",
+		"windowOverride": "覆盖此 实例 的全屏和窗口大小",
+		"fullscreenHint": "直接启动进入全屏模式",
+		"resolution": "分辨率：",
+		"fullscreen": "全屏",
+		"inheritDisplay": "继承全局显示：<b>{{value}}</b>。可在启动器设置中配置。",
+		"syncHint": "同步选项、服务器、包、历史记录和快捷栏",
+		"manualSync": "手动存储同步",
+		"manualSyncHint": "导出此 实例 的数据或从共享存储中提取最新文件。",
+		"push": "推送到共享存储",
+		"pull": "从共享存储拉取",
+		"syncOptions": "同步游戏选项 (options.txt)",
+		"syncServers": "同步多人游戏服务器 (servers.dat)",
+		"syncPacks": "同步资源包 (resourcepacks/)",
+		"syncHistory": "同步命令历史记录(command_history.txt)",
+		"syncHotbars": "同步创意热栏 (hotbar.nbt)",
+		"inheritSync": "继承全局同步首选项。将在启动前和退出后同步。"
+	},
+	"install": {
+		"loadFailed": "无法加载安装选项",
+		"compatible": "兼容",
+		"all": "全部",
+		"any": "任何",
+		"modpackDone": "Modpack“{{name}}”已成功安装为新的 实例！",
+		"selectTarget": "选择目标 实例...",
+		"added": "将 {{file}} 添加到 {{instance}}！",
+		"modpackTitle": "安装 Modpack",
+		"addTitle_mod": "将 mod 添加到 实例",
+		"addTitle_resourcepack": "将资源包添加到 实例",
+		"addTitle_shader": "将着色器添加到 实例",
+		"addTitle_modpack": "将 modpack 添加到 实例",
+		"addTitle_datapack": "添加数据包到 实例",
+		"addTitle_plugin": "添加插件到 实例",
+		"modpackDescription": "从“{{title}}”创建一个新的 Minecraft 实例。",
+		"description": "将“{{title}}”安装到现有的 实例 之一中。",
+		"loading": "正在加载选项...",
+		"retry": "重试",
+		"modpackVersion": "Modpack 版本",
+		"selectModpackVersion": "选择 modpack 版本...",
+		"loaders": "加载器：",
+		"minecraft": "Minecraft：",
+		"noInstancesHint": "在添加 mod 或资源之前，首先从 实例 选项卡创建 实例包。",
+		"target": "目标 实例",
+		"fileVersion": "文件版本",
+		"selectFileVersion": "选择文件版本...",
+		"supports": "支持：",
+		"createAndInstall": "创建和安装",
+		"installToInstance": "安装到 实例",
+		"compatibleCount_other": "{{count}} 个兼容版本"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "资源包",
+		"shader": "着色器",
+		"datapack": "数据包",
+		"plugin": "插件"
+	},
+	"releaseTypes": {
+		"release": "发布",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "无法加载项目详细信息",
+		"addToInstance": "添加到 实例",
+		"versions": "版本和文件",
+		"versionsCount": "版本和文件 ({{count}})",
+		"loading": "正在加载项目详细信息...",
+		"gallery": "图库 ({{count}})",
+		"clickToOpen": "单击图像以全屏打开",
+		"viewFullscreen": "查看全屏",
+		"scrollLeft": "向左滚动图库",
+		"scrollRight": "向右滚动图库",
+		"source": "源代码",
+		"issues": "问题跟踪器",
+		"wiki": "Wiki",
+		"description": "描述",
+		"gameVersion": "游戏版本：",
+		"noMatch": "没有版本符合筛选条件。",
+		"openOriginal": "打开原图",
+		"previous": "上一张图片",
+		"next": "下一张图片",
+		"downloads_other": "{{formatted}} 次下载",
+		"followers_other": "{{formatted}} 位关注者",
+		"showing_other": "正在显示 {{shown}} / {{count}} 个版本"
+	},
+	"importInstance": {
+		"selectLauncherDir": "选择 {{launcher}} 实例目录",
+		"selectDir": "选择 Minecraft 实例目录",
+		"done": "实例导入成功！",
+		"title": "从其他启动器导入",
+		"selectInstance": "选择实例（{{launcher}}）",
+		"configure": "配置导入选项",
+		"description": "将现有的 Minecraft 安装、模组、世界和设置直接导入 Ingot。",
+		"optionsDescription": "选择要转移到新 Ingot 实例的数据。",
+		"detecting": "正在检测已安装的启动器…",
+		"notDetected": "未检测到 · 点击选择位置",
+		"custom": "自定义目录",
+		"customHint": "选择磁盘上的任意实例文件夹",
+		"backToLaunchers": "返回启动器列表",
+		"changeFolder": "更改文件夹",
+		"filter": "筛选实例…",
+		"loadingInstances": "正在加载实例…",
+		"noneFound": "在此启动器目录中没有找到实例。",
+		"select": "选择",
+		"nameInIngot": "在 Ingot 中的实例名称：",
+		"namePlaceholder": "导入的实例",
+		"source": "来源：{{path}}",
+		"components": "选择要导入的内容：",
+		"mods": "模组",
+		"configs": "配置文件",
+		"configsHint": "设置和模组配置",
+		"worlds": "世界和存档",
+		"packs": "资源包",
+		"packsHint": "材质和光影包",
+		"screenshotsHint": "游戏内截图",
+		"modData": "模组数据及其他",
+		"modDataHint": "路径点、蓝图、录制文件等",
+		"options": "游戏选项",
+		"optionsHint": "options.txt 和按键绑定",
+		"servers": "多人游戏服务器",
+		"serversHint": "servers.dat 服务器列表",
+		"note": "以上内容均为可选。启用<b>模组数据及其他</b>后，也会安全复制自定义模组文件夹（小地图路径点、蓝图、录制文件等）。若想干净导入且不带其他文件，请取消勾选。",
+		"importing": "正在导入…",
+		"import": "导入实例",
+		"found_other": "在 {{launcher}} 中找到 {{count}} 个实例。请选择要导入的实例。",
+		"instancesFound_other": "找到 {{count}} 个实例",
+		"modsCount_other": "{{count}} 个模组",
+		"worldsCount_other": "{{count}} 个世界",
+		"screenshotsCount_other": "{{count}} 张截图",
+		"modFiles_other": "{{count}} 个模组文件",
+		"singleplayerWorlds_other": "{{count}} 个单人游戏世界"
+	},
+	"skinViewer": {
+		"resetCamera": "重置 3D 摄像机",
+		"pauseRotation": "暂停自动旋转",
+		"autoRotate": "自动旋转 3D 模型",
+		"idlePose": "切换为待机姿势",
+		"playWalk": "播放行走动画",
+		"idleTitle": "待机呼吸动画",
+		"idle": "待机",
+		"walkTitle": "行走动画",
+		"walk": "行走",
+		"runTitle": "奔跑动画",
+		"run": "奔跑",
+		"waveTitle": "挥手动画",
+		"wave": "挥手",
+		"pause": "暂停动画",
+		"outerOn": "显示外层",
+		"outerOff": "隐藏外层",
+		"modelSlim": "模型：纤细（Alex）",
+		"modelClassic": "模型：经典（Steve）"
+	},
+	"skinsPage": {
+		"customSkin": "自定义皮肤",
+		"currentActiveSkin": "当前使用的皮肤",
+		"activeAccountSkin": "当前账号皮肤",
+		"loadFailed": "无法从 Ely.by 加载皮肤",
+		"defaultSteve": "默认 Steve 皮肤",
+		"addAccountFirst": "请先添加或选择 Ely.by 账号。",
+		"elyOnlySync": "只有 Ely.by 账号支持云端皮肤同步。",
+		"customApplied": "已将自定义皮肤应用到 {{name}}！",
+		"skinApplied": "已将皮肤 #{{id}} 应用到 {{name}}！",
+		"applyFailed": "应用皮肤失败。",
+		"enterPassword": "请输入您的 Ely.by 密码。",
+		"skinFromDate": "{{date}} 的皮肤",
+		"uploadedApplied": "自定义皮肤已上传并应用到 {{name}}！",
+		"pngOnly": "皮肤文件必须为 PNG 格式（.png）。",
+		"tooLarge": "皮肤文件过大（最大 2 MB）。",
+		"badSize": "尺寸无效：{{size}}。标准 Minecraft 皮肤必须为 64x64 或 64x32 像素。",
+		"badImage": "无法解析图片。请确认它是有效的 PNG 文件。",
+		"elyOnlyUpload": "只有 Ely.by 账号支持上传皮肤。",
+		"uploadFailed": "上传皮肤失败。",
+		"saved": "皮肤 #{{id}} 已成功保存！",
+		"downloadFailed": "下载失败。",
+		"urlCopied": "皮肤纹理网址已复制到剪贴板！",
+		"activeAccount": "当前 Ely.by 账号",
+		"noActiveAccount": "没有当前账号",
+		"browse": "浏览皮肤",
+		"preview3d": "3D 预览",
+		"currentSkin": "当前皮肤",
+		"skinNumber": "皮肤 #{{id}}",
+		"alexSlim3": "Alex（纤细，3 像素）",
+		"steveClassic4": "Steve（经典，4 像素）",
+		"currentSkinOf": "{{name}} 的当前皮肤",
+		"applyTo": "将皮肤应用到 {{name}}",
+		"applyToAccount": "将皮肤应用到账号",
+		"downloadPng": "下载 PNG",
+		"updating": "正在更新…",
+		"loadingMine": "正在从 Ely.by 加载您上传的皮肤…",
+		"loading": "正在从 Ely.by 加载皮肤…",
+		"noMatchingUploads": "没有找到符合条件的已上传皮肤",
+		"noUploadsFor": "没有找到 {{name}} 上传的皮肤",
+		"tryDifferent": "请尝试其他搜索词或筛选条件。",
+		"noUploadsHint": "您还没有在 Ely.by 上传自定义皮肤。上传后即可随时管理和使用。",
+		"selectAccountHint": "请选择或添加 Ely.by 账号，以查看您上传的皮肤。",
+		"uploadASkin": "上传皮肤",
+		"noSkins": "没有找到皮肤",
+		"deleteCustom": "删除自定义皮肤",
+		"slim": "纤细",
+		"classic": "经典",
+		"pageOf": "第 <b>{{page}}</b> 页，共 {{total}} 页",
+		"total": "（共 {{count}} 个）",
+		"previous": "上一页",
+		"next": "下一页",
+		"alexSlim": "Alex（纤细）",
+		"steveClassic": "Steve（经典）",
+		"view3d": "3D 视图",
+		"apply": "应用",
+		"livePreview": "实时 3D 预览",
+		"uploading": "正在上传并应用…",
+		"uploadApply": "上传并应用皮肤",
+		"uploadTitle": "上传自定义皮肤",
+		"uploadDescription": "从电脑上传 Minecraft 皮肤纹理，直接应用到 Ely.by。",
+		"dropHint": "点击浏览，或将皮肤 PNG 文件拖放到此处",
+		"supports": "支持标准 Minecraft 皮肤（64×64 或 64×32 PNG，最大 2 MB）",
+		"dimensions": "尺寸：{{value}}",
+		"size": "大小：{{value}}",
+		"armModel": "皮肤手臂模型",
+		"armModelHint": "选择此皮肤采用经典（4 像素）还是纤细（3 像素）手臂。",
+		"classicArms": "经典（4 像素手臂）",
+		"slimArms": "纤细（3 像素手臂）",
+		"targetAccount": "目标 Ely.by 账号",
+		"noAccount": "没有当前账号",
+		"readyToApply": "可应用",
+		"passwordTitle": "Ely.by 密码验证",
+		"passwordDescription": "要修改 <b>{{name}}</b> 的 Ely.by 皮肤，请输入账号密码。密码会安全加密并保存在操作系统的密钥环中。",
+		"passwordPlaceholder": "Ely.by 密码",
+		"authorize": "验证并应用",
+		"count_other": "{{formatted}} 个皮肤"
+	},
+	"select": {
+		"placeholder": "选择一项",
+		"noMatches": "没有匹配项"
+	},
+	"hosting": {
+		"one": "正在托管 {{name}}",
+		"many": "正在托管 {{count}} 个服务器",
+		"tunnel": "Ingot 隧道已连接",
+		"publicAddress": "公网地址：{{address}}",
+		"connecting": "正在连接 playit.gg 隧道…",
+		"localOnly": "仅限本地网络"
 	}
 }

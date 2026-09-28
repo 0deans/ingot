@@ -11,6 +11,7 @@ import {
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { formatRelative } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useUpdateService } from "@/services/update-service"
 
@@ -34,12 +35,7 @@ export const UpdateSettings = () => {
 
 	const formatLastChecked = (timestamp: number | null) => {
 		if (!timestamp) return t("common.never")
-		const secondsAgo = Math.floor((Date.now() - timestamp) / 1000)
-		if (secondsAgo < 10) return t("common.justNow")
-		if (secondsAgo < 60) return `${secondsAgo}s`
-		const minutesAgo = Math.floor(secondsAgo / 60)
-		if (minutesAgo < 60) return t("common.minutesAgo", { count: minutesAgo })
-		return new Date(timestamp).toLocaleTimeString()
+		return formatRelative(timestamp)
 	}
 
 	return (

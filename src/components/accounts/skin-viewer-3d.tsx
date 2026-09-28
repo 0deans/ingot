@@ -11,6 +11,7 @@ import {
 	Zap,
 } from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
 	IdleAnimation,
 	RunningAnimation,
@@ -60,6 +61,7 @@ const SkinViewer3D = ({
 	footerActions,
 	zoom,
 }: SkinViewer3DProps) => {
+	const { t } = useTranslation()
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const viewerRef = useRef<SkinViewer | null>(null)
@@ -393,7 +395,7 @@ const SkinViewer3D = ({
 						variant="outline"
 						size="icon-xs"
 						onClick={handleResetView}
-						title="Reset 3D camera"
+						title={t("skinViewer.resetCamera")}
 						className="size-6 rounded-md border-border/50 bg-zinc-900/80 text-muted-foreground backdrop-blur-xs transition-colors hover:bg-zinc-800 hover:text-foreground active:scale-95"
 					>
 						<RotateCcw className="size-3" />
@@ -402,7 +404,7 @@ const SkinViewer3D = ({
 						variant={isAutoRotate ? "default" : "outline"}
 						size="icon-xs"
 						onClick={() => setIsAutoRotate(!isAutoRotate)}
-						title={isAutoRotate ? "Pause auto-rotation" : "Auto-rotate 3D model"}
+						title={isAutoRotate ? t("skinViewer.pauseRotation") : t("skinViewer.autoRotate")}
 						className={cn(
 							"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
 							isAutoRotate
@@ -416,7 +418,7 @@ const SkinViewer3D = ({
 						variant={animation === "walk" ? "default" : "outline"}
 						size="icon-xs"
 						onClick={() => setAnimation(animation === "walk" ? "idle" : "walk")}
-						title={animation === "walk" ? "Switch to idle pose" : "Play walking animation"}
+						title={animation === "walk" ? t("skinViewer.idlePose") : t("skinViewer.playWalk")}
 						className={cn(
 							"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
 							animation === "walk"
@@ -450,47 +452,47 @@ const SkinViewer3D = ({
 									size="xs"
 									onClick={() => setAnimation("idle")}
 									className="flex-1 text-[11px]"
-									title="Idle breathing animation"
+									title={t("skinViewer.idleTitle")}
 								>
 									<Play className="mr-1 size-2.5" />
-									Idle
+									{t("skinViewer.idle")}
 								</Button>
 								<Button
 									variant={animation === "walk" ? "secondary" : "ghost"}
 									size="xs"
 									onClick={() => setAnimation("walk")}
 									className="flex-1 text-[11px]"
-									title="Walking animation"
+									title={t("skinViewer.walkTitle")}
 								>
 									<Footprints className="mr-1 size-2.5" />
-									Walk
+									{t("skinViewer.walk")}
 								</Button>
 								<Button
 									variant={animation === "run" ? "secondary" : "ghost"}
 									size="xs"
 									onClick={() => setAnimation("run")}
 									className="flex-1 text-[11px]"
-									title="Running animation"
+									title={t("skinViewer.runTitle")}
 								>
 									<Zap className="mr-1 size-2.5" />
-									Run
+									{t("skinViewer.run")}
 								</Button>
 								<Button
 									variant={animation === "wave" ? "secondary" : "ghost"}
 									size="xs"
 									onClick={() => setAnimation("wave")}
 									className="flex-1 text-[11px]"
-									title="Waving arm animation"
+									title={t("skinViewer.waveTitle")}
 								>
 									<Hand className="mr-1 size-2.5" />
-									Wave
+									{t("skinViewer.wave")}
 								</Button>
 								<Button
 									variant={animation === "none" ? "secondary" : "ghost"}
 									size="xs"
 									onClick={() => setAnimation("none")}
 									className="size-6 px-0"
-									title="Pause animations"
+									title={t("skinViewer.pause")}
 								>
 									<Pause className="size-2.5" />
 								</Button>
@@ -505,7 +507,7 @@ const SkinViewer3D = ({
 									className="flex-1 text-[11px]"
 								>
 									<Eye className="mr-1.5 size-3 text-muted-foreground" />
-									{showOuterLayer ? "Outer Layer On" : "Outer Layer Off"}
+									{showOuterLayer ? t("skinViewer.outerOn") : t("skinViewer.outerOff")}
 								</Button>
 								<Button
 									variant="outline"
@@ -517,7 +519,7 @@ const SkinViewer3D = ({
 									className="flex-1 text-[11px]"
 								>
 									<User className="mr-1.5 size-3 text-muted-foreground" />
-									{isSlim ? "Model: Slim (Alex)" : "Model: Classic (Steve)"}
+									{isSlim ? t("skinViewer.modelSlim") : t("skinViewer.modelClassic")}
 								</Button>
 							</div>
 						</>

@@ -1,5 +1,6 @@
 import { FolderOpen, HardDrive, ImageOff, Maximize2, MoreVertical, Trash2 } from "lucide-react"
 import { memo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
@@ -8,6 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { formatBytes, formatDateTime } from "@/lib/format"
 import { type ScreenshotInfo, screenshotService } from "@/services/screenshot-service"
 
 interface ScreenshotCardProps {
@@ -17,28 +19,12 @@ interface ScreenshotCardProps {
 	onReveal: (screenshot: ScreenshotInfo) => void
 }
 
-function formatBytes(bytes: number): string {
-	if (!bytes || bytes === 0) return "0 B"
-	const k = 1024
-	const sizes = ["B", "KB", "MB", "GB"]
-	const i = Math.floor(Math.log(bytes) / Math.log(k))
-	return `${(bytes / k ** i).toFixed(1)} ${sizes[i]}`
-}
-
-function formatDate(timestampSec: number): string {
-	if (!timestampSec) return ""
-	const ms = timestampSec > 1e11 ? timestampSec : timestampSec * 1000
-	const date = new Date(ms)
-	return date.toLocaleDateString(undefined, {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	})
+function formatDate(timestamp: number): string {
+	return timestamp ? formatDateTime(timestamp) : ""
 }
 
 const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotCardProps) => {
+	const { t } = useTranslation()
 	const [imageError, setImageError] = useState(false)
 	const [loaded, setLoaded] = useState(false)
 	const [menuOpen, setMenuOpen] = useState(false)
@@ -52,7 +38,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 			{/* Accessible full card click-to-fullscreen button */}
 			<button
 				type="button"
-				aria-label={`View ${screenshot.fileName}`}
+				aria-label={t("screenshots.card.view", { name: screenshot.fileName })}
 				onClick={() => onClick(screenshot)}
 				className="absolute inset-0 z-10 size-full cursor-pointer border-none bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 			/>
@@ -66,7 +52,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 				{imageError ? (
 					<div className="flex size-full flex-col items-center justify-center gap-1.5 p-3 text-center text-muted-foreground">
 						<ImageOff className="size-6 opacity-40" />
-						<span className="text-[11px]">Image unavailable</span>
+						<span className="text-[11px]">{t("screenshots.card.unavailable")}</span>
 					</div>
 				) : (
 					<img
@@ -123,7 +109,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								}}
 							>
 								<Maximize2 className="size-3.5 text-zinc-400" />
-								<span>Fullscreen</span>
+								<span>{t("screenshots.card.fullscreen")}</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								className="gap-2 text-xs"
@@ -133,7 +119,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								}}
 							>
 								<FolderOpen className="size-3.5 text-zinc-400" />
-								<span>Show in Folder</span>
+								<span>{t("screenshots.card.showInFolder")}</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
@@ -144,7 +130,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								}}
 							>
 								<Trash2 className="size-3.5" />
-								<span>Delete</span>
+								<span>{t("common.delete")}</span>
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>

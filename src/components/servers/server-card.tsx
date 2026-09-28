@@ -16,6 +16,7 @@ import {
 	Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type {
 	RunningServerSummary,
 	ServerConfig,
@@ -23,6 +24,7 @@ import type {
 	ServerPingResponse,
 } from "@/bindings"
 import { Button } from "@/components/ui/button"
+import { formatDuration, formatMegabytes } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
 
@@ -64,16 +66,7 @@ function getCoreBadgeStyle(core: ServerCoreType) {
 }
 
 function formatUptime(seconds: number): string {
-	const h = Math.floor(seconds / 3600)
-	const m = Math.floor((seconds % 3600) / 60)
-	const s = seconds % 60
-	if (h > 0) {
-		return `${h}h ${m}m ${s}s`
-	}
-	if (m > 0) {
-		return `${m}m ${s}s`
-	}
-	return `${s}s`
+	return formatDuration(seconds)
 }
 
 export default function ServerCard({
@@ -88,6 +81,7 @@ export default function ServerCard({
 	onJoinServer,
 	onOpen,
 }: ServerCardProps) {
+	const { t } = useTranslation()
 	const isRunning = Boolean(runningInfo && runningInfo.status === "running")
 	const isStarting = Boolean(runningInfo && runningInfo.status === "starting")
 	const isStopping = Boolean(runningInfo && runningInfo.status === "stopping")
@@ -186,16 +180,16 @@ export default function ServerCard({
 				) : isStarting ? (
 					<div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-400">
 						<Loader2 className="size-3 animate-spin" />
-						<span>Starting...</span>
+						<span>{t("overview.starting")}</span>
 					</div>
 				) : isStopping ? (
 					<div className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[11px] text-rose-400">
 						<Loader2 className="size-3 animate-spin" />
-						<span>Stopping...</span>
+						<span>{t("overview.stopping")}</span>
 					</div>
 				) : (
 					<span className="rounded-full border border-border/40 bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-500">
-						Offline
+						{t("serverCard.offline")}
 					</span>
 				)}
 			</div>
@@ -220,7 +214,7 @@ export default function ServerCard({
 						type="button"
 						onClick={() => onOpen?.(server)}
 						className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-emerald-300"
-						title="Open server page"
+						title={t("serverCard.openPage")}
 					>
 						{server.name}
 					</button>
@@ -231,7 +225,7 @@ export default function ServerCard({
 							type="button"
 							onClick={handleCopyAddress}
 							className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-zinc-400 transition-colors hover:text-emerald-400"
-							title="Click to copy server address"
+							title={t("serverCard.copyAddress")}
 						>
 							<Globe className="size-3 text-emerald-500/70" />
 							<span>localhost:{server.port}</span>
@@ -245,7 +239,7 @@ export default function ServerCard({
 						{/* RAM */}
 						<div className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">
 							<Cpu className="size-3 text-emerald-500/70" />
-							<span>{(server.memoryMaxMb / 1024).toFixed(0)} GB</span>
+							<span>{formatMegabytes(server.memoryMaxMb, 0)}</span>
 						</div>
 
 						{/* Live SLP Player count badge (only when running) */}
@@ -253,7 +247,9 @@ export default function ServerCard({
 							<div className="flex items-center gap-1 font-mono text-[11px] text-emerald-400">
 								<Users className="size-3 text-emerald-400" />
 								<span>
-									{pingInfo ? `${pingInfo.players.online}/${pingInfo.players.max}` : "0 online"}
+									{pingInfo
+										? `${pingInfo.players.online}/${pingInfo.players.max}`
+										: t("serverCard.noneOnline")}
 								</span>
 							</div>
 						)}
@@ -279,10 +275,10 @@ export default function ServerCard({
 								size="sm"
 								onClick={() => onJoinServer?.(server)}
 								className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs shadow-emerald-950/40 shadow-sm hover:bg-emerald-500"
-								title="Launch Minecraft & Connect to this server"
+								title={t("serverCard.joinTitle")}
 							>
 								<Gamepad2 className="size-3.5" />
-								<span>Join</span>
+								<span>{t("serverCard.join")}</span>
 							</Button>
 							<Button
 								size="sm"
@@ -291,17 +287,17 @@ export default function ServerCard({
 								className="h-8 gap-1.5 bg-zinc-800 font-medium text-xs text-zinc-200 hover:bg-zinc-700"
 							>
 								<Terminal className="size-3.5" />
-								<span>Console</span>
+								<span>{t("serverTabs.console")}</span>
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={() => onStop(server.id)}
 								className="h-8 gap-1 border-rose-500/30 text-rose-400 text-xs hover:bg-rose-500/10 hover:text-rose-300"
-								title="Stop server"
+								title={t("servers.stopServer")}
 							>
 								<Square className="size-3 fill-current" />
-								<span>Stop</span>
+								<span>{t("common.stop")}</span>
 							</Button>
 						</>
 					) : (
@@ -316,7 +312,7 @@ export default function ServerCard({
 							) : (
 								<Play className="size-3.5 fill-current" />
 							)}
-							<span>Start</span>
+							<span>{t("serverCard.start")}</span>
 						</Button>
 					)}
 				</div>
@@ -328,7 +324,7 @@ export default function ServerCard({
 						size="icon-xs"
 						onClick={() => onOpenConsole(server)}
 						className="size-8 text-muted-foreground hover:text-foreground"
-						title="Open Console"
+						title={t("servers.openConsole")}
 					>
 						<Terminal className="size-3.5" />
 					</Button>
@@ -338,7 +334,7 @@ export default function ServerCard({
 						size="icon-xs"
 						onClick={() => onOpenSettings(server)}
 						className="size-8 text-muted-foreground hover:text-foreground"
-						title="Server Settings"
+						title={t("mobileServers.settings")}
 					>
 						<Settings className="size-3.5" />
 					</Button>
@@ -348,7 +344,7 @@ export default function ServerCard({
 						size="icon-xs"
 						onClick={() => onOpenFolder(server.id)}
 						className="size-8 text-muted-foreground hover:text-foreground"
-						title="Open server folder"
+						title={t("serverCard.openFolder")}
 					>
 						<FolderOpen className="size-3.5" />
 					</Button>
@@ -359,7 +355,7 @@ export default function ServerCard({
 						onClick={() => onDelete(server)}
 						disabled={isRunning}
 						className="size-8 text-muted-foreground hover:text-destructive"
-						title="Delete Server"
+						title={t("deleteServer.title")}
 					>
 						<Trash2 className="size-3.5" />
 					</Button>

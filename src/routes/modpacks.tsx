@@ -31,6 +31,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { formatCount } from "@/lib/format"
 import {
 	type ContentSort,
 	type ContentSource,
@@ -94,12 +95,7 @@ const SORTS = [
 	{ id: "newest" as const },
 ]
 
-function formatDownloads(count: number): string {
-	if (count >= 1_000_000_000) return `${(count / 1_000_000_000).toFixed(1)}B`
-	if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`
-	if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`
-	return count.toString()
-}
+const formatDownloads = formatCount
 
 const PAGE_SIZE = 24
 
@@ -539,7 +535,7 @@ const ModpacksPage = () => {
 				) : error ? (
 					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 py-12 text-center">
 						<p className="font-medium text-destructive text-sm">
-							{error instanceof Error ? error.message : "Failed to load content"}
+							{error instanceof Error ? error.message : t("modpacks.loadFailed")}
 						</p>
 						<Button size="sm" variant="outline" onClick={() => refetch()}>
 							{t("common.tryAgain")}

@@ -1,5 +1,6 @@
 import { AlertTriangle, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ export const DeleteInstanceDialog = ({
 	onOpenChange,
 	onConfirm,
 }: DeleteInstanceDialogProps) => {
+	const { t } = useTranslation()
 	const [isDeleting, setIsDeleting] = useState(false)
 
 	if (!instance) return null
@@ -48,9 +50,11 @@ export const DeleteInstanceDialog = ({
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive">
 						<AlertTriangle className="size-5" />
 					</div>
-					<DialogTitle className="font-semibold text-lg text-zinc-50">Delete Instance</DialogTitle>
+					<DialogTitle className="font-semibold text-lg text-zinc-50">
+						{t("deleteInstance.title")}
+					</DialogTitle>
 					<DialogDescription className="text-xs text-zinc-400">
-						Are you sure you want to permanently delete this instance? This action cannot be undone.
+						{t("deleteInstance.description")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -66,10 +70,7 @@ export const DeleteInstanceDialog = ({
 					</div>
 				</div>
 
-				<p className="text-[11px] text-zinc-500">
-					All saves, worlds, installed mods, resource packs, and configuration files stored in this
-					instance folder will be deleted from disk.
-				</p>
+				<p className="text-[11px] text-zinc-500">{t("deleteInstance.note")}</p>
 
 				<DialogFooter>
 					<Button
@@ -80,7 +81,7 @@ export const DeleteInstanceDialog = ({
 						className="w-full gap-1.5 font-semibold"
 					>
 						<Trash2 className="size-3.5" />
-						{isDeleting ? "Deleting..." : "Delete Instance"}
+						{isDeleting ? t("common.deleting") : t("deleteInstance.title")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

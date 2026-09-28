@@ -23,11 +23,13 @@
 		"minimize": "Kis méret",
 		"maximize": "Teljes méret",
 		"restore": "Előző méret",
-		"justNow": "Épp most",
 		"never": "Soha",
-		"minutesAgo": "{{count}} perce",
-		"hoursAgo": "{{count}} órája",
-		"daysAgo": "{{count}} napja"
+		"unknown": "Ismeretlen",
+		"deleting": "Törlés...",
+		"stop": "Leállítás",
+		"done": "Kész",
+		"update": "Frissítés",
+		"enable": "Engedélyezés"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Válassz nyelvet",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Még nincs beállított fiók.",
 		"previewSkin": "3D skin előnézet",
 		"removeAccount": "Fiók eltávolítása",
-		"setAsActive": "Beállítás aktívként"
+		"setAsActive": "Beállítás aktívként",
+		"offline": "Offline",
+		"reorder": "{{name}} fiók átrendezése",
+		"dragToReorder": "Húzd a fiók átrendezéséhez",
+		"clickToPreview": "Kattints a 3D skin előnézetéhez",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Példányok keresése...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Példány mappájának megnyitása a Fájlkezelőben",
 			"settingsTooltip": "Példány beállításai (RAM, JVM argumentumok)",
 			"duplicateTooltip": "Másolat készítése",
-			"deleteTooltip": "Példány törlése"
-		}
+			"deleteTooltip": "Példány törlése",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Tartalom felfedezése",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Összes szűrő visszaállítása",
 		"byAuthor": "készítette: {{author}}",
 		"noDescription": "Nincs megadva leírás.",
-		"details": "Részletek"
+		"details": "Részletek",
+		"loadFailed": "Nem sikerült betölteni a tartalmat"
 	},
 	"skins": {
 		"title": "Skin katalógus",
@@ -199,6 +209,18 @@
 			"description": "Biztosan véglegesen törölni szeretnéd ezt a képernyőképet? Ez a művelet nem vonható vissza.",
 			"deleting": "Törlés...",
 			"deletePermanently": "Végleges törlés"
+		},
+		"card": {
+			"view": "{{name}} megtekintése",
+			"unavailable": "A kép nem érhető el",
+			"fullscreen": "Teljes képernyő",
+			"showInFolder": "Megjelenítés a mappában"
+		},
+		"lightbox": {
+			"close": "Előnézet bezárása",
+			"closeEsc": "Bezárás (Esc)",
+			"previous": "Előző képernyőkép",
+			"next": "Következő képernyőkép"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Új szerver létrehozása",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia vagy Vanilla",
 		"noMatchTitle": "Nincs a szűrőknek megfelelő szerver",
-		"noMatchSubtitle": "Próbáld módosítani a keresést, vagy válaszd a „Minden típus” lehetőséget."
+		"noMatchSubtitle": "Próbáld módosítani a keresést, vagy válaszd a „Minden típus” lehetőséget.",
+		"activeEntry": "{{name}} (Port: {{port}})"
 	},
 	"settings": {
 		"title": "Indító beállításai",
 		"subtitle": "Fiókok, nyelv, Java környezetek, RAM kiosztás és az indító működésének beállítása.",
 		"language": {
 			"title": "Nyelv",
-			"description": "Válaszd ki az indító felületének megjelenítési nyelvét. Az src/locales/ mappába kerülő új nyelvi fájlok automatikusan betöltődnek."
+			"description": "Válaszd ki az indító nyelvét. A dátumok, számok és méretek formátuma is ezt követi."
 		},
 		"theme": {
 			"title": "Megjelenés és téma",
@@ -263,7 +286,14 @@
 				"modded": "Modolt",
 				"heavy": "Nagy csomag",
 				"safeMax": "Biztonságos max."
-			}
+			},
+			"zoneSafe": "Biztonságos működési zóna",
+			"zoneHigh": "Magas kihasználtságú zóna",
+			"zoneCritical": "Rendszerkritikus zóna",
+			"minShort": "Min.: {{value}}",
+			"maxShort": "Max.: {{value}}",
+			"totalShort": "{{value}} (Max.)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Indító működése",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Alapértelmezett ablakfelbontás",
 			"resolutionDesc": "Egyéni szélesség és magasság megadása a játékablakhoz",
 			"presets": "Előbeállítások:",
-			"defaultPreset": "Alapértelmezett"
+			"defaultPreset": "Alapértelmezett",
+			"resetTo": "Visszaállítás erre: {{size}}"
 		},
 		"sync": {
 			"title": "Játékadatok szinkronizálása",
@@ -315,7 +346,8 @@
 					"title": "Kreatív eszköztárak szinkronizálása",
 					"description": "Mentett kreatív módú gyorselérési sávok megosztása a világok között"
 				}
-			}
+			},
+			"reinitialize": "{{title}} forrás újrainicializálása"
 		},
 		"updates": {
 			"title": "Frissítések és verzió",
@@ -340,5 +372,1222 @@
 			"dialogSubtitle": "Az Ingot más projektekből származó szoftvereket használ. Mindegyik saját licenc alatt áll; kattints egy névre a forráskód és a teljes licenc megtekintéséhez.",
 			"trademark": "A Minecraft a Mojang AB védjegye. Az Ingot nem áll kapcsolatban a Mojanggal vagy a Microsofttal."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Felső világ",
+			"nether": "Alvilág",
+			"end": "Vég"
+		},
+		"gamemodes": {
+			"survival": "Túlélő",
+			"creative": "Kreatív",
+			"adventure": "Kaland",
+			"spectator": "Világmegfigyelő"
+		}
+	},
+	"initialSync": {
+		"title": "Kezdeti szinkronizáció",
+		"description": "Szinkronizációt engedélyezel a(z) <b>{{name}}</b> példányhoz. Honnan történjen a kezdeti szinkronizáció?",
+		"fromInstance": "Ebből a példányból",
+		"uploadToShared": "Feltöltés a megosztott tárhelyre",
+		"fromInstanceDesc": "Ezen példány beállításainak és szervereinek másolása a megosztott tárhelyre mesterpéldányként.",
+		"fromShared": "A megosztott tárhelyről",
+		"downloadToInstance": "Letöltés a példányba",
+		"fromSharedDesc": "Meglévő megosztott beállítások és szerverek letöltése ebbe a példányba."
+	},
+	"deleteInstance": {
+		"title": "Példány törlése",
+		"description": "Biztosan véglegesen törölni szeretnéd ezt a példányt? Ez a művelet nem vonható vissza.",
+		"note": "A példány mappájában tárolt összes mentés, világ, telepített mod, erőforráscsomag és konfigurációs fájl törlődik a lemezről."
+	},
+	"deleteServer": {
+		"title": "Szerver törlése",
+		"confirm": "Biztosan törölni szeretnéd a következőt: <b>{{name}}</b>?",
+		"details": "Szerver adatai:",
+		"detailsLine": "Mag: {{core}} {{version}} • Port: {{port}}",
+		"deleteFiles": "Az összes szerverfájl végleges törlése",
+		"deleteFilesDesc": "Tartalmazza a világtérképeket, játékosadatokat, pluginokat és szervernaplókat a számítógéped lemezéről."
+	},
+	"companion": {
+		"system": "Rendszer",
+		"liveMap": "Élő térkép",
+		"disabled": "Letiltva",
+		"notInstalled": "Élő térkép · nincs telepítve",
+		"updated_plugin": "Az Ingot plugin frissítve.",
+		"updated_mod": "Az Ingot mod frissítve.",
+		"installed_plugin": "Az Ingot plugin telepítve.",
+		"installed_mod": "Az Ingot mod telepítve.",
+		"removed_plugin": "Az Ingot plugin eltávolítva. A térkép mostantól a szerver mentésekor frissül.",
+		"removed_mod": "Az Ingot mod eltávolítva. A térkép mostantól a szerver mentésekor frissül.",
+		"enabled_plugin": "Az Ingot plugin engedélyezve.",
+		"enabled_mod": "Az Ingot mod engedélyezve.",
+		"remove_plugin": "Az Ingot plugin eltávolítása",
+		"remove_mod": "Az Ingot mod eltávolítása"
+	},
+	"syncConflict": {
+		"title": "Szinkronizációs ütközés észlelve",
+		"description": "A(z) <b>{{name}}</b> olyan saját helyi konfigurációs fájlokat tartalmaz, amelyek még soha nem lettek szinkronizálva a megosztott tárhellyel.",
+		"conflictingFiles": "Ütköző fájlok:",
+		"choose": "Válaszd ki a kezdeti szinkronizáció feloldási módját:",
+		"useShared": "Megosztott beállítások használata",
+		"overwritesLocal": "Felülírja a helyit",
+		"useSharedDesc": "Lecseréli ezen példány beállításait és szervereit a meglévő megosztott beállításokra. A példányfájlokról automatikus <code>.bak</code> biztonsági mentés készül.",
+		"useInstance": "Ez a példány legyen a megosztott mester",
+		"overwritesShared": "Felülírja a megosztottat",
+		"useInstanceDesc": "Feltölti ezen példány beállításait és szervereit a megosztott tárhelyre mestermásolatként. A meglévő megosztott fájlokról <code>.bak</code> biztonsági mentés készül.",
+		"disable": "Független megőrzése (szinkronizálás letiltása)",
+		"noChanges": "Nincs változás",
+		"disableDesc": "Letiltja a szinkronizációt ennél a példánynál, így a szervereit és beállításait soha nem módosítják vagy írják felül más példányok."
+	},
+	"leftoverServers": {
+		"runningSince": "Futás ekkortól: {{time}}",
+		"stopped": "Leállítva",
+		"stopNote": "A leállítás azonnal megszakítja a futást. Az utolsó automatikus mentés óta végzett módosítások (legfeljebb néhány perc) elvesznek, maga a világ épp marad.",
+		"leaveRunning": "Futva hagyás",
+		"title_one": "Egy szerver még mindig fut a múltkor",
+		"title_other": "A szerverek még mindig futnak a múltkor",
+		"description_one": "A Ingot leállítás nélkül bezárult, így a konzolja eltűnt: a Ingot nem tud parancsokat küldeni, vagy megmenteni a világát. Kikötőjét és világát elfoglalva tartja, amíg meg nem állítják.",
+		"description_other": "A Ingot leállítása nélkül bezárult, így a konzoljaik eltűntek: a Ingot nem tud parancsokat küldeni vagy megmenteni a világukat. Kikötőiket és világaikat elfoglalják, amíg meg nem állítják."
+	},
+	"serverStatus": {
+		"running": "Fut",
+		"sleeping": "Alszik",
+		"stopped": "Leállítva",
+		"starting": "Indítás...",
+		"stopping": "Leállítás..."
+	},
+	"serverTabs": {
+		"overview": "Áttekintés",
+		"console": "Konzol",
+		"players": "Játékosok",
+		"map": "Térkép",
+		"plugins": "Pluginok",
+		"mods": "Modok",
+		"settings": "Beállítások",
+		"home": "Kezdőlap"
+	},
+	"serverWorkspace": {
+		"back": "Vissza a szerverekhez"
+	},
+	"duplicateInstance": {
+		"title": "Példány megkettőzése",
+		"defaultName": "{{name}} (másolat)",
+		"description": "Külön másolatot készít azonos modokkal, konfigurációkkal, erőforráscsomagokkal és beállításokkal. Az egyik módosítása nem érinti a másikat, így a másolat biztonságos hely új verzió vagy modok kipróbálására.",
+		"nameLabel": "A másolat neve",
+		"copyWorlds": "Világok másolása",
+		"noWorldsYet": "még nincs",
+		"copyWorldsDesc": "Ezek nélkül a másolat egyjátékos világok nélkül indul.",
+		"note": "A játékidő nulláról indul. A naplók, összeomlási jelentések és képernyőképek az eredetinél maradnak.",
+		"running": "A játék fut. Zárd be előbb, hogy a világok mentett állapotukban másolódjanak, vagy másold világok nélkül.",
+		"copying": "Másolás…",
+		"action": "Megkettőzés"
+	},
+	"quitDialog": {
+		"title_quit": "Leállítod a szervereket a kilépés előtt?",
+		"title_update": "Leállítod a szervereket a frissítéshez?",
+		"title_restart": "Leállítod a szervereket az újraindításhoz?",
+		"action_quit": "Szerverek leállítása és kilépés",
+		"action_update": "Szerverek leállítása és frissítés",
+		"action_restart": "Szerverek leállítása és újraindítás",
+		"stopping": "Leállítás…",
+		"keepInTray": "Futás a tálcán a háttérben",
+		"asleep_one": "Ez a szerver alvó állapotban van. Felébred, amikor egy játékos csatlakozik, de csak akkor, ha a Ingot nyitva van.",
+		"asleep_other": "Ezek a szerverek alvó állapotban vannak. Felébrednek, amikor egy játékos csatlakozik, de csak akkor, ha a Ingot nyitva van.",
+		"consoles_one": "A kiszolgáló konzolja a Ingot-n belül fut. Ha a Ingot előbb bezárul, tovább fut, és nincs mód irányítani vagy megmenteni a világát.",
+		"consoles_other": "Ezek a kiszolgálókonzolok a Ingot-n belül futnak. Ha a Ingot előbb bezárul, tovább futnak anélkül, hogy irányíthatnák vagy megmentenék a világukat.",
+		"saving_one": "A világ megmentése és megállás. Ez akár 30 másodpercig is eltarthat.",
+		"saving_other": "Világok megmentése és megállás. Ez akár 30 másodpercig is eltarthat.",
+		"games_one": "A játékod így is fut. A Ingot újra felveszi, amikor kinyitja.",
+		"games_other": "A játékai így is futnak. A Ingot újra felveszi őket, amikor kinyitja."
+	},
+	"crashDialog": {
+		"title": "A(z) {{name}} összeomlott az első indításakor ezen a verzión: {{version}}",
+		"suspects_plugin": "Ez általában egy olyan plugin miatt van, amely még nem működik az új verzión. Az összeomlási jelentés erre mutat:",
+		"suspects_mod": "Ez általában egy olyan mod miatt van, amely még nem működik az új verzión. Az összeomlási jelentés erre mutat:",
+		"suspects_either": "Ez általában egy olyan plugin vagy mod miatt van, amely még nem működik az új verzión. Az összeomlási jelentés erre mutat:",
+		"noSuspects_plugin": "Az összeomlási jelentés nem nevez meg plugint. Visszavonhatod a módosítást, és megvárhatod a frissítéseket.",
+		"noSuspects_mod": "Az összeomlási jelentés nem nevez meg modot. Visszavonhatod a módosítást, és megvárhatod a frissítéseket.",
+		"noSuspects_either": "Az összeomlási jelentés nem nevez meg plugint vagy modot. Visszavonhatod a módosítást, és megvárhatod a frissítéseket.",
+		"turnOff": "Kikapcsolás",
+		"turnedOff": "Kikapcsolva",
+		"details": "Összeomlás részletei",
+		"keepTrying": "Újrapróbálás",
+		"undo": "Verzióváltás visszavonása",
+		"undone": "Visszaállítva a(z) {{version}} verzióra, pontosan úgy, mint korábban.",
+		"tryAgain_server_one": "Indítsa újra a szervert, és próbálkozzon nélküle. A visszavonás továbbra is visszakapcsolja.",
+		"tryAgain_server_other": "Indítsa újra a kiszolgálót, és próbálkozzon nélkülük. A visszavonás továbbra is visszakapcsolja őket.",
+		"tryAgain_game_one": "Indítsa újra a játékot, és próbálkozzon nélküle. A visszavonás továbbra is visszakapcsolja.",
+		"tryAgain_game_other": "Indítsa újra a játékot, és próbálkozzon nélkülük. A visszavonás továbbra is visszakapcsolja őket."
+	},
+	"skinPreview": {
+		"saving": "Mentés...",
+		"saved": "Mentve!",
+		"error": "Hiba",
+		"changeSkin": "Skin módosítása",
+		"copyUrlTitle": "Skin textúra URL másolása",
+		"copied": "Másolva",
+		"copyUrl": "URL másolása",
+		"downloadTitle": "Skin textúrafájl letöltése a Letöltések mappába",
+		"download": "Letöltés"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Fehérlista",
+			"ops": "Operátorok",
+			"bans": "Kitiltások"
+		},
+		"whitelist": {
+			"title": "Fehérlista",
+			"empty": "Még senki sincs a fehérlistán",
+			"description": "Ha engedélyezve van, csak ezek a játékosok csatlakozhatnak.",
+			"add": "Hozzáadás"
+		},
+		"ops": {
+			"title": "Operátorok",
+			"empty": "Nincsenek operátorok",
+			"description": "Az operátorok minden parancsot használhatnak, beleértve a /stop és a /op parancsot is.",
+			"add": "Legyen OP"
+		},
+		"bans": {
+			"title": "Kitiltott játékosok",
+			"empty": "Senki sincs kitiltva",
+			"description": "A kitiltott játékosok nem csatlakozhatnak, amíg a kitiltásukat fel nem oldják.",
+			"add": "Kitiltás"
+		},
+		"whitelistOn": "Fehérlista bekapcsolva",
+		"whitelistOff": "Fehérlista kikapcsolva",
+		"onlyListed": "Csak a listán szereplő játékosok csatlakozhatnak.",
+		"anyone": "Bárki csatlakozhat ehhez a szerverhez.",
+		"invalidName": "A felhasználónév csak betűket, számokat és _ karaktert tartalmazhat",
+		"playerName": "Játékosnév",
+		"permissionLevel": "{{level}}. jogosultsági szint",
+		"banned": "Kitiltva",
+		"noUuid": "Nincs UUID",
+		"remove": "{{name}} eltávolítása"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Az Android alkalmazás része",
+				"note": "Szerverszoftvert futtat Androidon egy Linux homokozóban. A Termux projekt buildjei."
+			},
+			"downloaded": {
+				"title": "Szükség esetén letöltve",
+				"note": "A hivatalos forrásukból töltődnek le, amikor egy funkció először használja őket."
+			},
+			"servers": {
+				"title": "Telepíthető szerverszoftverek",
+				"note": "Minden létrehozott szerverhez letöltődik az azt készítő projekttől."
+			}
+		},
+		"roles": {
+			"proot": "Linux homokozó a szerverekhez",
+			"talloc": "A PRoot által használt memóriakezelő könyvtár",
+			"shmem": "Megosztott memória támogatás a PRoot számára",
+			"temurin": "Java a szerverekhez és a játékhoz asztali gépen",
+			"alpine": "Az Android homokozó alaprendszere, beleértve az OpenJDK-t is",
+			"pumpkin": "Pumpkin szerver",
+			"playit": "Nyilvános cím a szerveredhez",
+			"paper": "Paper szerverek",
+			"folia": "Folia szerverek",
+			"purpur": "Purpur szerverek",
+			"fabric": "Fabric szerverek",
+			"vanilla": "Vanilla szerverek (a Mojangtól, nem nyílt forráskódú)"
+		},
+		"names": {
+			"minecraftServer": "Minecraft szerver"
+		},
+		"various": "Különféle nyílt forráskódú licencek"
+	},
+	"directConnect": {
+		"title": "Közvetlen csatlakozás szerverhez",
+		"description": "A(z) <b>{{name}}</b> indítása közvetlenül egy többjátékos szerverre, a főmenü kihagyásával.",
+		"address": "Szervercím",
+		"addressPlaceholder": "pl. mc.hypixel.net vagy localhost:25565",
+		"localServers": "Beállított helyi szerverek",
+		"recent": "Legutóbbi szerverek",
+		"removeRecent": "Eltávolítás a legutóbbiak közül",
+		"launch": "Indítás és csatlakozás"
+	},
+	"console": {
+		"autoScrollOn": "Automatikus görgetés bekapcsolva",
+		"autoScrollOff": "Automatikus görgetés kikapcsolva",
+		"copyAll": "Összes másolása",
+		"clear": "Törlés",
+		"waiting": "Várakozás a kimenetre...",
+		"offline": "A szerver offline állapotban van",
+		"offlineHint": "Indítsd el a szervert a konzol megtekintéséhez.",
+		"latest": "Legújabb",
+		"placeholder": "Írj be egy parancsot, pl. time set day",
+		"send": "Parancs küldése"
+	},
+	"syncMaster": {
+		"setAsSource": "„{{name}}” beállítása mester szinkronizációs forrásként.",
+		"error": "Hiba: {{error}}",
+		"categoryTitle": "Kezdeti szinkronizáció: {{title}}",
+		"title": "Mester szinkronizációs példány kiválasztása",
+		"categoryDescription": "Válaszd ki, honnan szerezze be a megosztott tárhely a(z) {{file}} fájlt először:",
+		"description": "Válassz egy meglévő példányt a megosztott szinkronizációs tárhely feltöltéséhez. Ennek beállításai és adatai válnak a megosztott alapértelmezetté.",
+		"useExisting": "Meglévő megosztott adatok használata",
+		"keepCurrent": "A jelenlegi <code>{{file}}</code> megőrzése a megosztott tárhelyen",
+		"useShared": "Megosztott használata",
+		"orCopyFrom": "Vagy másolás egy meglévő példányból:",
+		"copyFrom": "Másolás egy meglévő példányból:",
+		"noInstances": "Nem találhatók példányok.",
+		"useThis": "Ennek használata",
+		"setAsMaster": "Beállítás mesterként",
+		"noCopy": "Még nem szeretnél adatokat másolni?",
+		"startFresh": "Kezdés üresen / elölről"
+	},
+	"quickJoin": {
+		"title": "Gyorsindítás — Csatlakozás a szerverhez",
+		"description": "A Minecraft indítása és közvetlen csatlakozás a(z) <b>{{name}}</b> ({{address}}) szerverhez.",
+		"target": "Cél: {{address}}",
+		"choose": "Kliens példány kiválasztása",
+		"noInstances": "Nem található Minecraft példány",
+		"noInstancesHint": "Először hozz létre egy kliens példányt a szerveredhez való csatlakozáshoz.",
+		"createInstance": "Példány létrehozása",
+		"matches": "Egyezik a szerverrel",
+		"launch": "Indítás és csatlakozás"
+	},
+	"players": {
+		"tabs": {
+			"online": "Online",
+			"all": "Összes játékos",
+			"access": "Hozzáférés"
+		},
+		"offlineHint": "Indítsd el a szervert, hogy lásd, ki játszik, valamint az életerejüket, eszköztárukat és helyzetüket.",
+		"starting": "A szerver indul...",
+		"startingHint": "A játékosok akkor jelennek meg, ha a világ betöltődött.",
+		"liveError": "Nem sikerült beolvasni az élő játékosadatokat: {{error}}. Az élő adatokhoz Java szerver szükséges (Paper, Purpur, Fabric vagy Vanilla).",
+		"checking": "Online játékosok ellenőrzése...",
+		"nobody": "Senki sincs online",
+		"nobodyHint": "A játékosok itt jelennek meg, amint csatlakoznak.",
+		"none": "Még nincsenek játékosok",
+		"noneHint": "Mindenki, aki már csatlakozott ehhez a szerverhez, itt lesz felsorolva az utoljára mentett eszköztárával.",
+		"search": "Játékosok keresése",
+		"onlineNow": "Most online",
+		"lastSeen": "Utoljára látva: {{time}}"
+	},
+	"map": {
+		"upToDate": "Naprakész",
+		"noWorld": "Még nincs világ",
+		"noWorldHint": "Indítsd el a szervert egyszer, hogy világot generáljon. A felfedezett területek megjelennek a térképen.",
+		"liveTitle": "Az Ingot a szerver memóriájából tartja naprakészen a térképet",
+		"live": "Élő",
+		"restartToGoLive": "Indítsd újra az élő módhoz",
+		"makeLiveTitle_plugin": "Telepítsd az Ingot plugint a térkép valós idejű frissítéséhez a világ mentése nélkül",
+		"makeLiveTitle_mod": "Telepítsd az Ingot modot a térkép valós idejű frissítéséhez a világ mentése nélkül",
+		"makeLive": "Élővé tétel",
+		"refreshTitle": "Újonnan mentett területek keresése",
+		"ariaLabel": "Világtérkép. Húzd az elmozgatáshoz, görgess vagy csippents a nagyításhoz.",
+		"zoomIn": "Nagyítás",
+		"zoomOut": "Kicsinyítés",
+		"updatedAreas_one": "Frissített {{count}} terület",
+		"updatedAreas_other": "Frissített {{count}} területek"
+	},
+	"pluginDetails": {
+		"byline": "Készítő: {{author}} · {{downloads}} letöltés",
+		"playersNeedIt": "A játékosoknak is szükségük van erre a modra: mindenkinek telepítenie kell a játékában, aki csatlakozni szeretne, különben nem tud belépni.",
+		"installing": "Telepítés...",
+		"page": "Oldal",
+		"noCompatible": "Még nincs verzió a Minecraft {{version}} verzióhoz. A Verziók alatt választhatsz egy régebbit, de előfordulhat, hogy nem fog működni.",
+		"about": "Névjegy",
+		"versions": "Verziók",
+		"noDescription": "Nincs leírás.",
+		"onlyFor": "Csak a Minecraft {{version}} verziói",
+		"noVersions": "Nincsenek verziók",
+		"noVersionsHint": "Próbáld meg az összes verzió megjelenítését.",
+		"website": "Weboldal",
+		"anyVersion": "Bármely verzió"
+	},
+	"addAccount": {
+		"missingCredentials": "Add meg a felhasználónevet/e-mail-címet és a jelszót is.",
+		"welcomeBack": "Üdv újra, {{name}}!",
+		"elyFailed": "Nem sikerült kapcsolódni az Ely.by szolgáltatáshoz",
+		"missingNickname": "Add meg a játékos becenevét.",
+		"offlineCreated": "Offline profil létrehozva a következőhöz: {{name}}",
+		"offlineFailed": "Nem sikerült létrehozni az offline fiókot",
+		"description": "Csatlakoztasd az Ely.by fiókodat, vagy állíts be egy offline profilt a játékhoz.",
+		"tokensSecure": "A tokenek biztonságosan titkosítva vannak az operációs rendszer hitelesítőadat-tárolójában.",
+		"usernameOrEmail": "Felhasználónév vagy e-mail",
+		"usernamePlaceholder": "pl. notch vagy player@ely.by",
+		"password": "Jelszó",
+		"connecting": "Csatlakozás...",
+		"logIn": "Bejelentkezés az Ely.by-ba",
+		"offlineNote": "Az offline fiókok online munkamenet-token nélkül játszanak.",
+		"nickname": "Játékos beceneve",
+		"nicknamePlaceholder": "pl. Steve",
+		"adding": "Hozzáadás...",
+		"addProfile": "Profil hozzáadása",
+		"microsoftTitle": "Microsoft / Xbox Live bejelentkezés",
+		"microsoftSoon": "A hivatalos Mojang Microsoft-fiók OAuth integráció egy közelgő kiadásban lesz elérhető."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Játékmenet",
+			"players": "Játékosok",
+			"world": "Világ",
+			"network": "Hálózat",
+			"advanced": "Haladó"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Játékmód",
+				"description": "Mód az új játékosok számára.",
+				"options": {
+					"survival": "Túlélő",
+					"creative": "Kreatív",
+					"adventure": "Kaland",
+					"spectator": "Világmegfigyelő"
+				}
+			},
+			"difficulty": {
+				"label": "Nehézség",
+				"description": "Milyen veszélyesek a lények.",
+				"options": {
+					"peaceful": "Békés",
+					"easy": "Könnyű",
+					"normal": "Normál",
+					"hard": "Nehéz"
+				}
+			},
+			"force-gamemode": {
+				"label": "Játékmód kényszerítése",
+				"description": "Minden belépéskor visszaállítja a játékosokat az alapértelmezett módra."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "A játékosok világmegfigyelő módba kerülnek, amikor meghalnak."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "A játékosok sebezhetik egymást."
+			},
+			"allow-flight": {
+				"label": "Repülés engedélyezése",
+				"description": "Nem rúgja ki a játékosokat repülésért (egyes modokhoz és pluginokhoz szükséges)."
+			},
+			"spawn-protection": {
+				"label": "Kezdőpont védelme",
+				"description": "A kezdőpont körüli sugár, ahol csak operátorok építhetnek. A 0 kikapcsolja."
+			},
+			"max-players": {
+				"label": "Játékosok max. száma",
+				"description": "Hány játékos lehet online egyszerre."
+			},
+			"online-mode": {
+				"label": "Online mód",
+				"description": "Fiókok ellenőrzése a Mojanggal. Kapcsold ki a nem prémium vagy Ely.by fiókok engedélyezéséhez."
+			},
+			"player-idle-timeout": {
+				"label": "Tétlenségi kirúgás",
+				"description": "Játékosok kirúgása ennyi perc tétlenség után. A 0 sosem rúgja ki őket."
+			},
+			"op-permission-level": {
+				"label": "Operátori szint",
+				"description": "Mit tehetnek az operátorok: 1 kezdőpontvédelem megkerülése … 4 minden."
+			},
+			"hide-online-players": {
+				"label": "Játékoslista elrejtése",
+				"description": "Nem mutatja, ki van online a többjátékos menüben."
+			},
+			"enforce-secure-profile": {
+				"label": "Aláírt csevegés megkövetelése",
+				"description": "Csak Mojang által aláírt csevegési kulccsal rendelkező játékosokat engedélyez."
+			},
+			"view-distance": {
+				"label": "Látótávolság",
+				"description": "Milyen messzire látnak a játékosok. Az alacsonyabb kevésbé terheli az eszközt."
+			},
+			"simulation-distance": {
+				"label": "Szimulációs távolság",
+				"description": "Milyen távolságban ketyeg a világ a játékosok körül."
+			},
+			"level-seed": {
+				"label": "Kezdőérték (Seed)",
+				"description": "Kezdőérték egy új világhoz. Csak a világ első létrehozásakor használatos.",
+				"placeholder": "Véletlenszerű"
+			},
+			"level-type": {
+				"label": "Világtípus",
+				"description": "Csak a világ első létrehozásakor használatos.",
+				"options": {
+					"minecraft_normal": "Alapértelmezett",
+					"minecraft_flat": "Szuperlapos",
+					"minecraft_large_biomes": "Nagy biomok",
+					"minecraft_amplified": "Felerősített"
+				}
+			},
+			"generate-structures": {
+				"label": "Építmények generálása",
+				"description": "Falvak, templomok és egyéb építmények az új chunkokban."
+			},
+			"allow-nether": {
+				"label": "Nether engedélyezése",
+				"description": "A játékosok átmehetnek a Netherbe."
+			},
+			"max-world-size": {
+				"label": "Világhatár sugara",
+				"description": "A középponttól számított maximális távolság, ameddig a játékosok elmehetnek."
+			},
+			"server-port": {
+				"label": "Port",
+				"description": "A port, amelyen a szerver figyel."
+			},
+			"enable-status": {
+				"label": "Megjelenítés a szerverlistában",
+				"description": "Válaszol a többjátékos menüből érkező pingekre (MOTD, játékosszám)."
+			},
+			"network-compression-threshold": {
+				"label": "Tömörítési küszöb",
+				"description": "Az ennél nagyobb csomagok tömörítése. A -1 letiltja a tömörítést."
+			},
+			"enable-command-block": {
+				"label": "Parancsblokkok",
+				"description": "Parancsblokkok futásának engedélyezése."
+			},
+			"sync-chunk-writes": {
+				"label": "Biztonságos chunk-mentés",
+				"description": "Chunkok szinkron kiírása. Biztonságosabb, kissé lassabb."
+			},
+			"max-tick-time": {
+				"label": "Watchdog időtúllépés",
+				"description": "Szerver leállítása, ha egy tick ennél tovább tart. A -1 letiltja."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Entitások megjelenítési távolsága",
+				"description": "Milyen távolságig küldi el az entitásokat a játékosoknak, százalékban."
+			}
+		},
+		"units": {
+			"blocks": "blokk",
+			"min": "perc",
+			"chunks": "chunk",
+			"bytes": "bájt",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "A legtöbb módosítás a szerver újraindítása után lép érvénybe.",
+		"badImage": "A kép nem használható: {{error}}",
+		"emptyName": "A név nem lehet üres.",
+		"identity": "Szerver azonosító adatai",
+		"identityDesc": "Hogyan jelenik meg a szervered a többjátékos listában.",
+		"name": "Név",
+		"motd": "Leírás (MOTD) · két sor, az Enterrel léphetsz a másodikra",
+		"motdReset": "Visszaállítás",
+		"saved": "Mentve",
+		"saveChanges": "Módosítások mentése",
+		"memory": "RAM",
+		"memoryMobile": "Tartsd jóval a telefonod RAM-ja alatt.",
+		"memoryDesktop": "Maximális RAM a Java szerver számára.",
+		"portInUse": "A(z) {{port}} portot már egy másik szerver használja. Próbáld ezt: {{next}}.",
+		"gameSettings": "Játékbeállítások",
+		"gameSettingsDesc": "server.properties magyarázatokkal.",
+		"allOther": "Minden egyéb tulajdonság",
+		"filter": "Tulajdonságok szűrése",
+		"discard": "Elvetés",
+		"configFiles": "Konfigurációs fájlok",
+		"configFilesDesc": "Szerver- és pluginkonfigurációk (YAML, JSON, TOML).",
+		"saveFile": "Fájl mentése",
+		"manage": "Kezelés",
+		"changed_one": "{{count}} megváltozott",
+		"changed_other": "{{count}} megváltozott"
+	},
+	"newInstance": {
+		"title": "Új példány létrehozása",
+		"description": "Válaszd ki a Minecraft verziót és az előnyben részesített modbetöltőt. Az Ingot automatikusan beállítja a környezetet és a Javát.",
+		"modLoader": "Modbetöltő",
+		"minecraftVersion": "Minecraft verzió",
+		"snapshots": "Pillanatképek (Snapshotok)",
+		"snapshotBadge": "pillanatkép",
+		"latestBadge": "legújabb",
+		"loadingVersions": "Verziók betöltése...",
+		"selectVersion": "Válassz Minecraft verziót",
+		"searchVersion": "Verzió keresése (pl. 1.20, 1.16)...",
+		"loaderVersion": "Betöltő verziója",
+		"noCompatible": "Nincsenek kompatibilis verziók",
+		"selectLoaderVersion": "Válassz betöltőverziót",
+		"searchLoaderVersion": "Betöltőverzió keresése...",
+		"name": "Példány neve",
+		"namePlaceholder": "pl. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Szerverbeállítások",
+		"yourServers": "Szervereid",
+		"newServer": "Új szerver",
+		"about": "Névjegy és licencek"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Szerverfájlok ellenőrzése...",
+			"preparingPumpkin": "Pumpkin szerver előkészítése...",
+			"downloadingPumpkin": "Pumpkin letöltése (csak az első indításkor)...",
+			"preparingSandbox": "Linux homokozó előkészítése...",
+			"downloadingSandbox": "Linux homokozó letöltése...",
+			"extractingSandbox": "Homokozó fájlrendszer kibontása...",
+			"installingJava": "Java {{version}} telepítése a homokozóban...",
+			"sandboxReady": "Homokozó inicializálása kész!",
+			"installingCore": "{{name}} telepítése (csak az első indításkor, ez eltarthat néhány percig)...",
+			"launching": "Szerverfolyamat indítása...",
+			"failed": "Nem sikerült elindítani: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Nem található a Modrinth, CurseForge vagy Hangar oldalakon, így az Ingot nem tudja ellenőrizni",
+			"beta": "Béta verzió, instabil lehet",
+			"alpha": "Alfa verzió, instabil lehet",
+			"siteOnly": "A(z) {{target}} verziója csak innen tölthető le: {{site}}",
+			"fabricOnly": "Csak Fabric és Quilt esetén szükséges",
+			"noVersion": "Még nincs verzió ehhez: {{target}}",
+			"pluginNotMarked": "Még nincs megjelölve ehhez: {{version}}; a legtöbb plugin továbbra is működik",
+			"notUpdated": "Nincs frissítve ehhez: {{version}}; általában továbbra is működik",
+			"sameAs": "Ugyanaz, mint a(z) {{name}}",
+			"incompatible": "Nem működik együtt a következővel: {{name}}",
+			"needsTurnedOff": "Szüksége van a(z) {{name}} elemre, amely ki van kapcsolva",
+			"needsMissing": "Szüksége van a(z) {{name}} elemre, amely nem érhető el a következőhöz: {{version}}",
+			"neededBy": "Szükséges ehhez: {{name}}"
+		},
+		"launch": {
+			"preparing": "Indítás előkészítése",
+			"resolvingVersion": "Verzió feloldása",
+			"resolvingLoader": "Modbetöltő feloldása",
+			"checkingJava": "Java futtatókörnyezet ellenőrzése",
+			"javaSetup": "Java beállítása",
+			"downloadingClient": "Kliens letöltése",
+			"downloadingLibraries": "Könyvtárak letöltése",
+			"downloadingAssets": "Erőforrások letöltése",
+			"verifying": "Fájlok ellenőrzése",
+			"auth": "Hitelesítés beállítása",
+			"starting": "Játék indítása",
+			"fetchingMetadata": "Verzió metaadatainak lekérése...",
+			"fetchingProfile": "{{loader}} profil lekérése...",
+			"detectingJava": "Java környezet észlelése...",
+			"downloadingJavaProgress": "Java {{version}} futtatókörnyezet letöltése ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Java {{version}} futtatókörnyezet letöltése...",
+			"extractingJava": "Java {{version}} futtatókörnyezet kibontása...",
+			"downloadingJar": "Minecraft kliens jar letöltése...",
+			"downloadingLibrariesCount": "{{count}} könyvtár letöltése...",
+			"library": "Könyvtár: {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "{{count}} erőforrás letöltése...",
+			"assets": "Erőforrások: {{current}}/{{total}}",
+			"verified": "Minden játékfájl ellenőrizve",
+			"authDetail": "Ely.by skin és hitelesítési ügynök beállítása...",
+			"launching": "Minecraft folyamat indítása...",
+			"connecting": "Csatlakozás a szerverhez: {{server}}...",
+			"loadingWorld": "{{world}} világ betöltése...",
+			"initializing": "Indítási folyamat inicializálása..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Ahogy a játékosok látják",
+		"startingUp": "Indítás folyamatban...",
+		"shuttingDown": "Leállítás folyamatban...",
+		"cantConnect": "Nem sikerült kapcsolódni a szerverhez",
+		"preparing": "Előkészítés...",
+		"sleepingNote": "Alszik az erőforrások kímélése érdekében. Automatikusan felébred, ha egy játékos csatlakozik.",
+		"failedToStart": "Nem sikerült elindítani.",
+		"start": "Szerver indítása",
+		"wake": "Felébresztés",
+		"sleep": "Altatás",
+		"starting": "Indítás...",
+		"stopping": "Leállítás...",
+		"uptime": "Üzemidő",
+		"native": "Natív",
+		"noOutput": "Még nincs kimenet"
+	},
+	"serverCard": {
+		"offline": "Offline",
+		"openPage": "Szerveroldal megnyitása",
+		"copyAddress": "Kattints a szervercím másolásához",
+		"noneOnline": "0 online",
+		"joinTitle": "Minecraft indítása és csatlakozás ehhez a szerverhez",
+		"join": "Csatlakozás",
+		"start": "Indítás",
+		"openFolder": "Szervermappa megnyitása"
+	},
+	"versionChange": {
+		"title": "Verzióváltás",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Ütközések",
+			"missing": "Még nem érhető el",
+			"unknown": "Nem ellenőrizhető",
+			"newDependency": "Új függőségek",
+			"update": "Frissítések",
+			"works": "Már kompatibilis",
+			"olderVersions": "Régebbi verziók"
+		},
+		"actions": {
+			"keep": "Megtartás",
+			"update": "Frissítés",
+			"disable": "Kikapcsolás",
+			"add": "Telepítés",
+			"skip": "Kihagyás"
+		},
+		"kinds": {
+			"resourcePack": "Erőforráscsomag",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "A(z) {{to}} régebbi, mint a(z) {{from}}",
+		"downgradeWarning": "Az újabb verzióban játszott világok általában nem nyithatók meg régebbiben, és megsérülhetnek. Tartsd bekapcsolva a világok biztonsági mentését, hogy a visszavonással visszaállíthasd őket.",
+		"downgradeOk": "Megértettem, mégis váltás a régebbi verzióra",
+		"backupWorldsHint": "A Minecraft a világok megnyitásakor frissíti azokat, és ez nem fordítható vissza. Biztonsági mentéssel a visszavonás ezeket is visszaállítja.",
+		"openOn": "Megnyitás ezen az oldalon: {{site}}",
+		"new": "új",
+		"instanceDescription": "Az Ingot először ellenőrzi az összes modot, erőforráscsomagot és shadert, és semmit sem módosít, amíg nem alkalmazod. Utólag vissza is vonhatod.",
+		"now": "most",
+		"nowLabel": "Most",
+		"moveTo": "Váltás erre",
+		"pickVersion": "Válassz verziót",
+		"searchVersion": "Verzió keresése...",
+		"loaderVersion": "{{loader}} verzió",
+		"pickLoaderVersion": "Válassz betöltőverziót",
+		"noLoaderFor": "Nincs {{loader}} a(z) {{version}} verzióhoz",
+		"noLoader": "Nincs {{loader}} ehhez a verzióhoz",
+		"loaderSwitchNote": "A modok egy adott betöltőhöz készülnek. Az Ingot megkeresi az egyes modok {{loader}} verzióját, és kikapcsolja azokat, amelyekhez nem található ilyen.",
+		"instanceEmpty": "Nincsenek ellenőrizendő modok, erőforráscsomagok vagy shaderek. Csak a verzió változik.",
+		"applying": "Alkalmazás...",
+		"applyingHint": "Az új fájlok letöltése és ellenőrzése, majd a jelenlegiek biztonsági mentése. Semmi sem módosul, amíg minden el nem készül.",
+		"applyingWithWorlds": "Az új fájlok letöltése és ellenőrzése, majd a világok és a jelenlegi fájlok biztonsági mentése. Semmi sem módosul, amíg minden el nem készül.",
+		"nowOn": "Most ezen a verzión: {{version}}",
+		"instanceDone": "Módosítva erről: {{version}}. Ha valami nem működik, vond vissza a példány beállításaiban: minden pontosan úgy áll vissza, ahogy volt.",
+		"back": "Vissza",
+		"checking": "Ellenőrzés...",
+		"check": "Kompatibilitás ellenőrzése",
+		"moveToVersion": "Váltás a(z) {{version}} verzióra",
+		"summary": {
+			"download_one": "Letölthető {{count}} ({{size}})",
+			"download_other": "Letölthető {{count}} ({{size}})",
+			"turnedOff_one": "{{count}} kikapcsolva",
+			"turnedOff_other": "{{count}} kikapcsolva",
+			"conflictsKept_one": "{{count}} konfliktus megtartva",
+			"conflictsKept_other": "{{count}} ütközések megtartva"
+		},
+		"backupWorlds_one": "Világok biztonsági mentése ({{count}} világ, {{size}})",
+		"backupWorlds_other": "Világok biztonsági mentése ({{count}} világok, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Nem sikerült elindítani a példányt: {{error}}",
+		"resolveConflict": "Nem sikerült feloldani az ütközést: {{error}}",
+		"deleteInstance": "Nem sikerült törölni a példányt: {{error}}",
+		"startServer": "Nem sikerült elindítani a szervert: {{error}}",
+		"deleteServer": "Nem sikerült törölni a szervert: {{error}}",
+		"quickPlay": "Nem sikerült a gyorsindítás a szerverre: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Játékos betöltése...",
+		"noData": "Még nincsenek adatok erről a játékosról.",
+		"health": "Életerő",
+		"hunger": "Éhség",
+		"air": "Levegő",
+		"experience": "Tapasztalat",
+		"level": "{{level}}. szint",
+		"equipment": "Felszerelés",
+		"slots": {
+			"head": "Fej",
+			"chest": "Mellkas",
+			"legs": "Láb",
+			"feet": "Lábfej",
+			"offhand": "Másodlagos kéz"
+		},
+		"showOnMap": "Megjelenítés a térképen",
+		"inventory": "Eszköztár",
+		"ender": "Ender-láda ({{count}})",
+		"effects": "Hatások ({{count}})",
+		"onFire": "Lángokban áll",
+		"durability": "Tartósság: {{left}}/{{max}}",
+		"enchanted": "Elvarázsolt",
+		"noEffects": "Nincsenek aktív hatások",
+		"heal": "Gyógyítás",
+		"feed": "Etetés",
+		"removeOp": "OP elvétele",
+		"whitelisted": "Fehérlistán van",
+		"confirmKick": "Kirúgod a következőt: {{name}}?",
+		"confirmBan": "Kitiltod a következőt: {{name}}?",
+		"confirm": "Megerősítés",
+		"kick": "Kirúgás"
+	},
+	"transfer": {
+		"zipArchive": "Zip archívum",
+		"savedTo": "Mentve ide: {{path}}",
+		"copyName": "{{name}} másolata",
+		"created": "„{{name}}” létrehozva.",
+		"title": "Biztonsági mentés és verzió",
+		"description": "Exportálás megosztáshoz vagy biztonsági mentéshez, a szerver másolása vagy áttérés másik Minecraft verzióra.",
+		"exportConfigs": "Konfigurációk exportálása",
+		"withoutWorlds": "Világok nélkül",
+		"exportAll": "Összes exportálása",
+		"withWorlds": "Világokkal együtt",
+		"makeCopy": "Másolat készítése",
+		"secondServer": "Egy második szerver",
+		"stopFirst": "Először állítsd le a szervert",
+		"nowVersion": "Jelenlegi: {{version}}",
+		"backup": "Módosítva erről: {{version}}. Biztonsági mentés mérete: {{size}}.",
+		"backupWithWorlds": "Módosítva erről: {{version}}. Biztonsági mentés mérete: {{size}}, világokkal együtt.",
+		"deleteBackup": "Biztonsági mentés törlése",
+		"undo": "Visszavonás, vissza a(z) {{version}} verzióra",
+		"willStartOn": "A(z) {{name}} a(z) {{version}} verzión fog elindulni. Itt visszavonhatod, ha valami nem működik.",
+		"currentVersion": "{{version}} (jelenlegi)",
+		"changeTitle": "Minecraft verzió módosítása",
+		"changeDescription_plugin": "Az Ingot először ellenőrzi az összes plugint, és semmit sem módosít, amíg nem alkalmazod. Mindenről biztonsági mentés készül, így visszavonhatod.",
+		"changeDescription_mod": "Az Ingot először ellenőrzi az összes modot, és semmit sem módosít, amíg nem alkalmazod. Mindenről biztonsági mentés készül, így visszavonhatod.",
+		"serverType": "Szervertípus",
+		"empty": "Nincsenek ellenőrizendő pluginok vagy modok. Csak a verzió változik.",
+		"readyFor": "Készen áll a(z) {{version}} verzióra",
+		"doneNote": "Az új verzió a következő indításkor töltődik le. Ha valami nem működik, vond vissza a Biztonsági mentés és verzió menüben: minden pontosan úgy áll vissza, ahogy volt.",
+		"import": "Szerver importálása",
+		"importing": "Importálás: {{percent}}",
+		"settingUp": "Szerver beállítása...",
+		"partial": "A(z) „{{name}}” importálva, de néhány plugint vagy modot nem sikerült letölteni:",
+		"openServer": "Szerver megnyitása"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Nagy teljesítményű Spigot/Bukkit szerver teljes plugintámogatással",
+			"badge": "Gyors és stabil"
+		},
+		"purpur": {
+			"tagline": "Funkciógazdag Paper fork lenyűgöző testreszabhatósággal",
+			"badge": "Testreszabható"
+		},
+		"fabric": {
+			"tagline": "Könnyűsúlyú, moduláris moddolt szerver Fabric modokhoz",
+			"badge": "Moddolt"
+		},
+		"neoforge": {
+			"tagline": "Moddolt szerver NeoForge modokhoz, a legtöbb nagy tartalommod otthona",
+			"badge": "Moddolt"
+		},
+		"forge": {
+			"tagline": "Az eredeti moddolt szerver Forge modokhoz Minecraft 1.17 és újabb verziókhoz",
+			"badge": "Moddolt"
+		},
+		"quilt": {
+			"tagline": "Fabric-kompatibilis moddolt szerver, amely Quilt és Fabric modokat is futtat",
+			"badge": "Moddolt"
+		},
+		"folia": {
+			"tagline": "Többszálú, régiókra osztott szerver a PaperMC-től hatalmas játékosszámhoz",
+			"badge": "Többszálú"
+		},
+		"pumpkin": {
+			"tagline": "Rendkívül könnyű, Rust-alapú — azonnali indulás, < 60 MB RAM",
+			"badge": "Mobilnatív"
+		},
+		"vanilla": {
+			"tagline": "Hivatalos modolatlan Minecraft szerver közvetlenül a Mojangtól",
+			"badge": "Eredeti"
+		}
+	},
+	"wizard": {
+		"defaultName": "{{core}} szerver",
+		"fetchFailed": "Nem sikerült lekérni a verziókat. Ellenőrizd a kapcsolatot.",
+		"enterName": "Adj meg egy szervernevet.",
+		"selectVersion": "Válassz egy Minecraft verziót.",
+		"invalidPort": "Adj meg egy érvényes portot (1024 – 65534).",
+		"portInUseTry": "A(z) {{port}} port már használatban van. Próbáld ezt: {{next}}.",
+		"portInUse": "A(z) {{port}} port már használatban van.",
+		"createFailed": "Nem sikerült létrehozni a szervert",
+		"stepEngine": "Válassz motort",
+		"stepName": "Nevezd el a szervert",
+		"stepMemory": "RAM és megerősítés",
+		"stepOf": "{{step}} / {{total}}. lépés",
+		"preparing": "Szerver előkészítése…",
+		"serverName": "Szerver neve",
+		"namePlaceholder": "pl. {{core}} túlélő szerver",
+		"minecraftVersion": "Minecraft verzió",
+		"selectVersionPlaceholder": "Verzió kiválasztása",
+		"serverPort": "Szerverport",
+		"portInUseShort": "A port már foglalt",
+		"ready": "Készen áll a létrehozásra",
+		"engine": "Motor",
+		"version": "Verzió",
+		"ram": "RAM",
+		"memory": "Memória (RAM)",
+		"heroLine1": "Az első szervered,",
+		"heroLine2": "másodpercek alatt.",
+		"heroText": "Az Ingot letölti, beállítja és futtatja a Minecraft szervert közvetlenül ezen az eszközön. Hívd meg a barátaidat bárhonnan.",
+		"createAServer": "Szerver létrehozása",
+		"createAServerHint": "Paper, PumpkinMC, Fabric és egyebek"
+	},
+	"plugins": {
+		"unsupported": "A(z) {{core}} szerverek nem használnak pluginokat",
+		"unsupportedHint": "Hozz létre Paper vagy Purpur szervert pluginok hozzáadásához, vagy Fabric szervert modokhoz.",
+		"installed": "{{name}} telepítve.",
+		"installedWith": "{{name}} és {{extras}} telepítve.",
+		"browse_plugin": "Pluginok böngészése",
+		"browse_mod": "Modok böngészése",
+		"restartToApply": "Indítsd újra a szervert a módosítások érvénybe léptetéséhez.",
+		"restart": "Újraindítás",
+		"noOther_plugin": "Még nincsenek más pluginok.",
+		"noOther_mod": "Még nincsenek más modok.",
+		"none_plugin": "Még nincsenek pluginok",
+		"none_mod": "Még nincsenek modok",
+		"find_plugin": "Keresd meg a pluginokat a Modrinth felületén, és telepítsd őket egyetlen koppintással.",
+		"find_mod": "Keresd meg a modokat a Modrinth felületén, és telepítsd őket egyetlen koppintással.",
+		"findHangar_plugin": "Keresd meg a pluginokat a Modrinth és a Hangar felületén, és telepítsd őket egyetlen koppintással.",
+		"findHangar_mod": "Keresd meg a modokat a Modrinth és a Hangar felületén, és telepítsd őket egyetlen koppintással.",
+		"updateAvailable": "Frissítés érhető el: {{version}}",
+		"enabled": "{{name}} engedélyezve.",
+		"disabled": "{{name}} letiltva.",
+		"enable": "{{name}} engedélyezése",
+		"disable": "{{name}} letiltása",
+		"updated": "{{name}} frissítve.",
+		"removed": "{{name}} eltávolítva.",
+		"unknownVersion": "Ismeretlen verzió",
+		"byAuthors": "Készítők: {{authors}}",
+		"file": "Fájl",
+		"size": "Méret",
+		"updateTo": "Frissítés erre: {{version}}",
+		"reallyDelete": "Valóban törlöd?",
+		"sort": {
+			"downloads": "Legnépszerűbb",
+			"updated": "Nemrég frissítve",
+			"newest": "Legújabb"
+		},
+		"searchPlaceholder_plugin": "Pluginok keresése, pl. LuckPerms",
+		"searchPlaceholder_mod": "Modok keresése, pl. Lithium",
+		"compatibleOnly": "Csak a(z) {{version}} verzióval kompatibilis találatok",
+		"forVersion": "Ehhez: {{version}}",
+		"searchFailed": "A keresés nem sikerült: {{error}}",
+		"nothingFound": "Nincs találat",
+		"noneForVersion_plugin": "Egyetlen plugin sem felel meg a Minecraft {{version}} verzióhoz. Próbáld kikapcsolni a verziószűrőt.",
+		"noneForVersion_mod": "Egyetlen mod sem felel meg a Minecraft {{version}} verzióhoz. Próbáld kikapcsolni a verziószűrőt.",
+		"tryAnother": "Próbálkozz más kereséssel.",
+		"loadMore": "Továbbiak betöltése",
+		"playersNeedItTitle": "A játékosoknak is telepíteniük kell ezt a modot, különben nem tudnak csatlakozni",
+		"playersNeedIt": "A játékosoknak is szükségük van rá",
+		"isInstalled": "{{name}} telepítve van",
+		"install": "{{name}} telepítése",
+		"results_one": "{{formatted}} eredmény",
+		"results_other": "{{formatted}} eredmények"
+	},
+	"join": {
+		"shareTitle": "Csatlakozás a következőhöz: {{name}}",
+		"shareText": "Csatlakozz a(z) „{{name}}” Minecraft szerveremhez!\nCím: {{address}}\nVerzió: Java Edition {{version}}",
+		"title": "Játékosok meghívása",
+		"description": "Oszd meg a címet, hogy a barátaid csatlakozhassanak.",
+		"sameWifi": "Azonos Wi-Fi",
+		"copyLocal": "Helyi cím másolása",
+		"anywhere": "Bárhonnan (playit.gg)",
+		"copyPublic": "Nyilvános cím másolása",
+		"showQr": "QR-kód megjelenítése",
+		"linkPlayit": "playit.gg fiók összekapcsolása",
+		"noTunnel": "Csatlakozva, de még nincs alagút. <link>Adj hozzá egyet</link> a(z) {{port}} porthoz.",
+		"connecting": "Csatlakozás...",
+		"notConnected": "Nincs kapcsolat",
+		"stopPlayit": "playit leállítása",
+		"goPublic": "Nyilvánossá tétel",
+		"share": "Meghívó megosztása",
+		"scan": "Szkenneld be a cím másolásához",
+		"qrAlt": "QR-kód"
+	},
+	"stats": {
+		"latest": "Legújabb: {{value}}",
+		"noData": "Még nincsenek adatok",
+		"now": "most",
+		"ago": "{{time}} ezelőtt",
+		"min": "Min.",
+		"avg": "Átlag",
+		"peak": "Csúcs",
+		"performance": "Teljesítmény",
+		"touchHint": "Koppints a grafikonra a részletekért",
+		"ofDevice": "az eszközből",
+		"allocated": "Lefoglalt",
+		"deviceRam": "Eszköz RAM",
+		"free": "{{size}} szabad",
+		"lag": "Késleltetés",
+		"smooth": "Sima",
+		"slightLag": "Enyhe lag",
+		"lagging": "Akadozik",
+		"used": "{{label}}: {{used}} / {{total}} használatban"
+	},
+	"storage": {
+		"title": "Tárhely",
+		"worlds": "Világok",
+		"plugins": "Pluginok és modok",
+		"server": "Szerverfájlok",
+		"backups": "Biztonsági mentések",
+		"logs": "Naplófájlok",
+		"other": "Egyéb",
+		"device": "Eszköztárhely"
+	},
+	"instanceSettings": {
+		"pushFailed": "A feltöltés sikertelen: {{error}}",
+		"pullFailed": "A letöltés sikertelen: {{error}}",
+		"saveFailed": "Nem sikerült menteni a beállításokat: {{error}}",
+		"title": "Példány beállításai",
+		"description": "Végrehajtási paraméterek és RAM-korlátok beállítása ehhez: <b>{{name}}</b>.",
+		"namePlaceholder": "Az én Minecraft példányom",
+		"loader": "{{version}} betöltő",
+		"backup": "Módosítva erről: {{from}}, erre: {{to}}. Biztonsági mentés mérete: {{size}}.",
+		"backupWithWorlds": "Módosítva erről: {{from}}, erre: {{to}}. Biztonsági mentés mérete: {{size}}, világokkal együtt.",
+		"memoryOverride": "Globális RAM felülbírálása ennél a példánynál",
+		"minMemory": "Kezdeti RAM (Min.):",
+		"maxMemory": "Maximális RAM (Max.):",
+		"inheritMemory": "Globális beállítások öröklése: <b>{{min}} Min. / {{max}} Max.</b> A Beállítások oldalon módosítható.",
+		"jvmArgs": "JVM argumentumok",
+		"jvmArgsHint": "További Java indítási argumentumok (szóközzel elválasztva)",
+		"java": "Egyéni futtatható Java fájl",
+		"javaHint": "Hagyd üresen az automatikusan kezelt Adoptium futtatókörnyezethez",
+		"windowOverride": "Teljes képernyő és ablakméret felülbírálása ennél a példánynál",
+		"fullscreenHint": "Indítás közvetlenül teljes képernyős módban",
+		"resolution": "Felbontás:",
+		"fullscreen": "Teljes képernyő",
+		"inheritDisplay": "Globális megjelenítés öröklése: <b>{{value}}</b>. Az Indító beállításaiban módosítható.",
+		"syncHint": "Beállítások, szerverek, csomagok, előzmények és eszköztárak szinkronizálása",
+		"manualSync": "Kézi tárhely-szinkronizálás",
+		"manualSyncHint": "Ezen példány adatainak exportálása vagy a legújabb fájlok letöltése a megosztott tárhelyről.",
+		"push": "Feltöltés a megosztott tárhelyre",
+		"pull": "Letöltés a megosztott tárhelyről",
+		"syncOptions": "Játékbeállítások szinkronizálása (options.txt)",
+		"syncServers": "Többjátékos szerverek szinkronizálása (servers.dat)",
+		"syncPacks": "Erőforráscsomagok szinkronizálása (resourcepacks/)",
+		"syncHistory": "Parancselőzmények szinkronizálása (command_history.txt)",
+		"syncHotbars": "Creative Hotbars szinkronizálása (hotbar.nbt)",
+		"inheritSync": "Globális szinkronizálási beállítások öröklése. Indítás előtt és kilépés után szinkronizálódik."
+	},
+	"install": {
+		"loadFailed": "Nem sikerült betölteni a telepítési opciókat",
+		"compatible": "Összeegyeztethető",
+		"all": "Minden",
+		"any": "Bármilyen",
+		"modpackDone": "A \"{{name}}\" Modpack sikeresen telepítve lett új példány-ként!",
+		"selectTarget": "Cél kiválasztása: példány...",
+		"added": "{{file}} hozzáadva a {{instance}}-hoz!",
+		"modpackTitle": "Telepítse a Modpackot",
+		"addTitle_mod": "Mod hozzáadása a példány-hoz",
+		"addTitle_resourcepack": "Adja hozzá az erőforráscsomagot a példány-hoz",
+		"addTitle_shader": "Árnyékoló hozzáadása a példány-hoz",
+		"addTitle_modpack": "Adja hozzá a modpack-et a példány-hoz",
+		"addTitle_datapack": "Adja hozzá az adatcsomagot a példány-hoz",
+		"addTitle_plugin": "Adjon hozzá bővítményt a példány-hoz",
+		"modpackDescription": "Hozzon létre egy új Minecraft példány a „{{title}}” fájlból.",
+		"description": "Telepítse a „{{title}}” elemet a meglévő példány egyikébe.",
+		"loading": "Lehetőségek betöltése...",
+		"retry": "Próbálja újra",
+		"modpackVersion": "Modpack verzió",
+		"selectModpackVersion": "Modpack verzió kiválasztása...",
+		"loaders": "Rakodók:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Először hozzon létre egy példány-t a példány lapról, mielőtt modokat vagy erőforráscsomagokat adna hozzá.",
+		"target": "Cél: példány",
+		"fileVersion": "Fájl verzió",
+		"selectFileVersion": "Válassza ki a fájl verzióját...",
+		"supports": "Támogatja:",
+		"createAndInstall": "Létrehozás és telepítés",
+		"installToInstance": "Telepítés a példány-ra",
+		"compatibleCount_one": "{{count}} kompatibilis verzió",
+		"compatibleCount_other": "{{count}} kompatibilis verziók"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Erőforrás csomag",
+		"shader": "Shader",
+		"datapack": "Adatcsomag",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Kiadás",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "Nem sikerült betölteni a projekt részleteit",
+		"addToInstance": "Hozzáadás a példány-hoz",
+		"versions": "Verziók és fájlok",
+		"versionsCount": "Verziók és fájlok ({{count}})",
+		"loading": "Projekt részleteinek betöltése...",
+		"gallery": "Galéria ({{count}})",
+		"clickToOpen": "Kattintson a képre a teljes képernyős megjelenítéshez",
+		"viewFullscreen": "Teljes képernyő megtekintése",
+		"scrollLeft": "Görgessen balra a galériában",
+		"scrollRight": "Görgessen jobbra a galériában",
+		"source": "Forráskód",
+		"issues": "Problémakövető",
+		"wiki": "Wiki",
+		"description": "Leírás",
+		"gameVersion": "Játék verzió:",
+		"noMatch": "Egyetlen verzió sem felel meg a szűrési feltételeknek.",
+		"openOriginal": "Nyissa meg az Eredet",
+		"previous": "Előző kép",
+		"next": "Következő kép",
+		"downloads_one": "{{formatted}} letöltés",
+		"downloads_other": "{{formatted}} letöltések",
+		"followers_one": "{{formatted}} követő",
+		"followers_other": "{{formatted}} követői",
+		"showing_one": "{{shown}} a {{count}} verzióból",
+		"showing_other": "{{shown}} a {{count}} verziók közül"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Válassza a {{launcher}} példány címtárat",
+		"selectDir": "Válassza a Minecraft példány címtárat",
+		"done": "A példány sikeresen importálva!",
+		"title": "Importálás másik indítóból",
+		"selectInstance": "Válassza a példány ({{launcher}})",
+		"configure": "Importálás konfigurálása",
+		"description": "Importálja a meglévő Minecraft-telepítéseket, modokat, világokat és beállításokat közvetlenül a Ingot-ba.",
+		"optionsDescription": "Válassza ki, mely adatösszetevőket szeretné átvinni az új Ingot példány készülékébe.",
+		"detecting": "Telepített indítók észlelése...",
+		"notDetected": "Nem észlelhető • Kattintson a kereséshez",
+		"custom": "Egyéni címtár",
+		"customHint": "Válasszon ki egy példány mappát a lemezen",
+		"backToLaunchers": "Vissza a Launchers-hez",
+		"changeFolder": "Mappa módosítása",
+		"filter": "Szűrő példány...",
+		"loadingInstances": "példány betöltése...",
+		"noneFound": "Nem található példány ebben az indítókönyvtárban.",
+		"select": "Válassza ki",
+		"nameInIngot": "példány Név a Ingot-ban:",
+		"namePlaceholder": "Az importált példány",
+		"source": "Forrás: {{path}}",
+		"components": "Válassza ki az importálni kívánt összetevőket:",
+		"mods": "Mods",
+		"configs": "Konfigurációk",
+		"configsHint": "Beállítások és mod konfigurációk",
+		"worlds": "Világok és mentések",
+		"packs": "Erőforrás csomagok",
+		"packsHint": "Textúrák és shadercsomagok",
+		"screenshotsHint": "Játékon belüli képernyőképek",
+		"modData": "Mod Data és egyebek",
+		"modDataHint": "Útpontok, vázlatok, felvételek stb.",
+		"options": "Játéklehetőségek",
+		"optionsHint": "options.txt és billentyűkombinációk",
+		"servers": "Többjátékos szerverek",
+		"serversHint": "servers.dat szerverlista",
+		"note": "A fenti összetevők mindegyike opcionális. A <b>Mod Data & Others</b> engedélyezésével az egyéni mod mappák (minimap útvonalpontok, kapcsolási rajzok, felvételek) biztonságosan másolhatók. Törölje a jelölést, ha a tiszta importálást részesíti előnyben extra fájlok nélkül.",
+		"importing": "Importálás...",
+		"import": "Importálja a példány",
+		"found_one": "{{count}} példány {{launcher}} helyen található. Válassza ki, melyiket szeretné importálni.",
+		"found_other": "{{count}} példány {{launcher}} helyen található. Válassza ki, melyiket szeretné importálni.",
+		"instancesFound_one": "{{count}} példány található",
+		"instancesFound_other": "{{count}} példány található",
+		"modsCount_one": "{{count}} mod",
+		"modsCount_other": "{{count}} modok",
+		"worldsCount_one": "{{count}} világ",
+		"worldsCount_other": "{{count}} világok",
+		"screenshotsCount_one": "{{count}} képernyőkép",
+		"screenshotsCount_other": "{{count}} képernyőképek",
+		"modFiles_one": "{{count}} mod fájl",
+		"modFiles_other": "{{count}} mod fájlok",
+		"singleplayerWorlds_one": "{{count}} egyjátékos világ",
+		"singleplayerWorlds_other": "{{count}} egyjátékos világok"
+	},
+	"skinViewer": {
+		"resetCamera": "3D kamera alaphelyzetbe állítása",
+		"pauseRotation": "Az automatikus forgatás szüneteltetése",
+		"autoRotate": "3D modell automatikus elforgatása",
+		"idlePose": "Váltson üresjárati pózba",
+		"playWalk": "Játssz gyalogos animációt",
+		"idleTitle": "Üresjárati légzés animáció",
+		"idle": "Tétlen",
+		"walkTitle": "Sétáló animáció",
+		"walk": "Séta",
+		"runTitle": "Futó animáció",
+		"run": "Fut",
+		"waveTitle": "Integető kar animáció",
+		"wave": "Hullám",
+		"pause": "Animációk szüneteltetése",
+		"outerOn": "Külső réteg be",
+		"outerOff": "Külső réteg kikapcsolva",
+		"modelSlim": "Modell: Slim (Alex)",
+		"modelClassic": "Modell: Classic (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Egyedi Skin",
+		"currentActiveSkin": "Jelenlegi aktív bőr",
+		"activeAccountSkin": "Aktív fiók felszíne",
+		"loadFailed": "Nem sikerült betölteni a skineket a Ely.by",
+		"defaultSteve": "alapértelmezés szerint Steve",
+		"addAccountFirst": "Kérjük, először adjon hozzá vagy válasszon egy Ely.by fiókot.",
+		"elyOnlySync": "Csak a Ely.by fiókok támogatják a felhőalapú felületek szinkronizálását.",
+		"customApplied": "Egyedi bőrre felvitt {{name}}!",
+		"skinApplied": "Skin #{{id}} {{name}}-ra alkalmazva!",
+		"applyFailed": "Nem sikerült felvinni a bőrt.",
+		"enterPassword": "Kérjük, adja meg Ely.by jelszavát.",
+		"skinFromDate": "Skin {{date}}",
+		"uploadedApplied": "Egyedi bőrfeltöltés feltöltve és felhelyezve a {{name}}-ra!",
+		"pngOnly": "Skin fájlnak PNG formátumban (.png) kell lennie.",
+		"tooLarge": "A skin fájl túl nagy (maximum 2 MB).",
+		"badSize": "Érvénytelen méretek: {{size}}. A szabványos Minecraft felületeknek 64x64 vagy 64x32 képpont méretűnek kell lenniük.",
+		"badImage": "Nem sikerült elemezni a képet. Kérjük, győződjön meg arról, hogy ez egy érvényes PNG-fájl.",
+		"elyOnlyUpload": "Csak a Ely.by fiókok támogatják a skin-feltöltést.",
+		"uploadFailed": "Nem sikerült feltölteni a felületet.",
+		"saved": "Skin #{{id}} sikeresen mentve!",
+		"downloadFailed": "Letöltés sikertelen.",
+		"urlCopied": "A bőrtextúra URL-je a vágólapra másolva!",
+		"activeAccount": "Aktív Ely.by fiók",
+		"noActiveAccount": "Nincs aktív Ely.by fiók",
+		"browse": "Skinek böngészése",
+		"preview3d": "3D előnézet",
+		"currentSkin": "Jelenlegi bőr",
+		"skinNumber": "Bőr #{{id}}",
+		"alexSlim3": "Alex (karcsú, 3 képpont)",
+		"steveClassic4": "Steve (klasszikus 4px)",
+		"currentSkinOf": "Jelenlegi felület ({{name}})",
+		"applyTo": "Vigye fel a bőrt a {{name}} felületre",
+		"applyToAccount": "Skin alkalmazása a fiókra",
+		"downloadPng": "PNG letöltése",
+		"updating": "Frissítés...",
+		"loadingMine": "A feltöltött skinek betöltése a Ely.by webhelyről...",
+		"loading": "Skinek betöltése innen: Ely.by...",
+		"noMatchingUploads": "Nem található egyező feltöltött skin",
+		"noUploadsFor": "Nem találhatók feltöltött skinek a következőhöz: {{name}}",
+		"tryDifferent": "Próbálkozzon másik keresési lekérdezéssel vagy szűrővel.",
+		"noUploadsHint": "Még nem töltöttél fel egyéni skineket a Ely.by-ba. Tölts fel egy skint, hogy kezeld és bármikor viseld.",
+		"selectAccountHint": "Kérjük, válasszon vagy adjon hozzá egy Ely.by fiókot a feltöltött skinek megtekintéséhez.",
+		"uploadASkin": "Skin feltöltése",
+		"noSkins": "Nem található skin",
+		"deleteCustom": "Egyéni felület törlése",
+		"slim": "Vékony",
+		"classic": "Klasszikus",
+		"pageOf": "<b>{{page}}</b>/{{total}} oldal",
+		"total": "({{count}} összesen)",
+		"previous": "Előző",
+		"next": "Következő",
+		"alexSlim": "Alex (karcsú)",
+		"steveClassic": "Steve (klasszikus)",
+		"view3d": "3D nézet",
+		"apply": "Alkalmazni",
+		"livePreview": "Élő 3D előnézet",
+		"uploading": "Feltöltés és jelentkezés...",
+		"uploadApply": "Töltse fel és alkalmazza a bőrt",
+		"uploadTitle": "Egyedi felület feltöltése",
+		"uploadDescription": "Töltsön fel egy Minecraft bőrtextúrát a számítógépéről, hogy közvetlenül alkalmazza a Ely.by-ra.",
+		"dropHint": "Kattintson ide a skin PNG-fájl böngészéséhez vagy húzásával ide",
+		"supports": "Támogatja a szabványos Minecraft skineket (64×64 vagy 64×32 PNG, 2 MB-ig)",
+		"dimensions": "Méretek: {{value}}",
+		"size": "Méret: {{value}}",
+		"armModel": "Skin Arm Model",
+		"armModelHint": "Válassza ki, hogy ez a skin Classic (4px) vagy Slim (3px) karokhoz készült.",
+		"classicArms": "Klasszikus (4px karok)",
+		"slimArms": "Vékony (3 képpontos kar)",
+		"targetAccount": "Cél Ely.by-fiók",
+		"noAccount": "Nincs aktív fiók",
+		"readyToApply": "Jelentkezésre kész",
+		"passwordTitle": "Ely.by Jelszó hitelesítés",
+		"passwordDescription": "A Ely.by felületének módosításához a <b>{{name}}</b> számára, adja meg fiókja jelszavát. Biztonságosan titkosítva lesz a natív operációs rendszer kulcstartójában.",
+		"passwordPlaceholder": "Ely.by Jelszó",
+		"authorize": "Engedélyezés és jelentkezés",
+		"count_one": "{{formatted}} skin",
+		"count_other": "{{formatted}} skinek"
+	},
+	"select": {
+		"placeholder": "Válasszon egy lehetőséget",
+		"noMatches": "Semmi sem egyezik"
+	},
+	"hosting": {
+		"one": "Tárhely {{name}}",
+		"many": "{{count}} szerverek tárolása",
+		"tunnel": "Ingot alagút aktív",
+		"publicAddress": "Nyilvános cím: {{address}}",
+		"connecting": "playit.gg alagút összekötő...",
+		"localOnly": "Csak helyi hálózat"
 	}
 }

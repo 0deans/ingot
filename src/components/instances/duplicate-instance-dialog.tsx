@@ -1,5 +1,6 @@
 import { Copy, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ export const DuplicateInstanceDialog = ({
 	isRunning,
 	onOpenChange,
 }: DuplicateInstanceDialogProps) => {
+	const { t } = useTranslation()
 	const [name, setName] = useState("")
 	const [includeWorlds, setIncludeWorlds] = useState(true)
 	const [worldCount, setWorldCount] = useState<number | null>(null)
@@ -38,7 +40,7 @@ export const DuplicateInstanceDialog = ({
 	const instanceName = instance?.name
 	useEffect(() => {
 		if (!open || !instanceId) return
-		setName(`${instanceName} (copy)`)
+		setName(t("duplicateInstance.defaultName", { name: instanceName }))
 		setIncludeWorlds(true)
 		setError(null)
 		setWorldCount(null)
@@ -46,7 +48,7 @@ export const DuplicateInstanceDialog = ({
 			.get_instance_worlds(instanceId)
 			.then((worlds) => setWorldCount(worlds.length))
 			.catch(() => setWorldCount(null))
-	}, [open, instanceId, instanceName])
+	}, [open, instanceId, instanceName, t])
 
 	if (!instance) return null
 
@@ -74,11 +76,10 @@ export const DuplicateInstanceDialog = ({
 						<Copy className="size-5" />
 					</div>
 					<DialogTitle className="font-semibold text-lg text-zinc-50">
-						Duplicate Instance
+						{t("duplicateInstance.title")}
 					</DialogTitle>
 					<DialogDescription className="text-xs text-zinc-400">
-						Makes a separate copy with the same mods, configs, resource packs and settings. Changes
-						to one don't touch the other, so the copy is a safe place to try a new version or mods.
+						{t("duplicateInstance.description")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -96,7 +97,7 @@ export const DuplicateInstanceDialog = ({
 
 				<div className="flex flex-col gap-1.5">
 					<label htmlFor="duplicate-name" className="font-medium text-xs text-zinc-300">
-						Name of the copy
+						{t("duplicateInstance.nameLabel")}
 					</label>
 					<Input
 						id="duplicate-name"
@@ -120,28 +121,25 @@ export const DuplicateInstanceDialog = ({
 					/>
 					<span className="flex flex-col gap-0.5">
 						<span className="font-medium text-sm text-zinc-100">
-							Copy worlds
+							{t("duplicateInstance.copyWorlds")}
 							{worldCount !== null && (
 								<span className="font-normal text-zinc-500">
 									{" "}
-									({worldCount === 0 ? "none yet" : worldCount})
+									({worldCount === 0 ? t("duplicateInstance.noWorldsYet") : worldCount})
 								</span>
 							)}
 						</span>
 						<span className="text-[11px] text-zinc-500">
-							Without them the copy starts with no singleplayer worlds.
+							{t("duplicateInstance.copyWorldsDesc")}
 						</span>
 					</span>
 				</label>
 
-				<p className="text-[11px] text-zinc-500">
-					Playtime starts at zero. Logs, crash reports and screenshots stay with the original.
-				</p>
+				<p className="text-[11px] text-zinc-500">{t("duplicateInstance.note")}</p>
 
 				{blocked && (
 					<p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-200 text-xs">
-						The game is running. Close it first so the worlds are copied as they were saved, or copy
-						without worlds.
+						{t("duplicateInstance.running")}
 					</p>
 				)}
 				{error && (
@@ -158,7 +156,7 @@ export const DuplicateInstanceDialog = ({
 						className="w-full gap-1.5 bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
 					>
 						{busy ? <Loader2 className="size-4 animate-spin" /> : <Copy className="size-4" />}
-						{busy ? "Copying…" : "Duplicate"}
+						{busy ? t("duplicateInstance.copying") : t("duplicateInstance.action")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

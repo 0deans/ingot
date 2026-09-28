@@ -81,7 +81,7 @@ export default function ServerListView() {
 			await serverService.startServer(serverId)
 		} catch (err) {
 			console.error("Failed to start server:", err)
-			alert(`Failed to start server: ${err}`)
+			alert(t("errors.startServer", { error: String(err) }))
 		}
 	}
 
@@ -113,7 +113,7 @@ export default function ServerListView() {
 			})
 		} catch (err) {
 			console.error("Failed to delete server:", err)
-			alert(`Failed to delete server: ${err}`)
+			alert(t("errors.deleteServer", { error: String(err) }))
 		}
 	}
 
@@ -237,7 +237,7 @@ export default function ServerListView() {
 										className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-900/30 px-3 py-1 font-medium text-emerald-200 text-xs shadow-sm"
 									>
 										<span>
-											{srv?.name || "Server"} (Port {proc.port})
+											{t("servers.activeEntry", { name: srv?.name ?? "", port: proc.port })}
 										</span>
 										<button
 											type="button"
@@ -425,7 +425,7 @@ export default function ServerListView() {
 							})
 						} catch (e) {
 							console.error("Failed to quick play server:", e)
-							alert(`Failed to quick play server: ${e}`)
+							alert(t("errors.quickPlay", { error: String(e) }))
 						}
 					}}
 					onCreateInstance={() => {

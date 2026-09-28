@@ -1,4 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener"
+import type { TFunction } from "i18next"
+import i18n from "i18next"
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -13,6 +15,7 @@ import {
 import { marked } from "marked"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -23,6 +26,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { formatBytes, formatCount, formatDate as formatLocalDate, formatNumber } from "@/lib/format"
 import { sanitizeHtml } from "@/lib/sanitize-html"
 import {
 	type ContentSource,
@@ -44,32 +48,25 @@ interface ContentDetailsDialogProps {
 	onInstall: (item: UnifiedContentItem, specificVersion?: UnifiedContentVersion) => void
 }
 
-function formatDownloads(count: number): string {
-	if (count >= 1_000_000_000) return `${(count / 1_000_000_000).toFixed(1)}B`
-	if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`
-	if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`
-	return count.toString()
+const formatDownloads = formatCount
+
+/** "mod", "resourcepack"... in the user's language (unknown types as they are) */
+function contentType(t: TFunction, type: string): string {
+	return ["mod", "modpack", "resourcepack", "shader", "datapack", "plugin"].includes(type)
+		? t(`contentTypes.${type as "mod"}`)
+		: type
 }
 
-function formatBytes(bytes: number): string {
-	if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-	if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`
-	return `${bytes} B`
+function releaseType(t: TFunction, type: string): string {
+	return ["release", "beta", "alpha"].includes(type) ? t(`releaseTypes.${type as "release"}`) : type
 }
 
 function formatDate(dateStr: string): string {
-	if (!dateStr) return ""
-	try {
-		const d = new Date(dateStr)
-		if (Number.isNaN(d.getTime())) return dateStr
-		return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-	} catch {
-		return dateStr
-	}
+	return dateStr ? formatLocalDate(dateStr) || dateStr : ""
 }
 
 function formatError(err: unknown): string {
-	if (!err) return "Failed to load project details"
+	if (!err) return i18n.t("contentDetails.loadFailed")
 	if (typeof err === "string") return err
 	if (err instanceof Error) return err.message
 	if (
@@ -103,6 +100,7 @@ function renderDescriptionHtml(body: string, isHtml: boolean): string {
 
 export const ContentDetailsDialog = memo(
 	({ open, onOpenChange, item, onInstall }: ContentDetailsDialogProps) => {
+		const { t } = useTranslation()
 		const [activeTab, setActiveTab] = useState<"overview" | "versions">("overview")
 		const [details, setDetails] = useState<UnifiedContentDetails | null>(null)
 		const [isLoading, setIsLoading] = useState(false)
@@ -308,10 +306,12 @@ export const ContentDetailsDialog = memo(
 										</span>
 
 										<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] text-muted-foreground capitalize">
-											{item.projectType}
+											{contentType(t, item.projectType)}
 										</span>
 
-										<span className="text-muted-foreground text-xs">by {item.author}</span>
+										<span className="text-muted-foreground text-xs">
+											{t("modpacks.byAuthor", { author: item.author })}
+										</span>
 									</div>
 
 									<h2 className="truncate font-bold text-foreground text-xl tracking-tight">
@@ -321,10 +321,20 @@ export const ContentDetailsDialog = memo(
 									<div className="flex items-center gap-3 text-muted-foreground text-xs">
 										<div className="flex items-center gap-1">
 											<Download className="size-3.5" />
-											<span>{formatDownloads(item.downloads)} downloads</span>
+											<span>
+												{t("contentDetails.downloads", {
+													count: item.downloads,
+													formatted: formatDownloads(item.downloads),
+												})}
+											</span>
 										</div>
 										{details?.follows != null && (
-											<div>{details.follows.toLocaleString()} followers</div>
+											<div>
+												{t("contentDetails.followers", {
+													count: details.follows,
+													formatted: formatNumber(details.follows),
+												})}
+											</div>
 										)}
 									</div>
 								</div>
@@ -337,7 +347,9 @@ export const ContentDetailsDialog = memo(
 									className="gap-1.5 font-semibold text-xs shadow-sm"
 								>
 									<Download className="size-3.5" />
-									{item.projectType === "modpack" ? "Install Modpack" : "Add to Instance"}
+									{item.projectType === "modpack"
+										? t("install.modpackTitle")
+										: t("contentDetails.addToInstance")}
 								</Button>
 
 								{item.websiteUrl && (
@@ -348,14 +360,14 @@ export const ContentDetailsDialog = memo(
 										className="gap-1.5 text-xs"
 									>
 										<Globe className="size-3.5" />
-										Website
+										{t("pluginDetails.website")}
 									</Button>
 								)}
 
 								<button
 									type="button"
 									onClick={() => onOpenChange(false)}
-									aria-label="Close dialog"
+									aria-label={t("common.close")}
 									className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-zinc-800 hover:text-foreground"
 								>
 									<X className="size-4" />
@@ -374,7 +386,7 @@ export const ContentDetailsDialog = memo(
 										: "border-transparent text-muted-foreground hover:text-foreground"
 								}`}
 							>
-								Overview
+								{t("serverTabs.overview")}
 							</button>
 							<button
 								type="button"
@@ -385,7 +397,9 @@ export const ContentDetailsDialog = memo(
 										: "border-transparent text-muted-foreground hover:text-foreground"
 								}`}
 							>
-								Versions & Files {details ? `(${details.versions.length})` : ""}
+								{details
+									? t("contentDetails.versionsCount", { count: details.versions.length })
+									: t("contentDetails.versions")}
 							</button>
 						</div>
 
@@ -394,7 +408,7 @@ export const ContentDetailsDialog = memo(
 							{isLoading ? (
 								<div className="flex flex-1 items-center justify-center gap-2 text-muted-foreground text-sm">
 									<Loader2 className="size-5 animate-spin text-primary" />
-									<span>Loading project details...</span>
+									<span>{t("contentDetails.loading")}</span>
 								</div>
 							) : error ? (
 								<div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
@@ -413,7 +427,7 @@ export const ContentDetailsDialog = memo(
 												.finally(() => setIsLoading(false))
 										}}
 									>
-										Try Again
+										{t("common.tryAgain")}
 									</Button>
 								</div>
 							) : activeTab === "overview" ? (
@@ -424,10 +438,10 @@ export const ContentDetailsDialog = memo(
 											<div className="flex w-full min-w-0 max-w-full flex-col gap-3">
 												<div className="flex items-center justify-between">
 													<h3 className="font-semibold text-foreground text-sm">
-														Gallery ({details.screenshots.length})
+														{t("contentDetails.gallery", { count: details.screenshots.length })}
 													</h3>
 													<span className="text-[11px] text-muted-foreground">
-														Click image to open in fullscreen
+														{t("contentDetails.clickToOpen")}
 													</span>
 												</div>
 
@@ -442,7 +456,7 @@ export const ContentDetailsDialog = memo(
 														alt={
 															details.screenshots[
 																activePhotoIndex < details.screenshots.length ? activePhotoIndex : 0
-															].title || "Featured screenshot"
+															].title || ""
 														}
 														className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
 													/>
@@ -458,11 +472,11 @@ export const ContentDetailsDialog = memo(
 															)
 														}
 														className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-														aria-label="View screenshot in fullscreen"
+														aria-label={t("contentDetails.viewFullscreen")}
 													>
 														<div className="flex items-center gap-2 rounded-lg bg-black/80 px-4 py-2 font-medium text-white text-xs shadow-xl backdrop-blur-xs transition-transform duration-200 hover:scale-105">
 															<Maximize2 className="size-4" />
-															<span>View Fullscreen</span>
+															<span>{t("contentDetails.viewFullscreen")}</span>
 														</div>
 													</button>
 
@@ -488,7 +502,7 @@ export const ContentDetailsDialog = memo(
 															variant="outline"
 															onClick={() => scrollGallery("left")}
 															className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
-															aria-label="Scroll gallery left"
+															aria-label={t("contentDetails.scrollLeft")}
 														>
 															<ChevronLeft className="size-4" />
 														</Button>
@@ -511,7 +525,7 @@ export const ContentDetailsDialog = memo(
 																>
 																	<img
 																		src={s.url}
-																		alt={s.title || "Thumbnail"}
+																		alt={s.title || ""}
 																		className="size-full object-cover"
 																	/>
 																	{s.title && (
@@ -529,7 +543,7 @@ export const ContentDetailsDialog = memo(
 															variant="outline"
 															onClick={() => scrollGallery("right")}
 															className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
-															aria-label="Scroll gallery right"
+															aria-label={t("contentDetails.scrollRight")}
 														>
 															<ChevronRight className="size-4" />
 														</Button>
@@ -549,7 +563,7 @@ export const ContentDetailsDialog = memo(
 														className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
 													>
 														<ExternalLink className="size-3" />
-														Source Code
+														{t("contentDetails.source")}
 													</Button>
 												)}
 												{details.issuesUrl && (
@@ -560,7 +574,7 @@ export const ContentDetailsDialog = memo(
 														className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
 													>
 														<ExternalLink className="size-3" />
-														Issue Tracker
+														{t("contentDetails.issues")}
 													</Button>
 												)}
 												{details.wikiUrl && (
@@ -571,7 +585,7 @@ export const ContentDetailsDialog = memo(
 														className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
 													>
 														<ExternalLink className="size-3" />
-														Wiki
+														{t("contentDetails.wiki")}
 													</Button>
 												)}
 											</div>
@@ -579,7 +593,9 @@ export const ContentDetailsDialog = memo(
 
 										{/* Rich Description (Markdown & HTML Supported) */}
 										<div className="flex flex-col gap-2">
-											<h3 className="font-semibold text-foreground text-sm">Description</h3>
+											<h3 className="font-semibold text-foreground text-sm">
+												{t("contentDetails.description")}
+											</h3>
 											{details?.body ? (
 												<section
 													className="prose prose-invert prose-sm max-w-none space-y-3 text-muted-foreground text-xs leading-relaxed [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-primary/70 [&_blockquote]:border-l-4 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-zinc-800/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[11px] [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-zinc-900/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:text-lg [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:text-sm [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-zinc-800/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
@@ -593,13 +609,13 @@ export const ContentDetailsDialog = memo(
 															}
 														}
 													}}
-													aria-label="Project description"
+													aria-label={t("contentDetails.description")}
 													// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized in renderDescriptionHtml
 													dangerouslySetInnerHTML={{ __html: descriptionHtml }}
 												/>
 											) : (
 												<p className="text-muted-foreground text-xs">
-													{details?.description || "No description provided."}
+													{details?.description || t("modpacks.noDescription")}
 												</p>
 											)}
 										</div>
@@ -611,7 +627,9 @@ export const ContentDetailsDialog = memo(
 									{/* Modern Version filters with Select components */}
 									<div className="flex flex-wrap items-center gap-3 border-border/40 border-b bg-zinc-950/20 px-6 py-3">
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">Loader:</span>
+											<span className="text-muted-foreground text-xs">
+												{t("modpacks.filters.loader")}
+											</span>
 											<Select
 												value={versionLoaderFilter || "all"}
 												onValueChange={(val) =>
@@ -619,10 +637,10 @@ export const ContentDetailsDialog = memo(
 												}
 											>
 												<SelectTrigger className="h-8 w-32">
-													<SelectValue placeholder="All Loaders" />
+													<SelectValue placeholder={t("modpacks.filters.allLoaders")} />
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value="all">All Loaders</SelectItem>
+													<SelectItem value="all">{t("modpacks.filters.allLoaders")}</SelectItem>
 													<SelectItem value="fabric">Fabric</SelectItem>
 													<SelectItem value="forge">Forge</SelectItem>
 													<SelectItem value="neoforge">NeoForge</SelectItem>
@@ -632,7 +650,9 @@ export const ContentDetailsDialog = memo(
 										</div>
 
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">Game Version:</span>
+											<span className="text-muted-foreground text-xs">
+												{t("contentDetails.gameVersion")}
+											</span>
 											<Select
 												value={versionGameVerFilter || "all"}
 												onValueChange={(val) =>
@@ -640,10 +660,10 @@ export const ContentDetailsDialog = memo(
 												}
 											>
 												<SelectTrigger className="h-8 w-36">
-													<SelectValue placeholder="All Versions" />
+													<SelectValue placeholder={t("modpacks.filters.allVersions")} />
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value="all">All Versions</SelectItem>
+													<SelectItem value="all">{t("modpacks.filters.allVersions")}</SelectItem>
 													{availableGameVersions.map((gv) => (
 														<SelectItem key={gv} value={gv}>
 															{gv}
@@ -664,12 +684,15 @@ export const ContentDetailsDialog = memo(
 												className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
 											>
 												<X className="size-3" />
-												Clear
+												{t("console.clear")}
 											</Button>
 										)}
 
 										<span className="ml-auto text-muted-foreground text-xs">
-											Showing {filteredVersions.length} of {details?.versions.length ?? 0} versions
+											{t("contentDetails.showing", {
+												shown: filteredVersions.length,
+												count: details?.versions.length ?? 0,
+											})}
 										</span>
 									</div>
 
@@ -677,7 +700,7 @@ export const ContentDetailsDialog = memo(
 										<div className="flex flex-col gap-3 p-6">
 											{filteredVersions.length === 0 ? (
 												<div className="py-12 text-center text-muted-foreground text-xs">
-													No versions match your filter criteria.
+													{t("contentDetails.noMatch")}
 												</div>
 											) : (
 												filteredVersions.map((ver) => (
@@ -697,7 +720,7 @@ export const ContentDetailsDialog = memo(
 																					: "border border-red-500/20 bg-red-500/15 text-red-400"
 																		}`}
 																	>
-																		{ver.versionType}
+																		{releaseType(t, ver.versionType)}
 																	</span>
 																	<h4 className="truncate font-semibold text-foreground text-sm">
 																		{ver.name}
@@ -728,7 +751,7 @@ export const ContentDetailsDialog = memo(
 																className="shrink-0 gap-1.5 text-xs transition-colors hover:bg-primary hover:text-primary-foreground"
 															>
 																<Download className="size-3.5" />
-																Install
+																{t("common.install")}
 															</Button>
 														</div>
 
@@ -785,12 +808,12 @@ export const ContentDetailsDialog = memo(
 										className="h-8 gap-1.5 text-xs text-zinc-300 hover:text-zinc-50"
 									>
 										<ExternalLink className="size-3.5" />
-										Open Original
+										{t("contentDetails.openOriginal")}
 									</Button>
 									<button
 										type="button"
 										onClick={() => setLightboxIndex(null)}
-										aria-label="Close image preview"
+										aria-label={t("screenshots.lightbox.close")}
 										className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-50/10 hover:text-zinc-50"
 									>
 										<X className="size-5" />
@@ -805,7 +828,7 @@ export const ContentDetailsDialog = memo(
 										type="button"
 										onClick={() => setLightboxIndex(lightboxIndex - 1)}
 										className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-black/60 p-3 text-white shadow-lg backdrop-blur-xs transition-all hover:bg-black/90"
-										aria-label="Previous image"
+										aria-label={t("contentDetails.previous")}
 									>
 										<ChevronLeft className="size-6" />
 									</button>
@@ -813,7 +836,7 @@ export const ContentDetailsDialog = memo(
 
 								<img
 									src={details.screenshots[lightboxIndex].url}
-									alt={details.screenshots[lightboxIndex].title || "Screenshot"}
+									alt={details.screenshots[lightboxIndex].title || ""}
 									className="max-h-[72vh] max-w-[85vw] rounded-lg object-contain shadow-2xl transition-all"
 								/>
 
@@ -822,7 +845,7 @@ export const ContentDetailsDialog = memo(
 										type="button"
 										onClick={() => setLightboxIndex(lightboxIndex + 1)}
 										className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-black/60 p-3 text-white shadow-lg backdrop-blur-xs transition-all hover:bg-black/90"
-										aria-label="Next image"
+										aria-label={t("contentDetails.next")}
 									>
 										<ChevronRight className="size-6" />
 									</button>

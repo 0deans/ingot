@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next"
 import {
 	Apple,
 	Ban,
@@ -12,6 +13,7 @@ import {
 	Sparkles,
 } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { ItemStack, PlayerDetails } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -53,6 +55,7 @@ export function PlayerSheet({
 	onClose: () => void
 	onShowOnMap?: (player: PlayerDetails) => void
 }) {
+	const { t } = useTranslation()
 	const shownName = useSticky(name)
 	const {
 		data: player,
@@ -68,11 +71,11 @@ export function PlayerSheet({
 				<DialogTitle className="sr-only">{shownName}</DialogTitle>
 				{isLoading && !player ? (
 					<div className="flex items-center justify-center gap-2 py-16 text-sm text-zinc-500">
-						<Loader2 className="size-4 animate-spin" /> Loading player...
+						<Loader2 className="size-4 animate-spin" /> {t("playerSheet.loading")}
 					</div>
 				) : !player ? (
 					<div className="p-5">
-						<ErrorNote>{String(error ?? "No data for this player yet.")}</ErrorNote>
+						<ErrorNote>{error ? String(error) : t("playerSheet.noData")}</ErrorNote>
 					</div>
 				) : (
 					<FadeScroll className="flex min-h-0 flex-col">
@@ -82,16 +85,22 @@ export function PlayerSheet({
 							<div className="flex flex-col gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-4">
 								<StatBar
 									icon={Heart}
-									label="Health"
+									label={t("playerSheet.health")}
 									value={player.health + player.absorption}
 									max={player.maxHealth}
 									color="#f43f5e"
 								/>
-								<StatBar icon={Apple} label="Hunger" value={player.food} max={20} color="#f59e0b" />
+								<StatBar
+									icon={Apple}
+									label={t("playerSheet.hunger")}
+									value={player.food}
+									max={20}
+									color="#f59e0b"
+								/>
 								{player.air < 300 && (
 									<StatBar
 										icon={Droplets}
-										label="Air"
+										label={t("playerSheet.air")}
 										value={player.air}
 										max={300}
 										color="#38bdf8"
@@ -101,10 +110,10 @@ export function PlayerSheet({
 									<div className="flex items-center justify-between text-xs">
 										<span className="flex items-center gap-1.5 text-zinc-400">
 											<Sparkles className="size-3.5 text-lime-400" />
-											Experience
+											{t("playerSheet.experience")}
 										</span>
 										<span className="font-medium font-mono text-lime-300">
-											Level {player.xpLevel}
+											{t("playerSheet.level", { level: player.xpLevel })}
 										</span>
 									</div>
 									<div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
@@ -118,23 +127,27 @@ export function PlayerSheet({
 
 							<div className="flex flex-col gap-2 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-4">
 								<span className="text-[11px] text-zinc-500 uppercase tracking-wider">
-									Equipment
+									{t("playerSheet.equipment")}
 								</span>
 								<div className="grid grid-cols-5 gap-1.5">
 									{(
 										[
-											["Head", player.head],
-											["Chest", player.chest],
-											["Legs", player.legs],
-											["Feet", player.feet],
-											["Offhand", player.offhand],
+											["head", player.head],
+											["chest", player.chest],
+											["legs", player.legs],
+											["feet", player.feet],
+											["offhand", player.offhand],
 										] as const
 									).map(([label, item]) => (
 										<ItemSlot
 											key={label}
 											item={item}
 											onSelect={setSelectedItem}
-											placeholder={<span className="text-[9px] text-zinc-600">{label}</span>}
+											placeholder={
+												<span className="text-[9px] text-zinc-600">
+													{t(`playerSheet.slots.${label}`)}
+												</span>
+											}
 										/>
 									))}
 								</div>
@@ -149,7 +162,7 @@ export function PlayerSheet({
 											onClick={() => onShowOnMap(player)}
 											className="font-medium text-emerald-400 hover:text-emerald-300"
 										>
-											Show on map
+											{t("playerSheet.showOnMap")}
 										</button>
 									)}
 								</div>
@@ -164,9 +177,15 @@ export function PlayerSheet({
 									setSelectedItem(null)
 								}}
 								options={[
-									{ value: "inventory", label: "Inventory" },
-									{ value: "ender", label: `Ender chest (${player.enderItems.length})` },
-									{ value: "effects", label: `Effects (${player.effects.length})` },
+									{ value: "inventory", label: t("playerSheet.inventory") },
+									{
+										value: "ender",
+										label: t("playerSheet.ender", { count: player.enderItems.length }),
+									},
+									{
+										value: "effects",
+										label: t("playerSheet.effects", { count: player.effects.length }),
+									},
 								]}
 							/>
 
@@ -195,6 +214,7 @@ export function PlayerSheet({
 }
 
 function PlayerHeader({ player }: { player: PlayerDetails }) {
+	const { t } = useTranslation()
 	const dim = dimensionStyle(player.dimension)
 	return (
 		<div className="flex items-center gap-3.5 px-4 pt-2 pb-4 sm:px-5 sm:pt-5">
@@ -202,17 +222,19 @@ function PlayerHeader({ player }: { player: PlayerDetails }) {
 			<div className="min-w-0 flex-1">
 				<h2 className="truncate font-bold text-lg text-zinc-50">{player.name}</h2>
 				<div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-					<span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-2 py-0.5 text-zinc-300 capitalize">
-						{player.gamemode}
+					<span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-2 py-0.5 text-zinc-300">
+						{gamemodeLabel(t, player.gamemode)}
 					</span>
 					<span className={cn("rounded-full border px-2 py-0.5", dim.badge)}>{dim.label}</span>
 					{player.onFire && (
 						<span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-orange-300">
-							<Flame className="size-3" /> On fire
+							<Flame className="size-3" /> {t("playerSheet.onFire")}
 						</span>
 					)}
 					<span className="text-zinc-500">
-						{player.online ? "Online now" : `Last seen ${formatRelativeTime(player.lastSeen)}`}
+						{player.online
+							? t("players.onlineNow")
+							: t("players.lastSeen", { time: formatRelativeTime(player.lastSeen) })}
 					</span>
 				</div>
 			</div>
@@ -287,6 +309,7 @@ function SlotGrid({
 }
 
 function ItemDetails({ item }: { item: ItemStack }) {
+	const { t } = useTranslation()
 	return (
 		<div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
 			<ItemIcon id={item.id} className="size-9" />
@@ -301,12 +324,14 @@ function ItemDetails({ item }: { item: ItemStack }) {
 				</p>
 				<p className="truncate font-mono text-[11px] text-zinc-500">
 					{item.id} × {item.count}
-					{item.maxDamage ? ` · ${item.maxDamage - item.damage}/${item.maxDamage} durability` : ""}
+					{item.maxDamage
+						? ` · ${t("playerSheet.durability", { left: item.maxDamage - item.damage, max: item.maxDamage })}`
+						: ""}
 				</p>
 			</div>
 			{item.enchanted && (
 				<span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-300">
-					Enchanted
+					{t("playerSheet.enchanted")}
 				</span>
 			)}
 		</div>
@@ -314,8 +339,9 @@ function ItemDetails({ item }: { item: ItemStack }) {
 }
 
 function EffectsList({ player }: { player: PlayerDetails }) {
+	const { t } = useTranslation()
 	if (player.effects.length === 0) {
-		return <EmptyState icon={Sparkles} title="No active effects" className="py-6" />
+		return <EmptyState icon={Sparkles} title={t("playerSheet.noEffects")} className="py-6" />
 	}
 	return (
 		<div className="flex flex-col divide-y divide-zinc-800/70 rounded-xl border border-zinc-800">
@@ -332,6 +358,7 @@ function EffectsList({ player }: { player: PlayerDetails }) {
 }
 
 function PlayerActions({ serverId, player }: { serverId: string; player: PlayerDetails }) {
+	const { t } = useTranslation()
 	const ops = useAccessList(serverId, "ops")
 	const whitelist = useAccessList(serverId, "whitelist")
 	const [confirm, setConfirm] = useState<"kick" | "ban" | null>(null)
@@ -359,13 +386,13 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 						type="button"
 						onClick={() => run(`gm-${mode}`, `gamemode ${mode} ${player.name}`)}
 						className={cn(
-							"rounded-lg py-1.5 font-medium text-[11px] capitalize transition-colors",
+							"rounded-lg py-1.5 font-medium text-[11px] transition-colors",
 							player.gamemode === mode
 								? "bg-emerald-500/15 text-emerald-300"
 								: "text-zinc-500 hover:text-zinc-200",
 						)}
 					>
-						{mode}
+						{gamemodeLabel(t, mode)}
 					</button>
 				))}
 			</div>
@@ -373,7 +400,7 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 			<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 				<ActionButton
 					icon={Heart}
-					label="Heal"
+					label={t("playerSheet.heal")}
 					busy={busy === "heal"}
 					onClick={() =>
 						run("heal", `effect give ${player.name} minecraft:instant_health 1 10 true`)
@@ -381,20 +408,20 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 				/>
 				<ActionButton
 					icon={Apple}
-					label="Feed"
+					label={t("playerSheet.feed")}
 					busy={busy === "feed"}
 					onClick={() => run("feed", `effect give ${player.name} minecraft:saturation 1 10 true`)}
 				/>
 				<ActionButton
 					icon={Crown}
-					label={isOp ? "Remove OP" : "Make OP"}
+					label={isOp ? t("playerSheet.removeOp") : t("access.ops.add")}
 					active={isOp}
 					busy={ops.add.isPending || ops.remove.isPending}
 					onClick={() => (isOp ? ops.remove.mutate(player.name) : ops.add.mutate(player.name))}
 				/>
 				<ActionButton
 					icon={Shield}
-					label={isWhitelisted ? "Whitelisted" : "Whitelist"}
+					label={isWhitelisted ? t("playerSheet.whitelisted") : t("access.tabs.whitelist")}
 					active={isWhitelisted}
 					busy={whitelist.add.isPending || whitelist.remove.isPending}
 					onClick={() =>
@@ -406,11 +433,13 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 			{confirm ? (
 				<div className="flex items-center justify-between gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-2 pl-3">
 					<span className="text-rose-200 text-xs">
-						{confirm === "kick" ? "Kick" : "Ban"} {player.name}?
+						{confirm === "kick"
+							? t("playerSheet.confirmKick", { name: player.name })
+							: t("playerSheet.confirmBan", { name: player.name })}
 					</span>
 					<div className="flex gap-1.5">
 						<Button size="sm" variant="ghost" onClick={() => setConfirm(null)}>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							size="sm"
@@ -420,18 +449,35 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 								setConfirm(null)
 							}}
 						>
-							Confirm
+							{t("playerSheet.confirm")}
 						</Button>
 					</div>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">
-					<ActionButton icon={LogOut} label="Kick" danger onClick={() => setConfirm("kick")} />
-					<ActionButton icon={Ban} label="Ban" danger onClick={() => setConfirm("ban")} />
+					<ActionButton
+						icon={LogOut}
+						label={t("playerSheet.kick")}
+						danger
+						onClick={() => setConfirm("kick")}
+					/>
+					<ActionButton
+						icon={Ban}
+						label={t("access.bans.add")}
+						danger
+						onClick={() => setConfirm("ban")}
+					/>
 				</div>
 			)}
 		</div>
 	)
+}
+
+/** Survival, Creative... in the user's language (unknown modes as they are) */
+function gamemodeLabel(t: TFunction, mode: string): string {
+	return (GAMEMODES as readonly string[]).includes(mode)
+		? t(`minecraft.gamemodes.${mode as (typeof GAMEMODES)[number]}`)
+		: mode
 }
 
 function ActionButton({

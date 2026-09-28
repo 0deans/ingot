@@ -1,29 +1,19 @@
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Gamepad2, Loader2, Moon, Server, TriangleAlert } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { QuitRequest } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { type QuitPrompt, quitService } from "@/services/quit-service"
 import { rpc } from "@/services/server-service"
 
-const TITLE = {
-	quit: "Stop your servers before quitting?",
-	update: "Stop your servers to update?",
-	restart: "Stop your servers to restart?",
-} as const
-
-const ACTION = {
-	quit: "Stop servers and quit",
-	update: "Stop servers and update",
-	restart: "Stop servers and restart",
-} as const
-
 /**
  * Asked when Ingot would close while servers run: their consoles live in Ingot, so
  * quitting would leave them running with no way to control them.
  */
 export default function QuitDialog() {
+	const { t } = useTranslation()
 	const [prompt, setPrompt] = useState<QuitPrompt | null>(null)
 	const [stopping, setStopping] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -52,7 +42,7 @@ export default function QuitDialog() {
 	if (!prompt) return null
 	const { mode, request } = prompt
 	const running = request.servers.filter((s) => !s.sleeping)
-	const one = request.servers.length === 1
+	const count = request.servers.length
 
 	const stopAndGo = async () => {
 		setStopping(true)
@@ -87,11 +77,11 @@ export default function QuitDialog() {
 				<div className="flex items-start gap-3">
 					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-400" />
 					<div className="flex flex-col gap-1">
-						<DialogTitle className="text-base">{TITLE[mode]}</DialogTitle>
+						<DialogTitle className="text-base">{t(`quitDialog.title_${mode}`)}</DialogTitle>
 						<DialogDescription className="text-sm text-zinc-400 leading-relaxed">
 							{running.length === 0
-								? `${one ? "This server is" : "These servers are"} asleep. ${one ? "It wakes" : "They wake"} up when a player joins, but only while Ingot is open.`
-								: `${one ? "This server's console runs" : "These servers' consoles run"} inside Ingot. If Ingot closes first, ${one ? "it keeps" : "they keep"} running with no way to control ${one ? "it" : "them"} or save ${one ? "its world" : "their worlds"}.`}
+								? t("quitDialog.asleep", { count })
+								: t("quitDialog.consoles", { count })}
 						</DialogDescription>
 					</div>
 				</div>
@@ -111,7 +101,7 @@ export default function QuitDialog() {
 								{server.name}
 							</p>
 							<span className="shrink-0 text-[11px] text-zinc-500">
-								{server.sleeping ? "Sleeping" : "Running"}
+								{server.sleeping ? t("serverStatus.sleeping") : t("serverStatus.running")}
 							</span>
 						</div>
 					))}
@@ -121,16 +111,15 @@ export default function QuitDialog() {
 					<p className="flex items-center gap-2 text-xs text-zinc-400">
 						<Loader2 className="size-3.5 shrink-0 animate-spin" />
 						{running.length > 0
-							? `Saving ${running.length === 1 ? "the world" : "worlds"} and stopping. This can take up to 30 seconds.`
-							: "Stopping…"}
+							? t("quitDialog.saving", { count: running.length })
+							: t("quitDialog.stopping")}
 					</p>
 				) : (
 					mode === "quit" &&
 					request.games > 0 && (
 						<p className="flex items-start gap-2 text-xs text-zinc-400 leading-relaxed">
 							<Gamepad2 className="mt-px size-3.5 shrink-0" />
-							{request.games === 1 ? "Your game keeps" : "Your games keep"} running either way.
-							Ingot picks {request.games === 1 ? "it" : "them"} up again when you open it.
+							{t("quitDialog.games", { count: request.games })}
 						</p>
 					)
 				)}
@@ -148,7 +137,7 @@ export default function QuitDialog() {
 						onClick={() => setPrompt(null)}
 						className="rounded-xl"
 					>
-						Cancel
+						{t("common.cancel")}
 					</Button>
 					{mode === "quit" && (
 						<Button
@@ -157,7 +146,7 @@ export default function QuitDialog() {
 							onClick={keepInTray}
 							className="rounded-xl"
 						>
-							Keep running in tray
+							{t("quitDialog.keepInTray")}
 						</Button>
 					)}
 					<Button
@@ -166,7 +155,7 @@ export default function QuitDialog() {
 						className="gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
 					>
 						{stopping && <Loader2 className="size-4 animate-spin" />}
-						{ACTION[mode]}
+						{t(`quitDialog.action_${mode}`)}
 					</Button>
 				</div>
 			</DialogContent>

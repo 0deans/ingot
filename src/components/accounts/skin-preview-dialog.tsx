@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router"
 import { Check, Copy, Download, Sparkles } from "lucide-react"
 import { memo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -21,6 +22,7 @@ export interface SkinPreviewDialogProps {
 }
 
 const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogProps) => {
+	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const [copied, setCopied] = useState(false)
 	const [downloadStatus, setDownloadStatus] = useState<string | null>(null)
@@ -41,7 +43,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 
 	const handleDownload = async () => {
 		try {
-			setDownloadStatus("Saving...")
+			setDownloadStatus(t("skinPreview.saving"))
 			const targetSkin = account.skinUrl || DEFAULT_STEVE_SKIN
 			const savedPath = await accountService.saveSkinToDownloads(account.username, targetSkin)
 			if (!savedPath) {
@@ -49,11 +51,11 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 				setDownloadStatus(null)
 				return
 			}
-			setDownloadStatus("Saved!")
+			setDownloadStatus(t("skinPreview.saved"))
 			setTimeout(() => setDownloadStatus(null), 3000)
 		} catch (err) {
 			console.error("Failed to save skin:", err)
-			setDownloadStatus("Error")
+			setDownloadStatus(t("skinPreview.error"))
 			setTimeout(() => setDownloadStatus(null), 2500)
 		}
 	}
@@ -87,12 +89,12 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 								)}
 								{account.accountType === "offline" && (
 									<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1.5 py-0.5 font-medium text-[10px] text-zinc-400">
-										Offline
+										{t("accounts.offline")}
 									</span>
 								)}
 								{account.isActive && (
 									<span className="inline-flex items-center gap-1 rounded-xs bg-primary/20 px-1.5 py-0.5 font-medium text-[10px] text-primary">
-										<Check className="size-2.5" /> Active
+										<Check className="size-2.5" /> {t("common.active")}
 									</span>
 								)}
 							</div>
@@ -127,7 +129,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 									className="gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
 								>
 									<Sparkles className="size-3" />
-									Change Skin
+									{t("skinPreview.changeSkin")}
 								</Button>
 								<div className="flex items-center gap-2">
 									<Button
@@ -135,21 +137,21 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 										size="xs"
 										onClick={handleCopyUrl}
 										className="gap-1 text-xs"
-										title="Copy skin texture URL"
+										title={t("skinPreview.copyUrlTitle")}
 									>
 										{copied ? (
 											<Check className="size-3 text-emerald-400" />
 										) : (
 											<Copy className="size-3" />
 										)}
-										{copied ? "Copied" : "Copy URL"}
+										{copied ? t("skinPreview.copied") : t("skinPreview.copyUrl")}
 									</Button>
 									<Button
 										variant="outline"
 										size="xs"
 										onClick={handleDownload}
 										className="gap-1 text-xs"
-										title="Download skin texture file to Downloads"
+										title={t("skinPreview.downloadTitle")}
 									>
 										{downloadStatus ? (
 											<>
@@ -159,7 +161,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 										) : (
 											<>
 												<Download className="size-3" />
-												Download
+												{t("skinPreview.download")}
 											</>
 										)}
 									</Button>

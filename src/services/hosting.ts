@@ -1,5 +1,6 @@
 /** Server lifecycle, the playit.gg tunnel and the Android foreground service */
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import i18n from "i18next"
 import { useEffect, useState } from "react"
 import type { PlayitTunnelStatus, ServerConfig } from "@/bindings"
 import { serverService, useRunningServers, useServerLogs } from "@/services/server-service"
@@ -126,15 +127,17 @@ export function useAndroidHostService(servers: ServerConfig[]) {
 	const isHosting = active.length > 0 || tunnel.isRunning
 	const title =
 		active.length === 1
-			? `Hosting ${servers.find((s) => s.id === active[0].serverId)?.name ?? "server"}`
+			? i18n.t("hosting.one", {
+					name: servers.find((s) => s.id === active[0].serverId)?.name ?? "",
+				})
 			: active.length > 1
-				? `Hosting ${active.length} servers`
-				: "Ingot tunnel active"
+				? i18n.t("hosting.many", { count: active.length })
+				: i18n.t("hosting.tunnel")
 	const detail = tunnel.publicAddress
-		? `Public address: ${tunnel.publicAddress}`
+		? i18n.t("hosting.publicAddress", { address: tunnel.publicAddress })
 		: tunnel.isRunning
-			? "playit.gg tunnel connecting..."
-			: "Local network only"
+			? i18n.t("hosting.connecting")
+			: i18n.t("hosting.localOnly")
 
 	useEffect(() => {
 		const host = (window as Window & { IngotHost?: IngotHostBridge }).IngotHost

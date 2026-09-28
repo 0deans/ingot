@@ -1,5 +1,6 @@
 import { Check, CheckCircle2, Database, FolderX, Loader2, UploadCloud } from "lucide-react"
 import { useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +44,7 @@ export const SyncMasterDialog = ({
 	onCancel,
 	onSuccess,
 }: SyncMasterDialogProps) => {
+	const { t } = useTranslation()
 	const { instances } = useInstances()
 	const [selectedId, setSelectedId] = useState<string | null>(null)
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -61,9 +63,7 @@ export const SyncMasterDialog = ({
 			} else if (choice.type === "instance") {
 				const inst = instances.find((i) => i.id === choice.instanceId)
 				const report = await settingsService.pushInstanceSync(choice.instanceId)
-				setStatusMessage(
-					report.message || `Set "${inst?.name || "Instance"}" as master sync source.`,
-				)
+				setStatusMessage(report.message || t("syncMaster.setAsSource", { name: inst?.name ?? "" }))
 				if (onSuccess) onSuccess()
 			}
 			onOpenChange(false)
@@ -71,7 +71,7 @@ export const SyncMasterDialog = ({
 			setStatusMessage(null)
 		} catch (error) {
 			console.error("Failed sync choice:", error)
-			setStatusMessage(`Error: ${error}`)
+			setStatusMessage(t("syncMaster.error", { error: String(error) }))
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -86,10 +86,12 @@ export const SyncMasterDialog = ({
 		onOpenChange(nextOpen)
 	}
 
-	const title = category ? `Initial Sync: ${category.title}` : "Select Master Sync Instance"
+	const title = category
+		? t("syncMaster.categoryTitle", { title: category.title })
+		: t("syncMaster.title")
 	const description = category
-		? `Choose where your shared storage should initially get ${category.file} from:`
-		: "Choose an existing instance to populate your shared sync storage. Its settings and data will become the shared baseline."
+		? t("syncMaster.categoryDescription", { file: category.file })
+		: t("syncMaster.description")
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
@@ -113,13 +115,19 @@ export const SyncMasterDialog = ({
 									<Database className="size-4" />
 								</div>
 								<div>
-									<div className="font-medium text-xs text-zinc-50">Use Existing Shared Data</div>
+									<div className="font-medium text-xs text-zinc-50">
+										{t("syncMaster.useExisting")}
+									</div>
 									<div className="text-[11px] text-zinc-400">
-										Keep current{" "}
-										<code className="rounded bg-zinc-900 px-1 py-0.5 font-mono text-[10px] text-emerald-300">
-											{category.file}
-										</code>{" "}
-										in shared storage
+										<Trans
+											i18nKey="syncMaster.keepCurrent"
+											values={{ file: category.file }}
+											components={{
+												code: (
+													<code className="rounded bg-zinc-900 px-1 py-0.5 font-mono text-[10px] text-emerald-300" />
+												),
+											}}
+										/>
 									</div>
 								</div>
 							</div>
@@ -130,7 +138,7 @@ export const SyncMasterDialog = ({
 								onClick={() => handleChoice({ type: "shared" })}
 								className="h-8 shrink-0 bg-emerald-600 text-white text-xs hover:bg-emerald-500"
 							>
-								Use Shared
+								{t("syncMaster.useShared")}
 							</Button>
 						</div>
 					)}
@@ -138,16 +146,14 @@ export const SyncMasterDialog = ({
 					{/* Instances selection */}
 					<div className="flex flex-col gap-1.5">
 						<span className="font-medium text-[11px] text-zinc-400">
-							{category?.hasSharedData
-								? "Or copy from an existing instance:"
-								: "Copy from an existing instance:"}
+							{category?.hasSharedData ? t("syncMaster.orCopyFrom") : t("syncMaster.copyFrom")}
 						</span>
 
 						<ScrollArea className="max-h-[36vh] pr-2">
 							<div className="flex flex-col gap-2 py-1">
 								{instances.length === 0 ? (
 									<div className="py-4 text-center text-muted-foreground text-xs">
-										No instances found.
+										{t("syncMaster.noInstances")}
 									</div>
 								) : (
 									instances.map((inst) => {
@@ -183,7 +189,7 @@ export const SyncMasterDialog = ({
 													) : isSelected ? (
 														<Check className="size-3" />
 													) : null}
-													{category ? "Use This" : "Set as Master"}
+													{category ? t("syncMaster.useThis") : t("syncMaster.setAsMaster")}
 												</Button>
 											</div>
 										)
@@ -196,7 +202,7 @@ export const SyncMasterDialog = ({
 					{/* Option 3: Start Empty */}
 					{category && (
 						<div className="flex items-center justify-between border-border/30 border-t pt-2">
-							<span className="text-[11px] text-zinc-400">Don't want to copy any data yet?</span>
+							<span className="text-[11px] text-zinc-400">{t("syncMaster.noCopy")}</span>
 							<Button
 								type="button"
 								variant="ghost"
@@ -206,7 +212,7 @@ export const SyncMasterDialog = ({
 								className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
 							>
 								<FolderX className="size-3.5" />
-								Start Fresh / Empty
+								{t("syncMaster.startFresh")}
 							</Button>
 						</div>
 					)}

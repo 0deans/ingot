@@ -1,6 +1,7 @@
 import { cn } from "cn"
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type {
 	InstanceConfig,
 	ItemAction,
@@ -46,6 +47,7 @@ export default function ChangeVersionDialog({
 	onOpenChange,
 	onChanged,
 }: ChangeVersionDialogProps) {
+	const { t } = useTranslation()
 	const [stage, setStage] = useState<Stage>("pick")
 	const [versions, setVersions] = useState<VersionManifestEntry[]>([])
 	const [target, setTarget] = useState("")
@@ -148,18 +150,21 @@ export default function ChangeVersionDialog({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={22} />
-						<DialogTitle className="font-semibold text-lg text-zinc-50">Change version</DialogTitle>
+						<DialogTitle className="font-semibold text-lg text-zinc-50">
+							{t("versionChange.title")}
+						</DialogTitle>
 					</div>
 					<DialogDescription className="text-muted-foreground text-xs">
-						Ingot checks every mod, resource pack and shader first and changes nothing until you
-						apply. You can undo it afterwards.
+						{t("versionChange.instanceDescription")}
 					</DialogDescription>
 				</DialogHeader>
 
 				{(stage === "pick" || stage === "checking") && (
 					<div className="flex flex-col gap-4">
 						<div className="grid gap-1.5">
-							<span className="font-medium text-muted-foreground text-xs">Mod loader</span>
+							<span className="font-medium text-muted-foreground text-xs">
+								{t("newInstance.modLoader")}
+							</span>
 							<div className="grid grid-cols-5 gap-1.5">
 								{LOADERS.map((id) => (
 									<button
@@ -177,7 +182,7 @@ export default function ChangeVersionDialog({
 										<LoaderIcon loader={id} size={18} />
 										{loaderName(id)}
 										{id === instance.loader && (
-											<span className="text-[9px] text-zinc-500">now</span>
+											<span className="text-[9px] text-zinc-500">{t("versionChange.now")}</span>
 										)}
 									</button>
 								))}
@@ -185,7 +190,9 @@ export default function ChangeVersionDialog({
 						</div>
 						<div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
 							<div className="grid gap-1.5">
-								<span className="font-medium text-muted-foreground text-xs">Now</span>
+								<span className="font-medium text-muted-foreground text-xs">
+									{t("versionChange.nowLabel")}
+								</span>
 								<div className="flex h-9 items-center gap-2 border border-zinc-800 bg-zinc-900/50 px-3 text-sm text-zinc-300">
 									{instance.gameVersion}
 									{instance.loaderVersion && (
@@ -201,7 +208,7 @@ export default function ChangeVersionDialog({
 									htmlFor="target-version"
 									className="font-medium text-muted-foreground text-xs"
 								>
-									Move to
+									{t("versionChange.moveTo")}
 								</label>
 								<SearchableSelect
 									id="target-version"
@@ -210,10 +217,14 @@ export default function ChangeVersionDialog({
 									options={versions.map((v) => ({
 										value: v.id,
 										label: v.id,
-										badge: v.id === instance.gameVersion ? "now" : undefined,
+										badge: v.id === instance.gameVersion ? t("versionChange.now") : undefined,
 									}))}
-									placeholder={versions.length ? "Pick a version" : "Loading versions..."}
-									searchPlaceholder="Search version..."
+									placeholder={
+										versions.length
+											? t("versionChange.pickVersion")
+											: t("newInstance.loadingVersions")
+									}
+									searchPlaceholder={t("versionChange.searchVersion")}
 									disabled={busy || versions.length === 0}
 								/>
 							</div>
@@ -224,7 +235,7 @@ export default function ChangeVersionDialog({
 									htmlFor="target-loader"
 									className="font-medium text-muted-foreground text-xs"
 								>
-									{loaderName(loader)} version
+									{t("versionChange.loaderVersion", { loader: loaderName(loader) })}
 								</label>
 								<SearchableSelect
 									id="target-loader"
@@ -233,24 +244,28 @@ export default function ChangeVersionDialog({
 									options={loaderVersions.map((v, i) => ({
 										value: v,
 										label: v,
-										badge: i === 0 ? "latest" : undefined,
+										badge: i === 0 ? t("newInstance.latestBadge") : undefined,
 									}))}
 									placeholder={
 										loadingLoaders
-											? "Loading versions..."
+											? t("newInstance.loadingVersions")
 											: loaderVersions.length
-												? "Pick a loader version"
-												: `No ${loaderName(loader)} for ${target || "this version"}`
+												? t("versionChange.pickLoaderVersion")
+												: target
+													? t("versionChange.noLoaderFor", {
+															loader: loaderName(loader),
+															version: target,
+														})
+													: t("versionChange.noLoader", { loader: loaderName(loader) })
 									}
-									searchPlaceholder="Search loader version..."
+									searchPlaceholder={t("newInstance.searchLoaderVersion")}
 									disabled={busy || loadingLoaders || loaderVersions.length === 0}
 								/>
 							</div>
 						)}
 						{loaderChanges && (
 							<p className="border border-sky-500/20 bg-sky-500/5 p-3 text-sky-100/80 text-xs leading-relaxed">
-								Mods are made for one loader. Ingot looks for the {loaderName(loader)} version of
-								each mod and turns off the ones that don&apos;t have one.
+								{t("versionChange.loaderSwitchNote", { loader: loaderName(loader) })}
 							</p>
 						)}
 					</div>
@@ -269,7 +284,7 @@ export default function ChangeVersionDialog({
 								onBackupWorlds={setBackupWorlds}
 								downgradeOk={downgradeOk}
 								onDowngradeOk={setDowngradeOk}
-								emptyText="No mods, resource packs or shaders to check. Only the version changes."
+								emptyText={t("versionChange.instanceEmpty")}
 							/>
 						</div>
 					</ScrollArea>
@@ -278,11 +293,11 @@ export default function ChangeVersionDialog({
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-10 text-center">
 						<Loader2 className="size-7 animate-spin text-emerald-400" />
-						<p className="font-medium text-sm text-zinc-200">Applying...</p>
+						<p className="font-medium text-sm text-zinc-200">{t("versionChange.applying")}</p>
 						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
-							Downloading and checking the new files, then backing up
-							{backupWorlds && (plan?.worlds.length ?? 0) > 0 ? " your worlds and" : ""} the current
-							ones. Nothing changes until everything is ready.
+							{backupWorlds && (plan?.worlds.length ?? 0) > 0
+								? t("versionChange.applyingWithWorlds")
+								: t("versionChange.applyingHint")}
 						</p>
 					</div>
 				)}
@@ -290,10 +305,11 @@ export default function ChangeVersionDialog({
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
 						<CheckCircle2 className="size-8 text-emerald-400" />
-						<p className="font-semibold text-sm text-zinc-50">Now on {planSide(plan, "to")}</p>
+						<p className="font-semibold text-sm text-zinc-50">
+							{t("versionChange.nowOn", { version: planSide(plan, "to") })}
+						</p>
 						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
-							Changed from {planSide(plan, "from")}. If something doesn&apos;t work, undo it from
-							this instance&apos;s settings: everything goes back exactly as it was.
+							{t("versionChange.instanceDone", { version: planSide(plan, "from") })}
 						</p>
 					</div>
 				)}
@@ -311,7 +327,7 @@ export default function ChangeVersionDialog({
 					<div className="flex gap-2">
 						{stage === "review" && (
 							<Button variant="ghost" size="sm" onClick={() => setStage("pick")}>
-								Back
+								{t("versionChange.back")}
 							</Button>
 						)}
 						{(stage === "pick" || stage === "checking") && (
@@ -322,7 +338,7 @@ export default function ChangeVersionDialog({
 								className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
 							>
 								{stage === "checking" && <Loader2 className="size-3.5 animate-spin" />}
-								{stage === "checking" ? "Checking..." : "Check compatibility"}
+								{stage === "checking" ? t("versionChange.checking") : t("versionChange.check")}
 							</Button>
 						)}
 						{stage === "review" && plan && (
@@ -332,12 +348,12 @@ export default function ChangeVersionDialog({
 								disabled={plan.downgrade && !downgradeOk}
 								className="bg-emerald-600 text-white hover:bg-emerald-500"
 							>
-								Move to {planSide(plan, "to")}
+								{t("versionChange.moveToVersion", { version: planSide(plan, "to") })}
 							</Button>
 						)}
 						{stage === "done" && (
 							<Button size="sm" onClick={() => onOpenChange(false)}>
-								Done
+								{t("common.done")}
 							</Button>
 						)}
 					</div>

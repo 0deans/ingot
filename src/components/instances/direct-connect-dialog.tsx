@@ -1,5 +1,6 @@
 import { ArrowRight, Clock, Globe, Play, Server, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -50,6 +51,7 @@ export function DirectConnectDialog({
 	instanceName,
 	onConnect,
 }: DirectConnectDialogProps) {
+	const { t } = useTranslation()
 	const [address, setAddress] = useState("")
 	const [recentServers, setRecentServers] = useState<string[]>([])
 	const { servers } = useServers()
@@ -81,11 +83,14 @@ export function DirectConnectDialog({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-base">
 						<Globe className="size-4 text-emerald-400" />
-						<span>Direct Connect to Server</span>
+						<span>{t("directConnect.title")}</span>
 					</DialogTitle>
 					<DialogDescription className="text-xs">
-						Launch <span className="font-semibold text-zinc-200">{instanceName}</span> directly into
-						a multiplayer server, bypassing the main menu.
+						<Trans
+							i18nKey="directConnect.description"
+							values={{ name: instanceName }}
+							components={{ b: <span className="font-semibold text-zinc-200" /> }}
+						/>
 					</DialogDescription>
 				</DialogHeader>
 
@@ -98,7 +103,7 @@ export function DirectConnectDialog({
 				>
 					<div className="space-y-1.5">
 						<label htmlFor="server-address" className="font-medium text-xs text-zinc-300">
-							Server Address
+							{t("directConnect.address")}
 						</label>
 						<div className="relative flex items-center">
 							<Input
@@ -106,7 +111,7 @@ export function DirectConnectDialog({
 								autoFocus
 								value={address}
 								onChange={(e) => setAddress(e.target.value)}
-								placeholder="e.g. mc.hypixel.net or localhost:25565"
+								placeholder={t("directConnect.addressPlaceholder")}
 								className="h-9 pr-8 font-mono text-xs"
 							/>
 						</div>
@@ -116,7 +121,7 @@ export function DirectConnectDialog({
 					{servers.length > 0 && (
 						<div className="space-y-1.5">
 							<span className="font-medium text-[11px] text-zinc-400 uppercase tracking-wider">
-								Configured Local Servers
+								{t("directConnect.localServers")}
 							</span>
 							<div className="grid max-h-32 grid-cols-1 gap-1.5 overflow-y-auto">
 								{servers.map((srv) => (
@@ -146,7 +151,7 @@ export function DirectConnectDialog({
 					{recentServers.length > 0 && (
 						<div className="space-y-1.5">
 							<span className="font-medium text-[11px] text-zinc-400 uppercase tracking-wider">
-								Recent Servers
+								{t("directConnect.recent")}
 							</span>
 							<div className="flex flex-wrap gap-1.5">
 								{recentServers.map((item) => (
@@ -169,7 +174,7 @@ export function DirectConnectDialog({
 											type="button"
 											onClick={(e) => handleRemoveRecent(item, e)}
 											className="ml-0.5 text-zinc-500 hover:text-rose-400"
-											title="Remove from recents"
+											title={t("directConnect.removeRecent")}
 										>
 											<Trash2 className="size-2.5" />
 										</button>
@@ -187,7 +192,7 @@ export function DirectConnectDialog({
 							onClick={() => onOpenChange(false)}
 							className="text-xs"
 						>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							type="submit"
@@ -196,7 +201,7 @@ export function DirectConnectDialog({
 							className="gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
 						>
 							<Play className="size-3.5 fill-current" />
-							<span>Launch & Connect</span>
+							<span>{t("directConnect.launch")}</span>
 						</Button>
 					</DialogFooter>
 				</form>

@@ -1,5 +1,6 @@
 import { ArrowDownToLine, ArrowUpFromLine, RefreshCw } from "lucide-react"
 import { useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import {
 	Dialog,
 	DialogContent,
@@ -21,6 +22,7 @@ export const InitialSyncDialog = ({
 	onChoose,
 	onCancel,
 }: InitialSyncDialogProps) => {
+	const { t } = useTranslation()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const handleSelect = async (source: "instance" | "shared") => {
@@ -41,13 +43,15 @@ export const InitialSyncDialog = ({
 							<RefreshCw className="size-5" />
 						</div>
 						<DialogTitle className="font-semibold text-lg text-zinc-50">
-							Initial Synchronization
+							{t("initialSync.title")}
 						</DialogTitle>
 					</div>
 					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
-						You are enabling synchronization for{" "}
-						<strong className="text-zinc-50">{instanceName}</strong>. From where should we initially
-						sync?
+						<Trans
+							i18nKey="initialSync.description"
+							values={{ name: instanceName }}
+							components={{ b: <strong className="text-zinc-50" /> }}
+						/>
 					</DialogDescription>
 				</DialogHeader>
 
@@ -62,14 +66,14 @@ export const InitialSyncDialog = ({
 						<div className="flex w-full items-center justify-between">
 							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-emerald-400">
 								<ArrowUpFromLine className="size-3.5 text-emerald-400" />
-								From this instance
+								{t("initialSync.fromInstance")}
 							</span>
 							<span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
-								Upload to shared
+								{t("initialSync.uploadToShared")}
 							</span>
 						</div>
 						<p className="text-[11px] text-muted-foreground leading-snug">
-							Copy this instance's options and servers to shared storage as the master copy.
+							{t("initialSync.fromInstanceDesc")}
 						</p>
 					</button>
 
@@ -83,14 +87,14 @@ export const InitialSyncDialog = ({
 						<div className="flex w-full items-center justify-between">
 							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-sky-400">
 								<ArrowDownToLine className="size-3.5 text-sky-400" />
-								From shared storage
+								{t("initialSync.fromShared")}
 							</span>
 							<span className="rounded bg-sky-500/10 px-1.5 py-0.5 font-medium text-[10px] text-sky-400">
-								Download to instance
+								{t("initialSync.downloadToInstance")}
 							</span>
 						</div>
 						<p className="text-[11px] text-muted-foreground leading-snug">
-							Download existing shared options and servers to this instance.
+							{t("initialSync.fromSharedDesc")}
 						</p>
 					</button>
 				</div>

@@ -23,11 +23,13 @@
 		"minimize": "Küçült",
 		"maximize": "Büyüt",
 		"restore": "Geri Yükle",
-		"justNow": "Az önce",
 		"never": "Hiçbir zaman",
-		"minutesAgo": "{{count}}dk önce",
-		"hoursAgo": "{{count}}sa önce",
-		"daysAgo": "{{count}}g önce"
+		"unknown": "Bilinmeyen",
+		"deleting": "Siliniyor...",
+		"stop": "Durdur",
+		"done": "Bitti",
+		"update": "Güncelle",
+		"enable": "Etkinleştir"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Dilinizi Seçin",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Henüz yapılandırılmış hesap yok.",
 		"previewSkin": "3D skini önizle",
 		"removeAccount": "Hesabı kaldır",
-		"setAsActive": "Aktif Olarak Ayarla"
+		"setAsActive": "Aktif Olarak Ayarla",
+		"offline": "Çevrimdışı",
+		"reorder": "{{name}} hesabını yeniden sırala",
+		"dragToReorder": "Hesabı yeniden sıralamak için sürükleyin",
+		"clickToPreview": "3D skini önizlemek için tıklayın",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Profillerde ara...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Profil klasörünü Dosya Gezgini'nde aç",
 			"settingsTooltip": "Profil Ayarları (RAM, JVM argümanları)",
 			"duplicateTooltip": "Çoğalt",
-			"deleteTooltip": "Profili Sil"
-		}
+			"deleteTooltip": "Profili Sil",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "İçerik Keşfet",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Tüm filtreleri sıfırla",
 		"byAuthor": "{{author}} tarafından",
 		"noDescription": "Açıklama bulunmuyor.",
-		"details": "Detaylar"
+		"details": "Detaylar",
+		"loadFailed": "İçerik yüklenemedi"
 	},
 	"skins": {
 		"title": "Skin Kataloğu",
@@ -199,6 +209,18 @@
 			"description": "Bu ekran görüntüsünü kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
 			"deleting": "Siliniyor...",
 			"deletePermanently": "Kalıcı Olarak Sil"
+		},
+		"card": {
+			"view": "{{name}} öğesini görüntüle",
+			"unavailable": "Görsel kullanılamıyor",
+			"fullscreen": "Tam Ekran",
+			"showInFolder": "Klasörde Göster"
+		},
+		"lightbox": {
+			"close": "Önizlemeyi kapat",
+			"closeEsc": "Kapat (Esc)",
+			"previous": "Önceki ekran görüntüsü",
+			"next": "Sonraki ekran görüntüsü"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Yeni Sunucu Oluştur",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia veya Vanilla",
 		"noMatchTitle": "Filtrelerinizle eşleşen sunucu yok",
-		"noMatchSubtitle": "Arama sorgunuzu değiştirmeyi veya \"Tüm Çekirdekler\"i seçmeyi deneyin."
+		"noMatchSubtitle": "Arama sorgunuzu değiştirmeyi veya \"Tüm Çekirdekler\"i seçmeyi deneyin.",
+		"activeEntry": "{{name}} (Port {{port}})"
 	},
 	"settings": {
 		"title": "Başlatıcı Ayarları",
 		"subtitle": "Hesapları, dili, Java çalışma ortamlarını, RAM ayırmayı ve başlatıcı davranışını yapılandırın.",
 		"language": {
 			"title": "Dil",
-			"description": "Başlatıcı arayüzü için görüntüleme dilini seçin. src/locales/ klasöründeki yeni dil dosyaları otomatik olarak yüklenir."
+			"description": "Başlatıcının dilini seçin. Tarihler, sayılar ve boyutlar da bu dili takip eder."
 		},
 		"theme": {
 			"title": "Görünüm ve Tema",
@@ -263,7 +286,14 @@
 				"modded": "Modlu",
 				"heavy": "Ağır Paket",
 				"safeMax": "Güvenli Maks."
-			}
+			},
+			"zoneSafe": "Güvenli Çalışma Bölgesi",
+			"zoneHigh": "Yüksek Kullanım Bölgesi",
+			"zoneCritical": "Sistem Kritik Bölgesi",
+			"minShort": "Min: {{value}}",
+			"maxShort": "Maks: {{value}}",
+			"totalShort": "{{value}} (Maks)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Başlatıcı Davranışı",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Varsayılan Pencere Çözünürlüğü",
 			"resolutionDesc": "Oyun penceresi için özel genişlik ve yükseklik belirleyin",
 			"presets": "Ön Ayarlar:",
-			"defaultPreset": "Varsayılan"
+			"defaultPreset": "Varsayılan",
+			"resetTo": "{{size}} boyutuna sıfırla"
 		},
 		"sync": {
 			"title": "Oyun Verisi Senkronizasyonu",
@@ -315,7 +346,8 @@
 					"title": "Kayıtlı Yaratıcı Mod Araç Çubuklarını Senkronize Et",
 					"description": "Yaratıcı modda kaydedilen araç çubuğu düzenlerini dünyalar arasında paylaşın"
 				}
-			}
+			},
+			"reinitialize": "{{title}} kaynağını yeniden başlat"
 		},
 		"updates": {
 			"title": "Güncellemeler ve Sürüm",
@@ -340,5 +372,1222 @@
 			"dialogSubtitle": "Ingot diğer projelerden bu yazılımları kullanır. Her biri kendi lisansı altındadır; kaynak kodunu ve tam lisansını görmek için bir ada tıklayın.",
 			"trademark": "Minecraft, Mojang AB'nin ticari markasıdır. Ingot, Mojang veya Microsoft ile bağlantılı değildir."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Normal Dünya",
+			"nether": "Nether",
+			"end": "Son"
+		},
+		"gamemodes": {
+			"survival": "Hayatta Kalma",
+			"creative": "Yaratıcı",
+			"adventure": "Macera",
+			"spectator": "İzleyici"
+		}
+	},
+	"initialSync": {
+		"title": "İlk Senkronizasyon",
+		"description": "<b>{{name}}</b> için senkronizasyonu etkinleştiriyorsunuz. İlk senkronizasyon nereden yapılmalı?",
+		"fromInstance": "Bu profilden",
+		"uploadToShared": "Paylaşılan alana yükle",
+		"fromInstanceDesc": "Bu profilin ayarlarını ve sunucularını ana kopya olarak paylaşılan depolama alanına kopyalayın.",
+		"fromShared": "Paylaşılan depolama alanından",
+		"downloadToInstance": "Profile indir",
+		"fromSharedDesc": "Mevcut paylaşılan ayarları ve sunucuları bu profile indirin."
+	},
+	"deleteInstance": {
+		"title": "Profili Sil",
+		"description": "Bu profili kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+		"note": "Bu profil klasöründe saklanan tüm kayıtlar, dünyalar, yüklü modlar, kaynak paketleri ve yapılandırma dosyaları diskten silinecektir."
+	},
+	"deleteServer": {
+		"title": "Sunucuyu Sil",
+		"confirm": "<b>{{name}}</b> sunucusunu silmek istediğinizden emin misiniz?",
+		"details": "Sunucu Detayları:",
+		"detailsLine": "Çekirdek: {{core}} {{version}} • Port: {{port}}",
+		"deleteFiles": "Tüm sunucu dosyalarını kalıcı olarak sil",
+		"deleteFilesDesc": "Dünya haritalarını, oyuncu verilerini, eklentileri ve sunucu günlüklerini bilgisayarınızın diskinden siler."
+	},
+	"companion": {
+		"system": "Sistem",
+		"liveMap": "Canlı harita",
+		"disabled": "Devre dışı",
+		"notInstalled": "Canlı harita · yüklü değil",
+		"updated_plugin": "Ingot eklentisi güncellendi.",
+		"updated_mod": "Ingot modu güncellendi.",
+		"installed_plugin": "Ingot eklentisi yüklendi.",
+		"installed_mod": "Ingot modu yüklendi.",
+		"removed_plugin": "Ingot eklentisi kaldırıldı. Harita artık sunucu kaydettiğinde güncellenir.",
+		"removed_mod": "Ingot modu kaldırıldı. Harita artık sunucu kaydettiğinde güncellenir.",
+		"enabled_plugin": "Ingot eklentisi etkinleştirildi.",
+		"enabled_mod": "Ingot modu etkinleştirildi.",
+		"remove_plugin": "Ingot eklentisini kaldır",
+		"remove_mod": "Ingot modunu kaldır"
+	},
+	"syncConflict": {
+		"title": "Senkronizasyon Çakışması Algılandı",
+		"description": "<b>{{name}}</b>, paylaşılan depolama alanınızla hiç senkronize edilmemiş kendi yerel yapılandırma dosyalarını içeriyor.",
+		"conflictingFiles": "Çakışan dosyalar:",
+		"choose": "Bu ilk senkronizasyonun nasıl çözüleceğini seçin:",
+		"useShared": "Paylaşılan Ayarları Kullan",
+		"overwritesLocal": "Yerelin üzerine yazar",
+		"useSharedDesc": "Bu profilin ayarlarını ve sunucularını mevcut paylaşılan ayarlarla değiştirin. Profil dosyalarınızın otomatik bir <code>.bak</code> yedeği kaydedilecektir.",
+		"useInstance": "Bu Profili Paylaşılan Ana Kopya Yap",
+		"overwritesShared": "Paylaşılanın üzerine yazar",
+		"useInstanceDesc": "Bu profilin ayarlarını ve sunucularını ana kopya olarak paylaşılan depolama alanına aktarın. Mevcut paylaşılan dosyalar <code>.bak</code> olarak yedeklenecektir.",
+		"disable": "Bağımsız Tut (Senkronizasyonu Kapat)",
+		"noChanges": "Değişiklik yok",
+		"disableDesc": "Bu profildeki sunucuların ve ayarların diğer profiller tarafından hiçbir zaman değiştirilmemesi veya üzerine yazılmaması için senkronizasyonu devre dışı bırakır."
+	},
+	"leftoverServers": {
+		"runningSince": "{{time}} zamanından beri çalışıyor",
+		"stopped": "Durduruldu",
+		"stopNote": "Durdurmak hemen sonlandırır. Son otomatik kayıttan bu yana yapılanlar (en fazla birkaç dakika) kaybolur, dünya dosyası bozulmaz.",
+		"leaveRunning": "Çalışır durumda bırak",
+		"title_one": "Bir sunucu son zamandan beri hala çalışıyor",
+		"title_other": "Sunucular son zamandan beri hala çalışıyor",
+		"description_one": "Ingot onu durdurmadan kapatıldığında, dolayısıyla konsolu gitti: Ingot komut gönderemiyor veya dünyasını kurtaramıyor. Duruncaya kadar limanını ve dünyasını meşgul ediyor.",
+		"description_other": "Ingot onları durdurmadan kapandı, dolayısıyla konsolları gitti: Ingot komut gönderemez veya dünyalarını kurtaramaz. Durdurulana kadar limanlarını ve dünyalarını meşgul ediyorlar."
+	},
+	"serverStatus": {
+		"running": "Çalışıyor",
+		"sleeping": "Uykuda",
+		"stopped": "Durduruldu",
+		"starting": "Başlatılıyor",
+		"stopping": "Durduruluyor"
+	},
+	"serverTabs": {
+		"overview": "Genel Bakış",
+		"console": "Konsol",
+		"players": "Oyuncular",
+		"map": "Harita",
+		"plugins": "Eklentiler",
+		"mods": "Modlar",
+		"settings": "Ayarlar",
+		"home": "Ana Sayfa"
+	},
+	"serverWorkspace": {
+		"back": "Sunuculara geri dön"
+	},
+	"duplicateInstance": {
+		"title": "Profili Çoğalt",
+		"defaultName": "{{name}} (kopya)",
+		"description": "Aynı modlar, yapılandırmalar, kaynak paketleri ve ayarlarla ayrı bir kopya oluşturur. Birinde yapılan değişiklikler diğerini etkilemez; bu sayede kopya, yeni bir sürümü veya modları denemek için güvenli bir alandır.",
+		"nameLabel": "Kopyanın adı",
+		"copyWorlds": "Dünyaları kopyala",
+		"noWorldsYet": "henüz yok",
+		"copyWorldsDesc": "Dünyalar olmadan kopya, tek oyunculu dünya içermeden başlar.",
+		"note": "Oynama süresi sıfırdan başlar. Günlükler, çökme raporları ve ekran görüntüleri orijinalde kalır.",
+		"running": "Oyun çalışıyor. Dünyaların kaydedildiği gibi kopyalanması için önce oyunu kapatın ya da dünyalar olmadan kopyalayın.",
+		"copying": "Kopyalanıyor…",
+		"action": "Çoğalt"
+	},
+	"quitDialog": {
+		"title_quit": "Çıkmadan önce sunucularınız durdurulsun mu?",
+		"title_update": "Güncellemek için sunucularınız durdurulsun mu?",
+		"title_restart": "Yeniden başlatmak için sunucularınız durdurulsun mu?",
+		"action_quit": "Sunucuları durdur ve çık",
+		"action_update": "Sunucuları durdur ve güncelle",
+		"action_restart": "Sunucuları durdur ve yeniden başlat",
+		"stopping": "Durduruluyor…",
+		"keepInTray": "Sistem tepsisinde çalıştırmaya devam et",
+		"asleep_one": "Bu sunucu uykuda. Bir oyuncu katıldığında uyanır, ancak yalnızca Ingot açıkken.",
+		"asleep_other": "Bu sunucular uykuda. Bir oyuncu katıldığında uyanırlar, ancak yalnızca Ingot açıkken.",
+		"consoles_one": "Bu sunucunun konsolu Ingot içinde çalışır. Ingot ilk önce kapanırsa, onu kontrol etmenin veya dünyasını kurtarmanın hiçbir yolu olmadan çalışmaya devam eder.",
+		"consoles_other": "Bu sunucuların konsolları Ingot içinde çalışır. Ingot ilk önce kapanırsa, onları kontrol etmenin veya dünyalarını kurtarmanın hiçbir yolu olmadan koşmaya devam ederler.",
+		"saving_one": "Dünyayı kurtarıyor ve duruyor. Bu 30 saniye kadar sürebilir.",
+		"saving_other": "Dünyaları kurtarmak ve durmak. Bu 30 saniye kadar sürebilir.",
+		"games_one": "Oyununuz her iki şekilde de çalışmaya devam ediyor. Ingot açtığınızda onu tekrar alır.",
+		"games_other": "Oyunlarınız her iki şekilde de çalışmaya devam eder. Ingot açtığınızda bunları tekrar alır."
+	},
+	"crashDialog": {
+		"title": "{{name}} {{version}} sürümünde ilk başlatmada çöktü",
+		"suspects_plugin": "Bu genellikle yeni sürümde henüz çalışmayan bir eklentiden kaynaklanır. Çökme raporunun işaret ettiği:",
+		"suspects_mod": "Bu genellikle yeni sürümde henüz çalışmayan bir moddan kaynaklanır. Çökme raporunun işaret ettiği:",
+		"suspects_either": "Bu genellikle yeni sürümde henüz çalışmayan bir eklenti veya moddan kaynaklanır. Çökme raporunun işaret ettiği:",
+		"noSuspects_plugin": "Çökme raporunda belirli bir eklenti adı belirtilmemiş. Değişikliği geri alabilir ve güncellemeleri bekleyebilirsiniz.",
+		"noSuspects_mod": "Çökme raporunda belirli bir mod adı belirtilmemiş. Değişikliği geri alabilir ve güncellemeleri bekleyebilirsiniz.",
+		"noSuspects_either": "Çökme raporunda belirli bir eklenti veya mod adı belirtilmemiş. Değişikliği geri alabilir ve güncellemeleri bekleyebilirsiniz.",
+		"turnOff": "Kapat",
+		"turnedOff": "Kapatıldı",
+		"details": "Çökme ayrıntıları",
+		"keepTrying": "Denemeye devam et",
+		"undo": "Sürüm değişikliğini geri al",
+		"undone": "Tekrar {{version}} sürümüne dönüldü, tamamen eskisi gibi.",
+		"tryAgain_server_one": "Onsuz denemek için sunucuyu yeniden başlatın. Geri al seçeneği yine de tekrar açar.",
+		"tryAgain_server_other": "Bunlar olmadan denemek için sunucuyu yeniden başlatın. Geri al seçeneği yine de bunları tekrar açar.",
+		"tryAgain_game_one": "Onsuz denemek için oyunu tekrar başlatın. Geri al seçeneği yine de tekrar açar.",
+		"tryAgain_game_other": "Onlar olmadan denemek için oyunu tekrar başlatın. Geri al seçeneği yine de bunları tekrar açar."
+	},
+	"skinPreview": {
+		"saving": "Kaydediliyor...",
+		"saved": "Kaydedildi!",
+		"error": "Hata",
+		"changeSkin": "Skini Değiştir",
+		"copyUrlTitle": "Skin dokusu bağlantısını kopyala",
+		"copied": "Kopyalandı",
+		"copyUrl": "Bağlantıyı Kopyala",
+		"downloadTitle": "Skin dokusu dosyasını İndirilenler klasörüne indir",
+		"download": "İndir"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Beyaz Liste",
+			"ops": "Operatörler",
+			"bans": "Yasaklar"
+		},
+		"whitelist": {
+			"title": "Beyaz Liste",
+			"empty": "Henüz beyaz listeye kimse eklenmedi",
+			"description": "Etkinleştirildiğinde yalnızca bu oyuncular katılabilir.",
+			"add": "Ekle"
+		},
+		"ops": {
+			"title": "Operatörler",
+			"empty": "Operatör yok",
+			"description": "Operatörler /stop ve /op dahil tüm komutları kullanabilir.",
+			"add": "OP Yap"
+		},
+		"bans": {
+			"title": "Yasaklanan oyuncular",
+			"empty": "Kimse yasaklanmadı",
+			"description": "Yasaklanan oyuncular affedilene kadar katılamaz.",
+			"add": "Yasakla"
+		},
+		"whitelistOn": "Beyaz liste açık",
+		"whitelistOff": "Beyaz liste kapalı",
+		"onlyListed": "Yalnızca listedeki oyuncular katılabilir.",
+		"anyone": "Herkes bu sunucuya katılabilir.",
+		"invalidName": "Kullanıcı adları yalnızca harf, rakam ve _ içerebilir",
+		"playerName": "Oyuncu adı",
+		"permissionLevel": "Yetki seviyesi {{level}}",
+		"banned": "Yasaklandı",
+		"noUuid": "UUID yok",
+		"remove": "{{name}} kaldır"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Android uygulamasına dahil edilenler",
+				"note": "Android üzerinde sunucu yazılımını bir Linux korumalı alanında (sandbox) çalıştırır. Termux projesinden derlenmiştir."
+			},
+			"downloaded": {
+				"title": "Gerektiğinde indirilenler",
+				"note": "Bir özellik ilk kez kullandığında resmi kaynaklarından alınır."
+			},
+			"servers": {
+				"title": "Kurabileceğiniz sunucu yazılımları",
+				"note": "Oluşturduğunuz her sunucu için onu geliştiren projeden indirilir."
+			}
+		},
+		"roles": {
+			"proot": "Sunucular için Linux korumalı alanı",
+			"talloc": "PRoot tarafından kullanılan bellek kütüphanesi",
+			"shmem": "PRoot için paylaşılan bellek desteği",
+			"temurin": "Masaüstünde sunucular ve oyun için Java",
+			"alpine": "Android korumalı alanının temel sistemi (OpenJDK dahil)",
+			"pumpkin": "Pumpkin sunucusu",
+			"playit": "Sunucunuz için genel adres",
+			"paper": "Paper sunucuları",
+			"folia": "Folia sunucuları",
+			"purpur": "Purpur sunucuları",
+			"fabric": "Fabric sunucuları",
+			"vanilla": "Vanilla sunucuları (Mojang tarafından, açık kaynak değil)"
+		},
+		"names": {
+			"minecraftServer": "Minecraft sunucusu"
+		},
+		"various": "Çeşitli açık kaynak lisansları"
+	},
+	"directConnect": {
+		"title": "Sunucuya Doğrudan Bağlan",
+		"description": "Ana menüyü atlayarak <b>{{name}}</b> profilini doğrudan bir çok oyunculu sunucuya başlatın.",
+		"address": "Sunucu Adresi",
+		"addressPlaceholder": "örn. mc.hypixel.net veya localhost:25565",
+		"localServers": "Yapılandırılmış Yerel Sunucular",
+		"recent": "Son Sunucular",
+		"removeRecent": "Son kullanılanlardan kaldır",
+		"launch": "Başlat ve Bağlan"
+	},
+	"console": {
+		"autoScrollOn": "Otomatik kaydırma açık",
+		"autoScrollOff": "Otomatik kaydırma kapalı",
+		"copyAll": "Tümünü kopyala",
+		"clear": "Temizle",
+		"waiting": "Çıktı bekleniyor...",
+		"offline": "Sunucu çevrimdışı",
+		"offlineHint": "Konsolunu görmek için sunucuyu başlatın.",
+		"latest": "En son",
+		"placeholder": "Bir komut yazın, örn. time set day",
+		"send": "Komut gönder"
+	},
+	"syncMaster": {
+		"setAsSource": "\"{{name}}\" profilini ana senkronizasyon kaynağı olarak ayarla.",
+		"error": "Hata: {{error}}",
+		"categoryTitle": "İlk Senkronizasyon: {{title}}",
+		"title": "Ana Senkronizasyon Profilini Seçin",
+		"categoryDescription": "Paylaşılan depolama alanınızın {{file}} dosyasını başlangıçta nereden alacağını seçin:",
+		"description": "Paylaşılan senkronizasyon depolama alanınızı doldurmak için mevcut bir profil seçin. Ayarları ve verileri paylaşılan temel haline gelecektir.",
+		"useExisting": "Mevcut Paylaşılan Verileri Kullan",
+		"keepCurrent": "Paylaşılan depolama alanındaki geçerli <code>{{file}}</code> dosyasını koru",
+		"useShared": "Paylaşılanı Kullan",
+		"orCopyFrom": "Veya mevcut bir profilden kopyalayın:",
+		"copyFrom": "Mevcut bir profilden kopyalayın:",
+		"noInstances": "Profil bulunamadı.",
+		"useThis": "Bunu Kullan",
+		"setAsMaster": "Ana Kopya Olarak Ayarla",
+		"noCopy": "Henüz herhangi bir veri kopyalamak istemiyor musunuz?",
+		"startFresh": "Sıfırdan Başla / Boş"
+	},
+	"quickJoin": {
+		"title": "Hızlı Oyna — Sunucuya Katıl",
+		"description": "Minecraft'ı başlatın ve doğrudan <b>{{name}}</b> ({{address}}) sunucusuna katılın.",
+		"target": "Hedef: {{address}}",
+		"choose": "İstemci Profilini Seçin",
+		"noInstances": "Minecraft profili bulunamadı",
+		"noInstancesHint": "Sunucunuza katılmak için önce bir istemci profili oluşturun.",
+		"createInstance": "Profil Oluştur",
+		"matches": "Sunucuyla Uyumlu",
+		"launch": "Başlat ve Katıl"
+	},
+	"players": {
+		"tabs": {
+			"online": "Çevrimiçi",
+			"all": "Tüm oyuncular",
+			"access": "Erişim"
+		},
+		"offlineHint": "Kimin oynadığını, canını, envanterini ve konumunu görmek için sunucuyu başlatın.",
+		"starting": "Sunucu başlatılıyor...",
+		"startingHint": "Dünya yüklendiğinde oyuncular görünecektir.",
+		"liveError": "Canlı oyuncu verileri okunamadı: {{error}}. Canlı veriler bir Java sunucusu (Paper, Purpur, Fabric veya Vanilla) gerektirir.",
+		"checking": "Kimin çevrimiçi olduğu kontrol ediliyor...",
+		"nobody": "Kimse çevrimiçi değil",
+		"nobodyHint": "Oyuncular katıldıkları anda burada görünecektir.",
+		"none": "Henüz oyuncu yok",
+		"noneHint": "Bu sunucuya katılan herkes, son kaydedilen envanteriyle birlikte burada listelenecektir.",
+		"search": "Oyuncu ara",
+		"onlineNow": "Şimdi çevrimiçi",
+		"lastSeen": "Son görülme {{time}}"
+	},
+	"map": {
+		"upToDate": "Güncel",
+		"noWorld": "Henüz dünya yok",
+		"noWorldHint": "Bir dünya oluşturması için sunucuyu bir kez başlatın. Keşfedilen alanlar haritada görünecektir.",
+		"liveTitle": "Ingot haritayı sunucu belleğinden güncel tutar",
+		"live": "Canlı",
+		"restartToGoLive": "Canlıya geçmek için yeniden başlatın",
+		"makeLiveTitle_plugin": "Haritayı dünyayı kaydetmeden gerçek zamanlı güncellemek için Ingot eklentisini yükleyin",
+		"makeLiveTitle_mod": "Haritayı dünyayı kaydetmeden gerçek zamanlı güncellemek için Ingot modunu yükleyin",
+		"makeLive": "Canlı yap",
+		"refreshTitle": "Yeni kaydedilen alanları kontrol edin",
+		"ariaLabel": "Dünya haritası. Taşımak için sürükleyin, yakınlaştırmak için kaydırın veya sıkıştırın.",
+		"zoomIn": "Yakınlaştırın",
+		"zoomOut": "Uzaklaştırın",
+		"updatedAreas_one": "{{count}} alanı güncellendi",
+		"updatedAreas_other": "{{count}} alanları güncellendi"
+	},
+	"pluginDetails": {
+		"byline": "- {{author}} · {{downloads}} indirmeler",
+		"playersNeedIt": "Oyuncuların da bu moda ihtiyacı var: Katılan herkesin oyununa yüklemesi gerekir, aksi takdirde katılamazlar.",
+		"installing": "Yükleniyor...",
+		"page": "Sayfa",
+		"noCompatible": "Minecraft {{version}} için henüz sürüm yok. Sürümler altından daha eski bir sürümü seçebilirsiniz ancak bu işe yaramayabilir.",
+		"about": "",
+		"versions": "Sürümleri Hakkında",
+		"noDescription": "Açıklama yok.",
+		"onlyFor": "Yalnızca Minecraft sürümleri {{version}}",
+		"noVersions": "Sürüm yok",
+		"noVersionsHint": "Tüm sürümleri göstermeyi deneyin.",
+		"website": "Web sitesi",
+		"anyVersion": "Herhangi bir sürüm"
+	},
+	"addAccount": {
+		"missingCredentials": "Lütfen hem kullanıcı adını/e-posta adresini hem de şifreyi girin.",
+		"welcomeBack": "Tekrar hoş geldiniz, {{name}}!",
+		"elyFailed": "Ely.by'ya bağlanılamadı",
+		"missingNickname": "Lütfen bir oyuncu takma adı girin.",
+		"offlineCreated": "{{name}} için çevrimdışı profil oluşturuldu",
+		"offlineFailed": "Çevrimdışı hesap oluşturulamadı",
+		"description": "Ely.by hesabınızı bağlayın veya oynatmak için bir çevrimdışı profil yapılandırın.",
+		"tokensSecure": "Belirteçler, İşletim Sistemi Kimlik Bilgileri Kasanızda güvenli bir şekilde şifrelenir.",
+		"usernameOrEmail": "Kullanıcı Adı veya E-posta",
+		"usernamePlaceholder": "ör. çentik veya oynatıcı@Ely.by",
+		"password": "Şifre",
+		"connecting": "Bağlanıyor...",
+		"logIn": "Ely.by'da Oturum Açın",
+		"offlineNote": "Çevrimdışı hesaplar, çevrimiçi oturum belirteci olmadan oynatılır.",
+		"nickname": "Oyuncu Takma Adı",
+		"nicknamePlaceholder": "ör. Steve",
+		"adding": "Ekleniyor...",
+		"addProfile": "Profil Ekle",
+		"microsoftTitle": "Microsoft / Xbox Live Oturum Açma",
+		"microsoftSoon": "Resmi Mojang Microsoft hesabı OAuth entegrasyonu gelecek sürümde kullanıma sunulacak."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Oynanış",
+			"players": "Oyuncular",
+			"world": "Dünya",
+			"network": "Ağ",
+			"advanced": "Gelişmiş"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Oyun modu",
+				"description": "Yeni oyuncular için mod.",
+				"options": {
+					"survival": "Hayatta Kalma",
+					"creative": "Yaratıcı",
+					"adventure": "Macera",
+					"spectator": "Seyirci"
+				}
+			},
+			"difficulty": {
+				"label": "Zorluk",
+				"description": "Çetelerin ne kadar tehlikeli olduğu.",
+				"options": {
+					"peaceful": "Huzurlu",
+					"easy": "Kolay",
+					"normal": "Normal",
+					"hard": "Sert"
+				}
+			},
+			"force-gamemode": {
+				"label": "Oyun modunu zorlayın",
+				"description": "Oyuncuları her katıldıklarında varsayılan moda geri getirin."
+			},
+			"hardcore": {
+				"label": "Zorlu",
+				"description": "Oyuncular öldüklerinde seyirciye geçerler."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Oyuncular birbirlerine zarar verebilir."
+			},
+			"allow-flight": {
+				"label": "Uçuşa izin ver",
+				"description": "Oyuncuları uçtukları için tekmelemeyin (bazı modlar ve eklentiler için gereklidir)."
+			},
+			"spawn-protection": {
+				"label": "Yeniden doğma koruması",
+				"description": "Yalnızca operatörlerin oluşturabileceği, ortaya çıkma etrafındaki yarıçap. 0 onu kapatır."
+			},
+			"max-players": {
+				"label": "Maksimum oyuncu",
+				"description": "Aynı anda kaç oyuncu çevrimiçi olabilir."
+			},
+			"online-mode": {
+				"label": "Çevrimiçi mod",
+				"description": "Mojang'daki hesapları kontrol edin. Premium olmayan veya Ely.by hesaplarına izin vermek için kapatın."
+			},
+			"player-idle-timeout": {
+				"label": "Boşta vuruş",
+				"description": "Bu kadar çok boş dakikadan sonra oyunculara vuruş yapın. 0 asla tekme atmaz."
+			},
+			"op-permission-level": {
+				"label": "Operatör seviyesi",
+				"description": "Operatörlerin yapabilecekleri: 1 ortaya çıkma korumasını bypass… 4 her şey."
+			},
+			"hide-online-players": {
+				"label": "Oyuncu listesini gizle",
+				"description": "Çok oyunculu menüde kimin çevrimiçi olduğunu gösterme."
+			},
+			"enforce-secure-profile": {
+				"label": "İmzalı sohbet gerektir",
+				"description": "Yalnızca Mojang imzalı sohbet anahtarlarına sahip oyunculara izin verin."
+			},
+			"view-distance": {
+				"label": "Görüntü mesafesi",
+				"description": "Oyuncuların ne kadar uzağı görebileceği. Cihazda alt kısım daha hafiftir."
+			},
+			"simulation-distance": {
+				"label": "Simülasyon mesafesi",
+				"description": "Dünya, oyuncuların ne kadar uzağında ilerlemeye devam ediyor."
+			},
+			"level-seed": {
+				"label": "Seed",
+				"description": "Yeni bir dünya için Seed. Yalnızca dünya ilk yaratıldığında kullanılır.",
+				"placeholder": "Rastgele"
+			},
+			"level-type": {
+				"label": "Dünya türü",
+				"description": "Yalnızca dünya ilk yaratıldığında kullanılır.",
+				"options": {
+					"minecraft_normal": "Varsayılan",
+					"minecraft_flat": "Süper Düz",
+					"minecraft_large_biomes": "Büyük biyomlar",
+					"minecraft_amplified": "Güçlendirilmiş"
+				}
+			},
+			"generate-structures": {
+				"label": "Yapılar oluşturun",
+				"description": "Yeni parçalar halinde köyler, tapınaklar ve diğer yapılar."
+			},
+			"allow-nether": {
+				"label": "Nether'a izin ver",
+				"description": "Oyuncuların Nether'a seyahat etmesine izin ver."
+			},
+			"max-world-size": {
+				"label": "Dünya sınırı yarıçapı",
+				"description": "Oyuncuların merkezden gidebileceği maksimum mesafe."
+			},
+			"server-port": {
+				"label": "Bağlantı Noktası",
+				"description": "Sunucunun dinlediği bağlantı noktası."
+			},
+			"enable-status": {
+				"label": "Sunucu listesinde göster",
+				"description": "Çok oyunculu menüden ping'leri yanıtlayın (MOTD, oyuncu sayısı)."
+			},
+			"network-compression-threshold": {
+				"label": "Sıkıştırma eşiği",
+				"description": "Bundan daha büyük paketleri sıkıştırır. -1 sıkıştırmayı devre dışı bırakır."
+			},
+			"enable-command-block": {
+				"label": "Komut blokları",
+				"description": "Komut bloklarının çalışmasına izin verir."
+			},
+			"sync-chunk-writes": {
+				"label": "Güvenli parça tasarrufu",
+				"description": "Parçaları eşzamanlı olarak yazın. Daha güvenli, biraz daha yavaş."
+			},
+			"max-tick-time": {
+				"label": "Watchdog zaman aşımı",
+				"description": "Bir onay işareti bundan daha uzun sürerse sunucuyu durdurun. -1 devre dışı bırakır."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Varlık oluşturma mesafesi",
+				"description": "Varlıkların oyunculara yüzde cinsinden ne kadar uzağa gönderildiği."
+			}
+		},
+		"units": {
+			"blocks": "bloklar",
+			"min": "dk",
+			"chunks": "parçalar",
+			"bytes": "bayt",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "Değişikliklerin çoğu sunucu yeniden başlatıldıktan sonra uygulanır.",
+		"badImage": "Bu resim kullanılamadı: {{error}}",
+		"emptyName": "Ad boş olamaz.",
+		"identity": "Sunucu kimliği",
+		"identityDesc": "Sunucunuzun çok oyunculu listede nasıl göründüğü.",
+		"name": "Ad",
+		"motd": "Açıklama (MOTD) · iki satır, ikinci için Enter tuşunu kullanın",
+		"motdReset": "Sıfırla",
+		"saved": "Kaydedildi",
+		"saveChanges": "Değişiklikleri kaydet",
+		"memory": "Bellek",
+		"memoryMobile": "Telefonunuzun RAM'inin oldukça altında tutun.",
+		"memoryDesktop": "Java sunucusu için maksimum RAM.",
+		"portInUse": "Bağlantı Noktası {{port}} zaten başka bir sunucu tarafından kullanılıyor. {{next}}'yu deneyin.",
+		"gameSettings": "Oyun ayarları",
+		"gameSettingsDesc": "sunucu.özellikleri, açıklamalarla birlikte.",
+		"allOther": "Diğer tüm özellikler",
+		"filter": "Özellikleri filtrele",
+		"discard": "",
+		"configFiles": "Yapılandırma dosyalarını atın",
+		"configFilesDesc": "Sunucu ve eklenti yapılandırmaları (YAML, JSON, TOML).",
+		"saveFile": "Dosyayı kaydet",
+		"manage": "Yönet",
+		"changed_one": "{{count}}",
+		"changed_other": "'yu değiştirdi {{count}} indirmek için"
+	},
+	"newInstance": {
+		"title": "Yeni Profil Oluştur",
+		"description": "Minecraft sürümünüzü ve tercih ettiğiniz mod yükleyiciyi seçin. Ingot ortamı ve Java'yu otomatik olarak yapılandıracaktır.",
+		"modLoader": "Mod Yükleyici",
+		"minecraftVersion": "Minecraft Sürüm",
+		"snapshots": "Anlık Görüntüler",
+		"snapshotBadge": "anlık görüntü",
+		"latestBadge": "en son",
+		"loadingVersions": "Sürümler yükleniyor...",
+		"selectVersion": "Minecraft sürümünü seçin",
+		"searchVersion": "Sürümü arayın (örn. 1.20, 1.16)...",
+		"loaderVersion": "Yükleyici Sürümü",
+		"noCompatible": "Uyumlu sürüm yok",
+		"selectLoaderVersion": "Yükleyici sürümünü seçin",
+		"searchLoaderVersion": "Yükleyici sürümünü ara...",
+		"name": "Profil Ad",
+		"namePlaceholder": "ör. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Sunucu ayarları",
+		"yourServers": "Sunucularınız",
+		"newServer": "Yeni sunucu",
+		"about": "Hakkında ve lisanslar"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Sunucu dosyaları kontrol ediliyor...",
+			"preparingPumpkin": "Pumpkin sunucusu hazırlanıyor...",
+			"downloadingPumpkin": "Pumpkin indiriliyor (yalnızca ilk başlangıç)...",
+			"preparingSandbox": "Linux sanal alanı hazırlanıyor...",
+			"downloadingSandbox": "Linux sanal alanı indiriliyor...",
+			"extractingSandbox": "Korumalı alan dosya sistemi çıkarılıyor...",
+			"installingJava": "Java {{version}} korumalı alana yükleniyor...",
+			"sandboxReady": "Korumalı alan başlatma tamamlandı!",
+			"installingCore": "{{name}} yükleniyor (yalnızca ilk çalıştırmada, bu birkaç dakika sürebilir)...",
+			"launching": "Sunucu işlemi başlatılıyor...",
+			"failed": "Başlatılamadı: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Modrinth, CurseForge veya Hangar üzerinde değil, dolayısıyla Ingot bunu kontrol edemiyor",
+			"beta": "Beta sürümü, dengesiz olabilir",
+			"alpha": "Alfa sürümü, dengesiz olabilir",
+			"siteOnly": "{{target}} sürümü yalnızca {{site}} adresinden indirilebilir",
+			"fabricOnly": "Yalnızca Fabric ve Quilt'da gereklidir",
+			"noVersion": "Henüz {{target}} sürümü yok",
+			"pluginNotMarked": "Henüz {{version}} için işaretlenmedi; çoğu eklenti hala çalışıyor",
+			"notUpdated": "{{version}} için güncellenmedi; genellikle hala çalışıyor",
+			"sameAs": "{{name}} ile aynı",
+			"incompatible": "{{name}} ile birlikte çalışmıyor",
+			"needsTurnedOff": "Kapatılan {{name}}'ya ihtiyaç duyuyor",
+			"needsMissing": "{{version}} için mevcut olmayan {{name}} gerekiyor",
+			"neededBy": "{{name}} tarafından gerekiyor"
+		},
+		"launch": {
+			"preparing": "Başlatmaya hazırlanıyor",
+			"resolvingVersion": "Sürümü Çözümleniyor",
+			"resolvingLoader": "Mod Yükleyiciyi Çözümlüyor",
+			"checkingJava": "Java Çalışma Zamanını Kontrol Ediyor",
+			"javaSetup": "Java Kurulum",
+			"downloadingClient": "İstemciyi İndiriyor",
+			"downloadingLibraries": "Kitaplıkları İndiriyor",
+			"downloadingAssets": "Varlıkları İndiriyor",
+			"verifying": "Dosyaları Doğrulıyor",
+			"auth": "Kimlik Doğrulama Kurulumu",
+			"starting": "Oyuna Başlanıyor",
+			"fetchingMetadata": "Sürüm meta verileri getiriliyor...",
+			"fetchingProfile": "{{loader}} profili alınıyor...",
+			"detectingJava": "Java ortamı algılanıyor...",
+			"downloadingJavaProgress": "İndiriliyor Java {{version}} çalışma zamanı ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "İndiriliyor Java {{version}} çalışma zamanı...",
+			"extractingJava": "Java {{version}} çalışma zamanı ayıklanıyor...",
+			"downloadingJar": "Minecraft istemci jar dosyası indiriliyor...",
+			"downloadingLibrariesCount": "İndiriliyor {{count}} kitaplıkları...",
+			"library": "Kitaplığı {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "{{count}} varlıkları indiriliyor...",
+			"assets": "Varlıklar {{current}}/{{total}}",
+			"verified": "Tüm oyun dosyaları doğrulandı",
+			"authDetail": "Ely.by dış görünüm ve kimlik doğrulama aracısı kuruluyor...",
+			"launching": "Minecraft işlemi başlatılıyor...",
+			"connecting": "{{server}}'ya bağlanılıyor...",
+			"loadingWorld": "Dünya yükleniyor {{world}}...",
+			"initializing": "Başlatma başlatılıyor sıra..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Oyuncular bunu nasıl görüyor",
+		"startingUp": "Başlatılıyor...",
+		"shuttingDown": "Kapatılıyor...",
+		"cantConnect": "Sunucuya bağlanılamıyor",
+		"preparing": "Hazırlanıyor...",
+		"sleepingNote": "Kaynakları kaydetmek için uyuyor. Bir oyuncu katıldığında otomatik olarak uyanır.",
+		"failedToStart": "Başlatılamadı.",
+		"start": "Sunucuyu başlat",
+		"wake": "Uyandırma",
+		"sleep": "Uyku",
+		"starting": "Başlatılıyor...",
+		"stopping": "Durduruluyor...",
+		"uptime": "Çalışma Süresi",
+		"native": "Yerel",
+		"noOutput": "Henüz çıktı yok"
+	},
+	"serverCard": {
+		"offline": "Çevrimdışı",
+		"openPage": "Sunucu sayfasını aç",
+		"copyAddress": "Sunucu adresini kopyalamak için tıklayın",
+		"noneOnline": "0 çevrimiçi",
+		"joinTitle": "Minecraft'yu başlat ve bu sunucuya bağlan",
+		"join": "",
+		"start": "'ya katıl",
+		"openFolder": "'yu başlat Sunucu klasörünü aç"
+	},
+	"versionChange": {
+		"title": "Sürümü değiştir",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Çakışmalar",
+			"missing": "Henüz mevcut değil",
+			"unknown": "Kontrol edilemiyor",
+			"newDependency": "Yeni bağımlılıklar",
+			"update": "Güncellemeler",
+			"works": "Zaten uyumlu",
+			"olderVersions": "Eski sürümler"
+		},
+		"actions": {
+			"keep": "",
+			"update": "'yu Güncelle",
+			"disable": "",
+			"add": "'yu kapat",
+			"skip": "'yu yükle"
+		},
+		"kinds": {
+			"resourcePack": "Kaynak paketini yükleme",
+			"shader": "Gölgelendirici",
+			"mod": "Mod",
+			"plugin": "Eklentisi"
+		},
+		"downgradeTitle": "{{to}}, {{from}}'dan daha eskidir",
+		"downgradeWarning": "Daha yeni bir sürümde oynanan dünyalar genellikle eski sürümde açılamaz ve bozulabilir. Geri almanın onları geri getirebilmesi için dünya yedeğini açık tutun.",
+		"downgradeOk": "Anlıyorum, yine de eski sürüme geçin",
+		"backupWorldsHint": "Minecraft dünyaları açıldığında yükseltir ve bu geri döndürülemez. Geri alma işlemi, yedeklemeyle bunları da geri yükler.",
+		"openOn": "{{site}}'da açılır",
+		"new": "yeni",
+		"instanceDescription": "Ingot önce her modu, kaynak paketini ve gölgelendiriciyi kontrol eder ve siz uygulayana kadar hiçbir şeyi değiştirmez. Daha sonra bunu geri alabilirsiniz.",
+		"now": "şimdi",
+		"nowLabel": "Şimdi",
+		"moveTo": "",
+		"pickVersion": "'ya geçin Bir sürüm seçin",
+		"searchVersion": "Sürümü arayın...",
+		"loaderVersion": "{{loader}} sürümü",
+		"pickLoaderVersion": "Bir yükleyici sürümü seçin",
+		"noLoaderFor": "{{version}} için {{loader}} yok",
+		"noLoader": "Bu sürüm için {{loader}} yok",
+		"loaderSwitchNote": "Modlar bir yükleyici için yapılmıştır. Ingot, her modun {{loader}} sürümünü arar ve olmayanları kapatır.",
+		"instanceEmpty": "Kontrol edilecek mod, kaynak paketi veya gölgelendirici yok. Yalnızca sürüm değişir.",
+		"applying": "Uygulanıyor...",
+		"applyingHint": "Yeni dosyalar indiriliyor ve kontrol ediliyor, ardından mevcut dosyalar yedekleniyor. Her şey hazır olana kadar hiçbir şey değişmez.",
+		"applyingWithWorlds": "Yeni dosyaları indirip kontrol etme, ardından dünyalarınızı ve mevcut olanları yedekleme. Her şey hazır olana kadar hiçbir şey değişmez.",
+		"nowOn": "Şimdi {{version}}'da",
+		"instanceDone": "{{version}}'dan değiştirildi. Bir şey işe yaramazsa, bunu Profil'nun ayarlarından geri alın: her şey tam olarak olduğu gibi geri döner.",
+		"back": "Geri",
+		"checking": "Kontrol ediliyor...",
+		"check": "Uyumluluğu kontrol edin",
+		"moveToVersion": "{{version}}'ya taşıyın",
+		"summary": {
+			"download_one": "{{count}}'yu değiştirdi ({{size}})",
+			"download_other": "{{count}} indirilecek ({{size}})",
+			"turnedOff_one": "{{count}} kapatıldı",
+			"turnedOff_other": "{{count}} kapatıldı",
+			"conflictsKept_one": "{{count}} çakışması tutuldu",
+			"conflictsKept_other": "{{count}} çakışmaları tutuldu"
+		},
+		"backupWorlds_one": "Dünyaları yedekle ({{count}} dünyası, {{size}})",
+		"backupWorlds_other": "Dünyaları yedekle ({{count}} dünyaları, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Başlatılamadı Profil: {{error}}",
+		"resolveConflict": "Çakışma çözülemedi: {{error}}",
+		"deleteInstance": "Profil silinemedi: {{error}}",
+		"startServer": "Sunucu başlatılamadı: {{error}}",
+		"deleteServer": "Sunucu silinemedi: {{error}}",
+		"quickPlay": "Hızlı oynatma sunucusu başarısız oldu: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Oynatıcı yükleniyor...",
+		"noData": "Hayır Bu oyuncu için henüz veri yok.",
+		"health": "Sağlık",
+		"hunger": "Açlık",
+		"air": "Hava",
+		"experience": "Deneyim",
+		"level": "Seviye {{level}}",
+		"equipment": "Ekipman",
+		"slots": {
+			"head": "Kafa",
+			"chest": "Göğüs",
+			"legs": "Bacaklar",
+			"feet": "Ayaklar",
+			"offhand": "Hazır"
+		},
+		"showOnMap": "Haritada göster",
+		"inventory": "Envanter",
+		"ender": "Ender sandığı ({{count}})",
+		"effects": "Efektler ({{count}})",
+		"onFire": "Ateşli",
+		"durability": "{{left}}/{{max}} dayanıklılık",
+		"enchanted": "Büyülü",
+		"noEffects": "Aktif etki yok",
+		"heal": "İyileştirme",
+		"feed": "Besleme",
+		"removeOp": "OP'yi kaldır",
+		"whitelisted": "Beyaz listeye alınmış",
+		"confirmKick": "{{name}} başlatılsın mı?",
+		"confirmBan": "{{name}} yasaklansın mı?",
+		"confirm": "Onayla",
+		"kick": "Kick"
+	},
+	"transfer": {
+		"zipArchive": "Zip arşivi",
+		"savedTo": "{{path}}'ya kaydedildi",
+		"copyName": "{{name}} kopya",
+		"created": "\"{{name}}\" oluşturuldu.",
+		"title": "Yedekleme ve sürüm",
+		"description": "Sunucuyu paylaşmak veya yedeklemek, kopyalamak veya başka bir Minecraft sürümüne taşımak için dışa aktarın.",
+		"exportConfigs": "Yapılandırmaları dışa aktar",
+		"withoutWorlds": "Dünyalar olmadan",
+		"exportAll": "Tümünü dışa aktarın",
+		"withWorlds": "Dünyalarla birlikte",
+		"makeCopy": "Bir kopya oluştur",
+		"secondServer": "İkinci bir sunucu",
+		"stopFirst": "Önce sunucuyu durdurun",
+		"nowVersion": "Şimdi {{version}}",
+		"backup": "{{version}}'dan değiştirildi. {{size}}'yu yedekleyin.",
+		"backupWithWorlds": "{{version}}'dan değiştirildi. {{size}}'yu yedekleyin, dünyalar dahil.",
+		"deleteBackup": "Yedeklemeyi sil",
+		"undo": "Geri al, {{version}}'ya geri dön",
+		"willStartOn": "{{name}}, {{version}}'da başlayacaktır. Bir şeyler işe yaramazsa buradan geri alabilirsiniz.",
+		"currentVersion": "{{version}} (güncel)",
+		"changeTitle": "Minecraft sürümünü değiştir",
+		"changeDescription_plugin": "Ingot önce her eklentiyi kontrol eder ve siz uygulayana kadar hiçbir şeyi değiştirmez. Her şey yedeklenir, böylece işlemi geri alabilirsiniz.",
+		"changeDescription_mod": "Ingot önce her modu kontrol eder ve siz uygulayana kadar hiçbir şeyi değiştirmez. Her şey yedeklenir, böylece işlemi geri alabilirsiniz.",
+		"serverType": "Sunucu türü",
+		"empty": "Kontrol edilecek eklenti veya mod yok. Yalnızca sürüm değişir.",
+		"readyFor": "{{version}}",
+		"doneNote": "için Hazır Yeni sürüm bir sonraki başlangıçta indirilir. Bir şey işe yaramazsa, bunu Yedekleme ve sürümden geri alın: her şey tam olarak olduğu gibi geri döner.",
+		"import": "Sunucuyu içe aktar",
+		"importing": "{{percent}} içe aktarılıyor",
+		"settingUp": "Sunucu kuruluyor...",
+		"partial": "\"{{name}}\" içe aktarıldı, ancak bazı eklentiler veya modlar indirilemedi:",
+		"openServer": "Sunucuyu açın"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Yüksek performans Tam eklenti desteğine sahip Spigot/Bukkit sunucusu",
+			"badge": "Hızlı ve Kararlı"
+		},
+		"purpur": {
+			"tagline": "İnanılmaz özelleştirmeye sahip, zengin özellikli Paper çatalı",
+			"badge": "Özelleştirilebilir"
+		},
+		"fabric": {
+			"tagline": "Fabric modları için hafif, modüler modlu sunucu",
+			"badge": "Modlu"
+		},
+		"neoforge": {
+			"tagline": "NeoForge modları için modlu sunucu, en büyük içerik modlarının evi",
+			"badge": "Modlu"
+		},
+		"forge": {
+			"tagline": "Orijinal modlu sunucu, Minecraft 1.17 ve daha yeni sürümlerde Forge modları",
+			"badge": "Modlu"
+		},
+		"quilt": {
+			"tagline": "Hem Quilt hem de Fabric modlarını çalıştıran Fabric uyumlu modlu sunucu",
+			"badge": "Modlu"
+		},
+		"folia": {
+			"tagline": "Çok sayıda oyuncu için PaperMC tarafından geliştirilen çok iş parçacıklı bölgeselleştirilmiş sunucu",
+			"badge": "Çok iş parçacıklı"
+		},
+		"pumpkin": {
+			"tagline": "Ultra hafif, Rust destekli — anında önyükleme, < 60 MB RAM",
+			"badge": "Mobil Yerel"
+		},
+		"vanilla": {
+			"tagline": "Doğrudan Mojang'dan resmi modlanmamış Minecraft sunucusu",
+			"badge": "Orijinal"
+		}
+	},
+	"wizard": {
+		"defaultName": "{{core}} Sunucusu",
+		"fetchFailed": "Sürümler getirilemedi. Bağlantınızı kontrol edin.",
+		"enterName": "Lütfen bir sunucu adı girin.",
+		"selectVersion": "Lütfen bir Minecraft sürümü seçin.",
+		"invalidPort": "Geçerli bir bağlantı noktası girin (1024 – 65534).",
+		"portInUseTry": "Bağlantı Noktası {{port}} zaten kullanımda. {{next}}'yu deneyin.",
+		"portInUse": "Bağlantı Noktası {{port}} zaten kullanımda.",
+		"createFailed": "Sunucu oluşturulamadı",
+		"stepEngine": "Motorunuzu seçin",
+		"stepName": "Sunucunuzu adlandırın",
+		"stepMemory": "Bellek ve onaylayın",
+		"stepOf": "{{total}}'nun {{step}} adımı",
+		"preparing": "Sunucu hazırlanıyor…",
+		"serverName": "Sunucu adı",
+		"namePlaceholder": "ör. {{core}} Hayatta Kalma Sunucusu",
+		"minecraftVersion": "Minecraft sürüm",
+		"selectVersionPlaceholder": "Sürüm seçin",
+		"serverPort": "Sunucu bağlantı noktası",
+		"portInUseShort": "Bağlantı noktası kullanımda",
+		"ready": "Oluşturmaya hazır",
+		"engine": "Motoru",
+		"version": "Sürüm",
+		"ram": "RAM",
+		"memory": "Bellek (RAM)",
+		"heroLine1": "Saniyeler içinde ilk sunucunuz",
+		"heroLine2": ".",
+		"heroText": "Ingot, Minecraft sunucusunu doğrudan bu cihaza indirir, yapılandırır ve çalıştırır. Her yerden arkadaşlarınızı davet edin.",
+		"createAServer": "Sunucu oluşturma",
+		"createAServerHint": "Paper, PumpkinMC, Fabric ve daha fazlası"
+	},
+	"plugins": {
+		"unsupported": "{{core}} sunucular eklentileri kullanamaz",
+		"unsupportedHint": "Paper veya Purpur sunucu oluşturma eklentiler veya modlar için bir Fabric sunucusu eklemek için.",
+		"installed": "{{name}} Yüklendi.",
+		"installedWith": "{{name}} ve {{extras}} kuruldu.",
+		"browse_plugin": "Eklentilere göz atın",
+		"browse_mod": "Modlara göz atın",
+		"restartToApply": "Değişiklikleri uygulamak için sunucuyu yeniden başlatın.",
+		"restart": "Yeniden başlat",
+		"noOther_plugin": "Henüz başka eklenti yok.",
+		"noOther_mod": "Henüz başka mod yok.",
+		"none_plugin": "Henüz eklenti yok",
+		"none_mod": "Henüz mod yok",
+		"find_plugin": "Modrinth'da eklentileri bulun ve tek dokunuşla yükleyin.",
+		"find_mod": "Modrinth'da modları bulun ve tek dokunuşla yükleyin.",
+		"findHangar_plugin": "Modrinth ve Hangar'da eklentileri bulun ve tek dokunuşla yükleyin.",
+		"findHangar_mod": "Modrinth ve Hangar'da modları bulun ve tek dokunuşla yükleyin.",
+		"updateAvailable": "Güncelleme mevcut: {{version}}",
+		"enabled": "Etkin {{name}}.",
+		"disabled": "Devre Dışı Bırakıldı {{name}}.",
+		"enable": "{{name}}'yu Etkinleştir",
+		"disable": "{{name}}'yu Devre Dışı Bırak",
+		"updated": "{{name}} Güncellendi.",
+		"removed": "{{name}} Kaldırıldı.",
+		"unknownVersion": "Bilinmeyen sürüm",
+		"byAuthors": "tarafından {{authors}}",
+		"file": "Dosyası",
+		"size": "Boyutu",
+		"updateTo": "{{version}} Güncellemesi",
+		"reallyDelete": "Gerçekten silinsin mi?",
+		"sort": {
+			"downloads": "En popüler",
+			"updated": "Yakın zamanda güncellenen",
+			"newest": "En yeni"
+		},
+		"searchPlaceholder_plugin": "Arama eklentileri, ör. LuckPerms",
+		"searchPlaceholder_mod": "Arama modları, ör. Lityum",
+		"compatibleOnly": "Yalnızca {{version}} uyumlu sonuçları göster",
+		"forVersion": "{{version}} için",
+		"searchFailed": "Arama başarısız oldu: {{error}}",
+		"nothingFound": "Hiçbir şey bulunamadı",
+		"noneForVersion_plugin": "Minecraft ile eşleşen eklenti yok {{version}}. Sürüm filtresini kapatmayı deneyin.",
+		"noneForVersion_mod": "Minecraft {{version}} ile eşleşen mod yok. Sürüm filtresini kapatmayı deneyin.",
+		"tryAnother": "Başka bir arama yapmayı deneyin.",
+		"loadMore": "Daha fazlasını yükle",
+		"playersNeedItTitle": "Oyuncular da bu modu yüklemelidir, aksi halde katılamazlar",
+		"playersNeedIt": "Oyuncuların da buna ihtiyacı var",
+		"isInstalled": "{{name}} kuruldu",
+		"install": "{{name}}'yu yükle",
+		"results_one": "{{formatted}} sonucu",
+		"results_other": "{{formatted}} sonuçları"
+	},
+	"join": {
+		"shareTitle": "Katıl {{name}}",
+		"shareText": "Minecraft sunucum \"{{name}}\"ya katılın!\nAdres: {{address}}\nVersiyon: Java Sürümü {{version}}",
+		"title": "Oyuncuları davet et",
+		"description": "Arkadaşlarınızın katılabilmesi için bir adres paylaşın.",
+		"sameWifi": "Aynı Wi-Fi",
+		"copyLocal": "Yerel adresi kopyala",
+		"anywhere": "Her yerde (playit.gg)",
+		"copyPublic": "Genel adresi kopyala",
+		"showQr": "QR kodunu göster",
+		"linkPlayit": "playit.gg hesabınızı bağlayın",
+		"noTunnel": "Bağlandı, ancak henüz tünel yok. <link>{{port}} bağlantı noktası için bir </link> ekleyin.",
+		"connecting": "Bağlanıyor...",
+		"notConnected": "Bağlı değil",
+		"stopPlayit": "Oynatmayı durdur",
+		"goPublic": "Herkese açık hale getirin",
+		"share": "Daveti paylaşın",
+		"scan": "Adresi kopyalamak için tarayın",
+		"qrAlt": "QR kodu"
+	},
+	"stats": {
+		"latest": "En son: {{value}}",
+		"noData": "Henüz veri yok",
+		"now": "şimdi",
+		"ago": "{{time}} önce",
+		"min": "Min",
+		"avg": "Ortalama",
+		"peak": "Zirve",
+		"performance": "Performans",
+		"touchHint": "Ayrıntılar için bir grafiğe dokunun",
+		"ofDevice": "cihazın",
+		"allocated": "Ayrılmış",
+		"deviceRam": "Cihaz RAM'i",
+		"free": "{{size}} ücretsiz",
+		"lag": "Gecikme",
+		"smooth": "Düzgün",
+		"slightLag": "Hafif gecikme",
+		"lagging": "Gecikmeli",
+		"used": "{{label}}: {{total}}'nun {{used}}'su kullanılmış"
+	},
+	"storage": {
+		"title": "Depolama",
+		"worlds": "Dünyalar",
+		"plugins": "Eklentiler ve modlar",
+		"server": "Sunucu dosyaları",
+		"backups": "Yedeklemeler",
+		"logs": "Günlükler",
+		"other": "Diğer",
+		"device": "Cihaz depolama"
+	},
+	"instanceSettings": {
+		"pushFailed": "Aktarma başarısız oldu: {{error}}",
+		"pullFailed": "Çekme başarısız oldu: {{error}}",
+		"saveFailed": "Ayarlar kaydedilemedi: {{error}}",
+		"title": "Profil Ayarlar",
+		"description": "<b>{{name}}</b> için yürütme parametrelerini ve bellek sınırlarını yapılandırın.",
+		"namePlaceholder": "Minecraft Profil",
+		"loader": "yükleyicim {{version}}",
+		"backup": "{{from}}'dan {{to}}'ya değiştirildi. {{size}}'yu yedekleyin.",
+		"backupWithWorlds": "{{from}}'dan {{to}}'ya değiştirildi. {{size}}'yu yedekleyin, dünyalar dahil.",
+		"memoryOverride": "Bu Profil için genel belleği geçersiz kıl",
+		"minMemory": "Başlangıç ​​Belleği (Min):",
+		"maxMemory": "Maksimum Bellek (Maks):",
+		"inheritMemory": "Genel ayarları devralma: <b>{{min}} Min / {{max}} Maks</b>. Ayarlar sayfasında yapılandırılabilir.",
+		"jvmArgs": "JVM Bağımsız Değişkenler",
+		"jvmArgsHint": "Ekstra Java başlatma bağımsız değişkenleri (boşlukla ayrılmış)",
+		"java": "Özel Java Yürütülebilir",
+		"javaHint": "Otomatik olarak yönetilen Adoptium çalışma zamanı için boş bırakın",
+		"windowOverride": "Bunun için tam ekranı ve pencere boyutunu geçersiz kılın Profil",
+		"fullscreenHint": "Doğrudan tam ekran modunda başlatın",
+		"resolution": "Çözünürlük:",
+		"fullscreen": "Tam ekran",
+		"inheritDisplay": "Genel ekranı devralma: <b>{{value}}</b>. Başlatıcı Ayarlarında yapılandırılabilir.",
+		"syncHint": "Senkronizasyon seçenekleri, sunucular, paketler, geçmiş ve kısayol çubukları",
+		"manualSync": "Manuel Depolama Senkronizasyonu",
+		"manualSyncHint": "Bu Profil verilerini dışa aktarın veya paylaşılan depolama alanından en son dosyaları çekin.",
+		"push": "Paylaşılan Depolamaya Aktarın",
+		"pull": "Paylaşılan Depolamadan Çekin",
+		"syncOptions": "Senkronizasyon Oyun Seçenekleri (options.txt)",
+		"syncServers": "Senkronizasyon Çok Oyunculu Sunucular (servers.dat)",
+		"syncPacks": "Senkronizasyon Kaynak Paketleri (resourcepacks/)",
+		"syncHistory": "Senkronizasyon Komut Geçmişi (command_history.txt)",
+		"syncHotbars": "Senkronizasyon Yaratıcı Erişim Çubukları (hotbar.nbt)",
+		"inheritSync": "Genel senkronizasyon tercihlerini devralma. Başlatmadan önce ve çıkıştan sonra senkronize edilecek."
+	},
+	"install": {
+		"loadFailed": "Kurulum seçenekleri yüklenemedi",
+		"compatible": "Uyumlu",
+		"all": "Tümü",
+		"any": "Herhangi bir",
+		"modpackDone": "Modpack \"{{name}}\", yeni bir Profil olarak başarıyla yüklendi!",
+		"selectTarget": "Hedef seçin Profil...",
+		"added": "{{instance}}'ya {{file}} eklendi!",
+		"modpackTitle": "Modpack'i yükleyin",
+		"addTitle_mod": "Profil'ya mod ekleyin",
+		"addTitle_resourcepack": "Profil'ya kaynak paketi ekleyin",
+		"addTitle_shader": "Profil'ya gölgelendirici ekleyin",
+		"addTitle_modpack": "Profil'ya modpack ekleyin",
+		"addTitle_datapack": "Profil'ya veri paketi ekle",
+		"addTitle_plugin": "Profil",
+		"modpackDescription": "'ya eklenti ekleyin \"{{title}}\"dan yeni bir Minecraft Profil oluşturun.",
+		"description": "\"{{title}}\" uygulamasını mevcut Profil'nuzdan birine yükleyin.",
+		"loading": "Yükleme seçenekleri...",
+		"retry": "",
+		"modpackVersion": "Modpack Sürümünü yeniden deneyin",
+		"selectModpackVersion": "Modpack sürümünü seçin...",
+		"loaders": "Yükleyiciler:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "İlk olarak bir Profil oluşturun modları veya kaynak paketlerini eklemeden önce Profil sekmesine gidin.",
+		"target": "Hedef Profil",
+		"fileVersion": "Dosya Sürümü",
+		"selectFileVersion": "Dosya sürümünü seçin...",
+		"supports": "Destekler:",
+		"createAndInstall": "Oluşturun ve Yükleyin",
+		"installToInstance": "Profil'ya yükleyin",
+		"compatibleCount_one": "{{count}} uyumlu sürüm",
+		"compatibleCount_other": "{{count}} uyumlu sürümler"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Kaynak paketi",
+		"shader": "Gölgelendirici",
+		"datapack": "Veri paketi",
+		"plugin": "Eklentisi"
+	},
+	"releaseTypes": {
+		"release": "Sürümü",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "Proje ayrıntıları yüklenemedi",
+		"addToInstance": "Profil'ya ekle",
+		"versions": "Sürümler ve Dosyalar",
+		"versionsCount": "Sürümler ve Dosyalar ({{count}})",
+		"loading": "Proje ayrıntıları yükleniyor...",
+		"gallery": "Galeri ({{count}})",
+		"clickToOpen": "Tam ekranda açmak için resme tıklayın",
+		"viewFullscreen": "Tam Ekranı Görüntüle",
+		"scrollLeft": "Galeriyi sola kaydır",
+		"scrollRight": "Galeriyi sağa kaydır",
+		"source": "Kaynak Kodu",
+		"issues": "Sorun Takipçisi",
+		"wiki": "Wiki",
+		"description": "Açıklama",
+		"gameVersion": "Oyun Sürümü:",
+		"noMatch": "Filtre kriterlerinizle eşleşen sürüm yok.",
+		"openOriginal": "Orijinali Aç",
+		"previous": "Önceki resim",
+		"next": "Sonraki resim",
+		"downloads_one": "{{formatted}} indir",
+		"downloads_other": "{{formatted}} indirmeler",
+		"followers_one": "{{formatted}} takipçisi",
+		"followers_other": "{{formatted}} takipçileri",
+		"showing_one": "{{count}} sürümünün {{shown}}'su gösteriliyor",
+		"showing_other": "{{shown}}'su gösteriliyor {{count}} sürümleri"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Seçin {{launcher}} Profil Dizini",
+		"selectDir": "Seçin Minecraft Profil Dizin",
+		"done": "Profil başarıyla içe aktarıldı!",
+		"title": "Başka Bir Başlatıcıdan İçe Aktarma",
+		"selectInstance": "Profil ({{launcher}}) öğesini seçin",
+		"configure": "",
+		"description": "'yu İçe Aktarmayı Yapılandırın Mevcut Minecraft kurulumlarını, modlarını, dünyalarını ve ayarlarını doğrudan Ingot'ya aktarın.",
+		"optionsDescription": "Yeni Ingot Profil cihazınıza hangi veri bileşenlerini aktarmak istediğinizi seçin.",
+		"detecting": "Yüklü başlatıcılar algılanıyor...",
+		"notDetected": "Algılanmadı • Bulmak için tıklayın",
+		"custom": "Özel Dizin",
+		"customHint": "Diskteki herhangi bir Profil klasörünü seçin",
+		"backToLaunchers": "Başlatıcılara Geri Dön",
+		"changeFolder": "Klasörü Değiştir",
+		"filter": "Filtre Profil...",
+		"loadingInstances": "Yükleniyor Profil...",
+		"noneFound": "Bu başlatıcı dizininde Profil bulunamadı.",
+		"select": "",
+		"nameInIngot": "Profil Ingot'daki Adı seçin:",
+		"namePlaceholder": "İçe aktarılanlarım Profil",
+		"source": "Kaynak: {{path}}",
+		"components": "İçe aktarılacak bileşenleri seçin:",
+		"mods": "Modlar",
+		"configs": "Yapılandırmalar",
+		"configsHint": "Ayarlar ve mod yapılandırmaları",
+		"worlds": "Dünyalar ve Kayıtlar",
+		"packs": "Kaynak Paketleri",
+		"packsHint": "Dokular ve gölgelendirici paketleri",
+		"screenshotsHint": "Oyun içi ekran görüntüleri",
+		"modData": "Mod Verileri ve Diğerleri",
+		"modDataHint": "Yol noktaları, şemalar, kayıtlar, vb.",
+		"options": "Oyun Seçenekleri",
+		"optionsHint": "options.txt ve tuş atamaları",
+		"servers": "Çok Oyunculu Sunucular",
+		"serversHint": "servers.dat sunucu listesi",
+		"note": "Yukarıdaki tüm bileşenler isteğe bağlıdır. <b>Mod Verileri ve Diğerleri</b> etkinleştirildiğinde, özel mod klasörleri (mini harita yol noktaları, şemalar, kayıtlar) güvenli bir şekilde kopyalanır. Fazladan dosya olmadan temiz bir içe aktarmayı tercih ediyorsanız işaretini kaldırın.",
+		"importing": "İçe aktarılıyor...",
+		"import": "İçe aktar Profil",
+		"found_one": "{{launcher}}'da {{count}} Profil bulundu. Hangisinin içe aktarılacağını seçin.",
+		"found_other": ", {{launcher}}'da {{count}} Profil'yu buldu. Hangisinin içe aktarılacağını seçin.",
+		"instancesFound_one": "{{count}} Profil,",
+		"instancesFound_other": "'yu buldu {{count}} Profil,",
+		"modsCount_one": "'yu buldu {{count}} modu",
+		"modsCount_other": "{{count}} modları",
+		"worldsCount_one": "{{count}} dünyası",
+		"worldsCount_other": "{{count}} dünyaları",
+		"screenshotsCount_one": "{{count}} ekran görüntüsü",
+		"screenshotsCount_other": "{{count}} ekran görüntüleri",
+		"modFiles_one": "{{count}} mod dosyası",
+		"modFiles_other": "{{count}} mod dosyaları",
+		"singleplayerWorlds_one": "{{count}} tek oyunculu dünya",
+		"singleplayerWorlds_other": "{{count}} tek oyunculu dünyalar"
+	},
+	"skinViewer": {
+		"resetCamera": "3D kamerayı sıfırla",
+		"pauseRotation": "Otomatik döndürmeyi duraklat",
+		"autoRotate": "3D modeli otomatik döndür",
+		"idlePose": "Boş poza geçiş",
+		"playWalk": "Yürüyüş animasyonunu oynat",
+		"idleTitle": "Boşta nefes alma animasyonu",
+		"idle": "Boşta",
+		"walkTitle": "Yürüyüş animasyonu",
+		"walk": "Yürüme",
+		"runTitle": "Koşu animasyonu",
+		"run": "Çalıştır",
+		"waveTitle": "Sallanan kol animasyonu",
+		"wave": "Dalga",
+		"pause": "Animasyonları duraklat",
+		"outerOn": "Dış Katman Açık",
+		"outerOff": "Dış Katman Kapalı",
+		"modelSlim": "Model: Slim (Alex)",
+		"modelClassic": "Model: Classic (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Özel Görünüm",
+		"currentActiveSkin": "Mevcut Aktif Görünüm",
+		"activeAccountSkin": "Aktif Hesap Görünümü",
+		"loadFailed": "Görünümler şuradan yüklenemedi: Ely.by",
+		"defaultSteve": "Varsayılan Steve",
+		"addAccountFirst": "Lütfen önce bir Ely.by hesabı ekleyin veya seçin.",
+		"elyOnlySync": "Yalnızca Ely.by hesapları bulut dış görünüm senkronizasyonunu destekler.",
+		"customApplied": "{{name}}'ya özel görünüm uygulandı!",
+		"skinApplied": "{{name}}'ya #{{id}} görünümü uygulandı!",
+		"applyFailed": "Dış görünüm uygulanamadı.",
+		"enterPassword": "Lütfen Ely.by şifrenizi girin.",
+		"skinFromDate": "Görünüm {{date}}",
+		"uploadedApplied": "Özel görünüm {{name}}'ya yüklendi ve uygulandı!",
+		"pngOnly": "Dış görünüm dosyası PNG formatında (.png) olmalıdır.",
+		"tooLarge": "Dış görünüm dosyası çok büyük (maks. 2 MB).",
+		"badSize": "Geçersiz boyutlar: {{size}}. Standart Minecraft kaplamaları 64x64 veya 64x32 piksel olmalıdır.",
+		"badImage": "Görüntü ayrıştırılamadı. Lütfen geçerli bir PNG dosyası olduğundan emin olun.",
+		"elyOnlyUpload": "Yalnızca Ely.by hesapları görünüm yüklemeyi destekler.",
+		"uploadFailed": "Görünüm yüklenemedi.",
+		"saved": "Görünümü #{{id}} başarıyla kaydedildi!",
+		"downloadFailed": "İndirme başarısız oldu.",
+		"urlCopied": "Görünüm dokusu URL'si panoya kopyalandı!",
+		"activeAccount": "Aktif Ely.by hesabı",
+		"noActiveAccount": "Aktif Ely.by hesabı yok",
+		"browse": "Görünümlere Göz Atın",
+		"preview3d": "3D Önizleme",
+		"currentSkin": "Mevcut Görünüm",
+		"skinNumber": "Görünüm #{{id}}",
+		"alexSlim3": "Alex (İnce 3px)",
+		"steveClassic4": "Steve (Klasik 4px)",
+		"currentSkinOf": "Mevcut Görünüm ({{name}})",
+		"applyTo": "{{name}}'ya Görünüm Uygula",
+		"applyToAccount": "Hesaba Görünüm Uygula",
+		"downloadPng": "PNG'yi İndir",
+		"updating": "Güncelleniyor...",
+		"loadingMine": "Yüklediğiniz görünümler Ely.by adresinden yükleniyor...",
+		"loading": "Ely.by adresinden görünümler yükleniyor...",
+		"noMatchingUploads": "Yüklenen eşleşen görünüm bulunamadı",
+		"noUploadsFor": "Hayır {{name}}",
+		"tryDifferent": "için yüklenen dış görünümler bulundu Farklı bir arama sorgusu veya filtre deneyin.",
+		"noUploadsHint": "Ely.by'ya henüz herhangi bir özel görünüm yüklemediniz. Yönetmek ve istediğiniz zaman giymek için bir görünüm yükleyin.",
+		"selectAccountHint": "Yüklediğiniz dış görünümleri görüntülemek için lütfen bir Ely.by hesabı seçin veya ekleyin.",
+		"uploadASkin": "Bir Görünüm Yükleyin",
+		"noSkins": "Kaplama bulunamadı",
+		"deleteCustom": "Özel kaplamayı sil",
+		"slim": "İnce",
+		"classic": "Klasik",
+		"pageOf": "<b>{{page}}</b> of {{total}}",
+		"total": "(toplam {{count}})",
+		"previous": "Önceki",
+		"next": "Sonraki",
+		"alexSlim": "Alex (İnce)",
+		"steveClassic": "Steve (Klasik)",
+		"view3d": "3D Görünüm",
+		"apply": "Uygula",
+		"livePreview": "Canlı 3D Önizleme",
+		"uploading": "Yükleniyor ve Uygulanıyor...",
+		"uploadApply": "Dış Görünümü Yükleyin ve Uygulayın",
+		"uploadTitle": "Özel Dış Görünüm Yükleyin",
+		"uploadDescription": "Doğrudan Ely.by uygulamasına uygulamak için bilgisayarınızdan bir Minecraft dış görünüm dokusu yükleyin.",
+		"dropHint": "Dış görünüm PNG dosyasına göz atmak veya buraya sürükleyip bırakmak için tıklayın",
+		"supports": "Standart Minecraft dış görünümlerini destekler (64×64 veya 64×32 PNG, 2 MB'a kadar)",
+		"dimensions": "Boyutlar: {{value}}",
+		"size": "Boyut: {{value}}",
+		"armModel": "Cilt Kol Modeli",
+		"armModelHint": "Bu görünümün Klasik (4px) veya İnce (3px) kollar için tasarlandığını seçin.",
+		"classicArms": "Klasik (4 piksel kol)",
+		"slimArms": "İnce (3 piksel kol)",
+		"targetAccount": "Hedef Ely.by Hesabı",
+		"noAccount": "Aktif hesap yok",
+		"readyToApply": "Uygulamaya hazır",
+		"passwordTitle": "Ely.by Şifre Yetkilendirmesi",
+		"passwordDescription": "Ely.by dış görünümünüzü <b>{{name}}</b> için değiştirmek için lütfen girin hesabınızın şifresi. Yerel işletim sistemi anahtarlığınızda güvenli bir şekilde şifrelenecektir.",
+		"passwordPlaceholder": "Ely.by Şifre",
+		"authorize": "Yetkilendir ve Uygula",
+		"count_one": "{{formatted}} görünüm",
+		"count_other": "{{formatted}} görünümler"
+	},
+	"select": {
+		"placeholder": "Bir seçenek seçin",
+		"noMatches": "Eşleşen hiçbir şey yok"
+	},
+	"hosting": {
+		"one": "Barındırma {{name}}",
+		"many": "Barındırma {{count}} sunucuları",
+		"tunnel": "Ingot tüneli etkin",
+		"publicAddress": "Genel adres: {{address}}",
+		"connecting": "playit.gg tünel bağlantısı...",
+		"localOnly": "Yalnızca yerel ağ"
 	}
 }

@@ -1,5 +1,6 @@
 import { Apple, Heart, Search, Users } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { Input } from "@/components/ui/input"
 import { dimensionStyle, formatRelativeTime } from "@/lib/minecraft"
@@ -18,6 +19,7 @@ export function PlayersPanel({
 	server: ServerConfig
 	onShowOnMap?: (player: PlayerDetails) => void
 }) {
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	const [view, setView] = useState<View>("online")
 	const [selected, setSelected] = useState<string | null>(null)
@@ -30,9 +32,14 @@ export function PlayersPanel({
 				value={view}
 				onChange={setView}
 				options={[
-					{ value: "online", label: `Online${isRunning ? ` · ${onlinePlayers.length}` : ""}` },
-					{ value: "all", label: "All players" },
-					{ value: "access", label: "Access" },
+					{
+						value: "online",
+						label: isRunning
+							? `${t("players.tabs.online")} · ${onlinePlayers.length}`
+							: t("players.tabs.online"),
+					},
+					{ value: "all", label: t("players.tabs.all") },
+					{ value: "access", label: t("players.tabs.access") },
 				]}
 			/>
 
@@ -81,13 +88,14 @@ function OnlineList({
 	isLoading: boolean
 	onSelect: (name: string) => void
 }) {
+	const { t } = useTranslation()
 	if (!isRunning) {
 		return (
 			<Card>
 				<EmptyState
 					icon={Users}
-					title="Server is offline"
-					description="Start the server to see who's playing, their health, inventory and location."
+					title={t("console.offline")}
+					description={t("players.offlineHint")}
 				/>
 			</Card>
 		)
@@ -97,27 +105,22 @@ function OnlineList({
 			<Card>
 				<EmptyState
 					icon={Users}
-					title="Server is starting..."
-					description="Players will show up once the world has loaded."
+					title={t("players.starting")}
+					description={t("players.startingHint")}
 				/>
 			</Card>
 		)
 	}
 	if (error && players.length === 0) {
-		return (
-			<ErrorNote>
-				Couldn't read live player data: {String(error)}. Live data needs a Java server (Paper,
-				Purpur, Fabric or Vanilla).
-			</ErrorNote>
-		)
+		return <ErrorNote>{t("players.liveError", { error: String(error) })}</ErrorNote>
 	}
 	if (players.length === 0) {
 		return (
 			<Card>
 				<EmptyState
 					icon={Users}
-					title={isLoading ? "Checking who's online..." : "Nobody is online"}
-					description={isLoading ? undefined : "Players will show up here as soon as they join."}
+					title={isLoading ? t("players.checking") : t("players.nobody")}
+					description={isLoading ? undefined : t("players.nobodyHint")}
 				/>
 			</Card>
 		)
@@ -180,6 +183,7 @@ function AllPlayersList({
 	isRunning: boolean
 	onSelect: (name: string) => void
 }) {
+	const { t } = useTranslation()
 	const { data = [], isLoading } = useKnownPlayers(serverId, isRunning)
 	const [query, setQuery] = useState("")
 	const filtered = useMemo(
@@ -190,11 +194,7 @@ function AllPlayersList({
 	if (!isLoading && data.length === 0) {
 		return (
 			<Card>
-				<EmptyState
-					icon={Users}
-					title="No players yet"
-					description="Everyone who has joined this server will be listed here, with their last saved inventory."
-				/>
+				<EmptyState icon={Users} title={t("players.none")} description={t("players.noneHint")} />
 			</Card>
 		)
 	}
@@ -207,7 +207,7 @@ function AllPlayersList({
 					<Input
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
-						placeholder="Search players"
+						placeholder={t("players.search")}
 						className="h-10 rounded-xl border-zinc-800 bg-zinc-900/60 pl-9 text-sm"
 					/>
 				</div>
@@ -224,7 +224,9 @@ function AllPlayersList({
 						<div className="min-w-0 flex-1">
 							<p className="truncate font-medium text-sm text-zinc-100">{p.name}</p>
 							<p className="text-[11px] text-zinc-500">
-								{p.online ? "Online now" : `Last seen ${formatRelativeTime(p.lastSeen)}`}
+								{p.online
+									? t("players.onlineNow")
+									: t("players.lastSeen", { time: formatRelativeTime(p.lastSeen) })}
 							</p>
 						</div>
 					</button>

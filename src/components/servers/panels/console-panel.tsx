@@ -8,6 +8,7 @@ import {
 	Terminal,
 } from "lucide-react"
 import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import { cn } from "@/lib/utils"
 import { useServerStatus } from "@/services/server-data"
@@ -32,6 +33,7 @@ function updateFades(el: HTMLDivElement): boolean {
 }
 
 export function ConsolePanel({ server, className }: { server: ServerConfig; className?: string }) {
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	const { logs, sendCommand, clearLogs } = useServerLogs(server.id)
 	const [input, setInput] = useState("")
@@ -114,11 +116,11 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 					)}
 				>
 					<ArrowDownToLine className="size-3" />
-					Auto-scroll {autoScroll ? "on" : "off"}
+					{autoScroll ? t("console.autoScrollOn") : t("console.autoScrollOff")}
 				</button>
 				<span className="ml-auto" />
 				<IconButton
-					label="Copy all"
+					label={t("console.copyAll")}
 					onClick={async () => {
 						await navigator.clipboard.writeText(logs.join("\n"))
 						setCopied(true)
@@ -127,7 +129,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 				>
 					{copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
 				</IconButton>
-				<IconButton label="Clear" onClick={clearLogs}>
+				<IconButton label={t("console.clear")} onClick={clearLogs}>
 					<Eraser className="size-3.5" />
 				</IconButton>
 			</div>
@@ -140,8 +142,8 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 					<div className="flex h-full items-center justify-center font-sans">
 						<EmptyState
 							icon={Terminal}
-							title={isRunning ? "Waiting for output..." : "Server is offline"}
-							description={isRunning ? undefined : "Start the server to see its console."}
+							title={isRunning ? t("console.waiting") : t("console.offline")}
+							description={isRunning ? undefined : t("console.offlineHint")}
 						/>
 					</div>
 				) : (
@@ -160,7 +162,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 					onClick={jumpToLatest}
 					className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 px-3 py-1.5 text-[11px] text-zinc-200 shadow-lg"
 				>
-					<ArrowDown className="size-3" /> Latest
+					<ArrowDown className="size-3" /> {t("console.latest")}
 				</button>
 			)}
 
@@ -172,7 +174,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 						onChange={(e) => setInput(e.target.value)}
 						onKeyDown={onKeyDown}
 						disabled={!isRunning}
-						placeholder={isRunning ? "Type a command, e.g. time set day" : "Server is offline"}
+						placeholder={isRunning ? t("console.placeholder") : t("console.offline")}
 						autoCapitalize="off"
 						autoCorrect="off"
 						spellCheck={false}
@@ -183,7 +185,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 						type="button"
 						onClick={send}
 						disabled={!isRunning || !input.trim()}
-						aria-label="Send command"
+						aria-label={t("console.send")}
 						className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-500 disabled:bg-transparent disabled:text-zinc-600"
 					>
 						<CornerDownLeft className="size-4" />

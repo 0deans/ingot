@@ -1,8 +1,10 @@
 import { ChevronLeft, ChevronRight, FolderOpen, HardDrive, Trash2, X } from "lucide-react"
 import { memo, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatBytes, formatDateTime } from "@/lib/format"
 import { type ScreenshotInfo, screenshotService } from "@/services/screenshot-service"
 
 interface ScreenshotLightboxProps {
@@ -14,19 +16,9 @@ interface ScreenshotLightboxProps {
 	onReveal: (screenshot: ScreenshotInfo) => void
 }
 
-function formatBytes(bytes: number): string {
-	if (!bytes || bytes === 0) return "0 B"
-	const k = 1024
-	const sizes = ["B", "KB", "MB", "GB"]
-	const i = Math.floor(Math.log(bytes) / Math.log(k))
-	return `${(bytes / k ** i).toFixed(1)} ${sizes[i]}`
-}
-
-function formatDate(timestampSec: number): string {
-	if (!timestampSec) return ""
-	const ms = timestampSec > 1e11 ? timestampSec : timestampSec * 1000
-	const date = new Date(ms)
-	return date.toLocaleDateString(undefined, {
+function formatDate(timestamp: number): string {
+	if (!timestamp) return ""
+	return formatDateTime(timestamp, {
 		weekday: "short",
 		month: "short",
 		day: "numeric",
@@ -45,6 +37,7 @@ const ScreenshotLightbox = ({
 	onDelete,
 	onReveal,
 }: ScreenshotLightboxProps) => {
+	const { t } = useTranslation()
 	const currentIndex = screenshot
 		? allScreenshots.findIndex(
 				(s) => s.instanceId === screenshot.instanceId && s.fileName === screenshot.fileName,
@@ -100,7 +93,7 @@ const ScreenshotLightbox = ({
 			{/* Backdrop overlay button - clicking outside image closes lightbox */}
 			<button
 				type="button"
-				aria-label="Close preview"
+				aria-label={t("screenshots.lightbox.close")}
 				tabIndex={-1}
 				onClick={onClose}
 				className="absolute inset-0 size-full cursor-default border-none bg-black/92 outline-none backdrop-blur-2xl transition-all"
@@ -144,7 +137,7 @@ const ScreenshotLightbox = ({
 								</Button>
 							}
 						/>
-						<TooltipContent side="bottom">Show in Folder</TooltipContent>
+						<TooltipContent side="bottom">{t("screenshots.card.showInFolder")}</TooltipContent>
 					</Tooltip>
 
 					<Tooltip>
@@ -160,7 +153,7 @@ const ScreenshotLightbox = ({
 								</Button>
 							}
 						/>
-						<TooltipContent side="bottom">Delete Screenshot</TooltipContent>
+						<TooltipContent side="bottom">{t("screenshots.deleteDialog.title")}</TooltipContent>
 					</Tooltip>
 
 					<div className="mx-0.5 h-4 w-px bg-zinc-800" />
@@ -178,7 +171,7 @@ const ScreenshotLightbox = ({
 								</Button>
 							}
 						/>
-						<TooltipContent side="bottom">Close (Esc)</TooltipContent>
+						<TooltipContent side="bottom">{t("screenshots.lightbox.closeEsc")}</TooltipContent>
 					</Tooltip>
 				</div>
 			</div>
@@ -188,7 +181,7 @@ const ScreenshotLightbox = ({
 				<Button
 					size="icon"
 					variant="secondary"
-					aria-label="Previous screenshot"
+					aria-label={t("screenshots.lightbox.previous")}
 					className="absolute left-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-zinc-50 active:scale-95"
 					onClick={goToPrev}
 				>
@@ -210,7 +203,7 @@ const ScreenshotLightbox = ({
 				<Button
 					size="icon"
 					variant="secondary"
-					aria-label="Next screenshot"
+					aria-label={t("screenshots.lightbox.next")}
 					className="absolute right-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-zinc-50 active:scale-95"
 					onClick={goToNext}
 				>

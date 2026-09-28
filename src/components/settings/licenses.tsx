@@ -1,24 +1,29 @@
 import { openUrl } from "@tauri-apps/plugin-opener"
+import type { TFunction } from "i18next"
 import { ExternalLink, Scale } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FadeScroll } from "@/components/servers/shared/primitives"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import type { TranslationKey } from "@/i18n"
 
 interface Component {
 	name: string
 	/** What Ingot uses it for */
-	role: string
+	role: TranslationKey
 	license: string
 	source: string
 }
 
 interface Group {
-	title: string
-	note: string
+	title: TranslationKey
+	note: TranslationKey
 	items: Component[]
 }
+
+/** Texts starting with "licenses." are locale keys; the rest (names, SPDX ids) stay as they are */
+const text = (t: TFunction, s: string) => (s.startsWith("licenses.") ? t(s as TranslationKey) : s)
 
 /**
  * Third-party software Ingot ships or downloads and runs. Keep in sync with
@@ -26,90 +31,90 @@ interface Group {
  */
 const GROUPS: Group[] = [
 	{
-		title: "Included in the Android app",
-		note: "Runs server software on Android inside a Linux sandbox. Builds from the Termux project.",
+		title: "licenses.groups.android.title",
+		note: "licenses.groups.android.note",
 		items: [
 			{
 				name: "PRoot",
-				role: "Linux sandbox for servers",
+				role: "licenses.roles.proot",
 				license: "GPL-2.0",
 				source: "https://github.com/termux/proot",
 			},
 			{
 				name: "talloc",
-				role: "Memory library used by PRoot",
+				role: "licenses.roles.talloc",
 				license: "LGPL-3.0-or-later",
 				source: "https://talloc.samba.org",
 			},
 			{
 				name: "libandroid-shmem",
-				role: "Shared memory support for PRoot",
+				role: "licenses.roles.shmem",
 				license: "BSD-3-Clause",
 				source: "https://github.com/termux/libandroid-shmem",
 			},
 		],
 	},
 	{
-		title: "Downloaded when needed",
-		note: "Fetched from their official sources the first time a feature uses them.",
+		title: "licenses.groups.downloaded.title",
+		note: "licenses.groups.downloaded.note",
 		items: [
 			{
 				name: "Eclipse Temurin (OpenJDK)",
-				role: "Java for servers and the game on desktop",
+				role: "licenses.roles.temurin",
 				license: "GPL-2.0 with Classpath Exception",
 				source: "https://adoptium.net",
 			},
 			{
 				name: "Alpine Linux",
-				role: "Base system of the Android sandbox, including its OpenJDK",
-				license: "Various open-source licenses",
+				role: "licenses.roles.alpine",
+				license: "licenses.various",
 				source: "https://alpinelinux.org",
 			},
 			{
 				name: "Pumpkin",
-				role: "Pumpkin server",
+				role: "licenses.roles.pumpkin",
 				license: "GPL-3.0",
 				source: "https://github.com/Pumpkin-MC/Pumpkin",
 			},
 			{
 				name: "playit.gg agent",
-				role: "Public address for your server",
+				role: "licenses.roles.playit",
 				license: "BSD-2-Clause",
 				source: "https://github.com/playit-cloud/playit-agent",
 			},
 		],
 	},
 	{
-		title: "Server software you can install",
-		note: "Downloaded for each server you create, from the project that makes it.",
+		title: "licenses.groups.servers.title",
+		note: "licenses.groups.servers.note",
 		items: [
 			{
 				name: "Paper",
-				role: "Paper servers",
+				role: "licenses.roles.paper",
 				license: "GPL-3.0",
 				source: "https://github.com/PaperMC/Paper",
 			},
 			{
 				name: "Folia",
-				role: "Folia servers",
+				role: "licenses.roles.folia",
 				license: "GPL-3.0",
 				source: "https://github.com/PaperMC/Folia",
 			},
 			{
 				name: "Purpur",
-				role: "Purpur servers",
+				role: "licenses.roles.purpur",
 				license: "MIT",
 				source: "https://github.com/PurpurMC/Purpur",
 			},
 			{
 				name: "Fabric Loader",
-				role: "Fabric servers",
+				role: "licenses.roles.fabric",
 				license: "Apache-2.0",
 				source: "https://github.com/FabricMC/fabric-loader",
 			},
 			{
-				name: "Minecraft server",
-				role: "Vanilla servers (by Mojang, not open source)",
+				name: "licenses.names.minecraftServer",
+				role: "licenses.roles.vanilla",
 				license: "Minecraft EULA",
 				source: "https://aka.ms/MinecraftEULA",
 			},
@@ -139,8 +144,8 @@ export function LicensesDialog({
 					{GROUPS.map((group) => (
 						<section key={group.title} className="flex flex-col gap-2">
 							<div>
-								<h3 className="font-semibold text-sm text-zinc-100">{group.title}</h3>
-								<p className="text-[11px] text-zinc-500">{group.note}</p>
+								<h3 className="font-semibold text-sm text-zinc-100">{t(group.title)}</h3>
+								<p className="text-[11px] text-zinc-500">{t(group.note)}</p>
 							</div>
 							<ul className="flex flex-col divide-y divide-zinc-800/70 border border-zinc-800/70">
 								{group.items.map((item) => (
@@ -151,11 +156,13 @@ export function LicensesDialog({
 											className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-zinc-900/60"
 										>
 											<div className="min-w-0 flex-1">
-												<p className="truncate font-medium text-sm text-zinc-100">{item.name}</p>
-												<p className="truncate text-[11px] text-zinc-500">{item.role}</p>
+												<p className="truncate font-medium text-sm text-zinc-100">
+													{text(t, item.name)}
+												</p>
+												<p className="truncate text-[11px] text-zinc-500">{t(item.role)}</p>
 											</div>
 											<span className="shrink-0 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
-												{item.license}
+												{text(t, item.license)}
 											</span>
 											<ExternalLink className="size-3.5 shrink-0 text-zinc-600" />
 										</button>

@@ -1,5 +1,6 @@
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -25,6 +26,7 @@ export default function DeleteServerDialog({
 	onOpenChange,
 	onConfirm,
 }: DeleteServerDialogProps) {
+	const { t } = useTranslation()
 	const [deleteFiles, setDeleteFiles] = useState(true)
 	const [isDeleting, setIsDeleting] = useState(false)
 
@@ -52,10 +54,14 @@ export default function DeleteServerDialog({
 						</div>
 						<div>
 							<DialogTitle className="font-semibold text-base text-foreground">
-								Delete Server
+								{t("deleteServer.title")}
 							</DialogTitle>
 							<DialogDescription className="text-xs">
-								Are you sure you want to delete <strong>{server.name}</strong>?
+								<Trans
+									i18nKey="deleteServer.confirm"
+									values={{ name: server.name }}
+									components={{ b: <strong /> }}
+								/>
 							</DialogDescription>
 						</div>
 					</div>
@@ -63,9 +69,13 @@ export default function DeleteServerDialog({
 
 				<div className="flex flex-col gap-3 py-2">
 					<div className="rounded-lg border border-border/40 bg-zinc-900/40 p-3 text-xs">
-						<div className="font-medium text-foreground">Server Details:</div>
+						<div className="font-medium text-foreground">{t("deleteServer.details")}</div>
 						<div className="mt-1 font-mono text-[11px] text-muted-foreground">
-							Core: {server.core.toUpperCase()} {server.gameVersion} • Port: {server.port}
+							{t("deleteServer.detailsLine", {
+								core: server.core.toUpperCase(),
+								version: server.gameVersion,
+								port: server.port,
+							})}
 						</div>
 					</div>
 
@@ -81,10 +91,10 @@ export default function DeleteServerDialog({
 						/>
 						<div className="flex flex-col gap-0.5">
 							<span className="font-medium text-foreground text-xs">
-								Permanently delete all server files
+								{t("deleteServer.deleteFiles")}
 							</span>
 							<span className="text-[11px] text-muted-foreground">
-								Includes world maps, player data, plugins, and server logs from your computer disk.
+								{t("deleteServer.deleteFilesDesc")}
 							</span>
 						</div>
 					</label>
@@ -98,7 +108,7 @@ export default function DeleteServerDialog({
 						disabled={isDeleting}
 						className="text-xs"
 					>
-						Cancel
+						{t("common.cancel")}
 					</Button>
 					<Button
 						variant="destructive"
@@ -110,12 +120,12 @@ export default function DeleteServerDialog({
 						{isDeleting ? (
 							<>
 								<Loader2 className="size-3.5 animate-spin" />
-								<span>Deleting...</span>
+								<span>{t("common.deleting")}</span>
 							</>
 						) : (
 							<>
 								<Trash2 className="size-3.5" />
-								<span>Delete Server</span>
+								<span>{t("deleteServer.title")}</span>
 							</>
 						)}
 					</Button>

@@ -1,5 +1,8 @@
-import i18n from "i18next"
+import i18n, { type ParseKeys } from "i18next"
 import { initReactI18next } from "react-i18next"
+
+/** Any key of en.json, for tables of texts kept outside components */
+export type TranslationKey = ParseKeys<"translation">
 
 export const LANGUAGE_STORAGE_KEY = "ingot:language"
 

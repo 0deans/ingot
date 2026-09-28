@@ -131,7 +131,7 @@ export const WindowSettings = () => {
 								variant="ghost"
 								size="sm"
 								onClick={handleReset}
-								title="Reset to 854 × 480"
+								title={t("settings.window.resetTo", { size: "854 × 480" })}
 								className="h-8 px-2 text-muted-foreground hover:text-foreground"
 							>
 								<RotateCcw className="size-3.5" />

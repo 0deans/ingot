@@ -1,5 +1,6 @@
 import { Crosshair, Minus, Plus } from "lucide-react"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { MapRegion, PlayerDetails } from "@/bindings"
 import { avatarUrl } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -40,6 +41,7 @@ export function WorldMap({
 	onSelectPlayer: (name: string) => void
 	voidColor: string
 }) {
+	const { t } = useTranslation()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [size, setSize] = useState({ w: 0, h: 0 })
 	const [cursor, setCursor] = useState<{ x: number; z: number } | null>(null)
@@ -164,7 +166,7 @@ export function WorldMap({
 		<div
 			ref={containerRef}
 			role="application"
-			aria-label="World map. Drag to move, scroll or pinch to zoom."
+			aria-label={t("map.ariaLabel")}
 			className="relative size-full touch-none select-none overflow-hidden"
 			style={{ background: voidColor, cursor: gesture.current ? "grabbing" : "grab" }}
 			onPointerDown={onPointerDown}
@@ -241,11 +243,11 @@ export function WorldMap({
 			</div>
 
 			<div className="absolute right-3 bottom-3 flex flex-col overflow-hidden rounded-xl border border-zinc-50/10 bg-zinc-950/80 backdrop-blur-md">
-				<MapButton label="Zoom in" onClick={() => zoomAt(1.5, size.w / 2, size.h / 2)}>
+				<MapButton label={t("map.zoomIn")} onClick={() => zoomAt(1.5, size.w / 2, size.h / 2)}>
 					<Plus className="size-4" />
 				</MapButton>
 				<div className="h-px bg-zinc-50/10" />
-				<MapButton label="Zoom out" onClick={() => zoomAt(1 / 1.5, size.w / 2, size.h / 2)}>
+				<MapButton label={t("map.zoomOut")} onClick={() => zoomAt(1 / 1.5, size.w / 2, size.h / 2)}>
 					<Minus className="size-4" />
 				</MapButton>
 			</div>

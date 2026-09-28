@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { ModLoaderType, VersionManifestEntry } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -37,6 +38,7 @@ const LOADERS: { id: ModLoaderType; label: string; badge?: string }[] = [
 ]
 
 const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstanceDialogProps) => {
+	const { t } = useTranslation()
 	const [instanceName, setInstanceName] = useState("")
 	const [gameVersion, setGameVersion] = useState("1.21.4")
 	const [loader, setLoader] = useState<ModLoaderType>("vanilla")
@@ -119,17 +121,17 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 		return filteredVersions.map((v) => ({
 			value: v.id,
 			label: v.id,
-			badge: v.type === "snapshot" ? "snapshot" : undefined,
+			badge: v.type === "snapshot" ? t("newInstance.snapshotBadge") : undefined,
 		}))
-	}, [filteredVersions])
+	}, [filteredVersions, t])
 
 	const loaderVersionOptions = useMemo(() => {
 		return loaderVersions.map((v, i) => ({
 			value: v,
 			label: v,
-			badge: i === 0 ? "latest" : undefined,
+			badge: i === 0 ? t("newInstance.latestBadge") : undefined,
 		}))
-	}, [loaderVersions])
+	}, [loaderVersions, t])
 
 	const handleCreate = async () => {
 		if (!instanceName.trim() || isSubmitting) return
@@ -155,10 +157,9 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[90vh] sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle className="font-semibold text-lg">Create New Instance</DialogTitle>
+					<DialogTitle className="font-semibold text-lg">{t("newInstance.title")}</DialogTitle>
 					<DialogDescription className="text-muted-foreground text-xs">
-						Choose your Minecraft version and preferred mod loader. Ingot will configure the
-						environment and Java automatically.
+						{t("newInstance.description")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -166,7 +167,9 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 					<div className="grid gap-4 p-1">
 						{/* Mod Loader Selector */}
 						<div className="grid gap-1.5">
-							<div className="font-medium text-muted-foreground text-xs">Mod Loader</div>
+							<div className="font-medium text-muted-foreground text-xs">
+								{t("newInstance.modLoader")}
+							</div>
 							<div className="grid grid-cols-5 gap-1.5 rounded-lg border border-border/40 bg-zinc-950/40 p-1.5">
 								{LOADERS.map((item) => {
 									const active = loader === item.id
@@ -200,7 +203,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 										htmlFor="game-version"
 										className="font-medium text-muted-foreground text-xs"
 									>
-										Minecraft Version
+										{t("newInstance.minecraftVersion")}
 									</label>
 									<label
 										htmlFor="snapshots-toggle"
@@ -211,7 +214,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 											checked={showSnapshots}
 											onCheckedChange={(checked) => setShowSnapshots(Boolean(checked))}
 										/>
-										<span>Snapshots</span>
+										<span>{t("newInstance.snapshots")}</span>
 									</label>
 								</div>
 
@@ -221,9 +224,11 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 									onValueChange={setGameVersion}
 									options={gameVersionOptions}
 									placeholder={
-										isLoadingVersions ? "Loading versions..." : "Select Minecraft version"
+										isLoadingVersions
+											? t("newInstance.loadingVersions")
+											: t("newInstance.selectVersion")
 									}
-									searchPlaceholder="Search version (e.g. 1.20, 1.16)..."
+									searchPlaceholder={t("newInstance.searchVersion")}
 									disabled={isLoadingVersions}
 								/>
 							</div>
@@ -235,7 +240,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 										htmlFor="loader-version"
 										className="font-medium text-muted-foreground text-xs"
 									>
-										Loader Version
+										{t("newInstance.loaderVersion")}
 									</label>
 
 									<SearchableSelect
@@ -245,12 +250,12 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 										options={loaderVersionOptions}
 										placeholder={
 											isLoadingLoaderVersions
-												? "Loading versions..."
+												? t("newInstance.loadingVersions")
 												: loaderVersions.length === 0
-													? "No compatible versions"
-													: "Select loader version"
+													? t("newInstance.noCompatible")
+													: t("newInstance.selectLoaderVersion")
 										}
-										searchPlaceholder="Search loader version..."
+										searchPlaceholder={t("newInstance.searchLoaderVersion")}
 										disabled={isLoadingLoaderVersions || loaderVersions.length === 0}
 									/>
 								</div>
@@ -260,7 +265,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 						{/* Instance Name */}
 						<div className="grid gap-1.5">
 							<label htmlFor="instance-name" className="font-medium text-muted-foreground text-xs">
-								Instance Name
+								{t("newInstance.name")}
 							</label>
 							<Input
 								id="instance-name"
@@ -269,7 +274,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 									setInstanceName(e.target.value)
 									setIsCustomName(true)
 								}}
-								placeholder="e.g. Fabric 1.21.4"
+								placeholder={t("newInstance.namePlaceholder")}
 								onKeyDown={(e) => {
 									if (e.key === "Enter") handleCreate()
 								}}
@@ -286,7 +291,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 						className="w-full gap-2"
 					>
 						{isSubmitting && <Loader2 className="size-3.5 animate-spin" />}
-						Create Instance
+						{t("quickJoin.createInstance")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

@@ -11,8 +11,11 @@ import {
 	Users,
 	Zap,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ServerConfig, ServerStatus } from "@/bindings"
 import { Button } from "@/components/ui/button"
+import { translateStep } from "@/lib/backend-text"
+import { formatMegabytes } from "@/lib/format"
 import { formatUptime } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 import { useServerControls, useStartupStep } from "@/services/hosting"
@@ -52,6 +55,7 @@ export function OverviewPanel({
 }
 
 export function StatusPill({ status }: { status: ServerStatus }) {
+	const { t } = useTranslation()
 	const styles: Record<ServerStatus, string> = {
 		running: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
 		starting: "border-sky-500/30 bg-sky-500/10 text-sky-300",
@@ -62,7 +66,7 @@ export function StatusPill({ status }: { status: ServerStatus }) {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-medium text-[11px] capitalize",
+				"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-medium text-[11px]",
 				styles[status],
 			)}
 		>
@@ -72,7 +76,7 @@ export function StatusPill({ status }: { status: ServerStatus }) {
 					(status === "running" || status === "starting") && "animate-pulse",
 				)}
 			/>
-			{status}
+			{t(`serverStatus.${status}`)}
 		</span>
 	)
 }
@@ -97,6 +101,7 @@ function SignalBars({ online }: { online: boolean }) {
  * player count), with start/sleep/stop underneath
  */
 function ServerHero({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { status, isRunning } = useServerStatus(server.id)
 	const { data: icon } = useServerIcon(server.id)
 	const { values } = useServerPropertiesAll(server.id)
@@ -110,7 +115,9 @@ function ServerHero({ server }: { server: ServerConfig }) {
 
 	return (
 		<Card className="flex flex-col gap-3 p-3 sm:p-4">
-			<p className="px-1 text-[10px] text-zinc-500 uppercase tracking-wider">How players see it</p>
+			<p className="px-1 text-[10px] text-zinc-500 uppercase tracking-wider">
+				{t("overview.howPlayersSee")}
+			</p>
 			<div className="dark flex items-center gap-3 rounded-xl bg-zinc-950 p-2.5 ring-1 ring-zinc-50/5">
 				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-900">
 					{icon ? (
@@ -134,10 +141,10 @@ function ServerHero({ server }: { server: ServerConfig }) {
 					) : (
 						<p className="font-mono text-[11px] text-rose-400/80">
 							{shownStatus === "starting"
-								? "Starting up..."
+								? t("overview.startingUp")
 								: shownStatus === "stopping"
-									? "Shutting down..."
-									: "Can't connect to server"}
+									? t("overview.shuttingDown")
+									: t("overview.cantConnect")}
 						</p>
 					)}
 				</div>
@@ -146,17 +153,19 @@ function ServerHero({ server }: { server: ServerConfig }) {
 			{shownStatus === "starting" && (
 				<div className="flex items-center gap-2.5 rounded-xl bg-sky-500/[0.07] px-3 py-2.5 ring-1 ring-sky-500/20">
 					<Loader2 className="size-4 shrink-0 animate-spin text-sky-400" />
-					<span className="truncate text-sky-200 text-xs">{step ?? "Preparing..."}</span>
+					<span className="truncate text-sky-200 text-xs">
+						{step ? translateStep(step) : t("overview.preparing")}
+					</span>
 				</div>
 			)}
 			{shownStatus === "sleeping" && (
 				<div className="rounded-xl bg-violet-500/[0.07] px-3 py-2.5 text-violet-200 text-xs ring-1 ring-violet-500/20">
-					Sleeping to save resources. It wakes up automatically when a player joins.
+					{t("overview.sleepingNote")}
 				</div>
 			)}
 			{controls.error && shownStatus === "stopped" && (
 				<ErrorNote>
-					<span className="font-semibold">Failed to start. </span>
+					<span className="font-semibold">{t("overview.failedToStart")} </span>
 					{controls.error}
 				</ErrorNote>
 			)}
@@ -167,7 +176,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						onClick={controls.start}
 						className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
 					>
-						<Play className="size-4 fill-current" /> Start server
+						<Play className="size-4 fill-current" /> {t("overview.start")}
 					</Button>
 				)}
 				{shownStatus === "sleeping" && (
@@ -175,7 +184,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						onClick={controls.start}
 						className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
 					>
-						<Zap className="size-4" /> Wake up
+						<Zap className="size-4" /> {t("overview.wake")}
 					</Button>
 				)}
 				{shownStatus === "running" && (
@@ -184,7 +193,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						onClick={controls.sleep}
 						className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900 text-zinc-200 hover:bg-zinc-800"
 					>
-						<Moon className="size-4" /> Sleep
+						<Moon className="size-4" /> {t("overview.sleep")}
 					</Button>
 				)}
 				{online && (
@@ -199,13 +208,13 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						) : (
 							<Square className="size-3.5 fill-current" />
 						)}
-						Stop
+						{t("common.stop")}
 					</Button>
 				)}
 				{(shownStatus === "starting" || shownStatus === "stopping") && (
 					<Button disabled variant="ghost" className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900">
 						<Loader2 className="size-4 animate-spin" />
-						{shownStatus === "starting" ? "Starting..." : "Stopping..."}
+						{shownStatus === "starting" ? t("overview.starting") : t("overview.stopping")}
 					</Button>
 				)}
 			</div>
@@ -220,6 +229,7 @@ function StatTiles({
 	server: ServerConfig
 	onNavigate: (tab: WorkspaceTab) => void
 }) {
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	const uptimeSeconds = useLiveUptime(server.id)
 	const { data: players = [] } = useOnlinePlayers(server.id, isRunning)
@@ -235,7 +245,7 @@ function StatTiles({
 			>
 				<div>
 					<p className="flex items-center gap-1.5 text-[11px] text-zinc-500 uppercase tracking-wider">
-						<Users className="size-3" /> Players
+						<Users className="size-3" /> {t("serverTabs.players")}
 					</p>
 					<p className="mt-1 font-semibold text-lg text-zinc-100">
 						{isRunning ? players.length : 0}
@@ -254,12 +264,16 @@ function StatTiles({
 					<ChevronRight className="ml-3 size-4 self-center text-zinc-600" />
 				</div>
 			</button>
-			<Tile icon={Clock} label="Uptime" value={isRunning ? formatUptime(uptimeSeconds) : "—"} />
+			<Tile
+				icon={Clock}
+				label={t("overview.uptime")}
+				value={isRunning ? formatUptime(uptimeSeconds) : "—"}
+			/>
 			<Tile
 				icon={Cpu}
-				label="Memory"
+				label={t("serverSettings.memory")}
 				value={
-					server.core === "pumpkin" ? "Native" : `${(server.memoryMaxMb / 1024).toFixed(1)} GB`
+					server.core === "pumpkin" ? t("overview.native") : formatMegabytes(server.memoryMaxMb)
 				}
 			/>
 		</div>
@@ -278,6 +292,7 @@ function Tile({ icon: Icon, label, value }: { icon: typeof Clock; label: string;
 }
 
 function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => void }) {
+	const { t } = useTranslation()
 	const { logs } = useServerLogs(server.id)
 	const lines = logs.slice(-5)
 	return (
@@ -288,7 +303,7 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 		>
 			<div className="flex items-center justify-between px-4 pt-4 pb-2">
 				<span className="flex items-center gap-2 font-semibold text-sm text-zinc-100">
-					<Terminal className="size-3.5 text-zinc-400" /> Console
+					<Terminal className="size-3.5 text-zinc-400" /> {t("serverTabs.console")}
 				</span>
 				<ChevronRight className="size-4 text-zinc-600" />
 			</div>
@@ -299,7 +314,7 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 				)}
 			>
 				{lines.length === 0 ? (
-					<span className="font-sans text-xs text-zinc-600">No output yet</span>
+					<span className="font-sans text-xs text-zinc-600">{t("overview.noOutput")}</span>
 				) : (
 					lines.map((line, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: log lines are append-only

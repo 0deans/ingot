@@ -1,5 +1,6 @@
 import { AlertCircle, Check, Loader2, ShieldCheck, User } from "lucide-react"
 import { memo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -22,6 +23,7 @@ interface AddAccountDialogProps {
 type TabType = "ely" | "offline" | "microsoft"
 
 const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDialogProps) => {
+	const { t } = useTranslation()
 	const [activeTab, setActiveTab] = useState<TabType>("ely")
 	const [username, setUsername] = useState("")
 	const [password, setPassword] = useState("")
@@ -48,7 +50,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 	const handleElyLogin = async () => {
 		if (!username.trim() || !password) {
-			setErrorMessage("Please enter both username/email and password.")
+			setErrorMessage(t("addAccount.missingCredentials"))
 			return
 		}
 
@@ -57,13 +59,13 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 		try {
 			const account = await accountService.elyLogin(username.trim(), password)
-			setSuccessMessage(`Welcome back, ${account.username}!`)
+			setSuccessMessage(t("addAccount.welcomeBack", { name: account.username }))
 			onAccountAdded?.(account)
 			setTimeout(() => {
 				handleOpenChange(false)
 			}, 600)
 		} catch (error) {
-			setErrorMessage(typeof error === "string" ? error : "Failed to connect to Ely.by")
+			setErrorMessage(typeof error === "string" ? error : t("addAccount.elyFailed"))
 		} finally {
 			setIsLoading(false)
 		}
@@ -71,7 +73,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 	const handleOfflineLogin = async () => {
 		if (!offlineName.trim()) {
-			setErrorMessage("Please enter a player nickname.")
+			setErrorMessage(t("addAccount.missingNickname"))
 			return
 		}
 
@@ -80,13 +82,13 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 		try {
 			const account = await accountService.addOfflineAccount(offlineName.trim())
-			setSuccessMessage(`Created offline profile for ${account.username}`)
+			setSuccessMessage(t("addAccount.offlineCreated", { name: account.username }))
 			onAccountAdded?.(account)
 			setTimeout(() => {
 				handleOpenChange(false)
 			}, 500)
 		} catch (error) {
-			setErrorMessage(typeof error === "string" ? error : "Failed to create offline account")
+			setErrorMessage(typeof error === "string" ? error : t("addAccount.offlineFailed"))
 		} finally {
 			setIsLoading(false)
 		}
@@ -96,10 +98,8 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className="border-border/60 bg-zinc-950/95 sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle className="text-lg">Add Account</DialogTitle>
-					<DialogDescription>
-						Connect your Ely.by account or configure an offline profile to play.
-					</DialogDescription>
+					<DialogTitle className="text-lg">{t("accounts.addAccount")}</DialogTitle>
+					<DialogDescription>{t("addAccount.description")}</DialogDescription>
 				</DialogHeader>
 
 				<ScrollArea scrollFade className="min-h-0 w-full flex-1 pr-1">
@@ -132,7 +132,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 										: "text-muted-foreground hover:text-foreground"
 								}`}
 							>
-								Offline
+								{t("accounts.offline")}
 							</button>
 							<button
 								type="button"
@@ -155,7 +155,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 							<div className="grid gap-3.5 py-1">
 								<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
 									<ShieldCheck className="size-4 shrink-0" />
-									<span>Tokens are securely encrypted in your OS Credential Vault.</span>
+									<span>{t("addAccount.tokensSecure")}</span>
 								</div>
 
 								<div className="grid gap-1.5">
@@ -163,11 +163,11 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 										htmlFor="ely-username"
 										className="font-medium text-muted-foreground text-xs"
 									>
-										Username or Email
+										{t("addAccount.usernameOrEmail")}
 									</label>
 									<Input
 										id="ely-username"
-										placeholder="e.g. notch or player@ely.by"
+										placeholder={t("addAccount.usernamePlaceholder")}
 										value={username}
 										onChange={(e) => setUsername(e.target.value)}
 										disabled={isLoading}
@@ -180,7 +180,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 										htmlFor="ely-password"
 										className="font-medium text-muted-foreground text-xs"
 									>
-										Password
+										{t("addAccount.password")}
 									</label>
 									<Input
 										id="ely-password"
@@ -204,10 +204,10 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 									{isLoading ? (
 										<>
 											<Loader2 className="mr-1.5 size-3.5 animate-spin" />
-											Connecting...
+											{t("addAccount.connecting")}
 										</>
 									) : (
-										"Log In to Ely.by"
+										t("addAccount.logIn")
 									)}
 								</Button>
 							</div>
@@ -218,7 +218,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 							<div className="grid gap-3.5 py-1">
 								<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-zinc-900/40 px-3 py-2 text-muted-foreground text-xs">
 									<User className="size-4 shrink-0" />
-									<span>Offline accounts play without an online session token.</span>
+									<span>{t("addAccount.offlineNote")}</span>
 								</div>
 
 								<div className="grid gap-1.5">
@@ -226,11 +226,11 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 										htmlFor="offline-name"
 										className="font-medium text-muted-foreground text-xs"
 									>
-										Player Nickname
+										{t("addAccount.nickname")}
 									</label>
 									<Input
 										id="offline-name"
-										placeholder="e.g. Steve"
+										placeholder={t("addAccount.nicknamePlaceholder")}
 										value={offlineName}
 										onChange={(e) => setOfflineName(e.target.value)}
 										disabled={isLoading}
@@ -250,10 +250,10 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 									{isLoading ? (
 										<>
 											<Loader2 className="mr-1.5 size-3.5 animate-spin" />
-											Adding...
+											{t("addAccount.adding")}
 										</>
 									) : (
-										"Add Profile"
+										t("addAccount.addProfile")
 									)}
 								</Button>
 							</div>
@@ -262,10 +262,11 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 						{/* Microsoft Info */}
 						{activeTab === "microsoft" && (
 							<div className="flex flex-col items-center justify-center gap-2 py-4 text-center">
-								<p className="font-medium text-foreground text-sm">Microsoft / Xbox Live Login</p>
+								<p className="font-medium text-foreground text-sm">
+									{t("addAccount.microsoftTitle")}
+								</p>
 								<p className="max-w-xs text-muted-foreground text-xs">
-									Official Mojang Microsoft account OAuth integration will be available in an
-									upcoming release.
+									{t("addAccount.microsoftSoon")}
 								</p>
 							</div>
 						)}

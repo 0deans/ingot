@@ -190,7 +190,7 @@ function SkinPreviewCanvas({
 			{renderedUrl ? (
 				<img
 					src={renderedUrl}
-					alt="Minecraft skin preview"
+					alt=""
 					width={width}
 					height={height}
 					className="size-full select-none object-contain"

@@ -1,5 +1,6 @@
 import { Ban, Crown, Loader2, Plus, Shield, X } from "lucide-react"
 import { type FormEvent, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { AccessListKind, ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,34 +17,15 @@ import {
 	Segmented,
 } from "../shared/primitives"
 
-const LISTS: Record<
-	AccessListKind,
-	{ title: string; icon: typeof Shield; empty: string; description: string; addLabel: string }
-> = {
-	whitelist: {
-		title: "Whitelist",
-		icon: Shield,
-		empty: "Nobody is whitelisted yet",
-		description: "When enabled, only these players can join.",
-		addLabel: "Add",
-	},
-	ops: {
-		title: "Operators",
-		icon: Crown,
-		empty: "No operators",
-		description: "Operators can use every command, including /stop and /op.",
-		addLabel: "Make OP",
-	},
-	bans: {
-		title: "Banned players",
-		icon: Ban,
-		empty: "Nobody is banned",
-		description: "Banned players can't join until pardoned.",
-		addLabel: "Ban",
-	},
+/** Texts are under access.<kind>.* in the locale files */
+const LISTS: Record<AccessListKind, { icon: typeof Shield }> = {
+	whitelist: { icon: Shield },
+	ops: { icon: Crown },
+	bans: { icon: Ban },
 }
 
 export function AccessPanel({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const [kind, setKind] = useState<AccessListKind>("whitelist")
 	return (
 		<div className="flex flex-col gap-3">
@@ -51,9 +33,9 @@ export function AccessPanel({ server }: { server: ServerConfig }) {
 				value={kind}
 				onChange={setKind}
 				options={[
-					{ value: "whitelist", label: "Whitelist", icon: Shield },
-					{ value: "ops", label: "Operators", icon: Crown },
-					{ value: "bans", label: "Bans", icon: Ban },
+					{ value: "whitelist", label: t("access.tabs.whitelist"), icon: Shield },
+					{ value: "ops", label: t("access.tabs.ops"), icon: Crown },
+					{ value: "bans", label: t("access.tabs.bans"), icon: Ban },
 				]}
 			/>
 			{kind === "whitelist" && <WhitelistToggle server={server} />}
@@ -63,6 +45,7 @@ export function AccessPanel({ server }: { server: ServerConfig }) {
 }
 
 function WhitelistToggle({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	const { values, save } = useServerPropertiesAll(server.id)
 	const enabled = values.get("white-list") === "true"
@@ -81,9 +64,11 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="flex items-center justify-between gap-3 px-4 py-3.5">
 			<div>
-				<p className="font-medium text-sm text-zinc-100">Whitelist {enabled ? "on" : "off"}</p>
+				<p className="font-medium text-sm text-zinc-100">
+					{enabled ? t("access.whitelistOn") : t("access.whitelistOff")}
+				</p>
 				<p className="text-xs text-zinc-500">
-					{enabled ? "Only listed players can join." : "Anyone can join this server."}
+					{enabled ? t("access.onlyListed") : t("access.anyone")}
 				</p>
 			</div>
 			<Switch checked={enabled} disabled={save.isPending} onCheckedChange={toggle} />
@@ -92,6 +77,7 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 }
 
 function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind }) {
+	const { t } = useTranslation()
 	const meta = LISTS[kind]
 	const { data = [], isLoading, add, remove } = useAccessList(serverId, kind)
 	const [name, setName] = useState("")
@@ -101,7 +87,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 		e.preventDefault()
 		const trimmed = name.trim()
 		if (!isValidPlayerName(trimmed)) {
-			setError("Usernames can only contain letters, numbers and _")
+			setError(t("access.invalidName"))
 			return
 		}
 		setError(null)
@@ -115,12 +101,16 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 
 	return (
 		<Card>
-			<CardHeader icon={meta.icon} title={meta.title} description={meta.description} />
+			<CardHeader
+				icon={meta.icon}
+				title={t(`access.${kind}.title`)}
+				description={t(`access.${kind}.description`)}
+			/>
 			<form onSubmit={submit} className="flex gap-2 px-4 pb-3">
 				<Input
 					value={name}
 					onChange={(e) => setName(e.target.value)}
-					placeholder="Player name"
+					placeholder={t("access.playerName")}
 					autoCapitalize="off"
 					autoCorrect="off"
 					spellCheck={false}
@@ -136,7 +126,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 					) : (
 						<Plus className="size-4" />
 					)}
-					{meta.addLabel}
+					{t(`access.${kind}.add`)}
 				</Button>
 			</form>
 			{error && (
@@ -150,7 +140,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 					<Loader2 className="size-4 animate-spin text-zinc-500" />
 				</div>
 			) : data.length === 0 ? (
-				<EmptyState icon={meta.icon} title={meta.empty} className="pt-4" />
+				<EmptyState icon={meta.icon} title={t(`access.${kind}.empty`)} className="pt-4" />
 			) : (
 				<ul className="divide-y divide-zinc-800/70 border-zinc-800/70 border-t">
 					{data.map((entry) => (
@@ -160,10 +150,10 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 								<p className="truncate font-medium text-sm text-zinc-100">{entry.name}</p>
 								<p className="truncate text-[11px] text-zinc-500">
 									{kind === "ops"
-										? `Permission level ${entry.level ?? 4}`
+										? t("access.permissionLevel", { level: entry.level ?? 4 })
 										: kind === "bans"
-											? (entry.reason ?? "Banned")
-											: entry.uuid || "No UUID"}
+											? (entry.reason ?? t("access.banned"))
+											: entry.uuid || t("access.noUuid")}
 								</p>
 							</div>
 							<Button
@@ -171,7 +161,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 								variant="ghost"
 								disabled={remove.isPending && remove.variables === entry.name}
 								onClick={() => remove.mutate(entry.name)}
-								aria-label={`Remove ${entry.name}`}
+								aria-label={t("access.remove", { name: entry.name })}
 								className="text-zinc-500 hover:bg-rose-500/10 hover:text-rose-300"
 							>
 								{remove.isPending && remove.variables === entry.name ? (

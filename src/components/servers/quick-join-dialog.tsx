@@ -1,5 +1,6 @@
 import { AlertCircle, Check, Loader2, Play, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -53,6 +54,7 @@ export function QuickJoinDialog({
 	onLaunch,
 	onCreateInstance,
 }: QuickJoinDialogProps) {
+	const { t } = useTranslation()
 	const { instances, isLoading } = useInstances()
 	const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -89,12 +91,14 @@ export function QuickJoinDialog({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-base">
 						<Server className="size-4 text-emerald-400" />
-						<span>Quick Play — Join Server</span>
+						<span>{t("quickJoin.title")}</span>
 					</DialogTitle>
 					<DialogDescription className="text-xs">
-						Launch Minecraft and join{" "}
-						<span className="font-semibold text-zinc-200">{server.name}</span> (127.0.0.1:
-						{server.port}) directly.
+						<Trans
+							i18nKey="quickJoin.description"
+							values={{ name: server.name, address: `127.0.0.1:${server.port}` }}
+							components={{ b: <span className="font-semibold text-zinc-200" /> }}
+						/>
 					</DialogDescription>
 				</DialogHeader>
 
@@ -103,7 +107,7 @@ export function QuickJoinDialog({
 						<div className="flex flex-col">
 							<span className="font-medium text-zinc-300">{server.name}</span>
 							<span className="font-mono text-[11px] text-muted-foreground">
-								Target: 127.0.0.1:{server.port}
+								{t("quickJoin.target", { address: `127.0.0.1:${server.port}` })}
 							</span>
 						</div>
 						<span className="rounded bg-emerald-500/10 px-2 py-0.5 font-mono text-[11px] text-emerald-400">
@@ -114,7 +118,7 @@ export function QuickJoinDialog({
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
 							<span className="font-medium text-[11px] text-zinc-400 uppercase tracking-wider">
-								Choose Client Instance
+								{t("quickJoin.choose")}
 							</span>
 							{onCreateInstance && (
 								<button
@@ -126,7 +130,7 @@ export function QuickJoinDialog({
 									className="flex items-center gap-1 text-[11px] text-emerald-400 transition-colors hover:text-emerald-300"
 								>
 									<Plus className="size-3" />
-									<span>New Instance</span>
+									<span>{t("instances.newInstance")}</span>
 								</button>
 							)}
 						</div>
@@ -138,10 +142,8 @@ export function QuickJoinDialog({
 						) : instances.length === 0 ? (
 							<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-zinc-800 border-dashed p-6 text-center">
 								<AlertCircle className="size-6 text-amber-400" />
-								<p className="font-medium text-xs text-zinc-300">No Minecraft instances found</p>
-								<p className="text-[11px] text-zinc-500">
-									Create a client instance first to join your server.
-								</p>
+								<p className="font-medium text-xs text-zinc-300">{t("quickJoin.noInstances")}</p>
+								<p className="text-[11px] text-zinc-500">{t("quickJoin.noInstancesHint")}</p>
 								{onCreateInstance && (
 									<Button
 										size="sm"
@@ -152,7 +154,7 @@ export function QuickJoinDialog({
 										}}
 										className="mt-2 text-xs"
 									>
-										Create Instance
+										{t("quickJoin.createInstance")}
 									</Button>
 								)}
 							</div>
@@ -186,7 +188,7 @@ export function QuickJoinDialog({
 														<span>{inst.gameVersion}</span>
 														{isVersionMatch && (
 															<span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] text-emerald-300">
-																Matches Server
+																{t("quickJoin.matches")}
 															</span>
 														)}
 													</div>
@@ -209,7 +211,7 @@ export function QuickJoinDialog({
 							onClick={() => onOpenChange(false)}
 							className="text-xs"
 						>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							type="button"
@@ -219,7 +221,7 @@ export function QuickJoinDialog({
 							className="gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
 						>
 							<Play className="size-3.5 fill-current" />
-							<span>Launch & Join</span>
+							<span>{t("quickJoin.launch")}</span>
 						</Button>
 					</DialogFooter>
 				</div>

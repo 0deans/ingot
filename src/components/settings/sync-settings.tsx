@@ -227,7 +227,7 @@ export const SyncSettings = () => {
 											setIsMasterOpen(true)
 										}}
 										className="size-7 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
-										title={`Re-initialize ${itemTitle} source`}
+										title={t("settings.sync.reinitialize", { title: itemTitle })}
 									>
 										<UploadCloud className="size-3.5" />
 									</Button>

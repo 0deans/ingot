@@ -23,11 +23,13 @@
 		"minimize": "Thu nhỏ",
 		"maximize": "Phóng to",
 		"restore": "Khôi phục",
-		"justNow": "Vừa xong",
 		"never": "Chưa từng",
-		"minutesAgo": "{{count}} phút trước",
-		"hoursAgo": "{{count}} giờ trước",
-		"daysAgo": "{{count}} ngày trước"
+		"unknown": "Không xác định",
+		"deleting": "Đang xóa...",
+		"stop": "Dừng",
+		"done": "Xong",
+		"update": "Cập nhật",
+		"enable": "Bật"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Chọn ngôn ngữ của bạn",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Chưa có tài khoản nào được thiết lập.",
 		"previewSkin": "Xem trước skin 3D",
 		"removeAccount": "Xóa tài khoản",
-		"setAsActive": "Đặt làm tài khoản chính"
+		"setAsActive": "Đặt làm tài khoản chính",
+		"offline": "Ngoại tuyến",
+		"reorder": "Sắp xếp lại tài khoản {{name}}",
+		"dragToReorder": "Kéo để sắp xếp lại tài khoản",
+		"clickToPreview": "Nhấn để xem trước skin 3D",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Tìm kiếm phiên bản...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Mở thư mục phiên bản trong File Explorer",
 			"settingsTooltip": "Cài đặt phiên bản (RAM, tham số JVM)",
 			"duplicateTooltip": "Nhân bản",
-			"deleteTooltip": "Xóa phiên bản"
-		}
+			"deleteTooltip": "Xóa phiên bản",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Khám phá nội dung",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Đặt lại tất cả bộ lọc",
 		"byAuthor": "bởi {{author}}",
 		"noDescription": "Không có mô tả.",
-		"details": "Chi tiết"
+		"details": "Chi tiết",
+		"loadFailed": "Không thể tải nội dung"
 	},
 	"skins": {
 		"title": "Kho Skin",
@@ -199,6 +209,18 @@
 			"description": "Bạn có chắc chắn muốn xóa vĩnh viễn ảnh chụp màn hình này không? Hành động này không thể hoàn tác.",
 			"deleting": "Đang xóa...",
 			"deletePermanently": "Xóa vĩnh viễn"
+		},
+		"card": {
+			"view": "Xem {{name}}",
+			"unavailable": "Hình ảnh không khả dụng",
+			"fullscreen": "Toàn màn hình",
+			"showInFolder": "Hiển thị trong thư mục"
+		},
+		"lightbox": {
+			"close": "Đóng xem trước",
+			"closeEsc": "Đóng (Esc)",
+			"previous": "Ảnh chụp màn hình trước",
+			"next": "Ảnh chụp màn hình tiếp theo"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Tạo máy chủ mới",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia hoặc Vanilla",
 		"noMatchTitle": "Không có máy chủ nào khớp với bộ lọc",
-		"noMatchSubtitle": "Hãy thử thay đổi từ khóa tìm kiếm hoặc chọn \"Tất cả nhân\"."
+		"noMatchSubtitle": "Hãy thử thay đổi từ khóa tìm kiếm hoặc chọn \"Tất cả nhân\".",
+		"activeEntry": "{{name}} (Cổng {{port}})"
 	},
 	"settings": {
 		"title": "Cài đặt trình khởi chạy",
 		"subtitle": "Cấu hình tài khoản, ngôn ngữ, môi trường Java, phân bổ RAM và hành vi trình khởi chạy.",
 		"language": {
 			"title": "Ngôn ngữ",
-			"description": "Chọn ngôn ngữ hiển thị cho giao diện trình khởi chạy. Các tệp ngôn ngữ mới trong src/locales/ sẽ tự động được nạp."
+			"description": "Chọn ngôn ngữ của trình khởi chạy. Định dạng ngày tháng, số và dung lượng cũng sẽ tuân theo ngôn ngữ này."
 		},
 		"theme": {
 			"title": "Giao diện & Chủ đề",
@@ -263,7 +286,14 @@
 				"modded": "Có Mod",
 				"heavy": "Modpack nặng",
 				"safeMax": "Tối đa an toàn"
-			}
+			},
+			"zoneSafe": "Vùng hoạt động an toàn",
+			"zoneHigh": "Vùng sử dụng cao",
+			"zoneCritical": "Vùng hệ thống nguy cấp",
+			"minShort": "Tối thiểu: {{value}}",
+			"maxShort": "Tối đa: {{value}}",
+			"totalShort": "{{value}} (Tối đa)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Hành vi trình khởi chạy",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Độ phân giải cửa sổ mặc định",
 			"resolutionDesc": "Đặt chiều rộng và chiều cao tùy chỉnh cho cửa sổ trò chơi",
 			"presets": "Mức đặt sẵn:",
-			"defaultPreset": "Mặc định"
+			"defaultPreset": "Mặc định",
+			"resetTo": "Đặt lại về {{size}}"
 		},
 		"sync": {
 			"title": "Đồng bộ dữ liệu trò chơi",
@@ -315,7 +346,8 @@
 					"title": "Đồng bộ thanh công cụ Sáng tạo",
 					"description": "Chia sẻ thanh công cụ nhanh đã lưu trong chế độ Sáng tạo giữa các thế giới"
 				}
-			}
+			},
+			"reinitialize": "Khởi tạo lại nguồn {{title}}"
 		},
 		"updates": {
 			"title": "Cập nhật & Phiên bản",
@@ -340,5 +372,1195 @@
 			"dialogSubtitle": "Ingot sử dụng các phần mềm từ những dự án khác. Mỗi dự án có giấy phép riêng; nhấn vào tên để xem mã nguồn và toàn bộ giấy phép.",
 			"trademark": "Minecraft là thương hiệu của Mojang AB. Ingot không liên kết với Mojang hay Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Overworld",
+			"nether": "Nether",
+			"end": "The End"
+		},
+		"gamemodes": {
+			"survival": "Sinh tồn",
+			"creative": "Sáng tạo",
+			"adventure": "Phiêu lưu",
+			"spectator": "Khán giả"
+		}
+	},
+	"initialSync": {
+		"title": "Đồng bộ hóa ban đầu",
+		"description": "Bạn đang bật tính năng đồng bộ hóa cho <b>{{name}}</b>. Nên đồng bộ ban đầu từ đâu?",
+		"fromInstance": "Từ phiên bản này",
+		"uploadToShared": "Tải lên bộ nhớ chia sẻ",
+		"fromInstanceDesc": "Sao chép các tùy chọn và máy chủ của phiên bản này vào bộ nhớ chia sẻ làm bản sao gốc.",
+		"fromShared": "Từ bộ nhớ chia sẻ",
+		"downloadToInstance": "Tải về phiên bản",
+		"fromSharedDesc": "Tải các tùy chọn và máy chủ chia sẻ hiện có về phiên bản này."
+	},
+	"deleteInstance": {
+		"title": "Xóa phiên bản",
+		"description": "Bạn có chắc chắn muốn xóa vĩnh viễn phiên bản này không? Hành động này không thể hoàn tác.",
+		"note": "Tất cả các bản lưu, thế giới, mod đã cài đặt, gói tài nguyên và tệp cấu hình được lưu trong thư mục phiên bản này sẽ bị xóa khỏi ổ đĩa."
+	},
+	"deleteServer": {
+		"title": "Xóa máy chủ",
+		"confirm": "Bạn có chắc chắn muốn xóa <b>{{name}}</b> không?",
+		"details": "Chi tiết máy chủ:",
+		"detailsLine": "Lõi: {{core}} {{version}} • Cổng: {{port}}",
+		"deleteFiles": "Xóa vĩnh viễn tất cả tệp máy chủ",
+		"deleteFilesDesc": "Bao gồm bản đồ thế giới, dữ liệu người chơi, plugin và nhật ký máy chủ khỏi ổ đĩa máy tính của bạn."
+	},
+	"companion": {
+		"system": "Hệ thống",
+		"liveMap": "Bản đồ trực tiếp",
+		"disabled": "Đã tắt",
+		"notInstalled": "Bản đồ trực tiếp · chưa cài đặt",
+		"updated_plugin": "Đã cập nhật plugin Ingot.",
+		"updated_mod": "Đã cập nhật mod Ingot.",
+		"installed_plugin": "Đã cài đặt plugin Ingot.",
+		"installed_mod": "Đã cài đặt mod Ingot.",
+		"removed_plugin": "Đã xóa plugin Ingot. Bản đồ hiện cập nhật khi máy chủ lưu dữ liệu.",
+		"removed_mod": "Đã xóa mod Ingot. Bản đồ hiện cập nhật khi máy chủ lưu dữ liệu.",
+		"enabled_plugin": "Đã bật plugin Ingot.",
+		"enabled_mod": "Đã bật mod Ingot.",
+		"remove_plugin": "Xóa plugin Ingot",
+		"remove_mod": "Xóa mod Ingot"
+	},
+	"syncConflict": {
+		"title": "Phát hiện xung đột đồng bộ",
+		"description": "<b>{{name}}</b> chứa các tệp cấu hình cục bộ riêng chưa từng được đồng bộ hóa với bộ nhớ chia sẻ của bạn.",
+		"conflictingFiles": "Các tệp xung đột:",
+		"choose": "Chọn cách giải quyết lần đồng bộ ban đầu này:",
+		"useShared": "Sử dụng cài đặt chia sẻ",
+		"overwritesLocal": "Ghi đè tệp cục bộ",
+		"useSharedDesc": "Thay thế các tùy chọn và máy chủ của phiên bản này bằng cài đặt chia sẻ hiện có. Bản sao lưu tự động <code>.bak</code> của các tệp phiên bản sẽ được lưu.",
+		"useInstance": "Đặt phiên bản này làm bản sao gốc chia sẻ",
+		"overwritesShared": "Ghi đè bộ nhớ chia sẻ",
+		"useInstanceDesc": "Đưa các tùy chọn và máy chủ của phiên bản này vào bộ nhớ chia sẻ làm bản sao gốc. Các tệp chia sẻ hiện có sẽ được sao lưu thành <code>.bak</code>.",
+		"disable": "Giữ độc lập (Tắt đồng bộ)",
+		"noChanges": "Không thay đổi",
+		"disableDesc": "Tắt tính năng đồng bộ hóa trên phiên bản này để máy chủ và cài đặt của nó không bao giờ bị thay đổi hoặc thay thế bởi các phiên bản khác."
+	},
+	"leftoverServers": {
+		"runningSince": "Đang chạy từ {{time}}",
+		"stopped": "Đã dừng",
+		"stopNote": "Dừng máy chủ sẽ kết thúc ngay lập tức. Mọi thay đổi kể từ lần tự động lưu gần nhất (nhiều nhất vài phút) sẽ bị mất, còn bản thân thế giới vẫn bình thường.",
+		"leaveRunning": "Tiếp tục chạy",
+		"title_other": "Các máy chủ vẫn đang chạy từ lần trước",
+		"description_other": "Ingot đã đóng mà không dừng chúng, vì vậy bảng điều khiển của chúng đã biến mất: Ingot không thể gửi lệnh hoặc cứu thế giới của chúng. Họ giữ cho các bến cảng và thế giới của mình luôn bận rộn cho đến khi dừng lại."
+	},
+	"serverStatus": {
+		"running": "Đang chạy",
+		"sleeping": "Đang ngủ",
+		"stopped": "Đã dừng",
+		"starting": "Đang khởi động",
+		"stopping": "Đang dừng"
+	},
+	"serverTabs": {
+		"overview": "Tổng quan",
+		"console": "Bảng điều khiển",
+		"players": "Người chơi",
+		"map": "Bản đồ",
+		"plugins": "Plugin",
+		"mods": "Mod",
+		"settings": "Cài đặt",
+		"home": "Trang chủ"
+	},
+	"serverWorkspace": {
+		"back": "Quay lại danh sách máy chủ"
+	},
+	"duplicateInstance": {
+		"title": "Nhân bản phiên bản",
+		"defaultName": "{{name}} (bản sao)",
+		"description": "Tạo một bản sao riêng biệt với cùng các mod, cấu hình, gói tài nguyên và cài đặt. Thay đổi trên bản này sẽ không ảnh hưởng đến bản kia, vì vậy bản sao là nơi an toàn để thử nghiệm phiên bản mới hoặc mod.",
+		"nameLabel": "Tên bản sao",
+		"copyWorlds": "Sao chép thế giới",
+		"noWorldsYet": "chưa có thế giới nào",
+		"copyWorldsDesc": "Nếu không chọn, bản sao sẽ bắt đầu mà không có thế giới chơi đơn nào.",
+		"note": "Thời gian chơi bắt đầu từ số không. Nhật ký, báo cáo sự cố và ảnh chụp màn hình vẫn được giữ ở bản gốc.",
+		"running": "Trò chơi đang chạy. Hãy đóng trò chơi trước để các thế giới được sao chép đúng như lúc lưu, hoặc sao chép mà không kèm thế giới.",
+		"copying": "Đang sao chép…",
+		"action": "Nhân bản"
+	},
+	"quitDialog": {
+		"title_quit": "Dừng các máy chủ của bạn trước khi thoát?",
+		"title_update": "Dừng các máy chủ của bạn để cập nhật?",
+		"title_restart": "Dừng các máy chủ của bạn để khởi động lại?",
+		"action_quit": "Dừng máy chủ và thoát",
+		"action_update": "Dừng máy chủ và cập nhật",
+		"action_restart": "Dừng máy chủ và khởi động lại",
+		"stopping": "Đang dừng…",
+		"keepInTray": "Tiếp tục chạy trong khay hệ thống",
+		"asleep_other": "Các máy chủ này đang ngủ. Chúng thức dậy khi có người chơi tham gia, nhưng chỉ khi Ingot mở.",
+		"consoles_other": "Các bảng điều khiển của máy chủ này chạy bên trong Ingot. Nếu Ingot đóng trước, họ sẽ tiếp tục chạy mà không có cách nào kiểm soát hoặc cứu thế giới của mình.",
+		"saving_other": "Giải cứu thế giới và dừng lại. Việc này có thể mất tới 30 giây.",
+		"games_other": "Trò chơi của bạn vẫn tiếp tục chạy theo bất kỳ cách nào. Ingot sẽ chọn lại chúng khi bạn mở nó."
+	},
+	"crashDialog": {
+		"title": "{{name}} gặp sự cố trong lần khởi động đầu tiên trên {{version}}",
+		"suspects_plugin": "Điều này thường do một plugin chưa hoạt động trên phiên bản mới. Báo cáo sự cố chỉ ra:",
+		"suspects_mod": "Điều này thường do một mod chưa hoạt động trên phiên bản mới. Báo cáo sự cố chỉ ra:",
+		"suspects_either": "Điều này thường do một plugin hoặc mod chưa hoạt động trên phiên bản mới. Báo cáo sự cố chỉ ra:",
+		"noSuspects_plugin": "Báo cáo sự cố không nêu tên plugin nào. Bạn có thể hoàn tác thay đổi và chờ cập nhật.",
+		"noSuspects_mod": "Báo cáo sự cố không nêu tên mod nào. Bạn có thể hoàn tác thay đổi và chờ cập nhật.",
+		"noSuspects_either": "Báo cáo sự cố không nêu tên plugin hay mod nào. Bạn có thể hoàn tác thay đổi và chờ cập nhật.",
+		"turnOff": "Tắt",
+		"turnedOff": "Đã tắt",
+		"details": "Chi tiết sự cố",
+		"keepTrying": "Tiếp tục thử lại",
+		"undo": "Hoàn tác thay đổi phiên bản",
+		"undone": "Đã quay về {{version}}, chính xác như trước.",
+		"tryAgain_server_other": "Khởi động lại máy chủ để thử mà không có chúng. Hoàn tác vẫn bật lại chúng.",
+		"tryAgain_game_other": "Bắt đầu lại trò chơi để thử mà không có chúng. Hoàn tác vẫn bật lại chúng."
+	},
+	"skinPreview": {
+		"saving": "Đang lưu...",
+		"saved": "Đã lưu!",
+		"error": "Lỗi",
+		"changeSkin": "Đổi skin",
+		"copyUrlTitle": "Sao chép URL kết cấu skin",
+		"copied": "Đã sao chép",
+		"copyUrl": "Sao chép URL",
+		"downloadTitle": "Tải tệp kết cấu skin vào thư mục Tải về",
+		"download": "Tải về"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Danh sách trắng",
+			"ops": "Quản trị viên",
+			"bans": "Lệnh cấm"
+		},
+		"whitelist": {
+			"title": "Danh sách trắng",
+			"empty": "Chưa có ai trong danh sách trắng",
+			"description": "Khi bật, chỉ những người chơi này mới có thể tham gia.",
+			"add": "Thêm"
+		},
+		"ops": {
+			"title": "Quản trị viên",
+			"empty": "Không có quản trị viên nào",
+			"description": "Quản trị viên có thể sử dụng mọi lệnh, bao gồm /stop và /op.",
+			"add": "Chỉ định OP"
+		},
+		"bans": {
+			"title": "Người chơi bị cấm",
+			"empty": "Không có ai bị cấm",
+			"description": "Người chơi bị cấm không thể tham gia cho đến khi được ân xá.",
+			"add": "Cấm"
+		},
+		"whitelistOn": "Danh sách trắng đang bật",
+		"whitelistOff": "Danh sách trắng đang tắt",
+		"onlyListed": "Chỉ người chơi có tên trong danh sách mới có thể tham gia.",
+		"anyone": "Bất kỳ ai cũng có thể tham gia máy chủ này.",
+		"invalidName": "Tên người chơi chỉ có thể chứa chữ cái, chữ số và dấu gạch dưới _",
+		"playerName": "Tên người chơi",
+		"permissionLevel": "Cấp độ quyền hạn {{level}}",
+		"banned": "Bị cấm",
+		"noUuid": "Không có UUID",
+		"remove": "Xóa {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Bao gồm trong ứng dụng Android",
+				"note": "Chạy phần mềm máy chủ trên Android trong môi trường hộp cát Linux. Bản dựng từ dự án Termux."
+			},
+			"downloaded": {
+				"title": "Được tải xuống khi cần",
+				"note": "Được lấy từ các nguồn chính thức vào lần đầu tiên một tính năng sử dụng chúng."
+			},
+			"servers": {
+				"title": "Phần mềm máy chủ bạn có thể cài đặt",
+				"note": "Được tải xuống cho mỗi máy chủ bạn tạo, từ dự án phát triển phần mềm đó."
+			}
+		},
+		"roles": {
+			"proot": "Hộp cát Linux cho máy chủ",
+			"talloc": "Thư viện bộ nhớ được sử dụng bởi PRoot",
+			"shmem": "Hỗ trợ bộ nhớ chia sẻ cho PRoot",
+			"temurin": "Java cho máy chủ và trò chơi trên máy tính để bàn",
+			"alpine": "Hệ thống nền tảng của hộp cát Android, bao gồm cả OpenJDK",
+			"pumpkin": "Máy chủ Pumpkin",
+			"playit": "Địa chỉ công khai cho máy chủ của bạn",
+			"paper": "Máy chủ Paper",
+			"folia": "Máy chủ Folia",
+			"purpur": "Máy chủ Purpur",
+			"fabric": "Máy chủ Fabric",
+			"vanilla": "Máy chủ Vanilla (bởi Mojang, không phải mã nguồn mở)"
+		},
+		"names": {
+			"minecraftServer": "Máy chủ Minecraft"
+		},
+		"various": "Nhiều giấy phép mã nguồn mở khác nhau"
+	},
+	"directConnect": {
+		"title": "Kết nối trực tiếp đến máy chủ",
+		"description": "Khởi chạy <b>{{name}}</b> trực tiếp vào một máy chủ nhiều người chơi, bỏ qua menu chính.",
+		"address": "Địa chỉ máy chủ",
+		"addressPlaceholder": "ví dụ: mc.hypixel.net hoặc localhost:25565",
+		"localServers": "Máy chủ cục bộ đã định cấu hình",
+		"recent": "Máy chủ gần đây",
+		"removeRecent": "Xóa khỏi danh sách gần đây",
+		"launch": "Khởi chạy & Kết nối"
+	},
+	"console": {
+		"autoScrollOn": "Tự động cuộn: Bật",
+		"autoScrollOff": "Tự động cuộn: Tắt",
+		"copyAll": "Sao chép tất cả",
+		"clear": "Xóa sạch",
+		"waiting": "Đang đợi đầu ra...",
+		"offline": "Máy chủ đang ngoại tuyến",
+		"offlineHint": "Khởi động máy chủ để xem bảng điều khiển.",
+		"latest": "Mới nhất",
+		"placeholder": "Nhập một lệnh, ví dụ: time set day",
+		"send": "Gửi lệnh"
+	},
+	"syncMaster": {
+		"setAsSource": "Đặt \"{{name}}\" làm nguồn đồng bộ chính.",
+		"error": "Lỗi: {{error}}",
+		"categoryTitle": "Đồng bộ ban đầu: {{title}}",
+		"title": "Chọn phiên bản đồng bộ chính",
+		"categoryDescription": "Chọn nơi bộ nhớ chia sẻ ban đầu sẽ lấy {{file}} từ đó:",
+		"description": "Chọn một phiên bản hiện có để điền vào bộ nhớ đồng bộ chia sẻ. Cài đặt và dữ liệu của phiên bản đó sẽ trở thành mốc cơ sở chia sẻ.",
+		"useExisting": "Sử dụng dữ liệu chia sẻ hiện có",
+		"keepCurrent": "Giữ <code>{{file}}</code> hiện tại trong bộ nhớ chia sẻ",
+		"useShared": "Dùng bộ nhớ chia sẻ",
+		"orCopyFrom": "Hoặc sao chép từ một phiên bản hiện có:",
+		"copyFrom": "Sao chép từ một phiên bản hiện có:",
+		"noInstances": "Không tìm thấy phiên bản nào.",
+		"useThis": "Dùng phiên bản này",
+		"setAsMaster": "Đặt làm phiên bản chính",
+		"noCopy": "Chưa muốn sao chép dữ liệu nào?",
+		"startFresh": "Bắt đầu mới / Để trống"
+	},
+	"quickJoin": {
+		"title": "Chơi nhanh — Tham gia máy chủ",
+		"description": "Khởi chạy Minecraft và tham gia <b>{{name}}</b> ({{address}}) trực tiếp.",
+		"target": "Mục tiêu: {{address}}",
+		"choose": "Chọn phiên bản máy khách",
+		"noInstances": "Không tìm thấy phiên bản Minecraft nào",
+		"noInstancesHint": "Hãy tạo một phiên bản máy khách trước để tham gia máy chủ của bạn.",
+		"createInstance": "Tạo phiên bản",
+		"matches": "Khớp với máy chủ",
+		"launch": "Khởi chạy & Tham gia"
+	},
+	"players": {
+		"tabs": {
+			"online": "Trực tuyến",
+			"all": "Tất cả người chơi",
+			"access": "Truy cập"
+		},
+		"offlineHint": "Khởi động máy chủ để xem ai đang chơi, lượng máu, túi đồ và vị trí của họ.",
+		"starting": "Máy chủ đang khởi động...",
+		"startingHint": "Người chơi sẽ xuất hiện sau khi thế giới được tải.",
+		"liveError": "Không thể đọc dữ liệu người chơi trực tiếp: {{error}}. Dữ liệu trực tiếp yêu cầu máy chủ Java (Paper, Purpur, Fabric hoặc Vanilla).",
+		"checking": "Đang kiểm tra ai đang trực tuyến...",
+		"nobody": "Không có ai trực tuyến",
+		"nobodyHint": "Người chơi sẽ xuất hiện ở đây ngay khi họ tham gia.",
+		"none": "Chưa có người chơi nào",
+		"noneHint": "Mọi người từng tham gia máy chủ này sẽ được liệt kê ở đây, cùng với túi đồ được lưu gần nhất của họ.",
+		"search": "Tìm kiếm người chơi",
+		"onlineNow": "Đang trực tuyến",
+		"lastSeen": "Nhìn thấy lần cuối {{time}}"
+	},
+	"map": {
+		"upToDate": "Đã cập nhật",
+		"noWorld": "Chưa có thế giới",
+		"noWorldHint": "Hãy khởi động máy chủ một lần để tạo thế giới. Các khu vực đã khám phá sẽ xuất hiện trên bản đồ.",
+		"liveTitle": "Ingot giữ bản đồ luôn cập nhật từ RAM máy chủ",
+		"live": "Trực tiếp",
+		"restartToGoLive": "Khởi động lại để cập nhật trực tiếp",
+		"makeLiveTitle_plugin": "Cài đặt plugin Ingot để cập nhật bản đồ trong thời gian thực mà không cần lưu thế giới",
+		"makeLiveTitle_mod": "Cài đặt mod Ingot để cập nhật bản đồ trong thời gian thực mà không cần lưu thế giới",
+		"makeLive": "Bật trực tiếp",
+		"refreshTitle": "Kiểm tra các khu vực mới lưu",
+		"ariaLabel": "Bản đồ thế giới. Kéo để di chuyển, cuộn chuột hoặc chụm ngón tay để thu phóng.",
+		"zoomIn": "Phóng to",
+		"zoomOut": "Thu nhỏ",
+		"updatedAreas_other": "Đã cập nhật các khu vực {{count}}"
+	},
+	"pluginDetails": {
+		"byline": "bởi {{author}} · {{downloads}} lượt tải",
+		"playersNeedIt": "Người chơi cũng cần mod này: bất kỳ ai tham gia đều phải cài đặt mod trong trò chơi của họ, nếu không họ sẽ không thể vào.",
+		"installing": "Đang cài đặt...",
+		"page": "Trang",
+		"noCompatible": "Chưa có phiên bản cho Minecraft {{version}}. Bạn vẫn có thể chọn phiên bản cũ hơn trong mục Các phiên bản, nhưng nó có thể không hoạt động.",
+		"about": "Giới thiệu",
+		"versions": "Các phiên bản",
+		"noDescription": "Không có mô tả.",
+		"onlyFor": "Chỉ phiên bản cho Minecraft {{version}}",
+		"noVersions": "Không có phiên bản nào",
+		"noVersionsHint": "Thử hiển thị tất cả phiên bản.",
+		"website": "Trang web",
+		"anyVersion": "Bất kỳ phiên bản nào"
+	},
+	"addAccount": {
+		"missingCredentials": "Vui lòng nhập cả tên người dùng/email và mật khẩu.",
+		"welcomeBack": "Chào mừng trở lại, {{name}}!",
+		"elyFailed": "Không thể kết nối với Ely.by",
+		"missingNickname": "Vui lòng nhập biệt danh người chơi.",
+		"offlineCreated": "Đã tạo hồ sơ ngoại tuyến cho {{name}}",
+		"offlineFailed": "Không thể tạo tài khoản ngoại tuyến",
+		"description": "Kết nối tài khoản Ely.by của bạn hoặc định cấu hình hồ sơ ngoại tuyến để chơi.",
+		"tokensSecure": "Mã token được mã hóa an toàn trong Kho thông tin xác thực hệ điều hành của bạn.",
+		"usernameOrEmail": "Tên người dùng hoặc Email",
+		"usernamePlaceholder": "ví dụ: notch hoặc player@ely.by",
+		"password": "Mật khẩu",
+		"connecting": "Đang kết nối...",
+		"logIn": "Đăng nhập vào Ely.by",
+		"offlineNote": "Tài khoản ngoại tuyến chơi mà không cần mã token phiên trực tuyến.",
+		"nickname": "Biệt danh người chơi",
+		"nicknamePlaceholder": "ví dụ: Steve",
+		"adding": "Đang thêm...",
+		"addProfile": "Thêm hồ sơ",
+		"microsoftTitle": "Đăng nhập Microsoft / Xbox Live",
+		"microsoftSoon": "Tích hợp xác thực OAuth tài khoản Mojang Microsoft chính thức sẽ ra mắt trong bản phát hành sắp tới."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Lối chơi",
+			"players": "Người chơi",
+			"world": "Thế giới",
+			"network": "Mạng",
+			"advanced": "Nâng cao"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Chế độ chơi",
+				"description": "Chế độ dành cho người chơi mới.",
+				"options": {
+					"survival": "Sinh tồn",
+					"creative": "Sáng tạo",
+					"adventure": "Phiêu lưu",
+					"spectator": "Khán giả"
+				}
+			},
+			"difficulty": {
+				"label": "Độ khó",
+				"description": "Mức độ nguy hiểm của quái vật.",
+				"options": {
+					"peaceful": "Bình yên",
+					"easy": "Dễ",
+					"normal": "Bình thường",
+					"hard": "Khó"
+				}
+			},
+			"force-gamemode": {
+				"label": "Bắt buộc chế độ chơi",
+				"description": "Đưa người chơi trở lại chế độ mặc định mỗi khi họ tham gia."
+			},
+			"hardcore": {
+				"label": "Siêu khó (Hardcore)",
+				"description": "Người chơi chuyển sang chế độ khán giả khi chết."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Người chơi có thể gây sát thương cho nhau."
+			},
+			"allow-flight": {
+				"label": "Cho phép bay",
+				"description": "Không đẩy người chơi ra khi bay (cần thiết cho một số mod và plugin)."
+			},
+			"spawn-protection": {
+				"label": "Bảo vệ điểm hồi sinh",
+				"description": "Bán kính quanh điểm hồi sinh chỉ quản trị viên mới có thể xây dựng. 0 để tắt."
+			},
+			"max-players": {
+				"label": "Số người chơi tối đa",
+				"description": "Số lượng người chơi có thể trực tuyến cùng một lúc."
+			},
+			"online-mode": {
+				"label": "Chế độ trực tuyến",
+				"description": "Xác thực tài khoản với Mojang. Tắt để cho phép tài khoản không bản quyền hoặc Ely.by."
+			},
+			"player-idle-timeout": {
+				"label": "Đẩy ra khi không hoạt động",
+				"description": "Đẩy người chơi ra sau số phút không hoạt động này. 0 nghĩa là không bao giờ đẩy ra."
+			},
+			"op-permission-level": {
+				"label": "Cấp độ quản trị viên",
+				"description": "Quyền của quản trị viên: 1 bỏ qua bảo vệ điểm hồi sinh … 4 tất cả quyền."
+			},
+			"hide-online-players": {
+				"label": "Ẩn danh sách người chơi",
+				"description": "Không hiển thị ai đang trực tuyến trong menu nhiều người chơi."
+			},
+			"enforce-secure-profile": {
+				"label": "Yêu cầu trò chuyện có chữ ký",
+				"description": "Chỉ cho phép người chơi có khóa trò chuyện được Mojang ký."
+			},
+			"view-distance": {
+				"label": "Khoảng cách nhìn",
+				"description": "Khoảng cách người chơi có thể nhìn. Càng thấp càng nhẹ cho thiết bị."
+			},
+			"simulation-distance": {
+				"label": "Khoảng cách mô phỏng",
+				"description": "Khoảng cách xung quanh người chơi mà thế giới tiếp tục hoạt động."
+			},
+			"level-seed": {
+				"label": "Hạt giống (Seed)",
+				"description": "Hạt giống cho thế giới mới. Chỉ sử dụng khi thế giới được tạo lần đầu.",
+				"placeholder": "Ngẫu nhiên"
+			},
+			"level-type": {
+				"label": "Loại thế giới",
+				"description": "Chỉ sử dụng khi thế giới được tạo lần đầu.",
+				"options": {
+					"minecraft_normal": "Mặc định",
+					"minecraft_flat": "Siêu phẳng",
+					"minecraft_large_biomes": "Quần xã lớn",
+					"minecraft_amplified": "Khuếch đại"
+				}
+			},
+			"generate-structures": {
+				"label": "Tạo cấu trúc",
+				"description": "Làng mạc, đền thờ và các cấu trúc khác trong chunk mới."
+			},
+			"allow-nether": {
+				"label": "Cho phép Nether",
+				"description": "Cho phép người chơi di chuyển đến Nether."
+			},
+			"max-world-size": {
+				"label": "Bán kính biên giới thế giới",
+				"description": "Khoảng cách tối đa từ trung tâm mà người chơi có thể đi."
+			},
+			"server-port": {
+				"label": "Cổng",
+				"description": "Cổng mà máy chủ lắng nghe kết nối."
+			},
+			"enable-status": {
+				"label": "Hiển thị trong danh sách máy chủ",
+				"description": "Phản hồi ping từ menu nhiều người chơi (MOTD, số lượng người chơi)."
+			},
+			"network-compression-threshold": {
+				"label": "Ngưỡng nén mạng",
+				"description": "Nén các gói tin lớn hơn mức này. -1 để tắt tính năng nén."
+			},
+			"enable-command-block": {
+				"label": "Khối lệnh",
+				"description": "Cho phép khối lệnh hoạt động."
+			},
+			"sync-chunk-writes": {
+				"label": "Lưu chunk an toàn",
+				"description": "Ghi chunk đồng bộ. An toàn hơn, chậm hơn một chút."
+			},
+			"max-tick-time": {
+				"label": "Thời gian chờ Watchdog",
+				"description": "Dừng máy chủ nếu một tick mất nhiều thời gian hơn mức này. -1 để tắt."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Khoảng cách hiển thị thực thể",
+				"description": "Khoảng cách gửi thông tin thực thể tới người chơi, tính theo phần trăm."
+			}
+		},
+		"units": {
+			"blocks": "khối",
+			"min": "phút",
+			"chunks": "chunk",
+			"bytes": "byte",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "Hầu hết các thay đổi sẽ có hiệu lực sau khi máy chủ khởi động lại.",
+		"badImage": "Không thể sử dụng hình ảnh đó: {{error}}",
+		"emptyName": "Tên không được để trống.",
+		"identity": "Nhận diện máy chủ",
+		"identityDesc": "Cách máy chủ của bạn hiển thị trong danh sách nhiều người chơi.",
+		"name": "Tên",
+		"motd": "Mô tả (MOTD) · hai dòng, nhấn Enter để xuống dòng thứ hai",
+		"motdReset": "Đặt lại",
+		"saved": "Đã lưu",
+		"saveChanges": "Lưu thay đổi",
+		"memory": "RAM",
+		"memoryMobile": "Hãy đặt thấp hơn đáng kể so với RAM trên điện thoại của bạn.",
+		"memoryDesktop": "RAM tối đa cho máy chủ Java.",
+		"portInUse": "Cổng {{port}} đã được sử dụng bởi một máy chủ khác. Hãy thử {{next}}.",
+		"gameSettings": "Cài đặt trò chơi",
+		"gameSettingsDesc": "server.properties kèm phần giải thích.",
+		"allOther": "Tất cả thuộc tính khác",
+		"filter": "Lọc thuộc tính",
+		"discard": "Hủy bỏ",
+		"configFiles": "Tệp cấu hình",
+		"configFilesDesc": "Cấu hình máy chủ và plugin (YAML, JSON, TOML).",
+		"saveFile": "Lưu tệp",
+		"manage": "Quản lý",
+		"changed_other": "{{count}} đã thay đổi"
+	},
+	"newInstance": {
+		"title": "Tạo phiên bản mới",
+		"description": "Chọn phiên bản Minecraft và trình nạp mod mong muốn. Ingot sẽ tự động định cấu hình môi trường và Java.",
+		"modLoader": "Trình nạp mod",
+		"minecraftVersion": "Phiên bản Minecraft",
+		"snapshots": "Bản xem trước (Snapshot)",
+		"snapshotBadge": "bản xem trước",
+		"latestBadge": "mới nhất",
+		"loadingVersions": "Đang tải các phiên bản...",
+		"selectVersion": "Chọn phiên bản Minecraft",
+		"searchVersion": "Tìm kiếm phiên bản (ví dụ: 1.20, 1.16)...",
+		"loaderVersion": "Phiên bản trình nạp",
+		"noCompatible": "Không có phiên bản tương thích",
+		"selectLoaderVersion": "Chọn phiên bản trình nạp",
+		"searchLoaderVersion": "Tìm kiếm phiên bản trình nạp...",
+		"name": "Tên phiên bản",
+		"namePlaceholder": "ví dụ: Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Cài đặt máy chủ",
+		"yourServers": "Máy chủ của bạn",
+		"newServer": "Máy chủ mới",
+		"about": "Giới thiệu & giấy phép"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Đang kiểm tra các tệp máy chủ...",
+			"preparingPumpkin": "Đang chuẩn bị máy chủ Pumpkin...",
+			"downloadingPumpkin": "Đang tải xuống Pumpkin (chỉ trong lần khởi động đầu tiên)...",
+			"preparingSandbox": "Đang chuẩn bị hộp cát Linux...",
+			"downloadingSandbox": "Đang tải xuống hộp cát Linux...",
+			"extractingSandbox": "Đang giải nén hệ thống tệp hộp cát...",
+			"installingJava": "Đang cài đặt Java {{version}} trong hộp cát...",
+			"sandboxReady": "Khởi tạo hộp cát hoàn tất!",
+			"installingCore": "Đang cài đặt {{name}} (chỉ trong lần khởi động đầu tiên, có thể mất vài phút)...",
+			"launching": "Đang khởi chạy tiến trình máy chủ...",
+			"failed": "Không thể khởi động: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Không có trên Modrinth, CurseForge hoặc Hangar, nên Ingot không thể kiểm tra",
+			"beta": "Phiên bản Beta, có thể không ổn định",
+			"alpha": "Phiên bản Alpha, có thể không ổn định",
+			"siteOnly": "Phiên bản {{target}} chỉ có thể được tải xuống từ {{site}}",
+			"fabricOnly": "Chỉ cần thiết trên Fabric và Quilt",
+			"noVersion": "Chưa có phiên bản cho {{target}}",
+			"pluginNotMarked": "Chưa được đánh dấu tương thích cho {{version}}; hầu hết plugin vẫn hoạt động",
+			"notUpdated": "Chưa cập nhật cho {{version}}; thường thì vẫn hoạt động",
+			"sameAs": "Giống như {{name}}",
+			"incompatible": "Không hoạt động cùng với {{name}}",
+			"needsTurnedOff": "Cần có {{name}}, vốn đang bị tắt",
+			"needsMissing": "Cần có {{name}}, vốn không khả dụng cho {{version}}",
+			"neededBy": "Được yêu cầu bởi {{name}}"
+		},
+		"launch": {
+			"preparing": "Chuẩn bị khởi chạy",
+			"resolvingVersion": "Đang phân giải phiên bản",
+			"resolvingLoader": "Đang phân giải trình nạp mod",
+			"checkingJava": "Đang kiểm tra Java Runtime",
+			"javaSetup": "Thiết lập Java",
+			"downloadingClient": "Đang tải máy khách",
+			"downloadingLibraries": "Đang tải thư viện",
+			"downloadingAssets": "Đang tải tài nguyên",
+			"verifying": "Đang xác minh tệp",
+			"auth": "Thiết lập xác thực",
+			"starting": "Đang bắt đầu trò chơi",
+			"fetchingMetadata": "Đang tải siêu dữ liệu phiên bản...",
+			"fetchingProfile": "Đang tải hồ sơ {{loader}}...",
+			"detectingJava": "Đang phát hiện môi trường Java...",
+			"downloadingJavaProgress": "Đang tải Java {{version}} runtime ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Đang tải Java {{version}} runtime...",
+			"extractingJava": "Đang giải nén Java {{version}} runtime...",
+			"downloadingJar": "Đang tải tệp jar máy khách Minecraft...",
+			"downloadingLibrariesCount": "Đang tải {{count}} thư viện...",
+			"library": "Thư viện {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "Đang tải {{count}} tài nguyên...",
+			"assets": "Tài nguyên {{current}}/{{total}}",
+			"verified": "Đã xác minh tất cả tệp trò chơi",
+			"authDetail": "Đang thiết lập skin và tác nhân xác thực Ely.by...",
+			"launching": "Đang khởi chạy tiến trình Minecraft...",
+			"connecting": "Đang kết nối tới {{server}}...",
+			"loadingWorld": "Đang tải thế giới {{world}}...",
+			"initializing": "Đang khởi tạo trình tự khởi chạy..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Giao diện hiển thị với người chơi",
+		"startingUp": "Đang khởi động...",
+		"shuttingDown": "Đang tắt...",
+		"cantConnect": "Không thể kết nối đến máy chủ",
+		"preparing": "Đang chuẩn bị...",
+		"sleepingNote": "Đang ngủ để tiết kiệm tài nguyên. Máy chủ sẽ tự động thức dậy khi có người chơi tham gia.",
+		"failedToStart": "Không thể khởi động.",
+		"start": "Khởi động máy chủ",
+		"wake": "Đánh thức",
+		"sleep": "Ngủ",
+		"starting": "Đang khởi động...",
+		"stopping": "Đang dừng...",
+		"uptime": "Thời gian hoạt động",
+		"native": "Bản địa",
+		"noOutput": "Chưa có đầu ra nào"
+	},
+	"serverCard": {
+		"offline": "Ngoại tuyến",
+		"openPage": "Mở trang máy chủ",
+		"copyAddress": "Nhấn để sao chép địa chỉ máy chủ",
+		"noneOnline": "0 trực tuyến",
+		"joinTitle": "Khởi chạy Minecraft & Kết nối tới máy chủ này",
+		"join": "Tham gia",
+		"start": "Khởi động",
+		"openFolder": "Mở thư mục máy chủ"
+	},
+	"versionChange": {
+		"title": "Đổi phiên bản",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Xung đột",
+			"missing": "Chưa khả dụng",
+			"unknown": "Không thể kiểm tra",
+			"newDependency": "Phụ thuộc mới",
+			"update": "Bản cập nhật",
+			"works": "Đã tương thích",
+			"olderVersions": "Các phiên bản cũ hơn"
+		},
+		"actions": {
+			"keep": "Giữ lại",
+			"update": "Cập nhật",
+			"disable": "Tắt",
+			"add": "Cài đặt",
+			"skip": "Không cài đặt"
+		},
+		"kinds": {
+			"resourcePack": "Gói tài nguyên",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} cũ hơn {{from}}",
+		"downgradeWarning": "Các thế giới được chơi ở phiên bản mới hơn thường không thể mở được ở phiên bản cũ hơn và có thể bị hỏng. Luôn bật bản sao lưu thế giới để việc hoàn tác có thể đưa chúng trở lại.",
+		"downgradeOk": "Tôi hiểu rồi, dù sao thì hãy chuyển sang phiên bản cũ hơn",
+		"backupWorldsHint": "Minecraft nâng cấp các thế giới khi chúng được mở và điều đó không thể đảo ngược được. Với một bản sao lưu, hoàn tác cũng khôi phục chúng.",
+		"openOn": "Mở trên {{site}}",
+		"new": "mới",
+		"instanceDescription": "Ingot trước tiên sẽ kiểm tra mọi mod, gói tài nguyên và trình đổ bóng và không thay đổi gì cho đến khi bạn áp dụng. Bạn có thể hoàn tác nó sau đó.",
+		"now": "ngay",
+		"nowLabel": "Bây giờ",
+		"moveTo": "Chuyển đến",
+		"pickVersion": "Chọn một phiên bản",
+		"searchVersion": "Phiên bản tìm kiếm...",
+		"loaderVersion": "Phiên bản {{loader}}",
+		"pickLoaderVersion": "Chọn phiên bản tải",
+		"noLoaderFor": "Không có {{loader}} cho {{version}}",
+		"noLoader": "Không có {{loader}} cho phiên bản này",
+		"loaderSwitchNote": "Các mod được tạo cho một trình tải. Ingot tìm phiên bản {{loader}} của mỗi mod và tắt những phiên bản không có.",
+		"instanceEmpty": "Không có mod, gói tài nguyên hoặc trình đổ bóng nào để kiểm tra. Chỉ có phiên bản thay đổi.",
+		"applying": "Đang áp dụng...",
+		"applyingHint": "Đang tải xuống và kiểm tra các tệp mới, sau đó sao lưu các tệp hiện tại. Không có gì thay đổi cho đến khi mọi thứ đã sẵn sàng.",
+		"applyingWithWorlds": "Tải xuống và kiểm tra các tệp mới, sau đó sao lưu thế giới của bạn và thế giới hiện tại. Không có gì thay đổi cho đến khi mọi thứ đã sẵn sàng.",
+		"nowOn": "Hiện có trên {{version}}",
+		"instanceDone": "Đã thay đổi từ {{version}}. Nếu có điều gì đó không hoạt động, hãy hoàn tác nó khỏi cài đặt của Phiên bản này: mọi thứ sẽ trở lại chính xác như cũ.",
+		"back": "Quay lại",
+		"checking": "Đang kiểm tra...",
+		"check": "Kiểm tra tính tương thích",
+		"moveToVersion": "Di chuyển đến {{version}}",
+		"summary": {
+			"download_other": "{{count}} để tải xuống ({{size}})",
+			"turnedOff_other": "{{count}} đã tắt",
+			"conflictsKept_other": "Xung đột {{count}} được giữ lại"
+		},
+		"backupWorlds_other": "Sao lưu thế giới (thế giới {{count}}, {{size}}) Kết quả"
+	},
+	"errors": {
+		"launchInstance": "Không khởi chạy được Phiên bản: {{error}}",
+		"resolveConflict": "Không giải quyết được xung đột: {{error}}",
+		"deleteInstance": "Không thể xóa Phiên bản: {{error}}",
+		"startServer": "Không khởi động được máy chủ: {{error}}",
+		"deleteServer": "Không thể xóa máy chủ: {{error}}",
+		"quickPlay": "Không thể phát nhanh máy chủ: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Đang tải trình phát...",
+		"noData": "Chưa có dữ liệu cho trình phát này.",
+		"health": "Sức khỏe",
+		"hunger": "Đói",
+		"air": "Không khí",
+		"experience": "Kinh nghiệm",
+		"level": "Cấp độ {{level}}",
+		"equipment": "Trang bị",
+		"slots": {
+			"head": "Đầu",
+			"chest": "Rương",
+			"legs": "Chân",
+			"feet": "Chân",
+			"offhand": "Offhand"
+		},
+		"showOnMap": "Hiển thị trên bản đồ",
+		"inventory": "Hàng tồn kho",
+		"ender": "Rương Ender ({{count}})",
+		"effects": "Hiệu ứng ({{count}})",
+		"onFire": "Cháy",
+		"durability": "{{left}}/{{max}} độ bền",
+		"enchanted": "",
+		"noEffects": "bị mê hoặc Không có hiệu ứng hoạt động",
+		"heal": "Chữa lành",
+		"feed": "Nguồn cấp dữ liệu",
+		"removeOp": "Loại bỏ OP",
+		"whitelisted": "Được đưa vào danh sách trắng",
+		"confirmKick": "Đá {{name}}?",
+		"confirmBan": "Cấm {{name}}?",
+		"confirm": "Xác nhận",
+		"kick": "Kick"
+	},
+	"transfer": {
+		"zipArchive": "Lưu trữ Zip",
+		"savedTo": "Đã lưu vào {{path}}",
+		"copyName": "{{name}} sao chép",
+		"created": "Đã tạo \"{{name}}\".",
+		"title": "Sao lưu & phiên bản",
+		"description": "Xuất để chia sẻ hoặc sao lưu, sao chép máy chủ hoặc chuyển sang phiên bản Minecraft khác.",
+		"exportConfigs": "Xuất cấu hình",
+		"withoutWorlds": "Không có thế giới",
+		"exportAll": "Xuất tất cả",
+		"withWorlds": "Có thế giới",
+		"makeCopy": "Tạo một bản sao",
+		"secondServer": "Máy chủ thứ hai",
+		"stopFirst": "Dừng máy chủ trước",
+		"nowVersion": "Bây giờ {{version}}",
+		"backup": "Đã thay đổi từ {{version}}. Sao lưu {{size}}.",
+		"backupWithWorlds": "Đã thay đổi từ {{version}}. Sao lưu {{size}}, bao gồm cả thế giới.",
+		"deleteBackup": "Xóa bản sao lưu",
+		"undo": "Hoàn tác, quay lại {{version}}",
+		"willStartOn": "{{name}} sẽ bắt đầu trên {{version}}. Bạn có thể hoàn tác nó ở đây nếu có gì đó không hiệu quả.",
+		"currentVersion": "{{version}} (hiện tại)",
+		"changeTitle": "Thay đổi phiên bản Minecraft",
+		"changeDescription_plugin": "Ingot kiểm tra mọi plugin trước và không thay đổi gì cho đến khi bạn áp dụng. Mọi thứ đều được sao lưu nên bạn có thể hoàn tác nó.",
+		"changeDescription_mod": "Ingot kiểm tra mọi mod trước và không thay đổi gì cho đến khi bạn áp dụng. Mọi thứ đều được sao lưu nên bạn có thể hoàn tác nó.",
+		"serverType": "Loại máy chủ",
+		"empty": "Không có plugin hoặc mod nào để kiểm tra. Chỉ có phiên bản thay đổi.",
+		"readyFor": "Sẵn sàng cho {{version}}",
+		"doneNote": "Phiên bản mới sẽ tải xuống vào lần bắt đầu tiếp theo. Nếu có điều gì đó không hiệu quả, hãy hoàn tác nó khỏi Bản sao lưu & phiên bản: mọi thứ sẽ trở lại chính xác như cũ.",
+		"import": "Nhập máy chủ",
+		"importing": "Đang nhập {{percent}}",
+		"settingUp": "Đang thiết lập máy chủ...",
+		"partial": "Đã nhập \"{{name}}\", nhưng không thể tải xuống một số plugin hoặc mod:",
+		"openServer": "Máy chủ mở"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Máy chủ Spigot/Bukkit hiệu suất cao có plugin đầy đủ hỗ trợ",
+			"badge": ""
+		},
+		"purpur": {
+			"tagline": "nhanh và ổn định Ngã ba Paper giàu tính năng với khả năng tùy chỉnh đáng kinh ngạc",
+			"badge": ""
+		},
+		"fabric": {
+			"tagline": "có thể tùy chỉnh Máy chủ được sửa đổi theo mô-đun, nhẹ cho các mod Fabric",
+			"badge": "đã sửa đổi"
+		},
+		"neoforge": {
+			"tagline": "Máy chủ được sửa đổi cho các mod NeoForge, ngôi nhà của hầu hết các mod nội dung lớn",
+			"badge": "đã sửa đổi"
+		},
+		"forge": {
+			"tagline": "Máy chủ được sửa đổi ban đầu, dành cho các mod Forge trên Minecraft 1.17 và máy chủ được sửa đổi",
+			"badge": "đã sửa đổi"
+		},
+		"quilt": {
+			"tagline": "Fabric mới hơn chạy cả hai mod Quilt và Fabric",
+			"badge": "Modded"
+		},
+		"folia": {
+			"tagline": "Máy chủ khu vực đa luồng của PaperMC cho số lượng người chơi lớn",
+			"badge": ""
+		},
+		"pumpkin": {
+			"tagline": "đa luồng Siêu nhẹ, chạy bằng Rust-khởi động tức thì, < 60 MB RAM",
+			"badge": "Bản địa di động"
+		},
+		"vanilla": {
+			"tagline": "Máy chủ Minecraft chính thức chưa được sửa đổi trực tiếp từ Mojang",
+			"badge": "Bản gốc"
+		}
+	},
+	"wizard": {
+		"defaultName": "Máy chủ {{core}}",
+		"fetchFailed": "Không tìm nạp được phiên bản. Kiểm tra kết nối của bạn.",
+		"enterName": "Vui lòng nhập tên máy chủ.",
+		"selectVersion": "Vui lòng chọn phiên bản Minecraft.",
+		"invalidPort": "Nhập một cổng hợp lệ (1024 – 65534).",
+		"portInUseTry": "Cổng {{port}} đã được sử dụng. Hãy thử {{next}}.",
+		"portInUse": "Cổng {{port}} đã được sử dụng.",
+		"createFailed": "Không tạo được máy chủ",
+		"stepEngine": "Chọn công cụ của bạn",
+		"stepName": "Đặt tên cho máy chủ của bạn là",
+		"stepMemory": "Bộ nhớ và xác nhận",
+		"stepOf": "Bước {{step}} của {{total}}",
+		"preparing": "Đang chuẩn bị máy chủ…",
+		"serverName": "Tên máy chủ",
+		"namePlaceholder": "ví dụ: {{core}} Máy chủ sinh tồn",
+		"minecraftVersion": "Minecraft phiên bản",
+		"selectVersionPlaceholder": "Chọn phiên bản",
+		"serverPort": "Cổng máy chủ",
+		"portInUseShort": "Cổng đang sử dụng",
+		"ready": "Sẵn sàng tạo",
+		"engine": "Engine",
+		"version": "Phiên bản",
+		"ram": "RAM Bộ nhớ",
+		"memory": "(RAM)",
+		"heroLine1": "Máy chủ đầu tiên của bạn,",
+		"heroLine2": "sau vài giây.",
+		"heroText": "Ingot tải xuống, định cấu hình và chạy máy chủ Minecraft ngay trên thiết bị này. Mời bạn bè từ mọi nơi.",
+		"createAServer": "Tạo máy chủ",
+		"createAServerHint": "Paper, PumpkinMC, Fabric và hơn thế nữa"
+	},
+	"plugins": {
+		"unsupported": "Máy chủ {{core}} không thể sử dụng plugin",
+		"unsupportedHint": "Tạo máy chủ Paper hoặc Purpur để thêm plugin hoặc máy chủ Fabric dành cho mod.",
+		"installed": "Đã cài đặt {{name}}.",
+		"installedWith": "Đã cài đặt {{name}} và {{extras}}.",
+		"browse_plugin": "Duyệt plugin",
+		"browse_mod": "Duyệt mod",
+		"restartToApply": "Khởi động lại máy chủ để áp dụng các thay đổi.",
+		"restart": "Khởi động lại",
+		"noOther_plugin": "Chưa có plugin nào khác.",
+		"noOther_mod": "Chưa có mod nào khác.",
+		"none_plugin": "Chưa có plugin",
+		"none_mod": "Chưa có mod",
+		"find_plugin": "Tìm plugin trên Modrinth và cài đặt chúng chỉ bằng một cú chạm.",
+		"find_mod": "Tìm các mod trên Modrinth và cài đặt chúng chỉ bằng một cú chạm.",
+		"findHangar_plugin": "Tìm các plugin trên Modrinth và Hangar và cài đặt chúng chỉ bằng một cú chạm.",
+		"findHangar_mod": "Tìm các mod trên Modrinth và Hangar và cài đặt chúng chỉ bằng một cú chạm.",
+		"updateAvailable": "Đã có bản cập nhật: {{version}}",
+		"enabled": "Đã bật {{name}}.",
+		"disabled": "Đã tắt {{name}}.",
+		"enable": "Bật {{name}}",
+		"disable": "Tắt {{name}}",
+		"updated": "Đã cập nhật {{name}}.",
+		"removed": "Đã xóa {{name}}.",
+		"unknownVersion": "Phiên bản không xác định",
+		"byAuthors": "bởi {{authors}}",
+		"file": "Tệp",
+		"size": "Kích thước",
+		"updateTo": "Cập nhật lên {{version}}",
+		"reallyDelete": "Thực sự xóa?",
+		"sort": {
+			"downloads": "Phổ biến nhất",
+			"updated": "Cập nhật gần đây",
+			"newest": "Các plugin Tìm kiếm"
+		},
+		"searchPlaceholder_plugin": "mới nhất, ví dụ: LuckPerms",
+		"searchPlaceholder_mod": "Tìm kiếm các mod, ví dụ: Lithium",
+		"compatibleOnly": "Chỉ hiển thị kết quả tương thích với {{version}}",
+		"forVersion": "Dành cho {{version}}",
+		"searchFailed": "Tìm kiếm không thành công: {{error}}",
+		"nothingFound": "Không tìm thấy gì",
+		"noneForVersion_plugin": "Không có plugin nào phù hợp với Minecraft {{version}}. Hãy thử tắt bộ lọc phiên bản.",
+		"noneForVersion_mod": "Không có mod nào phù hợp với Minecraft {{version}}. Hãy thử tắt bộ lọc phiên bản.",
+		"tryAnother": "Hãy thử tìm kiếm khác.",
+		"loadMore": "Tải thêm",
+		"playersNeedItTitle": "Người chơi cũng phải cài đặt bản mod này, nếu không họ không thể tham gia",
+		"playersNeedIt": "Người chơi cũng cần nó",
+		"isInstalled": "{{name}} đã được cài đặt",
+		"install": "Cài đặt {{name}}",
+		"results_other": "{{formatted}}"
+	},
+	"join": {
+		"shareTitle": "Tham gia {{name}}",
+		"shareText": "Tham gia máy chủ Minecraft của tôi \"{{name}}\"!\nAddress: {{address}}\nPhiên bản: Java Edition {{version}}",
+		"title": "Mời người chơi",
+		"description": "Chia sẻ địa chỉ để bạn bè có thể tham gia.",
+		"sameWifi": "Cùng một Wi-Fi",
+		"copyLocal": "Sao chép địa chỉ cục bộ",
+		"anywhere": "Mọi nơi (playit.gg)",
+		"copyPublic": "Sao chép địa chỉ công cộng",
+		"showQr": "Hiển thị mã QR",
+		"linkPlayit": "Liên kết tài khoản playit.gg của bạn",
+		"noTunnel": "Đã kết nối nhưng chưa có đường hầm. <link>Thêm one</link> cho cổng {{port}}.",
+		"connecting": "Đang kết nối...",
+		"notConnected": "Chưa kết nối",
+		"stopPlayit": "Dừng phát",
+		"goPublic": "Công khai",
+		"share": "Chia sẻ mời",
+		"scan": "Quét để sao chép địa chỉ",
+		"qrAlt": "Mã QR"
+	},
+	"stats": {
+		"latest": "Mới nhất: {{value}}",
+		"noData": "Hiện chưa có dữ liệu",
+		"now": "",
+		"ago": "{{time}} trước",
+		"min": "Tối thiểu",
+		"avg": "Trung bình",
+		"peak": "Đỉnh",
+		"performance": "Hiệu suất",
+		"touchHint": "Chạm vào biểu đồ để biết chi tiết",
+		"ofDevice": "của thiết bị",
+		"allocated": "được phân bổ",
+		"deviceRam": "RAM thiết bị",
+		"free": "{{size}} miễn phí",
+		"lag": "Lag",
+		"smooth": "Mượt mà",
+		"slightLag": "Độ trễ nhẹ",
+		"lagging": "Độ trễ",
+		"used": "{{label}}: {{used}} của {{total}} đã sử dụng Bộ lưu trữ"
+	},
+	"storage": {
+		"title": "",
+		"worlds": "Thế giới",
+		"plugins": "Plugin & mod",
+		"server": "Tệp máy chủ",
+		"backups": "Sao lưu",
+		"logs": "Nhật ký",
+		"other": "Khác",
+		"device": "Lưu trữ thiết bị"
+	},
+	"instanceSettings": {
+		"pushFailed": "Đẩy không thành công: {{error}}",
+		"pullFailed": "Kéo không thành công: {{error}}",
+		"saveFailed": "Không lưu được cài đặt: {{error}}",
+		"title": "Phiên bản Cài đặt",
+		"description": "Định cấu hình các tham số thực thi và giới hạn bộ nhớ cho <b>{{name}}</b>.",
+		"namePlaceholder": "Trình tải Minecraft Phiên bản",
+		"loader": "của tôi {{version}}",
+		"backup": "Đã thay đổi từ {{from}} thành {{to}}. Sao lưu {{size}}.",
+		"backupWithWorlds": "Đã thay đổi từ {{from}} thành {{to}}. Sao lưu {{size}}, bao gồm cả thế giới.",
+		"memoryOverride": "Ghi đè bộ nhớ chung cho Phiên bản",
+		"minMemory": "này Bộ nhớ ban đầu (Tối thiểu):",
+		"maxMemory": "Bộ nhớ tối đa (Tối đa):",
+		"inheritMemory": "Kế thừa cài đặt chung: <b>{{min}} Tối thiểu / {{max}} Max</b>. Có thể định cấu hình trên trang Cài đặt.",
+		"jvmArgs": "Đối số JVM",
+		"jvmArgsHint": "Đối số khởi chạy Java bổ sung (cách nhau bằng dấu cách)",
+		"java": "Tùy chỉnh Java Có thể thực thi",
+		"javaHint": "Để trống cho thời gian chạy Adoptium được quản lý tự động",
+		"windowOverride": "Ghi đè toàn màn hình và kích thước cửa sổ cho Phiên bản này",
+		"fullscreenHint": "Khởi chạy trực tiếp vào chế độ toàn màn hình",
+		"resolution": "Độ phân giải:",
+		"fullscreen": "Toàn màn hình",
+		"inheritDisplay": "Kế thừa hiển thị toàn cầu: <b>{{value}}</b>. Có thể định cấu hình trong Cài đặt Trình khởi chạy.",
+		"syncHint": "Tùy chọn đồng bộ hóa, máy chủ, gói, lịch sử và hotbar",
+		"manualSync": "Đồng bộ hóa lưu trữ thủ công",
+		"manualSyncHint": "Xuất dữ liệu của Phiên bản này hoặc lấy các tệp mới nhất từ ​​​​bộ nhớ dùng chung.",
+		"push": "Đẩy vào bộ nhớ dùng chung",
+		"pull": "Kéo từ bộ nhớ dùng chung",
+		"syncOptions": "Tùy chọn trò chơi đồng bộ hóa (options.txt)",
+		"syncServers": "Máy chủ nhiều người chơi đồng bộ hóa (servers.dat) Gói tài nguyên đồng bộ hóa",
+		"syncPacks": "(resourcepacks/) Lịch sử lệnh đồng bộ hóa",
+		"syncHistory": "(command_history.txt)",
+		"syncHotbars": "Thanh nóng sáng tạo đồng bộ hóa (hotbar.nbt)",
+		"inheritSync": "Kế thừa các tùy chọn đồng bộ hóa toàn cầu. Sẽ đồng bộ hóa trước khi khởi chạy và sau khi thoát."
+	},
+	"install": {
+		"loadFailed": "Không tải được các tùy chọn cài đặt",
+		"compatible": "Tương thích",
+		"all": "Tất cả",
+		"any": "Bất kỳ",
+		"modpackDone": "Modpack \"{{name}}\" được cài đặt thành công dưới dạng Phiên bản mới!",
+		"selectTarget": "Chọn mục tiêu Phiên bản...",
+		"added": "Đã thêm {{file}} vào {{instance}}!",
+		"modpackTitle": "Cài đặt Modpack",
+		"addTitle_mod": "Thêm mod vào Phiên bản",
+		"addTitle_resourcepack": "Thêm gói tài nguyên vào Phiên bản",
+		"addTitle_shader": "Thêm shader vào Phiên bản",
+		"addTitle_modpack": "Thêm modpack vào Phiên bản",
+		"addTitle_datapack": "Thêm gói dữ liệu vào Phiên bản",
+		"addTitle_plugin": "Thêm plugin vào Phiên bản",
+		"modpackDescription": "Tạo Minecraft Phiên bản mới từ \"{{title}}\".",
+		"description": "Cài đặt \"{{title}}\" vào một trong các Phiên bản hiện có của bạn.",
+		"loading": "Đang tải tùy chọn...",
+		"retry": "Thử lại",
+		"modpackVersion": "Phiên bản modpack",
+		"selectModpackVersion": "Chọn phiên bản modpack...",
+		"loaders": "Trình tải:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Tạo Phiên bản trước từ tab Phiên bản trước khi thêm mod hoặc tài nguyên gói.",
+		"target": "Target Phiên bản",
+		"fileVersion": "Phiên bản tệp",
+		"selectFileVersion": "Chọn phiên bản tệp...",
+		"supports": "Hỗ trợ:",
+		"createAndInstall": "Tạo & Cài đặt",
+		"installToInstance": "Cài đặt vào Phiên bản",
+		"compatibleCount_other": "{{count}} phiên bản tương thích"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Gói tài nguyên",
+		"shader": "Shader",
+		"datapack": "Gói dữ liệu",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Phát hành",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "Không tải được chi tiết dự án",
+		"addToInstance": "Thêm vào Phiên bản",
+		"versions": "Phiên bản & Tệp",
+		"versionsCount": "Phiên bản & Tệp ({{count}})",
+		"loading": "Đang tải chi tiết dự án...",
+		"gallery": "Thư viện ({{count}})",
+		"clickToOpen": "Nhấp vào hình ảnh để mở ở chế độ toàn màn hình",
+		"viewFullscreen": "Xem toàn màn hình",
+		"scrollLeft": "Cuộn thư viện sang trái",
+		"scrollRight": "Cuộn thư viện sang phải",
+		"source": "Mã nguồn",
+		"issues": "Trình theo dõi vấn đề",
+		"wiki": "Wiki",
+		"description": "Mô tả",
+		"gameVersion": "Phiên bản trò chơi:",
+		"noMatch": "Không có phiên bản nào phù hợp với tiêu chí lọc của bạn.",
+		"openOriginal": "Mở bản gốc",
+		"previous": "Hình ảnh trước đó",
+		"next": "Hình ảnh tiếp theo",
+		"downloads_other": "{{formatted}} tải xuống",
+		"followers_other": "{{formatted}} Người theo dõi",
+		"showing_other": "Đang hiển thị {{shown}} của các phiên bản {{count}}"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Chọn thư mục {{launcher}} Phiên bản",
+		"selectDir": "Chọn thư mục Minecraft Phiên bản",
+		"done": "Phiên bản đã được nhập thành công!",
+		"title": "Nhập từ Trình khởi chạy khác",
+		"selectInstance": "Chọn Phiên bản ({{launcher}})",
+		"configure": "Định cấu hình nhập",
+		"description": "Nhập trực tiếp các cài đặt, mod, thế giới và cài đặt Minecraft hiện có vào Ingot.",
+		"optionsDescription": "Chọn thành phần dữ liệu bạn muốn chuyển vào Ingot Phiên bản mới.",
+		"detecting": "Đang phát hiện các launcher đã cài đặt...",
+		"notDetected": "Không được phát hiện • Nhấp để định vị",
+		"custom": "Thư mục tùy chỉnh",
+		"customHint": "Chọn bất kỳ thư mục Phiên bản nào trên đĩa",
+		"backToLaunchers": "Quay lại Trình khởi chạy",
+		"changeFolder": "Thay đổi thư mục",
+		"filter": "Bộ lọc Phiên bản...",
+		"loadingInstances": "Đang tải Phiên bản...",
+		"noneFound": "Không tìm thấy Phiên bản trong thư mục trình khởi chạy này.",
+		"select": "Chọn tên",
+		"nameInIngot": "Phiên bản trong Ingot:",
+		"namePlaceholder": "Phiên bản",
+		"source": "đã nhập của tôi Nguồn: {{path}}",
+		"components": "Chọn các thành phần để nhập:",
+		"mods": "Mods",
+		"configs": "Cấu hình",
+		"configsHint": "Cài đặt & cấu hình mod",
+		"worlds": "Thế giới & Lưu Gói tài nguyên",
+		"packs": "",
+		"packsHint": "Kết cấu & gói đổ bóng",
+		"screenshotsHint": "Ảnh chụp màn hình trong trò chơi",
+		"modData": "Dữ liệu Mod và các thứ khác",
+		"modDataHint": "Điểm tham chiếu, sơ đồ, bản ghi, v.v.",
+		"options": "Tùy chọn trò chơi",
+		"optionsHint": "options.txt & tổ hợp phím",
+		"servers": "Máy chủ nhiều người chơi",
+		"serversHint": "servers.dat danh sách máy chủ",
+		"note": "Tất cả các thành phần trên là tùy chọn. Khi bật <b>Mod Data & Other</b>, các thư mục mod tùy chỉnh (điểm tham chiếu bản đồ nhỏ, sơ đồ, bản ghi) sẽ được sao chép một cách an toàn. Bỏ chọn nó nếu bạn muốn nhập sạch mà không cần thêm tệp.",
+		"importing": "Đang nhập...",
+		"import": "Nhập Phiên bản",
+		"found_other": "Đã tìm thấy {{count}} Phiên bản trong {{launcher}}. Chọn cái nào để nhập.",
+		"instancesFound_other": "{{count}} Phiên bản đã tìm thấy",
+		"modsCount_other": "{{count}} mod",
+		"worldsCount_other": "{{count}} thế giới",
+		"screenshotsCount_other": "{{count}} ảnh chụp màn hình",
+		"modFiles_other": "Các tệp mod {{count}}",
+		"singleplayerWorlds_other": "{{count}} thế giới chơi đơn"
+	},
+	"skinViewer": {
+		"resetCamera": "Đặt lại camera 3D",
+		"pauseRotation": "Tạm dừng tự động xoay",
+		"autoRotate": "Tự động xoay mô hình 3D",
+		"idlePose": "Chuyển sang tư thế nhàn rỗi",
+		"playWalk": "Chơi hoạt ảnh đi bộ",
+		"idleTitle": "Hoạt hình thở nhàn rỗi",
+		"idle": "Nhàn rỗi",
+		"walkTitle": "Hoạt hình đi bộ",
+		"walk": "Đi bộ",
+		"runTitle": "Hoạt hình chạy",
+		"run": "Chạy",
+		"waveTitle": "Hoạt hình vẫy tay",
+		"wave": "Sóng",
+		"pause": "Tạm dừng hoạt ảnh",
+		"outerOn": "Lớp ngoài Trên",
+		"outerOff": "Lớp ngoài tắt",
+		"modelSlim": "Model: Slim (Alex)",
+		"modelClassic": "Model: Classic (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Skin tùy chỉnh",
+		"currentActiveSkin": "Skin đang hoạt động hiện tại",
+		"activeAccountSkin": "Skin tài khoản đang hoạt động",
+		"loadFailed": "Không thể tải skin từ Ely.by",
+		"defaultSteve": "Mặc định Steve",
+		"addAccountFirst": "Vui lòng thêm hoặc chọn một tài khoản Ely.by trước.",
+		"elyOnlySync": "Chỉ tài khoản Ely.by mới hỗ trợ đồng bộ hóa giao diện đám mây.",
+		"customApplied": "Giao diện tùy chỉnh được áp dụng cho {{name}}!",
+		"skinApplied": "Skin #{{id}} áp dụng cho {{name}}!",
+		"applyFailed": "Không thể áp dụng da.",
+		"enterPassword": "Vui lòng nhập mật khẩu Ely.by của bạn.",
+		"skinFromDate": "Skin {{date}}",
+		"uploadedApplied": "Skin tùy chỉnh được tải lên và áp dụng cho {{name}}! Tệp giao diện",
+		"pngOnly": "phải ở định dạng PNG (.png). Tệp giao diện",
+		"tooLarge": "quá lớn (tối đa 2 MB).",
+		"badSize": "Kích thước không hợp lệ: {{size}}. Giao diện Minecraft tiêu chuẩn phải có kích thước 64x64 hoặc 64x32 pixel.",
+		"badImage": "Không thể phân tích hình ảnh. Hãy đảm bảo rằng đó là tệp PNG hợp lệ.",
+		"elyOnlyUpload": "Chỉ tài khoản Ely.by mới hỗ trợ tải lên giao diện.",
+		"uploadFailed": "Không thể tải giao diện lên.",
+		"saved": "Skin #{{id}} đã lưu thành công! Tải xuống",
+		"downloadFailed": "không thành công.",
+		"urlCopied": "Đã sao chép URL kết cấu da vào khay nhớ tạm!",
+		"activeAccount": "Tài khoản Ely.by đang hoạt động",
+		"noActiveAccount": "Không có tài khoản Ely.by đang hoạt động",
+		"browse": "Duyệt qua các giao diện",
+		"preview3d": "Xem trước 3D",
+		"currentSkin": "Skin hiện tại",
+		"skinNumber": "Skin #{{id}}",
+		"alexSlim3": "Alex (Slim 3px)",
+		"steveClassic4": "Steve (Classic 4px)",
+		"currentSkinOf": "Giao diện hiện tại ({{name}})",
+		"applyTo": "Áp dụng giao diện cho {{name}}",
+		"applyToAccount": "Áp dụng giao diện cho tài khoản",
+		"downloadPng": "Tải xuống PNG",
+		"updating": "Đang cập nhật...",
+		"loadingMine": "Đang tải giao diện đã tải lên của bạn từ Ely.by...",
+		"loading": "Đang tải giao diện từ Ely.by...",
+		"noMatchingUploads": "Không tìm thấy giao diện nào được tải lên phù hợp",
+		"noUploadsFor": "Không tìm thấy giao diện đã tải lên cho {{name}}",
+		"tryDifferent": "Hãy thử một truy vấn tìm kiếm hoặc bộ lọc khác.",
+		"noUploadsHint": "Bạn chưa tải bất kỳ giao diện tùy chỉnh nào lên Ely.by. Tải lên một giao diện để quản lý và mặc nó bất cứ lúc nào.",
+		"selectAccountHint": "Vui lòng chọn hoặc thêm tài khoản Ely.by để xem giao diện đã tải lên của bạn.",
+		"uploadASkin": "Tải lên giao diện",
+		"noSkins": "Không tìm thấy giao diện nào",
+		"deleteCustom": "Xóa giao diện tùy chỉnh",
+		"slim": "Slim",
+		"classic": "Cổ điển",
+		"pageOf": "Trang <b>{{page}}</b> của {{total}}",
+		"total": "(tổng cộng {{count}})",
+		"previous": "Trước",
+		"next": "Tiếp theo",
+		"alexSlim": "Alex (Slim)",
+		"steveClassic": "Steve (Cổ điển)",
+		"view3d": "Xem 3D",
+		"apply": "Áp dụng",
+		"livePreview": "Xem trước 3D trực tiếp",
+		"uploading": "Đang tải lên và áp dụng...",
+		"uploadApply": "Tải lên và áp dụng giao diện",
+		"uploadTitle": "Tải lên giao diện tùy chỉnh",
+		"uploadDescription": "Tải lên kết cấu da Minecraft từ máy tính của bạn để áp dụng trực tiếp cho Ely.by.",
+		"dropHint": "Nhấp để duyệt hoặc kéo và thả tệp PNG da tại đây",
+		"supports": "Hỗ trợ giao diện Minecraft tiêu chuẩn (64×64 hoặc 64×32 PNG, tối đa 2 MB)",
+		"dimensions": "Kích thước: {{value}}",
+		"size": "Kích thước: {{value}}",
+		"armModel": "Skin Arm Model",
+		"armModelHint": "Chọn xem skin này được tạo cho cánh tay Cổ điển (4px) hay Slim (3px).",
+		"classicArms": "Classic (cánh tay 4px)",
+		"slimArms": "Slim (cánh tay 3px)",
+		"targetAccount": "Target Ely.by Tài khoản",
+		"noAccount": "Không có tài khoản hoạt động",
+		"readyToApply": "Sẵn sàng đăng ký",
+		"passwordTitle": "Ely.by Ủy quyền mật khẩu",
+		"passwordDescription": "Để sửa đổi giao diện Ely.by của bạn cho <b>{{name}}</b>, vui lòng nhập mật khẩu tài khoản của bạn. Nó sẽ được mã hóa an toàn trong Khóa hệ điều hành gốc của bạn.",
+		"passwordPlaceholder": "Ely.by Mật khẩu",
+		"authorize": "Ủy quyền và áp dụng",
+		"count_other": "{{formatted}} giao diện"
+	},
+	"select": {
+		"placeholder": "Chọn một tùy chọn",
+		"noMatches": "Không có gì khớp với"
+	},
+	"hosting": {
+		"one": "Hosting {{name}}",
+		"many": "Hosting {{count}} máy chủ",
+		"tunnel": "Ingot đường hầm đang hoạt động",
+		"publicAddress": "Địa chỉ công cộng: {{address}}",
+		"connecting": "playit.gg đường hầm kết nối...",
+		"localOnly": "Chỉ mạng cục bộ"
 	}
 }

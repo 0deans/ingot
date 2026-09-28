@@ -12,6 +12,7 @@ import {
 	Upload,
 } from "lucide-react"
 import { useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type {
 	ExportMode,
 	ImportedServer,
@@ -35,6 +36,7 @@ import {
 	planSide,
 	planSummary,
 } from "@/components/version-change/plan-review"
+import { formatPercent } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
 import { canShareFiles, shareFile } from "@/lib/share"
 import { useServerStatus } from "@/services/server-data"
@@ -53,6 +55,7 @@ function useVersionBackup(serverId: string) {
 
 /** Export, copy and change version */
 export function TransferCard({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { status, isRunning } = useServerStatus(server.id)
 	const stopped = status === "stopped"
 	const [busy, setBusy] = useState<Busy>(null)
@@ -88,11 +91,11 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 			const suffix = mode === "full" ? "full" : "configs"
 			const dest = await saveDialog({
 				defaultPath: `${server.name.replace(/[^\w-]+/g, "_")}-${server.gameVersion}-${suffix}.zip`,
-				filters: [{ name: "Zip archive", extensions: ["zip"] }],
+				filters: [{ name: t("transfer.zipArchive"), extensions: ["zip"] }],
 			})
 			if (!dest) return null
 			const path = await rpc.export_server(server.id, mode, dest)
-			return `Saved to ${path}`
+			return t("transfer.savedTo", { path })
 		})
 
 	const undoVersion = () =>
@@ -100,7 +103,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 			const restored = await rpc.undo_server_version_change(server.id)
 			await serverService.refreshServers()
 			await refreshBackup()
-			return `Back on ${restored.gameVersion}, exactly as before.`
+			return t("crashDialog.undone", { version: restored.gameVersion })
 		})
 
 	const discardBackup = () =>
@@ -112,48 +115,57 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 
 	const copy = () =>
 		run("copy", async () => {
-			const created = await rpc.duplicate_server(server.id, `${server.name} copy`, null, null)
+			const created = await rpc.duplicate_server(
+				server.id,
+				t("transfer.copyName", { name: server.name }),
+				null,
+				null,
+			)
 			await serverService.refreshServers()
-			return `Created "${created.name}".`
+			return t("transfer.created", { name: created.name })
 		})
 
 	return (
 		<Card>
 			<CardHeader
 				icon={FileArchive}
-				title="Backup & version"
-				description="Export to share or back up, copy the server, or move to another Minecraft version."
+				title={t("transfer.title")}
+				description={t("transfer.description")}
 			/>
 			<div className="flex flex-col gap-2 px-4 pb-4">
 				<div className="grid grid-cols-2 gap-2">
 					<ActionButton
 						icon={canShareFiles() ? Share2 : Package}
-						label="Export configs"
-						hint="Without worlds"
+						label={t("transfer.exportConfigs")}
+						hint={t("transfer.withoutWorlds")}
 						busy={busy === "export-configs"}
 						disabled={busy !== null}
 						onClick={() => exportServer("configs")}
 					/>
 					<ActionButton
 						icon={canShareFiles() ? Share2 : FileArchive}
-						label="Export all"
-						hint="With worlds"
+						label={t("transfer.exportAll")}
+						hint={t("transfer.withWorlds")}
 						busy={busy === "export-full"}
 						disabled={busy !== null}
 						onClick={() => exportServer("full")}
 					/>
 					<ActionButton
 						icon={Copy}
-						label="Make a copy"
-						hint={stopped ? "A second server" : "Stop the server first"}
+						label={t("transfer.makeCopy")}
+						hint={stopped ? t("transfer.secondServer") : t("transfer.stopFirst")}
 						busy={busy === "copy"}
 						disabled={busy !== null || !stopped}
 						onClick={copy}
 					/>
 					<ActionButton
 						icon={ArrowUpDown}
-						label="Change version"
-						hint={stopped ? `Now ${server.gameVersion}` : "Stop the server first"}
+						label={t("versionChange.title")}
+						hint={
+							stopped
+								? t("transfer.nowVersion", { version: server.gameVersion })
+								: t("transfer.stopFirst")
+						}
 						busy={busy === "version"}
 						disabled={busy !== null || !stopped}
 						onClick={() => setVersionOpen(true)}
@@ -162,12 +174,13 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 				{versionBackup && (
 					<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
 						<p className="min-w-0 flex-1 text-xs text-zinc-400">
-							Changed from{" "}
-							{versionBackup.fromLoader === versionBackup.toLoader
-								? versionBackup.fromGameVersion
-								: `${loaderName(versionBackup.fromLoader)} ${versionBackup.fromGameVersion}`}
-							. Backup {formatBytes(versionBackup.bytes)}
-							{versionBackup.worldsBackedUp ? ", worlds included" : ""}.
+							{t(versionBackup.worldsBackedUp ? "transfer.backupWithWorlds" : "transfer.backup", {
+								version:
+									versionBackup.fromLoader === versionBackup.toLoader
+										? versionBackup.fromGameVersion
+										: `${loaderName(versionBackup.fromLoader)} ${versionBackup.fromGameVersion}`,
+								size: formatBytes(versionBackup.bytes),
+							})}
 						</p>
 						<div className="flex gap-1.5">
 							<Button
@@ -177,13 +190,13 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								disabled={busy !== null}
 								className="h-8 rounded-lg text-xs text-zinc-500"
 							>
-								Delete backup
+								{t("transfer.deleteBackup")}
 							</Button>
 							<Button
 								size="sm"
 								onClick={undoVersion}
 								disabled={busy !== null || !stopped}
-								title={stopped ? undefined : "Stop the server first"}
+								title={stopped ? undefined : t("transfer.stopFirst")}
 								className="h-8 gap-1.5 rounded-lg text-xs"
 							>
 								{busy === "undo" ? (
@@ -191,7 +204,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								) : (
 									<Undo2 className="size-3.5" />
 								)}
-								Undo, back to {versionBackup.fromGameVersion}
+								{t("transfer.undo", { version: versionBackup.fromGameVersion })}
 							</Button>
 						</div>
 					</div>
@@ -275,6 +288,7 @@ function ChangeVersionDialog({
 	onOpenChange: (open: boolean) => void
 	onDone: (text: string) => void
 }) {
+	const { t } = useTranslation()
 	const cores = CORE_FAMILIES.find((family) => family.includes(server.core)) ?? [server.core]
 	const [core, setCore] = useState<ServerCoreType>(server.core)
 	const { data: versions = [], isLoading } = useQuery({
@@ -325,9 +339,7 @@ function ChangeVersionDialog({
 			)
 			await serverService.refreshServers()
 			setStage("done")
-			onDone(
-				`${server.name} will start on ${planSide(plan, "to")}. You can undo it here if something doesn't work.`,
-			)
+			onDone(t("transfer.willStartOn", { name: server.name, version: planSide(plan, "to") }))
 		} catch (e) {
 			setError(String(e))
 			setStage("review")
@@ -336,23 +348,29 @@ function ChangeVersionDialog({
 
 	const options = versions.map((v) => ({
 		value: v,
-		label: v === server.gameVersion && core === server.core ? `${v} (current)` : v,
+		label:
+			v === server.gameVersion && core === server.core
+				? t("transfer.currentVersion", { version: v })
+				: v,
 	}))
 
 	return (
 		<Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-2xl">
-				<DialogTitle className="text-base">Change Minecraft version</DialogTitle>
+				<DialogTitle className="text-base">{t("transfer.changeTitle")}</DialogTitle>
 
 				{(stage === "pick" || stage === "checking") && (
 					<>
 						<p className="text-sm text-zinc-400 leading-relaxed">
-							Ingot checks every {cores.includes("paper") ? "plugin" : "mod"} first and changes
-							nothing until you apply. Everything is backed up, so you can undo it.
+							{t("transfer.changeDescription", {
+								context: cores.includes("paper") ? "plugin" : "mod",
+							})}
 						</p>
 						{cores.length > 1 && (
 							<div className="grid gap-1.5">
-								<span className="font-medium text-xs text-zinc-400">Server type</span>
+								<span className="font-medium text-xs text-zinc-400">
+									{t("transfer.serverType")}
+								</span>
 								<div className="flex flex-wrap gap-1.5">
 									{cores.map((id) => (
 										<button
@@ -371,7 +389,9 @@ function ChangeVersionDialog({
 										>
 											{loaderName(id)}
 											{id === server.core && (
-												<span className="ml-1 text-[10px] text-zinc-500">now</span>
+												<span className="ml-1 text-[10px] text-zinc-500">
+													{t("versionChange.now")}
+												</span>
 											)}
 										</button>
 									))}
@@ -411,7 +431,7 @@ function ChangeVersionDialog({
 							onBackupWorlds={setBackupWorlds}
 							downgradeOk={downgradeOk}
 							onDowngradeOk={setDowngradeOk}
-							emptyText="No plugins or mods to check. Only the version changes."
+							emptyText={t("transfer.empty")}
 							rounded
 						/>
 					</div>
@@ -420,10 +440,9 @@ function ChangeVersionDialog({
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
 						<Loader2 className="size-7 animate-spin text-emerald-400" />
-						<p className="font-medium text-sm text-zinc-200">Applying...</p>
+						<p className="font-medium text-sm text-zinc-200">{t("versionChange.applying")}</p>
 						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
-							Downloading and checking the new files, then backing up the current ones. Nothing
-							changes until everything is ready.
+							{t("versionChange.applyingHint")}
 						</p>
 					</div>
 				)}
@@ -431,10 +450,11 @@ function ChangeVersionDialog({
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-6 text-center">
 						<CheckCircle2 className="size-8 text-emerald-400" />
-						<p className="font-semibold text-sm text-zinc-50">Ready for {planSide(plan, "to")}</p>
+						<p className="font-semibold text-sm text-zinc-50">
+							{t("transfer.readyFor", { version: planSide(plan, "to") })}
+						</p>
 						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
-							The new version downloads on the next start. If something doesn&apos;t work, undo it
-							from Backup &amp; version: everything goes back exactly as it was.
+							{t("transfer.doneNote")}
 						</p>
 					</div>
 				)}
@@ -448,7 +468,7 @@ function ChangeVersionDialog({
 					<div className="flex gap-2">
 						{stage === "review" && (
 							<Button variant="ghost" onClick={() => setStage("pick")} className="rounded-xl">
-								Back
+								{t("versionChange.back")}
 							</Button>
 						)}
 						{(stage === "pick" || stage === "checking") && (
@@ -462,7 +482,7 @@ function ChangeVersionDialog({
 								) : (
 									<ArrowUpDown className="size-4" />
 								)}
-								{busy ? "Checking..." : "Check compatibility"}
+								{busy ? t("versionChange.checking") : t("versionChange.check")}
 							</Button>
 						)}
 						{stage === "review" && plan && (
@@ -471,12 +491,12 @@ function ChangeVersionDialog({
 								disabled={plan.downgrade && !downgradeOk}
 								className="h-11 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
 							>
-								Move to {planSide(plan, "to")}
+								{t("versionChange.moveToVersion", { version: planSide(plan, "to") })}
 							</Button>
 						)}
 						{stage === "done" && (
 							<Button onClick={() => onOpenChange(false)} className="h-11 rounded-xl">
-								Done
+								{t("common.done")}
 							</Button>
 						)}
 					</div>
@@ -494,6 +514,7 @@ export function ImportServerButton({
 	onImported?: (server: ServerConfig) => void
 	className?: string
 }) {
+	const { t } = useTranslation()
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [progress, setProgress] = useState<number | null>(null)
 	const [error, setError] = useState<string | null>(null)
@@ -553,17 +574,15 @@ export function ImportServerButton({
 					<Upload className="size-4" />
 				)}
 				{progress === null
-					? "Import server"
+					? t("transfer.import")
 					: progress < 1
-						? `Importing ${Math.round(progress * 100)}%`
-						: "Setting up server..."}
+						? t("transfer.importing", { percent: formatPercent(progress * 100) })
+						: t("transfer.settingUp")}
 			</Button>
 			{error && <ErrorNote>{error}</ErrorNote>}
 			{partial && (
 				<div className="flex flex-col gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-amber-100 text-xs">
-					<p className="font-semibold">
-						Imported "{partial.server.name}", but some plugins or mods couldn&apos;t be downloaded:
-					</p>
+					<p className="font-semibold">{t("transfer.partial", { name: partial.server.name })}</p>
 					<ul className="list-disc pl-4 text-amber-200/80">
 						{partial.warnings.map((w) => (
 							<li key={w}>{w}</li>
@@ -577,7 +596,7 @@ export function ImportServerButton({
 						}}
 						className="self-start rounded-lg bg-amber-500/20 text-amber-50 hover:bg-amber-500/30"
 					>
-						Open server
+						{t("transfer.openServer")}
 					</Button>
 				</div>
 			)}

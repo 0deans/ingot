@@ -23,11 +23,13 @@
 		"minimize": "Minimalizovat",
 		"maximize": "Maximalizovat",
 		"restore": "Obnovit",
-		"justNow": "Právě teď",
 		"never": "Nikdy",
-		"minutesAgo": "před {{count}} min",
-		"hoursAgo": "před {{count}} hod",
-		"daysAgo": "před {{count}} dny"
+		"unknown": "Neznámé",
+		"deleting": "Mazání...",
+		"stop": "Zastavit",
+		"done": "Hotovo",
+		"update": "Aktualizovat",
+		"enable": "Zapnout"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Vyberte svůj jazyk",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Zatím nejsou nastaveny žádné účty.",
 		"previewSkin": "3D náhled skinu",
 		"removeAccount": "Odebrat účet",
-		"setAsActive": "Nastavit jako aktivní"
+		"setAsActive": "Nastavit jako aktivní",
+		"offline": "Offline",
+		"reorder": "Přesunout účet {{name}}",
+		"dragToReorder": "Přetažením změníte pořadí",
+		"clickToPreview": "Klikněte pro 3D náhled skinu",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Hledat instance...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Otevřít složku instance v Průzkumníku",
 			"settingsTooltip": "Nastavení instance (RAM, argumenty JVM)",
 			"duplicateTooltip": "Duplikovat",
-			"deleteTooltip": "Smazat instanci"
-		}
+			"deleteTooltip": "Smazat instanci",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Objevovat obsah",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Resetovat všechny filtry",
 		"byAuthor": "od {{author}}",
 		"noDescription": "Popis není k dispozici.",
-		"details": "Podrobnosti"
+		"details": "Podrobnosti",
+		"loadFailed": "Obsah se nepodařilo načíst"
 	},
 	"skins": {
 		"title": "Katalog skinů",
@@ -199,6 +209,18 @@
 			"description": "Opravdu chcete tento snímek obrazovky trvale smazat? Tuto akci nelze vrátit zpět.",
 			"deleting": "Mazání...",
 			"deletePermanently": "Smazat trvale"
+		},
+		"card": {
+			"view": "Zobrazit {{name}}",
+			"unavailable": "Obrázek není dostupný",
+			"fullscreen": "Celá obrazovka",
+			"showInFolder": "Zobrazit ve složce"
+		},
+		"lightbox": {
+			"close": "Zavřít náhled",
+			"closeEsc": "Zavřít (Esc)",
+			"previous": "Předchozí snímek",
+			"next": "Další snímek"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Vytvořit nový server",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia nebo Vanilla",
 		"noMatchTitle": "Žádný server neodpovídá filtrům",
-		"noMatchSubtitle": "Zkuste změnit hledaný výraz nebo vybrat „Všechna jádra“."
+		"noMatchSubtitle": "Zkuste změnit hledaný výraz nebo vybrat „Všechna jádra“.",
+		"activeEntry": "{{name}} (port {{port}})"
 	},
 	"settings": {
 		"title": "Nastavení launcheru",
 		"subtitle": "Nastavte účty, jazyk, prostředí Java, přidělení paměti RAM a chování launcheru.",
 		"language": {
 			"title": "Jazyk",
-			"description": "Zvolte jazyk zobrazení rozhraní launcheru. Nové jazykové soubory v src/locales/ se načítají automaticky."
+			"description": "Vyberte jazyk launcheru. Data, čísla a velikosti se mu také přizpůsobí."
 		},
 		"theme": {
 			"title": "Vzhled a motiv",
@@ -263,7 +286,14 @@
 				"modded": "S mody",
 				"heavy": "Velký modpack",
 				"safeMax": "Bezpečné max."
-			}
+			},
+			"zoneSafe": "Bezpečná zóna",
+			"zoneHigh": "Vysoké využití",
+			"zoneCritical": "Kritická zóna",
+			"minShort": "Min: {{value}}",
+			"maxShort": "Max: {{value}}",
+			"totalShort": "{{value}} (max)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Chování launcheru",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Výchozí rozlišení okna",
 			"resolutionDesc": "Nastavte vlastní šířku a výšku herního okna",
 			"presets": "Předvolby:",
-			"defaultPreset": "Výchozí"
+			"defaultPreset": "Výchozí",
+			"resetTo": "Obnovit na {{size}}"
 		},
 		"sync": {
 			"title": "Synchronizace herních dat",
@@ -315,7 +346,8 @@
 					"title": "Synchronizovat lišty kreativního režimu",
 					"description": "Sdílet uložené rychlé lišty v kreativním režimu mezi světy"
 				}
-			}
+			},
+			"reinitialize": "Znovu vybrat zdroj pro „{{title}}“"
 		},
 		"updates": {
 			"title": "Aktualizace a verze",
@@ -340,5 +372,1276 @@
 			"dialogSubtitle": "Ingot využívá tento software z jiných projektů. Každý z nich podléhá vlastní licenci; kliknutím na název zobrazíte zdrojový kód a plné znění licence.",
 			"trademark": "Minecraft je ochranná známka společnosti Mojang AB. Ingot není spojen se společnostmi Mojang ani Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Svrchní svět",
+			"nether": "Nether",
+			"end": "End"
+		},
+		"gamemodes": {
+			"survival": "Přežití",
+			"creative": "Tvořivý",
+			"adventure": "Dobrodružný",
+			"spectator": "Divák"
+		}
+	},
+	"initialSync": {
+		"title": "Úvodní synchronizace",
+		"description": "Zapínáte synchronizaci pro <b>{{name}}</b>. Odkud mají pocházet výchozí data?",
+		"fromInstance": "Z této instance",
+		"uploadToShared": "Nahrát do sdíleného úložiště",
+		"fromInstanceDesc": "Zkopírovat možnosti a servery této instance do sdíleného úložiště jako hlavní kopii.",
+		"fromShared": "Ze sdíleného úložiště",
+		"downloadToInstance": "Stáhnout do instance",
+		"fromSharedDesc": "Stáhnout do této instance uložené sdílené možnosti a servery."
+	},
+	"deleteInstance": {
+		"title": "Smazat instanci",
+		"description": "Opravdu chcete tuto instanci trvale smazat? Tuto akci nelze vrátit.",
+		"note": "Všechny uložené hry, světy, nainstalované mody, balíčky zdrojů a konfigurační soubory ve složce této instance budou smazány z disku."
+	},
+	"deleteServer": {
+		"title": "Smazat server",
+		"confirm": "Opravdu chcete smazat <b>{{name}}</b>?",
+		"details": "Podrobnosti serveru:",
+		"detailsLine": "Jádro: {{core}} {{version}} • Port: {{port}}",
+		"deleteFiles": "Trvale smazat všechny soubory serveru",
+		"deleteFilesDesc": "Včetně map, dat hráčů, pluginů a logů serveru na disku."
+	},
+	"companion": {
+		"system": "Systémový",
+		"liveMap": "Živá mapa",
+		"disabled": "Vypnuto",
+		"notInstalled": "Živá mapa · nenainstalováno",
+		"updated_plugin": "Plugin Ingot aktualizován.",
+		"updated_mod": "Mod Ingot aktualizován.",
+		"installed_plugin": "Plugin Ingot nainstalován.",
+		"installed_mod": "Mod Ingot nainstalován.",
+		"removed_plugin": "Plugin Ingot odebrán. Mapa se teď obnovuje, když server ukládá svět.",
+		"removed_mod": "Mod Ingot odebrán. Mapa se teď obnovuje, když server ukládá svět.",
+		"enabled_plugin": "Plugin Ingot zapnut.",
+		"enabled_mod": "Mod Ingot zapnut.",
+		"remove_plugin": "Odebrat plugin Ingot",
+		"remove_mod": "Odebrat mod Ingot"
+	},
+	"syncConflict": {
+		"title": "Konflikt synchronizace",
+		"description": "<b>{{name}}</b> má vlastní konfigurační soubory, které nikdy nebyly synchronizovány se sdíleným úložištěm.",
+		"conflictingFiles": "Soubory v konfliktu:",
+		"choose": "Vyberte, jak vyřešit první synchronizaci:",
+		"useShared": "Použít sdílená nastavení",
+		"overwritesLocal": "Přepíše místní",
+		"useSharedDesc": "Nahradit možnosti a servery této instance sdílenými nastaveními. Automatická záloha <code>.bak</code> vašich souborů zůstane zachována.",
+		"useInstance": "Nastavit tuto instanci jako hlavní",
+		"overwritesShared": "Přepíše sdílené",
+		"useInstanceDesc": "Nahrát možnosti a servery této instance do sdíleného úložiště jako hlavní kopii. Současné sdílené soubory se zachovají jako <code>.bak</code>.",
+		"disable": "Ponechat nezávislou (bez synchronizace)",
+		"noChanges": "Beze změn",
+		"disableDesc": "Vypne synchronizaci pro tuto instanci, takže jiné instance nikdy nezmění ani nenahradí její servery a nastavení."
+	},
+	"leftoverServers": {
+		"runningSince": "Běží od {{time}}",
+		"stopped": "Zastaveno",
+		"stopNote": "Zastavení ho okamžitě ukončí. Vše od posledního automatického uložení (nanejvýš pár minut) se ztratí, ale svět samotný zůstane v pořádku.",
+		"leaveRunning": "Nechat běžet",
+		"title_one": "Server stále běží z minula",
+		"title_few": "Servery stále běží z minula",
+		"title_many": "Servery stále běží z minula",
+		"title_other": "Servery stále běží z minula",
+		"description_one": "Ingot se zavřel, aniž by ho zastavil, takže jeho konzole se ztratila: Ingot mu nemůže posílat příkazy ani uložit jeho svět. Drží port a svět, dokud ho nezastavíte.",
+		"description_few": "Ingot se zavřel, aniž by je zastavil, takže jejich konzole se ztratily: Ingot jim nemůže posílat příkazy ani uložit jejich světy. Drží porty a světy, dokud je nezastavíte.",
+		"description_many": "Ingot se zavřel, aniž by je zastavil, takže jejich konzole se ztratily: Ingot jim nemůže posílat příkazy ani uložit jejich světy. Drží porty a světy, dokud je nezastavíte.",
+		"description_other": "Ingot se zavřel, aniž by je zastavil, takže jejich konzole se ztratily: Ingot jim nemůže posílat příkazy ani uložit jejich světy. Drží porty a světy, dokud je nezastavíte."
+	},
+	"serverStatus": {
+		"running": "Běží",
+		"sleeping": "Spí",
+		"stopped": "Zastaveno",
+		"starting": "Spouští se",
+		"stopping": "Zastavuje se"
+	},
+	"serverTabs": {
+		"overview": "Přehled",
+		"console": "Konzole",
+		"players": "Hráči",
+		"map": "Mapa",
+		"plugins": "Pluginy",
+		"mods": "Mody",
+		"settings": "Nastavení",
+		"home": "Domů"
+	},
+	"serverWorkspace": {
+		"back": "Zpět na servery"
+	},
+	"duplicateInstance": {
+		"title": "Duplikovat instanci",
+		"defaultName": "{{name}} (kopie)",
+		"description": "Vytvoří samostatnou kopii se stejnými mody, konfiguracemi, balíčky zdrojů a nastavením. Změny v jedné neovlivní druhou, takže kopie je bezpečné místo pro vyzkoušení nové verze nebo modů.",
+		"nameLabel": "Název kopie",
+		"copyWorlds": "Kopírovat světy",
+		"noWorldsYet": "zatím žádné",
+		"copyWorldsDesc": "Bez nich začne kopie bez světů pro jednoho hráče.",
+		"note": "Herní čas začne od nuly. Logy, hlášení o pádech a snímky obrazovky zůstanou u originálu.",
+		"running": "Hra běží. Nejdřív ji zavřete, aby se světy zkopírovaly v uloženém stavu, nebo kopírujte bez světů.",
+		"copying": "Kopírování…",
+		"action": "Duplikovat"
+	},
+	"quitDialog": {
+		"title_quit": "Zastavit servery před ukončením?",
+		"title_update": "Zastavit servery kvůli aktualizaci?",
+		"title_restart": "Zastavit servery kvůli restartu?",
+		"action_quit": "Zastavit servery a ukončit",
+		"action_update": "Zastavit servery a aktualizovat",
+		"action_restart": "Zastavit servery a restartovat",
+		"stopping": "Zastavování…",
+		"keepInTray": "Běžet dál v oznamovací oblasti",
+		"asleep_one": "Tento server spí. Probudí se, když se připojí hráč, ale jen když je Ingot otevřený.",
+		"asleep_few": "Tyto servery spí. Probudí se, když se připojí hráč, ale jen když je Ingot otevřený.",
+		"asleep_many": "Tyto servery spí. Probudí se, když se připojí hráč, ale jen když je Ingot otevřený.",
+		"asleep_other": "Tyto servery spí. Probudí se, když se připojí hráč, ale jen když je Ingot otevřený.",
+		"consoles_one": "Konzole tohoto serveru běží v Ingotu. Pokud se Ingot zavře dřív, server poběží dál, ale nepůjde ovládat ani uložit jeho svět.",
+		"consoles_few": "Konzole těchto serverů běží v Ingotu. Pokud se Ingot zavře dřív, poběží dál, ale nepůjdou ovládat ani uložit jejich světy.",
+		"consoles_many": "Konzole těchto serverů běží v Ingotu. Pokud se Ingot zavře dřív, poběží dál, ale nepůjdou ovládat ani uložit jejich světy.",
+		"consoles_other": "Konzole těchto serverů běží v Ingotu. Pokud se Ingot zavře dřív, poběží dál, ale nepůjdou ovládat ani uložit jejich světy.",
+		"saving_one": "Ukládání světa a zastavování. Může to trvat až 30 sekund.",
+		"saving_few": "Ukládání světů a zastavování. Může to trvat až 30 sekund.",
+		"saving_many": "Ukládání světů a zastavování. Může to trvat až 30 sekund.",
+		"saving_other": "Ukládání světů a zastavování. Může to trvat až 30 sekund.",
+		"games_one": "Vaše hra poběží dál tak jako tak. Ingot ji převezme, až ho znovu otevřete.",
+		"games_few": "Vaše hry poběží dál tak jako tak. Ingot je převezme, až ho znovu otevřete.",
+		"games_many": "Vaše hry poběží dál tak jako tak. Ingot je převezme, až ho znovu otevřete.",
+		"games_other": "Vaše hry poběží dál tak jako tak. Ingot je převezme, až ho znovu otevřete."
+	},
+	"crashDialog": {
+		"title": "{{name}} spadl při prvním spuštění na {{version}}",
+		"suspects_plugin": "Obvykle jde o plugin, který na nové verzi ještě nefunguje. Hlášení o pádu ukazuje na:",
+		"suspects_mod": "Obvykle jde o mod, který na nové verzi ještě nefunguje. Hlášení o pádu ukazuje na:",
+		"suspects_either": "Obvykle jde o plugin nebo mod, který na nové verzi ještě nefunguje. Hlášení o pádu ukazuje na:",
+		"noSuspects_plugin": "Hlášení o pádu neukazuje na žádný plugin. Změnu můžete vrátit a počkat na aktualizace.",
+		"noSuspects_mod": "Hlášení o pádu neukazuje na žádný mod. Změnu můžete vrátit a počkat na aktualizace.",
+		"noSuspects_either": "Hlášení o pádu neukazuje na žádný plugin ani mod. Změnu můžete vrátit a počkat na aktualizace.",
+		"turnOff": "Vypnout",
+		"turnedOff": "Vypnuto",
+		"details": "Podrobnosti pádu",
+		"keepTrying": "Zkoušet dál",
+		"undo": "Vrátit změnu verze",
+		"undone": "Opět {{version}}, přesně jako předtím.",
+		"tryAgain_server_one": "Spusťte server znovu a vyzkoušejte to bez něj. Vrácení změny ho znovu zapne.",
+		"tryAgain_server_few": "Spusťte server znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
+		"tryAgain_server_many": "Spusťte server znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
+		"tryAgain_server_other": "Spusťte server znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
+		"tryAgain_game_one": "Spusťte hru znovu a vyzkoušejte to bez něj. Vrácení změny ho znovu zapne.",
+		"tryAgain_game_few": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
+		"tryAgain_game_many": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
+		"tryAgain_game_other": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne."
+	},
+	"skinPreview": {
+		"saving": "Ukládání...",
+		"saved": "Uloženo!",
+		"error": "Chyba",
+		"changeSkin": "Změnit skin",
+		"copyUrlTitle": "Kopírovat adresu textury skinu",
+		"copied": "Zkopírováno",
+		"copyUrl": "Kopírovat adresu",
+		"downloadTitle": "Uložit texturu skinu do Stažených",
+		"download": "Stáhnout"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Whitelist",
+			"ops": "Operátoři",
+			"bans": "Bany"
+		},
+		"whitelist": {
+			"title": "Whitelist",
+			"empty": "Na whitelistu zatím nikdo není",
+			"description": "Když je zapnutý, mohou se připojit jen tito hráči.",
+			"add": "Přidat"
+		},
+		"ops": {
+			"title": "Operátoři",
+			"empty": "Žádní operátoři",
+			"description": "Operátoři mohou používat všechny příkazy, včetně /stop a /op.",
+			"add": "Udělit OP"
+		},
+		"bans": {
+			"title": "Zabanovaní hráči",
+			"empty": "Nikdo není zabanován",
+			"description": "Zabanovaní hráči se nepřipojí, dokud nebudou odbanováni.",
+			"add": "Zabanovat"
+		},
+		"whitelistOn": "Whitelist zapnut",
+		"whitelistOff": "Whitelist vypnut",
+		"onlyListed": "Připojit se mohou jen hráči ze seznamu.",
+		"anyone": "Na tento server se může připojit kdokoli.",
+		"invalidName": "Jméno může obsahovat jen písmena, číslice a _",
+		"playerName": "Jméno hráče",
+		"permissionLevel": "Úroveň oprávnění {{level}}",
+		"banned": "Zabanován",
+		"noUuid": "Bez UUID",
+		"remove": "Odebrat {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Součástí aplikace pro Android",
+				"note": "Spouští servery na Androidu v linuxovém sandboxu. Sestaveno z projektu Termux."
+			},
+			"downloaded": {
+				"title": "Stahováno podle potřeby",
+				"note": "Stahuje se z oficiálního zdroje, když ho funkce poprvé potřebuje."
+			},
+			"servers": {
+				"title": "Serverový software k instalaci",
+				"note": "Stahuje se pro každý server, který vytvoříte, od projektu, který ho vyvíjí."
+			}
+		},
+		"roles": {
+			"proot": "Linuxový sandbox pro servery",
+			"talloc": "Paměťová knihovna používaná PRootem",
+			"shmem": "Podpora sdílené paměti pro PRoot",
+			"temurin": "Java pro servery a hru na počítači",
+			"alpine": "Základní systém sandboxu Androidu, včetně OpenJDK",
+			"pumpkin": "Server Pumpkin",
+			"playit": "Veřejná adresa vašeho serveru",
+			"paper": "Servery Paper",
+			"folia": "Servery Folia",
+			"purpur": "Servery Purpur",
+			"fabric": "Servery Fabric",
+			"vanilla": "Vanilla servery (od Mojangu, nejsou open source)"
+		},
+		"names": {
+			"minecraftServer": "Server Minecraft"
+		},
+		"various": "Různé open source licence"
+	},
+	"directConnect": {
+		"title": "Přímé připojení k serveru",
+		"description": "Spustit <b>{{name}}</b> a rovnou se připojit k serveru pro více hráčů, bez menu.",
+		"address": "Adresa serveru",
+		"addressPlaceholder": "např. mc.hypixel.net nebo localhost:25565",
+		"localServers": "Nastavené místní servery",
+		"recent": "Nedávné servery",
+		"removeRecent": "Odebrat z nedávných",
+		"launch": "Spustit a připojit"
+	},
+	"console": {
+		"autoScrollOn": "Automatické posouvání zap.",
+		"autoScrollOff": "Automatické posouvání vyp.",
+		"copyAll": "Kopírovat vše",
+		"clear": "Vymazat",
+		"waiting": "Čekám na výstup...",
+		"offline": "Server je vypnutý",
+		"offlineHint": "Spusťte server, abyste viděli konzoli.",
+		"latest": "Nejnovější",
+		"placeholder": "Zadejte příkaz, např. time set day",
+		"send": "Odeslat příkaz"
+	},
+	"syncMaster": {
+		"setAsSource": "„{{name}}“ je teď hlavním zdrojem synchronizace.",
+		"error": "Chyba: {{error}}",
+		"categoryTitle": "Úvodní synchronizace: {{title}}",
+		"title": "Vyberte hlavní instanci",
+		"categoryDescription": "Vyberte, odkud má sdílené úložiště nejprve vzít {{file}}:",
+		"description": "Vyberte instanci, která naplní sdílené úložiště. Její nastavení a data se stanou společným základem.",
+		"useExisting": "Použít existující sdílená data",
+		"keepCurrent": "Ponechat současný <code>{{file}}</code> ve sdíleném úložišti",
+		"useShared": "Použít sdílená",
+		"orCopyFrom": "Nebo kopírovat z instance:",
+		"copyFrom": "Kopírovat z instance:",
+		"noInstances": "Nenalezeny žádné instance.",
+		"useThis": "Použít tuto",
+		"setAsMaster": "Nastavit jako hlavní",
+		"noCopy": "Zatím nechcete nic kopírovat?",
+		"startFresh": "Začít načisto"
+	},
+	"quickJoin": {
+		"title": "Rychlá hra — připojit k serveru",
+		"description": "Spustit Minecraft a rovnou se připojit k <b>{{name}}</b> ({{address}}).",
+		"target": "Cíl: {{address}}",
+		"choose": "Vyberte instanci",
+		"noInstances": "Nenalezeny žádné instance Minecraftu",
+		"noInstancesHint": "Nejdřív vytvořte instanci, abyste se mohli připojit ke svému serveru.",
+		"createInstance": "Vytvořit instanci",
+		"matches": "Odpovídá serveru",
+		"launch": "Spustit a připojit"
+	},
+	"players": {
+		"tabs": {
+			"online": "Online",
+			"all": "Všichni hráči",
+			"access": "Přístup"
+		},
+		"offlineHint": "Spusťte server, abyste viděli, kdo hraje, a jejich zdraví, inventář a polohu.",
+		"starting": "Server se spouští...",
+		"startingHint": "Hráči se objeví, jakmile se načte svět.",
+		"liveError": "Nepodařilo se načíst data hráčů: {{error}}. Živá data vyžadují Java server (Paper, Purpur, Fabric nebo Vanilla).",
+		"checking": "Zjišťuji, kdo je online...",
+		"nobody": "Nikdo není online",
+		"nobodyHint": "Hráči se tu objeví, jakmile se připojí.",
+		"none": "Zatím žádní hráči",
+		"noneHint": "Všichni, kdo byli na tomto serveru, se tu objeví s posledním uloženým inventářem.",
+		"search": "Hledat hráče",
+		"onlineNow": "Právě online",
+		"lastSeen": "Naposledy {{time}}"
+	},
+	"map": {
+		"upToDate": "Aktuální",
+		"noWorld": "Zatím žádný svět",
+		"noWorldHint": "Spusťte server jednou, aby vygeneroval svět. Prozkoumané oblasti se objeví na mapě.",
+		"liveTitle": "Ingot aktualizuje mapu přímo z paměti serveru",
+		"live": "Živě",
+		"restartToGoLive": "Restartujte pro živou mapu",
+		"makeLiveTitle_plugin": "Nainstalujte plugin Ingot, aby se mapa obnovovala živě bez ukládání světa",
+		"makeLiveTitle_mod": "Nainstalujte mod Ingot, aby se mapa obnovovala živě bez ukládání světa",
+		"makeLive": "Zapnout živou mapu",
+		"refreshTitle": "Zkontrolovat nově uložené oblasti",
+		"ariaLabel": "Mapa světa. Tažením posunete; kolečkem nebo sevřením přiblížíte.",
+		"zoomIn": "Přiblížit",
+		"zoomOut": "Oddálit",
+		"updatedAreas_one": "Aktualizována {{count}} oblast",
+		"updatedAreas_few": "Aktualizovány {{count}} oblasti",
+		"updatedAreas_many": "Aktualizováno {{count}} oblasti",
+		"updatedAreas_other": "Aktualizováno {{count}} oblastí"
+	},
+	"pluginDetails": {
+		"byline": "od {{author}} · {{downloads}} stažení",
+		"playersNeedIt": "Tento mod potřebují i hráči: kdo se chce připojit, musí si ho nainstalovat do své hry.",
+		"installing": "Instalace...",
+		"page": "Stránka",
+		"noCompatible": "Zatím žádná verze pro Minecraft {{version}}. Starší můžete vybrat na kartě Verze, ale nemusí fungovat.",
+		"about": "O projektu",
+		"versions": "Verze",
+		"noDescription": "Bez popisu.",
+		"onlyFor": "Jen verze pro Minecraft {{version}}",
+		"noVersions": "Žádné verze",
+		"noVersionsHint": "Zkuste zobrazit všechny verze.",
+		"website": "Web",
+		"anyVersion": "Libovolná verze"
+	},
+	"addAccount": {
+		"missingCredentials": "Zadejte uživatelské jméno/e-mail a heslo.",
+		"welcomeBack": "Vítejte zpět, {{name}}!",
+		"elyFailed": "Nepodařilo se připojit k Ely.by",
+		"missingNickname": "Zadejte přezdívku.",
+		"offlineCreated": "Offline profil vytvořen pro {{name}}",
+		"offlineFailed": "Nepodařilo se vytvořit offline účet",
+		"description": "Připojte účet Ely.by nebo vytvořte offline profil, abyste mohli hrát.",
+		"tokensSecure": "Tokeny jsou šifrované v systémovém úložišti přihlašovacích údajů.",
+		"usernameOrEmail": "Uživatelské jméno nebo e-mail",
+		"usernamePlaceholder": "např. notch nebo player@ely.by",
+		"password": "Heslo",
+		"connecting": "Připojování...",
+		"logIn": "Přihlásit přes Ely.by",
+		"offlineNote": "Offline účty hrají bez online tokenu relace.",
+		"nickname": "Přezdívka",
+		"nicknamePlaceholder": "např. Steve",
+		"adding": "Přidávání...",
+		"addProfile": "Přidat profil",
+		"microsoftTitle": "Přihlášení Microsoft / Xbox Live",
+		"microsoftSoon": "Oficiální přihlášení účtem Microsoft přijde v některé z příštích verzí."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Hraní",
+			"players": "Hráči",
+			"world": "Svět",
+			"network": "Síť",
+			"advanced": "Pokročilé"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Herní režim",
+				"description": "Režim pro nové hráče.",
+				"options": {
+					"survival": "Přežití",
+					"creative": "Tvořivý",
+					"adventure": "Dobrodružný",
+					"spectator": "Divák"
+				}
+			},
+			"difficulty": {
+				"label": "Obtížnost",
+				"description": "Jak nebezpeční jsou mobové.",
+				"options": {
+					"peaceful": "Mírumilovná",
+					"easy": "Lehká",
+					"normal": "Normální",
+					"hard": "Těžká"
+				}
+			},
+			"force-gamemode": {
+				"label": "Vynutit herní režim",
+				"description": "Vracet hráče do výchozího režimu při každém připojení."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "Po smrti se hráči stanou diváky."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Hráči si mohou navzájem ubližovat."
+			},
+			"allow-flight": {
+				"label": "Povolit létání",
+				"description": "Nevyhazovat za létání (potřebné pro některé mody a pluginy)."
+			},
+			"spawn-protection": {
+				"label": "Ochrana spawnu",
+				"description": "Poloměr kolem spawnu, kde mohou stavět jen operátoři. 0 ji vypne."
+			},
+			"max-players": {
+				"label": "Max. hráčů",
+				"description": "Kolik hráčů může být online najednou."
+			},
+			"online-mode": {
+				"label": "Online režim",
+				"description": "Ověřovat účty u Mojangu. Vypněte pro účty bez licence nebo Ely.by."
+			},
+			"player-idle-timeout": {
+				"label": "Vyhazování za nečinnost",
+				"description": "Vyhodit hráče po tolika minutách nečinnosti. 0 nikdy nevyhazuje."
+			},
+			"op-permission-level": {
+				"label": "Úroveň operátorů",
+				"description": "Co mohou operátoři: 1 obejít ochranu spawnu … 4 vše."
+			},
+			"hide-online-players": {
+				"label": "Skrýt seznam hráčů",
+				"description": "Nezobrazovat v menu hry pro více hráčů, kdo je online."
+			},
+			"enforce-secure-profile": {
+				"label": "Vyžadovat podepsaný chat",
+				"description": "Pouštět jen hráče s klíči chatu podepsanými Mojangem."
+			},
+			"view-distance": {
+				"label": "Dohled",
+				"description": "Jak daleko hráči vidí. Méně znamená menší zátěž zařízení."
+			},
+			"simulation-distance": {
+				"label": "Vzdálenost simulace",
+				"description": "Jak daleko kolem hráčů svět dál běží."
+			},
+			"level-seed": {
+				"label": "Seed",
+				"description": "Seed nového světa. Používá se jen při vytváření světa.",
+				"placeholder": "Náhodný"
+			},
+			"level-type": {
+				"label": "Typ světa",
+				"description": "Používá se jen při vytváření světa.",
+				"options": {
+					"minecraft_normal": "Výchozí",
+					"minecraft_flat": "Superplochý",
+					"minecraft_large_biomes": "Velké biomy",
+					"minecraft_amplified": "Zesílený"
+				}
+			},
+			"generate-structures": {
+				"label": "Generovat stavby",
+				"description": "Vesnice, chrámy a další stavby v nových chuncích."
+			},
+			"allow-nether": {
+				"label": "Povolit Nether",
+				"description": "Hráči mohou cestovat do Netheru."
+			},
+			"max-world-size": {
+				"label": "Poloměr hranice světa",
+				"description": "Nejdál od středu, kam se hráči dostanou."
+			},
+			"server-port": {
+				"label": "Port",
+				"description": "Port, na kterém server naslouchá."
+			},
+			"enable-status": {
+				"label": "Zobrazovat v seznamu serverů",
+				"description": "Odpovídat na pingy z menu hry pro více hráčů (MOTD, počet hráčů)."
+			},
+			"network-compression-threshold": {
+				"label": "Práh komprese",
+				"description": "Komprimovat pakety větší než tato hodnota. -1 kompresi vypne."
+			},
+			"enable-command-block": {
+				"label": "Příkazové bloky",
+				"description": "Povolit příkazovým blokům fungovat."
+			},
+			"sync-chunk-writes": {
+				"label": "Bezpečný zápis chunků",
+				"description": "Zapisovat chunky synchronně. Bezpečnější, trochu pomalejší."
+			},
+			"max-tick-time": {
+				"label": "Časový limit watchdogu",
+				"description": "Zastavit server, pokud jeden tick trvá déle. -1 vypne."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Dosah zobrazení entit",
+				"description": "Jak daleko se entity posílají hráčům, v procentech."
+			}
+		},
+		"units": {
+			"blocks": "bloků",
+			"min": "min",
+			"chunks": "chunků",
+			"bytes": "bajtů",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "Většina změn se projeví po restartu serveru.",
+		"badImage": "Tento obrázek nelze použít: {{error}}",
+		"emptyName": "Název nemůže být prázdný.",
+		"identity": "Vzhled serveru",
+		"identityDesc": "Jak váš server vypadá v seznamu serverů.",
+		"name": "Název",
+		"motd": "Popis (MOTD) · dva řádky, Enter pro druhý",
+		"motdReset": "Obnovit",
+		"saved": "Uloženo",
+		"saveChanges": "Uložit změny",
+		"memory": "Paměť",
+		"memoryMobile": "Držte výrazně pod RAM telefonu.",
+		"memoryDesktop": "Maximální RAM pro Java server.",
+		"portInUse": "Port {{port}} už používá jiný server. Zkuste {{next}}.",
+		"gameSettings": "Nastavení hry",
+		"gameSettingsDesc": "server.properties s vysvětlivkami.",
+		"allOther": "Všechny ostatní vlastnosti",
+		"filter": "Filtrovat vlastnosti",
+		"discard": "Zahodit",
+		"configFiles": "Konfigurační soubory",
+		"configFilesDesc": "Konfigurace serveru a pluginů (YAML, JSON, TOML).",
+		"saveFile": "Uložit soubor",
+		"manage": "Spravovat",
+		"changed_one": "{{count}} změna",
+		"changed_few": "{{count}} změny",
+		"changed_many": "{{count}} změny",
+		"changed_other": "{{count}} změn"
+	},
+	"newInstance": {
+		"title": "Vytvořit novou instanci",
+		"description": "Vyberte verzi Minecraftu a mod loader. Ingot sám nastaví prostředí a Javu.",
+		"modLoader": "Mod loader",
+		"minecraftVersion": "Verze Minecraftu",
+		"snapshots": "Snapshoty",
+		"snapshotBadge": "snapshot",
+		"latestBadge": "nejnovější",
+		"loadingVersions": "Načítání verzí...",
+		"selectVersion": "Vyberte verzi Minecraftu",
+		"searchVersion": "Hledat verzi (např. 1.20, 1.16)...",
+		"loaderVersion": "Verze loaderu",
+		"noCompatible": "Žádné kompatibilní verze",
+		"selectLoaderVersion": "Vyberte verzi loaderu",
+		"searchLoaderVersion": "Hledat verzi loaderu...",
+		"name": "Název instance",
+		"namePlaceholder": "např. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Nastavení serveru",
+		"yourServers": "Vaše servery",
+		"newServer": "Nový server",
+		"about": "O aplikaci a licence"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Kontrola souborů serveru...",
+			"preparingPumpkin": "Příprava serveru Pumpkin...",
+			"downloadingPumpkin": "Stahování Pumpkinu (jen při prvním spuštění)...",
+			"preparingSandbox": "Příprava linuxového sandboxu...",
+			"downloadingSandbox": "Stahování linuxového sandboxu...",
+			"extractingSandbox": "Rozbalování souborového systému sandboxu...",
+			"installingJava": "Instalace Javy {{version}} do sandboxu...",
+			"sandboxReady": "Sandbox připraven!",
+			"installingCore": "Instalace {{name}} (jen při prvním spuštění, může to trvat pár minut)...",
+			"launching": "Spouštění procesu serveru...",
+			"failed": "Spuštění se nezdařilo: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Není na Modrinthu, CurseForge ani Hangaru, takže to Ingot nemůže zkontrolovat",
+			"beta": "Beta verze, může být nestabilní",
+			"alpha": "Alfa verze, může být nestabilní",
+			"siteOnly": "Verzi pro {{target}} lze stáhnout jen z {{site}}",
+			"fabricOnly": "Potřeba jen na Fabricu a Quiltu",
+			"noVersion": "Zatím žádná verze pro {{target}}",
+			"pluginNotMarked": "Zatím neoznačeno pro {{version}}; většina pluginů přesto funguje",
+			"notUpdated": "Neaktualizováno pro {{version}}; obvykle přesto funguje",
+			"sameAs": "Totéž co {{name}}",
+			"incompatible": "Nefunguje spolu s {{name}}",
+			"needsTurnedOff": "Vyžaduje {{name}}, který bude vypnut",
+			"needsMissing": "Vyžaduje {{name}}, který pro {{version}} není dostupný",
+			"neededBy": "Vyžadováno {{name}}"
+		},
+		"launch": {
+			"preparing": "Příprava spuštění",
+			"resolvingVersion": "Zjišťování verze",
+			"resolvingLoader": "Zjišťování mod loaderu",
+			"checkingJava": "Kontrola Javy",
+			"javaSetup": "Instalace Javy",
+			"downloadingClient": "Stahování klienta",
+			"downloadingLibraries": "Stahování knihoven",
+			"downloadingAssets": "Stahování assetů",
+			"verifying": "Kontrola souborů",
+			"auth": "Ověřování",
+			"starting": "Spouštění hry",
+			"fetchingMetadata": "Načítání dat verze...",
+			"fetchingProfile": "Načítání profilu {{loader}}...",
+			"detectingJava": "Hledání Javy...",
+			"downloadingJavaProgress": "Stahování Javy {{version}} ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Stahování Javy {{version}}...",
+			"extractingJava": "Rozbalování Javy {{version}}...",
+			"downloadingJar": "Stahování klienta Minecraftu...",
+			"downloadingLibrariesCount": "Stahování knihoven: {{count}}...",
+			"library": "Knihovna {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "Stahování assetů: {{count}}...",
+			"assets": "Assety {{current}}/{{total}}",
+			"verified": "Všechny herní soubory zkontrolovány",
+			"authDetail": "Nastavování skinu Ely.by a přihlašovacího agenta...",
+			"launching": "Spouštění Minecraftu...",
+			"connecting": "Připojování k {{server}}...",
+			"loadingWorld": "Načítání světa {{world}}...",
+			"initializing": "Příprava spuštění..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Jak ho vidí hráči",
+		"startingUp": "Spouštění...",
+		"shuttingDown": "Vypínání...",
+		"cantConnect": "Nelze se připojit k serveru",
+		"preparing": "Příprava...",
+		"sleepingNote": "Spí, aby šetřil prostředky. Sám se probudí, když se připojí hráč.",
+		"failedToStart": "Spuštění se nezdařilo.",
+		"start": "Spustit server",
+		"wake": "Probudit",
+		"sleep": "Uspat",
+		"starting": "Spouštění...",
+		"stopping": "Zastavování...",
+		"uptime": "Doba běhu",
+		"native": "Nativní",
+		"noOutput": "Zatím žádný výstup"
+	},
+	"serverCard": {
+		"offline": "Vypnuto",
+		"openPage": "Otevřít stránku serveru",
+		"copyAddress": "Klikněte pro zkopírování adresy",
+		"noneOnline": "0 online",
+		"joinTitle": "Spustit Minecraft a připojit se k tomuto serveru",
+		"join": "Připojit",
+		"start": "Spustit",
+		"openFolder": "Otevřít složku serveru"
+	},
+	"versionChange": {
+		"title": "Změnit verzi",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Konflikty",
+			"missing": "Zatím nedostupné",
+			"unknown": "Nelze ověřit",
+			"newDependency": "Nové závislosti",
+			"update": "Aktualizace",
+			"works": "Už kompatibilní",
+			"olderVersions": "Starší verze"
+		},
+		"actions": {
+			"keep": "Ponechat",
+			"update": "Aktualizovat",
+			"disable": "Vypnout",
+			"add": "Nainstalovat",
+			"skip": "Neinstalovat"
+		},
+		"kinds": {
+			"resourcePack": "Balíček zdrojů",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} je starší než {{from}}",
+		"downgradeWarning": "Světy hrané na novější verzi se na starší obvykle neotevřou a mohou se poškodit. Nechte zálohu světů zapnutou, aby je vrácení mohlo obnovit.",
+		"downgradeOk": "Rozumím, přesto přejít na starší verzi",
+		"backupWorldsHint": "Minecraft světy při otevření aktualizuje a to nelze vrátit. Se zálohou je vrácení obnoví také.",
+		"openOn": "Otevřít na {{site}}",
+		"new": "nové",
+		"instanceDescription": "Ingot nejdřív zkontroluje každý mod, balíček zdrojů a shader a nic nezmění, dokud nepotvrdíte. Poté to můžete vrátit.",
+		"now": "nyní",
+		"nowLabel": "Nyní",
+		"moveTo": "Přejít na",
+		"pickVersion": "Vyberte verzi",
+		"searchVersion": "Hledat verzi...",
+		"loaderVersion": "Verze {{loader}}",
+		"pickLoaderVersion": "Vyberte verzi loaderu",
+		"noLoaderFor": "Žádný {{loader}} pro {{version}}",
+		"noLoader": "Žádný {{loader}} pro tuto verzi",
+		"loaderSwitchNote": "Mody jsou dělané pro jeden loader. Ingot hledá verzi každého modu pro {{loader}} a vypne ty, které ji nemají.",
+		"instanceEmpty": "Žádné mody, balíčky zdrojů ani shadery ke kontrole. Změní se jen verze.",
+		"applying": "Použití...",
+		"applyingHint": "Stahování a kontrola nových souborů, poté záloha současných. Nic se nezmění, dokud nebude vše připraveno.",
+		"applyingWithWorlds": "Stahování a kontrola nových souborů, poté záloha vašich světů a současných souborů. Nic se nezmění, dokud nebude vše připraveno.",
+		"nowOn": "Nyní {{version}}",
+		"instanceDone": "Změněno z {{version}}. Pokud něco nefunguje, vraťte to v nastavení této instance — vše se vrátí přesně do předchozího stavu.",
+		"back": "Zpět",
+		"checking": "Kontrola...",
+		"check": "Zkontrolovat kompatibilitu",
+		"moveToVersion": "Přejít na {{version}}",
+		"summary": {
+			"download_one": "{{count}} ke stažení ({{size}})",
+			"download_few": "{{count}} ke stažení ({{size}})",
+			"download_many": "{{count}} ke stažení ({{size}})",
+			"download_other": "{{count}} ke stažení ({{size}})",
+			"turnedOff_one": "{{count}} vypnut",
+			"turnedOff_few": "{{count}} vypnuty",
+			"turnedOff_many": "{{count}} vypnuto",
+			"turnedOff_other": "{{count}} vypnuto",
+			"conflictsKept_one": "{{count}} konflikt ponechán",
+			"conflictsKept_few": "{{count}} konflikty ponechány",
+			"conflictsKept_many": "{{count}} konfliktu ponecháno",
+			"conflictsKept_other": "{{count}} konfliktů ponecháno"
+		},
+		"backupWorlds_one": "Zálohovat světy ({{count}} svět, {{size}})",
+		"backupWorlds_few": "Zálohovat světy ({{count}} světy, {{size}})",
+		"backupWorlds_many": "Zálohovat světy ({{count}} světa, {{size}})",
+		"backupWorlds_other": "Zálohovat světy ({{count}} světů, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Instanci se nepodařilo spustit: {{error}}",
+		"resolveConflict": "Konflikt se nepodařilo vyřešit: {{error}}",
+		"deleteInstance": "Instanci se nepodařilo smazat: {{error}}",
+		"startServer": "Server se nepodařilo spustit: {{error}}",
+		"deleteServer": "Server se nepodařilo smazat: {{error}}",
+		"quickPlay": "Rychlá hra na serveru selhala: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Načítání hráče...",
+		"noData": "O tomto hráči zatím nejsou žádná data.",
+		"health": "Zdraví",
+		"hunger": "Hlad",
+		"air": "Vzduch",
+		"experience": "Zkušenosti",
+		"level": "Úroveň {{level}}",
+		"equipment": "Výstroj",
+		"slots": {
+			"head": "Hlava",
+			"chest": "Hruď",
+			"legs": "Nohy",
+			"feet": "Chodidla",
+			"offhand": "Druhá ruka"
+		},
+		"showOnMap": "Ukázat na mapě",
+		"inventory": "Inventář",
+		"ender": "Truhla Endu ({{count}})",
+		"effects": "Efekty ({{count}})",
+		"onFire": "Hoří",
+		"durability": "Odolnost {{left}}/{{max}}",
+		"enchanted": "Očarováno",
+		"noEffects": "Žádné aktivní efekty",
+		"heal": "Vyléčit",
+		"feed": "Nakrmit",
+		"removeOp": "Odebrat OP",
+		"whitelisted": "Na whitelistu",
+		"confirmKick": "Vyhodit {{name}}?",
+		"confirmBan": "Zabanovat {{name}}?",
+		"confirm": "Potvrdit",
+		"kick": "Vyhodit"
+	},
+	"transfer": {
+		"zipArchive": "Archiv ZIP",
+		"savedTo": "Uloženo do {{path}}",
+		"copyName": "{{name}} kopie",
+		"created": "Vytvořeno „{{name}}“.",
+		"title": "Záloha a verze",
+		"description": "Exportujte pro sdílení nebo zálohu, zkopírujte server nebo přejděte na jinou verzi Minecraftu.",
+		"exportConfigs": "Exportovat konfigurace",
+		"withoutWorlds": "Bez světů",
+		"exportAll": "Exportovat vše",
+		"withWorlds": "Se světy",
+		"makeCopy": "Vytvořit kopii",
+		"secondServer": "Druhý server",
+		"stopFirst": "Nejdřív zastavte server",
+		"nowVersion": "Nyní {{version}}",
+		"backup": "Změněno z {{version}}. Záloha {{size}}.",
+		"backupWithWorlds": "Změněno z {{version}}. Záloha {{size}}, včetně světů.",
+		"deleteBackup": "Smazat zálohu",
+		"undo": "Vrátit zpět na {{version}}",
+		"willStartOn": "{{name}} se spustí na {{version}}. Pokud něco nefunguje, můžete to vrátit zde.",
+		"currentVersion": "{{version}} (současná)",
+		"changeTitle": "Změnit verzi Minecraftu",
+		"changeDescription_plugin": "Ingot nejdřív zkontroluje každý plugin a nic nezmění, dokud nepotvrdíte. Vše se zálohuje, takže to lze vrátit.",
+		"changeDescription_mod": "Ingot nejdřív zkontroluje každý mod a nic nezmění, dokud nepotvrdíte. Vše se zálohuje, takže to lze vrátit.",
+		"serverType": "Typ serveru",
+		"empty": "Žádné pluginy ani mody ke kontrole. Změní se jen verze.",
+		"readyFor": "Připraveno pro {{version}}",
+		"doneNote": "Nová verze se stáhne při příštím spuštění. Pokud něco nefunguje, vraťte to v sekci Záloha a verze — vše se vrátí přesně do předchozího stavu.",
+		"import": "Importovat server",
+		"importing": "Import {{percent}}",
+		"settingUp": "Nastavování serveru...",
+		"partial": "„{{name}}“ importován, ale některé pluginy nebo mody se nepodařilo stáhnout:",
+		"openServer": "Otevřít server"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Výkonný server Spigot/Bukkit s plnou podporou pluginů",
+			"badge": "Rychlý a stabilní"
+		},
+		"purpur": {
+			"tagline": "Fork Paperu se spoustou funkcí a obrovskými možnostmi nastavení",
+			"badge": "Nastavitelný"
+		},
+		"fabric": {
+			"tagline": "Lehký, modulární server pro mody Fabric",
+			"badge": "S mody"
+		},
+		"neoforge": {
+			"tagline": "Server pro mody NeoForge, kde je většina velkých obsahových modů",
+			"badge": "S mody"
+		},
+		"forge": {
+			"tagline": "Klasický server pro mody Forge od Minecraftu 1.17",
+			"badge": "S mody"
+		},
+		"quilt": {
+			"tagline": "Server kompatibilní s Fabricem, který spouští mody Quilt i Fabric",
+			"badge": "S mody"
+		},
+		"folia": {
+			"tagline": "Vícevláknový regionální server od PaperMC pro obrovské množství hráčů",
+			"badge": "Vícevláknový"
+		},
+		"pumpkin": {
+			"tagline": "Ultralehký, napsaný v Rustu — okamžitý start, < 60 MB RAM",
+			"badge": "Nativní pro mobil"
+		},
+		"vanilla": {
+			"tagline": "Oficiální neupravený server Minecraft přímo od Mojangu",
+			"badge": "Originál"
+		}
+	},
+	"wizard": {
+		"defaultName": "Server {{core}}",
+		"fetchFailed": "Nepodařilo se načíst verze. Zkontrolujte připojení.",
+		"enterName": "Zadejte název serveru.",
+		"selectVersion": "Vyberte verzi Minecraftu.",
+		"invalidPort": "Zadejte platný port (1024 – 65534).",
+		"portInUseTry": "Port {{port}} je už obsazený. Zkuste {{next}}.",
+		"portInUse": "Port {{port}} je už obsazený.",
+		"createFailed": "Server se nepodařilo vytvořit",
+		"stepEngine": "Vyberte jádro",
+		"stepName": "Pojmenujte server",
+		"stepMemory": "Paměť a potvrzení",
+		"stepOf": "Krok {{step}} z {{total}}",
+		"preparing": "Příprava serveru…",
+		"serverName": "Název serveru",
+		"namePlaceholder": "např. Survival server {{core}}",
+		"minecraftVersion": "Verze Minecraftu",
+		"selectVersionPlaceholder": "Vyberte verzi",
+		"serverPort": "Port serveru",
+		"portInUseShort": "Port obsazen",
+		"ready": "Připraveno k vytvoření",
+		"engine": "Jádro",
+		"version": "Verze",
+		"ram": "RAM",
+		"memory": "Paměť (RAM)",
+		"heroLine1": "Váš první server,",
+		"heroLine2": "během pár sekund.",
+		"heroText": "Ingot stáhne, nastaví a spustí server Minecraft přímo na tomto zařízení. Zvěte přátele odkudkoli.",
+		"createAServer": "Vytvořit server",
+		"createAServerHint": "Paper, PumpkinMC, Fabric a další"
+	},
+	"plugins": {
+		"unsupported": "Servery {{core}} nepodporují pluginy",
+		"unsupportedHint": "Vytvořte server Paper nebo Purpur pro pluginy, nebo Fabric pro mody.",
+		"installed": "{{name}} nainstalován.",
+		"installedWith": "{{name}} a {{extras}} nainstalovány.",
+		"browse_plugin": "Procházet pluginy",
+		"browse_mod": "Procházet mody",
+		"restartToApply": "Restartujte server pro použití změn.",
+		"restart": "Restartovat",
+		"noOther_plugin": "Zatím žádné další pluginy.",
+		"noOther_mod": "Zatím žádné další mody.",
+		"none_plugin": "Zatím žádné pluginy",
+		"none_mod": "Zatím žádné mody",
+		"find_plugin": "Najděte pluginy na Modrinthu a instalujte je jedním klepnutím.",
+		"find_mod": "Najděte mody na Modrinthu a instalujte je jedním klepnutím.",
+		"findHangar_plugin": "Najděte pluginy na Modrinthu a Hangaru a instalujte je jedním klepnutím.",
+		"findHangar_mod": "Najděte mody na Modrinthu a Hangaru a instalujte je jedním klepnutím.",
+		"updateAvailable": "Dostupná aktualizace: {{version}}",
+		"enabled": "{{name}} zapnut.",
+		"disabled": "{{name}} vypnut.",
+		"enable": "Zapnout {{name}}",
+		"disable": "Vypnout {{name}}",
+		"updated": "{{name}} aktualizován.",
+		"removed": "{{name}} odebrán.",
+		"unknownVersion": "Neznámá verze",
+		"byAuthors": "od {{authors}}",
+		"file": "Soubor",
+		"size": "Velikost",
+		"updateTo": "Aktualizovat na {{version}}",
+		"reallyDelete": "Opravdu smazat?",
+		"sort": {
+			"downloads": "Nejoblíbenější",
+			"updated": "Nedávno aktualizované",
+			"newest": "Nejnovější"
+		},
+		"searchPlaceholder_plugin": "Hledat pluginy, např. LuckPerms",
+		"searchPlaceholder_mod": "Hledat mody, např. Lithium",
+		"compatibleOnly": "Zobrazit jen výsledky kompatibilní s {{version}}",
+		"forVersion": "Pro {{version}}",
+		"searchFailed": "Hledání selhalo: {{error}}",
+		"nothingFound": "Nic nenalezeno",
+		"noneForVersion_plugin": "Žádné pluginy pro Minecraft {{version}}. Zkuste vypnout filtr verze.",
+		"noneForVersion_mod": "Žádné mody pro Minecraft {{version}}. Zkuste vypnout filtr verze.",
+		"tryAnother": "Zkuste jiné hledání.",
+		"loadMore": "Načíst další",
+		"playersNeedItTitle": "Hráči si musí tento mod také nainstalovat, jinak se nepřipojí",
+		"playersNeedIt": "Potřebují i hráči",
+		"isInstalled": "{{name}} je nainstalován",
+		"install": "Nainstalovat {{name}}",
+		"results_one": "{{formatted}} výsledek",
+		"results_few": "{{formatted}} výsledky",
+		"results_many": "{{formatted}} výsledku",
+		"results_other": "{{formatted}} výsledků"
+	},
+	"join": {
+		"shareTitle": "Připojte se k {{name}}",
+		"shareText": "Připoj se na můj server Minecraft „{{name}}“!\nAdresa: {{address}}\nVerze: Java Edition {{version}}",
+		"title": "Pozvat hráče",
+		"description": "Sdílejte adresu, aby se přátelé mohli připojit.",
+		"sameWifi": "Stejná Wi-Fi",
+		"copyLocal": "Kopírovat místní adresu",
+		"anywhere": "Odkudkoli (playit.gg)",
+		"copyPublic": "Kopírovat veřejnou adresu",
+		"showQr": "Zobrazit QR kód",
+		"linkPlayit": "Propojit účet playit.gg",
+		"noTunnel": "Propojeno, ale zatím není tunel. <link>Přidejte ho</link> pro port {{port}}.",
+		"connecting": "Připojování...",
+		"notConnected": "Nepřipojeno",
+		"stopPlayit": "Zastavit playit",
+		"goPublic": "Zveřejnit",
+		"share": "Sdílet pozvánku",
+		"scan": "Naskenujte pro zkopírování adresy",
+		"qrAlt": "QR kód"
+	},
+	"stats": {
+		"latest": "Poslední: {{value}}",
+		"noData": "Zatím žádná data",
+		"now": "nyní",
+		"ago": "před {{time}}",
+		"min": "Min",
+		"avg": "Prům.",
+		"peak": "Špička",
+		"performance": "Výkon",
+		"touchHint": "Klepněte na graf pro podrobnosti",
+		"ofDevice": "zařízení",
+		"allocated": "Přiděleno",
+		"deviceRam": "RAM zařízení",
+		"free": "volno {{size}}",
+		"lag": "Lag",
+		"smooth": "Plynule",
+		"slightLag": "Mírný lag",
+		"lagging": "Laguje",
+		"used": "{{label}}: použito {{used}} z {{total}}"
+	},
+	"storage": {
+		"title": "Úložiště",
+		"worlds": "Světy",
+		"plugins": "Pluginy a mody",
+		"server": "Soubory serveru",
+		"backups": "Zálohy",
+		"logs": "Logy",
+		"other": "Ostatní",
+		"device": "Úložiště zařízení"
+	},
+	"instanceSettings": {
+		"pushFailed": "Odeslání selhalo: {{error}}",
+		"pullFailed": "Stažení selhalo: {{error}}",
+		"saveFailed": "Nastavení se nepodařilo uložit: {{error}}",
+		"title": "Nastavení instance",
+		"description": "Nastavte parametry spuštění a limity paměti pro <b>{{name}}</b>.",
+		"namePlaceholder": "Moje instance Minecraftu",
+		"loader": "loader {{version}}",
+		"backup": "Změněno z {{from}} na {{to}}. Záloha {{size}}.",
+		"backupWithWorlds": "Změněno z {{from}} na {{to}}. Záloha {{size}}, včetně světů.",
+		"memoryOverride": "Vlastní paměť pro tuto instanci",
+		"minMemory": "Počáteční paměť (min):",
+		"maxMemory": "Maximální paměť (max):",
+		"inheritMemory": "Používá se globální nastavení: <b>{{min}} min / {{max}} max</b>. Změnit ho lze na stránce Nastavení.",
+		"jvmArgs": "Argumenty JVM",
+		"jvmArgsHint": "Další argumenty spuštění Javy (oddělené mezerami)",
+		"java": "Vlastní spustitelný soubor Javy",
+		"javaHint": "Nechte prázdné pro automaticky spravované prostředí Adoptium",
+		"windowOverride": "Vlastní celá obrazovka a velikost okna pro tuto instanci",
+		"fullscreenHint": "Spouštět rovnou na celou obrazovku",
+		"resolution": "Rozlišení:",
+		"fullscreen": "Celá obrazovka",
+		"inheritDisplay": "Používá se globální nastavení zobrazení: <b>{{value}}</b>. Změnit ho lze v nastavení launcheru.",
+		"syncHint": "Synchronizace možností, serverů, balíčků, historie a lišt",
+		"manualSync": "Ruční synchronizace",
+		"manualSyncHint": "Odeslat data této instance nebo stáhnout nejnovější soubory ze sdíleného úložiště.",
+		"push": "Odeslat do sdíleného úložiště",
+		"pull": "Stáhnout ze sdíleného úložiště",
+		"syncOptions": "Synchronizovat možnosti hry (options.txt)",
+		"syncServers": "Synchronizovat servery (servers.dat)",
+		"syncPacks": "Synchronizovat balíčky zdrojů (resourcepacks/)",
+		"syncHistory": "Synchronizovat historii příkazů (command_history.txt)",
+		"syncHotbars": "Synchronizovat lišty tvořivého režimu (hotbar.nbt)",
+		"inheritSync": "Používá se globální nastavení synchronizace. Synchronizuje před spuštěním a po ukončení."
+	},
+	"install": {
+		"loadFailed": "Možnosti instalace se nepodařilo načíst",
+		"compatible": "Kompatibilní",
+		"all": "Vše",
+		"any": "Libovolný",
+		"modpackDone": "Modpack „{{name}}“ nainstalován jako nová instance!",
+		"selectTarget": "Vyberte cílovou instanci...",
+		"added": "{{file}} přidán do {{instance}}!",
+		"modpackTitle": "Nainstalovat modpack",
+		"addTitle_mod": "Přidat mod do instance",
+		"addTitle_resourcepack": "Přidat balíček zdrojů do instance",
+		"addTitle_shader": "Přidat shader do instance",
+		"addTitle_modpack": "Přidat modpack do instance",
+		"addTitle_datapack": "Přidat datový balíček do instance",
+		"addTitle_plugin": "Přidat plugin do instance",
+		"modpackDescription": "Vytvořit novou instanci Minecraftu z „{{title}}“.",
+		"description": "Nainstalovat „{{title}}“ do jedné z vašich instancí.",
+		"loading": "Načítání možností...",
+		"retry": "Zkusit znovu",
+		"modpackVersion": "Verze modpacku",
+		"selectModpackVersion": "Vyberte verzi modpacku...",
+		"loaders": "Loadery:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Než přidáte mody nebo balíčky zdrojů, vytvořte instanci na kartě Instance.",
+		"target": "Cílová instance",
+		"fileVersion": "Verze souboru",
+		"selectFileVersion": "Vyberte verzi souboru...",
+		"supports": "Podporuje:",
+		"createAndInstall": "Vytvořit a nainstalovat",
+		"installToInstance": "Nainstalovat do instance",
+		"compatibleCount_one": "{{count}} kompatibilní verze",
+		"compatibleCount_few": "{{count}} kompatibilní verze",
+		"compatibleCount_many": "{{count}} kompatibilní verze",
+		"compatibleCount_other": "{{count}} kompatibilních verzí"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Balíček zdrojů",
+		"shader": "Shader",
+		"datapack": "Datový balíček",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Stabilní",
+		"beta": "Beta",
+		"alpha": "Alfa"
+	},
+	"contentDetails": {
+		"loadFailed": "Podrobnosti projektu se nepodařilo načíst",
+		"addToInstance": "Přidat do instance",
+		"versions": "Verze a soubory",
+		"versionsCount": "Verze a soubory ({{count}})",
+		"loading": "Načítání podrobností projektu...",
+		"gallery": "Galerie ({{count}})",
+		"clickToOpen": "Klikněte na obrázek pro celou obrazovku",
+		"viewFullscreen": "Zobrazit na celou obrazovku",
+		"scrollLeft": "Posunout galerii vlevo",
+		"scrollRight": "Posunout galerii vpravo",
+		"source": "Zdrojový kód",
+		"issues": "Hlášení chyb",
+		"wiki": "Wiki",
+		"description": "Popis",
+		"gameVersion": "Verze hry:",
+		"noMatch": "Filtrům neodpovídá žádná verze.",
+		"openOriginal": "Otevřít originál",
+		"previous": "Předchozí obrázek",
+		"next": "Další obrázek",
+		"downloads_one": "{{formatted}} stažení",
+		"downloads_few": "{{formatted}} stažení",
+		"downloads_many": "{{formatted}} stažení",
+		"downloads_other": "{{formatted}} stažení",
+		"followers_one": "{{formatted}} sledující",
+		"followers_few": "{{formatted}} sledující",
+		"followers_many": "{{formatted}} sledujícího",
+		"followers_other": "{{formatted}} sledujících",
+		"showing_one": "Zobrazeno {{shown}} z {{count}} verze",
+		"showing_few": "Zobrazeno {{shown}} z {{count}} verzí",
+		"showing_many": "Zobrazeno {{shown}} z {{count}} verze",
+		"showing_other": "Zobrazeno {{shown}} z {{count}} verzí"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Vyberte složku instancí {{launcher}}",
+		"selectDir": "Vyberte složku instance Minecraftu",
+		"done": "Instance úspěšně importována!",
+		"title": "Import z jiného launcheru",
+		"selectInstance": "Vyberte instanci ({{launcher}})",
+		"configure": "Nastavit import",
+		"description": "Přeneste instalace Minecraftu, mody, světy a nastavení přímo do Ingotu.",
+		"optionsDescription": "Vyberte, jaká data přenést do nové instance Ingotu.",
+		"detecting": "Hledání nainstalovaných launcherů...",
+		"notDetected": "Nenalezeno • Klikněte pro výběr",
+		"custom": "Vlastní složka",
+		"customHint": "Vyberte libovolnou složku instance na disku",
+		"backToLaunchers": "Zpět na launchery",
+		"changeFolder": "Změnit složku",
+		"filter": "Filtrovat instance...",
+		"loadingInstances": "Načítání instancí...",
+		"noneFound": "V této složce nebyly nalezeny žádné instance.",
+		"select": "Vybrat",
+		"nameInIngot": "Název instance v Ingotu:",
+		"namePlaceholder": "Moje importovaná instance",
+		"source": "Zdroj: {{path}}",
+		"components": "Vyberte, co importovat:",
+		"mods": "Mody",
+		"configs": "Konfigurace",
+		"configsHint": "Nastavení a konfigurace modů",
+		"worlds": "Světy a uložené hry",
+		"packs": "Balíčky zdrojů",
+		"packsHint": "Textury a shaderpacky",
+		"screenshotsHint": "Snímky obrazovky ze hry",
+		"modData": "Data modů a ostatní",
+		"modDataHint": "Waypointy, schémata, záznamy atd.",
+		"options": "Možnosti hry",
+		"optionsHint": "options.txt a ovládání",
+		"servers": "Servery pro více hráčů",
+		"serversHint": "Seznam serverů servers.dat",
+		"note": "Vše výše je volitelné. S položkou <b>Data modů a ostatní</b> se složky modů (waypointy minimapy, schémata, záznamy) bezpečně zkopírují. Zrušte ji, pokud chcete čistý import bez dalších souborů.",
+		"importing": "Importování...",
+		"import": "Importovat instanci",
+		"found_one": "Nalezena {{count}} instance v {{launcher}}. Vyberte, kterou importovat.",
+		"found_few": "Nalezeny {{count}} instance v {{launcher}}. Vyberte, kterou importovat.",
+		"found_many": "Nalezeno {{count}} instance v {{launcher}}. Vyberte, kterou importovat.",
+		"found_other": "Nalezeno {{count}} instancí v {{launcher}}. Vyberte, kterou importovat.",
+		"instancesFound_one": "Nalezena {{count}} instance",
+		"instancesFound_few": "Nalezeny {{count}} instance",
+		"instancesFound_many": "Nalezeno {{count}} instance",
+		"instancesFound_other": "Nalezeno {{count}} instancí",
+		"modsCount_one": "{{count}} mod",
+		"modsCount_few": "{{count}} mody",
+		"modsCount_many": "{{count}} modu",
+		"modsCount_other": "{{count}} modů",
+		"worldsCount_one": "{{count}} svět",
+		"worldsCount_few": "{{count}} světy",
+		"worldsCount_many": "{{count}} světa",
+		"worldsCount_other": "{{count}} světů",
+		"screenshotsCount_one": "{{count}} snímek",
+		"screenshotsCount_few": "{{count}} snímky",
+		"screenshotsCount_many": "{{count}} snímku",
+		"screenshotsCount_other": "{{count}} snímků",
+		"modFiles_one": "{{count}} soubor modu",
+		"modFiles_few": "{{count}} soubory modů",
+		"modFiles_many": "{{count}} souboru modů",
+		"modFiles_other": "{{count}} souborů modů",
+		"singleplayerWorlds_one": "{{count}} svět pro jednoho hráče",
+		"singleplayerWorlds_few": "{{count}} světy pro jednoho hráče",
+		"singleplayerWorlds_many": "{{count}} světa pro jednoho hráče",
+		"singleplayerWorlds_other": "{{count}} světů pro jednoho hráče"
+	},
+	"skinViewer": {
+		"resetCamera": "Resetovat 3D kameru",
+		"pauseRotation": "Pozastavit otáčení",
+		"autoRotate": "Automaticky otáčet model",
+		"idlePose": "Přepnout na postoj",
+		"playWalk": "Přehrát animaci chůze",
+		"idleTitle": "Animace dýchání",
+		"idle": "Stojí",
+		"walkTitle": "Animace chůze",
+		"walk": "Chůze",
+		"runTitle": "Animace běhu",
+		"run": "Běh",
+		"waveTitle": "Animace mávání",
+		"wave": "Mávání",
+		"pause": "Pozastavit animace",
+		"outerOn": "Vnější vrstva zap.",
+		"outerOff": "Vnější vrstva vyp.",
+		"modelSlim": "Model: štíhlý (Alex)",
+		"modelClassic": "Model: klasický (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Vlastní skin",
+		"currentActiveSkin": "Aktivní skin",
+		"activeAccountSkin": "Skin aktivního účtu",
+		"loadFailed": "Skiny z Ely.by se nepodařilo načíst",
+		"defaultSteve": "Výchozí Steve",
+		"addAccountFirst": "Nejdřív přidejte nebo vyberte účet Ely.by.",
+		"elyOnlySync": "Synchronizace skinů funguje jen s účty Ely.by.",
+		"customApplied": "Vlastní skin nastaven pro {{name}}!",
+		"skinApplied": "Skin č. {{id}} nastaven pro {{name}}!",
+		"applyFailed": "Skin se nepodařilo nastavit.",
+		"enterPassword": "Zadejte heslo k Ely.by.",
+		"skinFromDate": "Skin z {{date}}",
+		"uploadedApplied": "Vlastní skin nahrán a nastaven pro {{name}}!",
+		"pngOnly": "Soubor skinu musí být ve formátu PNG (.png).",
+		"tooLarge": "Soubor skinu je příliš velký (max. 2 MB).",
+		"badSize": "Neplatné rozměry: {{size}}. Skiny Minecraftu mají 64x64 nebo 64x32 pixelů.",
+		"badImage": "Obrázek se nepodařilo přečíst. Ověřte, že jde o platný PNG.",
+		"elyOnlyUpload": "Nahrávání skinů funguje jen s účty Ely.by.",
+		"uploadFailed": "Skin se nepodařilo nahrát.",
+		"saved": "Skin č. {{id}} uložen!",
+		"downloadFailed": "Stahování selhalo.",
+		"urlCopied": "Adresa textury zkopírována!",
+		"activeAccount": "Aktivní účet Ely.by",
+		"noActiveAccount": "Žádný aktivní účet Ely.by",
+		"browse": "Procházet skiny",
+		"preview3d": "3D náhled",
+		"currentSkin": "Současný skin",
+		"skinNumber": "Skin č. {{id}}",
+		"alexSlim3": "Alex (štíhlé, 3 px)",
+		"steveClassic4": "Steve (klasické, 4 px)",
+		"currentSkinOf": "Současný skin ({{name}})",
+		"applyTo": "Nastavit skin pro {{name}}",
+		"applyToAccount": "Nastavit skin na účet",
+		"downloadPng": "Stáhnout PNG",
+		"updating": "Aktualizace...",
+		"loadingMine": "Načítání vašich skinů z Ely.by...",
+		"loading": "Načítání skinů z Ely.by...",
+		"noMatchingUploads": "Žádné odpovídající nahrané skiny",
+		"noUploadsFor": "Žádné nahrané skiny pro {{name}}",
+		"tryDifferent": "Zkuste jiné hledání nebo filtr.",
+		"noUploadsHint": "Na Ely.by jste zatím nenahráli žádné vlastní skiny. Nahrajte jeden, abyste ho mohli spravovat a nosit kdykoli.",
+		"selectAccountHint": "Vyberte nebo přidejte účet Ely.by pro zobrazení nahraných skinů.",
+		"uploadASkin": "Nahrát skin",
+		"noSkins": "Nenalezeny žádné skiny",
+		"deleteCustom": "Smazat vlastní skin",
+		"slim": "Štíhlé",
+		"classic": "Klasické",
+		"pageOf": "Strana <b>{{page}}</b> z {{total}}",
+		"total": "(celkem {{count}})",
+		"previous": "Předchozí",
+		"next": "Další",
+		"alexSlim": "Alex (štíhlé)",
+		"steveClassic": "Steve (klasické)",
+		"view3d": "3D zobrazení",
+		"apply": "Nastavit",
+		"livePreview": "Živý 3D náhled",
+		"uploading": "Nahrávání a nastavování...",
+		"uploadApply": "Nahrát a nastavit skin",
+		"uploadTitle": "Nahrát vlastní skin",
+		"uploadDescription": "Nahrajte texturu skinu Minecraftu z počítače a hned ji nastavte na Ely.by.",
+		"dropHint": "Klikněte pro výběr nebo sem přetáhněte PNG skinu",
+		"supports": "Standardní skiny Minecraftu (PNG 64×64 nebo 64×32, do 2 MB)",
+		"dimensions": "Rozměry: {{value}}",
+		"size": "Velikost: {{value}}",
+		"armModel": "Model paží",
+		"armModelHint": "Vyberte, zda je skin pro klasické (4 px) nebo štíhlé (3 px) paže.",
+		"classicArms": "Klasické (paže 4 px)",
+		"slimArms": "Štíhlé (paže 3 px)",
+		"targetAccount": "Cílový účet Ely.by",
+		"noAccount": "Žádný aktivní účet",
+		"readyToApply": "Připraveno k nastavení",
+		"passwordTitle": "Ověření heslem Ely.by",
+		"passwordDescription": "Pro změnu skinu Ely.by pro <b>{{name}}</b> zadejte heslo k účtu. Bezpečně se zašifruje v systémové klíčence.",
+		"passwordPlaceholder": "Heslo Ely.by",
+		"authorize": "Ověřit a nastavit",
+		"count_one": "{{formatted}} skin",
+		"count_few": "{{formatted}} skiny",
+		"count_many": "{{formatted}} skinu",
+		"count_other": "{{formatted}} skinů"
+	},
+	"select": {
+		"placeholder": "Vyberte možnost",
+		"noMatches": "Žádné shody"
+	},
+	"hosting": {
+		"one": "Hostováno: {{name}}",
+		"many": "Hostované servery: {{count}}",
+		"tunnel": "Tunel Ingot aktivní",
+		"publicAddress": "Veřejná adresa: {{address}}",
+		"connecting": "Připojování tunelu playit.gg...",
+		"localOnly": "Jen místní síť"
 	}
 }

@@ -23,11 +23,13 @@
 		"minimize": "Réduire",
 		"maximize": "Agrandir",
 		"restore": "Restaurer",
-		"justNow": "À l'instant",
 		"never": "Jamais",
-		"minutesAgo": "il y a {{count}} min",
-		"hoursAgo": "il y a {{count}} h",
-		"daysAgo": "il y a {{count}} j"
+		"unknown": "Inconnu",
+		"deleting": "Suppression...",
+		"stop": "Arrêter",
+		"done": "Terminé",
+		"update": "Mettre à jour",
+		"enable": "Activer"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Choisissez votre langue",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Aucun compte configuré pour le moment.",
 		"previewSkin": "Aperçu 3D du skin",
 		"removeAccount": "Supprimer le compte",
-		"setAsActive": "Définir comme actif"
+		"setAsActive": "Définir comme actif",
+		"offline": "Hors ligne",
+		"reorder": "Déplacer le compte {{name}}",
+		"dragToReorder": "Faire glisser pour réordonner le compte",
+		"clickToPreview": "Cliquer pour voir le skin en 3D",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Rechercher des instances...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Ouvrir le dossier de l'instance dans l'Explorateur",
 			"settingsTooltip": "Paramètres de l'instance (RAM, arguments JVM)",
 			"duplicateTooltip": "Dupliquer",
-			"deleteTooltip": "Supprimer l'instance"
-		}
+			"deleteTooltip": "Supprimer l'instance",
+			"ram": "{{size}} de RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Découvrir du contenu",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Réinitialiser tous les filtres",
 		"byAuthor": "par {{author}}",
 		"noDescription": "Aucune description fournie.",
-		"details": "Détails"
+		"details": "Détails",
+		"loadFailed": "Impossible de charger le contenu"
 	},
 	"skins": {
 		"title": "Catalogue de skins",
@@ -199,6 +209,18 @@
 			"description": "Voulez-vous vraiment supprimer définitivement cette capture d'écran ? Cette action est irréversible.",
 			"deleting": "Suppression...",
 			"deletePermanently": "Supprimer définitivement"
+		},
+		"card": {
+			"view": "Voir {{name}}",
+			"unavailable": "Image indisponible",
+			"fullscreen": "Plein écran",
+			"showInFolder": "Afficher dans le dossier"
+		},
+		"lightbox": {
+			"close": "Fermer l'aperçu",
+			"closeEsc": "Fermer (Échap)",
+			"previous": "Capture précédente",
+			"next": "Capture suivante"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Créer un nouveau serveur",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia ou Vanilla",
 		"noMatchTitle": "Aucun serveur ne correspond à vos filtres",
-		"noMatchSubtitle": "Essayez de modifier votre recherche ou de sélectionner « Tous les moteurs »."
+		"noMatchSubtitle": "Essayez de modifier votre recherche ou de sélectionner « Tous les moteurs ».",
+		"activeEntry": "{{name}} (port {{port}})"
 	},
 	"settings": {
 		"title": "Paramètres du launcher",
 		"subtitle": "Configurez vos comptes, la langue, les environnements Java, l'allocation RAM et le comportement du launcher.",
 		"language": {
 			"title": "Langue",
-			"description": "Choisissez la langue d'affichage de l'interface du launcher. Les nouveaux fichiers dans src/locales/ sont rechargés automatiquement."
+			"description": "Choisissez la langue du launcher. Les dates, nombres et tailles la suivent aussi."
 		},
 		"theme": {
 			"title": "Apparence et thème",
@@ -263,7 +286,14 @@
 				"modded": "Moddé",
 				"heavy": "Gros modpack",
 				"safeMax": "Max. sûr"
-			}
+			},
+			"zoneSafe": "Zone sûre",
+			"zoneHigh": "Utilisation élevée",
+			"zoneCritical": "Zone critique",
+			"minShort": "Min : {{value}}",
+			"maxShort": "Max : {{value}}",
+			"totalShort": "{{value}} (max)",
+			"mb": "Mo"
 		},
 		"behavior": {
 			"title": "Comportement du launcher",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Résolution de fenêtre par défaut",
 			"resolutionDesc": "Définir une largeur et une hauteur personnalisées pour la fenêtre de jeu",
 			"presets": "Préréglages :",
-			"defaultPreset": "Par défaut"
+			"defaultPreset": "Par défaut",
+			"resetTo": "Réinitialiser à {{size}}"
 		},
 		"sync": {
 			"title": "Synchronisation des données de jeu",
@@ -315,7 +346,8 @@
 					"title": "Synchroniser les barres d'action du mode créatif",
 					"description": "Partager les barres d'accès rapide enregistrées en mode créatif entre les mondes"
 				}
-			}
+			},
+			"reinitialize": "Redéfinir la source de {{title}}"
 		},
 		"updates": {
 			"title": "Mises à jour et version",
@@ -340,5 +372,1249 @@
 			"dialogSubtitle": "Ingot utilise ces logiciels issus d'autres projets. Chacun est soumis à sa propre licence ; cliquez sur un nom pour afficher son code source et sa licence complète.",
 			"trademark": "Minecraft est une marque déposée de Mojang AB. Ingot n'est affilié ni à Mojang ni à Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Surface",
+			"nether": "Nether",
+			"end": "L'End"
+		},
+		"gamemodes": {
+			"survival": "Survie",
+			"creative": "Créatif",
+			"adventure": "Aventure",
+			"spectator": "Spectateur"
+		}
+	},
+	"initialSync": {
+		"title": "Synchronisation initiale",
+		"description": "Vous activez la synchronisation pour <b>{{name}}</b>. D'où doivent venir les données au départ ?",
+		"fromInstance": "Depuis cette instance",
+		"uploadToShared": "Envoyer vers le stockage partagé",
+		"fromInstanceDesc": "Copier les options et serveurs de cette instance dans le stockage partagé comme copie principale.",
+		"fromShared": "Depuis le stockage partagé",
+		"downloadToInstance": "Charger dans l'instance",
+		"fromSharedDesc": "Charger les options et serveurs partagés existants dans cette instance."
+	},
+	"deleteInstance": {
+		"title": "Supprimer l'instance",
+		"description": "Voulez-vous vraiment supprimer définitivement cette instance ? Cette action est irréversible.",
+		"note": "Toutes les sauvegardes, mondes, mods installés, packs de ressources et fichiers de configuration de ce dossier d'instance seront supprimés du disque."
+	},
+	"deleteServer": {
+		"title": "Supprimer le serveur",
+		"confirm": "Voulez-vous vraiment supprimer <b>{{name}}</b> ?",
+		"details": "Détails du serveur :",
+		"detailsLine": "Moteur : {{core}} {{version}} • Port : {{port}}",
+		"deleteFiles": "Supprimer définitivement tous les fichiers du serveur",
+		"deleteFilesDesc": "Y compris les cartes, les données des joueurs, les plugins et les journaux du serveur sur votre disque."
+	},
+	"companion": {
+		"system": "Système",
+		"liveMap": "Carte en direct",
+		"disabled": "Désactivé",
+		"notInstalled": "Carte en direct · non installée",
+		"updated_plugin": "Plugin Ingot mis à jour.",
+		"updated_mod": "Mod Ingot mis à jour.",
+		"installed_plugin": "Plugin Ingot installé.",
+		"installed_mod": "Mod Ingot installé.",
+		"removed_plugin": "Plugin Ingot supprimé. La carte se met désormais à jour quand le serveur sauvegarde.",
+		"removed_mod": "Mod Ingot supprimé. La carte se met désormais à jour quand le serveur sauvegarde.",
+		"enabled_plugin": "Plugin Ingot activé.",
+		"enabled_mod": "Mod Ingot activé.",
+		"remove_plugin": "Supprimer le plugin Ingot",
+		"remove_mod": "Supprimer le mod Ingot"
+	},
+	"syncConflict": {
+		"title": "Conflit de synchronisation",
+		"description": "<b>{{name}}</b> possède ses propres fichiers de configuration qui n'ont jamais été synchronisés avec votre stockage partagé.",
+		"conflictingFiles": "Fichiers en conflit :",
+		"choose": "Choisissez comment résoudre cette première synchronisation :",
+		"useShared": "Utiliser les paramètres partagés",
+		"overwritesLocal": "Écrase le local",
+		"useSharedDesc": "Remplacer les options et serveurs de cette instance par les paramètres partagés. Une sauvegarde automatique <code>.bak</code> de vos fichiers sera conservée.",
+		"useInstance": "Faire de cette instance la source principale",
+		"overwritesShared": "Écrase le partagé",
+		"useInstanceDesc": "Envoyer les options et serveurs de cette instance dans le stockage partagé comme copie principale. Les fichiers partagés existants seront sauvegardés en <code>.bak</code>.",
+		"disable": "Rester indépendant (sync désactivée)",
+		"noChanges": "Aucun changement",
+		"disableDesc": "Désactive la synchronisation pour cette instance : ses serveurs et paramètres ne seront jamais modifiés ou remplacés par d'autres instances."
+	},
+	"leftoverServers": {
+		"runningSince": "En marche depuis {{time}}",
+		"stopped": "Arrêté",
+		"stopNote": "L'arrêt est immédiat. Tout ce qui s'est passé depuis la dernière sauvegarde automatique (quelques minutes au plus) est perdu, le monde lui-même reste intact.",
+		"leaveRunning": "Laisser tourner",
+		"title_one": "Un serveur tourne encore depuis la dernière fois",
+		"title_many": "Des serveurs tournent encore depuis la dernière fois",
+		"title_other": "Des serveurs tournent encore depuis la dernière fois",
+		"description_one": "Ingot s'est fermé sans l'arrêter, sa console est donc perdue : Ingot ne peut plus lui envoyer de commandes ni sauvegarder son monde. Il occupe son port et son monde jusqu'à son arrêt.",
+		"description_many": "Ingot s'est fermé sans les arrêter, leurs consoles sont donc perdues : Ingot ne peut plus leur envoyer de commandes ni sauvegarder leurs mondes. Ils occupent leurs ports et leurs mondes jusqu'à leur arrêt.",
+		"description_other": "Ingot s'est fermé sans les arrêter, leurs consoles sont donc perdues : Ingot ne peut plus leur envoyer de commandes ni sauvegarder leurs mondes. Ils occupent leurs ports et leurs mondes jusqu'à leur arrêt."
+	},
+	"serverStatus": {
+		"running": "En marche",
+		"sleeping": "En veille",
+		"stopped": "Arrêté",
+		"starting": "Démarrage",
+		"stopping": "Arrêt"
+	},
+	"serverTabs": {
+		"overview": "Aperçu",
+		"console": "Console",
+		"players": "Joueurs",
+		"map": "Carte",
+		"plugins": "Plugins",
+		"mods": "Mods",
+		"settings": "Paramètres",
+		"home": "Accueil"
+	},
+	"serverWorkspace": {
+		"back": "Retour aux serveurs"
+	},
+	"duplicateInstance": {
+		"title": "Dupliquer l'instance",
+		"defaultName": "{{name}} (copie)",
+		"description": "Crée une copie indépendante avec les mêmes mods, configurations, packs de ressources et paramètres. Modifier l'une ne touche pas l'autre : idéal pour essayer une nouvelle version ou des mods.",
+		"nameLabel": "Nom de la copie",
+		"copyWorlds": "Copier les mondes",
+		"noWorldsYet": "aucun pour l'instant",
+		"copyWorldsDesc": "Sans eux, la copie démarre sans monde solo.",
+		"note": "Le temps de jeu repart de zéro. Les journaux, rapports de plantage et captures restent avec l'original.",
+		"running": "Le jeu est lancé. Fermez-le d'abord pour copier les mondes tels qu'ils ont été sauvegardés, ou copiez sans les mondes.",
+		"copying": "Copie…",
+		"action": "Dupliquer"
+	},
+	"quitDialog": {
+		"title_quit": "Arrêter vos serveurs avant de quitter ?",
+		"title_update": "Arrêter vos serveurs pour la mise à jour ?",
+		"title_restart": "Arrêter vos serveurs pour redémarrer ?",
+		"action_quit": "Arrêter les serveurs et quitter",
+		"action_update": "Arrêter les serveurs et mettre à jour",
+		"action_restart": "Arrêter les serveurs et redémarrer",
+		"stopping": "Arrêt…",
+		"keepInTray": "Garder en arrière-plan",
+		"asleep_one": "Ce serveur est en veille. Il se réveille quand un joueur se connecte, mais seulement tant qu'Ingot est ouvert.",
+		"asleep_many": "Ces serveurs sont en veille. Ils se réveillent quand un joueur se connecte, mais seulement tant qu'Ingot est ouvert.",
+		"asleep_other": "Ces serveurs sont en veille. Ils se réveillent quand un joueur se connecte, mais seulement tant qu'Ingot est ouvert.",
+		"consoles_one": "La console de ce serveur tourne dans Ingot. Si Ingot se ferme d'abord, le serveur continue sans aucun moyen de le contrôler ni de sauvegarder son monde.",
+		"consoles_many": "Les consoles de ces serveurs tournent dans Ingot. Si Ingot se ferme d'abord, ils continuent sans aucun moyen de les contrôler ni de sauvegarder leurs mondes.",
+		"consoles_other": "Les consoles de ces serveurs tournent dans Ingot. Si Ingot se ferme d'abord, ils continuent sans aucun moyen de les contrôler ni de sauvegarder leurs mondes.",
+		"saving_one": "Sauvegarde du monde et arrêt. Cela peut prendre jusqu'à 30 secondes.",
+		"saving_many": "Sauvegarde des mondes et arrêt. Cela peut prendre jusqu'à 30 secondes.",
+		"saving_other": "Sauvegarde des mondes et arrêt. Cela peut prendre jusqu'à 30 secondes.",
+		"games_one": "Votre jeu continue de tourner dans tous les cas. Ingot le reprendra à sa réouverture.",
+		"games_many": "Vos jeux continuent de tourner dans tous les cas. Ingot les reprendra à sa réouverture.",
+		"games_other": "Vos jeux continuent de tourner dans tous les cas. Ingot les reprendra à sa réouverture."
+	},
+	"crashDialog": {
+		"title": "{{name}} a planté au premier lancement en {{version}}",
+		"suspects_plugin": "C'est généralement un plugin pas encore compatible avec la nouvelle version. Le rapport de plantage désigne :",
+		"suspects_mod": "C'est généralement un mod pas encore compatible avec la nouvelle version. Le rapport de plantage désigne :",
+		"suspects_either": "C'est généralement un plugin ou un mod pas encore compatible avec la nouvelle version. Le rapport de plantage désigne :",
+		"noSuspects_plugin": "Le rapport de plantage ne nomme aucun plugin. Vous pouvez annuler le changement et attendre les mises à jour.",
+		"noSuspects_mod": "Le rapport de plantage ne nomme aucun mod. Vous pouvez annuler le changement et attendre les mises à jour.",
+		"noSuspects_either": "Le rapport de plantage ne nomme ni plugin ni mod. Vous pouvez annuler le changement et attendre les mises à jour.",
+		"turnOff": "Désactiver",
+		"turnedOff": "Désactivé",
+		"details": "Détails du plantage",
+		"keepTrying": "Continuer à essayer",
+		"undo": "Annuler le changement de version",
+		"undone": "De retour en {{version}}, exactement comme avant.",
+		"tryAgain_server_one": "Relancez le serveur pour essayer sans lui. Annuler le réactivera.",
+		"tryAgain_server_many": "Relancez le serveur pour essayer sans eux. Annuler les réactivera.",
+		"tryAgain_server_other": "Relancez le serveur pour essayer sans eux. Annuler les réactivera.",
+		"tryAgain_game_one": "Relancez le jeu pour essayer sans lui. Annuler le réactivera.",
+		"tryAgain_game_many": "Relancez le jeu pour essayer sans eux. Annuler les réactivera.",
+		"tryAgain_game_other": "Relancez le jeu pour essayer sans eux. Annuler les réactivera."
+	},
+	"skinPreview": {
+		"saving": "Enregistrement...",
+		"saved": "Enregistré !",
+		"error": "Erreur",
+		"changeSkin": "Changer de skin",
+		"copyUrlTitle": "Copier l'URL de la texture",
+		"copied": "Copié",
+		"copyUrl": "Copier l'URL",
+		"downloadTitle": "Enregistrer la texture du skin dans Téléchargements",
+		"download": "Télécharger"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Liste blanche",
+			"ops": "Opérateurs",
+			"bans": "Bannis"
+		},
+		"whitelist": {
+			"title": "Liste blanche",
+			"empty": "Personne sur la liste blanche",
+			"description": "Quand elle est active, seuls ces joueurs peuvent rejoindre.",
+			"add": "Ajouter"
+		},
+		"ops": {
+			"title": "Opérateurs",
+			"empty": "Aucun opérateur",
+			"description": "Les opérateurs peuvent utiliser toutes les commandes, y compris /stop et /op.",
+			"add": "Rendre OP"
+		},
+		"bans": {
+			"title": "Joueurs bannis",
+			"empty": "Personne n'est banni",
+			"description": "Les joueurs bannis ne peuvent pas rejoindre avant d'être graciés.",
+			"add": "Bannir"
+		},
+		"whitelistOn": "Liste blanche activée",
+		"whitelistOff": "Liste blanche désactivée",
+		"onlyListed": "Seuls les joueurs listés peuvent rejoindre.",
+		"anyone": "Tout le monde peut rejoindre ce serveur.",
+		"invalidName": "Les pseudos ne peuvent contenir que des lettres, des chiffres et _",
+		"playerName": "Nom du joueur",
+		"permissionLevel": "Niveau de permission {{level}}",
+		"banned": "Banni",
+		"noUuid": "Pas d'UUID",
+		"remove": "Retirer {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Inclus dans l'application Android",
+				"note": "Exécute les serveurs sur Android dans un bac à sable Linux. Compilé à partir du projet Termux."
+			},
+			"downloaded": {
+				"title": "Téléchargé si besoin",
+				"note": "Récupéré depuis sa source officielle la première fois qu'une fonction l'utilise."
+			},
+			"servers": {
+				"title": "Logiciels serveur installables",
+				"note": "Téléchargé pour chaque serveur créé, depuis le projet qui le développe."
+			}
+		},
+		"roles": {
+			"proot": "Bac à sable Linux pour les serveurs",
+			"talloc": "Bibliothèque mémoire utilisée par PRoot",
+			"shmem": "Prise en charge de la mémoire partagée pour PRoot",
+			"temurin": "Java pour les serveurs et le jeu sur ordinateur",
+			"alpine": "Système de base du bac à sable Android, avec son OpenJDK",
+			"pumpkin": "Serveur Pumpkin",
+			"playit": "Adresse publique pour votre serveur",
+			"paper": "Serveurs Paper",
+			"folia": "Serveurs Folia",
+			"purpur": "Serveurs Purpur",
+			"fabric": "Serveurs Fabric",
+			"vanilla": "Serveurs vanilla (par Mojang, non open source)"
+		},
+		"names": {
+			"minecraftServer": "Serveur Minecraft"
+		},
+		"various": "Diverses licences open source"
+	},
+	"directConnect": {
+		"title": "Connexion directe au serveur",
+		"description": "Lancer <b>{{name}}</b> directement sur un serveur multijoueur, sans passer par le menu.",
+		"address": "Adresse du serveur",
+		"addressPlaceholder": "ex. mc.hypixel.net ou localhost:25565",
+		"localServers": "Serveurs locaux configurés",
+		"recent": "Serveurs récents",
+		"removeRecent": "Retirer des récents",
+		"launch": "Lancer et se connecter"
+	},
+	"console": {
+		"autoScrollOn": "Défilement auto activé",
+		"autoScrollOff": "Défilement auto désactivé",
+		"copyAll": "Tout copier",
+		"clear": "Effacer",
+		"waiting": "En attente de sortie...",
+		"offline": "Le serveur est hors ligne",
+		"offlineHint": "Démarrez le serveur pour voir sa console.",
+		"latest": "Dernières lignes",
+		"placeholder": "Tapez une commande, ex. time set day",
+		"send": "Envoyer la commande"
+	},
+	"syncMaster": {
+		"setAsSource": "« {{name}} » défini comme source principale de synchronisation.",
+		"error": "Erreur : {{error}}",
+		"categoryTitle": "Synchronisation initiale : {{title}}",
+		"title": "Choisir l'instance principale",
+		"categoryDescription": "Choisissez d'où votre stockage partagé doit d'abord obtenir {{file}} :",
+		"description": "Choisissez une instance existante pour remplir le stockage partagé. Ses paramètres et données deviendront la base commune.",
+		"useExisting": "Utiliser les données partagées existantes",
+		"keepCurrent": "Conserver le <code>{{file}}</code> actuel dans le stockage partagé",
+		"useShared": "Utiliser le partagé",
+		"orCopyFrom": "Ou copier depuis une instance existante :",
+		"copyFrom": "Copier depuis une instance existante :",
+		"noInstances": "Aucune instance trouvée.",
+		"useThis": "Utiliser celle-ci",
+		"setAsMaster": "Définir comme principale",
+		"noCopy": "Vous ne voulez rien copier pour l'instant ?",
+		"startFresh": "Partir de zéro"
+	},
+	"quickJoin": {
+		"title": "Jeu rapide — Rejoindre le serveur",
+		"description": "Lancer Minecraft et rejoindre directement <b>{{name}}</b> ({{address}}).",
+		"target": "Cible : {{address}}",
+		"choose": "Choisir l'instance cliente",
+		"noInstances": "Aucune instance Minecraft trouvée",
+		"noInstancesHint": "Créez d'abord une instance cliente pour rejoindre votre serveur.",
+		"createInstance": "Créer une instance",
+		"matches": "Même version",
+		"launch": "Lancer et rejoindre"
+	},
+	"players": {
+		"tabs": {
+			"online": "En ligne",
+			"all": "Tous les joueurs",
+			"access": "Accès"
+		},
+		"offlineHint": "Démarrez le serveur pour voir qui joue, avec leur santé, leur inventaire et leur position.",
+		"starting": "Le serveur démarre...",
+		"startingHint": "Les joueurs apparaîtront une fois le monde chargé.",
+		"liveError": "Impossible de lire les données des joueurs en direct : {{error}}. Il faut un serveur Java (Paper, Purpur, Fabric ou Vanilla).",
+		"checking": "Recherche des joueurs en ligne...",
+		"nobody": "Personne n'est en ligne",
+		"nobodyHint": "Les joueurs apparaîtront ici dès qu'ils rejoignent.",
+		"none": "Aucun joueur pour l'instant",
+		"noneHint": "Tous ceux qui ont rejoint ce serveur apparaîtront ici, avec leur dernier inventaire sauvegardé.",
+		"search": "Rechercher des joueurs",
+		"onlineNow": "En ligne",
+		"lastSeen": "Vu {{time}}"
+	},
+	"map": {
+		"upToDate": "À jour",
+		"noWorld": "Pas encore de monde",
+		"noWorldHint": "Démarrez le serveur une fois pour générer un monde. Les zones explorées apparaîtront sur la carte.",
+		"liveTitle": "Ingot tient la carte à jour depuis la mémoire du serveur",
+		"live": "En direct",
+		"restartToGoLive": "Redémarrer pour le direct",
+		"makeLiveTitle_plugin": "Installer le plugin Ingot pour mettre à jour la carte en temps réel, sans sauvegarder le monde",
+		"makeLiveTitle_mod": "Installer le mod Ingot pour mettre à jour la carte en temps réel, sans sauvegarder le monde",
+		"makeLive": "Passer en direct",
+		"refreshTitle": "Chercher les zones nouvellement sauvegardées",
+		"ariaLabel": "Carte du monde. Faites glisser pour déplacer, molette ou pincement pour zoomer.",
+		"zoomIn": "Zoom avant",
+		"zoomOut": "Zoom arrière",
+		"updatedAreas_one": "{{count}} zone mise à jour",
+		"updatedAreas_many": "{{count}} zones mises à jour",
+		"updatedAreas_other": "{{count}} zones mises à jour"
+	},
+	"pluginDetails": {
+		"byline": "par {{author}} · {{downloads}} téléchargements",
+		"playersNeedIt": "Les joueurs ont aussi besoin de ce mod : pour rejoindre, il faut l'installer dans son jeu.",
+		"installing": "Installation...",
+		"page": "Page",
+		"noCompatible": "Pas encore de version pour Minecraft {{version}}. Vous pouvez en choisir une plus ancienne dans Versions, mais elle risque de ne pas fonctionner.",
+		"about": "À propos",
+		"versions": "Versions",
+		"noDescription": "Aucune description.",
+		"onlyFor": "Uniquement les versions pour Minecraft {{version}}",
+		"noVersions": "Aucune version",
+		"noVersionsHint": "Essayez d'afficher toutes les versions.",
+		"website": "Site web",
+		"anyVersion": "Toutes versions"
+	},
+	"addAccount": {
+		"missingCredentials": "Saisissez le pseudo/e-mail et le mot de passe.",
+		"welcomeBack": "Bon retour, {{name}} !",
+		"elyFailed": "Connexion à Ely.by impossible",
+		"missingNickname": "Saisissez un pseudo.",
+		"offlineCreated": "Profil hors ligne créé pour {{name}}",
+		"offlineFailed": "Impossible de créer le compte hors ligne",
+		"description": "Connectez votre compte Ely.by ou créez un profil hors ligne pour jouer.",
+		"tokensSecure": "Les jetons sont chiffrés dans le coffre d'identifiants de votre système.",
+		"usernameOrEmail": "Pseudo ou e-mail",
+		"usernamePlaceholder": "ex. notch ou player@ely.by",
+		"password": "Mot de passe",
+		"connecting": "Connexion...",
+		"logIn": "Se connecter à Ely.by",
+		"offlineNote": "Les comptes hors ligne jouent sans jeton de session en ligne.",
+		"nickname": "Pseudo du joueur",
+		"nicknamePlaceholder": "ex. Steve",
+		"adding": "Ajout...",
+		"addProfile": "Ajouter le profil",
+		"microsoftTitle": "Connexion Microsoft / Xbox Live",
+		"microsoftSoon": "La connexion officielle avec un compte Microsoft arrivera dans une prochaine version."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Jeu",
+			"players": "Joueurs",
+			"world": "Monde",
+			"network": "Réseau",
+			"advanced": "Avancé"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Mode de jeu",
+				"description": "Mode des nouveaux joueurs.",
+				"options": {
+					"survival": "Survie",
+					"creative": "Créatif",
+					"adventure": "Aventure",
+					"spectator": "Spectateur"
+				}
+			},
+			"difficulty": {
+				"label": "Difficulté",
+				"description": "Dangerosité des monstres.",
+				"options": {
+					"peaceful": "Paisible",
+					"easy": "Facile",
+					"normal": "Normal",
+					"hard": "Difficile"
+				}
+			},
+			"force-gamemode": {
+				"label": "Forcer le mode de jeu",
+				"description": "Remettre les joueurs dans le mode par défaut à chaque connexion."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "Les joueurs passent en spectateur à leur mort."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Les joueurs peuvent se blesser entre eux."
+			},
+			"allow-flight": {
+				"label": "Autoriser le vol",
+				"description": "Ne pas expulser les joueurs qui volent (nécessaire pour certains mods et plugins)."
+			},
+			"spawn-protection": {
+				"label": "Protection du spawn",
+				"description": "Rayon autour du spawn où seuls les opérateurs peuvent construire. 0 la désactive."
+			},
+			"max-players": {
+				"label": "Joueurs max",
+				"description": "Nombre de joueurs pouvant être en ligne en même temps."
+			},
+			"online-mode": {
+				"label": "Mode en ligne",
+				"description": "Vérifier les comptes auprès de Mojang. Désactivez-le pour autoriser les comptes non premium ou Ely.by."
+			},
+			"player-idle-timeout": {
+				"label": "Expulsion pour inactivité",
+				"description": "Expulser après ce nombre de minutes d'inactivité. 0 n'expulse jamais."
+			},
+			"op-permission-level": {
+				"label": "Niveau des opérateurs",
+				"description": "Ce que peuvent faire les opérateurs : 1 contourner la protection du spawn … 4 tout."
+			},
+			"hide-online-players": {
+				"label": "Masquer la liste des joueurs",
+				"description": "Ne pas montrer qui est en ligne dans le menu multijoueur."
+			},
+			"enforce-secure-profile": {
+				"label": "Exiger le chat signé",
+				"description": "N'autoriser que les joueurs dont les clés de chat sont signées par Mojang."
+			},
+			"view-distance": {
+				"label": "Distance d'affichage",
+				"description": "Jusqu'où les joueurs voient. Plus bas, c'est plus léger pour l'appareil."
+			},
+			"simulation-distance": {
+				"label": "Distance de simulation",
+				"description": "Jusqu'où le monde continue de tourner autour des joueurs."
+			},
+			"level-seed": {
+				"label": "Graine",
+				"description": "Graine d'un nouveau monde. Utilisée seulement à la création du monde.",
+				"placeholder": "Aléatoire"
+			},
+			"level-type": {
+				"label": "Type de monde",
+				"description": "Utilisé seulement à la création du monde.",
+				"options": {
+					"minecraft_normal": "Par défaut",
+					"minecraft_flat": "Superplat",
+					"minecraft_large_biomes": "Grands biomes",
+					"minecraft_amplified": "Amplifié"
+				}
+			},
+			"generate-structures": {
+				"label": "Générer les structures",
+				"description": "Villages, temples et autres structures dans les nouveaux chunks."
+			},
+			"allow-nether": {
+				"label": "Autoriser le Nether",
+				"description": "Les joueurs peuvent aller dans le Nether."
+			},
+			"max-world-size": {
+				"label": "Rayon de la bordure",
+				"description": "Distance maximale du centre que les joueurs peuvent atteindre."
+			},
+			"server-port": {
+				"label": "Port",
+				"description": "Port d'écoute du serveur."
+			},
+			"enable-status": {
+				"label": "Visible dans la liste des serveurs",
+				"description": "Répondre aux pings du menu multijoueur (MOTD, nombre de joueurs)."
+			},
+			"network-compression-threshold": {
+				"label": "Seuil de compression",
+				"description": "Compresser les paquets plus gros que cette taille. -1 désactive la compression."
+			},
+			"enable-command-block": {
+				"label": "Blocs de commande",
+				"description": "Autoriser les blocs de commande."
+			},
+			"sync-chunk-writes": {
+				"label": "Sauvegarde sûre des chunks",
+				"description": "Écrire les chunks de façon synchrone. Plus sûr, un peu plus lent."
+			},
+			"max-tick-time": {
+				"label": "Délai du watchdog",
+				"description": "Arrêter le serveur si un tick dure plus longtemps. -1 désactive."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Distance d'affichage des entités",
+				"description": "Jusqu'où les entités sont envoyées aux joueurs, en pourcentage."
+			}
+		},
+		"units": {
+			"blocks": "blocs",
+			"min": "min",
+			"chunks": "chunks",
+			"bytes": "octets",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "La plupart des changements s'appliquent après le redémarrage du serveur.",
+		"badImage": "Impossible d'utiliser cette image : {{error}}",
+		"emptyName": "Le nom ne peut pas être vide.",
+		"identity": "Identité du serveur",
+		"identityDesc": "L'apparence de votre serveur dans la liste multijoueur.",
+		"name": "Nom",
+		"motd": "Description (MOTD) · deux lignes, Entrée pour la seconde",
+		"motdReset": "Réinit.",
+		"saved": "Enregistré",
+		"saveChanges": "Enregistrer",
+		"memory": "Mémoire",
+		"memoryMobile": "Restez bien en dessous de la RAM de votre téléphone.",
+		"memoryDesktop": "RAM maximale pour le serveur Java.",
+		"portInUse": "Le port {{port}} est déjà utilisé par un autre serveur. Essayez {{next}}.",
+		"gameSettings": "Paramètres du jeu",
+		"gameSettingsDesc": "server.properties, avec explications.",
+		"allOther": "Toutes les autres propriétés",
+		"filter": "Filtrer les propriétés",
+		"discard": "Annuler",
+		"configFiles": "Fichiers de configuration",
+		"configFilesDesc": "Configurations du serveur et des plugins (YAML, JSON, TOML).",
+		"saveFile": "Enregistrer le fichier",
+		"manage": "Gérer",
+		"changed_one": "{{count}} modification",
+		"changed_many": "{{count}} modifications",
+		"changed_other": "{{count}} modifications"
+	},
+	"newInstance": {
+		"title": "Nouvelle instance",
+		"description": "Choisissez la version de Minecraft et le chargeur de mods. Ingot configure l'environnement et Java automatiquement.",
+		"modLoader": "Chargeur de mods",
+		"minecraftVersion": "Version de Minecraft",
+		"snapshots": "Snapshots",
+		"snapshotBadge": "snapshot",
+		"latestBadge": "récente",
+		"loadingVersions": "Chargement des versions...",
+		"selectVersion": "Choisir la version de Minecraft",
+		"searchVersion": "Rechercher une version (ex. 1.20, 1.16)...",
+		"loaderVersion": "Version du chargeur",
+		"noCompatible": "Aucune version compatible",
+		"selectLoaderVersion": "Choisir la version du chargeur",
+		"searchLoaderVersion": "Rechercher une version du chargeur...",
+		"name": "Nom de l'instance",
+		"namePlaceholder": "ex. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Paramètres du serveur",
+		"yourServers": "Vos serveurs",
+		"newServer": "Nouveau serveur",
+		"about": "À propos et licences"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Vérification des fichiers du serveur...",
+			"preparingPumpkin": "Préparation du serveur Pumpkin...",
+			"downloadingPumpkin": "Téléchargement de Pumpkin (premier démarrage seulement)...",
+			"preparingSandbox": "Préparation du bac à sable Linux...",
+			"downloadingSandbox": "Téléchargement du bac à sable Linux...",
+			"extractingSandbox": "Extraction du système de fichiers...",
+			"installingJava": "Installation de Java {{version}} dans le bac à sable...",
+			"sandboxReady": "Bac à sable prêt !",
+			"installingCore": "Installation de {{name}} (premier démarrage seulement, cela peut prendre quelques minutes)...",
+			"launching": "Lancement du processus serveur...",
+			"failed": "Échec du démarrage : {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Absent de Modrinth, CurseForge et Hangar : Ingot ne peut pas le vérifier",
+			"beta": "Version bêta, peut être instable",
+			"alpha": "Version alpha, peut être instable",
+			"siteOnly": "Sa version pour {{target}} ne se télécharge que sur {{site}}",
+			"fabricOnly": "Utile seulement sur Fabric et Quilt",
+			"noVersion": "Pas encore de version pour {{target}}",
+			"pluginNotMarked": "Pas encore indiqué pour {{version}} ; la plupart des plugins fonctionnent quand même",
+			"notUpdated": "Pas mis à jour pour {{version}} ; fonctionne généralement quand même",
+			"sameAs": "Comme {{name}}",
+			"incompatible": "Ne fonctionne pas avec {{name}}",
+			"needsTurnedOff": "Nécessite {{name}}, qui va être désactivé",
+			"needsMissing": "Nécessite {{name}}, indisponible pour {{version}}",
+			"neededBy": "Requis par {{name}}"
+		},
+		"launch": {
+			"preparing": "Préparation du lancement",
+			"resolvingVersion": "Résolution de la version",
+			"resolvingLoader": "Résolution du chargeur",
+			"checkingJava": "Vérification de Java",
+			"javaSetup": "Installation de Java",
+			"downloadingClient": "Téléchargement du client",
+			"downloadingLibraries": "Téléchargement des bibliothèques",
+			"downloadingAssets": "Téléchargement des ressources",
+			"verifying": "Vérification des fichiers",
+			"auth": "Authentification",
+			"starting": "Lancement du jeu",
+			"fetchingMetadata": "Récupération des infos de version...",
+			"fetchingProfile": "Récupération du profil {{loader}}...",
+			"detectingJava": "Détection de Java...",
+			"downloadingJavaProgress": "Téléchargement de Java {{version}} ({{done}} Mo / {{total}} Mo)...",
+			"downloadingJava": "Téléchargement de Java {{version}}...",
+			"extractingJava": "Extraction de Java {{version}}...",
+			"downloadingJar": "Téléchargement du client Minecraft...",
+			"downloadingLibrariesCount": "Téléchargement de {{count}} bibliothèques...",
+			"library": "Bibliothèque {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "Téléchargement de {{count}} ressources...",
+			"assets": "Ressources {{current}}/{{total}}",
+			"verified": "Tous les fichiers du jeu vérifiés",
+			"authDetail": "Configuration du skin Ely.by et de l'agent d'authentification...",
+			"launching": "Lancement de Minecraft...",
+			"connecting": "Connexion à {{server}}...",
+			"loadingWorld": "Chargement du monde {{world}}...",
+			"initializing": "Initialisation du lancement..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Ce que voient les joueurs",
+		"startingUp": "Démarrage...",
+		"shuttingDown": "Arrêt en cours...",
+		"cantConnect": "Connexion au serveur impossible",
+		"preparing": "Préparation...",
+		"sleepingNote": "En veille pour économiser les ressources. Il se réveille tout seul quand un joueur se connecte.",
+		"failedToStart": "Échec du démarrage.",
+		"start": "Démarrer le serveur",
+		"wake": "Réveiller",
+		"sleep": "Mettre en veille",
+		"starting": "Démarrage...",
+		"stopping": "Arrêt...",
+		"uptime": "Durée de marche",
+		"native": "Natif",
+		"noOutput": "Aucune sortie pour l'instant"
+	},
+	"serverCard": {
+		"offline": "Hors ligne",
+		"openPage": "Ouvrir la page du serveur",
+		"copyAddress": "Cliquer pour copier l'adresse",
+		"noneOnline": "0 en ligne",
+		"joinTitle": "Lancer Minecraft et rejoindre ce serveur",
+		"join": "Rejoindre",
+		"start": "Démarrer",
+		"openFolder": "Ouvrir le dossier du serveur"
+	},
+	"versionChange": {
+		"title": "Changer de version",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Conflits",
+			"missing": "Pas encore disponibles",
+			"unknown": "Impossibles à vérifier",
+			"newDependency": "Nouvelles dépendances",
+			"update": "Mises à jour",
+			"works": "Déjà compatibles",
+			"olderVersions": "Versions antérieures"
+		},
+		"actions": {
+			"keep": "Garder",
+			"update": "Mettre à jour",
+			"disable": "Désactiver",
+			"add": "Installer",
+			"skip": "Ne pas installer"
+		},
+		"kinds": {
+			"resourcePack": "Pack de ressources",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} est plus ancienne que {{from}}",
+		"downgradeWarning": "Les mondes joués dans une version plus récente ne s'ouvrent généralement pas dans une plus ancienne et peuvent être abîmés. Gardez la sauvegarde des mondes pour que l'annulation puisse les restaurer.",
+		"downgradeOk": "J'ai compris, passer quand même à l'ancienne version",
+		"backupWorldsHint": "Minecraft met les mondes à niveau à l'ouverture, sans retour possible. Avec une sauvegarde, l'annulation les restaure aussi.",
+		"openOn": "Ouvrir sur {{site}}",
+		"new": "nouveau",
+		"instanceDescription": "Ingot vérifie d'abord chaque mod, pack de ressources et shader, et ne change rien avant que vous appliquiez. Vous pourrez annuler ensuite.",
+		"now": "actuelle",
+		"nowLabel": "Actuelle",
+		"moveTo": "Passer à",
+		"pickVersion": "Choisir une version",
+		"searchVersion": "Rechercher une version...",
+		"loaderVersion": "Version de {{loader}}",
+		"pickLoaderVersion": "Choisir la version du chargeur",
+		"noLoaderFor": "Pas de {{loader}} pour {{version}}",
+		"noLoader": "Pas de {{loader}} pour cette version",
+		"loaderSwitchNote": "Les mods sont faits pour un seul chargeur. Ingot cherche la version {{loader}} de chaque mod et désactive ceux qui n'en ont pas.",
+		"instanceEmpty": "Aucun mod, pack de ressources ou shader à vérifier. Seule la version change.",
+		"applying": "Application...",
+		"applyingHint": "Téléchargement et vérification des nouveaux fichiers, puis sauvegarde des actuels. Rien ne change avant que tout soit prêt.",
+		"applyingWithWorlds": "Téléchargement et vérification des nouveaux fichiers, puis sauvegarde de vos mondes et des fichiers actuels. Rien ne change avant que tout soit prêt.",
+		"nowOn": "Maintenant en {{version}}",
+		"instanceDone": "Changé depuis {{version}}. Si quelque chose ne marche pas, annulez-le dans les paramètres de cette instance : tout reviendra exactement comme avant.",
+		"back": "Retour",
+		"checking": "Vérification...",
+		"check": "Vérifier la compatibilité",
+		"moveToVersion": "Passer à {{version}}",
+		"summary": {
+			"download_one": "{{count}} à télécharger ({{size}})",
+			"download_many": "{{count}} à télécharger ({{size}})",
+			"download_other": "{{count}} à télécharger ({{size}})",
+			"turnedOff_one": "{{count}} désactivé",
+			"turnedOff_many": "{{count}} désactivés",
+			"turnedOff_other": "{{count}} désactivés",
+			"conflictsKept_one": "{{count}} conflit conservé",
+			"conflictsKept_many": "{{count}} conflits conservés",
+			"conflictsKept_other": "{{count}} conflits conservés"
+		},
+		"backupWorlds_one": "Sauvegarder les mondes ({{count}} monde, {{size}})",
+		"backupWorlds_many": "Sauvegarder les mondes ({{count}} mondes, {{size}})",
+		"backupWorlds_other": "Sauvegarder les mondes ({{count}} mondes, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Impossible de lancer l'instance : {{error}}",
+		"resolveConflict": "Impossible de résoudre le conflit : {{error}}",
+		"deleteInstance": "Impossible de supprimer l'instance : {{error}}",
+		"startServer": "Impossible de démarrer le serveur : {{error}}",
+		"deleteServer": "Impossible de supprimer le serveur : {{error}}",
+		"quickPlay": "Échec du jeu rapide sur le serveur : {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Chargement du joueur...",
+		"noData": "Pas encore de données pour ce joueur.",
+		"health": "Santé",
+		"hunger": "Faim",
+		"air": "Air",
+		"experience": "Expérience",
+		"level": "Niveau {{level}}",
+		"equipment": "Équipement",
+		"slots": {
+			"head": "Tête",
+			"chest": "Torse",
+			"legs": "Jambes",
+			"feet": "Pieds",
+			"offhand": "Main secondaire"
+		},
+		"showOnMap": "Voir sur la carte",
+		"inventory": "Inventaire",
+		"ender": "Coffre de l'Ender ({{count}})",
+		"effects": "Effets ({{count}})",
+		"onFire": "En feu",
+		"durability": "Durabilité {{left}}/{{max}}",
+		"enchanted": "Enchanté",
+		"noEffects": "Aucun effet actif",
+		"heal": "Soigner",
+		"feed": "Nourrir",
+		"removeOp": "Retirer OP",
+		"whitelisted": "Sur la liste blanche",
+		"confirmKick": "Expulser {{name}} ?",
+		"confirmBan": "Bannir {{name}} ?",
+		"confirm": "Confirmer",
+		"kick": "Expulser"
+	},
+	"transfer": {
+		"zipArchive": "Archive ZIP",
+		"savedTo": "Enregistré dans {{path}}",
+		"copyName": "Copie de {{name}}",
+		"created": "« {{name}} » créé.",
+		"title": "Sauvegarde et version",
+		"description": "Exporter pour partager ou sauvegarder, copier le serveur, ou passer à une autre version de Minecraft.",
+		"exportConfigs": "Exporter les configs",
+		"withoutWorlds": "Sans les mondes",
+		"exportAll": "Tout exporter",
+		"withWorlds": "Avec les mondes",
+		"makeCopy": "Faire une copie",
+		"secondServer": "Un deuxième serveur",
+		"stopFirst": "Arrêtez d'abord le serveur",
+		"nowVersion": "Actuellement {{version}}",
+		"backup": "Changé depuis {{version}}. Sauvegarde : {{size}}.",
+		"backupWithWorlds": "Changé depuis {{version}}. Sauvegarde : {{size}}, mondes compris.",
+		"deleteBackup": "Supprimer la sauvegarde",
+		"undo": "Annuler, revenir à {{version}}",
+		"willStartOn": "{{name}} démarrera en {{version}}. Vous pouvez annuler ici si quelque chose ne marche pas.",
+		"currentVersion": "{{version}} (actuelle)",
+		"changeTitle": "Changer de version de Minecraft",
+		"changeDescription_plugin": "Ingot vérifie d'abord chaque plugin et ne change rien avant que vous appliquiez. Tout est sauvegardé, vous pouvez donc annuler.",
+		"changeDescription_mod": "Ingot vérifie d'abord chaque mod et ne change rien avant que vous appliquiez. Tout est sauvegardé, vous pouvez donc annuler.",
+		"serverType": "Type de serveur",
+		"empty": "Aucun plugin ni mod à vérifier. Seule la version change.",
+		"readyFor": "Prêt pour {{version}}",
+		"doneNote": "La nouvelle version sera téléchargée au prochain démarrage. Si quelque chose ne marche pas, annulez-le dans Sauvegarde et version : tout reviendra exactement comme avant.",
+		"import": "Importer un serveur",
+		"importing": "Importation {{percent}}",
+		"settingUp": "Installation du serveur...",
+		"partial": "« {{name}} » importé, mais certains plugins ou mods n'ont pas pu être téléchargés :",
+		"openServer": "Ouvrir le serveur"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Serveur Spigot/Bukkit performant, compatible avec tous les plugins",
+			"badge": "Rapide et stable"
+		},
+		"purpur": {
+			"tagline": "Fork de Paper riche en fonctions et très personnalisable",
+			"badge": "Personnalisable"
+		},
+		"fabric": {
+			"tagline": "Serveur moddé léger et modulaire pour les mods Fabric",
+			"badge": "Moddé"
+		},
+		"neoforge": {
+			"tagline": "Serveur moddé pour les mods NeoForge, où vivent la plupart des gros mods de contenu",
+			"badge": "Moddé"
+		},
+		"forge": {
+			"tagline": "Le serveur moddé historique, pour les mods Forge de Minecraft 1.17 et plus",
+			"badge": "Moddé"
+		},
+		"quilt": {
+			"tagline": "Serveur moddé compatible Fabric, qui accepte les mods Quilt et Fabric",
+			"badge": "Moddé"
+		},
+		"folia": {
+			"tagline": "Serveur multithread par régions de PaperMC pour un très grand nombre de joueurs",
+			"badge": "Multithread"
+		},
+		"pumpkin": {
+			"tagline": "Ultra léger, écrit en Rust — démarrage instantané, < 60 Mo de RAM",
+			"badge": "Natif mobile"
+		},
+		"vanilla": {
+			"tagline": "Serveur Minecraft officiel non modifié, directement de Mojang",
+			"badge": "Original"
+		}
+	},
+	"wizard": {
+		"defaultName": "Serveur {{core}}",
+		"fetchFailed": "Impossible de charger les versions. Vérifiez votre connexion.",
+		"enterName": "Saisissez un nom de serveur.",
+		"selectVersion": "Choisissez une version de Minecraft.",
+		"invalidPort": "Saisissez un port valide (1024 – 65534).",
+		"portInUseTry": "Le port {{port}} est déjà utilisé. Essayez {{next}}.",
+		"portInUse": "Le port {{port}} est déjà utilisé.",
+		"createFailed": "Impossible de créer le serveur",
+		"stepEngine": "Choisissez votre moteur",
+		"stepName": "Nommez votre serveur",
+		"stepMemory": "Mémoire et confirmation",
+		"stepOf": "Étape {{step}} sur {{total}}",
+		"preparing": "Préparation du serveur…",
+		"serverName": "Nom du serveur",
+		"namePlaceholder": "ex. Serveur survie {{core}}",
+		"minecraftVersion": "Version de Minecraft",
+		"selectVersionPlaceholder": "Choisir la version",
+		"serverPort": "Port du serveur",
+		"portInUseShort": "Port utilisé",
+		"ready": "Prêt à créer",
+		"engine": "Moteur",
+		"version": "Version",
+		"ram": "RAM",
+		"memory": "Mémoire (RAM)",
+		"heroLine1": "Votre premier serveur,",
+		"heroLine2": "en quelques secondes.",
+		"heroText": "Ingot télécharge, configure et fait tourner un serveur Minecraft directement sur cet appareil. Invitez vos amis où qu'ils soient.",
+		"createAServer": "Créer un serveur",
+		"createAServerHint": "Paper, PumpkinMC, Fabric et plus"
+	},
+	"plugins": {
+		"unsupported": "Les serveurs {{core}} ne gèrent pas les plugins",
+		"unsupportedHint": "Créez un serveur Paper ou Purpur pour les plugins, ou un serveur Fabric pour les mods.",
+		"installed": "{{name}} installé.",
+		"installedWith": "{{name}} et {{extras}} installés.",
+		"browse_plugin": "Parcourir les plugins",
+		"browse_mod": "Parcourir les mods",
+		"restartToApply": "Redémarrez le serveur pour appliquer les changements.",
+		"restart": "Redémarrer",
+		"noOther_plugin": "Pas encore d'autres plugins.",
+		"noOther_mod": "Pas encore d'autres mods.",
+		"none_plugin": "Aucun plugin pour l'instant",
+		"none_mod": "Aucun mod pour l'instant",
+		"find_plugin": "Trouvez des plugins sur Modrinth et installez-les en un geste.",
+		"find_mod": "Trouvez des mods sur Modrinth et installez-les en un geste.",
+		"findHangar_plugin": "Trouvez des plugins sur Modrinth et Hangar et installez-les en un geste.",
+		"findHangar_mod": "Trouvez des mods sur Modrinth et Hangar et installez-les en un geste.",
+		"updateAvailable": "Mise à jour disponible : {{version}}",
+		"enabled": "{{name}} activé.",
+		"disabled": "{{name}} désactivé.",
+		"enable": "Activer {{name}}",
+		"disable": "Désactiver {{name}}",
+		"updated": "{{name}} mis à jour.",
+		"removed": "{{name}} supprimé.",
+		"unknownVersion": "Version inconnue",
+		"byAuthors": "par {{authors}}",
+		"file": "Fichier",
+		"size": "Taille",
+		"updateTo": "Mettre à jour vers {{version}}",
+		"reallyDelete": "Vraiment supprimer ?",
+		"sort": {
+			"downloads": "Plus populaires",
+			"updated": "Mis à jour récemment",
+			"newest": "Plus récents"
+		},
+		"searchPlaceholder_plugin": "Rechercher des plugins, ex. LuckPerms",
+		"searchPlaceholder_mod": "Rechercher des mods, ex. Lithium",
+		"compatibleOnly": "N'afficher que les résultats compatibles {{version}}",
+		"forVersion": "Pour {{version}}",
+		"searchFailed": "Échec de la recherche : {{error}}",
+		"nothingFound": "Aucun résultat",
+		"noneForVersion_plugin": "Aucun plugin pour Minecraft {{version}}. Essayez de désactiver le filtre de version.",
+		"noneForVersion_mod": "Aucun mod pour Minecraft {{version}}. Essayez de désactiver le filtre de version.",
+		"tryAnother": "Essayez une autre recherche.",
+		"loadMore": "Charger plus",
+		"playersNeedItTitle": "Les joueurs doivent aussi installer ce mod, sinon ils ne peuvent pas rejoindre",
+		"playersNeedIt": "Requis chez les joueurs aussi",
+		"isInstalled": "{{name}} est installé",
+		"install": "Installer {{name}}",
+		"results_one": "{{formatted}} résultat",
+		"results_many": "{{formatted}} résultats",
+		"results_other": "{{formatted}} résultats"
+	},
+	"join": {
+		"shareTitle": "Rejoindre {{name}}",
+		"shareText": "Rejoins mon serveur Minecraft « {{name}} » !\nAdresse : {{address}}\nVersion : Java Edition {{version}}",
+		"title": "Inviter des joueurs",
+		"description": "Partagez une adresse pour que vos amis puissent rejoindre.",
+		"sameWifi": "Même Wi-Fi",
+		"copyLocal": "Copier l'adresse locale",
+		"anywhere": "Partout (playit.gg)",
+		"copyPublic": "Copier l'adresse publique",
+		"showQr": "Afficher le QR code",
+		"linkPlayit": "Associer votre compte playit.gg",
+		"noTunnel": "Connecté, mais pas encore de tunnel. <link>Ajoutez-en un</link> pour le port {{port}}.",
+		"connecting": "Connexion...",
+		"notConnected": "Non connecté",
+		"stopPlayit": "Arrêter playit",
+		"goPublic": "Rendre public",
+		"share": "Partager l'invitation",
+		"scan": "Scanner pour copier l'adresse",
+		"qrAlt": "QR code"
+	},
+	"stats": {
+		"latest": "Dernière valeur : {{value}}",
+		"noData": "Pas encore de données",
+		"now": "maintenant",
+		"ago": "il y a {{time}}",
+		"min": "Min",
+		"avg": "Moyenne",
+		"peak": "Pic",
+		"performance": "Performances",
+		"touchHint": "Touchez un graphique pour les détails",
+		"ofDevice": "de l'appareil",
+		"allocated": "Allouée",
+		"deviceRam": "RAM de l'appareil",
+		"free": "{{size}} libres",
+		"lag": "Lag",
+		"smooth": "Fluide",
+		"slightLag": "Léger lag",
+		"lagging": "Lag",
+		"used": "{{label}} : {{used}} utilisés sur {{total}}"
+	},
+	"storage": {
+		"title": "Stockage",
+		"worlds": "Mondes",
+		"plugins": "Plugins et mods",
+		"server": "Fichiers du serveur",
+		"backups": "Sauvegardes",
+		"logs": "Journaux",
+		"other": "Autre",
+		"device": "Stockage de l'appareil"
+	},
+	"instanceSettings": {
+		"pushFailed": "Échec de l'envoi : {{error}}",
+		"pullFailed": "Échec de la récupération : {{error}}",
+		"saveFailed": "Impossible d'enregistrer les paramètres : {{error}}",
+		"title": "Paramètres de l'instance",
+		"description": "Configurez les paramètres de lancement et les limites de mémoire de <b>{{name}}</b>.",
+		"namePlaceholder": "Mon instance Minecraft",
+		"loader": "chargeur {{version}}",
+		"backup": "Changé de {{from}} à {{to}}. Sauvegarde : {{size}}.",
+		"backupWithWorlds": "Changé de {{from}} à {{to}}. Sauvegarde : {{size}}, mondes compris.",
+		"memoryOverride": "Remplacer la mémoire globale pour cette instance",
+		"minMemory": "Mémoire initiale (min) :",
+		"maxMemory": "Mémoire maximale (max) :",
+		"inheritMemory": "Hérite des paramètres globaux : <b>{{min}} min / {{max}} max</b>. Modifiable dans les Paramètres.",
+		"jvmArgs": "Arguments JVM",
+		"jvmArgsHint": "Arguments de lancement Java supplémentaires (séparés par des espaces)",
+		"java": "Exécutable Java personnalisé",
+		"javaHint": "Laisser vide pour le runtime Adoptium géré automatiquement",
+		"windowOverride": "Remplacer le plein écran et la taille de fenêtre pour cette instance",
+		"fullscreenHint": "Lancer directement en plein écran",
+		"resolution": "Résolution :",
+		"fullscreen": "Plein écran",
+		"inheritDisplay": "Hérite de l'affichage global : <b>{{value}}</b>. Modifiable dans les paramètres du launcher.",
+		"syncHint": "Synchroniser options, serveurs, packs, historique et barres d'accès rapide",
+		"manualSync": "Synchronisation manuelle",
+		"manualSyncHint": "Exporter les données de cette instance ou récupérer les derniers fichiers du stockage partagé.",
+		"push": "Envoyer vers le stockage partagé",
+		"pull": "Récupérer du stockage partagé",
+		"syncOptions": "Synchroniser les options du jeu (options.txt)",
+		"syncServers": "Synchroniser les serveurs multijoueur (servers.dat)",
+		"syncPacks": "Synchroniser les packs de ressources (resourcepacks/)",
+		"syncHistory": "Synchroniser l'historique des commandes (command_history.txt)",
+		"syncHotbars": "Synchroniser les barres créatives (hotbar.nbt)",
+		"inheritSync": "Hérite des préférences de synchronisation globales. Synchronise avant le lancement et après la fermeture."
+	},
+	"install": {
+		"loadFailed": "Impossible de charger les options d'installation",
+		"compatible": "Compatible",
+		"all": "Toutes",
+		"any": "Tous",
+		"modpackDone": "Modpack « {{name}} » installé comme nouvelle instance !",
+		"selectTarget": "Choisir l'instance cible...",
+		"added": "{{file}} ajouté à {{instance}} !",
+		"modpackTitle": "Installer le modpack",
+		"addTitle_mod": "Ajouter le mod à une instance",
+		"addTitle_resourcepack": "Ajouter le pack de ressources à une instance",
+		"addTitle_shader": "Ajouter le shader à une instance",
+		"addTitle_modpack": "Ajouter le modpack à une instance",
+		"addTitle_datapack": "Ajouter le pack de données à une instance",
+		"addTitle_plugin": "Ajouter le plugin à une instance",
+		"modpackDescription": "Créer une nouvelle instance Minecraft à partir de « {{title}} ».",
+		"description": "Installer « {{title}} » dans l'une de vos instances.",
+		"loading": "Chargement des options...",
+		"retry": "Réessayer",
+		"modpackVersion": "Version du modpack",
+		"selectModpackVersion": "Choisir la version du modpack...",
+		"loaders": "Chargeurs :",
+		"minecraft": "Minecraft :",
+		"noInstancesHint": "Créez d'abord une instance dans l'onglet Instances avant d'ajouter des mods ou des packs de ressources.",
+		"target": "Instance cible",
+		"fileVersion": "Version du fichier",
+		"selectFileVersion": "Choisir la version du fichier...",
+		"supports": "Compatible :",
+		"createAndInstall": "Créer et installer",
+		"installToInstance": "Installer dans l'instance",
+		"compatibleCount_one": "{{count}} version compatible",
+		"compatibleCount_many": "{{count}} versions compatibles",
+		"compatibleCount_other": "{{count}} versions compatibles"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Pack de ressources",
+		"shader": "Shader",
+		"datapack": "Pack de données",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Stable",
+		"beta": "Bêta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "Impossible de charger les détails du projet",
+		"addToInstance": "Ajouter à une instance",
+		"versions": "Versions et fichiers",
+		"versionsCount": "Versions et fichiers ({{count}})",
+		"loading": "Chargement des détails...",
+		"gallery": "Galerie ({{count}})",
+		"clickToOpen": "Cliquez sur l'image pour le plein écran",
+		"viewFullscreen": "Voir en plein écran",
+		"scrollLeft": "Faire défiler vers la gauche",
+		"scrollRight": "Faire défiler vers la droite",
+		"source": "Code source",
+		"issues": "Suivi des problèmes",
+		"wiki": "Wiki",
+		"description": "Description",
+		"gameVersion": "Version du jeu :",
+		"noMatch": "Aucune version ne correspond à vos filtres.",
+		"openOriginal": "Ouvrir l'original",
+		"previous": "Image précédente",
+		"next": "Image suivante",
+		"downloads_one": "{{formatted}} téléchargement",
+		"downloads_many": "{{formatted}} téléchargements",
+		"downloads_other": "{{formatted}} téléchargements",
+		"followers_one": "{{formatted}} abonné",
+		"followers_many": "{{formatted}} abonnés",
+		"followers_other": "{{formatted}} abonnés",
+		"showing_one": "{{shown}} sur {{count}} version",
+		"showing_many": "{{shown}} sur {{count}} versions",
+		"showing_other": "{{shown}} sur {{count}} versions"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Choisir le dossier des instances de {{launcher}}",
+		"selectDir": "Choisir le dossier d'une instance Minecraft",
+		"done": "Instance importée !",
+		"title": "Importer depuis un autre launcher",
+		"selectInstance": "Choisir une instance ({{launcher}})",
+		"configure": "Configurer l'import",
+		"description": "Importez vos installations Minecraft, mods, mondes et paramètres directement dans Ingot.",
+		"optionsDescription": "Choisissez les données à transférer dans votre nouvelle instance Ingot.",
+		"detecting": "Recherche des launchers installés...",
+		"notDetected": "Non détecté • Cliquer pour localiser",
+		"custom": "Dossier personnalisé",
+		"customHint": "Choisir n'importe quel dossier d'instance",
+		"backToLaunchers": "Retour aux launchers",
+		"changeFolder": "Changer de dossier",
+		"filter": "Filtrer les instances...",
+		"loadingInstances": "Chargement des instances...",
+		"noneFound": "Aucune instance trouvée dans ce dossier.",
+		"select": "Choisir",
+		"nameInIngot": "Nom de l'instance dans Ingot :",
+		"namePlaceholder": "Mon instance importée",
+		"source": "Source : {{path}}",
+		"components": "Éléments à importer :",
+		"mods": "Mods",
+		"configs": "Configurations",
+		"configsHint": "Paramètres et configs des mods",
+		"worlds": "Mondes et sauvegardes",
+		"packs": "Packs de ressources",
+		"packsHint": "Textures et shaderpacks",
+		"screenshotsHint": "Captures d'écran du jeu",
+		"modData": "Données de mods et autres",
+		"modDataHint": "Points de repère, schémas, enregistrements, etc.",
+		"options": "Options du jeu",
+		"optionsHint": "options.txt et touches",
+		"servers": "Serveurs multijoueur",
+		"serversHint": "Liste des serveurs servers.dat",
+		"note": "Tous les éléments ci-dessus sont facultatifs. Avec <b>Données de mods et autres</b>, les dossiers de mods (points de repère de minicarte, schémas, enregistrements) sont copiés en toute sécurité. Décochez-le pour un import propre sans fichiers en plus.",
+		"importing": "Importation...",
+		"import": "Importer l'instance",
+		"found_one": "{{count}} instance trouvée dans {{launcher}}. Choisissez laquelle importer.",
+		"found_many": "{{count}} instances trouvées dans {{launcher}}. Choisissez laquelle importer.",
+		"found_other": "{{count}} instances trouvées dans {{launcher}}. Choisissez laquelle importer.",
+		"instancesFound_one": "{{count}} instance trouvée",
+		"instancesFound_many": "{{count}} instances trouvées",
+		"instancesFound_other": "{{count}} instances trouvées",
+		"modsCount_one": "{{count}} mod",
+		"modsCount_many": "{{count}} mods",
+		"modsCount_other": "{{count}} mods",
+		"worldsCount_one": "{{count}} monde",
+		"worldsCount_many": "{{count}} mondes",
+		"worldsCount_other": "{{count}} mondes",
+		"screenshotsCount_one": "{{count}} capture",
+		"screenshotsCount_many": "{{count}} captures",
+		"screenshotsCount_other": "{{count}} captures",
+		"modFiles_one": "{{count}} fichier de mod",
+		"modFiles_many": "{{count}} fichiers de mods",
+		"modFiles_other": "{{count}} fichiers de mods",
+		"singleplayerWorlds_one": "{{count}} monde solo",
+		"singleplayerWorlds_many": "{{count}} mondes solo",
+		"singleplayerWorlds_other": "{{count}} mondes solo"
+	},
+	"skinViewer": {
+		"resetCamera": "Réinitialiser la caméra 3D",
+		"pauseRotation": "Mettre la rotation en pause",
+		"autoRotate": "Rotation automatique du modèle",
+		"idlePose": "Passer en pose immobile",
+		"playWalk": "Lancer l'animation de marche",
+		"idleTitle": "Animation de respiration",
+		"idle": "Immobile",
+		"walkTitle": "Animation de marche",
+		"walk": "Marcher",
+		"runTitle": "Animation de course",
+		"run": "Courir",
+		"waveTitle": "Animation de salut",
+		"wave": "Saluer",
+		"pause": "Mettre les animations en pause",
+		"outerOn": "Couche externe visible",
+		"outerOff": "Couche externe masquée",
+		"modelSlim": "Modèle : fin (Alex)",
+		"modelClassic": "Modèle : classique (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Skin personnalisé",
+		"currentActiveSkin": "Skin actif",
+		"activeAccountSkin": "Skin du compte actif",
+		"loadFailed": "Impossible de charger les skins depuis Ely.by",
+		"defaultSteve": "Steve par défaut",
+		"addAccountFirst": "Ajoutez ou choisissez d'abord un compte Ely.by.",
+		"elyOnlySync": "Seuls les comptes Ely.by prennent en charge la synchronisation des skins.",
+		"customApplied": "Skin personnalisé appliqué à {{name}} !",
+		"skinApplied": "Skin n°{{id}} appliqué à {{name}} !",
+		"applyFailed": "Impossible d'appliquer le skin.",
+		"enterPassword": "Saisissez votre mot de passe Ely.by.",
+		"skinFromDate": "Skin du {{date}}",
+		"uploadedApplied": "Skin envoyé et appliqué à {{name}} !",
+		"pngOnly": "Le fichier du skin doit être au format PNG (.png).",
+		"tooLarge": "Le fichier du skin est trop lourd (2 Mo max).",
+		"badSize": "Dimensions invalides : {{size}}. Les skins Minecraft standard font 64x64 ou 64x32 pixels.",
+		"badImage": "Impossible de lire l'image. Vérifiez que c'est un fichier PNG valide.",
+		"elyOnlyUpload": "Seuls les comptes Ely.by permettent d'envoyer un skin.",
+		"uploadFailed": "Impossible d'envoyer le skin.",
+		"saved": "Skin n°{{id}} enregistré !",
+		"downloadFailed": "Échec du téléchargement.",
+		"urlCopied": "URL de la texture copiée !",
+		"activeAccount": "Compte Ely.by actif",
+		"noActiveAccount": "Aucun compte Ely.by actif",
+		"browse": "Parcourir les skins",
+		"preview3d": "Aperçu 3D",
+		"currentSkin": "Skin actuel",
+		"skinNumber": "Skin n°{{id}}",
+		"alexSlim3": "Alex (fin, 3 px)",
+		"steveClassic4": "Steve (classique, 4 px)",
+		"currentSkinOf": "Skin actuel ({{name}})",
+		"applyTo": "Appliquer le skin à {{name}}",
+		"applyToAccount": "Appliquer le skin au compte",
+		"downloadPng": "Télécharger le PNG",
+		"updating": "Mise à jour...",
+		"loadingMine": "Chargement de vos skins depuis Ely.by...",
+		"loading": "Chargement des skins depuis Ely.by...",
+		"noMatchingUploads": "Aucun skin envoyé ne correspond",
+		"noUploadsFor": "Aucun skin envoyé pour {{name}}",
+		"tryDifferent": "Essayez une autre recherche ou un autre filtre.",
+		"noUploadsHint": "Vous n'avez encore envoyé aucun skin sur Ely.by. Envoyez-en un pour le gérer et le porter quand vous voulez.",
+		"selectAccountHint": "Choisissez ou ajoutez un compte Ely.by pour voir vos skins envoyés.",
+		"uploadASkin": "Envoyer un skin",
+		"noSkins": "Aucun skin trouvé",
+		"deleteCustom": "Supprimer le skin personnalisé",
+		"slim": "Fin",
+		"classic": "Classique",
+		"pageOf": "Page <b>{{page}}</b> sur {{total}}",
+		"total": "({{count}} au total)",
+		"previous": "Précédent",
+		"next": "Suivant",
+		"alexSlim": "Alex (fin)",
+		"steveClassic": "Steve (classique)",
+		"view3d": "Vue 3D",
+		"apply": "Appliquer",
+		"livePreview": "Aperçu 3D en direct",
+		"uploading": "Envoi et application...",
+		"uploadApply": "Envoyer et appliquer le skin",
+		"uploadTitle": "Envoyer un skin personnalisé",
+		"uploadDescription": "Envoyez une texture de skin Minecraft depuis votre ordinateur pour l'appliquer directement sur Ely.by.",
+		"dropHint": "Cliquez pour parcourir ou glissez-déposez le PNG du skin ici",
+		"supports": "Skins Minecraft standard (PNG 64×64 ou 64×32, jusqu'à 2 Mo)",
+		"dimensions": "Dimensions : {{value}}",
+		"size": "Taille : {{value}}",
+		"armModel": "Modèle de bras",
+		"armModelHint": "Indiquez si ce skin a été conçu pour des bras classiques (4 px) ou fins (3 px).",
+		"classicArms": "Classique (bras de 4 px)",
+		"slimArms": "Fin (bras de 3 px)",
+		"targetAccount": "Compte Ely.by cible",
+		"noAccount": "Aucun compte actif",
+		"readyToApply": "Prêt à appliquer",
+		"passwordTitle": "Autorisation par mot de passe Ely.by",
+		"passwordDescription": "Pour modifier votre skin Ely.by pour <b>{{name}}</b>, saisissez le mot de passe du compte. Il sera chiffré dans le trousseau de votre système.",
+		"passwordPlaceholder": "Mot de passe Ely.by",
+		"authorize": "Autoriser et appliquer",
+		"count_one": "{{formatted}} skin",
+		"count_many": "{{formatted}} skins",
+		"count_other": "{{formatted}} skins"
+	},
+	"select": {
+		"placeholder": "Choisir une option",
+		"noMatches": "Aucun résultat"
+	},
+	"hosting": {
+		"one": "Hébergement de {{name}}",
+		"many": "Hébergement de {{count}} serveurs",
+		"tunnel": "Tunnel Ingot actif",
+		"publicAddress": "Adresse publique : {{address}}",
+		"connecting": "Connexion du tunnel playit.gg...",
+		"localOnly": "Réseau local uniquement"
 	}
 }

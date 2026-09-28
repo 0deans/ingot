@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import {
 	Activity,
 	Check,
@@ -14,9 +15,11 @@ import {
 	Wifi,
 } from "lucide-react"
 import { type ReactNode, useRef, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { formatDuration, formatMegabytes, formatNumber, formatPercent } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
 import { shareText } from "@/lib/share"
 import { cn } from "@/lib/utils"
@@ -71,6 +74,7 @@ function AddressRow({
 
 /** How friends can join: LAN and playit.gg addresses, plus a share button */
 export function JoinCard({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { tunnel, toggle, isBusy } = usePlayitTunnel()
 	const { data: lanIp } = useLanAddress()
 	const [qrOpen, setQrOpen] = useState(false)
@@ -81,8 +85,8 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 	const share = async () => {
 		if (!bestAddress) return
 		const how = await shareText(
-			`Join ${server.name}`,
-			`Join my Minecraft server "${server.name}"!\nAddress: ${bestAddress}\nVersion: Java Edition ${server.gameVersion}`,
+			t("join.shareTitle", { name: server.name }),
+			t("join.shareText", { name: server.name, address: bestAddress, version: server.gameVersion }),
 		)
 		setShared(how)
 		setTimeout(() => setShared(null), 2000)
@@ -95,32 +99,32 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					<Globe className="size-4" />
 				</div>
 				<div className="min-w-0">
-					<h3 className="font-semibold text-sm text-zinc-100">Invite players</h3>
-					<p className="text-xs text-zinc-500">Share an address so friends can join.</p>
+					<h3 className="font-semibold text-sm text-zinc-100">{t("join.title")}</h3>
+					<p className="text-xs text-zinc-500">{t("join.description")}</p>
 				</div>
 			</div>
 
 			{lanAddress && (
-				<AddressRow icon={Wifi} label="Same Wi-Fi">
+				<AddressRow icon={Wifi} label={t("join.sameWifi")}>
 					<div className="flex items-center justify-between gap-2">
 						<code className="truncate font-mono text-sm text-zinc-200">{lanAddress}</code>
-						<CopyButton text={lanAddress} label="Copy local address" />
+						<CopyButton text={lanAddress} label={t("join.copyLocal")} />
 					</div>
 				</AddressRow>
 			)}
 
-			<AddressRow icon={Globe} label="Anywhere (playit.gg)">
+			<AddressRow icon={Globe} label={t("join.anywhere")}>
 				{tunnel.isRunning && tunnel.publicAddress ? (
 					<div className="flex items-center justify-between gap-1">
 						<code className="truncate font-mono font-semibold text-emerald-300 text-sm">
 							{tunnel.publicAddress}
 						</code>
 						<div className="flex shrink-0">
-							<CopyButton text={tunnel.publicAddress} label="Copy public address" />
+							<CopyButton text={tunnel.publicAddress} label={t("join.copyPublic")} />
 							<Button
 								size="icon-sm"
 								variant="ghost"
-								aria-label="Show QR code"
+								aria-label={t("join.showQr")}
 								onClick={() => setQrOpen(true)}
 							>
 								<QrCode className="size-3.5" />
@@ -134,28 +138,33 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 						rel="noopener noreferrer"
 						className="inline-flex items-center gap-1 font-medium text-sky-300 text-sm hover:underline"
 					>
-						Link your playit.gg account <ExternalLink className="size-3" />
+						{t("join.linkPlayit")} <ExternalLink className="size-3" />
 					</a>
 				) : tunnel.isRunning && tunnel.status === "no_tunnel" ? (
 					<p className="text-amber-200 text-xs leading-relaxed">
-						Connected, but no tunnel yet.{" "}
-						<a
-							href="https://playit.gg/account/tunnels"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="font-semibold text-amber-300 underline"
-						>
-							Add one
-						</a>{" "}
-						for port {server.port}.
+						<Trans
+							i18nKey="join.noTunnel"
+							values={{ port: server.port }}
+							components={{
+								link: (
+									// biome-ignore lint/a11y/useAnchorContent: Trans fills in the link text
+									<a
+										href="https://playit.gg/account/tunnels"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="font-semibold text-amber-300 underline"
+									/>
+								),
+							}}
+						/>
 					</p>
 				) : tunnel.isRunning ? (
 					<p className="flex items-center gap-1.5 text-sm text-zinc-400">
 						<Loader2 className="size-3.5 animate-spin text-sky-400" />
-						{tunnel.message ?? "Connecting..."}
+						{tunnel.message ?? t("join.connecting")}
 					</p>
 				) : (
-					<p className="text-sm text-zinc-500">Not connected</p>
+					<p className="text-sm text-zinc-500">{t("join.notConnected")}</p>
 				)}
 			</AddressRow>
 
@@ -169,7 +178,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					className="h-10 gap-1.5 rounded-xl border-zinc-800"
 				>
 					{isBusy && <Loader2 className="size-4 animate-spin" />}
-					{tunnel.isRunning ? "Stop playit" : "Go public"}
+					{tunnel.isRunning ? t("join.stopPlayit") : t("join.goPublic")}
 				</Button>
 				<Button
 					onClick={share}
@@ -177,17 +186,17 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					className="h-10 gap-1.5 rounded-xl bg-sky-600 text-white hover:bg-sky-500"
 				>
 					{shared === "copied" ? <Check className="size-4" /> : <Share2 className="size-4" />}
-					{shared === "copied" ? "Copied" : "Share invite"}
+					{shared === "copied" ? t("skinPreview.copied") : t("join.share")}
 				</Button>
 			</div>
 
 			<Dialog open={qrOpen} onOpenChange={setQrOpen}>
 				<DialogContent className="items-center p-6 text-center sm:max-w-xs">
-					<DialogTitle className="text-sm">Scan to copy the address</DialogTitle>
+					<DialogTitle className="text-sm">{t("join.scan")}</DialogTitle>
 					<div className="rounded-2xl bg-white p-3">
 						<img
 							src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(tunnel.publicAddress ?? "")}`}
-							alt="QR code"
+							alt={t("join.qrAlt")}
 							className="size-48"
 						/>
 					</div>
@@ -233,6 +242,7 @@ function Chart({
 	format: (v: number) => string
 	markers?: Marker[]
 }) {
+	const { t } = useTranslation()
 	const [hover, setHover] = useState<number | null>(null)
 	const ref = useRef<HTMLDivElement>(null)
 	const w = 300
@@ -269,7 +279,9 @@ function Chart({
 				ref={ref}
 				role="img"
 				aria-label={
-					values.length > 0 ? `Latest: ${format(values[values.length - 1])}` : "No data yet"
+					values.length > 0
+						? t("stats.latest", { value: format(values[values.length - 1]) })
+						: t("stats.noData")
 				}
 				// Press-and-hold reads values: no text selection or long-press menu on touch
 				className="relative h-20 w-full touch-pan-y select-none [-webkit-touch-callout:none]"
@@ -394,21 +406,21 @@ function Chart({
 						{format(values[active])}
 						<span className="text-zinc-500">
 							{" · "}
-							{secondsAgo === 0 ? "now" : `${formatAgo(secondsAgo)} ago`}
+							{secondsAgo === 0 ? t("stats.now") : t("stats.ago", { time: formatAgo(secondsAgo) })}
 						</span>
 					</span>
 				)}
 			</div>
 			<div className="flex justify-between text-[9px] text-zinc-600 leading-none">
-				<span>{formatAgo(HISTORY * SAMPLE_SECONDS)} ago</span>
-				<span>now</span>
+				<span>{t("stats.ago", { time: formatAgo(HISTORY * SAMPLE_SECONDS) })}</span>
+				<span>{t("stats.now")}</span>
 			</div>
 		</div>
 	)
 }
 
 function formatAgo(seconds: number): string {
-	return seconds >= 60 ? `${Math.round(seconds / 6) / 10}m` : `${seconds}s`
+	return formatDuration(seconds)
 }
 
 function Metric({
@@ -434,6 +446,7 @@ function Metric({
 	markers?: Marker[]
 	footer?: ReactNode
 }) {
+	const { t } = useTranslation()
 	const summary =
 		values.length > 0
 			? {
@@ -458,7 +471,7 @@ function Metric({
 				<dl className="grid grid-cols-3 gap-2 border-zinc-900 border-t pt-2.5 text-[11px]">
 					{(["min", "avg", "peak"] as const).map((k) => (
 						<div key={k} className="min-w-0">
-							<dt className="text-zinc-600">{{ min: "Min", avg: "Average", peak: "Peak" }[k]}</dt>
+							<dt className="text-zinc-600">{t(`stats.${k}`)}</dt>
 							<dd className="truncate text-zinc-300 tabular-nums">{format(summary[k])}</dd>
 						</div>
 					))}
@@ -471,6 +484,7 @@ function Metric({
 
 /** CPU, memory and TPS of the running server, with the last two minutes as graphs */
 export function PerformanceCard({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	// The backend records samples while the server runs, so history survives leaving this page
 	const { data: history = [] } = useServerStats(server.id, isRunning)
@@ -490,41 +504,47 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 		<Card className="flex min-w-0 flex-col gap-3 p-4">
 			<div className="flex items-center gap-2">
 				<Activity className="size-4 text-zinc-400" />
-				<h3 className="font-semibold text-sm text-zinc-100">Performance</h3>
+				<h3 className="font-semibold text-sm text-zinc-100">{t("stats.performance")}</h3>
 				{!latest && <Loader2 className="size-3.5 animate-spin text-zinc-500" />}
-				<span className="ml-auto text-[11px] text-zinc-600">Touch a graph for details</span>
+				<span className="ml-auto text-[11px] text-zinc-600">{t("stats.touchHint")}</span>
 			</div>
 			<div className="grid gap-2 lg:grid-cols-3">
 				<Metric
 					icon={Cpu}
 					label="CPU"
-					value={latest ? `${Math.round(latest.cpuPercent)}%` : "—"}
-					sub="of device"
+					value={latest ? formatPercent(latest.cpuPercent) : "—"}
+					sub={t("stats.ofDevice")}
 					values={history.map((s) => s.cpuPercent)}
 					max={100}
 					color="#38bdf8"
-					format={(v) => `${Math.round(v)}%`}
+					format={(v) => formatPercent(v)}
 				/>
 				<Metric
 					icon={MemoryStick}
-					label="RAM"
+					label={t("wizard.ram")}
 					value={latest ? formatMb(latest.memoryMb) : "—"}
 					sub={`/ ${formatMb(memoryLimit)}`}
 					values={memoryValues}
 					max={memoryMax}
 					color="#a78bfa"
 					format={formatMb}
-					markers={pumpkin ? [] : [{ value: memoryLimit, label: "Allocated", color: "#a78bfa" }]}
+					markers={
+						pumpkin ? [] : [{ value: memoryLimit, label: t("stats.allocated"), color: "#a78bfa" }]
+					}
 					footer={
 						latest && (
 							<DeviceBar
-								label="Device RAM"
+								label={t("stats.deviceRam")}
 								used={latest.systemMemoryUsedMb}
 								part={latest.memoryMb}
 								total={latest.systemMemoryTotalMb}
 								color="#a78bfa"
 								format={formatMb}
-								note={`${formatMb(Math.max(0, latest.systemMemoryTotalMb - latest.systemMemoryUsedMb))} free`}
+								note={t("stats.free", {
+									size: formatMb(
+										Math.max(0, latest.systemMemoryTotalMb - latest.systemMemoryUsedMb),
+									),
+								})}
 							/>
 						)
 					}
@@ -533,13 +553,13 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 					<Metric
 						icon={Gauge}
 						label="TPS"
-						value={latest?.tps != null ? latest.tps.toFixed(1) : "—"}
+						value={latest?.tps != null ? formatTps(latest.tps) : "—"}
 						sub={tpsHealth(latest?.tps ?? null)}
 						values={tpsValues}
 						max={20}
 						color={latest?.tps != null && latest.tps < 15 ? "#f59e0b" : "#34d399"}
-						format={(v) => v.toFixed(1)}
-						markers={[{ value: 15, label: "Lag", color: "#f59e0b" }]}
+						format={formatTps}
+						markers={[{ value: 15, label: t("stats.lag"), color: "#f59e0b" }]}
 					/>
 				)}
 			</div>
@@ -549,9 +569,13 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 
 function tpsHealth(tps: number | null): string {
 	if (tps === null) return ""
-	if (tps >= 19) return "Smooth"
-	if (tps >= 15) return "Slight lag"
-	return "Lagging"
+	if (tps >= 19) return i18n.t("stats.smooth")
+	if (tps >= 15) return i18n.t("stats.slightLag")
+	return i18n.t("stats.lagging")
+}
+
+function formatTps(tps: number): string {
+	return formatNumber(tps, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
 /** Bar of a device resource: this server's part, everything else in use, then free */
@@ -572,6 +596,7 @@ function DeviceBar({
 	format: (v: number) => string
 	note?: string
 }) {
+	const { t } = useTranslation()
 	const pct = (v: number) => `${Math.min(100, (v / Math.max(1, total)) * 100)}%`
 	return (
 		<div className="flex flex-col gap-1.5">
@@ -580,9 +605,7 @@ function DeviceBar({
 				<div className="bg-zinc-600" style={{ width: pct(Math.max(0, used - part)) }} />
 			</div>
 			<p className="flex flex-wrap justify-between gap-x-3 text-[11px] text-zinc-500">
-				<span>
-					{label}: {format(used)} of {format(total)} used
-				</span>
+				<span>{t("stats.used", { label, used: format(used), total: format(total) })}</span>
 				{note && <span>{note}</span>}
 			</p>
 		</div>
@@ -591,28 +614,33 @@ function DeviceBar({
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-const STORAGE_CATEGORIES: Record<string, { label: string; color: string }> = {
-	worlds: { label: "Worlds", color: "#34d399" },
-	plugins: { label: "Plugins & mods", color: "#38bdf8" },
-	server: { label: "Server files", color: "#a78bfa" },
-	backups: { label: "Backups", color: "#f59e0b" },
-	logs: { label: "Logs", color: "#f472b6" },
-	other: { label: "Other", color: "#71717a" },
-}
+/** Labels are storage.<id> in the locale files */
+const STORAGE_CATEGORIES = {
+	worlds: { color: "#34d399" },
+	plugins: { color: "#38bdf8" },
+	server: { color: "#a78bfa" },
+	backups: { color: "#f59e0b" },
+	logs: { color: "#f472b6" },
+	other: { color: "#71717a" },
+} as const
+type StorageCategory = keyof typeof STORAGE_CATEGORIES
+const category = (id: string): StorageCategory =>
+	id in STORAGE_CATEGORIES ? (id as StorageCategory) : "other"
 
 function formatShare(share: number): string {
-	return share > 0 && share < 0.01 ? "<1%" : `${Math.round(share * 100)}%`
+	return share > 0 && share < 0.01 ? `<${formatPercent(1)}` : formatPercent(share * 100)
 }
 
 /** How much disk space the server folder takes, split by what's in it */
 export function StorageCard({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { data, isLoading } = useServerStorage(server.id)
 	const total = data?.totalBytes ?? 0
 	return (
 		<Card className="flex min-w-0 flex-col gap-3 p-4">
 			<div className="flex items-center gap-2">
 				<HardDrive className="size-4 text-zinc-400" />
-				<h3 className="font-semibold text-sm text-zinc-100">Storage</h3>
+				<h3 className="font-semibold text-sm text-zinc-100">{t("storage.title")}</h3>
 				{isLoading && <Loader2 className="size-3.5 animate-spin text-zinc-500" />}
 				{data && (
 					<span className="ml-auto font-semibold text-sm text-zinc-100 tabular-nums">
@@ -629,14 +657,14 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 								className="min-w-1"
 								style={{
 									width: `${(c.bytes / Math.max(1, total)) * 100}%`,
-									background: (STORAGE_CATEGORIES[c.id] ?? STORAGE_CATEGORIES.other).color,
+									background: STORAGE_CATEGORIES[category(c.id)].color,
 								}}
 							/>
 						))}
 					</div>
 					<ul className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
 						{data.categories.map((c) => {
-							const meta = STORAGE_CATEGORIES[c.id] ?? STORAGE_CATEGORIES.other
+							const meta = STORAGE_CATEGORIES[category(c.id)]
 							return (
 								<li key={c.id} className="flex min-w-0 flex-col gap-1">
 									<div className="flex items-center gap-2 text-xs">
@@ -644,7 +672,9 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 											className="size-2 shrink-0 rounded-full"
 											style={{ background: meta.color }}
 										/>
-										<span className="min-w-0 flex-1 truncate text-zinc-300">{meta.label}</span>
+										<span className="min-w-0 flex-1 truncate text-zinc-300">
+											{t(`storage.${category(c.id)}`)}
+										</span>
 										<span className="text-zinc-500 tabular-nums">
 											{formatShare(c.bytes / Math.max(1, total))}
 										</span>
@@ -668,13 +698,13 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 					</ul>
 					{data.deviceTotalBytes != null && data.deviceFreeBytes != null && (
 						<DeviceBar
-							label="Device storage"
+							label={t("storage.device")}
 							used={data.deviceTotalBytes - data.deviceFreeBytes}
 							part={total}
 							total={data.deviceTotalBytes}
 							color="#34d399"
 							format={formatBytes}
-							note={`${formatBytes(data.deviceFreeBytes)} free`}
+							note={t("stats.free", { size: formatBytes(data.deviceFreeBytes) })}
 						/>
 					)}
 				</>
@@ -684,5 +714,5 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 }
 
 function formatMb(mb: number): string {
-	return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb * 10) / 10} MB`
+	return formatMegabytes(mb)
 }

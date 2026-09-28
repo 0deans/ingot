@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import {
 	ArrowLeft,
 	Gauge,
@@ -9,6 +10,7 @@ import {
 	Users,
 } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -29,9 +31,10 @@ export const WORKSPACE_TABS: { id: WorkspaceTab; label: string; icon: typeof Gau
 	{ id: "settings", label: "Settings", icon: Settings2 },
 ]
 
-/** Tab label for this server ("Mods" instead of "Plugins" on Fabric) */
-export function tabLabel(id: WorkspaceTab, label: string, core: ServerConfig["core"]): string {
-	return id === "plugins" ? (addonKind(core)?.nouns ?? label) : label
+/** Tab label for this server ("Mods" instead of "Plugins" on Fabric), in the user's language */
+export function tabLabel(id: WorkspaceTab, _label: string, core: ServerConfig["core"]): string {
+	const key = id === "plugins" && addonKind(core)?.kind === "mod" ? "mods" : id
+	return i18n.t(`serverTabs.${key}`)
 }
 
 /** Content of one workspace tab; shared by the desktop page and the mobile app */
@@ -89,6 +92,7 @@ export function ServerWorkspace({
 	onTabChange: (tab: WorkspaceTab) => void
 	onBack: () => void
 }) {
+	const { t } = useTranslation()
 	const { status } = useServerStatus(server.id)
 	const { data: icon } = useServerIcon(server.id)
 	const fill = FILL_TABS.includes(tab)
@@ -111,7 +115,7 @@ export function ServerWorkspace({
 					<button
 						type="button"
 						onClick={onBack}
-						aria-label="Back to servers"
+						aria-label={t("serverWorkspace.back")}
 						className="flex size-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
 					>
 						<ArrowLeft className="size-4" />

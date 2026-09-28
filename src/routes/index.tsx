@@ -100,7 +100,7 @@ const InstancesPage = () => {
 			await instanceService.launchInstance(instanceId, quickPlay)
 		} catch (e) {
 			console.error("Failed to launch instance:", e)
-			alert(`Failed to launch instance: ${e}`)
+			alert(t("errors.launchInstance", { error: String(e) }))
 		}
 	}
 
@@ -115,7 +115,7 @@ const InstancesPage = () => {
 			await instanceService.launchInstance(id)
 		} catch (e) {
 			console.error("Failed to resolve conflict and launch:", e)
-			alert(`Failed to resolve conflict: ${e}`)
+			alert(t("errors.resolveConflict", { error: String(e) }))
 		}
 	}
 
@@ -136,7 +136,7 @@ const InstancesPage = () => {
 			})
 		} catch (e) {
 			console.error("Failed to delete instance:", e)
-			alert(`Failed to delete instance: ${e}`)
+			alert(t("errors.deleteInstance", { error: String(e) }))
 		}
 	}
 
@@ -206,7 +206,7 @@ const InstancesPage = () => {
 										className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-900/30 px-3 py-1 font-medium text-emerald-200 text-xs shadow-sm"
 									>
 										<span>
-											{inst?.name || "Instance"} (PID {proc.pid})
+											{t("instances.activeEntry", { name: inst?.name ?? "", pid: proc.pid })}
 										</span>
 										<button
 											type="button"

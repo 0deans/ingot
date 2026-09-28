@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowDownToLine, ArrowUpFromLine, ShieldAlert, XCircle } from "lucide-react"
 import { useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import type { SyncConflictInfo } from "@/bindings"
 import {
 	Dialog,
@@ -23,6 +24,7 @@ export const SyncConflictDialog = ({
 	onResolve,
 	onCancel,
 }: SyncConflictDialogProps) => {
+	const { t } = useTranslation()
 	const [isProcessing, setIsProcessing] = useState(false)
 
 	if (!conflict) return null
@@ -45,19 +47,22 @@ export const SyncConflictDialog = ({
 							<ShieldAlert className="size-5" />
 						</div>
 						<DialogTitle className="font-semibold text-base text-zinc-50 sm:text-lg">
-							Sync Conflict Detected
+							{t("syncConflict.title")}
 						</DialogTitle>
 					</div>
 					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
-						<strong className="text-zinc-50">{conflict.instanceName}</strong> contains its own local
-						configuration files that have never been synchronized with your shared storage.
+						<Trans
+							i18nKey="syncConflict.description"
+							values={{ name: conflict.instanceName }}
+							components={{ b: <strong className="text-zinc-50" /> }}
+						/>
 					</DialogDescription>
 				</DialogHeader>
 
 				{/* Conflicting items pill list */}
 				<div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-amber-300 text-xs sm:p-2.5">
 					<AlertTriangle className="size-3.5 shrink-0" />
-					<span className="text-[11px]">Conflicting files:</span>
+					<span className="text-[11px]">{t("syncConflict.conflictingFiles")}</span>
 					{conflict.hasInstanceOptions && conflict.hasSharedOptions && (
 						<code className="rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">
 							options.txt
@@ -72,7 +77,7 @@ export const SyncConflictDialog = ({
 
 				<div className="flex min-h-0 flex-1 flex-col gap-1.5">
 					<div className="shrink-0 font-medium text-[11px] text-muted-foreground">
-						Choose how to resolve this initial synchronization:
+						{t("syncConflict.choose")}
 					</div>
 
 					<ScrollArea scrollFade className="-mr-2 max-h-[min(380px,50vh)] p-0.5 pr-2">
@@ -87,16 +92,17 @@ export const SyncConflictDialog = ({
 								<div className="flex w-full items-center justify-between gap-2">
 									<span className="flex items-center gap-2 font-semibold text-foreground text-xs group-hover:text-sky-400 sm:text-sm">
 										<ArrowDownToLine className="size-4 shrink-0 text-sky-400" />
-										<span>Use Shared Settings</span>
+										<span>{t("syncConflict.useShared")}</span>
 									</span>
 									<span className="shrink-0 whitespace-nowrap rounded-md bg-zinc-800/80 px-2 py-0.5 font-medium text-[10px] text-zinc-400">
-										Overwrites local
+										{t("syncConflict.overwritesLocal")}
 									</span>
 								</div>
 								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
-									Replace this instance's options and servers with existing shared settings. An
-									automatic <code className="text-zinc-300">.bak</code> backup of your instance
-									files will be saved.
+									<Trans
+										i18nKey="syncConflict.useSharedDesc"
+										components={{ code: <code className="text-zinc-300" /> }}
+									/>
 								</p>
 							</button>
 
@@ -110,16 +116,17 @@ export const SyncConflictDialog = ({
 								<div className="flex w-full items-center justify-between gap-2">
 									<span className="flex items-center gap-2 font-semibold text-foreground text-xs group-hover:text-emerald-400 sm:text-sm">
 										<ArrowUpFromLine className="size-4 shrink-0 text-emerald-400" />
-										<span>Make This Instance the Shared Master</span>
+										<span>{t("syncConflict.useInstance")}</span>
 									</span>
 									<span className="shrink-0 whitespace-nowrap rounded-md bg-zinc-800/80 px-2 py-0.5 font-medium text-[10px] text-zinc-400">
-										Overwrites shared
+										{t("syncConflict.overwritesShared")}
 									</span>
 								</div>
 								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
-									Push this instance's options and servers into shared storage as the master copy.
-									Existing shared files will be backed up as{" "}
-									<code className="text-zinc-300">.bak</code>.
+									<Trans
+										i18nKey="syncConflict.useInstanceDesc"
+										components={{ code: <code className="text-zinc-300" /> }}
+									/>
 								</p>
 							</button>
 
@@ -133,15 +140,14 @@ export const SyncConflictDialog = ({
 								<div className="flex w-full items-center justify-between gap-2">
 									<span className="flex items-center gap-2 font-semibold text-foreground text-xs group-hover:text-zinc-200 sm:text-sm">
 										<XCircle className="size-4 shrink-0 text-zinc-400" />
-										<span>Keep Independent (Disable Sync)</span>
+										<span>{t("syncConflict.disable")}</span>
 									</span>
 									<span className="shrink-0 whitespace-nowrap rounded-md bg-zinc-800/80 px-2 py-0.5 font-medium text-[10px] text-zinc-400">
-										No changes
+										{t("syncConflict.noChanges")}
 									</span>
 								</div>
 								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
-									Disables synchronization on this instance so its servers and settings will never
-									be altered or replaced by other instances.
+									{t("syncConflict.disableDesc")}
 								</p>
 							</button>
 						</div>

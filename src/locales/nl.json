@@ -23,11 +23,13 @@
 		"minimize": "Minimaliseren",
 		"maximize": "Maximaliseren",
 		"restore": "Herstellen",
-		"justNow": "Zojuist",
 		"never": "Nooit",
-		"minutesAgo": "{{count}}m geleden",
-		"hoursAgo": "{{count}}u geleden",
-		"daysAgo": "{{count}}d geleden"
+		"unknown": "Onbekend",
+		"deleting": "Verwijderen...",
+		"stop": "Stoppen",
+		"done": "Klaar",
+		"update": "Bijwerken",
+		"enable": "Inschakelen"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Kies je taal",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Nog geen accounts ingesteld.",
 		"previewSkin": "3D-skin bekijken",
 		"removeAccount": "Account verwijderen",
-		"setAsActive": "Instellen als actief"
+		"setAsActive": "Instellen als actief",
+		"offline": "Offline",
+		"reorder": "Account {{name}} verplaatsen",
+		"dragToReorder": "Sleep om het account te verplaatsen",
+		"clickToPreview": "Klik om de skin in 3D te bekijken",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Instanties zoeken...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Instantiemap openen in Verkenner",
 			"settingsTooltip": "Instantie-instellingen (RAM, JVM-argumenten)",
 			"duplicateTooltip": "Dupliceren",
-			"deleteTooltip": "Instantie verwijderen"
-		}
+			"deleteTooltip": "Instantie verwijderen",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Content ontdekken",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Alle filters herstellen",
 		"byAuthor": "door {{author}}",
 		"noDescription": "Geen beschrijving beschikbaar.",
-		"details": "Details"
+		"details": "Details",
+		"loadFailed": "Kan inhoud niet laden"
 	},
 	"skins": {
 		"title": "Skincatalogus",
@@ -199,6 +209,18 @@
 			"description": "Weet je zeker dat je deze screenshot definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
 			"deleting": "Verwijderen...",
 			"deletePermanently": "Definitief verwijderen"
+		},
+		"card": {
+			"view": "{{name}} bekijken",
+			"unavailable": "Afbeelding niet beschikbaar",
+			"fullscreen": "Volledig scherm",
+			"showInFolder": "Tonen in map"
+		},
+		"lightbox": {
+			"close": "Voorbeeld sluiten",
+			"closeEsc": "Sluiten (Esc)",
+			"previous": "Vorige screenshot",
+			"next": "Volgende screenshot"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Nieuwe server maken",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia of Vanilla",
 		"noMatchTitle": "Geen servers komen overeen met je filters",
-		"noMatchSubtitle": "Probeer je zoekopdracht te wijzigen of selecteer \"Alle cores\"."
+		"noMatchSubtitle": "Probeer je zoekopdracht te wijzigen of selecteer \"Alle cores\".",
+		"activeEntry": "{{name}} (poort {{port}})"
 	},
 	"settings": {
 		"title": "Launcher-instellingen",
 		"subtitle": "Configureer accounts, taal, Java-runtimes, RAM-toewijzing en launchergedrag.",
 		"language": {
 			"title": "Taal",
-			"description": "Kies de weergavetaal voor de launcher-interface. Nieuwe taalbestanden in src/locales/ worden automatisch herladen."
+			"description": "Kies de taal van de launcher. Datums, getallen en groottes volgen die ook."
 		},
 		"theme": {
 			"title": "Uiterlijk & thema",
@@ -263,7 +286,14 @@
 				"modded": "Gemod",
 				"heavy": "Zwaar pakket",
 				"safeMax": "Veilig max."
-			}
+			},
+			"zoneSafe": "Veilige zone",
+			"zoneHigh": "Hoog gebruik",
+			"zoneCritical": "Kritieke zone",
+			"minShort": "Min: {{value}}",
+			"maxShort": "Max: {{value}}",
+			"totalShort": "{{value}} (max)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Launchergedrag",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Standaard vensterresolutie",
 			"resolutionDesc": "Stel een aangepaste breedte en hoogte in voor het spelvenster",
 			"presets": "Voorinstellingen:",
-			"defaultPreset": "Standaard"
+			"defaultPreset": "Standaard",
+			"resetTo": "Terugzetten naar {{size}}"
 		},
 		"sync": {
 			"title": "Spelgegevens synchroniseren",
@@ -315,7 +346,8 @@
 					"title": "Opgeslagen creative-hotbars synchroniseren",
 					"description": "Deel opgeslagen hotbar-indelingen in creative-modus tussen werelden"
 				}
-			}
+			},
+			"reinitialize": "Bron voor {{title}} opnieuw instellen"
 		},
 		"updates": {
 			"title": "Updates & versie",
@@ -340,5 +372,1222 @@
 			"dialogSubtitle": "Ingot gebruikt deze software van andere projecten. Elk project valt onder zijn eigen licentie; klik op een naam voor de broncode en volledige licentie.",
 			"trademark": "Minecraft is een handelsmerk van Mojang AB. Ingot is niet gelieerd aan Mojang of Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Bovenwereld",
+			"nether": "Nether",
+			"end": "De End"
+		},
+		"gamemodes": {
+			"survival": "Overleven",
+			"creative": "Creatief",
+			"adventure": "Avontuur",
+			"spectator": "Toeschouwer"
+		}
+	},
+	"initialSync": {
+		"title": "Eerste synchronisatie",
+		"description": "Je schakelt synchronisatie in voor <b>{{name}}</b>. Waar moeten de gegevens eerst vandaan komen?",
+		"fromInstance": "Vanuit deze instantie",
+		"uploadToShared": "Uploaden naar gedeelde opslag",
+		"fromInstanceDesc": "De opties en servers van deze instantie als hoofdkopie naar de gedeelde opslag kopiëren.",
+		"fromShared": "Vanuit gedeelde opslag",
+		"downloadToInstance": "Downloaden naar instantie",
+		"fromSharedDesc": "Bestaande gedeelde opties en servers naar deze instantie downloaden."
+	},
+	"deleteInstance": {
+		"title": "Instantie verwijderen",
+		"description": "Weet je zeker dat je deze instantie definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+		"note": "Alle saves, werelden, geïnstalleerde mods, resourcepacks en configuratiebestanden in deze instantiemap worden van de schijf verwijderd."
+	},
+	"deleteServer": {
+		"title": "Server verwijderen",
+		"confirm": "Weet je zeker dat je <b>{{name}}</b> wilt verwijderen?",
+		"details": "Serverdetails:",
+		"detailsLine": "Kern: {{core}} {{version}} • Poort: {{port}}",
+		"deleteFiles": "Alle serverbestanden definitief verwijderen",
+		"deleteFilesDesc": "Inclusief wereldkaarten, spelergegevens, plugins en serverlogs op je schijf."
+	},
+	"companion": {
+		"system": "Systeem",
+		"liveMap": "Live kaart",
+		"disabled": "Uitgeschakeld",
+		"notInstalled": "Live kaart · niet geïnstalleerd",
+		"updated_plugin": "Ingot-plugin bijgewerkt.",
+		"updated_mod": "Ingot-mod bijgewerkt.",
+		"installed_plugin": "Ingot-plugin geïnstalleerd.",
+		"installed_mod": "Ingot-mod geïnstalleerd.",
+		"removed_plugin": "Ingot-plugin verwijderd. De kaart wordt nu bijgewerkt wanneer de server opslaat.",
+		"removed_mod": "Ingot-mod verwijderd. De kaart wordt nu bijgewerkt wanneer de server opslaat.",
+		"enabled_plugin": "Ingot-plugin ingeschakeld.",
+		"enabled_mod": "Ingot-mod ingeschakeld.",
+		"remove_plugin": "Ingot-plugin verwijderen",
+		"remove_mod": "Ingot-mod verwijderen"
+	},
+	"syncConflict": {
+		"title": "Synchronisatieconflict",
+		"description": "<b>{{name}}</b> heeft eigen configuratiebestanden die nooit met je gedeelde opslag zijn gesynchroniseerd.",
+		"conflictingFiles": "Conflicterende bestanden:",
+		"choose": "Kies hoe deze eerste synchronisatie wordt opgelost:",
+		"useShared": "Gedeelde instellingen gebruiken",
+		"overwritesLocal": "Overschrijft lokaal",
+		"useSharedDesc": "De opties en servers van deze instantie vervangen door de gedeelde instellingen. Er wordt automatisch een <code>.bak</code>-back-up van je bestanden bewaard.",
+		"useInstance": "Deze instantie tot hoofdbron maken",
+		"overwritesShared": "Overschrijft gedeeld",
+		"useInstanceDesc": "De opties en servers van deze instantie als hoofdkopie naar de gedeelde opslag sturen. Bestaande gedeelde bestanden worden bewaard als <code>.bak</code>.",
+		"disable": "Onafhankelijk houden (sync uit)",
+		"noChanges": "Geen wijzigingen",
+		"disableDesc": "Schakelt synchronisatie uit voor deze instantie, zodat andere instanties haar servers en instellingen nooit wijzigen of vervangen."
+	},
+	"leftoverServers": {
+		"runningSince": "Draait sinds {{time}}",
+		"stopped": "Gestopt",
+		"stopNote": "Stoppen beëindigt hem direct. Alles sinds de laatste automatische opslag (hooguit een paar minuten) gaat verloren; de wereld zelf blijft heel.",
+		"leaveRunning": "Laten draaien",
+		"title_one": "Er draait nog een server van de vorige keer",
+		"title_other": "Er draaien nog servers van de vorige keer",
+		"description_one": "Ingot werd gesloten zonder hem te stoppen, dus zijn console is weg: Ingot kan geen commando's sturen of zijn wereld opslaan. Hij houdt poort en wereld bezet tot hij stopt.",
+		"description_other": "Ingot werd gesloten zonder ze te stoppen, dus hun consoles zijn weg: Ingot kan geen commando's sturen of hun werelden opslaan. Ze houden poorten en werelden bezet tot ze stoppen."
+	},
+	"serverStatus": {
+		"running": "Actief",
+		"sleeping": "Slaapt",
+		"stopped": "Gestopt",
+		"starting": "Opstarten",
+		"stopping": "Stoppen"
+	},
+	"serverTabs": {
+		"overview": "Overzicht",
+		"console": "Console",
+		"players": "Spelers",
+		"map": "Kaart",
+		"plugins": "Plugins",
+		"mods": "Mods",
+		"settings": "Instellingen",
+		"home": "Start"
+	},
+	"serverWorkspace": {
+		"back": "Terug naar servers"
+	},
+	"duplicateInstance": {
+		"title": "Instantie dupliceren",
+		"defaultName": "{{name}} (kopie)",
+		"description": "Maakt een aparte kopie met dezelfde mods, configuraties, resourcepacks en instellingen. Wijzigingen in de ene raken de andere niet, dus de kopie is een veilige plek om een nieuwe versie of mods te proberen.",
+		"nameLabel": "Naam van de kopie",
+		"copyWorlds": "Werelden kopiëren",
+		"noWorldsYet": "nog geen",
+		"copyWorldsDesc": "Zonder begint de kopie zonder singleplayerwerelden.",
+		"note": "Speeltijd begint bij nul. Logs, crashrapporten en screenshots blijven bij het origineel.",
+		"running": "Het spel draait. Sluit het eerst zodat de werelden worden gekopieerd zoals ze zijn opgeslagen, of kopieer zonder werelden.",
+		"copying": "Kopiëren…",
+		"action": "Dupliceren"
+	},
+	"quitDialog": {
+		"title_quit": "Je servers stoppen voor het afsluiten?",
+		"title_update": "Je servers stoppen om bij te werken?",
+		"title_restart": "Je servers stoppen om opnieuw te starten?",
+		"action_quit": "Servers stoppen en afsluiten",
+		"action_update": "Servers stoppen en bijwerken",
+		"action_restart": "Servers stoppen en herstarten",
+		"stopping": "Stoppen…",
+		"keepInTray": "In het systeemvak laten draaien",
+		"asleep_one": "Deze server slaapt. Hij wordt wakker als een speler joint, maar alleen zolang Ingot open is.",
+		"asleep_other": "Deze servers slapen. Ze worden wakker als een speler joint, maar alleen zolang Ingot open is.",
+		"consoles_one": "De console van deze server draait in Ingot. Sluit Ingot eerst, dan blijft hij draaien zonder dat je hem kunt besturen of zijn wereld kunt opslaan.",
+		"consoles_other": "De consoles van deze servers draaien in Ingot. Sluit Ingot eerst, dan blijven ze draaien zonder dat je ze kunt besturen of hun werelden kunt opslaan.",
+		"saving_one": "Wereld opslaan en stoppen. Dit kan tot 30 seconden duren.",
+		"saving_other": "Werelden opslaan en stoppen. Dit kan tot 30 seconden duren.",
+		"games_one": "Je spel blijft hoe dan ook draaien. Ingot pakt het weer op als je het opent.",
+		"games_other": "Je spellen blijven hoe dan ook draaien. Ingot pakt ze weer op als je het opent."
+	},
+	"crashDialog": {
+		"title": "{{name}} crashte bij de eerste start op {{version}}",
+		"suspects_plugin": "Meestal is het een plugin die nog niet werkt op de nieuwe versie. Het crashrapport wijst naar:",
+		"suspects_mod": "Meestal is het een mod die nog niet werkt op de nieuwe versie. Het crashrapport wijst naar:",
+		"suspects_either": "Meestal is het een plugin of mod die nog niet werkt op de nieuwe versie. Het crashrapport wijst naar:",
+		"noSuspects_plugin": "Het crashrapport noemt geen plugin. Je kunt de wijziging terugdraaien en op updates wachten.",
+		"noSuspects_mod": "Het crashrapport noemt geen mod. Je kunt de wijziging terugdraaien en op updates wachten.",
+		"noSuspects_either": "Het crashrapport noemt geen plugin of mod. Je kunt de wijziging terugdraaien en op updates wachten.",
+		"turnOff": "Uitschakelen",
+		"turnedOff": "Uitgeschakeld",
+		"details": "Crashdetails",
+		"keepTrying": "Blijven proberen",
+		"undo": "Versiewijziging terugdraaien",
+		"undone": "Terug op {{version}}, precies zoals eerst.",
+		"tryAgain_server_one": "Start de server opnieuw om het zonder te proberen. Terugdraaien schakelt hem weer in.",
+		"tryAgain_server_other": "Start de server opnieuw om het zonder te proberen. Terugdraaien schakelt ze weer in.",
+		"tryAgain_game_one": "Start het spel opnieuw om het zonder te proberen. Terugdraaien schakelt hem weer in.",
+		"tryAgain_game_other": "Start het spel opnieuw om het zonder te proberen. Terugdraaien schakelt ze weer in."
+	},
+	"skinPreview": {
+		"saving": "Opslaan...",
+		"saved": "Opgeslagen!",
+		"error": "Fout",
+		"changeSkin": "Skin wijzigen",
+		"copyUrlTitle": "URL van de skintextuur kopiëren",
+		"copied": "Gekopieerd",
+		"copyUrl": "URL kopiëren",
+		"downloadTitle": "Skintextuur opslaan in Downloads",
+		"download": "Downloaden"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Whitelist",
+			"ops": "Operators",
+			"bans": "Bans"
+		},
+		"whitelist": {
+			"title": "Whitelist",
+			"empty": "Nog niemand op de whitelist",
+			"description": "Als deze aan staat, kunnen alleen deze spelers meedoen.",
+			"add": "Toevoegen"
+		},
+		"ops": {
+			"title": "Operators",
+			"empty": "Geen operators",
+			"description": "Operators kunnen elk commando gebruiken, ook /stop en /op.",
+			"add": "OP maken"
+		},
+		"bans": {
+			"title": "Verbannen spelers",
+			"empty": "Niemand is verbannen",
+			"description": "Verbannen spelers kunnen pas meedoen na gratie.",
+			"add": "Verbannen"
+		},
+		"whitelistOn": "Whitelist aan",
+		"whitelistOff": "Whitelist uit",
+		"onlyListed": "Alleen spelers op de lijst kunnen meedoen.",
+		"anyone": "Iedereen kan op deze server.",
+		"invalidName": "Gebruikersnamen mogen alleen letters, cijfers en _ bevatten",
+		"playerName": "Spelernaam",
+		"permissionLevel": "Rechtenniveau {{level}}",
+		"banned": "Verbannen",
+		"noUuid": "Geen UUID",
+		"remove": "{{name}} verwijderen"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Meegeleverd in de Android-app",
+				"note": "Draait serversoftware op Android in een Linux-sandbox. Gebouwd vanuit het Termux-project."
+			},
+			"downloaded": {
+				"title": "Gedownload wanneer nodig",
+				"note": "Opgehaald uit de officiële bron wanneer een functie het voor het eerst gebruikt."
+			},
+			"servers": {
+				"title": "Serversoftware die je kunt installeren",
+				"note": "Gedownload voor elke server die je maakt, van het project dat het ontwikkelt."
+			}
+		},
+		"roles": {
+			"proot": "Linux-sandbox voor servers",
+			"talloc": "Geheugenbibliotheek voor PRoot",
+			"shmem": "Ondersteuning voor gedeeld geheugen voor PRoot",
+			"temurin": "Java voor servers en het spel op desktop",
+			"alpine": "Basissysteem van de Android-sandbox, inclusief OpenJDK",
+			"pumpkin": "Pumpkin-server",
+			"playit": "Openbaar adres voor je server",
+			"paper": "Paper-servers",
+			"folia": "Folia-servers",
+			"purpur": "Purpur-servers",
+			"fabric": "Fabric-servers",
+			"vanilla": "Vanilla-servers (door Mojang, geen open source)"
+		},
+		"names": {
+			"minecraftServer": "Minecraft-server"
+		},
+		"various": "Diverse opensourcelicenties"
+	},
+	"directConnect": {
+		"title": "Direct verbinden met server",
+		"description": "Start <b>{{name}}</b> direct op een multiplayerserver, zonder het hoofdmenu.",
+		"address": "Serveradres",
+		"addressPlaceholder": "bijv. mc.hypixel.net of localhost:25565",
+		"localServers": "Ingestelde lokale servers",
+		"recent": "Recente servers",
+		"removeRecent": "Uit recent verwijderen",
+		"launch": "Starten en verbinden"
+	},
+	"console": {
+		"autoScrollOn": "Automatisch scrollen aan",
+		"autoScrollOff": "Automatisch scrollen uit",
+		"copyAll": "Alles kopiëren",
+		"clear": "Wissen",
+		"waiting": "Wachten op uitvoer...",
+		"offline": "Server is offline",
+		"offlineHint": "Start de server om de console te zien.",
+		"latest": "Nieuwste",
+		"placeholder": "Typ een commando, bijv. time set day",
+		"send": "Commando versturen"
+	},
+	"syncMaster": {
+		"setAsSource": "\"{{name}}\" ingesteld als hoofdbron voor synchronisatie.",
+		"error": "Fout: {{error}}",
+		"categoryTitle": "Eerste synchronisatie: {{title}}",
+		"title": "Hoofdinstantie voor sync kiezen",
+		"categoryDescription": "Kies waar je gedeelde opslag {{file}} eerst vandaan haalt:",
+		"description": "Kies een bestaande instantie om de gedeelde opslag te vullen. Haar instellingen en gegevens worden de gedeelde basis.",
+		"useExisting": "Bestaande gedeelde gegevens gebruiken",
+		"keepCurrent": "Huidige <code>{{file}}</code> in de gedeelde opslag houden",
+		"useShared": "Gedeeld gebruiken",
+		"orCopyFrom": "Of kopiëren vanuit een bestaande instantie:",
+		"copyFrom": "Kopiëren vanuit een bestaande instantie:",
+		"noInstances": "Geen instanties gevonden.",
+		"useThis": "Deze gebruiken",
+		"setAsMaster": "Als hoofdbron instellen",
+		"noCopy": "Nog niets kopiëren?",
+		"startFresh": "Leeg beginnen"
+	},
+	"quickJoin": {
+		"title": "Snel spelen — Server joinen",
+		"description": "Start Minecraft en ga direct naar <b>{{name}}</b> ({{address}}).",
+		"target": "Doel: {{address}}",
+		"choose": "Clientinstantie kiezen",
+		"noInstances": "Geen Minecraft-instanties gevonden",
+		"noInstancesHint": "Maak eerst een clientinstantie om je server te joinen.",
+		"createInstance": "Instantie maken",
+		"matches": "Past bij server",
+		"launch": "Starten en joinen"
+	},
+	"players": {
+		"tabs": {
+			"online": "Online",
+			"all": "Alle spelers",
+			"access": "Toegang"
+		},
+		"offlineHint": "Start de server om te zien wie speelt, met gezondheid, inventaris en locatie.",
+		"starting": "Server start...",
+		"startingHint": "Spelers verschijnen zodra de wereld geladen is.",
+		"liveError": "Kon live spelergegevens niet lezen: {{error}}. Live gegevens vereisen een Java-server (Paper, Purpur, Fabric of Vanilla).",
+		"checking": "Kijken wie online is...",
+		"nobody": "Niemand online",
+		"nobodyHint": "Spelers verschijnen hier zodra ze joinen.",
+		"none": "Nog geen spelers",
+		"noneHint": "Iedereen die op deze server is geweest verschijnt hier, met zijn laatst opgeslagen inventaris.",
+		"search": "Spelers zoeken",
+		"onlineNow": "Nu online",
+		"lastSeen": "Laatst gezien {{time}}"
+	},
+	"map": {
+		"upToDate": "Actueel",
+		"noWorld": "Nog geen wereld",
+		"noWorldHint": "Start de server één keer zodat er een wereld ontstaat. Verkende gebieden verschijnen op de kaart.",
+		"liveTitle": "Ingot houdt de kaart actueel vanuit het servergeheugen",
+		"live": "Live",
+		"restartToGoLive": "Herstart om live te gaan",
+		"makeLiveTitle_plugin": "Installeer de Ingot-plugin om de kaart realtime bij te werken, zonder de wereld op te slaan",
+		"makeLiveTitle_mod": "Installeer de Ingot-mod om de kaart realtime bij te werken, zonder de wereld op te slaan",
+		"makeLive": "Live maken",
+		"refreshTitle": "Zoeken naar nieuw opgeslagen gebieden",
+		"ariaLabel": "Wereldkaart. Sleep om te verplaatsen, scroll of knijp om te zoomen.",
+		"zoomIn": "Inzoomen",
+		"zoomOut": "Uitzoomen",
+		"updatedAreas_one": "{{count}} gebied bijgewerkt",
+		"updatedAreas_other": "{{count}} gebieden bijgewerkt"
+	},
+	"pluginDetails": {
+		"byline": "door {{author}} · {{downloads}} downloads",
+		"playersNeedIt": "Spelers hebben deze mod ook nodig: wie wil joinen, moet hem in zijn spel installeren.",
+		"installing": "Installeren...",
+		"page": "Pagina",
+		"noCompatible": "Nog geen versie voor Minecraft {{version}}. Je kunt onder Versies een oudere kiezen, maar die werkt misschien niet.",
+		"about": "Over",
+		"versions": "Versies",
+		"noDescription": "Geen beschrijving.",
+		"onlyFor": "Alleen versies voor Minecraft {{version}}",
+		"noVersions": "Geen versies",
+		"noVersionsHint": "Probeer alle versies te tonen.",
+		"website": "Website",
+		"anyVersion": "Elke versie"
+	},
+	"addAccount": {
+		"missingCredentials": "Vul gebruikersnaam/e-mail en wachtwoord in.",
+		"welcomeBack": "Welkom terug, {{name}}!",
+		"elyFailed": "Kan geen verbinding maken met Ely.by",
+		"missingNickname": "Vul een spelernaam in.",
+		"offlineCreated": "Offlineprofiel gemaakt voor {{name}}",
+		"offlineFailed": "Kan offline account niet maken",
+		"description": "Koppel je Ely.by-account of maak een offlineprofiel om te spelen.",
+		"tokensSecure": "Tokens worden versleuteld in de referentiekluis van je systeem.",
+		"usernameOrEmail": "Gebruikersnaam of e-mail",
+		"usernamePlaceholder": "bijv. notch of player@ely.by",
+		"password": "Wachtwoord",
+		"connecting": "Verbinden...",
+		"logIn": "Inloggen bij Ely.by",
+		"offlineNote": "Offline accounts spelen zonder online sessietoken.",
+		"nickname": "Spelernaam",
+		"nicknamePlaceholder": "bijv. Steve",
+		"adding": "Toevoegen...",
+		"addProfile": "Profiel toevoegen",
+		"microsoftTitle": "Inloggen met Microsoft / Xbox Live",
+		"microsoftSoon": "Officieel inloggen met een Microsoft-account komt in een volgende versie."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Gameplay",
+			"players": "Spelers",
+			"world": "Wereld",
+			"network": "Netwerk",
+			"advanced": "Geavanceerd"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Spelmodus",
+				"description": "Modus voor nieuwe spelers.",
+				"options": {
+					"survival": "Overleven",
+					"creative": "Creatief",
+					"adventure": "Avontuur",
+					"spectator": "Toeschouwer"
+				}
+			},
+			"difficulty": {
+				"label": "Moeilijkheid",
+				"description": "Hoe gevaarlijk mobs zijn.",
+				"options": {
+					"peaceful": "Vredig",
+					"easy": "Makkelijk",
+					"normal": "Normaal",
+					"hard": "Moeilijk"
+				}
+			},
+			"force-gamemode": {
+				"label": "Spelmodus afdwingen",
+				"description": "Spelers bij elke join terugzetten naar de standaardmodus."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "Spelers worden toeschouwer als ze doodgaan."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Spelers kunnen elkaar schade doen."
+			},
+			"allow-flight": {
+				"label": "Vliegen toestaan",
+				"description": "Spelers niet kicken voor vliegen (nodig voor sommige mods en plugins)."
+			},
+			"spawn-protection": {
+				"label": "Spawnbescherming",
+				"description": "Straal rond de spawn waarin alleen operators mogen bouwen. 0 schakelt het uit."
+			},
+			"max-players": {
+				"label": "Max. spelers",
+				"description": "Hoeveel spelers tegelijk online kunnen zijn."
+			},
+			"online-mode": {
+				"label": "Onlinemodus",
+				"description": "Accounts controleren bij Mojang. Zet uit om niet-premium- of Ely.by-accounts toe te staan."
+			},
+			"player-idle-timeout": {
+				"label": "Kicken bij inactiviteit",
+				"description": "Spelers na zoveel minuten inactiviteit kicken. 0 kickt nooit."
+			},
+			"op-permission-level": {
+				"label": "Operatorniveau",
+				"description": "Wat operators mogen: 1 spawnbescherming omzeilen … 4 alles."
+			},
+			"hide-online-players": {
+				"label": "Spelerslijst verbergen",
+				"description": "Niet tonen wie online is in het multiplayermenu."
+			},
+			"enforce-secure-profile": {
+				"label": "Ondertekende chat vereisen",
+				"description": "Alleen spelers met door Mojang ondertekende chatsleutels toestaan."
+			},
+			"view-distance": {
+				"label": "Zichtafstand",
+				"description": "Hoe ver spelers kunnen kijken. Lager is lichter voor het apparaat."
+			},
+			"simulation-distance": {
+				"label": "Simulatieafstand",
+				"description": "Hoe ver rond spelers de wereld blijft draaien."
+			},
+			"level-seed": {
+				"label": "Seed",
+				"description": "Seed voor een nieuwe wereld. Alleen gebruikt bij het maken van de wereld.",
+				"placeholder": "Willekeurig"
+			},
+			"level-type": {
+				"label": "Wereldtype",
+				"description": "Alleen gebruikt bij het maken van de wereld.",
+				"options": {
+					"minecraft_normal": "Standaard",
+					"minecraft_flat": "Superplat",
+					"minecraft_large_biomes": "Grote biomen",
+					"minecraft_amplified": "Versterkt"
+				}
+			},
+			"generate-structures": {
+				"label": "Bouwwerken genereren",
+				"description": "Dorpen, tempels en andere bouwwerken in nieuwe chunks."
+			},
+			"allow-nether": {
+				"label": "Nether toestaan",
+				"description": "Spelers mogen naar de Nether."
+			},
+			"max-world-size": {
+				"label": "Straal van de wereldgrens",
+				"description": "Maximale afstand vanaf het midden die spelers kunnen bereiken."
+			},
+			"server-port": {
+				"label": "Poort",
+				"description": "Poort waarop de server luistert."
+			},
+			"enable-status": {
+				"label": "Tonen in serverlijst",
+				"description": "Reageren op pings uit het multiplayermenu (MOTD, aantal spelers)."
+			},
+			"network-compression-threshold": {
+				"label": "Compressiedrempel",
+				"description": "Pakketten groter dan dit comprimeren. -1 schakelt compressie uit."
+			},
+			"enable-command-block": {
+				"label": "Commandoblokken",
+				"description": "Commandoblokken toestaan."
+			},
+			"sync-chunk-writes": {
+				"label": "Veilig chunks opslaan",
+				"description": "Chunks synchroon wegschrijven. Veiliger, iets trager."
+			},
+			"max-tick-time": {
+				"label": "Watchdog-time-out",
+				"description": "Server stoppen als één tick langer duurt. -1 schakelt uit."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Zichtafstand entiteiten",
+				"description": "Hoe ver entiteiten naar spelers worden gestuurd, in procenten."
+			}
+		},
+		"units": {
+			"blocks": "blokken",
+			"min": "min",
+			"chunks": "chunks",
+			"bytes": "bytes",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "De meeste wijzigingen gelden na een herstart van de server.",
+		"badImage": "Kan die afbeelding niet gebruiken: {{error}}",
+		"emptyName": "De naam mag niet leeg zijn.",
+		"identity": "Serveridentiteit",
+		"identityDesc": "Hoe je server eruitziet in de multiplayerlijst.",
+		"name": "Naam",
+		"motd": "Beschrijving (MOTD) · twee regels, Enter voor de tweede",
+		"motdReset": "Reset",
+		"saved": "Opgeslagen",
+		"saveChanges": "Wijzigingen opslaan",
+		"memory": "Geheugen",
+		"memoryMobile": "Houd het ruim onder het RAM van je telefoon.",
+		"memoryDesktop": "Maximaal RAM voor de Java-server.",
+		"portInUse": "Poort {{port}} wordt al door een andere server gebruikt. Probeer {{next}}.",
+		"gameSettings": "Spelinstellingen",
+		"gameSettingsDesc": "server.properties, met uitleg.",
+		"allOther": "Alle andere eigenschappen",
+		"filter": "Eigenschappen filteren",
+		"discard": "Verwerpen",
+		"configFiles": "Configuratiebestanden",
+		"configFilesDesc": "Server- en pluginconfiguraties (YAML, JSON, TOML).",
+		"saveFile": "Bestand opslaan",
+		"manage": "Beheren",
+		"changed_one": "{{count}} gewijzigd",
+		"changed_other": "{{count}} gewijzigd"
+	},
+	"newInstance": {
+		"title": "Nieuwe instantie maken",
+		"description": "Kies je Minecraft-versie en modloader. Ingot richt de omgeving en Java automatisch in.",
+		"modLoader": "Modloader",
+		"minecraftVersion": "Minecraft-versie",
+		"snapshots": "Snapshots",
+		"snapshotBadge": "snapshot",
+		"latestBadge": "nieuwste",
+		"loadingVersions": "Versies laden...",
+		"selectVersion": "Minecraft-versie kiezen",
+		"searchVersion": "Versie zoeken (bijv. 1.20, 1.16)...",
+		"loaderVersion": "Loaderversie",
+		"noCompatible": "Geen compatibele versies",
+		"selectLoaderVersion": "Loaderversie kiezen",
+		"searchLoaderVersion": "Loaderversie zoeken...",
+		"name": "Naam van de instantie",
+		"namePlaceholder": "bijv. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Serverinstellingen",
+		"yourServers": "Je servers",
+		"newServer": "Nieuwe server",
+		"about": "Over en licenties"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Serverbestanden controleren...",
+			"preparingPumpkin": "Pumpkin-server voorbereiden...",
+			"downloadingPumpkin": "Pumpkin downloaden (alleen bij de eerste start)...",
+			"preparingSandbox": "Linux-sandbox voorbereiden...",
+			"downloadingSandbox": "Linux-sandbox downloaden...",
+			"extractingSandbox": "Sandbox-bestandssysteem uitpakken...",
+			"installingJava": "Java {{version}} installeren in de sandbox...",
+			"sandboxReady": "Sandbox klaar!",
+			"installingCore": "{{name}} installeren (alleen bij de eerste start, dit kan een paar minuten duren)...",
+			"launching": "Serverproces starten...",
+			"failed": "Starten mislukt: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Niet op Modrinth, CurseForge of Hangar, dus Ingot kan het niet controleren",
+			"beta": "Bètaversie, mogelijk instabiel",
+			"alpha": "Alfaversie, mogelijk instabiel",
+			"siteOnly": "De versie voor {{target}} is alleen te downloaden via {{site}}",
+			"fabricOnly": "Alleen nodig op Fabric en Quilt",
+			"noVersion": "Nog geen versie voor {{target}}",
+			"pluginNotMarked": "Nog niet gemarkeerd voor {{version}}; de meeste plugins werken toch",
+			"notUpdated": "Niet bijgewerkt voor {{version}}; werkt meestal toch",
+			"sameAs": "Zelfde als {{name}}",
+			"incompatible": "Werkt niet samen met {{name}}",
+			"needsTurnedOff": "Heeft {{name}} nodig, dat wordt uitgeschakeld",
+			"needsMissing": "Heeft {{name}} nodig, dat niet beschikbaar is voor {{version}}",
+			"neededBy": "Nodig voor {{name}}"
+		},
+		"launch": {
+			"preparing": "Start voorbereiden",
+			"resolvingVersion": "Versie bepalen",
+			"resolvingLoader": "Modloader bepalen",
+			"checkingJava": "Java controleren",
+			"javaSetup": "Java instellen",
+			"downloadingClient": "Client downloaden",
+			"downloadingLibraries": "Bibliotheken downloaden",
+			"downloadingAssets": "Assets downloaden",
+			"verifying": "Bestanden controleren",
+			"auth": "Aanmelding instellen",
+			"starting": "Spel starten",
+			"fetchingMetadata": "Versiegegevens ophalen...",
+			"fetchingProfile": "{{loader}}-profiel ophalen...",
+			"detectingJava": "Java-omgeving detecteren...",
+			"downloadingJavaProgress": "Java {{version}} downloaden ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Java {{version}} downloaden...",
+			"extractingJava": "Java {{version}} uitpakken...",
+			"downloadingJar": "Minecraft-client downloaden...",
+			"downloadingLibrariesCount": "{{count}} bibliotheken downloaden...",
+			"library": "Bibliotheek {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "{{count}} assets downloaden...",
+			"assets": "Assets {{current}}/{{total}}",
+			"verified": "Alle spelbestanden gecontroleerd",
+			"authDetail": "Ely.by-skin en aanmeldagent instellen...",
+			"launching": "Minecraft starten...",
+			"connecting": "Verbinden met {{server}}...",
+			"loadingWorld": "Wereld {{world}} laden...",
+			"initializing": "Start voorbereiden..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Zo zien spelers hem",
+		"startingUp": "Opstarten...",
+		"shuttingDown": "Afsluiten...",
+		"cantConnect": "Kan geen verbinding maken met de server",
+		"preparing": "Voorbereiden...",
+		"sleepingNote": "Slaapt om middelen te sparen. Hij wordt vanzelf wakker als een speler joint.",
+		"failedToStart": "Starten mislukt.",
+		"start": "Server starten",
+		"wake": "Wakker maken",
+		"sleep": "Laten slapen",
+		"starting": "Opstarten...",
+		"stopping": "Stoppen...",
+		"uptime": "Looptijd",
+		"native": "Native",
+		"noOutput": "Nog geen uitvoer"
+	},
+	"serverCard": {
+		"offline": "Offline",
+		"openPage": "Serverpagina openen",
+		"copyAddress": "Klik om het serveradres te kopiëren",
+		"noneOnline": "0 online",
+		"joinTitle": "Minecraft starten en met deze server verbinden",
+		"join": "Joinen",
+		"start": "Starten",
+		"openFolder": "Servermap openen"
+	},
+	"versionChange": {
+		"title": "Versie wijzigen",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Conflicten",
+			"missing": "Nog niet beschikbaar",
+			"unknown": "Niet te controleren",
+			"newDependency": "Nieuwe afhankelijkheden",
+			"update": "Updates",
+			"works": "Al compatibel",
+			"olderVersions": "Oudere versies"
+		},
+		"actions": {
+			"keep": "Behouden",
+			"update": "Bijwerken",
+			"disable": "Uitschakelen",
+			"add": "Installeren",
+			"skip": "Niet installeren"
+		},
+		"kinds": {
+			"resourcePack": "Resourcepack",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} is ouder dan {{from}}",
+		"downgradeWarning": "Werelden die in een nieuwere versie zijn gespeeld, openen meestal niet in een oudere en kunnen kapotgaan. Laat de back-up van werelden aan, zodat terugdraaien ze kan herstellen.",
+		"downgradeOk": "Begrepen, toch naar de oudere versie gaan",
+		"backupWorldsHint": "Minecraft zet werelden om bij het openen, en dat kan niet terug. Met een back-up herstelt terugdraaien die ook.",
+		"openOn": "Openen op {{site}}",
+		"new": "nieuw",
+		"instanceDescription": "Ingot controleert eerst elke mod, elk resourcepack en elke shader en verandert niets tot je toepast. Daarna kun je het terugdraaien.",
+		"now": "nu",
+		"nowLabel": "Nu",
+		"moveTo": "Overstappen naar",
+		"pickVersion": "Kies een versie",
+		"searchVersion": "Versie zoeken...",
+		"loaderVersion": "{{loader}}-versie",
+		"pickLoaderVersion": "Kies een loaderversie",
+		"noLoaderFor": "Geen {{loader}} voor {{version}}",
+		"noLoader": "Geen {{loader}} voor deze versie",
+		"loaderSwitchNote": "Mods zijn voor één loader gemaakt. Ingot zoekt de {{loader}}-versie van elke mod en schakelt de mods zonder zo'n versie uit.",
+		"instanceEmpty": "Geen mods, resourcepacks of shaders om te controleren. Alleen de versie verandert.",
+		"applying": "Toepassen...",
+		"applyingHint": "Nieuwe bestanden downloaden en controleren, daarna een back-up van de huidige maken. Niets verandert voordat alles klaar is.",
+		"applyingWithWorlds": "Nieuwe bestanden downloaden en controleren, daarna een back-up van je werelden en de huidige bestanden maken. Niets verandert voordat alles klaar is.",
+		"nowOn": "Nu op {{version}}",
+		"instanceDone": "Gewijzigd van {{version}}. Werkt er iets niet, draai het dan terug in de instellingen van deze instantie: alles wordt precies zoals het was.",
+		"back": "Terug",
+		"checking": "Controleren...",
+		"check": "Compatibiliteit controleren",
+		"moveToVersion": "Overstappen naar {{version}}",
+		"summary": {
+			"download_one": "{{count}} te downloaden ({{size}})",
+			"download_other": "{{count}} te downloaden ({{size}})",
+			"turnedOff_one": "{{count}} uitgeschakeld",
+			"turnedOff_other": "{{count}} uitgeschakeld",
+			"conflictsKept_one": "{{count}} conflict behouden",
+			"conflictsKept_other": "{{count}} conflicten behouden"
+		},
+		"backupWorlds_one": "Back-up van werelden ({{count}} wereld, {{size}})",
+		"backupWorlds_other": "Back-up van werelden ({{count}} werelden, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Kan instantie niet starten: {{error}}",
+		"resolveConflict": "Kan conflict niet oplossen: {{error}}",
+		"deleteInstance": "Kan instantie niet verwijderen: {{error}}",
+		"startServer": "Kan server niet starten: {{error}}",
+		"deleteServer": "Kan server niet verwijderen: {{error}}",
+		"quickPlay": "Snel spelen op server mislukt: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Speler laden...",
+		"noData": "Nog geen gegevens voor deze speler.",
+		"health": "Gezondheid",
+		"hunger": "Honger",
+		"air": "Lucht",
+		"experience": "Ervaring",
+		"level": "Level {{level}}",
+		"equipment": "Uitrusting",
+		"slots": {
+			"head": "Hoofd",
+			"chest": "Borst",
+			"legs": "Benen",
+			"feet": "Voeten",
+			"offhand": "Tweede hand"
+		},
+		"showOnMap": "Tonen op kaart",
+		"inventory": "Inventaris",
+		"ender": "Enderkist ({{count}})",
+		"effects": "Effecten ({{count}})",
+		"onFire": "In brand",
+		"durability": "{{left}}/{{max}} duurzaamheid",
+		"enchanted": "Betoverd",
+		"noEffects": "Geen actieve effecten",
+		"heal": "Genezen",
+		"feed": "Voeden",
+		"removeOp": "OP afnemen",
+		"whitelisted": "Op de whitelist",
+		"confirmKick": "{{name}} kicken?",
+		"confirmBan": "{{name}} verbannen?",
+		"confirm": "Bevestigen",
+		"kick": "Kicken"
+	},
+	"transfer": {
+		"zipArchive": "ZIP-archief",
+		"savedTo": "Opgeslagen in {{path}}",
+		"copyName": "{{name}} kopie",
+		"created": "\"{{name}}\" gemaakt.",
+		"title": "Back-up en versie",
+		"description": "Exporteer om te delen of te back-uppen, kopieer de server of stap over op een andere Minecraft-versie.",
+		"exportConfigs": "Configuraties exporteren",
+		"withoutWorlds": "Zonder werelden",
+		"exportAll": "Alles exporteren",
+		"withWorlds": "Met werelden",
+		"makeCopy": "Kopie maken",
+		"secondServer": "Een tweede server",
+		"stopFirst": "Stop eerst de server",
+		"nowVersion": "Nu {{version}}",
+		"backup": "Gewijzigd van {{version}}. Back-up {{size}}.",
+		"backupWithWorlds": "Gewijzigd van {{version}}. Back-up {{size}}, inclusief werelden.",
+		"deleteBackup": "Back-up verwijderen",
+		"undo": "Terugdraaien naar {{version}}",
+		"willStartOn": "{{name}} start op {{version}}. Werkt er iets niet, dan kun je het hier terugdraaien.",
+		"currentVersion": "{{version}} (huidig)",
+		"changeTitle": "Minecraft-versie wijzigen",
+		"changeDescription_plugin": "Ingot controleert eerst elke plugin en verandert niets tot je toepast. Alles krijgt een back-up, dus je kunt het terugdraaien.",
+		"changeDescription_mod": "Ingot controleert eerst elke mod en verandert niets tot je toepast. Alles krijgt een back-up, dus je kunt het terugdraaien.",
+		"serverType": "Servertype",
+		"empty": "Geen plugins of mods om te controleren. Alleen de versie verandert.",
+		"readyFor": "Klaar voor {{version}}",
+		"doneNote": "De nieuwe versie wordt bij de volgende start gedownload. Werkt er iets niet, draai het dan terug via Back-up en versie: alles wordt precies zoals het was.",
+		"import": "Server importeren",
+		"importing": "Importeren {{percent}}",
+		"settingUp": "Server instellen...",
+		"partial": "\"{{name}}\" geïmporteerd, maar sommige plugins of mods konden niet worden gedownload:",
+		"openServer": "Server openen"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Snelle Spigot/Bukkit-server met volledige pluginondersteuning",
+			"badge": "Snel en stabiel"
+		},
+		"purpur": {
+			"tagline": "Paper-fork met veel functies en enorm veel aanpassingen",
+			"badge": "Aanpasbaar"
+		},
+		"fabric": {
+			"tagline": "Lichte, modulaire modserver voor Fabric-mods",
+			"badge": "Met mods"
+		},
+		"neoforge": {
+			"tagline": "Modserver voor NeoForge-mods, de thuisbasis van de meeste grote contentmods",
+			"badge": "Met mods"
+		},
+		"forge": {
+			"tagline": "De originele modserver, voor Forge-mods vanaf Minecraft 1.17",
+			"badge": "Met mods"
+		},
+		"quilt": {
+			"tagline": "Fabric-compatibele modserver die Quilt- en Fabric-mods draait",
+			"badge": "Met mods"
+		},
+		"folia": {
+			"tagline": "Multithreaded regioserver van PaperMC voor heel veel spelers",
+			"badge": "Multithreaded"
+		},
+		"pumpkin": {
+			"tagline": "Superlicht, in Rust gebouwd — start meteen, < 60 MB RAM",
+			"badge": "Mobiel native"
+		},
+		"vanilla": {
+			"tagline": "Officiële, ongewijzigde Minecraft-server direct van Mojang",
+			"badge": "Origineel"
+		}
+	},
+	"wizard": {
+		"defaultName": "{{core}}-server",
+		"fetchFailed": "Kan versies niet laden. Controleer je verbinding.",
+		"enterName": "Vul een servernaam in.",
+		"selectVersion": "Kies een Minecraft-versie.",
+		"invalidPort": "Vul een geldige poort in (1024 – 65534).",
+		"portInUseTry": "Poort {{port}} is al in gebruik. Probeer {{next}}.",
+		"portInUse": "Poort {{port}} is al in gebruik.",
+		"createFailed": "Kan server niet maken",
+		"stepEngine": "Kies je engine",
+		"stepName": "Geef je server een naam",
+		"stepMemory": "Geheugen en bevestigen",
+		"stepOf": "Stap {{step}} van {{total}}",
+		"preparing": "Server voorbereiden…",
+		"serverName": "Servernaam",
+		"namePlaceholder": "bijv. {{core}} survivalserver",
+		"minecraftVersion": "Minecraft-versie",
+		"selectVersionPlaceholder": "Versie kiezen",
+		"serverPort": "Serverpoort",
+		"portInUseShort": "Poort in gebruik",
+		"ready": "Klaar om te maken",
+		"engine": "Engine",
+		"version": "Versie",
+		"ram": "RAM",
+		"memory": "Geheugen (RAM)",
+		"heroLine1": "Je eerste server,",
+		"heroLine2": "in een paar seconden.",
+		"heroText": "Ingot downloadt, configureert en draait een Minecraft-server op dit apparaat. Nodig vrienden uit, waar ze ook zijn.",
+		"createAServer": "Server maken",
+		"createAServerHint": "Paper, PumpkinMC, Fabric en meer"
+	},
+	"plugins": {
+		"unsupported": "{{core}}-servers kunnen geen plugins gebruiken",
+		"unsupportedHint": "Maak een Paper- of Purpur-server voor plugins, of een Fabric-server voor mods.",
+		"installed": "{{name}} geïnstalleerd.",
+		"installedWith": "{{name}} en {{extras}} geïnstalleerd.",
+		"browse_plugin": "Plugins zoeken",
+		"browse_mod": "Mods zoeken",
+		"restartToApply": "Herstart de server om de wijzigingen toe te passen.",
+		"restart": "Herstarten",
+		"noOther_plugin": "Nog geen andere plugins.",
+		"noOther_mod": "Nog geen andere mods.",
+		"none_plugin": "Nog geen plugins",
+		"none_mod": "Nog geen mods",
+		"find_plugin": "Vind plugins op Modrinth en installeer ze met één tik.",
+		"find_mod": "Vind mods op Modrinth en installeer ze met één tik.",
+		"findHangar_plugin": "Vind plugins op Modrinth en Hangar en installeer ze met één tik.",
+		"findHangar_mod": "Vind mods op Modrinth en Hangar en installeer ze met één tik.",
+		"updateAvailable": "Update beschikbaar: {{version}}",
+		"enabled": "{{name}} ingeschakeld.",
+		"disabled": "{{name}} uitgeschakeld.",
+		"enable": "{{name}} inschakelen",
+		"disable": "{{name}} uitschakelen",
+		"updated": "{{name}} bijgewerkt.",
+		"removed": "{{name}} verwijderd.",
+		"unknownVersion": "Onbekende versie",
+		"byAuthors": "door {{authors}}",
+		"file": "Bestand",
+		"size": "Grootte",
+		"updateTo": "Bijwerken naar {{version}}",
+		"reallyDelete": "Echt verwijderen?",
+		"sort": {
+			"downloads": "Populairst",
+			"updated": "Recent bijgewerkt",
+			"newest": "Nieuwste"
+		},
+		"searchPlaceholder_plugin": "Plugins zoeken, bijv. LuckPerms",
+		"searchPlaceholder_mod": "Mods zoeken, bijv. Lithium",
+		"compatibleOnly": "Alleen resultaten tonen die met {{version}} werken",
+		"forVersion": "Voor {{version}}",
+		"searchFailed": "Zoeken mislukt: {{error}}",
+		"nothingFound": "Niets gevonden",
+		"noneForVersion_plugin": "Geen plugins voor Minecraft {{version}}. Probeer het versiefilter uit te zetten.",
+		"noneForVersion_mod": "Geen mods voor Minecraft {{version}}. Probeer het versiefilter uit te zetten.",
+		"tryAnother": "Probeer een andere zoekopdracht.",
+		"loadMore": "Meer laden",
+		"playersNeedItTitle": "Spelers moeten deze mod ook installeren, anders kunnen ze niet joinen",
+		"playersNeedIt": "Ook nodig voor spelers",
+		"isInstalled": "{{name}} is geïnstalleerd",
+		"install": "{{name}} installeren",
+		"results_one": "{{formatted}} resultaat",
+		"results_other": "{{formatted}} resultaten"
+	},
+	"join": {
+		"shareTitle": "Join {{name}}",
+		"shareText": "Kom op mijn Minecraft-server \"{{name}}\"!\nAdres: {{address}}\nVersie: Java Edition {{version}}",
+		"title": "Spelers uitnodigen",
+		"description": "Deel een adres zodat vrienden kunnen joinen.",
+		"sameWifi": "Zelfde wifi",
+		"copyLocal": "Lokaal adres kopiëren",
+		"anywhere": "Overal (playit.gg)",
+		"copyPublic": "Openbaar adres kopiëren",
+		"showQr": "QR-code tonen",
+		"linkPlayit": "Koppel je playit.gg-account",
+		"noTunnel": "Verbonden, maar nog geen tunnel. <link>Voeg er een toe</link> voor poort {{port}}.",
+		"connecting": "Verbinden...",
+		"notConnected": "Niet verbonden",
+		"stopPlayit": "playit stoppen",
+		"goPublic": "Openbaar maken",
+		"share": "Uitnodiging delen",
+		"scan": "Scan om het adres te kopiëren",
+		"qrAlt": "QR-code"
+	},
+	"stats": {
+		"latest": "Laatste: {{value}}",
+		"noData": "Nog geen gegevens",
+		"now": "nu",
+		"ago": "{{time}} geleden",
+		"min": "Min",
+		"avg": "Gemiddeld",
+		"peak": "Piek",
+		"performance": "Prestaties",
+		"touchHint": "Tik op een grafiek voor details",
+		"ofDevice": "van apparaat",
+		"allocated": "Toegewezen",
+		"deviceRam": "RAM van apparaat",
+		"free": "{{size}} vrij",
+		"lag": "Lag",
+		"smooth": "Soepel",
+		"slightLag": "Lichte lag",
+		"lagging": "Laggt",
+		"used": "{{label}}: {{used}} van {{total}} in gebruik"
+	},
+	"storage": {
+		"title": "Opslag",
+		"worlds": "Werelden",
+		"plugins": "Plugins en mods",
+		"server": "Serverbestanden",
+		"backups": "Back-ups",
+		"logs": "Logs",
+		"other": "Overig",
+		"device": "Opslag van apparaat"
+	},
+	"instanceSettings": {
+		"pushFailed": "Versturen mislukt: {{error}}",
+		"pullFailed": "Ophalen mislukt: {{error}}",
+		"saveFailed": "Kan instellingen niet opslaan: {{error}}",
+		"title": "Instantie-instellingen",
+		"description": "Stel startparameters en geheugenlimieten in voor <b>{{name}}</b>.",
+		"namePlaceholder": "Mijn Minecraft-instantie",
+		"loader": "loader {{version}}",
+		"backup": "Gewijzigd van {{from}} naar {{to}}. Back-up {{size}}.",
+		"backupWithWorlds": "Gewijzigd van {{from}} naar {{to}}. Back-up {{size}}, inclusief werelden.",
+		"memoryOverride": "Ander geheugen gebruiken voor deze instantie",
+		"minMemory": "Beginngeheugen (min):",
+		"maxMemory": "Maximaal geheugen (max):",
+		"inheritMemory": "Neemt de algemene instellingen over: <b>{{min}} min / {{max}} max</b>. Aan te passen op de pagina Instellingen.",
+		"jvmArgs": "JVM-argumenten",
+		"jvmArgsHint": "Extra Java-startargumenten (gescheiden door spaties)",
+		"java": "Eigen Java-programma",
+		"javaHint": "Leeg laten voor de automatisch beheerde Adoptium-runtime",
+		"windowOverride": "Ander volledig scherm en venstergrootte voor deze instantie",
+		"fullscreenHint": "Direct in volledig scherm starten",
+		"resolution": "Resolutie:",
+		"fullscreen": "Volledig scherm",
+		"inheritDisplay": "Neemt de algemene weergave over: <b>{{value}}</b>. Aan te passen in de launcherinstellingen.",
+		"syncHint": "Synchroniseert opties, servers, packs, geschiedenis en sneltoetsbalken",
+		"manualSync": "Handmatige synchronisatie",
+		"manualSyncHint": "Exporteer de gegevens van deze instantie of haal de nieuwste bestanden uit de gedeelde opslag.",
+		"push": "Naar gedeelde opslag sturen",
+		"pull": "Uit gedeelde opslag halen",
+		"syncOptions": "Spelopties synchroniseren (options.txt)",
+		"syncServers": "Multiplayerservers synchroniseren (servers.dat)",
+		"syncPacks": "Resourcepacks synchroniseren (resourcepacks/)",
+		"syncHistory": "Commandogeschiedenis synchroniseren (command_history.txt)",
+		"syncHotbars": "Creatieve balken synchroniseren (hotbar.nbt)",
+		"inheritSync": "Neemt de algemene sync-voorkeuren over. Synchroniseert voor het starten en na het afsluiten."
+	},
+	"install": {
+		"loadFailed": "Kan installatieopties niet laden",
+		"compatible": "Compatibel",
+		"all": "Alle",
+		"any": "Elke",
+		"modpackDone": "Modpack \"{{name}}\" is geïnstalleerd als nieuwe instantie!",
+		"selectTarget": "Doelinstantie kiezen...",
+		"added": "{{file}} toegevoegd aan {{instance}}!",
+		"modpackTitle": "Modpack installeren",
+		"addTitle_mod": "Mod aan een instantie toevoegen",
+		"addTitle_resourcepack": "Resourcepack aan een instantie toevoegen",
+		"addTitle_shader": "Shader aan een instantie toevoegen",
+		"addTitle_modpack": "Modpack aan een instantie toevoegen",
+		"addTitle_datapack": "Datapack aan een instantie toevoegen",
+		"addTitle_plugin": "Plugin aan een instantie toevoegen",
+		"modpackDescription": "Een nieuwe Minecraft-instantie maken van \"{{title}}\".",
+		"description": "\"{{title}}\" installeren in een van je instanties.",
+		"loading": "Opties laden...",
+		"retry": "Opnieuw proberen",
+		"modpackVersion": "Modpackversie",
+		"selectModpackVersion": "Modpackversie kiezen...",
+		"loaders": "Loaders:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Maak eerst een instantie op het tabblad Instanties voordat je mods of resourcepacks toevoegt.",
+		"target": "Doelinstantie",
+		"fileVersion": "Bestandsversie",
+		"selectFileVersion": "Bestandsversie kiezen...",
+		"supports": "Ondersteunt:",
+		"createAndInstall": "Maken en installeren",
+		"installToInstance": "In instantie installeren",
+		"compatibleCount_one": "{{count}} compatibele versie",
+		"compatibleCount_other": "{{count}} compatibele versies"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Resourcepack",
+		"shader": "Shader",
+		"datapack": "Datapack",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Release",
+		"beta": "Bèta",
+		"alpha": "Alfa"
+	},
+	"contentDetails": {
+		"loadFailed": "Kan projectdetails niet laden",
+		"addToInstance": "Aan instantie toevoegen",
+		"versions": "Versies en bestanden",
+		"versionsCount": "Versies en bestanden ({{count}})",
+		"loading": "Projectdetails laden...",
+		"gallery": "Galerij ({{count}})",
+		"clickToOpen": "Klik op de afbeelding voor volledig scherm",
+		"viewFullscreen": "Volledig scherm bekijken",
+		"scrollLeft": "Galerij naar links",
+		"scrollRight": "Galerij naar rechts",
+		"source": "Broncode",
+		"issues": "Problemen melden",
+		"wiki": "Wiki",
+		"description": "Beschrijving",
+		"gameVersion": "Spelversie:",
+		"noMatch": "Geen versies passen bij je filters.",
+		"openOriginal": "Origineel openen",
+		"previous": "Vorige afbeelding",
+		"next": "Volgende afbeelding",
+		"downloads_one": "{{formatted}} download",
+		"downloads_other": "{{formatted}} downloads",
+		"followers_one": "{{formatted}} volger",
+		"followers_other": "{{formatted}} volgers",
+		"showing_one": "{{shown}} van {{count}} versie",
+		"showing_other": "{{shown}} van {{count}} versies"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Instantiemap van {{launcher}} kiezen",
+		"selectDir": "Map van een Minecraft-instantie kiezen",
+		"done": "Instantie geïmporteerd!",
+		"title": "Importeren uit een andere launcher",
+		"selectInstance": "Instantie kiezen ({{launcher}})",
+		"configure": "Import instellen",
+		"description": "Importeer Minecraft-installaties, mods, werelden en instellingen direct in Ingot.",
+		"optionsDescription": "Kies welke gegevens naar je nieuwe Ingot-instantie gaan.",
+		"detecting": "Geïnstalleerde launchers zoeken...",
+		"notDetected": "Niet gevonden • Klik om te zoeken",
+		"custom": "Eigen map",
+		"customHint": "Kies een willekeurige instantiemap op schijf",
+		"backToLaunchers": "Terug naar launchers",
+		"changeFolder": "Andere map",
+		"filter": "Instanties filteren...",
+		"loadingInstances": "Instanties laden...",
+		"noneFound": "Geen instanties gevonden in deze map.",
+		"select": "Kiezen",
+		"nameInIngot": "Naam van de instantie in Ingot:",
+		"namePlaceholder": "Mijn geïmporteerde instantie",
+		"source": "Bron: {{path}}",
+		"components": "Kies wat je wilt importeren:",
+		"mods": "Mods",
+		"configs": "Configuraties",
+		"configsHint": "Instellingen en modconfiguraties",
+		"worlds": "Werelden en saves",
+		"packs": "Resourcepacks",
+		"packsHint": "Texturen en shaderpacks",
+		"screenshotsHint": "Screenshots uit het spel",
+		"modData": "Modgegevens en overig",
+		"modDataHint": "Waypoints, schematics, opnames, enz.",
+		"options": "Spelopties",
+		"optionsHint": "options.txt en toetsen",
+		"servers": "Multiplayerservers",
+		"serversHint": "Serverlijst servers.dat",
+		"note": "Alles hierboven is optioneel. Met <b>Modgegevens en overig</b> worden eigen modmappen (minimap-waypoints, schematics, opnames) veilig gekopieerd. Zet het uit voor een schone import zonder extra bestanden.",
+		"importing": "Importeren...",
+		"import": "Instantie importeren",
+		"found_one": "{{count}} instantie gevonden in {{launcher}}. Kies welke je wilt importeren.",
+		"found_other": "{{count}} instanties gevonden in {{launcher}}. Kies welke je wilt importeren.",
+		"instancesFound_one": "{{count}} instantie gevonden",
+		"instancesFound_other": "{{count}} instanties gevonden",
+		"modsCount_one": "{{count}} mod",
+		"modsCount_other": "{{count}} mods",
+		"worldsCount_one": "{{count}} wereld",
+		"worldsCount_other": "{{count}} werelden",
+		"screenshotsCount_one": "{{count}} screenshot",
+		"screenshotsCount_other": "{{count}} screenshots",
+		"modFiles_one": "{{count}} modbestand",
+		"modFiles_other": "{{count}} modbestanden",
+		"singleplayerWorlds_one": "{{count}} singleplayerwereld",
+		"singleplayerWorlds_other": "{{count}} singleplayerwerelden"
+	},
+	"skinViewer": {
+		"resetCamera": "3D-camera resetten",
+		"pauseRotation": "Draaien pauzeren",
+		"autoRotate": "3D-model automatisch draaien",
+		"idlePose": "Naar stilstaande houding",
+		"playWalk": "Loopanimatie afspelen",
+		"idleTitle": "Ademanimatie",
+		"idle": "Stil",
+		"walkTitle": "Loopanimatie",
+		"walk": "Lopen",
+		"runTitle": "Renanimatie",
+		"run": "Rennen",
+		"waveTitle": "Zwaaianimatie",
+		"wave": "Zwaaien",
+		"pause": "Animaties pauzeren",
+		"outerOn": "Buitenste laag aan",
+		"outerOff": "Buitenste laag uit",
+		"modelSlim": "Model: slank (Alex)",
+		"modelClassic": "Model: klassiek (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Eigen skin",
+		"currentActiveSkin": "Huidige actieve skin",
+		"activeAccountSkin": "Skin van actief account",
+		"loadFailed": "Kan skins niet laden van Ely.by",
+		"defaultSteve": "Standaard-Steve",
+		"addAccountFirst": "Voeg eerst een Ely.by-account toe of kies er een.",
+		"elyOnlySync": "Alleen Ely.by-accounts ondersteunen skinsynchronisatie.",
+		"customApplied": "Eigen skin toegepast op {{name}}!",
+		"skinApplied": "Skin #{{id}} toegepast op {{name}}!",
+		"applyFailed": "Kan skin niet toepassen.",
+		"enterPassword": "Vul je Ely.by-wachtwoord in.",
+		"skinFromDate": "Skin {{date}}",
+		"uploadedApplied": "Eigen skin geüpload en toegepast op {{name}}!",
+		"pngOnly": "Het skinbestand moet een PNG (.png) zijn.",
+		"tooLarge": "Het skinbestand is te groot (max. 2 MB).",
+		"badSize": "Ongeldige afmetingen: {{size}}. Minecraft-skins zijn 64x64 of 64x32 pixels.",
+		"badImage": "Kan afbeelding niet lezen. Controleer of het een geldige PNG is.",
+		"elyOnlyUpload": "Alleen Ely.by-accounts ondersteunen het uploaden van skins.",
+		"uploadFailed": "Kan skin niet uploaden.",
+		"saved": "Skin #{{id}} opgeslagen!",
+		"downloadFailed": "Downloaden mislukt.",
+		"urlCopied": "URL van de skintextuur gekopieerd!",
+		"activeAccount": "Actief Ely.by-account",
+		"noActiveAccount": "Geen actief Ely.by-account",
+		"browse": "Skins bekijken",
+		"preview3d": "3D-voorbeeld",
+		"currentSkin": "Huidige skin",
+		"skinNumber": "Skin #{{id}}",
+		"alexSlim3": "Alex (slank, 3 px)",
+		"steveClassic4": "Steve (klassiek, 4 px)",
+		"currentSkinOf": "Huidige skin ({{name}})",
+		"applyTo": "Skin toepassen op {{name}}",
+		"applyToAccount": "Skin toepassen op account",
+		"downloadPng": "PNG downloaden",
+		"updating": "Bijwerken...",
+		"loadingMine": "Je geüploade skins laden van Ely.by...",
+		"loading": "Skins laden van Ely.by...",
+		"noMatchingUploads": "Geen passende geüploade skins",
+		"noUploadsFor": "Geen geüploade skins voor {{name}}",
+		"tryDifferent": "Probeer een andere zoekopdracht of filter.",
+		"noUploadsHint": "Je hebt nog geen eigen skins naar Ely.by geüpload. Upload er een om hem op elk moment te beheren en te dragen.",
+		"selectAccountHint": "Kies of voeg een Ely.by-account toe om je geüploade skins te zien.",
+		"uploadASkin": "Skin uploaden",
+		"noSkins": "Geen skins gevonden",
+		"deleteCustom": "Eigen skin verwijderen",
+		"slim": "Slank",
+		"classic": "Klassiek",
+		"pageOf": "Pagina <b>{{page}}</b> van {{total}}",
+		"total": "({{count}} totaal)",
+		"previous": "Vorige",
+		"next": "Volgende",
+		"alexSlim": "Alex (slank)",
+		"steveClassic": "Steve (klassiek)",
+		"view3d": "3D-weergave",
+		"apply": "Toepassen",
+		"livePreview": "Live 3D-voorbeeld",
+		"uploading": "Uploaden en toepassen...",
+		"uploadApply": "Skin uploaden en toepassen",
+		"uploadTitle": "Eigen skin uploaden",
+		"uploadDescription": "Upload een Minecraft-skintextuur vanaf je computer om hem direct op Ely.by toe te passen.",
+		"dropHint": "Klik om te bladeren of sleep de skin-PNG hierheen",
+		"supports": "Standaard Minecraft-skins (PNG 64×64 of 64×32, tot 2 MB)",
+		"dimensions": "Afmetingen: {{value}}",
+		"size": "Grootte: {{value}}",
+		"armModel": "Armmodel van de skin",
+		"armModelHint": "Kies of deze skin gemaakt is voor klassieke (4 px) of slanke (3 px) armen.",
+		"classicArms": "Klassiek (armen van 4 px)",
+		"slimArms": "Slank (armen van 3 px)",
+		"targetAccount": "Doelaccount op Ely.by",
+		"noAccount": "Geen actief account",
+		"readyToApply": "Klaar om toe te passen",
+		"passwordTitle": "Toestemming met Ely.by-wachtwoord",
+		"passwordDescription": "Vul je accountwachtwoord in om je Ely.by-skin voor <b>{{name}}</b> te wijzigen. Het wordt veilig versleuteld in de sleutelhanger van je systeem.",
+		"passwordPlaceholder": "Ely.by-wachtwoord",
+		"authorize": "Toestaan en toepassen",
+		"count_one": "{{formatted}} skin",
+		"count_other": "{{formatted}} skins"
+	},
+	"select": {
+		"placeholder": "Kies een optie",
+		"noMatches": "Geen resultaten"
+	},
+	"hosting": {
+		"one": "{{name}} wordt gehost",
+		"many": "{{count}} servers worden gehost",
+		"tunnel": "Ingot-tunnel actief",
+		"publicAddress": "Openbaar adres: {{address}}",
+		"connecting": "playit.gg-tunnel verbindt...",
+		"localOnly": "Alleen lokaal netwerk"
 	}
 }

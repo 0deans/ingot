@@ -23,11 +23,13 @@
 		"minimize": "Minimizează",
 		"maximize": "Maximizează",
 		"restore": "Restaurează",
-		"justNow": "Chiar acum",
 		"never": "Niciodată",
-		"minutesAgo": "acum {{count}}m",
-		"hoursAgo": "acum {{count}}h",
-		"daysAgo": "acum {{count}}z"
+		"unknown": "Necunoscut",
+		"deleting": "Se șterge...",
+		"stop": "Oprește",
+		"done": "Gata",
+		"update": "Actualizează",
+		"enable": "Activează"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Alege limba",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Niciun cont configurat încă.",
 		"previewSkin": "Previzualizare 3D skin",
 		"removeAccount": "Elimină contul",
-		"setAsActive": "Setează ca activ"
+		"setAsActive": "Setează ca activ",
+		"offline": "Offline",
+		"reorder": "Reordonează contul {{name}}",
+		"dragToReorder": "Trage pentru a reordona contul",
+		"clickToPreview": "Apasă pentru previzualizarea 3D a skinului",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Caută instanțe...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Deschide dosarul instanței în File Explorer",
 			"settingsTooltip": "Setări instanță (RAM, argumente JVM)",
 			"duplicateTooltip": "Duplică",
-			"deleteTooltip": "Șterge instanța"
-		}
+			"deleteTooltip": "Șterge instanța",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Descoperă conținut",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Resetează toate filtrele",
 		"byAuthor": "de {{author}}",
 		"noDescription": "Nicio descriere disponibilă.",
-		"details": "Detalii"
+		"details": "Detalii",
+		"loadFailed": "Nu s-a putut încărca conținutul"
 	},
 	"skins": {
 		"title": "Catalog de skinuri",
@@ -199,6 +209,18 @@
 			"description": "Sigur vrei să ștergi definitiv această captură de ecran? Această acțiune este ireversibilă.",
 			"deleting": "Se șterge...",
 			"deletePermanently": "Șterge definitiv"
+		},
+		"card": {
+			"view": "Vizualizează {{name}}",
+			"unavailable": "Imagine indisponibilă",
+			"fullscreen": "Ecran complet",
+			"showInFolder": "Afișează în dosar"
+		},
+		"lightbox": {
+			"close": "Închide previzualizarea",
+			"closeEsc": "Închide (Esc)",
+			"previous": "Captura anterioară",
+			"next": "Captura următoare"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Creează server nou",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia sau Vanilla",
 		"noMatchTitle": "Niciun server nu corespunde filtrelor",
-		"noMatchSubtitle": "Încearcă să schimbi căutarea sau să selectezi „Toate nucleele”."
+		"noMatchSubtitle": "Încearcă să schimbi căutarea sau să selectezi „Toate nucleele”.",
+		"activeEntry": "{{name}} (Port {{port}})"
 	},
 	"settings": {
 		"title": "Setări launcher",
 		"subtitle": "Configurează conturile, limba, mediile Java, alocarea RAM și comportamentul launcherului.",
 		"language": {
 			"title": "Limbă",
-			"description": "Alege limba de afișare pentru interfața launcherului. Fișierele noi din src/locales/ se reîncarcă automat."
+			"description": "Alege limba launcherului. Formatele pentru date, numere și dimensiuni o vor urma de asemenea."
 		},
 		"theme": {
 			"title": "Aspect și temă",
@@ -263,7 +286,14 @@
 				"modded": "Cu moduri",
 				"heavy": "Modpack mare",
 				"safeMax": "Max. sigur"
-			}
+			},
+			"zoneSafe": "Zonă de funcționare sigură",
+			"zoneHigh": "Zonă de utilizare ridicată",
+			"zoneCritical": "Zonă critică pentru sistem",
+			"minShort": "Min: {{value}}",
+			"maxShort": "Max: {{value}}",
+			"totalShort": "{{value}} (Max)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Comportament launcher",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Rezoluție implicită fereastră",
 			"resolutionDesc": "Setează lățimea și înălțimea personalizate pentru fereastra jocului",
 			"presets": "Presetări:",
-			"defaultPreset": "Implicit"
+			"defaultPreset": "Implicit",
+			"resetTo": "Resetează la {{size}}"
 		},
 		"sync": {
 			"title": "Sincronizare date joc",
@@ -315,7 +346,8 @@
 					"title": "Sincronizează barele rapide din modul creativ",
 					"description": "Partajează barele de acces rapid salvate în modul creativ între lumi"
 				}
-			}
+			},
+			"reinitialize": "Reinițializează sursa {{title}}"
 		},
 		"updates": {
 			"title": "Actualizări și versiune",
@@ -340,5 +372,1249 @@
 			"dialogSubtitle": "Ingot folosește acest software din alte proiecte. Fiecare are propria licență; apasă pe un nume pentru codul sursă și licența completă.",
 			"trademark": "Minecraft este o marcă înregistrată a Mojang AB. Ingot nu este afiliat cu Mojang sau Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Overworld",
+			"nether": "Nether",
+			"end": "The End"
+		},
+		"gamemodes": {
+			"survival": "Supraviețuire",
+			"creative": "Creativ",
+			"adventure": "Aventură",
+			"spectator": "Spectator"
+		}
+	},
+	"initialSync": {
+		"title": "Sincronizare inițială",
+		"description": "Activezi sincronizarea pentru <b>{{name}}</b>. De unde ar trebui să sincronizăm inițial?",
+		"fromInstance": "Din această instanță",
+		"uploadToShared": "Încarcă în stocarea partajată",
+		"fromInstanceDesc": "Copiază opțiunile și serverele acestei instanțe în stocarea partajată ca copie principală.",
+		"fromShared": "Din stocarea partajată",
+		"downloadToInstance": "Descarcă în instanță",
+		"fromSharedDesc": "Descarcă opțiunile și serverele partajate existente în această instanță."
+	},
+	"deleteInstance": {
+		"title": "Șterge instanța",
+		"description": "Sigur vrei să ștergi definitiv această instanță? Această acțiune este ireversibilă.",
+		"note": "Toate salvările, lumile, modurile instalate, pachetele de resurse și fișierele de configurare stocate în dosarul acestei instanțe vor fi șterse de pe disc."
+	},
+	"deleteServer": {
+		"title": "Șterge serverul",
+		"confirm": "Sigur vrei să ștergi <b>{{name}}</b>?",
+		"details": "Detalii server:",
+		"detailsLine": "Nucleu: {{core}} {{version}} • Port: {{port}}",
+		"deleteFiles": "Șterge definitiv toate fișierele serverului",
+		"deleteFilesDesc": "Include hărțile lumilor, datele jucătorilor, pluginurile și jurnalele serverului de pe discul computerului."
+	},
+	"companion": {
+		"system": "Sistem",
+		"liveMap": "Hartă live",
+		"disabled": "Dezactivat",
+		"notInstalled": "Hartă live · neinstalată",
+		"updated_plugin": "Pluginul Ingot a fost actualizat.",
+		"updated_mod": "Modul Ingot a fost actualizat.",
+		"installed_plugin": "Pluginul Ingot a fost instalat.",
+		"installed_mod": "Modul Ingot a fost instalat.",
+		"removed_plugin": "Pluginul Ingot a fost eliminat. Harta se actualizează acum când serverul salvează.",
+		"removed_mod": "Modul Ingot a fost eliminat. Harta se actualizează acum când serverul salvează.",
+		"enabled_plugin": "Pluginul Ingot a fost activat.",
+		"enabled_mod": "Modul Ingot a fost activat.",
+		"remove_plugin": "Elimină pluginul Ingot",
+		"remove_mod": "Elimină modul Ingot"
+	},
+	"syncConflict": {
+		"title": "Conflict de sincronizare detectat",
+		"description": "<b>{{name}}</b> conține fișiere de configurare locale proprii care nu au fost niciodată sincronizate cu stocarea partajată.",
+		"conflictingFiles": "Fișiere în conflict:",
+		"choose": "Alege cum să rezolvi această sincronizare inițială:",
+		"useShared": "Folosește setările partajate",
+		"overwritesLocal": "Suprascrie local",
+		"useSharedDesc": "Înlocuiește opțiunile și serverele acestei instanțe cu setările partajate existente. O copie de rezervă automată <code>.bak</code> a fișierelor instanței va fi salvată.",
+		"useInstance": "Fă această instanță principala partajată",
+		"overwritesShared": "Suprascrie stocarea partajată",
+		"useInstanceDesc": "Trimite opțiunile și serverele acestei instanțe în stocarea partajată ca copie principală. Fișierele partajate existente vor fi salvate ca <code>.bak</code>.",
+		"disable": "Păstrează independentă (Dezactivează sincronizarea)",
+		"noChanges": "Fără modificări",
+		"disableDesc": "Dezactivează sincronizarea pe această instanță, astfel încât serverele și setările sale nu vor fi niciodată modificate sau înlocuite de alte instanțe."
+	},
+	"leftoverServers": {
+		"runningSince": "Rulează de la {{time}}",
+		"stopped": "Oprit",
+		"stopNote": "Oprirea îl încheie imediat. Tot ce s-a întâmplat de la ultima salvare automată (cel mult câteva minute) se pierde, dar lumea în sine rămâne intactă.",
+		"leaveRunning": "Lasă să ruleze",
+		"title_one": "Un server încă rulează de data trecută",
+		"title_few": "Serverele încă rulează de data trecută",
+		"title_other": "Serverele încă rulează de data trecută",
+		"description_one": "Ingot s-a închis fără a-l opri, astfel încât consola sa nu mai este disponibilă: Ingot nu poate trimite comenzi și nu poate salva lumea. Acesta ține portul și lumea ocupate până când este oprit.",
+		"description_few": "Ingot s-a închis fără a le opri, astfel încât consolele lor nu mai sunt disponibile: Ingot nu poate trimite comenzi și nu poate salva lumile. Acestea țin porturile și lumile ocupate până când sunt oprite.",
+		"description_other": "Ingot s-a închis fără a le opri, astfel încât consolele lor nu mai sunt disponibile: Ingot nu poate trimite comenzi și nu poate salva lumile. Acestea țin porturile și lumile ocupate până când sunt oprite."
+	},
+	"serverStatus": {
+		"running": "Rulează",
+		"sleeping": "În repaus",
+		"stopped": "Oprit",
+		"starting": "Pornește",
+		"stopping": "Se oprește"
+	},
+	"serverTabs": {
+		"overview": "Prezentare generală",
+		"console": "Consolă",
+		"players": "Jucători",
+		"map": "Hartă",
+		"plugins": "Pluginuri",
+		"mods": "Moduri",
+		"settings": "Setări",
+		"home": "Acasă"
+	},
+	"serverWorkspace": {
+		"back": "Înapoi la servere"
+	},
+	"duplicateInstance": {
+		"title": "Duplică instanța",
+		"defaultName": "{{name}} (copie)",
+		"description": "Creează o copie separată cu aceleași moduri, configurații, pachete de resurse și setări. Modificările aduse uneia nu o afectează pe cealaltă, astfel că copia este un loc sigur pentru a încerca o versiune nouă sau moduri.",
+		"nameLabel": "Numele copiei",
+		"copyWorlds": "Copiază lumile",
+		"noWorldsYet": "niciuna încă",
+		"copyWorldsDesc": "Fără acestea, copia pornește fără lumi singleplayer.",
+		"note": "Timpul de joc pornește de la zero. Jurnalele, rapoartele de blocare și capturile de ecran rămân la original.",
+		"running": "Jocul rulează. Închide-l mai întâi pentru ca lumile să fie copiate așa cum au fost salvate, sau copiază fără lumi.",
+		"copying": "Se copiază…",
+		"action": "Duplică"
+	},
+	"quitDialog": {
+		"title_quit": "Oprești serverele înainte de a ieși?",
+		"title_update": "Oprești serverele pentru a actualiza?",
+		"title_restart": "Oprești serverele pentru a reporni?",
+		"action_quit": "Oprește serverele și ieși",
+		"action_update": "Oprește serverele și actualizează",
+		"action_restart": "Oprește serverele și repornește",
+		"stopping": "Se opresc…",
+		"keepInTray": "Păstrează rularea în bara de sistem",
+		"asleep_one": "Acest server este în repaus. Se trezește când se conectează un jucător, dar numai cât timp Ingot este deschis.",
+		"asleep_few": "Aceste servere sunt în repaus. Se trezesc când se conectează un jucător, dar numai cât timp Ingot este deschis.",
+		"asleep_other": "Aceste servere sunt în repaus. Se trezesc când se conectează un jucător, dar numai cât timp Ingot este deschis.",
+		"consoles_one": "Consola acestui server rulează în Ingot. Dacă Ingot se închide mai întâi, serverul continuă să ruleze fără nicio modalitate de a-l controla sau de a-i salva lumea.",
+		"consoles_few": "Consolele acestor servere rulează în Ingot. Dacă Ingot se închide mai întâi, serverele continuă să ruleze fără nicio modalitate de a le controla sau de a le salva lumile.",
+		"consoles_other": "Consolele acestor servere rulează în Ingot. Dacă Ingot se închide mai întâi, serverele continuă să ruleze fără nicio modalitate de a le controla sau de a le salva lumile.",
+		"saving_one": "Se salvează lumea și se oprește. Acest lucru poate dura până la 30 de secunde.",
+		"saving_few": "Se salvează lumile și se opresc. Acest lucru poate dura până la 30 de secunde.",
+		"saving_other": "Se salvează lumile și se opresc. Acest lucru poate dura până la 30 de secunde.",
+		"games_one": "Jocul tău continuă să ruleze în ambele cazuri. Ingot îl va detecta din nou când îl deschizi.",
+		"games_few": "Jocurile tale continuă să ruleze în ambele cazuri. Ingot le va detecta din nou când îl deschizi.",
+		"games_other": "Jocurile tale continuă să ruleze în ambele cazuri. Ingot le va detecta din nou când îl deschizi."
+	},
+	"crashDialog": {
+		"title": "{{name}} s-a blocat la prima pornire pe {{version}}",
+		"suspects_plugin": "De obicei, acesta este un plugin care nu funcționează încă pe noua versiune. Raportul de blocare indică spre:",
+		"suspects_mod": "De obicei, acesta este un mod care nu funcționează încă pe noua versiune. Raportul de blocare indică spre:",
+		"suspects_either": "De obicei, acesta este un plugin sau mod care nu funcționează încă pe noua versiune. Raportul de blocare indică spre:",
+		"noSuspects_plugin": "Raportul de blocare nu menționează un plugin. Poți anula modificarea și aștepta actualizări.",
+		"noSuspects_mod": "Raportul de blocare nu menționează un mod. Poți anula modificarea și aștepta actualizări.",
+		"noSuspects_either": "Raportul de blocare nu menționează un plugin sau mod. Poți anula modificarea și aștepta actualizări.",
+		"turnOff": "Dezactivează",
+		"turnedOff": "Dezactivat",
+		"details": "Detalii blocare",
+		"keepTrying": "Continuă să încerci",
+		"undo": "Anulează schimbarea versiunii",
+		"undone": "Înapoi pe {{version}}, exact ca înainte.",
+		"tryAgain_server_one": "Pornește serverul din nou pentru a încerca fără el. Anularea îl va reactiva.",
+		"tryAgain_server_few": "Pornește serverul din nou pentru a încerca fără ele. Anularea le va reactiva.",
+		"tryAgain_server_other": "Pornește serverul din nou pentru a încerca fără ele. Anularea le va reactiva.",
+		"tryAgain_game_one": "Pornește jocul din nou pentru a încerca fără el. Anularea îl va reactiva.",
+		"tryAgain_game_few": "Pornește jocul din nou pentru a încerca fără ele. Anularea le va reactiva.",
+		"tryAgain_game_other": "Pornește jocul din nou pentru a încerca fără ele. Anularea le va reactiva."
+	},
+	"skinPreview": {
+		"saving": "Se salvează...",
+		"saved": "Salvat!",
+		"error": "Eroare",
+		"changeSkin": "Schimbă skinul",
+		"copyUrlTitle": "Copiază adresa URL a texturii skinului",
+		"copied": "Copiat",
+		"copyUrl": "Copiază URL-ul",
+		"downloadTitle": "Descarcă fișierul de textură al skinului în Descărcări",
+		"download": "Descarcă"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Whitelist",
+			"ops": "Operatori",
+			"bans": "Banuri"
+		},
+		"whitelist": {
+			"title": "Whitelist",
+			"empty": "Nimeni nu este pe whitelist încă",
+			"description": "Când este activat, doar acești jucători se pot conecta.",
+			"add": "Adaugă"
+		},
+		"ops": {
+			"title": "Operatori",
+			"empty": "Niciun operator",
+			"description": "Operatorii pot folosi orice comandă, inclusiv /stop și /op.",
+			"add": "Fă OP"
+		},
+		"bans": {
+			"title": "Jucători banați",
+			"empty": "Nimeni nu este banat",
+			"description": "Jucătorii banați nu se pot conecta până când nu sunt iertați.",
+			"add": "Banează"
+		},
+		"whitelistOn": "Whitelist activat",
+		"whitelistOff": "Whitelist dezactivat",
+		"onlyListed": "Doar jucătorii din listă se pot conecta.",
+		"anyone": "Oricine se poate conecta la acest server.",
+		"invalidName": "Numele de utilizator pot conține doar litere, cifre și _",
+		"playerName": "Nume jucător",
+		"permissionLevel": "Nivel de permisiune {{level}}",
+		"banned": "Banat",
+		"noUuid": "Fără UUID",
+		"remove": "Elimină {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Inclus în aplicația Android",
+				"note": "Rulează software de server pe Android într-un sandbox Linux. Compilări din proiectul Termux."
+			},
+			"downloaded": {
+				"title": "Descărcat la nevoie",
+				"note": "Preluat din sursele oficiale prima dată când o funcție are nevoie de el."
+			},
+			"servers": {
+				"title": "Software de server pe care îl poți instala",
+				"note": "Descărcat pentru fiecare server pe care îl creezi, direct din proiectul care îl dezvoltă."
+			}
+		},
+		"roles": {
+			"proot": "Sandbox Linux pentru servere",
+			"talloc": "Bibliotecă de memorie folosită de PRoot",
+			"shmem": "Suport de memorie partajată pentru PRoot",
+			"temurin": "Java pentru servere și joc pe desktop",
+			"alpine": "Sistemul de bază al sandboxului Android, inclusiv OpenJDK-ul său",
+			"pumpkin": "Server Pumpkin",
+			"playit": "Adresă publică pentru serverul tău",
+			"paper": "Servere Paper",
+			"folia": "Servere Folia",
+			"purpur": "Servere Purpur",
+			"fabric": "Servere Fabric",
+			"vanilla": "Servere Vanilla (de la Mojang, nu sunt open-source)"
+		},
+		"names": {
+			"minecraftServer": "Server Minecraft"
+		},
+		"various": "Diverse licențe open-source"
+	},
+	"directConnect": {
+		"title": "Conectare directă la server",
+		"description": "Lansează <b>{{name}}</b> direct pe un server multiplayer, ocolind meniul principal.",
+		"address": "Adresă server",
+		"addressPlaceholder": "ex. mc.hypixel.net sau localhost:25565",
+		"localServers": "Servere locale configurate",
+		"recent": "Servere recente",
+		"removeRecent": "Elimină din recente",
+		"launch": "Lansează și conectează"
+	},
+	"console": {
+		"autoScrollOn": "Derulare automată activată",
+		"autoScrollOff": "Derulare automată dezactivată",
+		"copyAll": "Copiază tot",
+		"clear": "Golește",
+		"waiting": "Se așteaptă ieșirea...",
+		"offline": "Serverul este offline",
+		"offlineHint": "Pornește serverul pentru a-i vedea consola.",
+		"latest": "Ultimele",
+		"placeholder": "Scrie o comandă, ex. time set day",
+		"send": "Trimite comanda"
+	},
+	"syncMaster": {
+		"setAsSource": "Setează „{{name}}” ca sursă principală de sincronizare.",
+		"error": "Eroare: {{error}}",
+		"categoryTitle": "Sincronizare inițială: {{title}}",
+		"title": "Selectează instanța principală de sincronizare",
+		"categoryDescription": "Alege de unde ar trebui să preia inițial stocarea partajată fișierul {{file}}:",
+		"description": "Alege o instanță existentă pentru a popula stocarea partajată de sincronizare. Setările și datele sale vor deveni baza comună.",
+		"useExisting": "Folosește datele partajate existente",
+		"keepCurrent": "Păstrează actualul <code>{{file}}</code> în stocarea partajată",
+		"useShared": "Folosește partajat",
+		"orCopyFrom": "Sau copiază dintr-o instanță existentă:",
+		"copyFrom": "Copiază dintr-o instanță existentă:",
+		"noInstances": "Nu s-au găsit instanțe.",
+		"useThis": "Folosește aceasta",
+		"setAsMaster": "Setează ca principală",
+		"noCopy": "Nu dorești să copiezi date încă?",
+		"startFresh": "Începe de la zero / Gol"
+	},
+	"quickJoin": {
+		"title": "Joc rapid — Conectare la server",
+		"description": "Lansează Minecraft și conectează-te direct la <b>{{name}}</b> ({{address}}).",
+		"target": "Țintă: {{address}}",
+		"choose": "Alege instanța de joc",
+		"noInstances": "Nu s-au găsit instanțe Minecraft",
+		"noInstancesHint": "Creează mai întâi o instanță de joc pentru a te conecta la serverul tău.",
+		"createInstance": "Creează instanță",
+		"matches": "Potrivită cu serverul",
+		"launch": "Lansează și conectează"
+	},
+	"players": {
+		"tabs": {
+			"online": "Online",
+			"all": "Toți jucătorii",
+			"access": "Acces"
+		},
+		"offlineHint": "Pornește serverul pentru a vedea cine joacă, viața, inventarul și locația acestora.",
+		"starting": "Serverul pornește...",
+		"startingHint": "Jucătorii vor apărea odată ce lumea s-a încărcat.",
+		"liveError": "Nu s-au putut citi datele în direct ale jucătorilor: {{error}}. Datele live necesită un server Java (Paper, Purpur, Fabric sau Vanilla).",
+		"checking": "Se verifică cine este online...",
+		"nobody": "Nimeni nu este online",
+		"nobodyHint": "Jucătorii vor apărea aici imediat ce se conectează.",
+		"none": "Niciun jucător încă",
+		"noneHint": "Toți cei care s-au conectat la acest server vor fi listați aici, împreună cu ultimul lor inventar salvat.",
+		"search": "Caută jucători",
+		"onlineNow": "Online acum",
+		"lastSeen": "Văzut ultima dată {{time}}"
+	},
+	"map": {
+		"upToDate": "La zi",
+		"noWorld": "Nicio lume încă",
+		"noWorldHint": "Pornește serverul o dată pentru a genera o lume. Zonele explorate vor apărea pe hartă.",
+		"liveTitle": "Ingot menține harta actualizată din memoria serverului",
+		"live": "Live",
+		"restartToGoLive": "Repornește pentru a trece la live",
+		"makeLiveTitle_plugin": "Instalează pluginul Ingot pentru a actualiza harta în timp real, fără a salva lumea",
+		"makeLiveTitle_mod": "Instalează modul Ingot pentru a actualiza harta în timp real, fără a salva lumea",
+		"makeLive": "Activează live",
+		"refreshTitle": "Verifică zonele nou salvate",
+		"ariaLabel": "Harta lumii. Trage pentru a muta, derulează sau ciupește pentru a mări/micșora.",
+		"zoomIn": "Mărește",
+		"zoomOut": "Micșorează",
+		"updatedAreas_one": "S-a actualizat {{count}} zonă",
+		"updatedAreas_few": "S-au actualizat {{count}} zone",
+		"updatedAreas_other": "S-au actualizat {{count}} de zone"
+	},
+	"pluginDetails": {
+		"byline": "de {{author}} · {{downloads}} descărcări",
+		"playersNeedIt": "Jucătorii au nevoie de acest mod de asemenea: oricine se conectează trebuie să îl instaleze în joc, altfel nu se poate alătura.",
+		"installing": "Se instalează...",
+		"page": "Pagină",
+		"noCompatible": "Nicio versiune pentru Minecraft {{version}} încă. Poți alege totuși una mai veche de la Versiuni, dar s-ar putea să nu funcționeze.",
+		"about": "Despre",
+		"versions": "Versiuni",
+		"noDescription": "Nicio descriere.",
+		"onlyFor": "Doar versiuni pentru Minecraft {{version}}",
+		"noVersions": "Nicio versiune",
+		"noVersionsHint": "Încearcă să afișezi toate versiunile.",
+		"website": "Site web",
+		"anyVersion": "Orice versiune"
+	},
+	"addAccount": {
+		"missingCredentials": "Te rugăm să introduci atât numele de utilizator/e-mailul, cât și parola.",
+		"welcomeBack": "Bine ai revenit, {{name}}!",
+		"elyFailed": "Conectarea la Ely.by a eșuat",
+		"missingNickname": "Te rugăm să introduci o poreclă de jucător.",
+		"offlineCreated": "Profilul offline pentru {{name}} a fost creat",
+		"offlineFailed": "Crearea contului offline a eșuat",
+		"description": "Conectează-ți contul Ely.by sau configurează un profil offline pentru a juca.",
+		"tokensSecure": "Tokenurile sunt criptate în siguranță în seiful de acreditări al SO.",
+		"usernameOrEmail": "Nume de utilizator sau e-mail",
+		"usernamePlaceholder": "ex. notch sau player@ely.by",
+		"password": "Parolă",
+		"connecting": "Se conectează...",
+		"logIn": "Autentificare în Ely.by",
+		"offlineNote": "Conturile offline joacă fără un token de sesiune online.",
+		"nickname": "Poreclă jucător",
+		"nicknamePlaceholder": "ex. Steve",
+		"adding": "Se adaugă...",
+		"addProfile": "Adaugă profil",
+		"microsoftTitle": "Autentificare Microsoft / Xbox Live",
+		"microsoftSoon": "Integrarea oficială OAuth a conturilor Microsoft Mojang va fi disponibilă într-o versiune viitoare."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Gameplay",
+			"players": "Jucători",
+			"world": "Lume",
+			"network": "Rețea",
+			"advanced": "Avansat"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Mod de joc",
+				"description": "Modul pentru jucătorii noi.",
+				"options": {
+					"survival": "Supraviețuire",
+					"creative": "Creativ",
+					"adventure": "Aventură",
+					"spectator": "Spectator"
+				}
+			},
+			"difficulty": {
+				"label": "Dificultate",
+				"description": "Cât de periculoși sunt mobii.",
+				"options": {
+					"peaceful": "Pașnic",
+					"easy": "Ușor",
+					"normal": "Normal",
+					"hard": "Dificil"
+				}
+			},
+			"force-gamemode": {
+				"label": "Forțează modul de joc",
+				"description": "Readuce jucătorii la modul implicit de fiecare dată când se conectează."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "Jucătorii sunt comutați pe spectator când mor."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Jucătorii se pot răni reciproc."
+			},
+			"allow-flight": {
+				"label": "Permite zborul",
+				"description": "Nu da afară jucătorii pentru zbor (necesar pentru unele moduri și pluginuri)."
+			},
+			"spawn-protection": {
+				"label": "Protecție spawn",
+				"description": "Raza din jurul punctului de spawn în care doar operatorii pot construi. 0 o dezactivează."
+			},
+			"max-players": {
+				"label": "Număr maxim de jucători",
+				"description": "Câți jucători pot fi online în același timp."
+			},
+			"online-mode": {
+				"label": "Mod online",
+				"description": "Verifică conturile la Mojang. Dezactivează pentru a permite conturi non-premium sau Ely.by."
+			},
+			"player-idle-timeout": {
+				"label": "Kick la inactivitate",
+				"description": "Dă afară jucătorii după acest număr de minute de inactivitate. 0 nu dă afară niciodată."
+			},
+			"op-permission-level": {
+				"label": "Nivel de operator",
+				"description": "Ce pot face operatorii: 1 ocolesc protecția spawn … 4 totul."
+			},
+			"hide-online-players": {
+				"label": "Ascunde lista de jucători",
+				"description": "Nu arată cine este online în meniul multiplayer."
+			},
+			"enforce-secure-profile": {
+				"label": "Solicită chat semnat",
+				"description": "Permite doar jucătorilor cu chei de chat semnate de Mojang."
+			},
+			"view-distance": {
+				"label": "Distanță de vizualizare",
+				"description": "Cât de departe pot vedea jucătorii. O valoare mai mică solicită mai puțin dispozitivul."
+			},
+			"simulation-distance": {
+				"label": "Distanță de simulare",
+				"description": "Cât de departe în jurul jucătorilor continuă să ruleze lumea."
+			},
+			"level-seed": {
+				"label": "Seed",
+				"description": "Seed pentru o lume nouă. Se folosește doar la crearea inițială a lumii.",
+				"placeholder": "Aleatoriu"
+			},
+			"level-type": {
+				"label": "Tip de lume",
+				"description": "Se folosește doar la crearea inițială a lumii.",
+				"options": {
+					"minecraft_normal": "Implicit",
+					"minecraft_flat": "Superplat",
+					"minecraft_large_biomes": "Biomi mari",
+					"minecraft_amplified": "Amplificat"
+				}
+			},
+			"generate-structures": {
+				"label": "Generează structuri",
+				"description": "Sate, temple și alte structuri în chunkurile noi."
+			},
+			"allow-nether": {
+				"label": "Permite Nether",
+				"description": "Permite jucătorilor să călătorească în Nether."
+			},
+			"max-world-size": {
+				"label": "Rază limită a lumii",
+				"description": "Distanța maximă de la centru până la care pot merge jucătorii."
+			},
+			"server-port": {
+				"label": "Port",
+				"description": "Portul pe care ascultă serverul."
+			},
+			"enable-status": {
+				"label": "Afișează în lista de servere",
+				"description": "Răspunde la pinguri din meniul multiplayer (MOTD, număr de jucători)."
+			},
+			"network-compression-threshold": {
+				"label": "Prag de compresie",
+				"description": "Comprimă pachetele mai mari decât această valoare. -1 dezactivează compresia."
+			},
+			"enable-command-block": {
+				"label": "Blocuri de comandă",
+				"description": "Permite funcționarea blocurilor de comandă."
+			},
+			"sync-chunk-writes": {
+				"label": "Salvare sigură a chunkurilor",
+				"description": "Scrie chunkurile sincron. Mai sigur, dar puțin mai lent."
+			},
+			"max-tick-time": {
+				"label": "Timp de expirare watchdog",
+				"description": "Oprește serverul dacă un tick durează mai mult decât această valoare. -1 dezactivează."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Distanță de randare a entităților",
+				"description": "Cât de departe sunt trimise entitățile către jucători, în procente."
+			}
+		},
+		"units": {
+			"blocks": "blocuri",
+			"min": "min",
+			"chunks": "chunkuri",
+			"bytes": "octeți",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "Majoritatea modificărilor se aplică după repornirea serverului.",
+		"badImage": "Nu s-a putut folosi acea imagine: {{error}}",
+		"emptyName": "Numele nu poate fi gol.",
+		"identity": "Identitate server",
+		"identityDesc": "Cum apare serverul tău în lista multiplayer.",
+		"name": "Nume",
+		"motd": "Descriere (MOTD) · două rânduri, folosește Enter pentru al doilea",
+		"motdReset": "Resetează",
+		"saved": "Salvat",
+		"saveChanges": "Salvează modificările",
+		"memory": "RAM",
+		"memoryMobile": "Păstrează valoarea mult sub memoria RAM a telefonului.",
+		"memoryDesktop": "RAM maxim pentru serverul Java.",
+		"portInUse": "Portul {{port}} este deja utilizat de un alt server. Încearcă {{next}}.",
+		"gameSettings": "Setări joc",
+		"gameSettingsDesc": "server.properties, cu explicații.",
+		"allOther": "Toate celelalte proprietăți",
+		"filter": "Filtrează proprietățile",
+		"discard": "Renunță",
+		"configFiles": "Fișiere de configurare",
+		"configFilesDesc": "Configurații server și pluginuri (YAML, JSON, TOML).",
+		"saveFile": "Salvează fișierul",
+		"manage": "Gestionează",
+		"changed_one": "{{count}} modificată",
+		"changed_few": "{{count}} modificate",
+		"changed_other": "{{count}} de modificate"
+	},
+	"newInstance": {
+		"title": "Creează o instanță nouă",
+		"description": "Alege versiunea de Minecraft și încărcătorul de moduri preferat. Ingot va configura automat mediul și Java.",
+		"modLoader": "Încărcător de moduri",
+		"minecraftVersion": "Versiune Minecraft",
+		"snapshots": "Snapshoturi",
+		"snapshotBadge": "snapshot",
+		"latestBadge": "cea mai recentă",
+		"loadingVersions": "Se încarcă versiunile...",
+		"selectVersion": "Selectează versiunea de Minecraft",
+		"searchVersion": "Caută versiunea (ex. 1.20, 1.16)...",
+		"loaderVersion": "Versiune încărcător",
+		"noCompatible": "Nicio versiune compatibilă",
+		"selectLoaderVersion": "Selectează versiunea încărcătorului",
+		"searchLoaderVersion": "Caută versiunea încărcătorului...",
+		"name": "Numele instanței",
+		"namePlaceholder": "ex. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Setări server",
+		"yourServers": "Serverele tale",
+		"newServer": "Server nou",
+		"about": "Despre și licențe"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Se verifică fișierele serverului...",
+			"preparingPumpkin": "Se pregătește serverul Pumpkin...",
+			"downloadingPumpkin": "Se descarcă Pumpkin (doar la prima pornire)...",
+			"preparingSandbox": "Se pregătește sandboxul Linux...",
+			"downloadingSandbox": "Se descarcă sandboxul Linux...",
+			"extractingSandbox": "Se extrage sistemul de fișiere al sandboxului...",
+			"installingJava": "Se instalează Java {{version}} în sandbox...",
+			"sandboxReady": "Inițializarea sandboxului este completă!",
+			"installingCore": "Se instalează {{name}} (doar la prima pornire, poate dura câteva minute)...",
+			"launching": "Se lansează procesul serverului...",
+			"failed": "Pornirea a eșuat: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Nu este pe Modrinth, CurseForge sau Hangar, deci Ingot nu îl poate verifica",
+			"beta": "Versiune Beta, poate fi instabilă",
+			"alpha": "Versiune Alpha, poate fi instabilă",
+			"siteOnly": "Versiunea sa pentru {{target}} poate fi descărcată doar de pe {{site}}",
+			"fabricOnly": "Necesar doar pe Fabric și Quilt",
+			"noVersion": "Nicio versiune pentru {{target}} încă",
+			"pluginNotMarked": "Nu este marcat încă pentru {{version}}; majoritatea pluginurilor încă funcționează",
+			"notUpdated": "Neactualizat pentru {{version}}; de obicei încă funcționează",
+			"sameAs": "La fel ca {{name}}",
+			"incompatible": "Incompatibil cu {{name}}",
+			"needsTurnedOff": "Necesită {{name}}, care este dezactivat",
+			"needsMissing": "Necesită {{name}}, care nu este disponibil pentru {{version}}",
+			"neededBy": "Necesar pentru {{name}}"
+		},
+		"launch": {
+			"preparing": "Se pregătește lansarea",
+			"resolvingVersion": "Se identifică versiunea",
+			"resolvingLoader": "Se identifică încărcătorul de moduri",
+			"checkingJava": "Se verifică mediul Java",
+			"javaSetup": "Configurare Java",
+			"downloadingClient": "Se descarcă clientul",
+			"downloadingLibraries": "Se descarcă bibliotecile",
+			"downloadingAssets": "Se descarcă resursele",
+			"verifying": "Se verifică fișierele",
+			"auth": "Configurare autentificare",
+			"starting": "Se pornește jocul",
+			"fetchingMetadata": "Se preiau metadatele versiunii...",
+			"fetchingProfile": "Se preia profilul {{loader}}...",
+			"detectingJava": "Se detectează mediul Java...",
+			"downloadingJavaProgress": "Se descarcă mediul Java {{version}} ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Se descarcă mediul Java {{version}}...",
+			"extractingJava": "Se extrage mediul Java {{version}}...",
+			"downloadingJar": "Se descarcă JAR-ul clientului Minecraft...",
+			"downloadingLibrariesCount": "Se descarcă {{count}} biblioteci...",
+			"library": "Bibliotecă {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "Se descarcă {{count}} resurse...",
+			"assets": "Resurse {{current}}/{{total}}",
+			"verified": "Toate fișierele jocului au fost verificate",
+			"authDetail": "Se configurează skinul Ely.by și agentul de autentificare...",
+			"launching": "Se lansează procesul Minecraft...",
+			"connecting": "Se conectează la {{server}}...",
+			"loadingWorld": "Se încarcă lumea {{world}}...",
+			"initializing": "Se inițializează secvența de lansare..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Cum îl văd jucătorii",
+		"startingUp": "Se pornește...",
+		"shuttingDown": "Se închide...",
+		"cantConnect": "Nu se poate conecta la server",
+		"preparing": "Se pregătește...",
+		"sleepingNote": "În repaus pentru economisirea resurselor. Se trezește automat când se conectează un jucător.",
+		"failedToStart": "Pornirea a eșuat.",
+		"start": "Pornește serverul",
+		"wake": "Trezește",
+		"sleep": "Pune în repaus",
+		"starting": "Se pornește...",
+		"stopping": "Se oprește...",
+		"uptime": "Timp de funcționare",
+		"native": "Nativ",
+		"noOutput": "Nicio ieșire încă"
+	},
+	"serverCard": {
+		"offline": "Offline",
+		"openPage": "Deschide pagina serverului",
+		"copyAddress": "Apasă pentru a copia adresa serverului",
+		"noneOnline": "0 online",
+		"joinTitle": "Lansează Minecraft și conectează-te la acest server",
+		"join": "Conectare",
+		"start": "Pornește",
+		"openFolder": "Deschide dosarul serverului"
+	},
+	"versionChange": {
+		"title": "Schimbă versiunea",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Conflicte",
+			"missing": "Nu este disponibil încă",
+			"unknown": "Nu poate fi verificat",
+			"newDependency": "Dependințe noi",
+			"update": "Actualizări",
+			"works": "Deja compatibil",
+			"olderVersions": "Versiuni mai vechi"
+		},
+		"actions": {
+			"keep": "Păstrează",
+			"update": "Actualizează",
+			"disable": "Dezactivează",
+			"add": "Instalează",
+			"skip": "Nu instala"
+		},
+		"kinds": {
+			"resourcePack": "Pachet de resurse",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} este mai veche decât {{from}}",
+		"downgradeWarning": "Lumile jucate pe o versiune mai nouă de obicei nu pot fi deschise pe o versiune mai veche și se pot deteriora. Păstrează activată salvarea de rezervă a lumilor pentru a le putea restaura la nevoie.",
+		"downgradeOk": "Înțeleg, treci la versiunea mai veche oricum",
+		"backupWorldsHint": "Minecraft actualizează lumile când sunt deschise, iar procesul este ireversibil. Cu o copie de rezervă, anularea le va restaura de asemenea.",
+		"openOn": "Deschide pe {{site}}",
+		"new": "nou",
+		"instanceDescription": "Ingot verifică mai întâi fiecare mod, pachet de resurse și shader și nu modifică nimic până când nu aplici. Poți anula oricând ulterior.",
+		"now": "acum",
+		"nowLabel": "Acum",
+		"moveTo": "Treci la",
+		"pickVersion": "Alege o versiune",
+		"searchVersion": "Caută versiunea...",
+		"loaderVersion": "Versiune {{loader}}",
+		"pickLoaderVersion": "Alege versiunea încărcătorului",
+		"noLoaderFor": "Niciun {{loader}} pentru {{version}}",
+		"noLoader": "Niciun {{loader}} pentru această versiune",
+		"loaderSwitchNote": "Modurile sunt create pentru un anume încărcător. Ingot caută versiunea pentru {{loader}} a fiecărui mod și le dezactivează pe cele care nu o au.",
+		"instanceEmpty": "Niciun mod, pachet de resurse sau shader de verificat. Se schimbă doar versiunea.",
+		"applying": "Se aplică...",
+		"applyingHint": "Se descarcă și se verifică fișierele noi, apoi se face o copie de rezervă a celor actuale. Nimic nu se modifică până când totul este gata.",
+		"applyingWithWorlds": "Se descarcă și se verifică fișierele noi, apoi se face o copie de rezervă a lumilor tale și a fișierelor actuale. Nimic nu se modifică până când totul este gata.",
+		"nowOn": "Acum pe {{version}}",
+		"instanceDone": "S-a schimbat de la {{version}}. Dacă ceva nu funcționează, anulează din setările acestei instanțe: totul revine exact așa cum a fost.",
+		"back": "Înapoi",
+		"checking": "Se verifică...",
+		"check": "Verifică compatibilitatea",
+		"moveToVersion": "Treci la {{version}}",
+		"summary": {
+			"download_one": "{{count}} de descărcat ({{size}})",
+			"download_few": "{{count}} de descărcat ({{size}})",
+			"download_other": "{{count}} de descărcat ({{size}})",
+			"turnedOff_one": "{{count}} dezactivat",
+			"turnedOff_few": "{{count}} dezactivate",
+			"turnedOff_other": "{{count}} dezactivate",
+			"conflictsKept_one": "{{count}} conflict păstrat",
+			"conflictsKept_few": "{{count}} conflicte păstrate",
+			"conflictsKept_other": "{{count}} de conflicte păstrate"
+		},
+		"backupWorlds_one": "Salvare de rezervă a lumilor ({{count}} lume, {{size}})",
+		"backupWorlds_few": "Salvare de rezervă a lumilor ({{count}} lumi, {{size}})",
+		"backupWorlds_other": "Salvare de rezervă a lumilor ({{count}} de lumi, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Lansarea instanței a eșuat: {{error}}",
+		"resolveConflict": "Rezolvarea conflictului a eșuat: {{error}}",
+		"deleteInstance": "Ștergerea instanței a eșuat: {{error}}",
+		"startServer": "Pornirea serverului a eșuat: {{error}}",
+		"deleteServer": "Ștergerea serverului a eșuat: {{error}}",
+		"quickPlay": "Jocul rapid pe server a eșuat: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Se încarcă jucătorul...",
+		"noData": "Nicio dată pentru acest jucător încă.",
+		"health": "Viață",
+		"hunger": "Foame",
+		"air": "Aer",
+		"experience": "Experiență",
+		"level": "Nivelul {{level}}",
+		"equipment": "Echipament",
+		"slots": {
+			"head": "Cap",
+			"chest": "Piept",
+			"legs": "Picioare",
+			"feet": "Tălpi",
+			"offhand": "A doua mână"
+		},
+		"showOnMap": "Arată pe hartă",
+		"inventory": "Inventar",
+		"ender": "Cufăr Ender ({{count}})",
+		"effects": "Efecte ({{count}})",
+		"onFire": "În flăcări",
+		"durability": "Durabilitate {{left}}/{{max}}",
+		"enchanted": "Fermecat",
+		"noEffects": "Niciun efect activ",
+		"heal": "Vindecă",
+		"feed": "Hrănește",
+		"removeOp": "Elimină OP",
+		"whitelisted": "Pe whitelist",
+		"confirmKick": "Dai kick lui {{name}}?",
+		"confirmBan": "Îl banezi pe {{name}}?",
+		"confirm": "Confirmă",
+		"kick": "Kick"
+	},
+	"transfer": {
+		"zipArchive": "Arhivă ZIP",
+		"savedTo": "Salvat în {{path}}",
+		"copyName": "Copie {{name}}",
+		"created": "S-a creat „{{name}}”.",
+		"title": "Copie de rezervă și versiune",
+		"description": "Exportă pentru a partaja sau a face o copie de rezervă, copiază serverul sau treci la o altă versiune de Minecraft.",
+		"exportConfigs": "Exportă configurațiile",
+		"withoutWorlds": "Fără lumi",
+		"exportAll": "Exportă tot",
+		"withWorlds": "Cu lumi",
+		"makeCopy": "Fă o copie",
+		"secondServer": "Un al doilea server",
+		"stopFirst": "Oprește serverul mai întâi",
+		"nowVersion": "Acum {{version}}",
+		"backup": "Schimbat de la {{version}}. Copie de rezervă {{size}}.",
+		"backupWithWorlds": "Schimbat de la {{version}}. Copie de rezervă {{size}}, lumi incluse.",
+		"deleteBackup": "Șterge copia de rezervă",
+		"undo": "Anulează, înapoi la {{version}}",
+		"willStartOn": "{{name}} va porni pe {{version}}. Poți anula de aici dacă ceva nu funcționează.",
+		"currentVersion": "{{version}} (curentă)",
+		"changeTitle": "Schimbă versiunea de Minecraft",
+		"changeDescription_plugin": "Ingot verifică mai întâi fiecare plugin și nu modifică nimic până când nu aplici. Totul este salvat într-o copie de rezervă, astfel încât poți anula oricând.",
+		"changeDescription_mod": "Ingot verifică mai întâi fiecare mod și nu modifică nimic până când nu aplici. Totul este salvat într-o copie de rezervă, astfel încât poți anula oricând.",
+		"serverType": "Tip de server",
+		"empty": "Niciun plugin sau mod de verificat. Se schimbă doar versiunea.",
+		"readyFor": "Pregătit pentru {{version}}",
+		"doneNote": "Noua versiune se va descărca la următoarea pornire. Dacă ceva nu funcționează, anulează din Copie de rezervă și versiune: totul revine exact așa cum a fost.",
+		"import": "Importă server",
+		"importing": "Se importă {{percent}}",
+		"settingUp": "Se configurează serverul...",
+		"partial": "S-a importat „{{name}}”, dar unele pluginuri sau moduri nu au putut fi descărcate:",
+		"openServer": "Deschide serverul"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Server Spigot/Bukkit de înaltă performanță cu suport complet pentru pluginuri",
+			"badge": "Rapid și stabil"
+		},
+		"purpur": {
+			"tagline": "Fork Paper bogat în funcții cu opțiuni incredibile de personalizare",
+			"badge": "Personalizabil"
+		},
+		"fabric": {
+			"tagline": "Server modat ușor și modular pentru moduri Fabric",
+			"badge": "Modat"
+		},
+		"neoforge": {
+			"tagline": "Server modat pentru moduri NeoForge, gazda celor mai mari moduri de conținut",
+			"badge": "Modat"
+		},
+		"forge": {
+			"tagline": "Serverul modat original, pentru moduri Forge pe Minecraft 1.17 și versiuni mai noi",
+			"badge": "Modat"
+		},
+		"quilt": {
+			"tagline": "Server modat compatibil cu Fabric, care rulează atât moduri Quilt, cât și Fabric",
+			"badge": "Modat"
+		},
+		"folia": {
+			"tagline": "Server regionalizat multi-threaded de la PaperMC pentru un număr masiv de jucători",
+			"badge": "Multi-threaded"
+		},
+		"pumpkin": {
+			"tagline": "Ultra-ușor, dezvoltat în Rust — pornire instantanee, < 60 MB RAM",
+			"badge": "Nativ pentru mobil"
+		},
+		"vanilla": {
+			"tagline": "Serverul oficial Minecraft nemodat direct de la Mojang",
+			"badge": "Original"
+		}
+	},
+	"wizard": {
+		"defaultName": "Server {{core}}",
+		"fetchFailed": "Preluarea versiunilor a eșuat. Verifică conexiunea.",
+		"enterName": "Te rugăm să introduci un nume de server.",
+		"selectVersion": "Te rugăm să selectezi o versiune de Minecraft.",
+		"invalidPort": "Introdu un port valid (1024 – 65534).",
+		"portInUseTry": "Portul {{port}} este deja utilizat. Încearcă {{next}}.",
+		"portInUse": "Portul {{port}} este deja utilizat.",
+		"createFailed": "Crearea serverului a eșuat",
+		"stepEngine": "Alege nucleul",
+		"stepName": "Dă un nume serverului",
+		"stepMemory": "RAM și confirmare",
+		"stepOf": "Pasul {{step}} din {{total}}",
+		"preparing": "Se pregătește serverul…",
+		"serverName": "Nume server",
+		"namePlaceholder": "ex. Server Supraviețuire {{core}}",
+		"minecraftVersion": "Versiune Minecraft",
+		"selectVersionPlaceholder": "Selectează versiunea",
+		"serverPort": "Port server",
+		"portInUseShort": "Port utilizat",
+		"ready": "Gata de creare",
+		"engine": "Nucleu",
+		"version": "Versiune",
+		"ram": "RAM",
+		"memory": "Memorie (RAM)",
+		"heroLine1": "Primul tău server,",
+		"heroLine2": "în câteva secunde.",
+		"heroText": "Ingot descarcă, configurează și rulează un server Minecraft chiar pe acest dispozitiv. Invită prieteni de oriunde.",
+		"createAServer": "Creează un server",
+		"createAServerHint": "Paper, PumpkinMC, Fabric și altele"
+	},
+	"plugins": {
+		"unsupported": "Serverele {{core}} nu pot folosi pluginuri",
+		"unsupportedHint": "Creează un server Paper sau Purpur pentru a adăuga pluginuri, sau un server Fabric pentru moduri.",
+		"installed": "S-a instalat {{name}}.",
+		"installedWith": "S-au instalat {{name}} și {{extras}}.",
+		"browse_plugin": "Răsfoiește pluginuri",
+		"browse_mod": "Răsfoiește moduri",
+		"restartToApply": "Repornește serverul pentru a aplica modificările.",
+		"restart": "Repornește",
+		"noOther_plugin": "Niciun alt plugin încă.",
+		"noOther_mod": "Niciun alt mod încă.",
+		"none_plugin": "Niciun plugin încă",
+		"none_mod": "Niciun mod încă",
+		"find_plugin": "Găsește pluginuri pe Modrinth și instalează-le dintr-o singură atingere.",
+		"find_mod": "Găsește moduri pe Modrinth și instalează-le dintr-o singură atingere.",
+		"findHangar_plugin": "Găsește pluginuri pe Modrinth și Hangar și instalează-le dintr-o singură atingere.",
+		"findHangar_mod": "Găsește moduri pe Modrinth și Hangar și instalează-le dintr-o singură atingere.",
+		"updateAvailable": "Actualizare disponibilă: {{version}}",
+		"enabled": "S-a activat {{name}}.",
+		"disabled": "S-a dezactivat {{name}}.",
+		"enable": "Activează {{name}}",
+		"disable": "Dezactivează {{name}}",
+		"updated": "S-a actualizat {{name}}.",
+		"removed": "S-a eliminat {{name}}.",
+		"unknownVersion": "Versiune necunoscută",
+		"byAuthors": "de {{authors}}",
+		"file": "Fișier",
+		"size": "Dimensiune",
+		"updateTo": "Actualizează la {{version}}",
+		"reallyDelete": "Sigur vrei să ștergi?",
+		"sort": {
+			"downloads": "Cele mai populare",
+			"updated": "Actualizate recent",
+			"newest": "Cele mai noi"
+		},
+		"searchPlaceholder_plugin": "Caută pluginuri, ex. LuckPerms",
+		"searchPlaceholder_mod": "Caută moduri, ex. Lithium",
+		"compatibleOnly": "Arată doar rezultatele compatibile cu {{version}}",
+		"forVersion": "Pentru {{version}}",
+		"searchFailed": "Căutarea a eșuat: {{error}}",
+		"nothingFound": "Nimic găsit",
+		"noneForVersion_plugin": "Niciun plugin nu corespunde pentru Minecraft {{version}}. Încearcă să dezactivezi filtrul de versiune.",
+		"noneForVersion_mod": "Niciun mod nu corespunde pentru Minecraft {{version}}. Încearcă să dezactivezi filtrul de versiune.",
+		"tryAnother": "Încearcă o altă căutare.",
+		"loadMore": "Încarcă mai multe",
+		"playersNeedItTitle": "Jucătorii trebuie să instaleze și ei acest mod, altfel nu se pot conecta",
+		"playersNeedIt": "Necesar și pentru jucători",
+		"isInstalled": "{{name}} este instalat",
+		"install": "Instalează {{name}}",
+		"results_one": "{{formatted}} rezultat",
+		"results_few": "{{formatted}} rezultate",
+		"results_other": "{{formatted}} de rezultate"
+	},
+	"join": {
+		"shareTitle": "Conectează-te la {{name}}",
+		"shareText": "Alătură-te serverului meu de Minecraft „{{name}}”!\nAdresă: {{address}}\nVersiune: Java Edition {{version}}",
+		"title": "Invită jucători",
+		"description": "Partajează o adresă pentru ca prietenii să se poată conecta.",
+		"sameWifi": "Același Wi-Fi",
+		"copyLocal": "Copiază adresa locală",
+		"anywhere": "De oriunde (playit.gg)",
+		"copyPublic": "Copiază adresa publică",
+		"showQr": "Afișează codul QR",
+		"linkPlayit": "Asociază contul playit.gg",
+		"noTunnel": "Conectat, dar fără tunel încă. <link>Adaugă unul</link> pentru portul {{port}}.",
+		"connecting": "Se conectează...",
+		"notConnected": "Neconectat",
+		"stopPlayit": "Oprește playit",
+		"goPublic": "Fă public",
+		"share": "Partajează invitația",
+		"scan": "Scanează pentru a copia adresa",
+		"qrAlt": "Cod QR"
+	},
+	"stats": {
+		"latest": "Ultima: {{value}}",
+		"noData": "Nicio dată încă",
+		"now": "acum",
+		"ago": "acum {{time}}",
+		"min": "Min",
+		"avg": "Medie",
+		"peak": "Vârf",
+		"performance": "Performanță",
+		"touchHint": "Atinge un grafic pentru detalii",
+		"ofDevice": "din dispozitiv",
+		"allocated": "Alocat",
+		"deviceRam": "RAM dispozitiv",
+		"free": "{{size}} liber",
+		"lag": "Lag",
+		"smooth": "Fluid",
+		"slightLag": "Lag ușor",
+		"lagging": "Cu lag",
+		"used": "{{label}}: {{used}} din {{total}} utilizat"
+	},
+	"storage": {
+		"title": "Stocare",
+		"worlds": "Lumi",
+		"plugins": "Pluginuri și moduri",
+		"server": "Fișiere server",
+		"backups": "Copii de rezervă",
+		"logs": "Jurnale",
+		"other": "Altele",
+		"device": "Stocare dispozitiv"
+	},
+	"instanceSettings": {
+		"pushFailed": "Trimiterea a eșuat: {{error}}",
+		"pullFailed": "Preluarea a eșuat: {{error}}",
+		"saveFailed": "Salvarea setărilor a eșuat: {{error}}",
+		"title": "Setări instanță",
+		"description": "Configurează parametrii de execuție și limitele de memorie pentru <b>{{name}}</b>.",
+		"namePlaceholder": "Instanța mea de Minecraft",
+		"loader": "încărcător {{version}}",
+		"backup": "Schimbat de la {{from}} la {{to}}. Copie de rezervă {{size}}.",
+		"backupWithWorlds": "Schimbat de la {{from}} la {{to}}. Copie de rezervă {{size}}, lumi incluse.",
+		"memoryOverride": "Suprascrie memoria globală pentru această instanță",
+		"minMemory": "Memorie inițială (Min):",
+		"maxMemory": "Memorie maximă (Max):",
+		"inheritMemory": "Moștenește setările globale: <b>{{min}} Min / {{max}} Max</b>. Se poate configura pe pagina Setări.",
+		"jvmArgs": "Argumente JVM",
+		"jvmArgsHint": "Argumente suplimentare de lansare Java (separate prin spațiu)",
+		"java": "Executabil Java personalizat",
+		"javaHint": "Lasă necompletat pentru mediul de execuție Adoptium gestionat automat",
+		"windowOverride": "Suprascrie ecranul complet și dimensiunea ferestrei pentru această instanță",
+		"fullscreenHint": "Lansează direct în modul ecran complet",
+		"resolution": "Rezoluție:",
+		"fullscreen": "Ecran complet",
+		"inheritDisplay": "Moștenește afișarea globală: <b>{{value}}</b>. Se poate configura în Setările launcherului.",
+		"syncHint": "Sincronizează opțiunile, serverele, pachetele, istoricul și barele rapide",
+		"manualSync": "Sincronizare manuală a stocării",
+		"manualSyncHint": "Exportă datele acestei instanțe sau preia cele mai recente fișiere din stocarea partajată.",
+		"push": "Trimite în stocarea partajată",
+		"pull": "Preluare din stocarea partajată",
+		"syncOptions": "Sincronizează opțiunile jocului (options.txt)",
+		"syncServers": "Sincronizează serverele multiplayer (servers.dat)",
+		"syncPacks": "Sincronizează pachetele de resurse (resourcepacks/)",
+		"syncHistory": "Sincronizează istoricul comenzilor (command_history.txt)",
+		"syncHotbars": "Sincronizează barele rapide din creativ (hotbar.nbt)",
+		"inheritSync": "Moștenește preferințele globale de sincronizare. Se va sincroniza înainte de lansare și după ieșire."
+	},
+	"install": {
+		"loadFailed": "Încărcarea opțiunilor de instalare a eșuat",
+		"compatible": "Compatibil",
+		"all": "Toate",
+		"any": "Oricare",
+		"modpackDone": "Modpack-ul „{{name}}” a fost instalat cu succes ca o instanță nouă!",
+		"selectTarget": "Selectează instanța țintă...",
+		"added": "S-a adăugat {{file}} în {{instance}}!",
+		"modpackTitle": "Instalează modpack",
+		"addTitle_mod": "Adaugă mod în instanță",
+		"addTitle_resourcepack": "Adaugă pachet de resurse în instanță",
+		"addTitle_shader": "Adaugă shader în instanță",
+		"addTitle_modpack": "Adaugă modpack în instanță",
+		"addTitle_datapack": "Adaugă pachet de date în instanță",
+		"addTitle_plugin": "Adaugă plugin în instanță",
+		"modpackDescription": "Creează o nouă instanță Minecraft din „{{title}}”.",
+		"description": "Instalează „{{title}}” într-una dintre instanțele tale existente.",
+		"loading": "Se încarcă opțiunile...",
+		"retry": "Reîncearcă",
+		"modpackVersion": "Versiune modpack",
+		"selectModpackVersion": "Selectează versiunea modpack-ului...",
+		"loaders": "Încărcătoare:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Creează mai întâi o instanță din fila Instanțe înainte de a adăuga moduri sau pachete de resurse.",
+		"target": "Instanță țintă",
+		"fileVersion": "Versiune fișier",
+		"selectFileVersion": "Selectează versiunea fișierului...",
+		"supports": "Compatibil cu:",
+		"createAndInstall": "Creează și instalează",
+		"installToInstance": "Instalează în instanță",
+		"compatibleCount_one": "{{count}} versiune compatibilă",
+		"compatibleCount_few": "{{count}} versiuni compatibile",
+		"compatibleCount_other": "{{count}} de versiuni compatibile"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Pachet de resurse",
+		"shader": "Shader",
+		"datapack": "Pachet de date",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Lansare",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "Încărcarea detaliilor proiectului a eșuat",
+		"addToInstance": "Adaugă în instanță",
+		"versions": "Versiuni și fișiere",
+		"versionsCount": "Versiuni și fișiere ({{count}})",
+		"loading": "Se încarcă detaliile proiectului...",
+		"gallery": "Galerie ({{count}})",
+		"clickToOpen": "Apasă pe imagine pentru a o deschide pe tot ecranul",
+		"viewFullscreen": "Afișează pe tot ecranul",
+		"scrollLeft": "Derulează galeria la stânga",
+		"scrollRight": "Derulează galeria la dreapta",
+		"source": "Cod sursă",
+		"issues": "Urmărire probleme",
+		"wiki": "Wiki",
+		"description": "Descriere",
+		"gameVersion": "Versiune joc:",
+		"noMatch": "Nicio versiune nu corespunde criteriilor de filtrare.",
+		"openOriginal": "Deschide originalul",
+		"previous": "Imaginea anterioară",
+		"next": "Imaginea următoare",
+		"downloads_one": "{{formatted}} descărcare",
+		"downloads_few": "{{formatted}} descărcări",
+		"downloads_other": "{{formatted}} de descărcări",
+		"followers_one": "{{formatted}} urmăritor",
+		"followers_few": "{{formatted}} urmăritori",
+		"followers_other": "{{formatted}} de urmăritori",
+		"showing_one": "Se afișează {{shown}} din {{count}} versiune",
+		"showing_few": "Se afișează {{shown}} din {{count}} versiuni",
+		"showing_other": "Se afișează {{shown}} din {{count}} de versiuni"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Selectează dosarul de instanțe {{launcher}}",
+		"selectDir": "Selectează dosarul instanței Minecraft",
+		"done": "Instanța a fost importată cu succes!",
+		"title": "Importă din alt launcher",
+		"selectInstance": "Selectează instanța ({{launcher}})",
+		"configure": "Configurează importul",
+		"description": "Importă instalările Minecraft existente, modurile, lumile și setările direct în Ingot.",
+		"optionsDescription": "Selectează componentele de date pe care dorești să le transferi în noua ta instanță Ingot.",
+		"detecting": "Se detectează launcherele instalate...",
+		"notDetected": "Nedetectat • Apasă pentru a localiza",
+		"custom": "Dosar personalizat",
+		"customHint": "Selectează orice dosar de instanță de pe disc",
+		"backToLaunchers": "Înapoi la launchere",
+		"changeFolder": "Schimbă dosarul",
+		"filter": "Filtrează instanțele...",
+		"loadingInstances": "Se încarcă instanțele...",
+		"noneFound": "Nu s-au găsit instanțe în acest dosar de launcher.",
+		"select": "Selectează",
+		"nameInIngot": "Numele instanței în Ingot:",
+		"namePlaceholder": "Instanța mea importată",
+		"source": "Sursă: {{path}}",
+		"components": "Selectează componentele de importat:",
+		"mods": "Moduri",
+		"configs": "Configurații",
+		"configsHint": "Setări și configurații de moduri",
+		"worlds": "Lumi și salvări",
+		"packs": "Pachete de resurse",
+		"packsHint": "Texturi și pachete de shadere",
+		"screenshotsHint": "Capturi de ecran din joc",
+		"modData": "Date ale modurilor și altele",
+		"modDataHint": "Puncte de reper, scheme, înregistrări etc.",
+		"options": "Opțiuni joc",
+		"optionsHint": "options.txt și comenzi rapide",
+		"servers": "Servere multiplayer",
+		"serversHint": "Lista de servere servers.dat",
+		"note": "Toate componentele de mai sus sunt opționale. Cu <b>Date ale modurilor și altele</b> activat, dosarele personalizate ale modurilor (puncte de minimap, scheme, înregistrări) sunt copiate în siguranță. Debifează dacă preferi un import curat, fără fișiere suplimentare.",
+		"importing": "Se importă...",
+		"import": "Importă instanța",
+		"found_one": "S-a găsit {{count}} instanță în {{launcher}}. Alege pe care dorești să o imporți.",
+		"found_few": "S-au găsit {{count}} instanțe în {{launcher}}. Alege pe care dorești să o imporți.",
+		"found_other": "S-au găsit {{count}} de instanțe în {{launcher}}. Alege pe care dorești să o imporți.",
+		"instancesFound_one": "S-a găsit {{count}} instanță",
+		"instancesFound_few": "S-au găsit {{count}} instanțe",
+		"instancesFound_other": "S-au găsit {{count}} de instanțe",
+		"modsCount_one": "{{count}} mod",
+		"modsCount_few": "{{count}} moduri",
+		"modsCount_other": "{{count}} de moduri",
+		"worldsCount_one": "{{count}} lume",
+		"worldsCount_few": "{{count}} lumi",
+		"worldsCount_other": "{{count}} de lumi",
+		"screenshotsCount_one": "{{count}} captură de ecran",
+		"screenshotsCount_few": "{{count}} capturi de ecran",
+		"screenshotsCount_other": "{{count}} de capturi de ecran",
+		"modFiles_one": "{{count}} fișier de mod",
+		"modFiles_few": "{{count}} fișiere de moduri",
+		"modFiles_other": "{{count}} de fișiere de moduri",
+		"singleplayerWorlds_one": "{{count}} lume singleplayer",
+		"singleplayerWorlds_few": "{{count}} lumi singleplayer",
+		"singleplayerWorlds_other": "{{count}} de lumi singleplayer"
+	},
+	"skinViewer": {
+		"resetCamera": "Resetează camera 3D",
+		"pauseRotation": "Întrerupe rotirea automată",
+		"autoRotate": "Rotește automat modelul 3D",
+		"idlePose": "Comută la poziția de repaus",
+		"playWalk": "Redă animația de mers",
+		"idleTitle": "Animație de respirație în repaus",
+		"idle": "Repaus",
+		"walkTitle": "Animație de mers",
+		"walk": "Mers",
+		"runTitle": "Animație de alergare",
+		"run": "Alergare",
+		"waveTitle": "Animație de salut cu mâna",
+		"wave": "Salut",
+		"pause": "Întrerupe animațiile",
+		"outerOn": "Strat exterior activat",
+		"outerOff": "Strat exterior dezactivat",
+		"modelSlim": "Model: Subțire (Alex)",
+		"modelClassic": "Model: Clasic (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Skin personalizat",
+		"currentActiveSkin": "Skinul activ curent",
+		"activeAccountSkin": "Skinul contului activ",
+		"loadFailed": "Încărcarea skinurilor din Ely.by a eșuat",
+		"defaultSteve": "Steve implicit",
+		"addAccountFirst": "Te rugăm să adaugi sau să selectezi mai întâi un cont Ely.by.",
+		"elyOnlySync": "Doar conturile Ely.by acceptă sincronizarea skinurilor în cloud.",
+		"customApplied": "Skinul personalizat a fost aplicat pentru {{name}}!",
+		"skinApplied": "Skinul #{{id}} a fost aplicat pentru {{name}}!",
+		"applyFailed": "Aplicarea skinului a eșuat.",
+		"enterPassword": "Te rugăm să introduci parola contului Ely.by.",
+		"skinFromDate": "Skin {{date}}",
+		"uploadedApplied": "Skinul personalizat a fost încărcat și aplicat pentru {{name}}!",
+		"pngOnly": "Fișierul skinului trebuie să fie în format PNG (.png).",
+		"tooLarge": "Fișierul skinului este prea mare (maxim 2 MB).",
+		"badSize": "Dimensiuni nevalide: {{size}}. Skinurile standard de Minecraft trebuie să aibă 64x64 sau 64x32 pixeli.",
+		"badImage": "Nu s-a putut procesa imaginea. Asigură-te că este un fișier PNG valid.",
+		"elyOnlyUpload": "Doar conturile Ely.by acceptă încărcarea de skinuri.",
+		"uploadFailed": "Încărcarea skinului a eșuat.",
+		"saved": "Skinul #{{id}} a fost salvat cu succes!",
+		"downloadFailed": "Descărcarea a eșuat.",
+		"urlCopied": "Adresa URL a texturii skinului a fost copiată în clipboard!",
+		"activeAccount": "Cont Ely.by activ",
+		"noActiveAccount": "Niciun cont Ely.by activ",
+		"browse": "Răsfoiește skinuri",
+		"preview3d": "Previzualizare 3D",
+		"currentSkin": "Skin curent",
+		"skinNumber": "Skin #{{id}}",
+		"alexSlim3": "Alex (Subțire 3px)",
+		"steveClassic4": "Steve (Clasic 4px)",
+		"currentSkinOf": "Skin curent ({{name}})",
+		"applyTo": "Aplică skinul pentru {{name}}",
+		"applyToAccount": "Aplică skinul contului",
+		"downloadPng": "Descarcă PNG",
+		"updating": "Se actualizează...",
+		"loadingMine": "Se încarcă skinurile tale încărcate pe Ely.by...",
+		"loading": "Se încarcă skinurile din Ely.by...",
+		"noMatchingUploads": "Nu s-au găsit skinuri încărcate potrivite",
+		"noUploadsFor": "Nu s-au găsit skinuri încărcate pentru {{name}}",
+		"tryDifferent": "Încearcă un alt termen de căutare sau alt filtru.",
+		"noUploadsHint": "Nu ai încărcat încă niciun skin personalizat pe Ely.by. Încarcă un skin pentru a-l gestiona și purta oricând.",
+		"selectAccountHint": "Te rugăm să selectezi sau să adaugi un cont Ely.by pentru a vedea skinurile încărcate.",
+		"uploadASkin": "Încarcă un skin",
+		"noSkins": "Nu s-au găsit skinuri",
+		"deleteCustom": "Șterge skinul personalizat",
+		"slim": "Subțire",
+		"classic": "Clasic",
+		"pageOf": "Pagina <b>{{page}}</b> din {{total}}",
+		"total": "({{count}} în total)",
+		"previous": "Anterior",
+		"next": "Următor",
+		"alexSlim": "Alex (Subțire)",
+		"steveClassic": "Steve (Clasic)",
+		"view3d": "Vizualizare 3D",
+		"apply": "Aplică",
+		"livePreview": "Previzualizare 3D în direct",
+		"uploading": "Se încarcă și se aplică...",
+		"uploadApply": "Încarcă și aplică skinul",
+		"uploadTitle": "Încarcă skin personalizat",
+		"uploadDescription": "Încarcă o textură de skin Minecraft de pe computer pentru a o aplica direct pe Ely.by.",
+		"dropHint": "Apasă pentru a răsfoi sau trage fișierul PNG al skinului aici",
+		"supports": "Acceptă skinuri standard de Minecraft (PNG 64×64 sau 64×32, până la 2 MB)",
+		"dimensions": "Dimensiuni: {{value}}",
+		"size": "Dimensiune: {{value}}",
+		"armModel": "Modelul brațelor skinului",
+		"armModelHint": "Alege dacă acest skin a fost creat pentru brațe clasice (4px) sau subțiri (3px).",
+		"classicArms": "Clasic (brațe de 4px)",
+		"slimArms": "Subțire (brațe de 3px)",
+		"targetAccount": "Cont Ely.by țintă",
+		"noAccount": "Niciun cont activ",
+		"readyToApply": "Gata de aplicare",
+		"passwordTitle": "Autorizare prin parolă Ely.by",
+		"passwordDescription": "Pentru a modifica skinul Ely.by pentru <b>{{name}}</b>, introdu parola contului. Aceasta va fi criptată în siguranță în seiful de chei al sistemului de operare.",
+		"passwordPlaceholder": "Parolă Ely.by",
+		"authorize": "Autorizează și aplică",
+		"count_one": "{{formatted}} skin",
+		"count_few": "{{formatted}} skinuri",
+		"count_other": "{{formatted}} de skinuri"
+	},
+	"select": {
+		"placeholder": "Selectează o opțiune",
+		"noMatches": "Nimic nu se potrivește"
+	},
+	"hosting": {
+		"one": "Se găzduiește {{name}}",
+		"many": "Se găzduiesc {{count}} servere",
+		"tunnel": "Tunel Ingot activ",
+		"publicAddress": "Adresă publică: {{address}}",
+		"connecting": "Tunelul playit.gg se conectează...",
+		"localOnly": "Doar în rețeaua locală"
 	}
 }

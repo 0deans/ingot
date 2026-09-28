@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { AlertTriangle, Check, Loader2, Package, Undo2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { CrashSuspect, VersionChangeCrash } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
@@ -13,6 +14,7 @@ import { rpc, serverService } from "@/services/server-service"
  * Nothing happens without a click.
  */
 export default function VersionChangeCrashDialog() {
+	const { t } = useTranslation()
 	const queryClient = useQueryClient()
 	const [crash, setCrash] = useState<VersionChangeCrash | null>(null)
 	const [turnedOff, setTurnedOff] = useState<string[]>([])
@@ -41,14 +43,14 @@ export default function VersionChangeCrashDialog() {
 
 	if (!crash) return null
 	const isServer = crash.targetKind === "server"
-	const noun = isServer ? "server" : "game"
+	const target = isServer ? "server" : "game"
 	// What the blamed files are: plugins, mods, or (nothing blamed on a server) either
 	const addon =
 		crash.suspects.every((s) => s.folder === "plugins") && crash.suspects.length > 0
 			? "plugin"
 			: crash.suspects.length > 0 || !isServer
 				? "mod"
-				: "plugin or mod"
+				: "either"
 
 	const turnOff = async (suspect: CrashSuspect) => {
 		setBusy(suspect.fileName)
@@ -80,7 +82,7 @@ export default function VersionChangeCrashDialog() {
 				await rpc.undo_instance_version_change(crash.targetId)
 				await instanceService.refreshInstances()
 			}
-			setMessage({ ok: true, text: `Back on ${crash.fromGameVersion}, exactly as before.` })
+			setMessage({ ok: true, text: t("crashDialog.undone", { version: crash.fromGameVersion }) })
 		} catch (e) {
 			setMessage({ ok: false, text: String(e) })
 		} finally {
@@ -97,12 +99,12 @@ export default function VersionChangeCrashDialog() {
 					<AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-400" />
 					<div className="flex flex-col gap-1">
 						<DialogTitle className="text-base">
-							{crash.name} crashed on its first start on {crash.toGameVersion}
+							{t("crashDialog.title", { name: crash.name, version: crash.toGameVersion })}
 						</DialogTitle>
 						<DialogDescription className="text-sm text-zinc-400 leading-relaxed">
 							{crash.suspects.length > 0
-								? `This is usually a ${addon} that doesn't work on the new version yet. The crash report points to:`
-								: `The crash report doesn't name a ${addon}. You can undo the change and wait for updates.`}
+								? t("crashDialog.suspects", { context: addon })
+								: t("crashDialog.noSuspects", { context: addon })}
 						</DialogDescription>
 					</div>
 				</div>
@@ -133,15 +135,14 @@ export default function VersionChangeCrashDialog() {
 										) : off ? (
 											<Check className="size-3.5" />
 										) : null}
-										{off ? "Turned off" : "Turn off"}
+										{off ? t("crashDialog.turnedOff") : t("crashDialog.turnOff")}
 									</Button>
 								</div>
 							)
 						})}
 						{turnedOff.length > 0 && !undone && (
 							<p className="text-xs text-zinc-400">
-								Start the {noun} again to try without {turnedOff.length === 1 ? "it" : "them"}. Undo
-								still turns {turnedOff.length === 1 ? "it" : "them"} back on.
+								{t("crashDialog.tryAgain", { context: target, count: turnedOff.length })}
 							</p>
 						)}
 					</div>
@@ -149,7 +150,9 @@ export default function VersionChangeCrashDialog() {
 
 				{crash.excerpt && (
 					<details className="rounded-xl border border-zinc-800 bg-zinc-950/60 text-xs">
-						<summary className="cursor-pointer px-3 py-2 text-zinc-400">Crash details</summary>
+						<summary className="cursor-pointer px-3 py-2 text-zinc-400">
+							{t("crashDialog.details")}
+						</summary>
 						<pre className="max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-[11px] text-zinc-500">
 							{crash.excerpt}
 						</pre>
@@ -175,7 +178,7 @@ export default function VersionChangeCrashDialog() {
 						onClick={() => setCrash(null)}
 						className="rounded-xl"
 					>
-						{undone ? "Close" : "Keep trying"}
+						{undone ? t("common.close") : t("crashDialog.keepTrying")}
 					</Button>
 					{!undone && (
 						<Button
@@ -188,7 +191,7 @@ export default function VersionChangeCrashDialog() {
 							) : (
 								<Undo2 className="size-4" />
 							)}
-							Undo the version change
+							{t("crashDialog.undo")}
 						</Button>
 					)}
 				</div>

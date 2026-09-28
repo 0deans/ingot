@@ -21,6 +21,7 @@ import {
 	Sparkles,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import type { DetectedLauncher, ImportableInstance } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -86,6 +87,7 @@ export const ImportInstanceDialog = ({
 	onOpenChange,
 	onSuccess,
 }: ImportInstanceDialogProps) => {
+	const { t } = useTranslation()
 	const [step, setStep] = useState<Step>("launchers")
 	const [launchers, setLaunchers] = useState<DetectedLauncher[]>([])
 	const [isLoadingLaunchers, setIsLoadingLaunchers] = useState(false)
@@ -149,7 +151,7 @@ export const ImportInstanceDialog = ({
 			const selected = await openDialog({
 				directory: true,
 				multiple: false,
-				title: `Select ${launcher.name} Instances Directory`,
+				title: t("importInstance.selectLauncherDir", { launcher: launcher.name }),
 			})
 			if (selected && typeof selected === "string") {
 				setSelectedLauncher(launcher)
@@ -169,7 +171,7 @@ export const ImportInstanceDialog = ({
 			const selected = await openDialog({
 				directory: true,
 				multiple: false,
-				title: "Select Minecraft Instance Directory",
+				title: t("importInstance.selectDir"),
 			})
 			if (selected && typeof selected === "string") {
 				setIsLoadingInstances(true)
@@ -214,7 +216,7 @@ export const ImportInstanceDialog = ({
 				copyExtraData,
 			})
 
-			setImportStatus(report.message || "Instance imported successfully!")
+			setImportStatus(report.message || t("importInstance.done"))
 
 			if (onSuccess) {
 				onSuccess()
@@ -225,7 +227,7 @@ export const ImportInstanceDialog = ({
 			}, 1200)
 		} catch (error) {
 			console.error("Failed to import instance:", error)
-			setImportStatus(`Error: ${error}`)
+			setImportStatus(t("syncMaster.error", { error: String(error) }))
 		} finally {
 			setIsImporting(false)
 		}
@@ -247,18 +249,20 @@ export const ImportInstanceDialog = ({
 					<div className="flex items-center gap-2 text-primary">
 						<FolderOpen className="size-5 shrink-0" />
 						<DialogTitle className="truncate font-semibold text-lg text-zinc-50">
-							{step === "launchers" && "Import from Another Launcher"}
-							{step === "instances" && `Select Instance (${selectedLauncher?.name})`}
-							{step === "options" && "Configure Import"}
+							{step === "launchers" && t("importInstance.title")}
+							{step === "instances" &&
+								t("importInstance.selectInstance", { launcher: selectedLauncher?.name ?? "" })}
+							{step === "options" && t("importInstance.configure")}
 						</DialogTitle>
 					</div>
 					<DialogDescription className="text-xs text-zinc-400">
-						{step === "launchers" &&
-							"Import existing Minecraft installations, mods, worlds, and settings directly into Ingot."}
+						{step === "launchers" && t("importInstance.description")}
 						{step === "instances" &&
-							`Found ${instances.length} instance${instances.length === 1 ? "" : "s"} in ${selectedLauncher?.name}. Choose which one to import.`}
-						{step === "options" &&
-							"Select which data components you want to transfer into your new Ingot instance."}
+							t("importInstance.found", {
+								count: instances.length,
+								launcher: selectedLauncher?.name ?? "",
+							})}
+						{step === "options" && t("importInstance.optionsDescription")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -268,7 +272,7 @@ export const ImportInstanceDialog = ({
 						{isLoadingLaunchers ? (
 							<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
 								<Loader2 className="size-6 animate-spin text-primary" />
-								<span>Detecting installed launchers...</span>
+								<span>{t("importInstance.detecting")}</span>
 							</div>
 						) : (
 							<div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -310,14 +314,14 @@ export const ImportInstanceDialog = ({
 														</span>
 														{l.available && (
 															<span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
-																Installed
+																{t("common.installed")}
 															</span>
 														)}
 													</div>
 													<div className="mt-0.5 truncate text-[11px] text-muted-foreground">
 														{l.available
-															? `${l.instancesCount} instance${l.instancesCount === 1 ? "" : "s"} found`
-															: "Not detected • Click to locate"}
+															? t("importInstance.instancesFound", { count: l.instancesCount })
+															: t("importInstance.notDetected")}
 													</div>
 												</div>
 											</div>
@@ -345,10 +349,10 @@ export const ImportInstanceDialog = ({
 										</div>
 										<div className="min-w-0 flex-1">
 											<div className="truncate font-semibold text-foreground text-sm">
-												Custom Directory
+												{t("importInstance.custom")}
 											</div>
 											<div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-												Select any instance folder on disk
+												{t("importInstance.customHint")}
 											</div>
 										</div>
 									</div>
@@ -375,7 +379,7 @@ export const ImportInstanceDialog = ({
 									className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
 								>
 									<ArrowLeft className="size-3.5" />
-									<span>Back to Launchers</span>
+									<span>{t("importInstance.backToLaunchers")}</span>
 								</Button>
 
 								{selectedLauncher && (
@@ -387,7 +391,7 @@ export const ImportInstanceDialog = ({
 										className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
 									>
 										<FolderSearch className="size-3.5" />
-										<span>Change Folder</span>
+										<span>{t("importInstance.changeFolder")}</span>
 									</Button>
 								)}
 							</div>
@@ -396,7 +400,7 @@ export const ImportInstanceDialog = ({
 								<div className="relative max-w-xs flex-1">
 									<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
 									<Input
-										placeholder="Filter instances..."
+										placeholder={t("importInstance.filter")}
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
 										className="h-8 pl-8 text-xs"
@@ -410,11 +414,11 @@ export const ImportInstanceDialog = ({
 								{isLoadingInstances ? (
 									<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
 										<Loader2 className="size-6 animate-spin text-primary" />
-										<span>Loading instances...</span>
+										<span>{t("importInstance.loadingInstances")}</span>
 									</div>
 								) : filteredInstances.length === 0 ? (
 									<div className="py-10 text-center text-muted-foreground text-xs">
-										No instances found in this launcher directory.
+										{t("importInstance.noneFound")}
 									</div>
 								) : (
 									filteredInstances.map((inst) => (
@@ -436,17 +440,19 @@ export const ImportInstanceDialog = ({
 														</span>
 														{inst.modsCount > 0 && (
 															<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-																{inst.modsCount} mods
+																{t("importInstance.modsCount", { count: inst.modsCount })}
 															</span>
 														)}
 														{inst.savesCount > 0 && (
 															<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-																{inst.savesCount} worlds
+																{t("importInstance.worldsCount", { count: inst.savesCount })}
 															</span>
 														)}
 														{inst.screenshotsCount > 0 && (
 															<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-																{inst.screenshotsCount} screenshots
+																{t("importInstance.screenshotsCount", {
+																	count: inst.screenshotsCount,
+																})}
 															</span>
 														)}
 													</div>
@@ -459,7 +465,7 @@ export const ImportInstanceDialog = ({
 												onClick={() => handleSelectInstance(inst)}
 												className="h-8 shrink-0 gap-1 text-xs"
 											>
-												<span>Select</span>
+												<span>{t("importInstance.select")}</span>
 											</Button>
 										</div>
 									))
@@ -482,7 +488,7 @@ export const ImportInstanceDialog = ({
 									className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
 								>
 									<ArrowLeft className="size-3.5" />
-									<span>Back</span>
+									<span>{t("versionChange.back")}</span>
 								</Button>
 							</div>
 
@@ -492,14 +498,14 @@ export const ImportInstanceDialog = ({
 									<LoaderIcon loader={selectedInstance.loader} size={24} />
 									<div className="flex-1">
 										<label htmlFor="import-name" className="text-[10px] text-muted-foreground">
-											Instance Name in Ingot:
+											{t("importInstance.nameInIngot")}
 										</label>
 										<Input
 											id="import-name"
 											value={instanceName}
 											onChange={(e) => setInstanceName(e.target.value)}
 											className="mt-1 h-8 font-medium text-xs"
-											placeholder="My Imported Instance"
+											placeholder={t("importInstance.namePlaceholder")}
 										/>
 									</div>
 								</div>
@@ -513,7 +519,7 @@ export const ImportInstanceDialog = ({
 										{selectedInstance.loaderVersion ? `(${selectedInstance.loaderVersion})` : ""}
 									</span>
 									<span className="truncate text-zinc-500">
-										Source: {selectedInstance.sourcePath}
+										{t("importInstance.source", { path: selectedInstance.sourcePath })}
 									</span>
 								</div>
 							</div>
@@ -521,7 +527,7 @@ export const ImportInstanceDialog = ({
 							{/* Transfer components checkboxes */}
 							<div className="flex flex-col gap-2">
 								<span className="font-medium text-[11px] text-zinc-400">
-									Select components to import:
+									{t("importInstance.components")}
 								</span>
 
 								<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -532,9 +538,11 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Layers className="size-4 shrink-0 text-sky-400" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">Mods</div>
+												<div className="truncate font-medium text-foreground text-xs">
+													{t("importInstance.mods")}
+												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													{selectedInstance.modsCount} mod files
+													{t("importInstance.modFiles", { count: selectedInstance.modsCount })}
 												</div>
 											</div>
 										</div>
@@ -553,9 +561,11 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Sliders className="size-4 shrink-0 text-amber-400" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">Configs</div>
+												<div className="truncate font-medium text-foreground text-xs">
+													{t("importInstance.configs")}
+												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													Settings & mod configs
+													{t("importInstance.configsHint")}
 												</div>
 											</div>
 										</div>
@@ -575,10 +585,12 @@ export const ImportInstanceDialog = ({
 											<HardDrive className="size-4 shrink-0 text-emerald-400" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
-													Worlds & Saves
+													{t("importInstance.worlds")}
 												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													{selectedInstance.savesCount} singleplayer worlds
+													{t("importInstance.singleplayerWorlds", {
+														count: selectedInstance.savesCount,
+													})}
 												</div>
 											</div>
 										</div>
@@ -598,10 +610,10 @@ export const ImportInstanceDialog = ({
 											<Box className="size-4 shrink-0 text-pink-400" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
-													Resource Packs
+													{t("importInstance.packs")}
 												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													Textures & shaderpacks
+													{t("importInstance.packsHint")}
 												</div>
 											</div>
 										</div>
@@ -621,12 +633,14 @@ export const ImportInstanceDialog = ({
 											<Camera className="size-4 shrink-0 text-cyan-400" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
-													Screenshots
+													{t("screenshots.title")}
 												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
 													{selectedInstance.screenshotsCount > 0
-														? `${selectedInstance.screenshotsCount} screenshots`
-														: "In-game screenshots"}
+														? t("importInstance.screenshotsCount", {
+																count: selectedInstance.screenshotsCount,
+															})
+														: t("importInstance.screenshotsHint")}
 												</div>
 											</div>
 										</div>
@@ -646,10 +660,10 @@ export const ImportInstanceDialog = ({
 											<Sparkles className="size-4 shrink-0 text-teal-400" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
-													Mod Data & Others
+													{t("importInstance.modData")}
 												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													Waypoints, schematics, recordings, etc.
+													{t("importInstance.modDataHint")}
 												</div>
 											</div>
 										</div>
@@ -669,10 +683,10 @@ export const ImportInstanceDialog = ({
 											<Sliders className="size-4 shrink-0 text-purple-400" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
-													Game Options
+													{t("importInstance.options")}
 												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													options.txt & keybindings
+													{t("importInstance.optionsHint")}
 												</div>
 											</div>
 										</div>
@@ -692,10 +706,10 @@ export const ImportInstanceDialog = ({
 											<Server className="size-4 shrink-0 text-emerald-400" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
-													Multiplayer Servers
+													{t("importInstance.servers")}
 												</div>
 												<div className="truncate text-[10px] text-muted-foreground">
-													servers.dat server list
+													{t("importInstance.serversHint")}
 												</div>
 											</div>
 										</div>
@@ -712,10 +726,10 @@ export const ImportInstanceDialog = ({
 								<div className="mt-1 flex items-start gap-2.5 rounded-lg border border-border/40 bg-zinc-900/20 p-2.5 text-xs text-zinc-400">
 									<Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
 									<span className="text-[11px] text-zinc-400 leading-relaxed">
-										All components above are optional. With{" "}
-										<strong className="text-zinc-200">Mod Data & Others</strong> enabled, custom mod
-										folders (minimap waypoints, schematics, recordings) are safely copied. Uncheck
-										it if you prefer a clean import without extra files.
+										<Trans
+											i18nKey="importInstance.note"
+											components={{ b: <strong className="text-zinc-200" /> }}
+										/>
 									</span>
 								</div>
 							</div>
@@ -742,7 +756,7 @@ export const ImportInstanceDialog = ({
 							) : (
 								<Check className="size-3.5" />
 							)}
-							{isImporting ? "Importing..." : "Import Instance"}
+							{isImporting ? t("importInstance.importing") : t("importInstance.import")}
 						</Button>
 					</DialogFooter>
 				)}

@@ -1,4 +1,5 @@
 import { ArrowUpCircle, Download, Loader2, Trash2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -20,7 +21,8 @@ export function CompanionCard({
 }) {
 	const { data: status } = useCompanionStatus(server.id)
 	const actions = usePluginActions(server.id)
-	const noun = addonKind(server.core)?.noun ?? "plugin"
+	const { t } = useTranslation()
+	const context = addonKind(server.core)?.kind ?? "plugin"
 	if (!status?.supported) return null
 
 	const installed = status.fileName !== null
@@ -31,7 +33,9 @@ export function CompanionCard({
 	const install = async () => {
 		try {
 			await actions.installCompanion.mutateAsync()
-			onChanged(installed ? `Updated the Ingot ${noun}.` : `Installed the Ingot ${noun}.`)
+			onChanged(
+				installed ? t("companion.updated", { context }) : t("companion.installed", { context }),
+			)
 		} catch (e) {
 			onChanged(String(e), true)
 		}
@@ -40,7 +44,7 @@ export function CompanionCard({
 		if (!status.fileName) return
 		try {
 			await actions.remove.mutateAsync(status.fileName)
-			onChanged(`Removed the Ingot ${noun}. The map now updates when the server saves.`)
+			onChanged(t("companion.removed", { context }))
 		} catch (e) {
 			onChanged(String(e), true)
 		}
@@ -49,7 +53,7 @@ export function CompanionCard({
 		if (!status.fileName) return
 		try {
 			await actions.toggle.mutateAsync({ fileName: status.fileName, enabled: true })
-			onChanged(`Enabled the Ingot ${noun}.`)
+			onChanged(t("companion.enabled", { context }))
 		} catch (e) {
 			onChanged(String(e), true)
 		}
@@ -68,7 +72,7 @@ export function CompanionCard({
 				<p className="flex items-baseline gap-1.5 truncate font-medium text-sm text-zinc-100">
 					Ingot
 					<span className="font-normal text-[10px] text-zinc-500 uppercase tracking-wider">
-						System
+						{t("companion.system")}
 					</span>
 				</p>
 				<p className="flex items-center gap-1.5 truncate text-[11px] text-zinc-500">
@@ -80,25 +84,27 @@ export function CompanionCard({
 					/>
 					{installed
 						? status.enabled
-							? `Live map${status.installedVersion ? ` · ${status.installedVersion}` : ""}`
-							: "Disabled"
-						: "Live map · not installed"}
+							? status.installedVersion
+								? `${t("companion.liveMap")} · ${status.installedVersion}`
+								: t("companion.liveMap")
+							: t("companion.disabled")
+						: t("companion.notInstalled")}
 				</p>
 			</div>
 
 			{/* One main action, plus remove once installed */}
 			{!installed ? (
 				<ActionButton busy={actions.installCompanion.isPending} disabled={busy} onClick={install}>
-					<Download className="size-3.5" /> Install
+					<Download className="size-3.5" /> {t("common.install")}
 				</ActionButton>
 			) : outdated ? (
 				<ActionButton busy={actions.installCompanion.isPending} disabled={busy} onClick={install}>
-					<ArrowUpCircle className="size-3.5" /> Update
+					<ArrowUpCircle className="size-3.5" /> {t("common.update")}
 				</ActionButton>
 			) : (
 				!status.enabled && (
 					<ActionButton busy={actions.toggle.isPending} disabled={busy} onClick={enable}>
-						Enable
+						{t("common.enable")}
 					</ActionButton>
 				)
 			)}
@@ -107,8 +113,8 @@ export function CompanionCard({
 					type="button"
 					onClick={remove}
 					disabled={busy}
-					title={`Remove the Ingot ${noun}`}
-					aria-label={`Remove the Ingot ${noun}`}
+					title={t("companion.remove", { context })}
+					aria-label={t("companion.remove", { context })}
 					className="flex size-8 shrink-0 items-center justify-center text-zinc-500 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-50"
 				>
 					{actions.remove.isPending ? (

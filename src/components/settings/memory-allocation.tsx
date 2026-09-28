@@ -4,13 +4,15 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Slider from "@/components/ui/slider"
+import { formatMegabytes, formatNumber } from "@/lib/format"
 import { useMemorySettings } from "@/services/settings-service"
 
 const STEP_MB = 256
 const MIN_POSSIBLE_RAM_MB = 512
 
+/** Gigabytes as a plain number ("4,5"), for texts that write the unit themselves */
 function formatMbToGb(mb: number): string {
-	return (mb / 1024).toFixed(1)
+	return formatNumber(mb / 1024, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
 const MemoryAllocation = () => {
@@ -83,7 +85,7 @@ const MemoryAllocation = () => {
 				</div>
 				<div className="flex items-center gap-1.5 rounded-md border border-border/60 bg-zinc-950/80 px-2.5 py-1 text-xs">
 					<Cpu className="size-3.5 text-primary" />
-					<span className="font-medium text-foreground">{formatMbToGb(totalRamMb)} GB</span>
+					<span className="font-medium text-foreground">{formatMegabytes(totalRamMb)}</span>
 					<span className="text-muted-foreground">{t("settings.memory.totalRam")}</span>
 				</div>
 			</div>
@@ -97,7 +99,7 @@ const MemoryAllocation = () => {
 					</span>
 					<span className="text-muted-foreground">
 						{t("settings.memory.availableNow")}{" "}
-						<strong className="text-foreground">{formatMbToGb(availableRamMb)} GB</strong>
+						<strong className="text-foreground">{formatMegabytes(availableRamMb)}</strong>
 						{" ("}
 						{availableRamMb} MB{")"}
 					</span>
@@ -113,8 +115,8 @@ const MemoryAllocation = () => {
 					<span className="text-muted-foreground">{t("settings.memory.distribution")}</span>
 					<span className="font-mono text-muted-foreground">
 						{t("settings.memory.allocated")}{" "}
-						<strong className="text-primary">{formatMbToGb(maxRam)} GB</strong> /{" "}
-						{formatMbToGb(totalRamMb)} GB
+						<strong className="text-primary">{formatMegabytes(maxRam)}</strong> /{" "}
+						{formatMegabytes(totalRamMb)}
 					</span>
 				</div>
 				<div className="relative h-3 w-full overflow-hidden rounded-full bg-zinc-800/80">
@@ -122,19 +124,19 @@ const MemoryAllocation = () => {
 					<div
 						className="absolute inset-y-0 left-0 bg-emerald-500/10"
 						style={{ width: "60%" }}
-						title="Safe Operating Zone"
+						title={t("settings.memory.zoneSafe")}
 					/>
 					{/* Warning 60-80% zone marker */}
 					<div
 						className="absolute inset-y-0 left-[60%] bg-amber-500/10"
 						style={{ width: "20%" }}
-						title="High Usage Zone"
+						title={t("settings.memory.zoneHigh")}
 					/>
 					{/* Danger >80% zone marker */}
 					<div
 						className="absolute inset-y-0 left-[80%] bg-rose-500/10"
 						style={{ width: "20%" }}
-						title="System Critical Zone"
+						title={t("settings.memory.zoneCritical")}
 					/>
 
 					{/* Active Min-Max allocation range indicator */}
@@ -147,10 +149,10 @@ const MemoryAllocation = () => {
 					/>
 				</div>
 				<div className="flex justify-between font-mono text-[10px] text-muted-foreground">
-					<span>512 MB</span>
-					<span>Min: {formatMbToGb(minRam)} GB</span>
-					<span>Max: {formatMbToGb(maxRam)} GB</span>
-					<span>{formatMbToGb(totalRamMb)} GB (Max)</span>
+					<span>{formatMegabytes(512)}</span>
+					<span>{t("settings.memory.minShort", { value: formatMegabytes(minRam) })}</span>
+					<span>{t("settings.memory.maxShort", { value: formatMegabytes(maxRam) })}</span>
+					<span>{t("settings.memory.totalShort", { value: formatMegabytes(totalRamMb) })}</span>
 				</div>
 			</div>
 
@@ -182,7 +184,7 @@ const MemoryAllocation = () => {
 							{t("settings.memory.minMemoryLabel")}
 						</label>
 						<span className="font-mono text-muted-foreground text-xs">
-							{formatMbToGb(minRam)} GB
+							{formatMegabytes(minRam)}
 						</span>
 					</div>
 					<div className="flex items-center gap-2">
@@ -196,7 +198,7 @@ const MemoryAllocation = () => {
 							onChange={(e) => handleMinInputChange(Number(e.target.value))}
 							className="font-mono text-xs"
 						/>
-						<span className="text-muted-foreground text-xs">MB</span>
+						<span className="text-muted-foreground text-xs">{t("settings.memory.mb")}</span>
 					</div>
 				</div>
 
@@ -206,7 +208,7 @@ const MemoryAllocation = () => {
 							{t("settings.memory.maxMemoryLabel")}
 						</label>
 						<span className="font-mono text-muted-foreground text-xs">
-							{formatMbToGb(maxRam)} GB
+							{formatMegabytes(maxRam)}
 						</span>
 					</div>
 					<div className="flex items-center gap-2">
@@ -220,7 +222,7 @@ const MemoryAllocation = () => {
 							onChange={(e) => handleMaxInputChange(Number(e.target.value))}
 							className="font-mono text-xs"
 						/>
-						<span className="text-muted-foreground text-xs">MB</span>
+						<span className="text-muted-foreground text-xs">{t("settings.memory.mb")}</span>
 					</div>
 				</div>
 			</div>
@@ -271,7 +273,9 @@ const MemoryAllocation = () => {
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
 						<span className="font-semibold text-xs">{t("settings.memory.presets.vanilla")}</span>
-						<span className="text-[10px] text-muted-foreground">1.0 GB &ndash; 3.0 GB</span>
+						<span className="text-[10px] text-muted-foreground">
+							{formatMegabytes(1024)} &ndash; {formatMegabytes(3072)}
+						</span>
 					</Button>
 					<Button
 						variant="outline"
@@ -280,7 +284,9 @@ const MemoryAllocation = () => {
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
 						<span className="font-semibold text-xs">{t("settings.memory.presets.modded")}</span>
-						<span className="text-[10px] text-muted-foreground">2.0 GB &ndash; 6.0 GB</span>
+						<span className="text-[10px] text-muted-foreground">
+							{formatMegabytes(2048)} &ndash; {formatMegabytes(6144)}
+						</span>
 					</Button>
 					<Button
 						variant="outline"
@@ -289,7 +295,9 @@ const MemoryAllocation = () => {
 						className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 					>
 						<span className="font-semibold text-xs">{t("settings.memory.presets.heavy")}</span>
-						<span className="text-[10px] text-muted-foreground">4.0 GB &ndash; 8.0 GB</span>
+						<span className="text-[10px] text-muted-foreground">
+							{formatMegabytes(4096)} &ndash; {formatMegabytes(8192)}
+						</span>
 					</Button>
 					<Button
 						variant="outline"
@@ -299,7 +307,8 @@ const MemoryAllocation = () => {
 					>
 						<span className="font-semibold text-xs">{t("settings.memory.presets.safeMax")}</span>
 						<span className="text-[10px] text-muted-foreground">
-							2.0 GB &ndash; {formatMbToGb(Math.floor((totalRamMb * 0.75) / 512) * 512)} GB
+							{formatMegabytes(2048)} &ndash;{" "}
+							{formatMegabytes(Math.floor((totalRamMb * 0.75) / 512) * 512)}
 						</span>
 					</Button>
 				</div>

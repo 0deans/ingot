@@ -1,5 +1,6 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import { cn } from "cn"
+import i18n from "i18next"
 import { Check, ChevronDown, Search, X } from "lucide-react"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 
@@ -26,8 +27,8 @@ export const SearchableSelect = memo(
 		value,
 		onValueChange,
 		options,
-		placeholder = "Select an option",
-		searchPlaceholder = "Search...",
+		placeholder = i18n.t("select.placeholder"),
+		searchPlaceholder = i18n.t("common.search"),
 		disabled = false,
 		className,
 	}: SearchableSelectProps) => {
@@ -139,7 +140,7 @@ export const SearchableSelect = memo(
 							<div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto pt-1 [scrollbar-color:color-mix(in_oklab,var(--foreground)_20%,transparent)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-50/20 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-50/35 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
 								{filteredOptions.length === 0 ? (
 									<div className="px-3 py-4 text-center text-muted-foreground text-xs">
-										No matching versions
+										{i18n.t("select.noMatches")}
 									</div>
 								) : (
 									filteredOptions.map((opt) => {

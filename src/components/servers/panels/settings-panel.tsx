@@ -14,6 +14,7 @@ import {
 	Trash2,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { PropertyEntry, ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/select"
 import Slider from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
+import { formatBytes, formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
 import { toServerIcon } from "@/lib/server-icon"
 import { cn } from "@/lib/utils"
@@ -42,7 +44,12 @@ import { rpc, serverService } from "@/services/server-service"
 import DeleteServerDialog from "../delete-server-dialog"
 import { MC_COLORS, ServerListPreview } from "../shared/motd"
 import { Card, CardHeader, ErrorNote, useSticky } from "../shared/primitives"
-import { HANDLED_ELSEWHERE, KNOWN_KEYS, PROPERTY_GROUPS, type PropertyDef } from "./property-schema"
+import {
+	HANDLED_ELSEWHERE,
+	KNOWN_KEYS,
+	localizedPropertyGroups,
+	type PropertyDef,
+} from "./property-schema"
 import { TransferCard } from "./transfer-card"
 
 export function SettingsPanel({
@@ -52,13 +59,14 @@ export function SettingsPanel({
 	server: ServerConfig
 	onDeleted?: () => void
 }) {
+	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	return (
 		<div className="flex flex-col gap-4">
 			{isRunning && (
 				<div className="flex items-start gap-2.5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-amber-200 text-xs">
 					<AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" />
-					Most changes apply after the server restarts.
+					{t("serverSettings.restartNote")}
 				</div>
 			)}
 			<IdentityCard server={server} isRunning={isRunning} />
@@ -86,6 +94,7 @@ const MOTD_CODES: { code: string; label: string; style?: React.CSSProperties }[]
 ]
 
 function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: boolean }) {
+	const { t } = useTranslation()
 	const queryClient = useQueryClient()
 	const { data: icon } = useServerIcon(server.id)
 	const { values, save } = useServerPropertiesAll(server.id)
@@ -122,7 +131,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 			await serverService.setServerIcon(server.id, await toServerIcon(file))
 			await queryClient.invalidateQueries({ queryKey: serverKeys.icon(server.id) })
 		} catch (e) {
-			setError(`Couldn't use that image: ${e}`)
+			setError(t("serverSettings.badImage", { error: String(e) }))
 		} finally {
 			setIconBusy(false)
 			if (fileRef.current) fileRef.current.value = ""
@@ -130,7 +139,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 	}
 
 	const onSave = async () => {
-		if (!name.trim()) return setError("The name can't be empty.")
+		if (!name.trim()) return setError(t("serverSettings.emptyName"))
 		setStatus("saving")
 		setError(null)
 		try {
@@ -150,8 +159,8 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 	return (
 		<Card>
 			<CardHeader
-				title="Server identity"
-				description="How your server looks in the multiplayer list."
+				title={t("serverSettings.identity")}
+				description={t("serverSettings.identityDesc")}
 			/>
 			<div className="flex flex-col gap-4 px-4 pb-4">
 				<ServerListPreview
@@ -200,7 +209,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 					/>
 					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
 						<label htmlFor={`name-${server.id}`} className="text-xs text-zinc-400">
-							Name
+							{t("serverSettings.name")}
 						</label>
 						<Input
 							id={`name-${server.id}`}
@@ -213,7 +222,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 
 				<div className="flex flex-col gap-1.5">
 					<label htmlFor={`motd-${server.id}`} className="text-xs text-zinc-400">
-						Description (MOTD) · two lines, use Enter for the second
+						{t("serverSettings.motd")}
 					</label>
 					<textarea
 						id={`motd-${server.id}`}
@@ -237,7 +246,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 								)}
 								style={label ? { ...style, background: undefined } : style}
 							>
-								{label}
+								{code === "r" ? t("serverSettings.motdReset") : label}
 							</button>
 						))}
 					</div>
@@ -254,13 +263,14 @@ function SaveButton({
 	dirty,
 	status,
 	onClick,
-	label = "Save changes",
+	label,
 }: {
 	dirty: boolean
 	status: "idle" | "saving" | "saved"
 	onClick: () => void
 	label?: string
 }) {
+	const { t } = useTranslation()
 	// Nothing to save: keep the card clean
 	if (!dirty && status === "idle") return null
 	return (
@@ -281,7 +291,7 @@ function SaveButton({
 			) : (
 				<Save className="size-4" />
 			)}
-			{status === "saved" ? "Saved" : label}
+			{status === "saved" ? t("serverSettings.saved") : (label ?? t("serverSettings.saveChanges"))}
 		</Button>
 	)
 }
@@ -289,6 +299,7 @@ function SaveButton({
 // ─── Memory ───────────────────────────────────────────────────────────────────
 
 function MemoryCard({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const [ram, setRam] = useState(server.memoryMaxMb)
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
 	const mobile = isMobileEnvironment()
@@ -312,13 +323,11 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 		<Card>
 			<CardHeader
 				icon={Cpu}
-				title="Memory"
-				description={
-					mobile ? "Keep it well below your phone's RAM." : "Maximum RAM for the Java server."
-				}
+				title={t("serverSettings.memory")}
+				description={mobile ? t("serverSettings.memoryMobile") : t("serverSettings.memoryDesktop")}
 				action={
 					<span className="font-mono font-semibold text-emerald-300 text-sm">
-						{(ram / 1024).toFixed(1)} GB
+						{formatMegabytes(ram)}
 					</span>
 				}
 			/>
@@ -339,6 +348,7 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 // ─── server.properties ────────────────────────────────────────────────────────
 
 function PropertiesCard({ server }: { server: ServerConfig }) {
+	const { t } = useTranslation()
 	const { data, values, save, isLoading } = useServerPropertiesAll(server.id)
 	const [draft, setDraft] = useState<Record<string, string>>({})
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
@@ -352,10 +362,12 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 	const changed = Object.entries(draft).filter(([k, v]) => v !== (values.get(k) ?? undefined))
 
 	// Only show schema entries this server version actually has (or all, before first start)
-	const groups = PROPERTY_GROUPS.map((g) => ({
-		...g,
-		properties: g.properties.filter((p) => !hasFile || values.has(p.key)),
-	})).filter((g) => g.properties.length > 0)
+	const groups = localizedPropertyGroups(t)
+		.map((g) => ({
+			...g,
+			properties: g.properties.filter((p) => !hasFile || values.has(p.key)),
+		}))
+		.filter((g) => g.properties.length > 0)
 
 	const others = useMemo(
 		() =>
@@ -374,7 +386,10 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 	const onSave = async () => {
 		if (portConflict)
 			return setError(
-				`Port ${portValue} is already used by another server. Try ${serverService.getNextAvailablePort()}.`,
+				t("serverSettings.portInUse", {
+					port: portValue,
+					next: serverService.getNextAvailablePort(),
+				}),
 			)
 		setStatus("saving")
 		setError(null)
@@ -395,8 +410,8 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 		<Card>
 			<CardHeader
 				icon={SlidersHorizontal}
-				title="Game settings"
-				description="server.properties, with explanations."
+				title={t("serverSettings.gameSettings")}
+				description={t("serverSettings.gameSettingsDesc")}
 			/>
 			{isLoading ? (
 				<div className="flex justify-center py-8">
@@ -433,7 +448,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 								<ChevronRight
 									className={cn("size-3.5 transition-transform", showAll && "rotate-90")}
 								/>
-								All other properties
+								{t("serverSettings.allOther")}
 							</button>
 							{showAll && (
 								<div className="flex flex-col gap-2">
@@ -442,7 +457,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 										<Input
 											value={query}
 											onChange={(e) => setQuery(e.target.value)}
-											placeholder="Filter properties"
+											placeholder={t("serverSettings.filter")}
 											className="h-9 rounded-xl border-zinc-800 bg-zinc-950/60 pl-9 text-xs"
 										/>
 									</div>
@@ -476,9 +491,11 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-zinc-800/80 border-t bg-[color-mix(in_oklab,var(--color-zinc-900)_40%,var(--color-zinc-950))] px-4 py-3">
 							{changed.length > 0 && (
 								<>
-									<span className="text-xs text-zinc-500">{changed.length} changed</span>
+									<span className="text-xs text-zinc-500">
+										{t("serverSettings.changed", { count: changed.length })}
+									</span>
 									<Button variant="ghost" onClick={() => setDraft({})} className="h-10 rounded-xl">
-										Discard
+										{t("serverSettings.discard")}
 									</Button>
 								</>
 							)}
@@ -560,6 +577,7 @@ function PropertyRow({
 // ─── Other config files ───────────────────────────────────────────────────────
 
 function ConfigFilesCard({ serverId }: { serverId: string }) {
+	const { t } = useTranslation()
 	const { data: files = [] } = useConfigFiles(serverId)
 	const [open, setOpen] = useState<string | null>(null)
 	if (files.length === 0) return null
@@ -567,8 +585,8 @@ function ConfigFilesCard({ serverId }: { serverId: string }) {
 		<Card>
 			<CardHeader
 				icon={FileCode2}
-				title="Config files"
-				description="Server and plugin configs (YAML, JSON, TOML)."
+				title={t("serverSettings.configFiles")}
+				description={t("serverSettings.configFilesDesc")}
 			/>
 			<ul className="divide-y divide-zinc-800/60 border-zinc-800/60 border-t">
 				{files.map((f) => (
@@ -580,7 +598,7 @@ function ConfigFilesCard({ serverId }: { serverId: string }) {
 						>
 							<span className="min-w-0 truncate font-mono text-xs text-zinc-300">{f.path}</span>
 							<span className="flex shrink-0 items-center gap-2 text-[11px] text-zinc-600">
-								{(f.size / 1024).toFixed(1)} KB
+								{formatBytes(f.size)}
 								<ChevronRight className="size-3.5" />
 							</span>
 						</button>
@@ -601,6 +619,7 @@ function ConfigFileEditor({
 	path: string | null
 	onClose: () => void
 }) {
+	const { t } = useTranslation()
 	const queryClient = useQueryClient()
 	const shownPath = useSticky(path)
 	const { data, isLoading } = useConfigFile(serverId, shownPath)
@@ -654,14 +673,14 @@ function ConfigFileEditor({
 				<div className="flex items-center justify-end gap-2">
 					{text !== null && (
 						<Button variant="ghost" onClick={() => setText(null)} className="h-10 rounded-xl">
-							Discard
+							{t("serverSettings.discard")}
 						</Button>
 					)}
 					<SaveButton
 						dirty={text !== null && text !== data}
 						status={status}
 						onClick={onSave}
-						label="Save file"
+						label={t("serverSettings.saveFile")}
 					/>
 				</div>
 			</DialogContent>
@@ -672,11 +691,12 @@ function ConfigFileEditor({
 // ─── Danger zone ──────────────────────────────────────────────────────────────
 
 function DangerCard({ server, onDeleted }: { server: ServerConfig; onDeleted?: () => void }) {
+	const { t } = useTranslation()
 	const [deleting, setDeleting] = useState(false)
 	const mobile = isMobileEnvironment()
 	return (
 		<Card>
-			<CardHeader title="Manage" />
+			<CardHeader title={t("serverSettings.manage")} />
 			<div className="flex flex-wrap gap-2 px-4 pb-4">
 				{!mobile && (
 					<Button
@@ -685,7 +705,7 @@ function DangerCard({ server, onDeleted }: { server: ServerConfig; onDeleted?: (
 						className="h-10 gap-1.5 rounded-xl"
 					>
 						<FolderOpen className="size-4" />
-						Open folder
+						{t("common.openFolder")}
 					</Button>
 				)}
 				<Button
@@ -694,7 +714,7 @@ function DangerCard({ server, onDeleted }: { server: ServerConfig; onDeleted?: (
 					className="h-10 gap-1.5 rounded-xl"
 				>
 					<Trash2 className="size-4" />
-					Delete server
+					{t("deleteServer.title")}
 				</Button>
 			</div>
 			<DeleteServerDialog

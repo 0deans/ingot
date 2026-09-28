@@ -14,6 +14,7 @@ import {
 	UploadCloud,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import type { InstanceConfig, VersionBackup } from "@/bindings"
 import ChangeVersionDialog from "@/components/instances/change-version-dialog"
 import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
@@ -32,6 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import Slider from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { loaderName } from "@/components/version-change/plan-review"
+import { formatMegabytes } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
 import { instanceService, rpc } from "@/services/instance-service"
 import {
@@ -58,16 +60,13 @@ function backupSide(backup: VersionBackup, side: "from" | "to"): string {
 const STEP_MB = 256
 const MIN_RAM_LIMIT_MB = 512
 
-function mbToGb(mb: number): string {
-	return (mb / 1024).toFixed(1)
-}
-
 export const InstanceSettingsDialog = ({
 	instance,
 	open,
 	onOpenChange,
 	onSave,
 }: InstanceSettingsDialogProps) => {
+	const { t } = useTranslation()
 	const { memory: globalMemory, systemMemory } = useMemorySettings()
 	const { windowSettings: globalWindow } = useWindowSettings()
 	const { syncSettings: globalSync } = useSyncSettings()
@@ -163,7 +162,7 @@ export const InstanceSettingsDialog = ({
 		try {
 			const restored = await rpc.undo_instance_version_change(instance.id)
 			setVersionBackup(null)
-			setVersionMsg({ ok: true, text: `Back on ${restored.gameVersion}, exactly as before.` })
+			setVersionMsg({ ok: true, text: t("crashDialog.undone", { version: restored.gameVersion }) })
 			await onSave?.(restored)
 		} catch (e) {
 			setVersionMsg({ ok: false, text: String(e) })
@@ -227,7 +226,7 @@ export const InstanceSettingsDialog = ({
 					: "success",
 			)
 		} catch (err) {
-			setSyncStatusMsg(`Push failed: ${err}`)
+			setSyncStatusMsg(t("instanceSettings.pushFailed", { error: String(err) }))
 			setSyncStatusType("error")
 		} finally {
 			setIsSyncing(false)
@@ -243,7 +242,7 @@ export const InstanceSettingsDialog = ({
 			setSyncStatusMsg(report.message)
 			setSyncStatusType("success")
 		} catch (err) {
-			setSyncStatusMsg(`Pull failed: ${err}`)
+			setSyncStatusMsg(t("instanceSettings.pullFailed", { error: String(err) }))
 			setSyncStatusType("error")
 		} finally {
 			setIsSyncing(false)
@@ -283,7 +282,7 @@ export const InstanceSettingsDialog = ({
 			onOpenChange(false)
 		} catch (e) {
 			console.error("Failed to update instance:", e)
-			alert(`Failed to save settings: ${e}`)
+			alert(t("instanceSettings.saveFailed", { error: String(e) }))
 		} finally {
 			setIsSaving(false)
 		}
@@ -303,12 +302,15 @@ export const InstanceSettingsDialog = ({
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={24} />
 						<DialogTitle className="font-semibold text-lg text-zinc-50">
-							Instance Settings
+							{t("instanceSettings.title")}
 						</DialogTitle>
 					</div>
 					<DialogDescription className="text-muted-foreground text-xs">
-						Configure execution parameters and memory limits for{" "}
-						<span className="font-medium text-foreground">{instance.name}</span>.
+						<Trans
+							i18nKey="instanceSettings.description"
+							values={{ name: instance.name }}
+							components={{ b: <span className="font-medium text-foreground" /> }}
+						/>
 					</DialogDescription>
 				</DialogHeader>
 
@@ -317,13 +319,13 @@ export const InstanceSettingsDialog = ({
 						{/* Instance Name */}
 						<div className="flex flex-col gap-2">
 							<label htmlFor="instance-name-input" className="font-medium text-foreground text-xs">
-								Instance Name
+								{t("newInstance.name")}
 							</label>
 							<Input
 								id="instance-name-input"
 								value={name}
 								onChange={(e) => setName(e.target.value)}
-								placeholder="My Minecraft Instance"
+								placeholder={t("instanceSettings.namePlaceholder")}
 								className="h-9 border-zinc-800 bg-zinc-900/80 text-xs"
 							/>
 						</div>
@@ -334,10 +336,14 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<ArrowUpDown className="size-4 text-emerald-400" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">Minecraft version</h4>
+										<h4 className="font-medium text-foreground text-xs">
+											{t("wizard.minecraftVersion")}
+										</h4>
 										<p className="text-[11px] text-muted-foreground">
 											{instance.gameVersion}
-											{instance.loaderVersion ? ` · loader ${instance.loaderVersion}` : ""}
+											{instance.loaderVersion
+												? ` · ${t("instanceSettings.loader", { version: instance.loaderVersion })}`
+												: ""}
 										</p>
 									</div>
 								</div>
@@ -348,15 +354,22 @@ export const InstanceSettingsDialog = ({
 									disabled={versionBusy}
 									className="h-8 text-xs"
 								>
-									Change version
+									{t("versionChange.title")}
 								</Button>
 							</div>
 							{versionBackup && (
 								<div className="flex flex-wrap items-center justify-between gap-2 border-zinc-800/80 border-t pt-3">
 									<p className="text-[11px] text-zinc-400">
-										Changed from {backupSide(versionBackup, "from")} to{" "}
-										{backupSide(versionBackup, "to")}. Backup {formatBytes(versionBackup.bytes)}
-										{versionBackup.worldsBackedUp ? ", worlds included" : ""}.
+										{t(
+											versionBackup.worldsBackedUp
+												? "instanceSettings.backupWithWorlds"
+												: "instanceSettings.backup",
+											{
+												from: backupSide(versionBackup, "from"),
+												to: backupSide(versionBackup, "to"),
+												size: formatBytes(versionBackup.bytes),
+											},
+										)}
 									</p>
 									<div className="flex gap-1.5">
 										<Button
@@ -366,7 +379,7 @@ export const InstanceSettingsDialog = ({
 											disabled={versionBusy}
 											className="h-7 text-[11px] text-zinc-500"
 										>
-											Delete backup
+											{t("transfer.deleteBackup")}
 										</Button>
 										<Button
 											size="sm"
@@ -379,7 +392,7 @@ export const InstanceSettingsDialog = ({
 											) : (
 												<Undo2 className="size-3" />
 											)}
-											Undo, back to {backupSide(versionBackup, "from")}
+											{t("transfer.undo", { version: backupSide(versionBackup, "from") })}
 										</Button>
 									</div>
 								</div>
@@ -401,9 +414,11 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<HardDrive className="size-4 text-sky-400" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">Memory Allocation (RAM)</h4>
+										<h4 className="font-medium text-foreground text-xs">
+											{t("settings.memory.title")}
+										</h4>
 										<p className="text-[11px] text-muted-foreground">
-											Override global memory for this instance
+											{t("instanceSettings.memoryOverride")}
 										</p>
 									</div>
 								</div>
@@ -428,18 +443,18 @@ export const InstanceSettingsDialog = ({
 									{/* Preset Buttons */}
 									<div className="flex flex-wrap gap-1.5">
 										{[
-											{ label: "2 - 4 GB", min: 2048, max: 4096 },
-											{ label: "4 - 6 GB", min: 4096, max: 6144 },
-											{ label: "6 - 8 GB", min: 6144, max: 8192 },
-											{ label: "8 - 12 GB", min: 8192, max: 12288 },
+											{ min: 2048, max: 4096 },
+											{ min: 4096, max: 6144 },
+											{ min: 6144, max: 8192 },
+											{ min: 8192, max: 12288 },
 										].map((p) => (
 											<button
-												key={p.label}
+												key={p.min}
 												type="button"
 												onClick={() => applyPreset(p.min, p.max)}
 												className="rounded-md border border-zinc-800 bg-zinc-900/80 px-2.5 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-50"
 											>
-												{p.label}
+												{formatMegabytes(p.min)} – {formatMegabytes(p.max)}
 											</button>
 										))}
 									</div>
@@ -447,9 +462,11 @@ export const InstanceSettingsDialog = ({
 									{/* RAM Sliders */}
 									<div className="flex flex-col gap-3 rounded-lg border border-zinc-800/60 bg-zinc-950/60 p-3">
 										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">Initial Memory (Min):</span>
+											<span className="text-muted-foreground">
+												{t("instanceSettings.minMemory")}
+											</span>
 											<span className="font-medium font-mono text-foreground">
-												{mbToGb(minRamMb)} GB ({minRamMb} MB)
+												{formatMegabytes(minRamMb)}
 											</span>
 										</div>
 										<Slider
@@ -464,9 +481,11 @@ export const InstanceSettingsDialog = ({
 										/>
 
 										<div className="mt-2 flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">Maximum Memory (Max):</span>
+											<span className="text-muted-foreground">
+												{t("instanceSettings.maxMemory")}
+											</span>
 											<span className="font-medium font-mono text-foreground">
-												{mbToGb(maxRamMb)} GB ({maxRamMb} MB)
+												{formatMegabytes(maxRamMb)}
 											</span>
 										</div>
 										<Slider
@@ -483,11 +502,14 @@ export const InstanceSettingsDialog = ({
 								</div>
 							) : (
 								<div className="rounded-lg border border-zinc-800/50 bg-zinc-950/40 px-3 py-2.5 text-[11px] text-muted-foreground">
-									Inheriting global settings:{" "}
-									<strong className="text-foreground">
-										{mbToGb(globalMemory.minRamMb)} GB Min / {mbToGb(globalMemory.maxRamMb)} GB Max
-									</strong>
-									. Configurable on the Settings page.
+									<Trans
+										i18nKey="instanceSettings.inheritMemory"
+										values={{
+											min: formatMegabytes(globalMemory.minRamMb),
+											max: formatMegabytes(globalMemory.maxRamMb),
+										}}
+										components={{ b: <strong className="text-foreground" /> }}
+									/>
 								</div>
 							)}
 						</div>
@@ -497,9 +519,11 @@ export const InstanceSettingsDialog = ({
 							<div className="flex items-center gap-2">
 								<Terminal className="size-4 text-emerald-400" />
 								<div>
-									<h4 className="font-medium text-foreground text-xs">JVM Arguments</h4>
+									<h4 className="font-medium text-foreground text-xs">
+										{t("instanceSettings.jvmArgs")}
+									</h4>
 									<p className="text-[11px] text-muted-foreground">
-										Extra Java launch arguments (space separated)
+										{t("instanceSettings.jvmArgsHint")}
 									</p>
 								</div>
 							</div>
@@ -517,9 +541,11 @@ export const InstanceSettingsDialog = ({
 							<div className="flex items-center gap-2">
 								<Cpu className="size-4 text-amber-400" />
 								<div>
-									<h4 className="font-medium text-foreground text-xs">Custom Java Executable</h4>
+									<h4 className="font-medium text-foreground text-xs">
+										{t("instanceSettings.java")}
+									</h4>
 									<p className="text-[11px] text-muted-foreground">
-										Leave blank for auto-managed Adoptium runtime
+										{t("instanceSettings.javaHint")}
 									</p>
 								</div>
 							</div>
@@ -538,9 +564,11 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<Monitor className="size-4 text-sky-400" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">Window & Display</h4>
+										<h4 className="font-medium text-foreground text-xs">
+											{t("settings.window.title")}
+										</h4>
 										<p className="text-[11px] text-muted-foreground">
-											Override fullscreen and window size for this instance
+											{t("instanceSettings.windowOverride")}
 										</p>
 									</div>
 								</div>
@@ -553,10 +581,10 @@ export const InstanceSettingsDialog = ({
 									<div className="flex items-center justify-between rounded-lg border border-zinc-800/60 bg-zinc-950/60 p-3">
 										<div>
 											<span className="font-medium text-foreground text-xs">
-												Start in Fullscreen
+												{t("settings.window.fullscreenTitle")}
 											</span>
 											<p className="text-[11px] text-muted-foreground">
-												Launch directly into fullscreen mode
+												{t("instanceSettings.fullscreenHint")}
 											</p>
 										</div>
 										<Switch checked={instanceFullscreen} onCheckedChange={setInstanceFullscreen} />
@@ -565,7 +593,9 @@ export const InstanceSettingsDialog = ({
 									{!instanceFullscreen && (
 										<div className="flex flex-col gap-2 rounded-lg border border-zinc-800/60 bg-zinc-950/60 p-3">
 											<div className="flex items-center justify-between">
-												<span className="text-muted-foreground text-xs">Resolution:</span>
+												<span className="text-muted-foreground text-xs">
+													{t("instanceSettings.resolution")}
+												</span>
 												<div className="flex items-center gap-1.5">
 													<Input
 														type="number"
@@ -608,13 +638,15 @@ export const InstanceSettingsDialog = ({
 								</div>
 							) : (
 								<div className="rounded-lg border border-zinc-800/50 bg-zinc-950/40 px-3 py-2 text-[11px] text-muted-foreground">
-									Inheriting global display:{" "}
-									<strong className="text-foreground">
-										{globalWindow.fullscreen
-											? "Fullscreen"
-											: `${globalWindow.width} × ${globalWindow.height}`}
-									</strong>
-									. Configurable in Launcher Settings.
+									<Trans
+										i18nKey="instanceSettings.inheritDisplay"
+										values={{
+											value: globalWindow.fullscreen
+												? t("instanceSettings.fullscreen")
+												: `${globalWindow.width} × ${globalWindow.height}`,
+										}}
+										components={{ b: <strong className="text-foreground" /> }}
+									/>
 								</div>
 							)}
 						</div>
@@ -626,10 +658,10 @@ export const InstanceSettingsDialog = ({
 									<RefreshCw className="size-4 text-emerald-400" />
 									<div>
 										<h4 className="font-medium text-foreground text-xs">
-											Game Data Synchronization
+											{t("settings.sync.title")}
 										</h4>
 										<p className="text-[11px] text-muted-foreground">
-											Sync options, servers, packs, history, and hotbars
+											{t("instanceSettings.syncHint")}
 										</p>
 									</div>
 								</div>
@@ -640,9 +672,11 @@ export const InstanceSettingsDialog = ({
 							{/* Manual Sync Actions */}
 							<div className="flex flex-col gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
 								<div>
-									<div className="font-medium text-foreground text-xs">Manual Storage Sync</div>
+									<div className="font-medium text-foreground text-xs">
+										{t("instanceSettings.manualSync")}
+									</div>
 									<div className="text-[11px] text-muted-foreground">
-										Export this instance's data or pull latest files from shared storage.
+										{t("instanceSettings.manualSyncHint")}
 									</div>
 								</div>
 
@@ -660,7 +694,7 @@ export const InstanceSettingsDialog = ({
 										) : (
 											<UploadCloud className="size-3.5" />
 										)}
-										Push to Shared Storage
+										{t("instanceSettings.push")}
 									</Button>
 
 									<Button
@@ -676,7 +710,7 @@ export const InstanceSettingsDialog = ({
 										) : (
 											<DownloadCloud className="size-3.5" />
 										)}
-										Pull from Shared Storage
+										{t("instanceSettings.pull")}
 									</Button>
 								</div>
 
@@ -703,31 +737,31 @@ export const InstanceSettingsDialog = ({
 									{[
 										{
 											key: "options",
-											label: "Sync Game Options (options.txt)",
+											label: t("instanceSettings.syncOptions"),
 											checked: syncOptions,
 											setChecked: setSyncOptions,
 										},
 										{
 											key: "servers",
-											label: "Sync Multiplayer Servers (servers.dat)",
+											label: t("instanceSettings.syncServers"),
 											checked: syncServers,
 											setChecked: setSyncServers,
 										},
 										{
 											key: "packs",
-											label: "Sync Resource Packs (resourcepacks/)",
+											label: t("instanceSettings.syncPacks"),
 											checked: syncResourcePacks,
 											setChecked: setSyncResourcePacks,
 										},
 										{
 											key: "history",
-											label: "Sync Command History (command_history.txt)",
+											label: t("instanceSettings.syncHistory"),
 											checked: syncCommandHistory,
 											setChecked: setSyncCommandHistory,
 										},
 										{
 											key: "hotbars",
-											label: "Sync Creative Hotbars (hotbar.nbt)",
+											label: t("instanceSettings.syncHotbars"),
 											checked: syncCreativeHotbars,
 											setChecked: setSyncCreativeHotbars,
 										},
@@ -740,7 +774,7 @@ export const InstanceSettingsDialog = ({
 								</div>
 							) : (
 								<div className="rounded-lg border border-zinc-800/50 bg-zinc-950/40 px-3 py-2 text-[11px] text-muted-foreground">
-									Inheriting global sync preferences. Will sync before launch and after exit.
+									{t("instanceSettings.inheritSync")}
 								</div>
 							)}
 						</div>
@@ -756,7 +790,7 @@ export const InstanceSettingsDialog = ({
 						className="gap-1.5 text-muted-foreground text-xs hover:text-foreground"
 					>
 						<FolderOpen className="size-3.5" />
-						Open Folder
+						{t("common.openFolder")}
 					</Button>
 
 					<Button
@@ -766,7 +800,7 @@ export const InstanceSettingsDialog = ({
 						disabled={isSaving}
 						className="font-medium"
 					>
-						{isSaving ? "Saving..." : "Save Changes"}
+						{isSaving ? t("skinPreview.saving") : t("common.save")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

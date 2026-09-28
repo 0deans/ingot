@@ -102,7 +102,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 								)}
 								{activeAccount?.accountType === "offline" && (
 									<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1 py-0.2 text-[9px] text-zinc-400">
-										Offline
+										{t("accounts.offline")}
 									</span>
 								)}
 							</div>

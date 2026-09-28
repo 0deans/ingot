@@ -1,5 +1,6 @@
 import { Check, ChevronDown, Plus, Server, Settings2 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { NewServerWizard, NoServersState } from "@/components/servers/new-server-wizard"
 import { ImportServerButton } from "@/components/servers/panels/transfer-card"
@@ -41,6 +42,7 @@ function readTab(): WorkspaceTab {
 
 /** Phone UI: server switcher on top, the shared panels in the middle, tabs at the bottom */
 export const MobileServerDashboard = memo(() => {
+	const { t } = useTranslation()
 	const { servers, isLoading, refresh } = useServers()
 	const [selectedId, setSelectedId] = useState<string | null>(() => read(SELECTED_KEY))
 	const [tab, setTabState] = useState<WorkspaceTab>(readTab)
@@ -141,7 +143,7 @@ export const MobileServerDashboard = memo(() => {
 				<button
 					type="button"
 					onClick={() => setTab("settings")}
-					aria-label="Server settings"
+					aria-label={t("mobileServers.settings")}
 					className={cn(
 						"flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
 						tab === "settings"
@@ -186,14 +188,14 @@ export const MobileServerDashboard = memo(() => {
 						>
 							<Icon className="size-[18px]" />
 						</span>
-						{id === "overview" ? "Home" : tabLabel(id, label, server.core)}
+						{id === "overview" ? t("serverTabs.home") : tabLabel(id, label, server.core)}
 					</button>
 				))}
 			</nav>
 
 			<Dialog open={switcherOpen} onOpenChange={setSwitcherOpen}>
 				<DialogContent className="gap-3 p-4">
-					<DialogTitle className="px-1 text-base">Your servers</DialogTitle>
+					<DialogTitle className="px-1 text-base">{t("mobileServers.yourServers")}</DialogTitle>
 					<FadeScroll className="-mx-1 flex max-h-[55dvh] flex-col gap-1">
 						{servers.map((s) => (
 							<ServerRow
@@ -212,7 +214,7 @@ export const MobileServerDashboard = memo(() => {
 						}}
 						className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 font-semibold text-sm text-white transition-colors hover:bg-emerald-500 active:bg-emerald-700"
 					>
-						<Plus className="size-4" /> New server
+						<Plus className="size-4" /> {t("mobileServers.newServer")}
 					</button>
 					<ImportServerButton
 						className="h-11 gap-2 rounded-2xl border-zinc-800"
@@ -229,7 +231,7 @@ export const MobileServerDashboard = memo(() => {
 						}}
 						className="mt-1 self-center px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
 					>
-						About &amp; licenses
+						{t("mobileServers.about")}
 					</button>
 				</DialogContent>
 			</Dialog>

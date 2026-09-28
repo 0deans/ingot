@@ -23,11 +23,13 @@
 		"minimize": "Perkecil",
 		"maximize": "Perbesar",
 		"restore": "Pulihkan",
-		"justNow": "Baru saja",
 		"never": "Tidak pernah",
-		"minutesAgo": "{{count}}m lalu",
-		"hoursAgo": "{{count}}j lalu",
-		"daysAgo": "{{count}}h lalu"
+		"unknown": "Tidak diketahui",
+		"deleting": "Menghapus...",
+		"stop": "Berhenti",
+		"done": "Selesai",
+		"update": "Perbarui",
+		"enable": "Aktifkan"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Pilih Bahasa Anda",
@@ -67,7 +69,12 @@
 		"noAccountsYet": "Belum ada akun yang dikonfigurasi.",
 		"previewSkin": "Pratinjau skin 3D",
 		"removeAccount": "Hapus akun",
-		"setAsActive": "Jadikan Aktif"
+		"setAsActive": "Jadikan Aktif",
+		"offline": "Offline",
+		"reorder": "Ubah urutan akun {{name}}",
+		"dragToReorder": "Tarik untuk mengubah urutan akun",
+		"clickToPreview": "Klik untuk pratinjau skin 3D",
+		"skin": "Skin"
 	},
 	"instances": {
 		"searchPlaceholder": "Cari instansi...",
@@ -107,8 +114,10 @@
 			"openFolderTooltip": "Buka folder instansi di File Explorer",
 			"settingsTooltip": "Pengaturan Instansi (RAM, argumen JVM)",
 			"duplicateTooltip": "Duplikat",
-			"deleteTooltip": "Hapus Instansi"
-		}
+			"deleteTooltip": "Hapus Instansi",
+			"ram": "{{size}} RAM"
+		},
+		"activeEntry": "{{name}} (PID {{pid}})"
 	},
 	"modpacks": {
 		"title": "Jelajahi Konten",
@@ -149,7 +158,8 @@
 		"resetAllFilters": "Atur ulang semua filter",
 		"byAuthor": "oleh {{author}}",
 		"noDescription": "Tidak ada deskripsi.",
-		"details": "Detail"
+		"details": "Detail",
+		"loadFailed": "Gagal memuat konten"
 	},
 	"skins": {
 		"title": "Katalog Skin",
@@ -199,6 +209,18 @@
 			"description": "Apakah Anda yakin ingin menghapus tangkapan layar ini secara permanen? Tindakan ini tidak dapat dibatalkan.",
 			"deleting": "Menghapus...",
 			"deletePermanently": "Hapus Permanen"
+		},
+		"card": {
+			"view": "Lihat {{name}}",
+			"unavailable": "Gambar tidak tersedia",
+			"fullscreen": "Layar penuh",
+			"showInFolder": "Tampilkan di Folder"
+		},
+		"lightbox": {
+			"close": "Tutup pratinjau",
+			"closeEsc": "Tutup (Esc)",
+			"previous": "Tangkapan layar sebelumnya",
+			"next": "Tangkapan layar berikutnya"
 		}
 	},
 	"servers": {
@@ -216,14 +238,15 @@
 		"createCardTitle": "Buat Server Baru",
 		"createCardSubtitle": "Paper, Purpur, Fabric, Folia, atau Vanilla",
 		"noMatchTitle": "Tidak ada server yang cocok dengan filter Anda",
-		"noMatchSubtitle": "Coba ubah pencarian Anda atau pilih \"Semua Inti\"."
+		"noMatchSubtitle": "Coba ubah pencarian Anda atau pilih \"Semua Inti\".",
+		"activeEntry": "{{name}} (Port {{port}})"
 	},
 	"settings": {
 		"title": "Pengaturan Launcher",
 		"subtitle": "Konfigurasi akun, bahasa, runtime Java, alokasi RAM, dan perilaku launcher.",
 		"language": {
 			"title": "Bahasa",
-			"description": "Pilih bahasa tampilan untuk antarmuka launcher. File bahasa baru di src/locales/ dimuat ulang secara otomatis."
+			"description": "Pilih bahasa launcher. Format tanggal, angka, dan ukuran juga akan mengikutinya."
 		},
 		"theme": {
 			"title": "Tampilan & Tema",
@@ -263,7 +286,14 @@
 				"modded": "Bermod",
 				"heavy": "Paket Berat",
 				"safeMax": "Maks Aman"
-			}
+			},
+			"zoneSafe": "Zona Operasi Aman",
+			"zoneHigh": "Zona Penggunaan Tinggi",
+			"zoneCritical": "Zona Kritis Sistem",
+			"minShort": "Min: {{value}}",
+			"maxShort": "Maks: {{value}}",
+			"totalShort": "{{value}} (Maks)",
+			"mb": "MB"
 		},
 		"behavior": {
 			"title": "Perilaku Launcher",
@@ -289,7 +319,8 @@
 			"resolutionTitle": "Resolusi Jendela Bawaan",
 			"resolutionDesc": "Atur lebar dan tinggi khusus untuk jendela game",
 			"presets": "Preset:",
-			"defaultPreset": "Bawaan"
+			"defaultPreset": "Bawaan",
+			"resetTo": "Atur ulang ke {{size}}"
 		},
 		"sync": {
 			"title": "Sinkronisasi Data Game",
@@ -315,7 +346,8 @@
 					"title": "Sinkronkan Hotbar Mode Kreatif",
 					"description": "Bagikan tata letak hotbar tersimpan dalam mode kreatif antar dunia"
 				}
-			}
+			},
+			"reinitialize": "Inisialisasi ulang sumber {{title}}"
 		},
 		"updates": {
 			"title": "Pembaruan & Versi",
@@ -340,5 +372,1195 @@
 			"dialogSubtitle": "Ingot menggunakan perangkat lunak ini dari proyek lain. Masing-masing berada di bawah lisensinya sendiri; ketuk nama untuk melihat kode sumber dan lisensi lengkapnya.",
 			"trademark": "Minecraft adalah merek dagang dari Mojang AB. Ingot tidak berafiliasi dengan Mojang atau Microsoft."
 		}
+	},
+	"minecraft": {
+		"dimensions": {
+			"overworld": "Overworld",
+			"nether": "Nether",
+			"end": "The End"
+		},
+		"gamemodes": {
+			"survival": "Bertahan Hidup",
+			"creative": "Kreatif",
+			"adventure": "Petualangan",
+			"spectator": "Penonton"
+		}
+	},
+	"initialSync": {
+		"title": "Sinkronisasi Awal",
+		"description": "Anda mengaktifkan sinkronisasi untuk <b>{{name}}</b>. Dari mana sinkronisasi awal dilakukan?",
+		"fromInstance": "Dari instansi ini",
+		"uploadToShared": "Unggah ke penyimpanan bersama",
+		"fromInstanceDesc": "Salin opsi dan server instansi ini ke penyimpanan bersama sebagai salinan utama.",
+		"fromShared": "Dari penyimpanan bersama",
+		"downloadToInstance": "Unduh ke instansi",
+		"fromSharedDesc": "Unduh opsi dan server bersama yang ada ke instansi ini."
+	},
+	"deleteInstance": {
+		"title": "Hapus Instansi",
+		"description": "Apakah Anda yakin ingin menghapus instansi ini secara permanen? Tindakan ini tidak dapat dibatalkan.",
+		"note": "Semua penyimpanan, dunia, mod terpasang, paket sumber daya, dan file konfigurasi yang tersimpan di folder instansi ini akan dihapus dari disk."
+	},
+	"deleteServer": {
+		"title": "Hapus Server",
+		"confirm": "Apakah Anda yakin ingin menghapus <b>{{name}}</b>?",
+		"details": "Detail Server:",
+		"detailsLine": "Inti: {{core}} {{version}} • Port: {{port}}",
+		"deleteFiles": "Hapus permanen semua file server",
+		"deleteFilesDesc": "Termasuk peta dunia, data pemain, plugin, dan log server dari disk komputer Anda."
+	},
+	"companion": {
+		"system": "Sistem",
+		"liveMap": "Peta langsung",
+		"disabled": "Dinonaktifkan",
+		"notInstalled": "Peta langsung · belum terpasang",
+		"updated_plugin": "Memperbarui plugin Ingot.",
+		"updated_mod": "Memperbarui mod Ingot.",
+		"installed_plugin": "Memasang plugin Ingot.",
+		"installed_mod": "Memasang mod Ingot.",
+		"removed_plugin": "Menghapus plugin Ingot. Peta sekarang diperbarui saat server menyimpan.",
+		"removed_mod": "Menghapus mod Ingot. Peta sekarang diperbarui saat server menyimpan.",
+		"enabled_plugin": "Mengaktifkan plugin Ingot.",
+		"enabled_mod": "Mengaktifkan mod Ingot.",
+		"remove_plugin": "Hapus plugin Ingot",
+		"remove_mod": "Hapus mod Ingot"
+	},
+	"syncConflict": {
+		"title": "Konflik Sinkronisasi Terdeteksi",
+		"description": "<b>{{name}}</b> memuat file konfigurasinya sendiri yang belum pernah disinkronkan dengan penyimpanan bersama Anda.",
+		"conflictingFiles": "File yang berkonflik:",
+		"choose": "Pilih cara menyelesaikan sinkronisasi awal ini:",
+		"useShared": "Gunakan Pengaturan Bersama",
+		"overwritesLocal": "Menimpa lokal",
+		"useSharedDesc": "Ganti opsi dan server instansi ini dengan pengaturan bersama yang ada. Cadangan <code>.bak</code> otomatis untuk file instansi Anda akan disimpan.",
+		"useInstance": "Jadikan Instansi Ini Salinan Utama Bersama",
+		"overwritesShared": "Menimpa bersama",
+		"useInstanceDesc": "Dorong opsi dan server instansi ini ke penyimpanan bersama sebagai salinan utama. File bersama yang ada akan dicadangkan sebagai <code>.bak</code>.",
+		"disable": "Biarkan Terpisah (Nonaktifkan Sinkronisasi)",
+		"noChanges": "Tanpa perubahan",
+		"disableDesc": "Menonaktifkan sinkronisasi pada instansi ini sehingga server dan pengaturannya tidak akan diubah atau diganti oleh instansi lain."
+	},
+	"leftoverServers": {
+		"runningSince": "Berjalan sejak {{time}}",
+		"stopped": "Dihentikan",
+		"stopNote": "Menghentikan akan langsung mematikannya. Apa pun sejak penyimpanan otomatis terakhir (paling banyak beberapa menit) akan hilang, dan dunia itu sendiri tetap aman.",
+		"leaveRunning": "Biarkan berjalan",
+		"title_other": "Server masih berjalan dari terakhir kali",
+		"description_other": "Ingot ditutup tanpa menghentikannya, jadi konsolnya hilang: Ingot tidak dapat mengirim memerintahkan atau menyelamatkan dunia mereka. Mereka membuat pelabuhan dan dunianya sibuk sampai berhenti."
+	},
+	"serverStatus": {
+		"running": "Berjalan",
+		"sleeping": "Tidur",
+		"stopped": "Dihentikan",
+		"starting": "Memulai",
+		"stopping": "Menghentikan"
+	},
+	"serverTabs": {
+		"overview": "Ringkasan",
+		"console": "Konsol",
+		"players": "Pemain",
+		"map": "Peta",
+		"plugins": "Plugin",
+		"mods": "Mod",
+		"settings": "Pengaturan",
+		"home": "Beranda"
+	},
+	"serverWorkspace": {
+		"back": "Kembali ke server"
+	},
+	"duplicateInstance": {
+		"title": "Duplikat Instansi",
+		"defaultName": "{{name}} (salinan)",
+		"description": "Membuat salinan terpisah dengan mod, konfigurasi, paket sumber daya, dan pengaturan yang sama. Perubahan pada satu instansi tidak memengaruhi yang lain, sehingga salinan aman digunakan untuk mencoba versi atau mod baru.",
+		"nameLabel": "Nama salinan",
+		"copyWorlds": "Salin dunia",
+		"noWorldsYet": "belum ada",
+		"copyWorldsDesc": "Tanpanya salinan akan dimulai tanpa dunia pemain tunggal.",
+		"note": "Waktu bermain dimulai dari nol. Log, laporan crash, dan tangkapan layar tetap berada di instansi asli.",
+		"running": "Game sedang berjalan. Tutup terlebih dahulu agar dunia disalin sesuai kondisi tersimpan, atau salin tanpa dunia.",
+		"copying": "Menyalin…",
+		"action": "Duplikat"
+	},
+	"quitDialog": {
+		"title_quit": "Hentikan server Anda sebelum keluar?",
+		"title_update": "Hentikan server Anda untuk memperbarui?",
+		"title_restart": "Hentikan server Anda untuk memulai ulang?",
+		"action_quit": "Hentikan server dan keluar",
+		"action_update": "Hentikan server dan perbarui",
+		"action_restart": "Hentikan server dan mulai ulang",
+		"stopping": "Menghentikan…",
+		"keepInTray": "Biarkan berjalan di baki sistem",
+		"asleep_other": "Server ini tertidur. Mereka bangun ketika ada pemain yang bergabung, tetapi hanya ketika Ingot terbuka.",
+		"consoles_other": "Konsol server ini berjalan di dalam Ingot. Jika Ingot ditutup lebih dulu, mereka akan terus berlari tanpa ada cara untuk mengendalikan atau menyelamatkan dunia mereka.",
+		"saving_other": "Menyelamatkan dunia dan menghentikan. Ini bisa memakan waktu hingga 30 detik.",
+		"games_other": "Game Anda tetap berjalan. Ingot mengambilnya lagi saat Anda membukanya."
+	},
+	"crashDialog": {
+		"title": "{{name}} crash saat peluncuran pertama di {{version}}",
+		"suspects_plugin": "Ini biasanya plugin yang belum berfungsi di versi baru. Laporan crash mengarah ke:",
+		"suspects_mod": "Ini biasanya mod yang belum berfungsi di versi baru. Laporan crash mengarah ke:",
+		"suspects_either": "Ini biasanya plugin atau mod yang belum berfungsi di versi baru. Laporan crash mengarah ke:",
+		"noSuspects_plugin": "Laporan crash tidak menyebutkan nama plugin. Anda dapat membatalkan perubahan dan menunggu pembaruan.",
+		"noSuspects_mod": "Laporan crash tidak menyebutkan nama mod. Anda dapat membatalkan perubahan dan menunggu pembaruan.",
+		"noSuspects_either": "Laporan crash tidak menyebutkan nama plugin atau mod. Anda dapat membatalkan perubahan dan menunggu pembaruan.",
+		"turnOff": "Nonaktifkan",
+		"turnedOff": "Dinonaktifkan",
+		"details": "Detail crash",
+		"keepTrying": "Tetap coba",
+		"undo": "Batalkan perubahan versi",
+		"undone": "Kembali ke {{version}}, persis seperti sebelumnya.",
+		"tryAgain_server_other": "Mulai server lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali.",
+		"tryAgain_game_other": "Mulai permainan lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali."
+	},
+	"skinPreview": {
+		"saving": "Menyimpan...",
+		"saved": "Tersimpan!",
+		"error": "Kesalahan",
+		"changeSkin": "Ubah Skin",
+		"copyUrlTitle": "Salin URL tekstur skin",
+		"copied": "Tersalin",
+		"copyUrl": "Salin URL",
+		"downloadTitle": "Unduh file tekstur skin ke Unduhan",
+		"download": "Unduh"
+	},
+	"access": {
+		"tabs": {
+			"whitelist": "Whitelist",
+			"ops": "Operator",
+			"bans": "Blokir"
+		},
+		"whitelist": {
+			"title": "Whitelist",
+			"empty": "Belum ada pemain di whitelist",
+			"description": "Saat diaktifkan, hanya pemain ini yang dapat bergabung.",
+			"add": "Tambah"
+		},
+		"ops": {
+			"title": "Operator",
+			"empty": "Belum ada operator",
+			"description": "Operator dapat menggunakan semua perintah, termasuk /stop dan /op.",
+			"add": "Jadikan OP"
+		},
+		"bans": {
+			"title": "Pemain yang diblokir",
+			"empty": "Tidak ada pemain yang diblokir",
+			"description": "Pemain yang diblokir tidak dapat bergabung sampai dibebaskan.",
+			"add": "Blokir"
+		},
+		"whitelistOn": "Whitelist aktif",
+		"whitelistOff": "Whitelist nonaktif",
+		"onlyListed": "Hanya pemain terdaftar yang dapat bergabung.",
+		"anyone": "Siapa saja dapat bergabung ke server ini.",
+		"invalidName": "Nama pengguna hanya boleh berisi huruf, angka, dan _",
+		"playerName": "Nama pemain",
+		"permissionLevel": "Tingkat izin {{level}}",
+		"banned": "Diblokir",
+		"noUuid": "Tanpa UUID",
+		"remove": "Hapus {{name}}"
+	},
+	"licenses": {
+		"groups": {
+			"android": {
+				"title": "Disertakan dalam aplikasi Android",
+				"note": "Menjalankan perangkat lunak server di Android di dalam sandbox Linux. Kompilasi dari proyek Termux."
+			},
+			"downloaded": {
+				"title": "Diunduh saat diperlukan",
+				"note": "Diambil dari sumber resmi saat pertama kali digunakan oleh sebuah fitur."
+			},
+			"servers": {
+				"title": "Perangkat lunak server yang dapat Anda pasang",
+				"note": "Diunduh untuk setiap server yang Anda buat, langsung dari proyek pembuatnya."
+			}
+		},
+		"roles": {
+			"proot": "Sandbox Linux untuk server",
+			"talloc": "Pustaka memori yang digunakan oleh PRoot",
+			"shmem": "Dukungan shared memory untuk PRoot",
+			"temurin": "Java untuk server dan game di desktop",
+			"alpine": "Sistem dasar sandbox Android, termasuk OpenJDK miliknya",
+			"pumpkin": "Server Pumpkin",
+			"playit": "Alamat publik untuk server Anda",
+			"paper": "Server Paper",
+			"folia": "Server Folia",
+			"purpur": "Server Purpur",
+			"fabric": "Server Fabric",
+			"vanilla": "Server Vanilla (oleh Mojang, bukan sumber terbuka)"
+		},
+		"names": {
+			"minecraftServer": "Server Minecraft"
+		},
+		"various": "Berbagai lisensi sumber terbuka"
+	},
+	"directConnect": {
+		"title": "Koneksi Langsung ke Server",
+		"description": "Luncurkan <b>{{name}}</b> langsung ke server multipemain, melewati menu utama.",
+		"address": "Alamat Server",
+		"addressPlaceholder": "cth. mc.hypixel.net atau localhost:25565",
+		"localServers": "Server Lokal Terkonfigurasi",
+		"recent": "Server Terbaru",
+		"removeRecent": "Hapus dari daftar terbaru",
+		"launch": "Luncurkan & Sambungkan"
+	},
+	"console": {
+		"autoScrollOn": "Gulir otomatis aktif",
+		"autoScrollOff": "Gulir otomatis nonaktif",
+		"copyAll": "Salin semua",
+		"clear": "Bersihkan",
+		"waiting": "Menunggu output...",
+		"offline": "Server offline",
+		"offlineHint": "Mulai server untuk melihat konsolnya.",
+		"latest": "Terbaru",
+		"placeholder": "Ketik perintah, cth. time set day",
+		"send": "Kirim perintah"
+	},
+	"syncMaster": {
+		"setAsSource": "Tetapkan \"{{name}}\" sebagai sumber sinkronisasi utama.",
+		"error": "Kesalahan: {{error}}",
+		"categoryTitle": "Sinkronisasi Awal: {{title}}",
+		"title": "Pilih Instansi Sinkronisasi Utama",
+		"categoryDescription": "Pilih dari mana penyimpanan bersama awalnya memperoleh {{file}}:",
+		"description": "Pilih instansi yang sudah ada untuk mengisi penyimpanan sinkronisasi bersama Anda. Pengaturan dan datanya akan menjadi acuan bersama.",
+		"useExisting": "Gunakan Data Bersama yang Ada",
+		"keepCurrent": "Pertahankan <code>{{file}}</code> saat ini di penyimpanan bersama",
+		"useShared": "Gunakan Bersama",
+		"orCopyFrom": "Atau salin dari instansi yang ada:",
+		"copyFrom": "Salin dari instansi yang ada:",
+		"noInstances": "Tidak ada instansi ditemukan.",
+		"useThis": "Gunakan Ini",
+		"setAsMaster": "Jadikan Salinan Utama",
+		"noCopy": "Belum ingin menyalin data apa pun?",
+		"startFresh": "Mulai Baru / Kosong"
+	},
+	"quickJoin": {
+		"title": "Main Cepat — Gabung Server",
+		"description": "Luncurkan Minecraft dan langsung gabung ke <b>{{name}}</b> ({{address}}).",
+		"target": "Target: {{address}}",
+		"choose": "Pilih Instansi Klien",
+		"noInstances": "Tidak ada instansi Minecraft ditemukan",
+		"noInstancesHint": "Buat instansi klien terlebih dahulu untuk bergabung ke server Anda.",
+		"createInstance": "Buat Instansi",
+		"matches": "Cocok dengan Server",
+		"launch": "Luncurkan & Gabung"
+	},
+	"players": {
+		"tabs": {
+			"online": "Online",
+			"all": "Semua pemain",
+			"access": "Akses"
+		},
+		"offlineHint": "Mulai server untuk melihat siapa yang bermain, kesehatan, inventaris, dan lokasinya.",
+		"starting": "Server sedang dimulai...",
+		"startingHint": "Pemain akan muncul setelah dunia selesai dimuat.",
+		"liveError": "Tidak dapat membaca data pemain langsung: {{error}}. Data langsung memerlukan server Java (Paper, Purpur, Fabric, atau Vanilla).",
+		"checking": "Memeriksa siapa yang online...",
+		"nobody": "Tidak ada yang online",
+		"nobodyHint": "Pemain akan muncul di sini segera setelah mereka bergabung.",
+		"none": "Belum ada pemain",
+		"noneHint": "Semua orang yang pernah bergabung ke server ini akan terdaftar di sini, beserta inventaris terakhir yang tersimpan.",
+		"search": "Cari pemain",
+		"onlineNow": "Online sekarang",
+		"lastSeen": "Terakhir terlihat {{time}}"
+	},
+	"map": {
+		"upToDate": "Mutakhir",
+		"noWorld": "Belum ada dunia",
+		"noWorldHint": "Mulai server sekali agar membuat dunia. Area yang dijelajahi akan muncul di peta.",
+		"liveTitle": "Ingot menjaga peta tetap mutakhir dari memori server",
+		"live": "Langsung",
+		"restartToGoLive": "Mulai ulang untuk mode langsung",
+		"makeLiveTitle_plugin": "Pasang plugin Ingot untuk memperbarui peta secara langsung, tanpa menyimpan dunia",
+		"makeLiveTitle_mod": "Pasang mod Ingot untuk memperbarui peta secara langsung, tanpa menyimpan dunia",
+		"makeLive": "Jadikan langsung",
+		"refreshTitle": "Periksa area yang baru disimpan",
+		"ariaLabel": "Peta dunia. Tarik untuk menggeser, gulir atau cubit untuk memperbesar.",
+		"zoomIn": "Perbesar",
+		"zoomOut": "Perkecil",
+		"updatedAreas_other": "Memperbarui area {{count}}"
+	},
+	"pluginDetails": {
+		"byline": "oleh {{author}} · {{downloads}} unduhan",
+		"playersNeedIt": "Pemain juga memerlukan mod ini: siapa saja yang bergabung harus memasangnya di game mereka, atau mereka tidak dapat bergabung.",
+		"installing": "Memasang...",
+		"page": "Halaman",
+		"noCompatible": "Belum ada versi untuk Minecraft {{version}}. Anda masih dapat memilih versi yang lebih lama di bagian Versi, tetapi mungkin tidak berfungsi.",
+		"about": "Tentang",
+		"versions": "Versi",
+		"noDescription": "Tidak ada deskripsi.",
+		"onlyFor": "Hanya versi untuk Minecraft {{version}}",
+		"noVersions": "Tidak ada versi",
+		"noVersionsHint": "Coba tampilkan semua versi.",
+		"website": "Situs Web",
+		"anyVersion": "Semua versi"
+	},
+	"addAccount": {
+		"missingCredentials": "Silakan masukkan nama pengguna/email dan kata sandi.",
+		"welcomeBack": "Selamat datang kembali, {{name}}!",
+		"elyFailed": "Gagal menyambung ke Ely.by",
+		"missingNickname": "Silakan masukkan nama panggilan pemain.",
+		"offlineCreated": "Membuat profil offline untuk {{name}}",
+		"offlineFailed": "Gagal membuat akun offline",
+		"description": "Hubungkan akun Ely.by Anda atau konfigurasikan profil offline untuk bermain.",
+		"tokensSecure": "Token dienkripsi dengan aman di Brankas Kredensial OS Anda.",
+		"usernameOrEmail": "Nama Pengguna atau Email",
+		"usernamePlaceholder": "cth. notch atau player@ely.by",
+		"password": "Kata Sandi",
+		"connecting": "Menghubungkan...",
+		"logIn": "Masuk ke Ely.by",
+		"offlineNote": "Akun offline bermain tanpa token sesi online.",
+		"nickname": "Nama Panggilan Pemain",
+		"nicknamePlaceholder": "cth. Steve",
+		"adding": "Menambahkan...",
+		"addProfile": "Tambah Profil",
+		"microsoftTitle": "Masuk Microsoft / Xbox Live",
+		"microsoftSoon": "Integrasi OAuth akun Microsoft Mojang resmi akan tersedia dalam rilis mendatang."
+	},
+	"properties": {
+		"groups": {
+			"gameplay": "Gameplay",
+			"players": "Pemain",
+			"world": "Dunia",
+			"network": "Jaringan",
+			"advanced": "Lanjutan"
+		},
+		"keys": {
+			"gamemode": {
+				"label": "Mode game",
+				"description": "Mode untuk pemain baru.",
+				"options": {
+					"survival": "Bertahan Hidup",
+					"creative": "Kreatif",
+					"adventure": "Petualangan",
+					"spectator": "Penonton"
+				}
+			},
+			"difficulty": {
+				"label": "Tingkat kesulitan",
+				"description": "Seberapa berbahaya monster/mob.",
+				"options": {
+					"peaceful": "Damai",
+					"easy": "Mudah",
+					"normal": "Normal",
+					"hard": "Sulit"
+				}
+			},
+			"force-gamemode": {
+				"label": "Paksa mode game",
+				"description": "Kembalikan pemain ke mode bawaan setiap kali mereka bergabung."
+			},
+			"hardcore": {
+				"label": "Hardcore",
+				"description": "Pemain dialihkan ke mode penonton saat mereka mati."
+			},
+			"pvp": {
+				"label": "PvP",
+				"description": "Pemain dapat saling menyerang."
+			},
+			"allow-flight": {
+				"label": "Izinkan terbang",
+				"description": "Jangan keluarkan pemain karena terbang (diperlukan untuk beberapa mod dan plugin)."
+			},
+			"spawn-protection": {
+				"label": "Perlindungan spawn",
+				"description": "Radius di sekitar spawn tempat hanya operator yang dapat membangun. 0 menonaktifkannya."
+			},
+			"max-players": {
+				"label": "Pemain maksimum",
+				"description": "Berapa banyak pemain yang dapat online sekaligus."
+			},
+			"online-mode": {
+				"label": "Mode online",
+				"description": "Periksa akun dengan Mojang. Nonaktifkan untuk mengizinkan akun non-premium atau Ely.by."
+			},
+			"player-idle-timeout": {
+				"label": "Waktu henti (idle kick)",
+				"description": "Keluarkan pemain setelah sekian menit tidak aktif. 0 berarti tidak pernah mengeluarkan."
+			},
+			"op-permission-level": {
+				"label": "Tingkat operator",
+				"description": "Hal yang boleh dilakukan operator: 1 lewati perlindungan spawn … 4 semuanya."
+			},
+			"hide-online-players": {
+				"label": "Sembunyikan daftar pemain",
+				"description": "Jangan tampilkan siapa yang online di menu multipemain."
+			},
+			"enforce-secure-profile": {
+				"label": "Wajibkan obrolan bertanda tangan",
+				"description": "Hanya izinkan pemain dengan kunci obrolan bertanda tangan Mojang."
+			},
+			"view-distance": {
+				"label": "Jarak pandang",
+				"description": "Seberapa jauh pemain dapat melihat. Lebih rendah lebih ringan untuk perangkat."
+			},
+			"simulation-distance": {
+				"label": "Jarak simulasi",
+				"description": "Seberapa jauh di sekitar pemain dunia tetap berjalan."
+			},
+			"level-seed": {
+				"label": "Seed",
+				"description": "Seed untuk dunia baru. Hanya digunakan saat dunia pertama kali dibuat.",
+				"placeholder": "Acak"
+			},
+			"level-type": {
+				"label": "Jenis dunia",
+				"description": "Hanya digunakan saat dunia pertama kali dibuat.",
+				"options": {
+					"minecraft_normal": "Bawaan",
+					"minecraft_flat": "Superflat",
+					"minecraft_large_biomes": "Bioma besar",
+					"minecraft_amplified": "Amplified"
+				}
+			},
+			"generate-structures": {
+				"label": "Buat struktur",
+				"description": "Desa, kuil, dan struktur lainnya di chunk baru."
+			},
+			"allow-nether": {
+				"label": "Izinkan Nether",
+				"description": "Izinkan pemain bepergian ke Nether."
+			},
+			"max-world-size": {
+				"label": "Radius batas dunia",
+				"description": "Jarak maksimum dari pusat yang dapat dijelajahi pemain."
+			},
+			"server-port": {
+				"label": "Port",
+				"description": "Port yang didengarkan oleh server."
+			},
+			"enable-status": {
+				"label": "Tampilkan di daftar server",
+				"description": "Menjawab ping dari menu multipemain (MOTD, jumlah pemain)."
+			},
+			"network-compression-threshold": {
+				"label": "Ambang batas kompresi",
+				"description": "Kompres paket yang lebih besar dari ini. -1 menonaktifkan kompresi."
+			},
+			"enable-command-block": {
+				"label": "Blok perintah",
+				"description": "Izinkan blok perintah berjalan."
+			},
+			"sync-chunk-writes": {
+				"label": "Penyimpanan chunk aman",
+				"description": "Tulis chunk secara sinkron. Lebih aman, sedikit lebih lambat."
+			},
+			"max-tick-time": {
+				"label": "Batas waktu watchdog",
+				"description": "Hentikan server jika satu tick membutuhkan waktu lebih lama dari ini. -1 menonaktifkannya."
+			},
+			"entity-broadcast-range-percentage": {
+				"label": "Jarak render entitas",
+				"description": "Seberapa jauh entitas dikirim ke pemain, dalam persen."
+			}
+		},
+		"units": {
+			"blocks": "blok",
+			"min": "mnt",
+			"chunks": "chunk",
+			"bytes": "byte",
+			"ms": "ms",
+			"percent": "%"
+		}
+	},
+	"serverSettings": {
+		"restartNote": "Sebagian besar perubahan diterapkan setelah server dimulai ulang.",
+		"badImage": "Tidak dapat menggunakan gambar tersebut: {{error}}",
+		"emptyName": "Nama tidak boleh kosong.",
+		"identity": "Identitas server",
+		"identityDesc": "Tampilan server Anda di daftar multipemain.",
+		"name": "Nama",
+		"motd": "Deskripsi (MOTD) · dua baris, gunakan Enter untuk baris kedua",
+		"motdReset": "Atur ulang",
+		"saved": "Tersimpan",
+		"saveChanges": "Simpan perubahan",
+		"memory": "RAM",
+		"memoryMobile": "Jaga agar tetap jauh di bawah RAM ponsel Anda.",
+		"memoryDesktop": "RAM maksimum untuk server Java.",
+		"portInUse": "Port {{port}} sudah digunakan oleh server lain. Coba {{next}}.",
+		"gameSettings": "Pengaturan game",
+		"gameSettingsDesc": "server.properties, disertai penjelasan.",
+		"allOther": "Semua properti lainnya",
+		"filter": "Filter properti",
+		"discard": "Buang",
+		"configFiles": "File konfigurasi",
+		"configFilesDesc": "Konfigurasi server dan plugin (YAML, JSON, TOML).",
+		"saveFile": "Simpan file",
+		"manage": "Kelola",
+		"changed_other": "{{count}} mengubah"
+	},
+	"newInstance": {
+		"title": "Buat Instansi Baru",
+		"description": "Pilih versi Minecraft dan pemuat mod pilihan Anda. Ingot akan mengonfigurasi lingkungan dan Java secara otomatis.",
+		"modLoader": "Pemuat Mod",
+		"minecraftVersion": "Versi Minecraft",
+		"snapshots": "Snapshot",
+		"snapshotBadge": "snapshot",
+		"latestBadge": "terbaru",
+		"loadingVersions": "Memuat versi...",
+		"selectVersion": "Pilih versi Minecraft",
+		"searchVersion": "Cari versi (cth. 1.20, 1.16)...",
+		"loaderVersion": "Versi Pemuat",
+		"noCompatible": "Tidak ada versi yang kompatibel",
+		"selectLoaderVersion": "Pilih versi pemuat",
+		"searchLoaderVersion": "Cari versi pemuat...",
+		"name": "Nama Instansi",
+		"namePlaceholder": "cth. Fabric 1.21.4"
+	},
+	"mobileServers": {
+		"settings": "Pengaturan server",
+		"yourServers": "Server Anda",
+		"newServer": "Server baru",
+		"about": "Tentang & lisensi"
+	},
+	"backend": {
+		"steps": {
+			"checkingFiles": "Memeriksa file server...",
+			"preparingPumpkin": "Menyiapkan server Pumpkin...",
+			"downloadingPumpkin": "Mengunduh Pumpkin (hanya saat peluncuran pertama)...",
+			"preparingSandbox": "Menyiapkan sandbox Linux...",
+			"downloadingSandbox": "Mengunduh sandbox Linux...",
+			"extractingSandbox": "Mengekstrak sistem file sandbox...",
+			"installingJava": "Memasang Java {{version}} di sandbox...",
+			"sandboxReady": "Inisialisasi sandbox selesai!",
+			"installingCore": "Memasang {{name}} (hanya saat peluncuran pertama, ini dapat berlangsung beberapa menit)...",
+			"launching": "Meluncurkan proses server...",
+			"failed": "Gagal memulai: {{error}}"
+		},
+		"notes": {
+			"unknownSource": "Tidak ada di Modrinth, CurseForge, atau Hangar, sehingga Ingot tidak dapat memeriksanya",
+			"beta": "Versi beta, mungkin tidak stabil",
+			"alpha": "Versi alfa, mungkin tidak stabil",
+			"siteOnly": "Versi {{target}} miliknya hanya dapat diunduh dari {{site}}",
+			"fabricOnly": "Hanya diperlukan di Fabric dan Quilt",
+			"noVersion": "Belum ada versi untuk {{target}}",
+			"pluginNotMarked": "Belum ditandai untuk {{version}}; sebagian besar plugin masih berfungsi",
+			"notUpdated": "Belum diperbarui untuk {{version}}; biasanya masih berfungsi",
+			"sameAs": "Sama seperti {{name}}",
+			"incompatible": "Tidak berfungsi bersama {{name}}",
+			"needsTurnedOff": "Memerlukan {{name}}, yang sedang dinonaktifkan",
+			"needsMissing": "Memerlukan {{name}}, yang tidak tersedia untuk {{version}}",
+			"neededBy": "Diperlukan oleh {{name}}"
+		},
+		"launch": {
+			"preparing": "Menyiapkan peluncuran",
+			"resolvingVersion": "Menyelesaikan Versi",
+			"resolvingLoader": "Menyelesaikan Pemuat Mod",
+			"checkingJava": "Memeriksa Runtime Java",
+			"javaSetup": "Penyiapan Java",
+			"downloadingClient": "Mengunduh Klien",
+			"downloadingLibraries": "Mengunduh Pustaka",
+			"downloadingAssets": "Mengunduh Aset",
+			"verifying": "Memverifikasi File",
+			"auth": "Penyiapan Autentikasi",
+			"starting": "Memulai Game",
+			"fetchingMetadata": "Mengambil metadata versi...",
+			"fetchingProfile": "Mengambil profil {{loader}}...",
+			"detectingJava": "Mendeteksi lingkungan Java...",
+			"downloadingJavaProgress": "Mengunduh runtime Java {{version}} ({{done}} MB / {{total}} MB)...",
+			"downloadingJava": "Mengunduh runtime Java {{version}}...",
+			"extractingJava": "Mengekstrak runtime Java {{version}}...",
+			"downloadingJar": "Mengunduh JAR klien Minecraft...",
+			"downloadingLibrariesCount": "Mengunduh {{count}} pustaka...",
+			"library": "Pustaka {{current}}/{{total}} ({{file}})",
+			"downloadingAssetsCount": "Mengunduh {{count}} aset...",
+			"assets": "Aset {{current}}/{{total}}",
+			"verified": "Semua file game terverifikasi",
+			"authDetail": "Menyiapkan agen autentikasi & skin Ely.by...",
+			"launching": "Meluncurkan proses Minecraft...",
+			"connecting": "Menyambungkan ke {{server}}...",
+			"loadingWorld": "Memuat dunia {{world}}...",
+			"initializing": "Menginisialisasi urutan peluncuran..."
+		}
+	},
+	"overview": {
+		"howPlayersSee": "Cara pemain melihatnya",
+		"startingUp": "Memulai...",
+		"shuttingDown": "Mematikan...",
+		"cantConnect": "Tidak dapat menyambung ke server",
+		"preparing": "Menyiapkan...",
+		"sleepingNote": "Tidur untuk menghemat sumber daya. Server akan bangun secara otomatis saat pemain bergabung.",
+		"failedToStart": "Gagal memulai.",
+		"start": "Mulai server",
+		"wake": "Bangunkan",
+		"sleep": "Tidurkan",
+		"starting": "Memulai...",
+		"stopping": "Menghentikan...",
+		"uptime": "Waktu aktif",
+		"native": "Native",
+		"noOutput": "Belum ada output"
+	},
+	"serverCard": {
+		"offline": "Offline",
+		"openPage": "Buka halaman server",
+		"copyAddress": "Klik untuk menyalin alamat server",
+		"noneOnline": "0 online",
+		"joinTitle": "Luncurkan Minecraft & Sambungkan ke server ini",
+		"join": "Gabung",
+		"start": "Mulai",
+		"openFolder": "Buka folder server"
+	},
+	"versionChange": {
+		"title": "Ubah versi",
+		"vanilla": "Vanilla",
+		"status": {
+			"conflict": "Konflik",
+			"missing": "Belum tersedia",
+			"unknown": "Tidak dapat diperiksa",
+			"newDependency": "Dependensi baru",
+			"update": "Pembaruan",
+			"works": "Sudah kompatibel",
+			"olderVersions": "Versi lebih lama"
+		},
+		"actions": {
+			"keep": "Pertahankan",
+			"update": "Perbarui",
+			"disable": "Nonaktifkan",
+			"add": "Pasang",
+			"skip": "Jangan pasang"
+		},
+		"kinds": {
+			"resourcePack": "Paket sumber daya",
+			"shader": "Shader",
+			"mod": "Mod",
+			"plugin": "Plugin"
+		},
+		"downgradeTitle": "{{to}} lebih lama daripada {{from}}",
+		"downgradeWarning": "Dunia yang dimainkan di versi yang lebih baru biasanya tidak dapat dibuka di versi yang lebih lama dan dapat rusak. Tetap aktifkan pencadangan dunia agar pembatalan dapat mengembalikannya.",
+		"downgradeOk": "Saya mengerti, tetap beralih ke versi yang lebih lama",
+		"backupWorldsHint": "Minecraft meningkatkan versi dunia saat dibuka, dan itu tidak dapat diurungkan. Dengan cadangan, pembatalan juga dapat memulihkannya.",
+		"openOn": "Buka di {{site}}",
+		"new": "baru",
+		"instanceDescription": "Ingot memeriksa setiap mod, paket sumber daya, dan shader terlebih dahulu dan tidak mengubah apa pun sampai Anda menerapkannya. Anda dapat membatalkannya nanti.",
+		"now": "saat ini",
+		"nowLabel": "Saat ini",
+		"moveTo": "Beralih ke",
+		"pickVersion": "Pilih versi",
+		"searchVersion": "Cari versi...",
+		"loaderVersion": "Versi {{loader}}",
+		"pickLoaderVersion": "Pilih versi pemuat",
+		"noLoaderFor": "Tidak ada {{loader}} untuk {{version}}",
+		"noLoader": "Tidak ada {{loader}} untuk versi ini",
+		"loaderSwitchNote": "Mod dibuat untuk satu pemuat. Ingot mencari versi {{loader}} dari setiap mod dan menonaktifkan mod yang tidak memilikinya.",
+		"instanceEmpty": "Tidak ada mod, paket sumber daya, atau shader untuk diperiksa. Hanya versi yang berubah.",
+		"applying": "Menerapkan...",
+		"applyingHint": "Mengunduh dan memeriksa file baru, lalu mencadangkan file saat ini. Tidak ada yang berubah sampai semuanya siap.",
+		"applyingWithWorlds": "Mengunduh dan memeriksa file baru, lalu mencadangkan dunia Anda dan file saat ini. Tidak ada yang berubah sampai semuanya siap.",
+		"nowOn": "Sekarang di {{version}}",
+		"instanceDone": "Diubah dari {{version}}. Jika ada yang tidak berfungsi, batalkan dari pengaturan instansi ini: semuanya akan kembali persis seperti sebelumnya.",
+		"back": "Kembali",
+		"checking": "Memeriksa...",
+		"check": "Periksa kompatibilitas",
+		"moveToVersion": "Beralih ke {{version}}",
+		"summary": {
+			"download_other": "{{count}} menjadi mengunduh ({{size}})",
+			"turnedOff_other": "{{count}} dimatikan",
+			"conflictsKept_other": "{{count}} konflik dipertahankan"
+		},
+		"backupWorlds_other": "Dunia cadangan ({{count}} dunia, {{size}})"
+	},
+	"errors": {
+		"launchInstance": "Gagal meluncurkan instansi: {{error}}",
+		"resolveConflict": "Gagal menyelesaikan konflik: {{error}}",
+		"deleteInstance": "Gagal menghapus instansi: {{error}}",
+		"startServer": "Gagal memulai server: {{error}}",
+		"deleteServer": "Gagal menghapus server: {{error}}",
+		"quickPlay": "Gagal main cepat server: {{error}}"
+	},
+	"playerSheet": {
+		"loading": "Memuat pemain...",
+		"noData": "Belum ada data untuk pemain ini.",
+		"health": "Kesehatan",
+		"hunger": "Lapar",
+		"air": "Udara",
+		"experience": "Pengalaman",
+		"level": "Level {{level}}",
+		"equipment": "Perlengkapan",
+		"slots": {
+			"head": "Kepala",
+			"chest": "Dada",
+			"legs": "Celana",
+			"feet": "Sepatu",
+			"offhand": "Tangan kiri"
+		},
+		"showOnMap": "Tampilkan di peta",
+		"inventory": "Inventaris",
+		"ender": "Peti Ender ({{count}})",
+		"effects": "Efek ({{count}})",
+		"onFire": "Terbakar",
+		"durability": "Ketahanan {{left}}/{{max}}",
+		"enchanted": "Disihir",
+		"noEffects": "Tidak ada efek aktif",
+		"heal": "Pulihkan darah",
+		"feed": "Beri makan",
+		"removeOp": "Hapus OP",
+		"whitelisted": "Di whitelist",
+		"confirmKick": "Keluarkan {{name}}?",
+		"confirmBan": "Blokir {{name}}?",
+		"confirm": "Konfirmasi",
+		"kick": "Keluarkan"
+	},
+	"transfer": {
+		"zipArchive": "Arsip zip",
+		"savedTo": "Disimpan ke {{path}}",
+		"copyName": "Salinan {{name}}",
+		"created": "Berhasil membuat \"{{name}}\".",
+		"title": "Cadangan & versi",
+		"description": "Ekspor untuk membagikan atau mencadangkan, menyalin server, atau beralih ke versi Minecraft lain.",
+		"exportConfigs": "Ekspor konfigurasi",
+		"withoutWorlds": "Tanpa dunia",
+		"exportAll": "Ekspor semua",
+		"withWorlds": "Dengan dunia",
+		"makeCopy": "Buat salinan",
+		"secondServer": "Server kedua",
+		"stopFirst": "Hentikan server terlebih dahulu",
+		"nowVersion": "Sekarang {{version}}",
+		"backup": "Diubah dari {{version}}. Cadangan {{size}}.",
+		"backupWithWorlds": "Diubah dari {{version}}. Cadangan {{size}}, termasuk dunia.",
+		"deleteBackup": "Hapus cadangan",
+		"undo": "Batalkan, kembali ke {{version}}",
+		"willStartOn": "{{name}} akan dimulai di {{version}}. Anda dapat membatalkannya di sini jika ada yang tidak berfungsi.",
+		"currentVersion": "{{version}} (saat ini)",
+		"changeTitle": "Ubah versi Minecraft",
+		"changeDescription_plugin": "Ingot memeriksa setiap plugin terlebih dahulu dan tidak mengubah apa pun sampai Anda menerapkannya. Semuanya dicadangkan, sehingga Anda dapat membatalkannya.",
+		"changeDescription_mod": "Ingot memeriksa setiap mod terlebih dahulu dan tidak mengubah apa pun sampai Anda menerapkannya. Semuanya dicadangkan, sehingga Anda dapat membatalkannya.",
+		"serverType": "Jenis server",
+		"empty": "Tidak ada plugin atau mod untuk diperiksa. Hanya versi yang berubah.",
+		"readyFor": "Siap untuk {{version}}",
+		"doneNote": "Versi baru akan diunduh pada peluncuran berikutnya. Jika ada yang tidak berfungsi, batalkan dari Cadangan & versi: semuanya akan kembali persis seperti sebelumnya.",
+		"import": "Impor server",
+		"importing": "Mengimpor {{percent}}",
+		"settingUp": "Menyiapkan server...",
+		"partial": "Berhasil mengimpor \"{{name}}\", tetapi beberapa plugin atau mod tidak dapat diunduh:",
+		"openServer": "Buka server"
+	},
+	"serverCores": {
+		"paper": {
+			"tagline": "Server Spigot/Bukkit berkinerja tinggi dengan dukungan plugin lengkap",
+			"badge": "Cepat & Stabil"
+		},
+		"purpur": {
+			"tagline": "Fork Paper yang kaya fitur dengan kustomisasi luar biasa",
+			"badge": "Dapat Disesuaikan"
+		},
+		"fabric": {
+			"tagline": "Server bermod modular dan ringan untuk mod Fabric",
+			"badge": "Bermod"
+		},
+		"neoforge": {
+			"tagline": "Server bermod untuk mod NeoForge, tempat bernaungnya sebagian besar mod konten besar",
+			"badge": "Bermod"
+		},
+		"forge": {
+			"tagline": "Server bermod orisinal, untuk mod Forge di Minecraft 1.17 ke atas",
+			"badge": "Bermod"
+		},
+		"quilt": {
+			"tagline": "Server bermod yang kompatibel dengan Fabric, menjalankan mod Quilt maupun Fabric",
+			"badge": "Bermod"
+		},
+		"folia": {
+			"tagline": "Server multithread berbasis region oleh PaperMC untuk jumlah pemain masif",
+			"badge": "Multithread"
+		},
+		"pumpkin": {
+			"tagline": "Sangat ringan, ditenagai Rust — boot instan, RAM < 60 MB",
+			"badge": "Native Seluler"
+		},
+		"vanilla": {
+			"tagline": "Server Minecraft resmi tanpa mod langsung dari Mojang",
+			"badge": "Orisinal"
+		}
+	},
+	"wizard": {
+		"defaultName": "Server {{core}}",
+		"fetchFailed": "Gagal mengambil versi. Periksa koneksi Anda.",
+		"enterName": "Silakan masukkan nama server.",
+		"selectVersion": "Silakan pilih versi Minecraft.",
+		"invalidPort": "Masukkan port yang valid (1024 – 65534).",
+		"portInUseTry": "Port {{port}} sudah digunakan. Coba {{next}}.",
+		"portInUse": "Port {{port}} sudah digunakan.",
+		"createFailed": "Gagal membuat server",
+		"stepEngine": "Pilih engine Anda",
+		"stepName": "Beri nama server Anda",
+		"stepMemory": "RAM & konfirmasi",
+		"stepOf": "Langkah {{step}} dari {{total}}",
+		"preparing": "Menyiapkan server…",
+		"serverName": "Nama server",
+		"namePlaceholder": "cth. Server Bertahan Hidup {{core}}",
+		"minecraftVersion": "Versi Minecraft",
+		"selectVersionPlaceholder": "Pilih versi",
+		"serverPort": "Port server",
+		"portInUseShort": "Port digunakan",
+		"ready": "Siap dibuat",
+		"engine": "Engine",
+		"version": "Versi",
+		"ram": "RAM",
+		"memory": "RAM",
+		"heroLine1": "Server pertama Anda,",
+		"heroLine2": "dalam hitungan detik.",
+		"heroText": "Ingot mengunduh, mengonfigurasi, dan menjalankan server Minecraft langsung di perangkat ini. Undang teman dari mana saja.",
+		"createAServer": "Buat server",
+		"createAServerHint": "Paper, PumpkinMC, Fabric, dan lainnya"
+	},
+	"plugins": {
+		"unsupported": "Server {{core}} tidak dapat menggunakan plugin",
+		"unsupportedHint": "Buat server Paper atau Purpur untuk menambahkan plugin, atau server Fabric untuk mod.",
+		"installed": "Memasang {{name}}.",
+		"installedWith": "Memasang {{name}} dan {{extras}}.",
+		"browse_plugin": "Jelajahi plugin",
+		"browse_mod": "Jelajahi mod",
+		"restartToApply": "Mulai ulang server untuk menerapkan perubahan.",
+		"restart": "Mulai ulang",
+		"noOther_plugin": "Belum ada plugin lain.",
+		"noOther_mod": "Belum ada mod lain.",
+		"none_plugin": "Belum ada plugin",
+		"none_mod": "Belum ada mod",
+		"find_plugin": "Temukan plugin di Modrinth dan pasang hanya dengan satu ketukan.",
+		"find_mod": "Temukan mod di Modrinth dan pasang hanya dengan satu ketukan.",
+		"findHangar_plugin": "Temukan plugin di Modrinth dan Hangar lalu pasang hanya dengan satu ketukan.",
+		"findHangar_mod": "Temukan mod di Modrinth dan Hangar lalu pasang hanya dengan satu ketukan.",
+		"updateAvailable": "Pembaruan tersedia: {{version}}",
+		"enabled": "Mengaktifkan {{name}}.",
+		"disabled": "Menonaktifkan {{name}}.",
+		"enable": "Aktifkan {{name}}",
+		"disable": "Nonaktifkan {{name}}",
+		"updated": "Memperbarui {{name}}.",
+		"removed": "Menghapus {{name}}.",
+		"unknownVersion": "Versi tidak diketahui",
+		"byAuthors": "oleh {{authors}}",
+		"file": "File",
+		"size": "Ukuran",
+		"updateTo": "Perbarui ke {{version}}",
+		"reallyDelete": "Yakin ingin menghapus?",
+		"sort": {
+			"downloads": "Paling populer",
+			"updated": "Baru diperbarui",
+			"newest": "Terbaru"
+		},
+		"searchPlaceholder_plugin": "Cari plugin, cth. LuckPerms",
+		"searchPlaceholder_mod": "Cari mod, cth. Lithium",
+		"compatibleOnly": "Hanya tampilkan hasil yang kompatibel dengan {{version}}",
+		"forVersion": "Untuk {{version}}",
+		"searchFailed": "Pencarian gagal: {{error}}",
+		"nothingFound": "Tidak ada yang ditemukan",
+		"noneForVersion_plugin": "Tidak ada plugin yang cocok untuk Minecraft {{version}}. Coba matikan filter versi.",
+		"noneForVersion_mod": "Tidak ada mod yang cocok untuk Minecraft {{version}}. Coba matikan filter versi.",
+		"tryAnother": "Coba pencarian lain.",
+		"loadMore": "Muat lebih banyak",
+		"playersNeedItTitle": "Pemain juga harus memasang mod ini, atau mereka tidak dapat bergabung",
+		"playersNeedIt": "Pemain juga memerlukannya",
+		"isInstalled": "{{name}} sudah terpasang",
+		"install": "Pasang {{name}}",
+		"results_other": "{{formatted}} hasil"
+	},
+	"join": {
+		"shareTitle": "Gabung ke {{name}}",
+		"shareText": "Ayo gabung ke server Minecraft saya \"{{name}}\"!\nAlamat: {{address}}\nVersi: Java Edition {{version}}",
+		"title": "Undang pemain",
+		"description": "Bagikan alamat agar teman dapat bergabung.",
+		"sameWifi": "Wi-Fi yang sama",
+		"copyLocal": "Salin alamat lokal",
+		"anywhere": "Di mana saja (playit.gg)",
+		"copyPublic": "Salin alamat publik",
+		"showQr": "Tampilkan kode QR",
+		"linkPlayit": "Tautkan akun playit.gg Anda",
+		"noTunnel": "Tersambung, tetapi belum ada tunnel. <link>Tambahkan</link> untuk port {{port}}.",
+		"connecting": "Menghubungkan...",
+		"notConnected": "Tidak tersambung",
+		"stopPlayit": "Hentikan playit",
+		"goPublic": "Jadikan publik",
+		"share": "Bagikan undangan",
+		"scan": "Pindai untuk menyalin alamat",
+		"qrAlt": "Kode QR"
+	},
+	"stats": {
+		"latest": "Terbaru: {{value}}",
+		"noData": "Belum ada data",
+		"now": "sekarang",
+		"ago": "{{time}} yang lalu",
+		"min": "Min",
+		"avg": "Rata-rata",
+		"peak": "Puncak",
+		"performance": "Kinerja",
+		"touchHint": "Sentuh grafik untuk melihat detail",
+		"ofDevice": "dari perangkat",
+		"allocated": "Dialokasikan",
+		"deviceRam": "RAM Perangkat",
+		"free": "{{size}} bebas",
+		"lag": "Lag",
+		"smooth": "Lancar",
+		"slightLag": "Sedikit lag",
+		"lagging": "Lag",
+		"used": "{{label}}: {{used}} dari {{total}} terpakai"
+	},
+	"storage": {
+		"title": "Penyimpanan",
+		"worlds": "Dunia",
+		"plugins": "Plugin & mod",
+		"server": "File server",
+		"backups": "Cadangan",
+		"logs": "Log",
+		"other": "Lainnya",
+		"device": "Penyimpanan perangkat"
+	},
+	"instanceSettings": {
+		"pushFailed": "Gagal mendorong (push): {{error}}",
+		"pullFailed": "Gagal menarik (pull): {{error}}",
+		"saveFailed": "Gagal menyimpan pengaturan: {{error}}",
+		"title": "Pengaturan Instansi",
+		"description": "Konfigurasikan parameter eksekusi dan batas RAM untuk <b>{{name}}</b>.",
+		"namePlaceholder": "Instansi Minecraft Saya",
+		"loader": "pemuat {{version}}",
+		"backup": "Diubah dari {{from}} ke {{to}}. Cadangan {{size}}.",
+		"backupWithWorlds": "Diubah dari {{from}} ke {{to}}. Cadangan {{size}}, termasuk dunia.",
+		"memoryOverride": "Ganti RAM global khusus untuk instansi ini",
+		"minMemory": "Memori Awal (Min):",
+		"maxMemory": "Memori Maksimum (Maks):",
+		"inheritMemory": "Mewarisi pengaturan global: <b>{{min}} Min / {{max}} Max</b>. Dapat dikonfigurasi di halaman Pengaturan.",
+		"jvmArgs": "JVM Argumen",
+		"jvmArgsHint": "Argumen peluncuran Java tambahan (dipisahkan spasi)",
+		"java": "Kustom Java",
+		"javaHint": "yang dapat dieksekusi Biarkan kosong untuk runtime Adoptium yang dikelola otomatis",
+		"windowOverride": "Ganti ukuran layar penuh dan jendela untuk ini instansi",
+		"fullscreenHint": "Luncurkan langsung ke mode layar penuh",
+		"resolution": "Resolusi:",
+		"fullscreen": "Layar penuh",
+		"inheritDisplay": "Mewarisi tampilan global: <b>{{value}}</b>. Dapat dikonfigurasi di Pengaturan Peluncur.",
+		"syncHint": "Opsi sinkronisasi, server, paket, riwayat, dan hotbar",
+		"manualSync": "Sinkronisasi Penyimpanan Manual",
+		"manualSyncHint": "Ekspor data instansi ini atau tarik file terbaru dari penyimpanan bersama.",
+		"push": "Dorong ke Penyimpanan Bersama",
+		"pull": "Tarik dari Penyimpanan Bersama",
+		"syncOptions": "Sinkronisasi Opsi Game (options.txt)",
+		"syncServers": "Sinkronisasi Server Multipemain (servers.dat)",
+		"syncPacks": "Paket Sumber Daya Sinkronisasi (resourcepacks/)",
+		"syncHistory": "Riwayat Perintah Sinkronisasi (command_history.txt)",
+		"syncHotbars": "Sinkronisasi Hotbar Kreatif (hotbar.nbt)",
+		"inheritSync": "Mewarisi preferensi sinkronisasi global. Akan disinkronkan sebelum peluncuran dan setelah keluar."
+	},
+	"install": {
+		"loadFailed": "Gagal memuat opsi instalasi",
+		"compatible": "Kompatibel",
+		"all": "Semua",
+		"any": "Semua",
+		"modpackDone": "Modpack \"{{name}}\" berhasil diinstal sebagai instansi baru!",
+		"selectTarget": "Pilih target instansi...",
+		"added": "Menambahkan {{file}} ke {{instance}}!",
+		"modpackTitle": "Instal Modpack",
+		"addTitle_mod": "Tambahkan mod ke instansi",
+		"addTitle_resourcepack": "Tambahkan paket sumber daya ke instansi",
+		"addTitle_shader": "Tambahkan shader ke instansi",
+		"addTitle_modpack": "Tambahkan modpack ke instansi",
+		"addTitle_datapack": "Tambahkan paket data ke instansi",
+		"addTitle_plugin": "Tambahkan plugin ke instansi",
+		"modpackDescription": "Buat Minecraft instansi baru dari \"{{title}}\".",
+		"description": "Instal \"{{title}}\" ke salah satu instansi Anda yang sudah ada.",
+		"loading": "Loading options...",
+		"retry": "Retry",
+		"modpackVersion": "Modpack Version",
+		"selectModpackVersion": "Select modpack version...",
+		"loaders": "Loaders:",
+		"minecraft": "Minecraft:",
+		"noInstancesHint": "Create an instansi pertama dari tab instansi sebelum menambahkan mod atau paket sumber daya.",
+		"target": "Target instansi",
+		"fileVersion": "Versi File",
+		"selectFileVersion": "Select file version...",
+		"supports": "Supports:",
+		"createAndInstall": "Create & Install",
+		"installToInstance": "Install to instansi",
+		"compatibleCount_other": "{{count}} versi yang kompatibel"
+	},
+	"contentTypes": {
+		"mod": "Mod",
+		"modpack": "Modpack",
+		"resourcepack": "Resource pack",
+		"shader": "Shader",
+		"datapack": "Paket data",
+		"plugin": "Plugin"
+	},
+	"releaseTypes": {
+		"release": "Rilis",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"contentDetails": {
+		"loadFailed": "Gagal memuat detail proyek",
+		"addToInstance": "Tambahkan ke instansi",
+		"versions": "Versi & File",
+		"versionsCount": "Versi & File ({{count}})",
+		"loading": "Memuat detail proyek...",
+		"gallery": "Galeri ({{count}})",
+		"clickToOpen": "Klik gambar untuk membuka dalam layar penuh",
+		"viewFullscreen": "Lihat Layar Penuh",
+		"scrollLeft": "Gulir galeri ke kiri",
+		"scrollRight": "Gulir galeri ke kanan",
+		"source": "Kode Sumber",
+		"issues": "Pelacak Masalah",
+		"wiki": "Wiki",
+		"description": "Deskripsi",
+		"gameVersion": "Versi Game:",
+		"noMatch": "Tidak ada versi yang cocok dengan kriteria filter Anda.",
+		"openOriginal": "Buka Asli",
+		"previous": "Gambar sebelumnya",
+		"next": "Gambar berikutnya",
+		"downloads_other": "{{formatted}} unduhan",
+		"followers_other": "{{formatted}} pengikut",
+		"showing_other": "Menampilkan {{shown}} dari versi {{count}}"
+	},
+	"importInstance": {
+		"selectLauncherDir": "Pilih {{launcher}} instansi Direktori",
+		"selectDir": "Pilih Minecraft instansi Direktori",
+		"done": "instansi berhasil diimpor!",
+		"title": "Impor dari Peluncur Lain",
+		"selectInstance": "Pilih instansi ({{launcher}})",
+		"configure": "Konfigurasi Impor",
+		"description": "Impor instalasi, mod, dunia, dan pengaturan Minecraft yang ada langsung ke Ingot.",
+		"optionsDescription": "Pilih komponen data mana yang ingin Anda transfer ke Ingot instansi baru Anda.",
+		"detecting": "Mendeteksi peluncur yang diinstal...",
+		"notDetected": "Tidak terdeteksi • Klik untuk menemukan",
+		"custom": "Direktori Kustom",
+		"customHint": "Pilih folder instansi mana pun di disk",
+		"backToLaunchers": "Kembali ke Peluncur",
+		"changeFolder": "Ubah Folder",
+		"filter": "Filter instansi...",
+		"loadingInstances": "Memuat instansi...",
+		"noneFound": "Tidak ada instansi yang ditemukan di direktori peluncur ini.",
+		"select": "Pilih",
+		"nameInIngot": "instansi Nama di Ingot:",
+		"namePlaceholder": "instansi",
+		"source": "Impor Saya Sumber: {{path}}",
+		"components": "Pilih komponen yang akan diimpor:",
+		"mods": "Modifikasi",
+		"configs": "Konfigurasi",
+		"configsHint": "Pengaturan & konfigurasi mod",
+		"worlds": "Dunia & Penyimpanan",
+		"packs": "Paket Sumber Daya",
+		"packsHint": "Tekstur & shaderpack",
+		"screenshotsHint": "Tangkapan layar dalam game",
+		"modData": "Data Mod & Lainnya",
+		"modDataHint": "Titik arah, skema, rekaman, dll.",
+		"options": "Opsi Game",
+		"optionsHint": "options.txt & pengikatan kunci",
+		"servers": "Server Multipemain",
+		"serversHint": "Daftar server servers.dat",
+		"note": "Semua komponen di atas bersifat opsional. Dengan <b>Mod Data & Lainnya</b> diaktifkan, folder mod khusus (titik arah peta mini, skema, rekaman) disalin dengan aman. Hapus centang jika Anda lebih suka impor bersih tanpa file tambahan.",
+		"importing": "Mengimpor...",
+		"import": "Impor instansi",
+		"found_other": "Ditemukan {{count}} instansi di {{launcher}}. Pilih mana yang akan diimpor.",
+		"instancesFound_other": "{{count}} instansi ditemukan",
+		"modsCount_other": "{{count}} mod",
+		"worldsCount_other": "{{count}} dunia",
+		"screenshotsCount_other": "{{count}} tangkapan layar",
+		"modFiles_other": "{{count}} file mod",
+		"singleplayerWorlds_other": "{{count}} dunia pemain tunggal"
+	},
+	"skinViewer": {
+		"resetCamera": "Reset kamera 3D",
+		"pauseRotation": "Jeda rotasi otomatis",
+		"autoRotate": "Putar otomatis model 3D",
+		"idlePose": "Beralih ke pose diam",
+		"playWalk": "Memutar animasi berjalan",
+		"idleTitle": "Animasi pernapasan menganggur",
+		"idle": "Menganggur",
+		"walkTitle": "Animasi berjalan",
+		"walk": "Berjalan",
+		"runTitle": "Animasi berlari",
+		"run": "Berlari",
+		"waveTitle": "Animasi lengan melambai",
+		"wave": "Gelombang",
+		"pause": "Animasi jeda",
+		"outerOn": "Lapisan Luar Aktif",
+		"outerOff": "Lapisan Luar Mati",
+		"modelSlim": "Model: Slim (Alex)",
+		"modelClassic": "Model: Klasik (Steve)"
+	},
+	"skinsPage": {
+		"customSkin": "Kulit Khusus",
+		"currentActiveSkin": "Kulit Aktif Saat Ini",
+		"activeAccountSkin": "Kulit Akun Aktif",
+		"loadFailed": "Gagal memuat kulit dari Ely.by",
+		"defaultSteve": "Default Steve",
+		"addAccountFirst": "Silakan tambahkan atau pilih akun Ely.by terlebih dahulu.",
+		"elyOnlySync": "Hanya akun Ely.by yang mendukung sinkronisasi skin cloud.",
+		"customApplied": "Kulit khusus diterapkan pada {{name}}!",
+		"skinApplied": "Kulit #{{id}} diterapkan pada {{name}}!",
+		"applyFailed": "Gagal mengaplikasikan kulit.",
+		"enterPassword": "Silakan masukkan kata sandi Ely.by Anda.",
+		"skinFromDate": "Skin {{date}}",
+		"uploadedApplied": "Skin khusus diunggah dan diterapkan ke {{name}}! File Skin",
+		"pngOnly": "harus dalam format PNG (.png). File Skin",
+		"tooLarge": "terlalu besar (maks 2 MB).",
+		"badSize": "Dimensi tidak valid: {{size}}. Skin Minecraft standar harus berukuran 64x64 atau 64x32 piksel.",
+		"badImage": "Tidak dapat menguraikan gambar. Pastikan itu adalah file PNG yang valid.",
+		"elyOnlyUpload": "Hanya akun Ely.by yang mendukung pengunggahan skin.",
+		"uploadFailed": "Gagal mengunggah kulit.",
+		"saved": "Skin #{{id}} berhasil disimpan!",
+		"downloadFailed": "Pengunduhan gagal.",
+		"urlCopied": "URL tekstur kulit disalin ke papan klip!",
+		"activeAccount": "Akun Ely.by Aktif",
+		"noActiveAccount": "Tidak ada akun Ely.by yang aktif",
+		"browse": "Jelajahi Skin",
+		"preview3d": "Pratinjau 3D",
+		"currentSkin": "Skin Saat Ini",
+		"skinNumber": "Skin #{{id}}",
+		"alexSlim3": "Alex (Slim 3px)",
+		"steveClassic4": "Steve (Klasik 4px)",
+		"currentSkinOf": "Skin Saat Ini ({{name}})",
+		"applyTo": "Terapkan Skin ke {{name}}",
+		"applyToAccount": "Terapkan Skin ke Akun",
+		"downloadPng": "Unduh PNG",
+		"updating": "Memperbarui...",
+		"loadingMine": "Memuat skin yang Anda upload dari Ely.by...",
+		"loading": "Memuat skin dari Ely.by...",
+		"noMatchingUploads": "Tidak ditemukan skin upload yang cocok",
+		"noUploadsFor": "Tidak skin yang diunggah ditemukan untuk {{name}}",
+		"tryDifferent": "Coba kueri penelusuran atau filter lain.",
+		"noUploadsHint": "Anda belum mengunggah skin khusus apa pun ke Ely.by. Unggah kulit untuk dikelola dan dipakai kapan saja.",
+		"selectAccountHint": "Silakan pilih atau tambahkan akun Ely.by untuk melihat skin yang Anda unggah.",
+		"uploadASkin": "Unggah Skin",
+		"noSkins": "Tidak ada skin yang ditemukan",
+		"deleteCustom": "Hapus skin khusus",
+		"slim": "Slim",
+		"classic": "Klasik",
+		"pageOf": "Halaman <b>{{page}}</b> dari {{total}}",
+		"total": "(total {{count}})",
+		"previous": "Sebelumnya",
+		"next": "Berikutnya",
+		"alexSlim": "Alex (Slim)",
+		"steveClassic": "Steve (Klasik)",
+		"view3d": "Tampilan 3D",
+		"apply": "Terapkan",
+		"livePreview": "Pratinjau 3D Langsung",
+		"uploading": "Mengunggah & Menerapkan...",
+		"uploadApply": "Unggah dan Terapkan Skin",
+		"uploadTitle": "Unggah Kulit Kustom",
+		"uploadDescription": "Unggah tekstur kulit Minecraft dari komputer Anda untuk diterapkan langsung ke Ely.by.",
+		"dropHint": "Klik untuk menelusuri atau drag & drop file PNG skin di sini",
+		"supports": "Mendukung skin Minecraft standar (64×64 atau 64×32 PNG, hingga 2 MB)",
+		"dimensions": "Dimensi: {{value}}",
+		"size": "Ukuran: {{value}}",
+		"armModel": "Model Kulit Lengan",
+		"armModelHint": "Pilih apakah kulit ini dibuat untuk lengan Klasik (4px) atau Slim (3px).",
+		"classicArms": "Klasik (lengan 4px)",
+		"slimArms": "Slim (lengan 3px)",
+		"targetAccount": "Target Ely.by Akun",
+		"noAccount": "Tidak ada akun aktif",
+		"readyToApply": "Siap menerapkan",
+		"passwordTitle": "Ely.by Otorisasi Kata Sandi",
+		"passwordDescription": "Untuk memodifikasi skin Ely.by Anda <b>{{name}}</b>, silakan masukkan kata sandi akun Anda. Ini akan dienkripsi dengan aman di Keyring OS asli Anda.",
+		"passwordPlaceholder": "Ely.by Kata Sandi",
+		"authorize": "Otorisasi & Terapkan",
+		"count_other": "Kulit {{formatted}}"
+	},
+	"select": {
+		"placeholder": "Pilih opsi",
+		"noMatches": "Tidak ada yang cocok dengan"
+	},
+	"hosting": {
+		"one": "Hosting {{name}}",
+		"many": "Hosting Server {{count}} Terowongan",
+		"tunnel": "Ingot aktif",
+		"publicAddress": "Alamat publik: {{address}}",
+		"connecting": "playit.gg terowongan menghubungkan...",
+		"localOnly": "Hanya jaringan lokal"
 	}
 }

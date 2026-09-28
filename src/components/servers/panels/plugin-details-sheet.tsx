@@ -1,10 +1,13 @@
+import i18n from "i18next"
 import { Check, Download, ExternalLink, Loader2, Package } from "lucide-react"
 import { marked } from "marked"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { PluginProject, PluginVersion } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
+import { formatDate } from "@/lib/format"
 import { formatBytes, formatCount } from "@/lib/minecraft"
 import { sanitizeHtml } from "@/lib/sanitize-html"
 import { cn } from "@/lib/utils"
@@ -60,6 +63,7 @@ export function PluginDetailsSheet({
 	onInstall: (project: PluginProject, version?: PluginVersion) => void
 	onClose: () => void
 }) {
+	const { t } = useTranslation()
 	const [tab, setTab] = useState<"about" | "versions">("about")
 	const [compatibleOnly, setCompatibleOnly] = useState(true)
 	const open = Boolean(project)
@@ -89,16 +93,18 @@ export function PluginDetailsSheet({
 										{shown.title}
 									</DialogTitle>
 									<p className="text-xs text-zinc-500">
-										by {shown.author} · {formatCount(shown.downloads)} downloads ·{" "}
-										{shown.source === "hangar" ? "Hangar" : "Modrinth"}
+										{t("pluginDetails.byline", {
+											author: shown.author,
+											downloads: formatCount(shown.downloads),
+										})}{" "}
+										· {shown.source === "hangar" ? "Hangar" : "Modrinth"}
 									</p>
 									<p className="mt-1.5 text-sm text-zinc-300 leading-relaxed">
 										{shown.description}
 									</p>
 									{shown.playersNeedIt && (
 										<p className="mt-2 rounded-xl bg-amber-500/10 px-3 py-2 text-amber-200 text-xs leading-relaxed">
-											Players need this mod too: anyone joining must install it in their game, or
-											they can&apos;t join.
+											{t("pluginDetails.playersNeedIt")}
 										</p>
 									)}
 								</div>
@@ -125,7 +131,11 @@ export function PluginDetailsSheet({
 									) : (
 										<Download className="size-4" />
 									)}
-									{installing ? "Installing..." : installed ? "Installed" : "Install"}
+									{installing
+										? t("pluginDetails.installing")
+										: installed
+											? t("common.installed")
+											: t("common.install")}
 								</Button>
 								<a
 									href={shown.pageUrl}
@@ -133,13 +143,12 @@ export function PluginDetailsSheet({
 									rel="noopener noreferrer"
 									className="flex h-11 items-center gap-1.5 rounded-xl border border-zinc-800 px-4 font-medium text-sm text-zinc-300 hover:bg-zinc-900"
 								>
-									<ExternalLink className="size-4" /> Page
+									<ExternalLink className="size-4" /> {t("pluginDetails.page")}
 								</a>
 							</div>
 							{versions.isSuccess && !hasCompatible && (
 								<p className="text-amber-300 text-xs">
-									No version for Minecraft {gameVersion} yet. You can still pick an older one under
-									Versions, but it may not work.
+									{t("pluginDetails.noCompatible", { version: gameVersion })}
 								</p>
 							)}
 						</div>
@@ -150,8 +159,8 @@ export function PluginDetailsSheet({
 								value={tab}
 								onChange={setTab}
 								options={[
-									{ value: "about", label: "About" },
-									{ value: "versions", label: "Versions" },
+									{ value: "about", label: t("pluginDetails.about") },
+									{ value: "versions", label: t("pluginDetails.versions") },
 								]}
 							/>
 						</div>
@@ -168,7 +177,7 @@ export function PluginDetailsSheet({
 										dangerouslySetInnerHTML={{ __html: html }}
 									/>
 								) : (
-									<p className="text-sm text-zinc-500">No description.</p>
+									<p className="text-sm text-zinc-500">{t("pluginDetails.noDescription")}</p>
 								))}
 							{tab === "versions" && (
 								<VersionList
@@ -209,14 +218,15 @@ function VersionList({
 	installing: boolean
 	onInstall: (version: PluginVersion) => void
 }) {
+	const { t } = useTranslation()
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex items-center justify-between gap-3 px-1 text-xs text-zinc-400">
-				Only versions for Minecraft {gameVersion}
+				{t("pluginDetails.onlyFor", { version: gameVersion })}
 				<Switch
 					checked={compatibleOnly}
 					onCheckedChange={onCompatibleChange}
-					aria-label={`Only versions for Minecraft ${gameVersion}`}
+					aria-label={t("pluginDetails.onlyFor", { version: gameVersion })}
 				/>
 			</div>
 			{error ? <ErrorNote>{String(error)}</ErrorNote> : null}
@@ -225,7 +235,11 @@ function VersionList({
 					<Loader2 className="size-5 animate-spin text-zinc-500" />
 				</div>
 			) : versions.length === 0 ? (
-				<EmptyState icon={Package} title="No versions" description="Try showing all versions." />
+				<EmptyState
+					icon={Package}
+					title={t("pluginDetails.noVersions")}
+					description={t("pluginDetails.noVersionsHint")}
+				/>
 			) : (
 				<ul className="divide-y divide-zinc-800/70 rounded-xl border border-zinc-800">
 					{versions.slice(0, 40).map((v) => (
@@ -242,7 +256,7 @@ function VersionList({
 								<p className="truncate text-[11px] text-zinc-500">
 									{summarizeVersions(v.gameVersions)}
 									{v.size > 0 && ` · ${formatBytes(v.size)}`}
-									{v.date && ` · ${new Date(v.date).toLocaleDateString()}`}
+									{v.date && ` · ${formatDate(v.date)}`}
 								</p>
 							</div>
 							{v.downloadUrl ? (
@@ -253,7 +267,7 @@ function VersionList({
 									onClick={() => onInstall(v)}
 									className="h-8 rounded-lg"
 								>
-									Install
+									{t("common.install")}
 								</Button>
 							) : (
 								v.externalUrl && (
@@ -263,7 +277,7 @@ function VersionList({
 										rel="noopener noreferrer"
 										className="text-emerald-400 text-xs hover:underline"
 									>
-										Website
+										{t("pluginDetails.website")}
 									</a>
 								)
 							)}
@@ -277,7 +291,7 @@ function VersionList({
 
 /** ["1.20", ..., "26.2"] -> "1.20 – 26.2" */
 function summarizeVersions(list: string[]): string {
-	if (list.length === 0) return "Any version"
+	if (list.length === 0) return i18n.t("pluginDetails.anyVersion")
 	if (list.length <= 3) return list.join(", ")
 	return `${list[0]} – ${list[list.length - 1]}`
 }

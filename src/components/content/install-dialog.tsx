@@ -1,5 +1,7 @@
+import i18n from "i18next"
 import { AlertCircle, Download, FolderPlus, Loader2 } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,7 +31,7 @@ interface InstallDialogProps {
 }
 
 function formatError(err: unknown): string {
-	if (!err) return "Failed to load installation options"
+	if (!err) return i18n.t("install.loadFailed")
 	if (typeof err === "string") return err
 	if (err instanceof Error) return err.message
 	if (
@@ -45,6 +47,7 @@ function formatError(err: unknown): string {
 
 export const InstallDialog = memo(
 	({ open, onOpenChange, item, specificVersion, onSuccess }: InstallDialogProps) => {
+		const { t } = useTranslation()
 		const [instances, setInstances] = useState<InstanceConfig[]>([])
 		const [selectedInstanceId, setSelectedInstanceId] = useState<string>("")
 		const [versions, setVersions] = useState<UnifiedContentVersion[]>([])
@@ -182,19 +185,19 @@ export const InstallDialog = memo(
 				return {
 					value: inst.id,
 					label: inst.name,
-					badge: `${inst.gameVersion} • ${inst.loader}${isComp ? " • ✓ Compatible" : ""}`,
+					badge: `${inst.gameVersion} • ${inst.loader}${isComp ? ` • ✓ ${t("install.compatible")}` : ""}`,
 				}
 			})
-		}, [instances, versions])
+		}, [instances, versions, t])
 
 		// Searchable options for Modpack Versions
 		const modpackVersionOptions: SearchableSelectOption[] = useMemo(() => {
 			return versions.map((ver) => ({
 				value: ver.id,
 				label: ver.name,
-				badge: `${ver.versionType.toUpperCase()} • MC ${ver.gameVersions.slice(0, 2).join(", ") || "All"}`,
+				badge: `${ver.versionType.toUpperCase()} • MC ${ver.gameVersions.slice(0, 2).join(", ") || t("install.all")}`,
 			}))
-		}, [versions])
+		}, [versions, t])
 
 		// Searchable options for Mod File Versions
 		const singleVersionOptions: SearchableSelectOption[] = useMemo(() => {
@@ -202,9 +205,9 @@ export const InstallDialog = memo(
 			return sourceList.map((ver) => ({
 				value: ver.id,
 				label: ver.name,
-				badge: `${ver.versionType.toUpperCase()} • ${ver.loaders.slice(0, 2).join(", ") || "Any"}`,
+				badge: `${ver.versionType.toUpperCase()} • ${ver.loaders.slice(0, 2).join(", ") || t("install.any")}`,
 			}))
-		}, [compatibleVersions, versions])
+		}, [compatibleVersions, versions, t])
 
 		const handleInstall = async () => {
 			if (!item || !selectedVersion) return
@@ -221,11 +224,11 @@ export const InstallDialog = memo(
 						selectedVersion.filename,
 					)
 					await instanceService.refreshInstances()
-					onSuccess?.(`Modpack "${name}" installed successfully as a new instance!`)
+					onSuccess?.(t("install.modpackDone", { name }))
 					onOpenChange(false)
 				} else {
 					if (!selectedInstanceId) {
-						setErrorMessage("Please select a target instance.")
+						setErrorMessage(t("install.selectTarget"))
 						setIsSubmitting(false)
 						return
 					}
@@ -235,8 +238,8 @@ export const InstallDialog = memo(
 						selectedVersion.downloadUrl,
 						selectedVersion.filename,
 					)
-					const instName = selectedInstance ? selectedInstance.name : "instance"
-					onSuccess?.(`Added ${selectedVersion.filename} to ${instName}!`)
+					const instName = selectedInstance ? selectedInstance.name : ""
+					onSuccess?.(t("install.added", { file: selectedVersion.filename, instance: instName }))
 					onOpenChange(false)
 				}
 			} catch (err) {
@@ -256,26 +259,26 @@ export const InstallDialog = memo(
 							{isModpack ? (
 								<>
 									<FolderPlus className="size-5 text-primary" />
-									<span>Install Modpack</span>
+									<span>{t("install.modpackTitle")}</span>
 								</>
 							) : (
 								<>
 									<Download className="size-5 text-primary" />
-									<span>Add {item.projectType} to Instance</span>
+									<span>{t(`install.addTitle_${item.projectType}` as "install.addTitle_mod")}</span>
 								</>
 							)}
 						</DialogTitle>
 						<DialogDescription className="text-xs">
 							{isModpack
-								? `Create a new Minecraft instance from "${item.title}".`
-								: `Install "${item.title}" into one of your existing instances.`}
+								? t("install.modpackDescription", { title: item.title })
+								: t("install.description", { title: item.title })}
 						</DialogDescription>
 					</DialogHeader>
 
 					{isLoadingData ? (
 						<div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground text-xs">
 							<Loader2 className="size-6 animate-spin text-primary" />
-							<span>Loading options...</span>
+							<span>{t("install.loading")}</span>
 						</div>
 					) : errorMessage && versions.length === 0 ? (
 						<div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
@@ -301,7 +304,7 @@ export const InstallDialog = memo(
 								}}
 								className="text-xs"
 							>
-								Retry
+								{t("install.retry")}
 							</Button>
 						</div>
 					) : (
@@ -311,7 +314,7 @@ export const InstallDialog = memo(
 								{item.iconUrl ? (
 									<img
 										src={item.iconUrl}
-										alt={item.title}
+										alt=""
 										className="size-10 shrink-0 rounded-lg bg-zinc-800 object-cover"
 									/>
 								) : (
@@ -322,7 +325,7 @@ export const InstallDialog = memo(
 								<div className="flex min-w-0 flex-1 flex-col">
 									<h4 className="truncate font-semibold text-foreground text-sm">{item.title}</h4>
 									<span className="text-muted-foreground text-xs">
-										by {item.author} • {item.source}
+										{t("modpacks.byAuthor", { author: item.author })} • {item.source}
 									</span>
 								</div>
 							</div>
@@ -332,31 +335,33 @@ export const InstallDialog = memo(
 								<div className="flex flex-col gap-3">
 									<div className="flex flex-col gap-1.5">
 										<label htmlFor="modpack-name" className="font-medium text-foreground text-xs">
-											Instance Name
+											{t("newInstance.name")}
 										</label>
 										<Input
 											id="modpack-name"
 											value={modpackName}
 											onChange={(e) => setModpackName(e.target.value)}
-											placeholder="Instance Name"
+											placeholder={t("newInstance.name")}
 											className="h-9 text-xs"
 										/>
 									</div>
 
 									<div className="flex flex-col gap-1.5">
-										<span className="font-medium text-foreground text-xs">Modpack Version</span>
+										<span className="font-medium text-foreground text-xs">
+											{t("install.modpackVersion")}
+										</span>
 										<SearchableSelect
 											value={selectedVersionId}
 											onValueChange={setSelectedVersionId}
 											options={modpackVersionOptions}
-											placeholder="Select modpack version..."
-											searchPlaceholder="Search versions..."
+											placeholder={t("install.selectModpackVersion")}
+											searchPlaceholder={t("versionChange.searchVersion")}
 										/>
 									</div>
 
 									{selectedVersion && (
 										<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-zinc-950/40 p-2.5 text-muted-foreground text-xs">
-											<span>Loaders:</span>
+											<span>{t("install.loaders")}</span>
 											{selectedVersion.loaders.map((l) => (
 												<span
 													key={l}
@@ -365,7 +370,7 @@ export const InstallDialog = memo(
 													{l}
 												</span>
 											))}
-											<span className="ml-2">Minecraft:</span>
+											<span className="ml-2">{t("install.minecraft")}</span>
 											{selectedVersion.gameVersions.map((gv) => (
 												<span
 													key={gv}
@@ -384,33 +389,36 @@ export const InstallDialog = memo(
 										<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-center">
 											<AlertCircle className="size-6 text-amber-400" />
 											<p className="font-medium text-amber-300 text-xs">
-												No Minecraft instances found
+												{t("quickJoin.noInstances")}
 											</p>
 											<p className="text-[11px] text-muted-foreground">
-												Create an instance first from the Instances tab before adding mods or
-												resource packs.
+												{t("install.noInstancesHint")}
 											</p>
 										</div>
 									) : (
 										<>
 											<div className="flex flex-col gap-1.5">
-												<span className="font-medium text-foreground text-xs">Target Instance</span>
+												<span className="font-medium text-foreground text-xs">
+													{t("install.target")}
+												</span>
 												<SearchableSelect
 													value={selectedInstanceId}
 													onValueChange={setSelectedInstanceId}
 													options={instanceOptions}
-													placeholder="Select target instance..."
-													searchPlaceholder="Search instances..."
+													placeholder={t("install.selectTarget")}
+													searchPlaceholder={t("instances.searchPlaceholder")}
 												/>
 											</div>
 
 											{/* Select Version */}
 											<div className="flex flex-col gap-1.5">
 												<div className="flex items-center justify-between">
-													<span className="font-medium text-foreground text-xs">File Version</span>
+													<span className="font-medium text-foreground text-xs">
+														{t("install.fileVersion")}
+													</span>
 													{compatibleVersions.length > 0 && (
 														<span className="text-[11px] text-emerald-400">
-															✓ {compatibleVersions.length} compatible version(s)
+															✓ {t("install.compatibleCount", { count: compatibleVersions.length })}
 														</span>
 													)}
 												</div>
@@ -419,8 +427,8 @@ export const InstallDialog = memo(
 													value={selectedVersionId}
 													onValueChange={setSelectedVersionId}
 													options={singleVersionOptions}
-													placeholder="Select file version..."
-													searchPlaceholder="Search versions..."
+													placeholder={t("install.selectFileVersion")}
+													searchPlaceholder={t("versionChange.searchVersion")}
 												/>
 											</div>
 
@@ -433,7 +441,7 @@ export const InstallDialog = memo(
 														<span className="capitalize">{selectedVersion.versionType}</span>
 													</div>
 													<div className="mt-1 flex flex-wrap items-center gap-1.5">
-														<span>Supports:</span>
+														<span>{t("install.supports")}</span>
 														{selectedVersion.loaders.map((l) => (
 															<span
 																key={l}
@@ -474,7 +482,7 @@ export const InstallDialog = memo(
 							onClick={() => onOpenChange(false)}
 							className="text-xs"
 						>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							type="button"
@@ -490,12 +498,14 @@ export const InstallDialog = memo(
 							{isSubmitting ? (
 								<>
 									<Loader2 className="size-3.5 animate-spin" />
-									<span>Installing...</span>
+									<span>{t("pluginDetails.installing")}</span>
 								</>
 							) : (
 								<>
 									<Download className="size-3.5" />
-									<span>{isModpack ? "Create & Install" : "Install to Instance"}</span>
+									<span>
+										{isModpack ? t("install.createAndInstall") : t("install.installToInstance")}
+									</span>
 								</>
 							)}
 						</Button>

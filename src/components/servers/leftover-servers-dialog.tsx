@@ -1,16 +1,14 @@
 import { Check, Loader2, Server, TriangleAlert } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { LeftoverServer } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { formatDateTime } from "@/lib/format"
 import { rpc, serverService } from "@/services/server-service"
 
 const since = (startedAt: number) =>
-	new Date(startedAt * 1000).toLocaleString(undefined, {
-		weekday: "short",
-		hour: "2-digit",
-		minute: "2-digit",
-	})
+	formatDateTime(startedAt, { weekday: "short", hour: "2-digit", minute: "2-digit" })
 
 /**
  * Servers still running from before Ingot last closed (a crash, or Task Manager): their
@@ -18,6 +16,7 @@ const since = (startedAt: number) =>
  * one of them runs into it.
  */
 export default function LeftoverServersDialog() {
+	const { t } = useTranslation()
 	const [servers, setServers] = useState<LeftoverServer[]>([])
 	const [stopped, setStopped] = useState<string[]>([])
 	const [busy, setBusy] = useState<string | null>(null)
@@ -47,7 +46,6 @@ export default function LeftoverServersDialog() {
 	}, [])
 
 	if (servers.length === 0) return null
-	const one = servers.length === 1
 	const allStopped = servers.every((s) => stopped.includes(s.serverId))
 
 	const stop = async (server: LeftoverServer) => {
@@ -71,13 +69,10 @@ export default function LeftoverServersDialog() {
 					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-400" />
 					<div className="flex flex-col gap-1">
 						<DialogTitle className="text-base">
-							{one ? "A server is" : "Servers are"} still running from last time
+							{t("leftoverServers.title", { count: servers.length })}
 						</DialogTitle>
 						<DialogDescription className="text-sm text-zinc-400 leading-relaxed">
-							Ingot closed without stopping {one ? "it" : "them"}, so{" "}
-							{one ? "its console is" : "their consoles are"} gone: Ingot can't send commands or
-							save {one ? "its world" : "their worlds"}. {one ? "It keeps its" : "They keep their"}{" "}
-							port and world busy until stopped.
+							{t("leftoverServers.description", { count: servers.length })}
 						</DialogDescription>
 					</div>
 				</div>
@@ -94,7 +89,7 @@ export default function LeftoverServersDialog() {
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium text-sm text-zinc-100">{server.name}</p>
 									<p className="truncate text-[11px] text-zinc-500">
-										Running since {since(server.startedAt)}
+										{t("leftoverServers.runningSince", { time: since(server.startedAt) })}
 									</p>
 								</div>
 								<Button
@@ -109,7 +104,7 @@ export default function LeftoverServersDialog() {
 									) : done ? (
 										<Check className="size-3.5" />
 									) : null}
-									{done ? "Stopped" : "Stop"}
+									{done ? t("leftoverServers.stopped") : t("common.stop")}
 								</Button>
 							</div>
 						)
@@ -117,10 +112,7 @@ export default function LeftoverServersDialog() {
 				</div>
 
 				{!allStopped && (
-					<p className="text-xs text-zinc-400 leading-relaxed">
-						Stopping ends it right away. Anything since the last autosave (a few minutes at most) is
-						lost, and the world itself stays fine.
-					</p>
+					<p className="text-xs text-zinc-400 leading-relaxed">{t("leftoverServers.stopNote")}</p>
 				)}
 
 				{error && (
@@ -136,7 +128,7 @@ export default function LeftoverServersDialog() {
 						onClick={() => setServers([])}
 						className="rounded-xl"
 					>
-						{allStopped ? "Done" : "Leave running"}
+						{allStopped ? t("common.done") : t("leftoverServers.leaveRunning")}
 					</Button>
 				</div>
 			</DialogContent>
