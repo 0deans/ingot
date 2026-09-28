@@ -219,6 +219,11 @@ export type ItemAction =
 /**  Don't install a new dependency */
 "skip";
 
+export type ItemEnchantment = {
+	id: string,
+	level: number,
+};
+
 export type ItemStack = {
 	/**  Inventory slot (0-8 hotbar, 9-35 main); -1 for equipment */
 	slot: number,
@@ -226,6 +231,8 @@ export type ItemStack = {
 	count: number,
 	customName: string | null,
 	enchanted: boolean,
+	enchantments: ItemEnchantment[],
+	lore: string[],
 	damage: number,
 	maxDamage: number | null,
 };

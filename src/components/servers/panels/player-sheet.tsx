@@ -25,6 +25,7 @@ import {
 	prettyId,
 	romanNumeral,
 } from "@/lib/minecraft"
+import { effectIcon, enchantmentIcon, enchantmentName } from "@/lib/minecraft-icons"
 import { cn } from "@/lib/utils"
 import { useAccessList, usePlayerDetails } from "@/services/server-data"
 import { serverService } from "@/services/server-service"
@@ -41,6 +42,8 @@ import {
 } from "../shared/primitives"
 
 type SheetTab = "inventory" | "ender" | "effects"
+type ItemArea = "inventory" | "ender" | "head" | "chest" | "legs" | "feet" | "offhand"
+type ItemSelection = { serverId: string; playerName: string; area: ItemArea; slot: number }
 
 export function PlayerSheet({
 	serverId,
@@ -63,7 +66,17 @@ export function PlayerSheet({
 		error,
 	} = usePlayerDetails(serverId, shownName, isRunning && Boolean(name))
 	const [tab, setTab] = useState<SheetTab>("inventory")
-	const [selectedItem, setSelectedItem] = useState<ItemStack | null>(null)
+	const [selection, setSelection] = useState<ItemSelection | null>(null)
+	const activeSelection =
+		selection?.serverId === serverId && selection.playerName === player?.name ? selection : null
+	const selectedItem =
+		player && activeSelection
+			? activeSelection.area === "inventory"
+				? player.inventory.find((item) => item.slot === activeSelection.slot)
+				: activeSelection.area === "ender"
+					? player.enderItems.find((item) => item.slot === activeSelection.slot)
+					: player[activeSelection.area]
+			: null
 
 	return (
 		<Dialog open={Boolean(name)} onOpenChange={(open) => !open && onClose()}>
@@ -142,7 +155,16 @@ export function PlayerSheet({
 										<ItemSlot
 											key={label}
 											item={item}
-											onSelect={setSelectedItem}
+											selected={activeSelection?.area === label}
+											onSelect={(selected) => {
+												setTab("inventory")
+												setSelection({
+													serverId,
+													playerName: player.name,
+													area: label,
+													slot: selected.slot,
+												})
+											}}
 											placeholder={
 												<span className="text-[9px] text-zinc-600">
 													{t(`playerSheet.slots.${label}`)}
@@ -174,7 +196,7 @@ export function PlayerSheet({
 								value={tab}
 								onChange={(t) => {
 									setTab(t)
-									setSelectedItem(null)
+									setSelection(null)
 								}}
 								options={[
 									{ value: "inventory", label: t("playerSheet.inventory") },
@@ -190,14 +212,33 @@ export function PlayerSheet({
 							/>
 
 							{tab === "inventory" && (
-								<InventoryGrid player={player} selected={selectedItem} onSelect={setSelectedItem} />
+								<InventoryGrid
+									player={player}
+									selectedSlot={activeSelection?.area === "inventory" ? activeSelection.slot : null}
+									onSelect={(item) =>
+										setSelection({
+											serverId,
+											playerName: player.name,
+											area: "inventory",
+											slot: item.slot,
+										})
+									}
+								/>
 							)}
 							{tab === "ender" && (
 								<SlotGrid
 									items={player.enderItems}
 									slots={27}
 									offset={0}
-									onSelect={setSelectedItem}
+									selectedSlot={activeSelection?.area === "ender" ? activeSelection.slot : null}
+									onSelect={(item) =>
+										setSelection({
+											serverId,
+											playerName: player.name,
+											area: "ender",
+											slot: item.slot,
+										})
+									}
 								/>
 							)}
 							{tab === "effects" && <EffectsList player={player} />}
@@ -244,11 +285,11 @@ function PlayerHeader({ player }: { player: PlayerDetails }) {
 
 function InventoryGrid({
 	player,
-	selected,
+	selectedSlot,
 	onSelect,
 }: {
 	player: PlayerDetails
-	selected: ItemStack | null
+	selectedSlot: number | null
 	onSelect: (item: ItemStack) => void
 }) {
 	return (
@@ -258,7 +299,7 @@ function InventoryGrid({
 				slots={27}
 				offset={9}
 				onSelect={onSelect}
-				selected={selected}
+				selectedSlot={selectedSlot}
 			/>
 			<div className="h-px bg-zinc-800" />
 			<SlotGrid
@@ -266,7 +307,7 @@ function InventoryGrid({
 				slots={9}
 				offset={0}
 				onSelect={onSelect}
-				selected={selected}
+				selectedSlot={selectedSlot}
 				highlightSlot={player.selectedSlot}
 			/>
 		</div>
@@ -278,14 +319,14 @@ function SlotGrid({
 	slots,
 	offset,
 	onSelect,
-	selected,
+	selectedSlot,
 	highlightSlot,
 }: {
 	items: ItemStack[]
 	slots: number
 	offset: number
 	onSelect: (item: ItemStack) => void
-	selected?: ItemStack | null
+	selectedSlot?: number | null
 	highlightSlot?: number
 }) {
 	const bySlot = new Map(items.map((i) => [i.slot, i]))
@@ -299,7 +340,7 @@ function SlotGrid({
 						key={slot}
 						item={item}
 						size="sm"
-						selected={highlightSlot === slot || (selected != null && selected === item)}
+						selected={highlightSlot === slot || selectedSlot === slot}
 						onSelect={onSelect}
 					/>
 				)
@@ -310,32 +351,89 @@ function SlotGrid({
 
 function ItemDetails({ item }: { item: ItemStack }) {
 	const { t } = useTranslation()
+	const maxDamage = item.maxDamage ?? 0
+	const durability =
+		maxDamage > 0 ? Math.max(0, Math.min(1, (maxDamage - item.damage) / maxDamage)) : null
 	return (
-		<div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
-			<ItemIcon id={item.id} className="size-9" />
-			<div className="min-w-0 flex-1 text-xs">
-				<p
-					className={cn(
-						"truncate font-medium text-sm",
-						item.enchanted ? "text-violet-300" : "text-zinc-100",
-					)}
-				>
-					{item.customName ?? prettyId(item.id)}
-				</p>
-				<p className="truncate font-mono text-[11px] text-zinc-500">
-					{item.id} × {item.count}
-					{item.maxDamage
-						? ` · ${t("playerSheet.durability", { left: item.maxDamage - item.damage, max: item.maxDamage })}`
-						: ""}
-				</p>
-			</div>
-			{item.enchanted && (
-				<span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-300">
-					{t("playerSheet.enchanted")}
+		<div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+			<div className="flex items-start gap-3">
+				<ItemIcon key={item.id} id={item.id} className="size-10 shrink-0" />
+				<div className="min-w-0 flex-1">
+					<p
+						className={cn(
+							"font-medium text-sm",
+							item.enchanted ? "text-violet-300" : "text-zinc-100",
+						)}
+					>
+						{item.customName ?? prettyId(item.id)}
+					</p>
+					{item.customName && <p className="text-xs text-zinc-400">{prettyId(item.id)}</p>}
+					<p className="break-all font-mono text-[11px] text-zinc-500">{item.id}</p>
+				</div>
+				<span className="shrink-0 rounded-md bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-300">
+					×{item.count}
 				</span>
+			</div>
+
+			{durability !== null && (
+				<div className="space-y-1">
+					<p className="text-[11px] text-zinc-400">
+						{t("playerSheet.durability", {
+							left: Math.max(0, maxDamage - item.damage),
+							max: maxDamage,
+						})}
+					</p>
+					<div className="h-1 overflow-hidden rounded-full bg-zinc-800">
+						<div className="h-full bg-emerald-400" style={{ width: `${durability * 100}%` }} />
+					</div>
+				</div>
+			)}
+
+			{item.lore.length > 0 && (
+				<div className="whitespace-pre-line border-zinc-800 border-t pt-3 text-xs text-zinc-400 italic">
+					{item.lore.join("\n")}
+				</div>
+			)}
+
+			{item.enchantments.length > 0 ? (
+				<div className="border-zinc-800 border-t pt-3">
+					<p className="mb-2 text-[11px] text-violet-300">{t("playerSheet.enchanted")}</p>
+					<div className="grid gap-1.5 sm:grid-cols-2">
+						{item.enchantments.map((enchantment) => (
+							<div
+								key={enchantment.id}
+								className="flex min-w-0 items-center gap-2 text-xs text-zinc-200"
+							>
+								<EnchantmentIcon id={enchantment.id} />
+								<span className="min-w-0 flex-1 truncate" title={enchantment.id}>
+									{enchantmentName(enchantment.id)}
+								</span>
+								<span className="shrink-0 font-mono text-violet-300">
+									{romanNumeral(enchantment.level)}
+								</span>
+							</div>
+						))}
+					</div>
+				</div>
+			) : (
+				item.enchanted && (
+					<p className="border-zinc-800 border-t pt-3 text-[11px] text-violet-300">
+						{t("playerSheet.enchanted")}
+					</p>
+				)
 			)}
 		</div>
 	)
+}
+
+function EnchantmentIcon({ id }: { id: string }) {
+	const Icon = enchantmentIcon(id)
+	return <Icon className="size-5 shrink-0 text-violet-400" aria-hidden="true" />
+}
+
+function EffectIcon({ id }: { id: string }) {
+	const Icon = effectIcon(id)
+	return <Icon className="size-8 shrink-0 p-1 text-zinc-400" aria-hidden="true" />
 }
 
 function EffectsList({ player }: { player: PlayerDetails }) {
@@ -346,8 +444,9 @@ function EffectsList({ player }: { player: PlayerDetails }) {
 	return (
 		<div className="flex flex-col divide-y divide-zinc-800/70 rounded-xl border border-zinc-800">
 			{player.effects.map((e) => (
-				<div key={e.id} className="flex items-center justify-between px-3 py-2.5 text-xs">
-					<span className="text-zinc-200">
+				<div key={e.id} className="flex items-center gap-2.5 px-3 py-2.5 text-xs">
+					<EffectIcon id={e.id} />
+					<span className="min-w-0 flex-1 text-zinc-200">
 						{prettyId(e.id)} {romanNumeral(e.amplifier + 1)}
 					</span>
 					<span className="font-mono text-zinc-500">{formatTicks(e.duration)}</span>

@@ -207,6 +207,7 @@ export function ItemSlot({
 			{item ? (
 				<>
 					<ItemIcon
+						key={item.id}
 						id={item.id}
 						className={cn("size-full", item.enchanted && "drop-shadow-[0_0_4px_#c084fc]")}
 					/>

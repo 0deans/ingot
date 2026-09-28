@@ -274,6 +274,13 @@ impl SnbtParser<'_> {
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+pub struct ItemEnchantment {
+    pub id: String,
+    pub level: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ItemStack {
     /// Inventory slot (0-8 hotbar, 9-35 main); -1 for equipment
     pub slot: i32,
@@ -281,6 +288,8 @@ pub struct ItemStack {
     pub count: i32,
     pub custom_name: Option<String>,
     pub enchanted: bool,
+    pub enchantments: Vec<ItemEnchantment>,
+    pub lore: Vec<String>,
     pub damage: i32,
     pub max_damage: Option<i32>,
 }
@@ -358,21 +367,72 @@ fn gamemode_name(id: i64) -> &'static str {
 }
 
 /// Text components are either plain strings, JSON strings or `{text: ...}` compounds
+fn json_component_text(value: &serde_json::Value) -> Option<String> {
+    match value {
+        serde_json::Value::String(text) => Some(text.clone()),
+        serde_json::Value::Array(parts) => {
+            let text: String = parts.iter().filter_map(json_component_text).collect();
+            (!text.is_empty()).then_some(text)
+        }
+        serde_json::Value::Object(fields) => {
+            let mut text = fields.get("text").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
+            if let Some(extra) = fields.get("extra") {
+                if let Some(more) = json_component_text(extra) {
+                    text.push_str(&more);
+                }
+            }
+            (!text.is_empty()).then_some(text)
+        }
+        _ => None,
+    }
+}
+
 fn component_text(value: &Nbt) -> Option<String> {
     match value {
         Nbt::String(s) => {
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(s) {
-                if let Some(text) = json.get("text").and_then(|t| t.as_str()) {
-                    return Some(text.to_string());
-                }
-                if let Some(text) = json.as_str() {
-                    return Some(text.to_string());
+                if let Some(text) = json_component_text(&json) {
+                    return Some(text);
                 }
             }
             Some(s.clone())
         }
-        Nbt::Compound(_) => value.get("text").and_then(Nbt::as_str).map(str::to_string),
+        Nbt::Compound(_) => {
+            let mut text = value.get("text").and_then(Nbt::as_str).unwrap_or_default().to_string();
+            if let Some(extra) = value.get("extra") {
+                for part in extra.as_list() {
+                    if let Some(more) = component_text(part) {
+                        text.push_str(&more);
+                    }
+                }
+            }
+            (!text.is_empty()).then_some(text)
+        }
         _ => None,
+    }
+}
+
+fn collect_enchantments(value: &Nbt, levels: &mut HashMap<String, i32>) {
+    match value.get("levels").unwrap_or(value) {
+        Nbt::Compound(entries) => {
+            for (id, level) in entries {
+                if let Some(level) = level.as_f64().filter(|_| id.contains(':')) {
+                    levels.insert(id.clone(), level as i32);
+                }
+            }
+        }
+        // Items saved before data components used the Enchantments/StoredEnchantments lists.
+        Nbt::List(entries) => {
+            for entry in entries {
+                if let (Some(id), Some(level)) = (
+                    entry.get("id").and_then(Nbt::as_str),
+                    entry.num("lvl").or_else(|| entry.num("level")),
+                ) {
+                    levels.insert(id.to_string(), level as i32);
+                }
+            }
+        }
+        _ => {}
     }
 }
 
@@ -381,17 +441,41 @@ fn parse_item(item: &Nbt, slot: i32) -> Option<ItemStack> {
     let count = item.num("count").or_else(|| item.num("Count")).unwrap_or(1.0) as i32;
     let components = item.get("components");
     let component = |key: &str| components.and_then(|c| c.get(key));
-    let enchanted = component("minecraft:enchantments").is_some_and(|e| match e {
-        Nbt::Compound(map) => !map.is_empty(),
-        _ => true,
-    }) || component("minecraft:stored_enchantments").is_some()
+    let mut levels = HashMap::new();
+    for source in [
+        component("minecraft:enchantments"),
+        component("minecraft:stored_enchantments"),
+        item.get("Enchantments"),
+        item.get("StoredEnchantments"),
+        item.get("tag").and_then(|tag| tag.get("Enchantments")),
+        item.get("tag").and_then(|tag| tag.get("StoredEnchantments")),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        collect_enchantments(source, &mut levels);
+    }
+    let mut enchantments: Vec<ItemEnchantment> = levels
+        .into_iter()
+        .map(|(id, level)| ItemEnchantment { id, level })
+        .collect();
+    enchantments.sort_by(|a, b| a.id.cmp(&b.id));
+    let enchanted = !enchantments.is_empty()
         || component("minecraft:enchantment_glint_override").and_then(Nbt::as_f64) == Some(1.0);
+    let lore = component("minecraft:lore")
+        .or_else(|| item.get("tag").and_then(|tag| tag.get("display")).and_then(|display| display.get("Lore")))
+        .map(|value| value.as_list().iter().filter_map(component_text).collect())
+        .unwrap_or_default();
     Some(ItemStack {
         slot,
         id,
         count,
-        custom_name: component("minecraft:custom_name").and_then(component_text),
+        custom_name: component("minecraft:custom_name")
+            .or_else(|| item.get("tag").and_then(|tag| tag.get("display")).and_then(|display| display.get("Name")))
+            .and_then(component_text),
         enchanted,
+        enchantments,
+        lore,
         damage: component("minecraft:damage").and_then(Nbt::as_f64).unwrap_or(0.0) as i32,
         max_damage: component("minecraft:max_damage").and_then(Nbt::as_f64).map(|v| v as i32),
     })
@@ -725,10 +809,35 @@ mod tests {
         assert_eq!(p.uuid.as_deref(), Some("70ac6bb6-7042-3dbf-8136-47f7983fda63"));
         assert_eq!(p.inventory.len(), 2);
         assert!(p.inventory[0].enchanted);
+        assert_eq!(p.inventory[0].enchantments[0].id, "minecraft:sharpness");
+        assert_eq!(p.inventory[0].enchantments[0].level, 5);
         assert_eq!(p.inventory[0].custom_name.as_deref(), Some("Blade"));
         assert_eq!(p.inventory[0].damage, 12);
         assert_eq!(p.head.as_ref().map(|h| h.id.as_str()), Some("minecraft:iron_helmet"));
         assert_eq!(p.effects[0].amplifier, 1);
+    }
+
+    #[test]
+    fn parses_stored_and_legacy_item_details() {
+        let modern = parse_snbt(
+            r#"{id:"minecraft:enchanted_book",count:1,components:{"minecraft:stored_enchantments":{levels:{"minecraft:mending":1,"minecraft:unbreaking":3}},"minecraft:lore":['{"text":"A lucky find"}']}}"#,
+        )
+        .unwrap();
+        let book = parse_item(&modern, 0).unwrap();
+        assert!(book.enchanted);
+        assert_eq!(book.enchantments.len(), 2);
+        assert_eq!(book.enchantments[0].id, "minecraft:mending");
+        assert_eq!(book.enchantments[1].level, 3);
+        assert_eq!(book.lore, ["A lucky find"]);
+
+        let legacy = parse_snbt(
+            r#"{id:"minecraft:iron_sword",Count:1b,tag:{display:{Name:'{"text":"Old blade"}',Lore:['{"text":"One","extra":[{"text":" more"}]}']},Enchantments:[{id:"minecraft:sharpness",lvl:4s}]}}"#,
+        )
+        .unwrap();
+        let sword = parse_item(&legacy, 0).unwrap();
+        assert_eq!(sword.custom_name.as_deref(), Some("Old blade"));
+        assert_eq!(sword.enchantments[0].level, 4);
+        assert_eq!(sword.lore, ["One more"]);
     }
 
     #[test]
