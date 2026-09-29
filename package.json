@@ -5,6 +5,7 @@
 	"packageManager": "pnpm@12.4.1",
 	"description": "Fast, lightweight Minecraft launcher built with Tauri and React",
 	"author": "0deans <https://github.com/0deans>",
+	"license": "GPL-3.0-only",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
