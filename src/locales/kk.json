@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "мыс. Steve",
 		"adding": "Қосылуда...",
 		"addProfile": "Профиль қосу",
-		"microsoftTitle": "Microsoft / Xbox Live арқылы кіру",
-		"microsoftSoon": "Microsoft аккаунтымен ресми кіру келесі нұсқалардың бірінде қосылады."
+		"microsoftNote": "Minecraft: Java Edition сатып алынған Microsoft аккаунтымен кіріңіз.",
+		"microsoftSignIn": "Microsoft арқылы кіру",
+		"microsoftEnterCode": "Microsoft бетін ашып, осы кодты енгізіңіз:",
+		"microsoftOpenPage": "Кодты көшіріп, бетті ашу",
+		"microsoftWaiting": "Кіруіңізді күтудеміз…",
+		"microsoftFailed": "Microsoft арқылы кіру сәтсіз аяқталды"
 	},
 	"properties": {
 		"groups": {

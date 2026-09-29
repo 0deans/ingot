@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "e.g. Steve",
 		"adding": "Adding...",
 		"addProfile": "Add Profile",
-		"microsoftTitle": "Microsoft / Xbox Live Login",
-		"microsoftSoon": "Official Mojang Microsoft account OAuth integration will be available in an upcoming release."
+		"microsoftNote": "Sign in with the Microsoft account that owns Minecraft: Java Edition.",
+		"microsoftSignIn": "Sign in with Microsoft",
+		"microsoftEnterCode": "Open the Microsoft page and enter this code:",
+		"microsoftOpenPage": "Copy code and open page",
+		"microsoftWaiting": "Waiting for you to sign in…",
+		"microsoftFailed": "Microsoft sign-in failed"
 	},
 	"properties": {
 		"groups": {

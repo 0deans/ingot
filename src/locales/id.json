@@ -712,8 +712,12 @@
 		"nicknamePlaceholder": "cth. Steve",
 		"adding": "Menambahkan...",
 		"addProfile": "Tambah Profil",
-		"microsoftTitle": "Masuk Microsoft / Xbox Live",
-		"microsoftSoon": "Integrasi OAuth akun Microsoft Mojang resmi akan tersedia dalam rilis mendatang."
+		"microsoftNote": "Masuk dengan akun Microsoft yang memiliki Minecraft: Java Edition.",
+		"microsoftSignIn": "Masuk dengan Microsoft",
+		"microsoftEnterCode": "Buka halaman Microsoft dan masukkan kode ini:",
+		"microsoftOpenPage": "Salin kode dan buka halaman",
+		"microsoftWaiting": "Menunggu kamu masuk…",
+		"microsoftFailed": "Gagal masuk dengan Microsoft"
 	},
 	"properties": {
 		"groups": {

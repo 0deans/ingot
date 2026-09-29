@@ -33,3 +33,6 @@ dist-ssr
 # Android signing keys: keep them out of git (CI gets the key from secrets)
 *.keystore
 *.jks
+
+# Local build settings (see .env.example)
+.env

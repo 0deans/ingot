@@ -712,8 +712,12 @@
 		"nicknamePlaceholder": "ví dụ: Steve",
 		"adding": "Đang thêm...",
 		"addProfile": "Thêm hồ sơ",
-		"microsoftTitle": "Đăng nhập Microsoft / Xbox Live",
-		"microsoftSoon": "Tích hợp xác thực OAuth tài khoản Mojang Microsoft chính thức sẽ ra mắt trong bản phát hành sắp tới."
+		"microsoftNote": "Đăng nhập bằng tài khoản Microsoft sở hữu Minecraft: Java Edition.",
+		"microsoftSignIn": "Đăng nhập bằng Microsoft",
+		"microsoftEnterCode": "Mở trang Microsoft và nhập mã này:",
+		"microsoftOpenPage": "Sao chép mã và mở trang",
+		"microsoftWaiting": "Đang chờ bạn đăng nhập…",
+		"microsoftFailed": "Đăng nhập Microsoft thất bại"
 	},
 	"properties": {
 		"groups": {

@@ -739,8 +739,12 @@
 		"nicknamePlaceholder": "напрыклад, Steve",
 		"adding": "Даданне...",
 		"addProfile": "Дадаць профіль",
-		"microsoftTitle": "Уваход праз Microsoft / Xbox Live",
-		"microsoftSoon": "Афіцыйны ўваход праз акаўнт Microsoft з'явіцца ў адным з наступных абнаўленняў."
+		"microsoftNote": "Увайдзіце з акаўнтам Microsoft, на якім купляны Minecraft: Java Edition.",
+		"microsoftSignIn": "Увайсці праз Microsoft",
+		"microsoftEnterCode": "Адкрыйце старонку Microsoft і ўвядзіце гэты код:",
+		"microsoftOpenPage": "Скапіяваць код і адкрыць старонку",
+		"microsoftWaiting": "Чакаем уваходу…",
+		"microsoftFailed": "Не ўдалося ўвайсці праз Microsoft"
 	},
 	"properties": {
 		"groups": {

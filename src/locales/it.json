@@ -730,8 +730,12 @@
 		"nicknamePlaceholder": "es. Steve",
 		"adding": "Aggiunta...",
 		"addProfile": "Aggiungi profilo",
-		"microsoftTitle": "Accesso Microsoft / Xbox Live",
-		"microsoftSoon": "L'accesso ufficiale con account Microsoft arriverà in una prossima versione."
+		"microsoftNote": "Accedi con l'account Microsoft che possiede Minecraft: Java Edition.",
+		"microsoftSignIn": "Accedi con Microsoft",
+		"microsoftEnterCode": "Apri la pagina Microsoft e inserisci questo codice:",
+		"microsoftOpenPage": "Copia il codice e apri la pagina",
+		"microsoftWaiting": "In attesa dell'accesso…",
+		"microsoftFailed": "Accesso con Microsoft non riuscito"
 	},
 	"properties": {
 		"groups": {

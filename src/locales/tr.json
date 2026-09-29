@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "ör. Steve",
 		"adding": "Ekleniyor...",
 		"addProfile": "Profil Ekle",
-		"microsoftTitle": "Microsoft / Xbox Live Oturum Açma",
-		"microsoftSoon": "Resmi Mojang Microsoft hesabı OAuth entegrasyonu gelecek sürümde kullanıma sunulacak."
+		"microsoftNote": "Minecraft: Java Edition'a sahip Microsoft hesabıyla giriş yapın.",
+		"microsoftSignIn": "Microsoft ile giriş yap",
+		"microsoftEnterCode": "Microsoft sayfasını açın ve bu kodu girin:",
+		"microsoftOpenPage": "Kodu kopyala ve sayfayı aç",
+		"microsoftWaiting": "Girişiniz bekleniyor…",
+		"microsoftFailed": "Microsoft ile giriş başarısız oldu"
 	},
 	"properties": {
 		"groups": {

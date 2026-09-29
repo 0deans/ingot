@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { type AccountProfile, createTauRPCProxy } from "@/bindings"
+import { type AccountProfile, createTauRPCProxy, type MicrosoftDeviceCode } from "@/bindings"
 
 export const rpc = createTauRPCProxy()
 
@@ -56,6 +56,22 @@ export const accountService = {
 		]
 		notify(updated)
 		return account
+	},
+
+	/** Gets the code the user enters on microsoft.com/link */
+	startMicrosoftLogin(): Promise<MicrosoftDeviceCode> {
+		return rpc.microsoft_login_start()
+	},
+
+	/** Resolves once the user has entered the code and the account is saved */
+	async finishMicrosoftLogin(code: MicrosoftDeviceCode): Promise<AccountProfile> {
+		const account = await rpc.microsoft_login_finish(code)
+		await this.refreshAccounts()
+		return account
+	},
+
+	cancelMicrosoftLogin(): Promise<void> {
+		return rpc.microsoft_login_cancel()
 	},
 
 	async addOfflineAccount(username: string): Promise<AccountProfile> {

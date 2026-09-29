@@ -712,8 +712,12 @@
 		"nicknamePlaceholder": "例: Steve",
 		"adding": "追加中...",
 		"addProfile": "プロフィールを追加",
-		"microsoftTitle": "Microsoft / Xbox Live ログイン",
-		"microsoftSoon": "Mojang 公式の Microsoft アカウント OAuth 連携は今後のリリースで利用可能になる予定です。"
+		"microsoftNote": "Minecraft: Java Editionを所有しているMicrosoftアカウントでサインインしてください。",
+		"microsoftSignIn": "Microsoftでサインイン",
+		"microsoftEnterCode": "Microsoftのページを開き、このコードを入力してください:",
+		"microsoftOpenPage": "コードをコピーしてページを開く",
+		"microsoftWaiting": "サインインを待っています…",
+		"microsoftFailed": "Microsoftでのサインインに失敗しました"
 	},
 	"properties": {
 		"groups": {

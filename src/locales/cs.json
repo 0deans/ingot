@@ -739,8 +739,12 @@
 		"nicknamePlaceholder": "např. Steve",
 		"adding": "Přidávání...",
 		"addProfile": "Přidat profil",
-		"microsoftTitle": "Přihlášení Microsoft / Xbox Live",
-		"microsoftSoon": "Oficiální přihlášení účtem Microsoft přijde v některé z příštích verzí."
+		"microsoftNote": "Přihlaste se účtem Microsoft, na kterém vlastníte Minecraft: Java Edition.",
+		"microsoftSignIn": "Přihlásit se přes Microsoft",
+		"microsoftEnterCode": "Otevřete stránku Microsoft a zadejte tento kód:",
+		"microsoftOpenPage": "Zkopírovat kód a otevřít stránku",
+		"microsoftWaiting": "Čekáme na přihlášení…",
+		"microsoftFailed": "Přihlášení přes Microsoft se nezdařilo"
 	},
 	"properties": {
 		"groups": {

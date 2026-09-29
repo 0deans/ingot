@@ -739,8 +739,12 @@
 		"nicknamePlaceholder": "np. Steve",
 		"adding": "Dodawanie...",
 		"addProfile": "Dodaj profil",
-		"microsoftTitle": "Logowanie Microsoft / Xbox Live",
-		"microsoftSoon": "Oficjalne logowanie kontem Microsoft pojawi się w jednej z kolejnych wersji."
+		"microsoftNote": "Zaloguj się kontem Microsoft, na którym masz Minecraft: Java Edition.",
+		"microsoftSignIn": "Zaloguj się przez Microsoft",
+		"microsoftEnterCode": "Otwórz stronę Microsoft i wpisz ten kod:",
+		"microsoftOpenPage": "Skopiuj kod i otwórz stronę",
+		"microsoftWaiting": "Czekamy na zalogowanie…",
+		"microsoftFailed": "Logowanie przez Microsoft nie powiodło się"
 	},
 	"properties": {
 		"groups": {

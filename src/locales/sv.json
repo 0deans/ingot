@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "t.ex. Steve",
 		"adding": "Lägger till...",
 		"addProfile": "Lägg till profil",
-		"microsoftTitle": "Microsoft-/Xbox Live-inloggning",
-		"microsoftSoon": "Officiell inloggning med Microsoft-konto kommer i en senare version."
+		"microsoftNote": "Logga in med Microsoft-kontot som äger Minecraft: Java Edition.",
+		"microsoftSignIn": "Logga in med Microsoft",
+		"microsoftEnterCode": "Öppna Microsofts sida och ange den här koden:",
+		"microsoftOpenPage": "Kopiera koden och öppna sidan",
+		"microsoftWaiting": "Väntar på att du loggar in…",
+		"microsoftFailed": "Inloggningen med Microsoft misslyckades"
 	},
 	"properties": {
 		"groups": {

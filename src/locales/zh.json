@@ -712,8 +712,12 @@
 		"nicknamePlaceholder": "例如 Steve",
 		"adding": "正在添加...",
 		"addProfile": "添加档案",
-		"microsoftTitle": "Microsoft / Xbox Live 登录",
-		"microsoftSoon": "Mojang 官方 Microsoft 账号 OAuth 集成将在后续版本中推出。"
+		"microsoftNote": "请使用拥有 Minecraft: Java Edition 的 Microsoft 账户登录。",
+		"microsoftSignIn": "使用 Microsoft 登录",
+		"microsoftEnterCode": "打开 Microsoft 页面并输入此代码：",
+		"microsoftOpenPage": "复制代码并打开页面",
+		"microsoftWaiting": "正在等待你登录…",
+		"microsoftFailed": "Microsoft 登录失败"
 	},
 	"properties": {
 		"groups": {

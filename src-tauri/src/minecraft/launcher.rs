@@ -433,20 +433,20 @@ where
     let (player_name, uuid_str, access_token, user_type, is_ely) = match active_account {
         Some(acc) => {
             let is_ely = acc.account_type == "ely";
-            let token = if is_ely {
+            let is_microsoft = acc.account_type == "microsoft";
+            let token = if is_microsoft {
+                // Without a valid token the game would start but every server would kick the
+                // player, so a failed refresh stops the launch with the reason
+                crate::account::get_active_account_token(app.clone()).await?
+            } else if is_ely {
                 crate::account::get_active_account_token(app.clone())
                     .await
                     .unwrap_or_else(|_| "0".to_string())
             } else {
                 "0".to_string()
             };
-            (
-                acc.username,
-                acc.uuid,
-                token,
-                "mojang",
-                is_ely,
-            )
+            let user_type = if is_microsoft { "msa" } else { "mojang" };
+            (acc.username, acc.uuid, token, user_type, is_ely)
         }
         None => (
             "Player".to_string(),

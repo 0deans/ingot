@@ -739,8 +739,12 @@
 		"nicknamePlaceholder": "например, Steve",
 		"adding": "Добавление...",
 		"addProfile": "Добавить профиль",
-		"microsoftTitle": "Вход через Microsoft / Xbox Live",
-		"microsoftSoon": "Официальный вход через аккаунт Microsoft появится в одном из следующих обновлений."
+		"microsoftNote": "Войдите с аккаунтом Microsoft, на котором куплен Minecraft: Java Edition.",
+		"microsoftSignIn": "Войти через Microsoft",
+		"microsoftEnterCode": "Откройте страницу Microsoft и введите этот код:",
+		"microsoftOpenPage": "Скопировать код и открыть страницу",
+		"microsoftWaiting": "Ожидаем входа…",
+		"microsoftFailed": "Не удалось войти через Microsoft"
 	},
 	"properties": {
 		"groups": {

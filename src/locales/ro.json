@@ -730,8 +730,12 @@
 		"nicknamePlaceholder": "ex. Steve",
 		"adding": "Se adaugă...",
 		"addProfile": "Adaugă profil",
-		"microsoftTitle": "Autentificare Microsoft / Xbox Live",
-		"microsoftSoon": "Integrarea oficială OAuth a conturilor Microsoft Mojang va fi disponibilă într-o versiune viitoare."
+		"microsoftNote": "Conectează-te cu contul Microsoft care deține Minecraft: Java Edition.",
+		"microsoftSignIn": "Conectare cu Microsoft",
+		"microsoftEnterCode": "Deschide pagina Microsoft și introdu acest cod:",
+		"microsoftOpenPage": "Copiază codul și deschide pagina",
+		"microsoftWaiting": "Se așteaptă conectarea…",
+		"microsoftFailed": "Conectarea cu Microsoft a eșuat"
 	},
 	"properties": {
 		"groups": {

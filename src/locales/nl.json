@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "bijv. Steve",
 		"adding": "Toevoegen...",
 		"addProfile": "Profiel toevoegen",
-		"microsoftTitle": "Inloggen met Microsoft / Xbox Live",
-		"microsoftSoon": "Officieel inloggen met een Microsoft-account komt in een volgende versie."
+		"microsoftNote": "Log in met het Microsoft-account waarop Minecraft: Java Edition staat.",
+		"microsoftSignIn": "Inloggen met Microsoft",
+		"microsoftEnterCode": "Open de Microsoft-pagina en voer deze code in:",
+		"microsoftOpenPage": "Code kopiëren en pagina openen",
+		"microsoftWaiting": "Wachten tot je inlogt…",
+		"microsoftFailed": "Inloggen met Microsoft mislukt"
 	},
 	"properties": {
 		"groups": {

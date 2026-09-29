@@ -71,6 +71,12 @@ pub trait AppApi {
         username: String,
         password: String,
     ) -> Result<AccountProfile, String>;
+    async fn microsoft_login_start() -> Result<crate::auth::microsoft::MicrosoftDeviceCode, String>;
+    async fn microsoft_login_finish(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        code: crate::auth::microsoft::MicrosoftDeviceCode,
+    ) -> Result<AccountProfile, String>;
+    async fn microsoft_login_cancel();
     async fn add_offline_account(
         app_handle: tauri::AppHandle<impl Runtime>,
         username: String,
@@ -775,6 +781,24 @@ impl AppApi for AppApiImpl {
         password: String,
     ) -> Result<AccountProfile, String> {
         account::ely_login(app_handle, username, password).await
+    }
+
+    async fn microsoft_login_start(
+        self,
+    ) -> Result<crate::auth::microsoft::MicrosoftDeviceCode, String> {
+        account::microsoft_login_start().await
+    }
+
+    async fn microsoft_login_finish(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        code: crate::auth::microsoft::MicrosoftDeviceCode,
+    ) -> Result<AccountProfile, String> {
+        account::microsoft_login_finish(app_handle, code).await
+    }
+
+    async fn microsoft_login_cancel(self) {
+        account::microsoft_login_cancel()
     }
 
     async fn add_offline_account(

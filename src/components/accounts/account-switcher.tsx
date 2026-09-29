@@ -100,6 +100,11 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 										Ely.by
 									</span>
 								)}
+								{activeAccount?.accountType === "microsoft" && (
+									<span className="inline-flex items-center rounded-xs bg-sky-500/10 px-1 py-0.2 text-[9px] text-sky-400">
+										Microsoft
+									</span>
+								)}
 								{activeAccount?.accountType === "offline" && (
 									<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1 py-0.2 text-[9px] text-zinc-400">
 										{t("accounts.offline")}
@@ -107,7 +112,8 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 								)}
 							</div>
 							<span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-								{activeAccount?.accountType === "ely" ? (
+								{activeAccount?.accountType === "ely" ||
+								activeAccount?.accountType === "microsoft" ? (
 									<>
 										<ShieldCheck className="size-2.5 text-emerald-500/80" />
 										{t("accounts.securedInVault")}
@@ -155,7 +161,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 													<span className="text-[9px] text-muted-foreground capitalize">
 														{acc.accountType}
 													</span>
-													{acc.accountType === "ely" && (
+													{acc.accountType !== "offline" && (
 														<ShieldCheck className="size-2.5 text-emerald-500" />
 													)}
 												</div>

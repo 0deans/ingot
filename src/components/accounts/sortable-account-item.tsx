@@ -93,6 +93,11 @@ export const AccountCardContent = memo(function AccountCardContent({
 								Ely.by
 							</span>
 						)}
+						{account.accountType === "microsoft" && (
+							<span className="inline-flex items-center rounded-xs bg-sky-500/15 px-1.5 py-0.5 font-medium text-[10px] text-sky-400">
+								Microsoft
+							</span>
+						)}
 						{account.accountType === "offline" && (
 							<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1.5 py-0.5 font-medium text-[10px] text-zinc-400">
 								{t("accounts.offline")}

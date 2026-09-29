@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "z. B. Steve",
 		"adding": "Wird hinzugefügt...",
 		"addProfile": "Profil hinzufügen",
-		"microsoftTitle": "Microsoft-/Xbox-Live-Anmeldung",
-		"microsoftSoon": "Die offizielle Anmeldung mit Microsoft-Konto kommt in einer späteren Version."
+		"microsoftNote": "Melde dich mit dem Microsoft-Konto an, dem Minecraft: Java Edition gehört.",
+		"microsoftSignIn": "Mit Microsoft anmelden",
+		"microsoftEnterCode": "Öffne die Microsoft-Seite und gib diesen Code ein:",
+		"microsoftOpenPage": "Code kopieren und Seite öffnen",
+		"microsoftWaiting": "Warte auf deine Anmeldung…",
+		"microsoftFailed": "Microsoft-Anmeldung fehlgeschlagen"
 	},
 	"properties": {
 		"groups": {

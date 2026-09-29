@@ -721,8 +721,12 @@
 		"nicknamePlaceholder": "pl. Steve",
 		"adding": "Hozzáadás...",
 		"addProfile": "Profil hozzáadása",
-		"microsoftTitle": "Microsoft / Xbox Live bejelentkezés",
-		"microsoftSoon": "A hivatalos Mojang Microsoft-fiók OAuth integráció egy közelgő kiadásban lesz elérhető."
+		"microsoftNote": "Jelentkezz be azzal a Microsoft-fiókkal, amelyhez a Minecraft: Java Edition tartozik.",
+		"microsoftSignIn": "Bejelentkezés Microsofttal",
+		"microsoftEnterCode": "Nyisd meg a Microsoft oldalát, és írd be ezt a kódot:",
+		"microsoftOpenPage": "Kód másolása és oldal megnyitása",
+		"microsoftWaiting": "Várakozás a bejelentkezésre…",
+		"microsoftFailed": "A Microsoft-bejelentkezés sikertelen"
 	},
 	"properties": {
 		"groups": {

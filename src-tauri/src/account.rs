@@ -1,9 +1,11 @@
 use crate::auth::ely::{ElyAuthService, ElySkinsCatalogResponse};
+use crate::auth::microsoft::{self, MicrosoftDeviceCode, MinecraftSession};
 use crate::keyring_store;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
@@ -20,13 +22,19 @@ pub struct AccountProfile {
     pub created_at: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountSecrets {
     pub access_token: String,
     pub client_token: String,
     #[serde(default)]
     pub password: Option<String>,
+    /// Microsoft accounts: renews the Minecraft token without signing in again
+    #[serde(default)]
+    pub refresh_token: Option<String>,
+    /// Microsoft accounts: when the Minecraft token expires (unix seconds)
+    #[serde(default)]
+    pub expires_at: Option<u64>,
 }
 
 fn get_storage_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
@@ -107,6 +115,7 @@ pub async fn ely_login<R: tauri::Runtime>(
         access_token: auth_resp.access_token,
         client_token: auth_resp.client_token,
         password: Some(password),
+        ..Default::default()
     };
     let secrets_json = serde_json::to_string(&secrets)
         .map_err(|e| format!("Failed to serialize credentials: {e}"))?;
@@ -187,6 +196,99 @@ pub fn add_offline_account<R: tauri::Runtime>(
     Ok(new_profile)
 }
 
+/// Bumped by every new or cancelled Microsoft sign-in, so an abandoned wait stops polling
+static MICROSOFT_LOGIN_ATTEMPT: AtomicU64 = AtomicU64::new(0);
+
+pub async fn microsoft_login_start() -> Result<MicrosoftDeviceCode, String> {
+    MICROSOFT_LOGIN_ATTEMPT.fetch_add(1, Ordering::SeqCst);
+    microsoft::start_device_login().await
+}
+
+pub fn microsoft_login_cancel() {
+    MICROSOFT_LOGIN_ATTEMPT.fetch_add(1, Ordering::SeqCst);
+}
+
+/// Waits for the user to enter the code, then saves and activates the account
+pub async fn microsoft_login_finish<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    code: MicrosoftDeviceCode,
+) -> Result<AccountProfile, String> {
+    let attempt = MICROSOFT_LOGIN_ATTEMPT.load(Ordering::SeqCst);
+    let is_cancelled = || MICROSOFT_LOGIN_ATTEMPT.load(Ordering::SeqCst) != attempt;
+
+    let session = microsoft::finish_device_login(&code, is_cancelled).await?;
+    let account_id = format!("microsoft:{}", session.uuid);
+    save_microsoft_secrets(&account_id, &session)?;
+
+    let mut accounts = load_accounts_file(&app)?;
+    for acc in &mut accounts {
+        acc.is_active = false;
+    }
+
+    let new_profile = AccountProfile {
+        id: account_id.clone(),
+        account_type: "microsoft".to_string(),
+        username: session.username,
+        uuid: session.uuid,
+        skin_url: session.skin_url,
+        is_active: true,
+        created_at: current_timestamp(),
+    };
+
+    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
+        accounts[pos] = new_profile.clone();
+    } else {
+        accounts.push(new_profile.clone());
+    }
+
+    save_accounts_file(&app, &accounts)?;
+    Ok(new_profile)
+}
+
+fn save_microsoft_secrets(account_id: &str, session: &MinecraftSession) -> Result<(), String> {
+    let secrets = AccountSecrets {
+        access_token: session.access_token.clone(),
+        refresh_token: Some(session.refresh_token.clone()),
+        expires_at: Some(session.expires_at),
+        ..Default::default()
+    };
+    let json = serde_json::to_string(&secrets)
+        .map_err(|e| format!("Failed to serialize credentials: {e}"))?;
+    keyring_store::save_secret(account_id, &json)
+}
+
+/// A valid Minecraft token for a Microsoft account, refreshed when close to expiry.
+/// Also picks up name and skin changes made on minecraft.net.
+async fn microsoft_access_token<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account: &AccountProfile,
+    secrets: AccountSecrets,
+) -> Result<String, String> {
+    const EXPIRY_MARGIN_SECS: u64 = 5 * 60;
+
+    let still_valid = secrets
+        .expires_at
+        .is_some_and(|at| at > current_timestamp() + EXPIRY_MARGIN_SECS);
+    if still_valid {
+        return Ok(secrets.access_token);
+    }
+
+    let refresh_token = secrets
+        .refresh_token
+        .ok_or("Your Microsoft session expired, please sign in again")?;
+    let session = microsoft::refresh(&refresh_token).await?;
+    save_microsoft_secrets(&account.id, &session)?;
+
+    let mut accounts = load_accounts_file(app)?;
+    if let Some(acc) = accounts.iter_mut().find(|a| a.id == account.id) {
+        acc.username = session.username.clone();
+        acc.skin_url = session.skin_url.clone();
+        save_accounts_file(app, &accounts)?;
+    }
+
+    Ok(session.access_token)
+}
+
 pub fn get_accounts<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<AccountProfile>, String> {
@@ -260,6 +362,10 @@ pub async fn get_active_account_token<R: tauri::Runtime>(
     let secrets: AccountSecrets = serde_json::from_str(&secret_str)
         .map_err(|e| format!("Failed to parse stored credentials: {e}"))?;
 
+    if active.account_type == "microsoft" {
+        return microsoft_access_token(&app, active, secrets).await;
+    }
+
     let auth_service = ElyAuthService::new();
 
     // Check if token is still valid
@@ -280,6 +386,7 @@ pub async fn get_active_account_token<R: tauri::Runtime>(
         access_token: refresh_res.access_token.clone(),
         client_token: refresh_res.client_token,
         password: secrets.password,
+        ..Default::default()
     };
     let updated_json = serde_json::to_string(&updated_secrets)
         .map_err(|e| format!("Failed to serialize refreshed credentials: {e}"))?;

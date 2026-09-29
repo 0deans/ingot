@@ -730,8 +730,12 @@
 		"nicknamePlaceholder": "p. ej. Steve",
 		"adding": "Añadiendo...",
 		"addProfile": "Añadir perfil",
-		"microsoftTitle": "Inicio de sesión de Microsoft / Xbox Live",
-		"microsoftSoon": "El inicio de sesión oficial con cuenta de Microsoft llegará en una próxima versión."
+		"microsoftNote": "Inicia sesión con la cuenta de Microsoft que tiene Minecraft: Java Edition.",
+		"microsoftSignIn": "Iniciar sesión con Microsoft",
+		"microsoftEnterCode": "Abre la página de Microsoft e introduce este código:",
+		"microsoftOpenPage": "Copiar código y abrir página",
+		"microsoftWaiting": "Esperando a que inicies sesión…",
+		"microsoftFailed": "Error al iniciar sesión con Microsoft"
 	},
 	"properties": {
 		"groups": {
