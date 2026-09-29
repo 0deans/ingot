@@ -32,7 +32,9 @@ export const Route = createFileRoute("/skins")({
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context: { queryClient }, deps: { search } }) => {
 		const activeAcc = accountService.getCachedAccounts().find((a) => a.isActive)
-		return queryClient.ensureQueryData(
+		// Prefetch rather than ensure: a failed Ely.by request should show the view's
+		// inline error instead of crashing the whole route
+		await queryClient.prefetchQuery(
 			skinsQueryOptions({
 				tab: search.tab ?? "catalog",
 				page: search.page ?? 1,

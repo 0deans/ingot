@@ -193,36 +193,26 @@ impl ElyAuthService {
                 query_params.push("sort=best".to_string());
             }
         }
-        if let Some(m) = model {
-            let trimmed = m.trim().to_lowercase();
-            if trimmed == "slim" || trimmed == "alex" {
-                query_params.push("type=slim".to_string());
-            } else if trimmed == "steve" || trimmed == "classic" || trimmed == "new" {
-                query_params.push("type=new".to_string());
-            }
-        }
+        // The catalog API no longer filters by arm model, so it's applied to each page below
+        let slim_filter = model.and_then(|m| match m.trim().to_lowercase().as_str() {
+            "slim" | "alex" => Some(true),
+            "steve" | "classic" | "new" => Some(false),
+            _ => None,
+        });
         if let Some(u) = uploader {
             let trimmed = u.trim();
             if !trimmed.is_empty() {
                 query_params.push(format!("uploader={}", url_encode(trimmed)));
             }
         }
+        query_params.push(format!("page={page}"));
 
-        let mut query_string = String::from("_url=%2Fskins");
-        for p in query_params {
-            query_string.push('&');
-            query_string.push_str(&p);
-        }
-
-        let target_url = format!("https://ely.by/skins/get?{query_string}");
-        let post_body = format!("skinsPage={page}");
+        let target_url = format!("https://ely.by/api/legacy/skins?{}", query_params.join("&"));
 
         let res = self
             .client
-            .post(&target_url)
-            .header("Content-Type", "application/x-www-form-urlencoded")
+            .get(&target_url)
             .header("X-Requested-With", "XMLHttpRequest")
-            .body(post_body)
             .send()
             .await
             .map_err(|e| format!("Failed to fetch Ely.by skins catalog: {e}"))?;
@@ -242,6 +232,7 @@ impl ElyAuthService {
         let items = raw
             .items
             .into_iter()
+            .filter(|i| slim_filter.is_none_or(|slim| i.is_slim == slim))
             .map(|i| ElySkinItem {
                 id: i.id,
                 skin_url: i.skin_url,
@@ -265,7 +256,7 @@ impl ElyAuthService {
         let client = create_authenticated_web_client(login, password).await?;
 
         let res = client
-            .post("https://ely.by/skins/wear")
+            .put("https://ely.by/api/legacy/users/skin")
             .header("X-Requested-With", "XMLHttpRequest")
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(format!("skinId={skin_id}"))
@@ -305,7 +296,7 @@ impl ElyAuthService {
         let form = reqwest::multipart::Form::new().part("file", part);
 
         let res = client
-            .post("https://ely.by/skins/upload")
+            .post("https://ely.by/api/legacy/skins")
             .header("X-Requested-With", "XMLHttpRequest")
             .multipart(form)
             .send()
@@ -329,7 +320,7 @@ impl ElyAuthService {
         // If Ely.by returns a skin ID (or redirect URL with skin ID), automatically wear the uploaded skin
         if let Some(skin_id) = extract_skin_id(&json) {
             let wear_res = client
-                .post("https://ely.by/skins/wear")
+                .put("https://ely.by/api/legacy/users/skin")
                 .header("X-Requested-With", "XMLHttpRequest")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .body(format!("skinId={skin_id}"))
