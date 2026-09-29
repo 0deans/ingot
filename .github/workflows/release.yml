@@ -91,6 +91,10 @@ jobs:
           releaseBody: "Download Ingot for Windows, Linux, and macOS below."
           releaseDraft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
           prerelease: false
+          # Point the Windows updater at the NSIS installer instead of the MSI:
+          # an MSI upgrade reinstalls every component, recreating the desktop
+          # shortcut, while NSIS in update mode only refreshes existing ones.
+          updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
 
       - name: Package and upload Windows Portable (.exe & .zip)
