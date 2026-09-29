@@ -176,7 +176,7 @@ export const MobileServerDashboard = memo(() => {
 						type="button"
 						onClick={() => setTab(id)}
 						className={cn(
-							"flex flex-col items-center gap-1 pt-2.5 pb-2 font-medium text-[10px] transition-colors",
+							"flex min-w-0 flex-col items-center gap-1 px-0.5 pt-2.5 pb-2 font-medium text-[10px] transition-colors",
 							tab === id ? "text-emerald-400" : "text-zinc-500 active:text-zinc-300",
 						)}
 					>
@@ -188,7 +188,9 @@ export const MobileServerDashboard = memo(() => {
 						>
 							<Icon className="size-[18px]" />
 						</span>
-						{id === "overview" ? t("serverTabs.home") : tabLabel(id, label, server.core)}
+						<span className="max-w-full truncate">
+							{id === "overview" ? t("serverTabs.home") : tabLabel(id, label, server.core)}
+						</span>
 					</button>
 				))}
 			</nav>

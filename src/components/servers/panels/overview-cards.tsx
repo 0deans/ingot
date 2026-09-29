@@ -175,7 +175,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					variant="outline"
 					disabled={isBusy}
 					onClick={() => toggle(server.playitSecretKey)}
-					className="h-10 gap-1.5 rounded-xl border-zinc-800"
+					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl border-zinc-800 py-2 text-center leading-tight"
 				>
 					{isBusy && <Loader2 className="size-4 animate-spin" />}
 					{tunnel.isRunning ? t("join.stopPlayit") : t("join.goPublic")}
@@ -183,7 +183,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 				<Button
 					onClick={share}
 					disabled={!bestAddress}
-					className="h-10 gap-1.5 rounded-xl bg-sky-600 text-white hover:bg-sky-500"
+					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl bg-sky-600 py-2 text-center text-white leading-tight hover:bg-sky-500"
 				>
 					{shared === "copied" ? <Check className="size-4" /> : <Share2 className="size-4" />}
 					{shared === "copied" ? t("skinPreview.copied") : t("join.share")}

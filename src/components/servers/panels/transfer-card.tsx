@@ -262,8 +262,8 @@ function ActionButton({
 				<Icon className="mt-0.5 size-4 shrink-0 text-zinc-400" />
 			)}
 			<span className="min-w-0">
-				<span className="block truncate font-medium text-sm text-zinc-100">{label}</span>
-				<span className="block truncate text-[11px] text-zinc-500">{hint}</span>
+				<span className="block font-medium text-sm text-zinc-100 leading-tight">{label}</span>
+				<span className="mt-0.5 block text-[11px] text-zinc-500 leading-tight">{hint}</span>
 			</span>
 		</button>
 	)

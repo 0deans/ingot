@@ -600,7 +600,7 @@ function ActionButton({
 			onClick={onClick}
 			disabled={busy}
 			className={cn(
-				"flex h-10 items-center justify-center gap-1.5 rounded-xl border font-medium text-xs transition-colors disabled:opacity-60",
+				"flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 py-1.5 text-center font-medium text-xs leading-tight transition-colors disabled:opacity-60",
 				danger
 					? "border-rose-500/20 bg-rose-500/5 text-rose-300 hover:bg-rose-500/15"
 					: active
@@ -608,7 +608,11 @@ function ActionButton({
 						: "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800",
 			)}
 		>
-			{busy ? <Loader2 className="size-3.5 animate-spin" /> : <Icon className="size-3.5" />}
+			{busy ? (
+				<Loader2 className="size-3.5 shrink-0 animate-spin" />
+			) : (
+				<Icon className="size-3.5 shrink-0" />
+			)}
 			{label}
 		</button>
 	)
