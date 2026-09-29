@@ -191,13 +191,13 @@ function RestartBanner({ serverId, onDone }: { serverId: string; onDone: () => v
 		onDone()
 	}
 	return (
-		<div className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 py-2 pr-2 pl-3">
-			<span className="text-amber-200 text-xs">{t("plugins.restartToApply")}</span>
+		<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-amber-500/20 bg-amber-500/10 py-2 pr-2 pl-3">
+			<span className="min-w-40 flex-1 text-amber-200 text-xs">{t("plugins.restartToApply")}</span>
 			<Button
 				size="sm"
 				onClick={restart}
 				disabled={restarting}
-				className="h-8 shrink-0 gap-1.5 rounded-lg bg-amber-500/20 text-amber-100 hover:bg-amber-500/30"
+				className="ml-auto h-8 shrink-0 gap-1.5 rounded-lg bg-amber-500/20 text-amber-100 hover:bg-amber-500/30"
 			>
 				{restarting ? (
 					<Loader2 className="size-3.5 animate-spin" />
@@ -249,12 +249,14 @@ function InstalledList({
 	// Only Ingot's own: a short hint instead of a big "nothing installed"
 	if (plugins.length === 0 && hasSystem) {
 		return (
-			<Card className="flex items-center justify-between gap-3 px-4 py-3">
-				<p className="text-sm text-zinc-400">{t("plugins.noOther", { context: kind.kind })}</p>
+			<Card className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
+				<p className="min-w-40 flex-1 text-sm text-zinc-400">
+					{t("plugins.noOther", { context: kind.kind })}
+				</p>
 				<Button
 					variant="outline"
 					onClick={onBrowse}
-					className="h-9 shrink-0 gap-2 rounded-xl border-zinc-800"
+					className="ml-auto h-9 shrink-0 gap-2 rounded-xl border-zinc-800"
 				>
 					<Search className="size-4" /> {t("plugins.browse", { context: kind.kind })}
 				</Button>

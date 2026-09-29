@@ -182,7 +182,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								size: formatBytes(versionBackup.bytes),
 							})}
 						</p>
-						<div className="flex gap-1.5">
+						<div className="flex flex-wrap justify-end gap-1.5">
 							<Button
 								variant="ghost"
 								size="sm"

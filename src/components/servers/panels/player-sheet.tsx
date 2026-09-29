@@ -530,13 +530,13 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 			</div>
 
 			{confirm ? (
-				<div className="flex items-center justify-between gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-2 pl-3">
-					<span className="text-rose-200 text-xs">
+				<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-2 pl-3">
+					<span className="min-w-40 flex-1 text-rose-200 text-xs">
 						{confirm === "kick"
 							? t("playerSheet.confirmKick", { name: player.name })
 							: t("playerSheet.confirmBan", { name: player.name })}
 					</span>
-					<div className="flex gap-1.5">
+					<div className="ml-auto flex gap-1.5">
 						<Button size="sm" variant="ghost" onClick={() => setConfirm(null)}>
 							{t("common.cancel")}
 						</Button>

@@ -99,13 +99,14 @@ export function Segmented<T extends string>({
 					type="button"
 					onClick={() => onChange(v)}
 					className={cn(
-						"flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 font-medium text-xs transition-colors",
+						// Long translations wrap at spaces (down to their longest word) before the strip scrolls
+						"flex min-w-min flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-center font-medium text-xs leading-tight transition-colors",
 						value === v
 							? "bg-zinc-800 text-zinc-100 shadow-sm"
 							: "text-zinc-500 hover:text-zinc-300",
 					)}
 				>
-					{Icon && <Icon className="size-3.5" />}
+					{Icon && <Icon className="size-3.5 shrink-0" />}
 					{label}
 				</button>
 			))}
