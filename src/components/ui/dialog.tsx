@@ -56,7 +56,8 @@ function DialogContent({
 	const popupRef = useRef<HTMLDivElement>(null)
 	return (
 		<DialogPortal>
-			<DialogOverlay />
+			{/* Base UI skips the backdrop of nested dialogs; forcing it dims the dialog underneath */}
+			<DialogOverlay forceRender />
 			<DialogPrimitive.Popup
 				ref={popupRef}
 				initialFocus={isMobile ? popupRef : undefined}
