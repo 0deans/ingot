@@ -115,7 +115,8 @@ jobs:
           RAW_APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
           echo "Found raw APK: $RAW_APK"
           # Test builds may use a one-off key when the release secrets aren't available
-          bash scripts/sign-android-apk.sh "$RAW_APK" "output-apks/Ingot-aarch64.apk" --allow-throwaway-key
+          VERSION=$(jq -r .version src-tauri/tauri.conf.json)
+          bash scripts/sign-android-apk.sh "$RAW_APK" "output-apks/ingot_${VERSION}_aarch64.apk" --allow-throwaway-key
           ls -lh output-apks/
 
       - name: Upload APK Artifact

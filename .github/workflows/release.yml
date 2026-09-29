@@ -206,7 +206,8 @@ jobs:
           mkdir -p output-apks
           RAW_APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
           echo "Found raw APK: $RAW_APK"
-          FINAL_APK="output-apks/Ingot-aarch64.apk"
+          VERSION=$(jq -r .version src-tauri/tauri.conf.json)
+          FINAL_APK="output-apks/ingot_${VERSION}_aarch64.apk"
           bash scripts/sign-android-apk.sh "$RAW_APK" "$FINAL_APK"
           ls -lh output-apks/
 
