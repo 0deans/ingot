@@ -1,4 +1,4 @@
-package org.ingot.server
+package me.odean.ingot
 
 import android.Manifest
 import android.content.Context

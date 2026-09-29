@@ -1,4 +1,4 @@
-package org.ingot.server
+package me.odean.ingot
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -28,9 +28,9 @@ class ServerHostService : Service() {
     companion object {
         const val CHANNEL_ID = "ingot_server_host_channel"
         const val NOTIFICATION_ID = 25565
-        const val ACTION_START = "org.ingot.server.START"
-        const val ACTION_STOP = "org.ingot.server.STOP"
-        const val ACTION_UPDATE_STATUS = "org.ingot.server.UPDATE_STATUS"
+        const val ACTION_START = "me.odean.ingot.START"
+        const val ACTION_STOP = "me.odean.ingot.STOP"
+        const val ACTION_UPDATE_STATUS = "me.odean.ingot.UPDATE_STATUS"
         const val EXTRA_TITLE = "title"
         const val EXTRA_DETAIL = "detail"
 

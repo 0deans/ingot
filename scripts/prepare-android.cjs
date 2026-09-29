@@ -4,7 +4,7 @@ const path = require("node:path")
 const ROOT_DIR = path.resolve(__dirname, "..")
 const ANDROID_GEN_DIR = path.join(ROOT_DIR, "src-tauri", "gen", "android")
 const ANDROID_APP_DIR = path.join(ANDROID_GEN_DIR, "app", "src", "main")
-const JAVA_PKG_DIR = path.join(ANDROID_APP_DIR, "java", "org", "ingot", "server")
+const JAVA_PKG_DIR = path.join(ANDROID_APP_DIR, "java", "me", "odean", "ingot")
 const MANIFEST_PATH = path.join(ANDROID_APP_DIR, "AndroidManifest.xml")
 const JNI_ARM64_DIR = path.join(ANDROID_APP_DIR, "jniLibs", "arm64-v8a")
 
