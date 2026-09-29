@@ -42,6 +42,7 @@ export const Route = createFileRoute("/skins")({
 				sort: search.sort ?? "wearers",
 				model: search.model ?? "any",
 				accountId: activeAcc?.id,
+				accountType: activeAcc?.accountType,
 				accountUsername: activeAcc?.username,
 				accountSkinUrl: activeAcc?.skinUrl,
 			}),

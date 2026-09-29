@@ -430,7 +430,7 @@ where
     let accounts = account::load_accounts_file(&app).unwrap_or_default();
     let active_account = accounts.into_iter().find(|a| a.is_active);
 
-    let (player_name, uuid_str, access_token, user_type, is_ely) = match active_account {
+    let (player_name, uuid_str, access_token, user_type, xuid, is_ely) = match active_account {
         Some(acc) => {
             let is_ely = acc.account_type == "ely";
             let is_microsoft = acc.account_type == "microsoft";
@@ -446,13 +446,19 @@ where
                 "0".to_string()
             };
             let user_type = if is_microsoft { "msa" } else { "mojang" };
-            (acc.username, acc.uuid, token, user_type, is_ely)
+            let xuid = if is_microsoft {
+                crate::auth::microsoft::xuid_from_token(&token)
+            } else {
+                None
+            };
+            (acc.username, acc.uuid, token, user_type, xuid, is_ely)
         }
         None => (
             "Player".to_string(),
             uuid::Uuid::new_v4().to_string(),
             "0".to_string(),
             "mojang",
+            None,
             false,
         ),
     };
@@ -624,7 +630,7 @@ where
             .replace("${user_type}", user_type)
             .replace("${version_type}", "release")
             .replace("${clientid}", &uuid_str)
-            .replace("${auth_xuid}", "0")
+            .replace("${auth_xuid}", xuid.as_deref().unwrap_or("0"))
     };
 
     if let Some(args_obj) = version_pkg.arguments {

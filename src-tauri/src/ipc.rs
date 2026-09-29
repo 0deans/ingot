@@ -144,6 +144,18 @@ pub trait AppApi {
         password: Option<String>,
     ) -> Result<(), String>;
     async fn has_ely_web_credentials(account_id: String) -> Result<bool, String>;
+    async fn apply_microsoft_skin(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        skin_url: String,
+        is_slim: bool,
+    ) -> Result<(), String>;
+    async fn upload_microsoft_skin(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        image_base64: String,
+        is_slim: bool,
+    ) -> Result<(), String>;
 
     // Minecraft Instance Management
     async fn get_instances(
@@ -928,6 +940,26 @@ impl AppApi for AppApiImpl {
         password: Option<String>,
     ) -> Result<(), String> {
         account::upload_ely_skin(&app_handle, &account_id, &image_base64, password).await
+    }
+
+    async fn apply_microsoft_skin(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        skin_url: String,
+        is_slim: bool,
+    ) -> Result<(), String> {
+        account::apply_microsoft_skin(&app_handle, &account_id, &skin_url, is_slim).await
+    }
+
+    async fn upload_microsoft_skin(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+        image_base64: String,
+        is_slim: bool,
+    ) -> Result<(), String> {
+        account::upload_microsoft_skin(&app_handle, &account_id, &image_base64, is_slim).await
     }
 
     async fn has_ely_web_credentials(self, account_id: String) -> Result<bool, String> {

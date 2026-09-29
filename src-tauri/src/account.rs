@@ -289,6 +289,71 @@ async fn microsoft_access_token<R: tauri::Runtime>(
     Ok(session.access_token)
 }
 
+/// A valid Minecraft token for the given Microsoft account (not necessarily the active one)
+async fn microsoft_token_for<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+) -> Result<String, String> {
+    let account = load_accounts_file(app)?
+        .into_iter()
+        .find(|a| a.id == account_id)
+        .ok_or("Account not found")?;
+    if account.account_type != "microsoft" {
+        return Err("This isn't a Microsoft account".to_string());
+    }
+
+    let secret_str = keyring_store::get_secret(account_id)?
+        .ok_or("Your Microsoft session expired, please sign in again")?;
+    let secrets: AccountSecrets = serde_json::from_str(&secret_str)
+        .map_err(|e| format!("Failed to parse stored credentials: {e}"))?;
+
+    microsoft_access_token(app, &account, secrets).await
+}
+
+/// Sets a Microsoft account's skin to a public PNG, such as an Ely.by catalog skin
+pub async fn apply_microsoft_skin<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+    skin_url: &str,
+    is_slim: bool,
+) -> Result<(), String> {
+    let token = microsoft_token_for(app, account_id).await?;
+    let new_url = microsoft::set_skin_from_url(&token, skin_url, is_slim).await?;
+    save_skin_url(app, account_id, new_url)
+}
+
+/// Uploads a PNG (base64 or data URL) as a Microsoft account's skin
+pub async fn upload_microsoft_skin<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+    image_base64: &str,
+    is_slim: bool,
+) -> Result<(), String> {
+    let base64_data = image_base64
+        .split_once(',')
+        .map_or(image_base64, |(_, data)| data);
+    let png = base64::engine::general_purpose::STANDARD
+        .decode(base64_data.trim())
+        .map_err(|e| format!("Invalid base64 skin image data: {e}"))?;
+
+    let token = microsoft_token_for(app, account_id).await?;
+    let new_url = microsoft::upload_skin(&token, png, is_slim).await?;
+    save_skin_url(app, account_id, new_url)
+}
+
+fn save_skin_url<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+    skin_url: Option<String>,
+) -> Result<(), String> {
+    let mut accounts = load_accounts_file(app)?;
+    if let Some(acc) = accounts.iter_mut().find(|a| a.id == account_id) {
+        acc.skin_url = skin_url;
+        save_accounts_file(app, &accounts)?;
+    }
+    Ok(())
+}
+
 pub fn get_accounts<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<AccountProfile>, String> {

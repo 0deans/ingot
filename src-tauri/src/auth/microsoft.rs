@@ -20,6 +20,7 @@ const XBL_URL: &str = "https://user.auth.xboxlive.com/user/authenticate";
 const XSTS_URL: &str = "https://xsts.auth.xboxlive.com/xsts/authorize";
 const MC_LOGIN_URL: &str = "https://api.minecraftservices.com/authentication/login_with_xbox";
 const MC_PROFILE_URL: &str = "https://api.minecraftservices.com/minecraft/profile";
+const MC_SKINS_URL: &str = "https://api.minecraftservices.com/minecraft/profile/skins";
 
 /// What the user needs to finish signing in on microsoft.com/link
 #[taurpc::ipc_type]
@@ -351,6 +352,100 @@ async fn minecraft_session(ms: MsTokenResponse) -> Result<MinecraftSession, Stri
     })
 }
 
+/// Sets the account's skin to a public PNG (e.g. a catalog skin). Returns the new skin URL.
+pub async fn set_skin_from_url(
+    access_token: &str,
+    skin_url: &str,
+    slim: bool,
+) -> Result<Option<String>, String> {
+    let res = http()
+        .post(MC_SKINS_URL)
+        .bearer_auth(access_token)
+        .json(&json!({ "variant": skin_variant(slim), "url": skin_url }))
+        .send()
+        .await
+        .map_err(|e| format!("Couldn't reach Minecraft services: {e}"))?;
+
+    active_skin_url(res).await
+}
+
+/// Uploads a PNG as the account's skin. Returns the new skin URL.
+pub async fn upload_skin(
+    access_token: &str,
+    png: Vec<u8>,
+    slim: bool,
+) -> Result<Option<String>, String> {
+    let file = reqwest::multipart::Part::bytes(png)
+        .file_name("skin.png")
+        .mime_str("image/png")
+        .map_err(|e| format!("Failed to prepare the skin file: {e}"))?;
+    let form = reqwest::multipart::Form::new()
+        .text("variant", skin_variant(slim))
+        .part("file", file);
+
+    let res = http()
+        .post(MC_SKINS_URL)
+        .bearer_auth(access_token)
+        .multipart(form)
+        .send()
+        .await
+        .map_err(|e| format!("Couldn't reach Minecraft services: {e}"))?;
+
+    active_skin_url(res).await
+}
+
+fn skin_variant(slim: bool) -> &'static str {
+    if slim {
+        "slim"
+    } else {
+        "classic"
+    }
+}
+
+/// Reads the updated profile a skin change returns, or the reason it was refused
+async fn active_skin_url(res: reqwest::Response) -> Result<Option<String>, String> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct McError {
+        error_message: Option<String>,
+    }
+
+    let status = res.status();
+    if !status.is_success() {
+        let reason = res.json::<McError>().await.ok().and_then(|e| e.error_message);
+        return Err(match reason {
+            Some(reason) => format!("Minecraft refused the skin: {reason}"),
+            None => format!("Minecraft refused the skin (HTTP {status})"),
+        });
+    }
+
+    let profile: McProfile = res
+        .json()
+        .await
+        .map_err(|e| format!("Unexpected response from Minecraft services: {e}"))?;
+    Ok(profile
+        .skins
+        .into_iter()
+        .find(|s| s.state == "ACTIVE")
+        .map(|s| s.url))
+}
+
+/// The Xbox user ID the game reports as `auth_xuid`, read from the Minecraft token (a JWT)
+pub fn xuid_from_token(access_token: &str) -> Option<String> {
+    use base64::Engine;
+
+    let payload = access_token.split('.').nth(1)?;
+    let bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .decode(payload.trim_end_matches('='))
+        .ok()?;
+    let claims: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
+    match &claims["xuid"] {
+        serde_json::Value::String(s) => Some(s.clone()),
+        serde_json::Value::Number(n) => Some(n.to_string()),
+        _ => None,
+    }
+}
+
 async fn ms_error(res: reqwest::Response) -> String {
     let status = res.status();
     match res.json::<MsErrorResponse>().await {
@@ -367,5 +462,34 @@ fn xsts_error_message(xerr: u64) -> String {
         2148916236 | 2148916237 => "This account needs adult verification on xbox.com".to_string(),
         2148916238 => "This is a child account. An adult must add it to a Microsoft family first.".to_string(),
         _ => format!("Xbox Live refused the sign-in (error {xerr})"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use base64::Engine;
+
+    fn jwt(claims: serde_json::Value) -> String {
+        let b64 = |v: &[u8]| base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(v);
+        format!("{}.{}.sig", b64(br#"{"alg":"none"}"#), b64(claims.to_string().as_bytes()))
+    }
+
+    #[test]
+    fn reads_xuid_from_minecraft_token() {
+        assert_eq!(
+            xuid_from_token(&jwt(json!({ "xuid": "2535400000000000" }))).as_deref(),
+            Some("2535400000000000")
+        );
+        assert_eq!(
+            xuid_from_token(&jwt(json!({ "xuid": 2535400000000000u64 }))).as_deref(),
+            Some("2535400000000000")
+        );
+    }
+
+    #[test]
+    fn missing_or_malformed_xuid_is_none() {
+        assert_eq!(xuid_from_token(&jwt(json!({ "sub": "x" }))), None);
+        assert_eq!(xuid_from_token("not-a-jwt"), None);
     }
 }

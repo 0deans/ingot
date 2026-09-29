@@ -180,6 +180,18 @@ export const accountService = {
 		await this.refreshAccounts()
 	},
 
+	/** Sets a Microsoft account's skin to a public PNG, such as a catalog skin */
+	async applyMicrosoftSkin(accountId: string, skinUrl: string, isSlim: boolean): Promise<void> {
+		await rpc.apply_microsoft_skin(accountId, skinUrl, isSlim)
+		await this.refreshAccounts()
+	},
+
+	/** Uploads a PNG data URL as a Microsoft account's skin */
+	async uploadMicrosoftSkin(accountId: string, dataUrl: string, isSlim: boolean): Promise<void> {
+		await rpc.upload_microsoft_skin(accountId, dataUrl, isSlim)
+		await this.refreshAccounts()
+	},
+
 	async hasElyWebCredentials(accountId: string): Promise<boolean> {
 		return await rpc.has_ely_web_credentials(accountId)
 	},

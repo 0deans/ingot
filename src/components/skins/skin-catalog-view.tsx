@@ -125,6 +125,7 @@ export interface SkinsQueryParams {
 	sort: SkinSortOption
 	model: "any" | "steve" | "slim"
 	accountId?: string
+	accountType?: string
 	accountUsername?: string
 	accountSkinUrl?: string | null
 }
@@ -170,7 +171,9 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 				}))
 
 				let remoteItems: ElySkinItem[] = []
-				if (params.accountUsername) {
+				// Uploads on Ely.by belong to Ely.by accounts only; another account type with the
+				// same name would otherwise list a stranger's skins
+				if (params.accountType === "ely" && params.accountUsername) {
 					try {
 						const res = await accountService.getElySkins(
 							params.page,
@@ -284,6 +287,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			sort: sortOption,
 			model: modelFilter,
 			accountId: targetAccount?.id,
+			accountType: targetAccount?.accountType,
 			accountUsername: targetAccount?.username,
 			accountSkinUrl: targetAccount?.skinUrl,
 		}),
@@ -409,7 +413,23 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		return () => clearTimeout(timer)
 	}, [applyStatusMessage])
 
-	// Handle applying selected skin to active Ely.by account
+	// Microsoft accounts change skins through Minecraft services: no password prompt needed
+	const runMicrosoftSkinChange = async (change: () => Promise<void>, successText: string) => {
+		setIsApplying(true)
+		setApplyStatusMessage(null)
+		try {
+			await change()
+			setApplyStatusMessage({ type: "success", text: successText })
+			await queryClient.invalidateQueries({ queryKey: ["skins"] })
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err)
+			setApplyStatusMessage({ type: "error", text: msg || t("skinsPage.applyFailed") })
+		} finally {
+			setIsApplying(false)
+		}
+	}
+
+	// Handle applying selected skin to the Ely.by or Microsoft account
 	const handleApplySkin = async (skin: ElySkinItem) => {
 		if (!targetAccount) {
 			setApplyStatusMessage({
@@ -419,10 +439,24 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			return
 		}
 
+		if (targetAccount.accountType === "microsoft") {
+			const { id: accountId, username: name } = targetAccount
+			const { dataUrl } = skin
+			await runMicrosoftSkinChange(
+				dataUrl
+					? () => accountService.uploadMicrosoftSkin(accountId, dataUrl, skin.isSlim)
+					: () => accountService.applyMicrosoftSkin(accountId, skin.skinUrl, skin.isSlim),
+				dataUrl
+					? t("skinsPage.customApplied", { name })
+					: t("skinsPage.skinApplied", { id: skin.id, name }),
+			)
+			return
+		}
+
 		if (targetAccount.accountType !== "ely") {
 			setApplyStatusMessage({
 				type: "error",
-				text: t("skinsPage.elyOnlySync"),
+				text: t("skinsPage.offlineNoSync"),
 			})
 			return
 		}
@@ -609,10 +643,31 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 	const handleUploadSkin = async () => {
 		if (!uploadedDataUrl || !targetAccount) return
+
+		if (targetAccount.accountType === "microsoft") {
+			const { id: accountId, username: name } = targetAccount
+			const isSlim = uploadedModel === "slim"
+			await runMicrosoftSkinChange(
+				async () => {
+					await accountService.uploadMicrosoftSkin(accountId, uploadedDataUrl, isSlim)
+					skinStorageService.saveUploadedSkin(accountId, {
+						id: `custom_${Date.now()}`,
+						name: uploadedFileName || t("skinsPage.skinFromDate", { date: formatDate(Date.now()) }),
+						dataUrl: uploadedDataUrl,
+						isSlim,
+						uploadedAt: Date.now(),
+					})
+					handleTabChange("my-skins")
+				},
+				t("skinsPage.uploadedApplied", { name }),
+			)
+			return
+		}
+
 		if (targetAccount.accountType !== "ely") {
 			setApplyStatusMessage({
 				type: "error",
-				text: t("skinsPage.elyOnlyUpload"),
+				text: t("skinsPage.offlineNoUpload"),
 			})
 			return
 		}
