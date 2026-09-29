@@ -175,8 +175,8 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 					/>
 				</div>
 				{versionBackup && (
-					<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
-						<p className="min-w-0 flex-1 text-xs text-zinc-400">
+					<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-background/60 p-3">
+						<p className="min-w-0 flex-1 text-muted-foreground text-xs">
 							{t(versionBackup.worldsBackedUp ? "transfer.backupWithWorlds" : "transfer.backup", {
 								version:
 									versionBackup.fromLoader === versionBackup.toLoader
@@ -191,7 +191,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								size="sm"
 								onClick={discardBackup}
 								disabled={busy !== null}
-								className="h-8 rounded-lg text-xs text-zinc-500"
+								className="h-8 rounded-lg text-muted-foreground text-xs"
 							>
 								{t("transfer.deleteBackup")}
 							</Button>
@@ -257,16 +257,16 @@ function ActionButton({
 			type="button"
 			onClick={onClick}
 			disabled={disabled}
-			className="flex min-w-0 items-start gap-2.5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-left transition-colors hover:bg-zinc-900 disabled:opacity-50"
+			className="flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-background/60 p-3 text-left transition-colors hover:bg-card disabled:opacity-50"
 		>
 			{busy ? (
-				<Spinner className="mt-0.5 size-4 shrink-0 text-zinc-300" />
+				<Spinner className="mt-0.5 size-4 shrink-0 text-foreground/80" />
 			) : (
-				<Icon className="mt-0.5 size-4 shrink-0 text-zinc-400" />
+				<Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 			)}
 			<span className="min-w-0">
-				<span className="block font-medium text-sm text-zinc-100 leading-tight">{label}</span>
-				<span className="mt-0.5 block text-[11px] text-zinc-500 leading-tight">{hint}</span>
+				<span className="block font-medium text-foreground text-sm leading-tight">{label}</span>
+				<span className="mt-0.5 block text-[11px] text-muted-foreground leading-tight">{hint}</span>
 			</span>
 		</button>
 	)
@@ -364,14 +364,14 @@ function ChangeVersionDialog({
 
 				{(stage === "pick" || stage === "checking") && (
 					<>
-						<p className="text-sm text-zinc-400 leading-relaxed">
+						<p className="text-muted-foreground text-sm leading-relaxed">
 							{t("transfer.changeDescription", {
 								context: cores.includes("paper") ? "plugin" : "mod",
 							})}
 						</p>
 						{cores.length > 1 && (
 							<div className="grid gap-1.5">
-								<span className="font-medium text-xs text-zinc-400">
+								<span className="font-medium text-muted-foreground text-xs">
 									{t("transfer.serverType")}
 								</span>
 								<div className="flex flex-wrap gap-1.5">
@@ -386,13 +386,13 @@ function ChangeVersionDialog({
 											}}
 											className={
 												core === id
-													? "rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-sm text-zinc-50"
-													: "rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200"
+													? "rounded-lg border border-primary/60 bg-primary/10 px-3 py-1.5 text-foreground text-sm"
+													: "rounded-lg border border-border bg-background/60 px-3 py-1.5 text-muted-foreground text-sm hover:text-foreground"
 											}
 										>
 											{loaderName(id)}
 											{id === server.core && (
-												<span className="ml-1 text-[10px] text-zinc-500">
+												<span className="ml-1 text-[10px] text-muted-foreground">
 													{t("versionChange.now")}
 												</span>
 											)}
@@ -403,11 +403,11 @@ function ChangeVersionDialog({
 						)}
 						{isLoading ? (
 							<div className="flex justify-center py-4">
-								<Spinner className="size-5 text-zinc-500" />
+								<Spinner className="size-5 text-muted-foreground" />
 							</div>
 						) : (
 							<Select items={options} value={target} onValueChange={(v) => v && setVersion(v)}>
-								<SelectTrigger className="h-11 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm">
+								<SelectTrigger className="h-11 rounded-xl text-sm">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
@@ -442,9 +442,9 @@ function ChangeVersionDialog({
 
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
-						<Spinner className="size-7 text-emerald-400" />
-						<p className="font-medium text-sm text-zinc-200">{t("versionChange.applying")}</p>
-						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
+						<Spinner className="size-7 text-primary" />
+						<p className="font-medium text-foreground text-sm">{t("versionChange.applying")}</p>
+						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
 							{t("versionChange.applyingHint")}
 						</p>
 					</div>
@@ -452,11 +452,11 @@ function ChangeVersionDialog({
 
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-6 text-center">
-						<CheckCircle2 className="size-8 text-emerald-400" />
-						<p className="font-semibold text-sm text-zinc-50">
+						<CheckCircle2 className="size-8 text-primary" />
+						<p className="font-semibold text-foreground text-sm">
 							{t("transfer.readyFor", { version: planSide(plan, "to") })}
 						</p>
-						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
+						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
 							{t("transfer.doneNote")}
 						</p>
 					</div>
@@ -465,7 +465,7 @@ function ChangeVersionDialog({
 				{error && <ErrorNote>{error}</ErrorNote>}
 
 				<div className="flex items-center justify-between gap-2">
-					<p className="text-[11px] text-zinc-500">
+					<p className="text-[11px] text-muted-foreground">
 						{stage === "review" && plan && planSummary(plan, choices)}
 					</p>
 					<div className="flex gap-2">
@@ -478,7 +478,7 @@ function ChangeVersionDialog({
 							<Button
 								onClick={check}
 								disabled={!target || unchanged || busy}
-								className="h-11 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+								className="h-11 gap-2 rounded-xl font-semibold"
 							>
 								{busy ? <Spinner className="size-4" /> : <ArrowUpDown className="size-4" />}
 								{busy ? t("versionChange.checking") : t("versionChange.check")}
@@ -488,7 +488,7 @@ function ChangeVersionDialog({
 							<Button
 								onClick={apply}
 								disabled={plan.downgrade && !downgradeOk}
-								className="h-11 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
+								className="h-11 rounded-xl font-semibold"
 							>
 								{t("versionChange.moveToVersion", { version: planSide(plan, "to") })}
 							</Button>

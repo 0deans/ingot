@@ -298,11 +298,11 @@ export const InstanceSettingsDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-zinc-950 p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-background p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={24} />
-						<DialogTitle className="font-semibold text-lg text-zinc-50">
+						<DialogTitle className="font-semibold text-foreground text-lg">
 							{t("instanceSettings.title")}
 						</DialogTitle>
 					</div>
@@ -327,15 +327,15 @@ export const InstanceSettingsDialog = ({
 								value={name}
 								onChange={(e) => setName(e.target.value)}
 								placeholder={t("instanceSettings.namePlaceholder")}
-								className="h-9 border-zinc-800 bg-zinc-900/80 text-xs"
+								className="h-9 text-xs"
 							/>
 						</div>
 
 						{/* Minecraft version */}
-						<div className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+						<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">
 							<div className="flex items-center justify-between gap-3">
 								<div className="flex items-center gap-2">
-									<ArrowUpDown className="size-4 text-emerald-400" />
+									<ArrowUpDown className="size-4 text-primary" />
 									<div>
 										<h4 className="font-medium text-foreground text-xs">
 											{t("wizard.minecraftVersion")}
@@ -359,8 +359,8 @@ export const InstanceSettingsDialog = ({
 								</Button>
 							</div>
 							{versionBackup && (
-								<div className="flex flex-wrap items-center justify-between gap-2 border-zinc-800/80 border-t pt-3">
-									<p className="text-[11px] text-zinc-400">
+								<div className="flex flex-wrap items-center justify-between gap-2 border-border/80 border-t pt-3">
+									<p className="text-[11px] text-muted-foreground">
 										{t(
 											versionBackup.worldsBackedUp
 												? "instanceSettings.backupWithWorlds"
@@ -378,7 +378,7 @@ export const InstanceSettingsDialog = ({
 											size="sm"
 											onClick={handleDiscardBackup}
 											disabled={versionBusy}
-											className="h-7 text-[11px] text-zinc-500"
+											className="h-7 text-[11px] text-muted-foreground"
 										>
 											{t("transfer.deleteBackup")}
 										</Button>
@@ -397,7 +397,7 @@ export const InstanceSettingsDialog = ({
 							{versionMsg && (
 								<p
 									className={
-										versionMsg.ok ? "text-[11px] text-emerald-300" : "text-[11px] text-red-300"
+										versionMsg.ok ? "text-[11px] text-primary" : "text-[11px] text-destructive"
 									}
 								>
 									{versionMsg.text}
@@ -406,10 +406,10 @@ export const InstanceSettingsDialog = ({
 						</div>
 
 						{/* Memory Override */}
-						<div className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+						<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<HardDrive className="size-4 text-sky-400" />
+									<HardDrive className="size-4 text-info" />
 									<div>
 										<h4 className="font-medium text-foreground text-xs">
 											{t("settings.memory.title")}
@@ -424,7 +424,7 @@ export const InstanceSettingsDialog = ({
 									type="button"
 									onClick={() => setUseCustomRam(!useCustomRam)}
 									className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none ${
-										useCustomRam ? "bg-primary" : "bg-zinc-800"
+										useCustomRam ? "bg-primary" : "bg-muted"
 									}`}
 								>
 									<span
@@ -449,7 +449,7 @@ export const InstanceSettingsDialog = ({
 												key={p.min}
 												type="button"
 												onClick={() => applyPreset(p.min, p.max)}
-												className="rounded-md border border-zinc-800 bg-zinc-900/80 px-2.5 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-50"
+												className="rounded-md border border-border bg-card/80 px-2.5 py-1 text-[11px] text-foreground/80 transition-colors hover:border-input hover:text-foreground"
 											>
 												{formatMegabytes(p.min)} – {formatMegabytes(p.max)}
 											</button>
@@ -457,7 +457,7 @@ export const InstanceSettingsDialog = ({
 									</div>
 
 									{/* RAM Sliders */}
-									<div className="flex flex-col gap-3 rounded-lg border border-zinc-800/60 bg-zinc-950/60 p-3">
+									<div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background/60 p-3">
 										<div className="flex items-center justify-between text-xs">
 											<span className="text-muted-foreground">
 												{t("instanceSettings.minMemory")}
@@ -498,7 +498,7 @@ export const InstanceSettingsDialog = ({
 									</div>
 								</div>
 							) : (
-								<div className="rounded-lg border border-zinc-800/50 bg-zinc-950/40 px-3 py-2.5 text-[11px] text-muted-foreground">
+								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-[11px] text-muted-foreground">
 									<Trans
 										i18nKey="instanceSettings.inheritMemory"
 										values={{
@@ -512,9 +512,9 @@ export const InstanceSettingsDialog = ({
 						</div>
 
 						{/* Custom JVM Arguments */}
-						<div className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+						<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
 							<div className="flex items-center gap-2">
-								<Terminal className="size-4 text-emerald-400" />
+								<Terminal className="size-4 text-primary" />
 								<div>
 									<h4 className="font-medium text-foreground text-xs">
 										{t("instanceSettings.jvmArgs")}
@@ -529,14 +529,14 @@ export const InstanceSettingsDialog = ({
 								value={jvmArgsStr}
 								onChange={(e) => setJvmArgsStr(e.target.value)}
 								placeholder="-XX:+UseG1GC -Dminecraft.custom=true"
-								className="mt-1 h-9 border-zinc-800 bg-zinc-900/80 font-mono text-xs"
+								className="mt-1 h-9 font-mono text-xs"
 							/>
 						</div>
 
 						{/* Custom Java Binary */}
-						<div className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+						<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
 							<div className="flex items-center gap-2">
-								<Cpu className="size-4 text-amber-400" />
+								<Cpu className="size-4 text-warning" />
 								<div>
 									<h4 className="font-medium text-foreground text-xs">
 										{t("instanceSettings.java")}
@@ -551,15 +551,15 @@ export const InstanceSettingsDialog = ({
 								value={javaPath}
 								onChange={(e) => setJavaPath(e.target.value)}
 								placeholder="C:\Program Files\Java\jdk-21\bin\javaw.exe"
-								className="mt-1 h-9 border-zinc-800 bg-zinc-900/80 font-mono text-xs"
+								className="mt-1 h-9 font-mono text-xs"
 							/>
 						</div>
 
 						{/* Window & Display Override */}
-						<div className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+						<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Monitor className="size-4 text-sky-400" />
+									<Monitor className="size-4 text-info" />
 									<div>
 										<h4 className="font-medium text-foreground text-xs">
 											{t("settings.window.title")}
@@ -575,7 +575,7 @@ export const InstanceSettingsDialog = ({
 
 							{useCustomWindow ? (
 								<div className="mt-2 flex flex-col gap-3 pt-1">
-									<div className="flex items-center justify-between rounded-lg border border-zinc-800/60 bg-zinc-950/60 p-3">
+									<div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/60 p-3">
 										<div>
 											<span className="font-medium text-foreground text-xs">
 												{t("settings.window.fullscreenTitle")}
@@ -588,7 +588,7 @@ export const InstanceSettingsDialog = ({
 									</div>
 
 									{!instanceFullscreen && (
-										<div className="flex flex-col gap-2 rounded-lg border border-zinc-800/60 bg-zinc-950/60 p-3">
+										<div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-background/60 p-3">
 											<div className="flex items-center justify-between">
 												<span className="text-muted-foreground text-xs">
 													{t("instanceSettings.resolution")}
@@ -598,14 +598,14 @@ export const InstanceSettingsDialog = ({
 														type="number"
 														value={instanceWidth}
 														onChange={(e) => setInstanceWidth(Number(e.target.value) || 854)}
-														className="h-7 w-16 border-zinc-800 bg-zinc-900 px-1 text-center font-mono text-xs"
+														className="h-7 w-16 px-1 text-center font-mono text-xs"
 													/>
 													<span className="text-muted-foreground text-xs">×</span>
 													<Input
 														type="number"
 														value={instanceHeight}
 														onChange={(e) => setInstanceHeight(Number(e.target.value) || 480)}
-														className="h-7 w-16 border-zinc-800 bg-zinc-900 px-1 text-center font-mono text-xs"
+														className="h-7 w-16 px-1 text-center font-mono text-xs"
 													/>
 												</div>
 											</div>
@@ -635,7 +635,7 @@ export const InstanceSettingsDialog = ({
 									)}
 								</div>
 							) : (
-								<div className="rounded-lg border border-zinc-800/50 bg-zinc-950/40 px-3 py-2 text-[11px] text-muted-foreground">
+								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
 									<Trans
 										i18nKey="instanceSettings.inheritDisplay"
 										values={{
@@ -650,10 +650,10 @@ export const InstanceSettingsDialog = ({
 						</div>
 
 						{/* Game Data Synchronization */}
-						<div className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+						<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<RefreshCw className="size-4 text-emerald-400" />
+									<RefreshCw className="size-4 text-primary" />
 									<div>
 										<h4 className="font-medium text-foreground text-xs">
 											{t("settings.sync.title")}
@@ -668,7 +668,7 @@ export const InstanceSettingsDialog = ({
 							</div>
 
 							{/* Manual Sync Actions */}
-							<div className="flex flex-col gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+							<div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
 								<div>
 									<div className="font-medium text-foreground text-xs">
 										{t("instanceSettings.manualSync")}
@@ -685,7 +685,7 @@ export const InstanceSettingsDialog = ({
 										size="sm"
 										onClick={handlePushSync}
 										disabled={isSyncing}
-										className="h-8 gap-1.5 border-emerald-600/30 bg-emerald-950/30 text-emerald-300 text-xs hover:bg-emerald-900/40"
+										className="h-8 gap-1.5 border-primary/30 bg-primary/10 text-primary text-xs hover:bg-primary/10"
 									>
 										{isSyncing ? (
 											<Spinner className="size-3.5" />
@@ -701,7 +701,7 @@ export const InstanceSettingsDialog = ({
 										size="sm"
 										onClick={handlePullSync}
 										disabled={isSyncing}
-										className="h-8 gap-1.5 border-sky-600/30 bg-sky-950/30 text-sky-300 text-xs hover:bg-sky-900/40"
+										className="h-8 gap-1.5 border-info/30 bg-info/10 text-info text-xs hover:bg-info/10"
 									>
 										{isSyncing ? (
 											<Spinner className="size-3.5" />
@@ -716,14 +716,14 @@ export const InstanceSettingsDialog = ({
 									<div
 										className={`mt-1 flex items-center gap-1.5 rounded p-2 text-xs ${
 											syncStatusType === "success"
-												? "bg-emerald-500/10 text-emerald-300"
-												: "bg-red-500/10 text-red-300"
+												? "bg-primary/10 text-primary"
+												: "bg-destructive/10 text-destructive"
 										}`}
 									>
 										{syncStatusType === "success" ? (
-											<CheckCircle2 className="size-3.5 shrink-0 text-emerald-400" />
+											<CheckCircle2 className="size-3.5 shrink-0 text-primary" />
 										) : (
-											<AlertCircle className="size-3.5 shrink-0 text-red-400" />
+											<AlertCircle className="size-3.5 shrink-0 text-destructive" />
 										)}
 										<span className="text-[11px]">{syncStatusMsg}</span>
 									</div>
@@ -731,7 +731,7 @@ export const InstanceSettingsDialog = ({
 							</div>
 
 							{useCustomSync ? (
-								<div className="mt-1 flex flex-col divide-y divide-zinc-800/60 rounded-lg border border-zinc-800/60 bg-zinc-950/60">
+								<div className="mt-1 flex flex-col divide-y divide-border/60 rounded-lg border border-border/60 bg-background/60">
 									{[
 										{
 											key: "options",
@@ -771,7 +771,7 @@ export const InstanceSettingsDialog = ({
 									))}
 								</div>
 							) : (
-								<div className="rounded-lg border border-zinc-800/50 bg-zinc-950/40 px-3 py-2 text-[11px] text-muted-foreground">
+								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
 									{t("instanceSettings.inheritSync")}
 								</div>
 							)}
@@ -785,7 +785,7 @@ export const InstanceSettingsDialog = ({
 						variant="ghost"
 						size="sm"
 						onClick={() => instanceService.openInstanceFolder(instance.id)}
-						className="gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+						className="gap-1.5 text-muted-foreground text-xs"
 					>
 						<FolderOpen className="size-3.5" />
 						{t("common.openFolder")}

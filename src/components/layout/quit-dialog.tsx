@@ -77,10 +77,10 @@ export default function QuitDialog() {
 		<Dialog open onOpenChange={(open) => !open && !stopping && setPrompt(null)}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-md">
 				<div className="flex items-start gap-3">
-					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-400" />
+					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
 					<div className="flex flex-col gap-1">
 						<DialogTitle className="text-base">{t(`quitDialog.title_${mode}`)}</DialogTitle>
-						<DialogDescription className="text-sm text-zinc-400 leading-relaxed">
+						<DialogDescription className="text-muted-foreground text-sm leading-relaxed">
 							{running.length === 0
 								? t("quitDialog.asleep", { count })
 								: t("quitDialog.consoles", { count })}
@@ -92,17 +92,17 @@ export default function QuitDialog() {
 					{request.servers.map((server) => (
 						<div
 							key={server.serverId}
-							className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-3 py-2"
+							className="flex items-center gap-3 rounded-xl border border-border bg-card/40 px-3 py-2"
 						>
 							{server.sleeping ? (
-								<Moon className="size-4 shrink-0 text-zinc-500" />
+								<Moon className="size-4 shrink-0 text-muted-foreground" />
 							) : (
-								<Server className="size-4 shrink-0 text-emerald-400" />
+								<Server className="size-4 shrink-0 text-primary" />
 							)}
-							<p className="min-w-0 flex-1 truncate font-medium text-sm text-zinc-100">
+							<p className="min-w-0 flex-1 truncate font-medium text-foreground text-sm">
 								{server.name}
 							</p>
-							<span className="shrink-0 text-[11px] text-zinc-500">
+							<span className="shrink-0 text-[11px] text-muted-foreground">
 								{server.sleeping ? t("serverStatus.sleeping") : t("serverStatus.running")}
 							</span>
 						</div>
@@ -110,7 +110,7 @@ export default function QuitDialog() {
 				</div>
 
 				{stopping ? (
-					<p className="flex items-center gap-2 text-xs text-zinc-400">
+					<p className="flex items-center gap-2 text-muted-foreground text-xs">
 						<Spinner className="size-3.5 shrink-0" />
 						{running.length > 0
 							? t("quitDialog.saving", { count: running.length })
@@ -119,7 +119,7 @@ export default function QuitDialog() {
 				) : (
 					mode === "quit" &&
 					request.games > 0 && (
-						<p className="flex items-start gap-2 text-xs text-zinc-400 leading-relaxed">
+						<p className="flex items-start gap-2 text-muted-foreground text-xs leading-relaxed">
 							<Gamepad2 className="mt-px size-3.5 shrink-0" />
 							{t("quitDialog.games", { count: request.games })}
 						</p>
@@ -151,11 +151,7 @@ export default function QuitDialog() {
 							{t("quitDialog.keepInTray")}
 						</Button>
 					)}
-					<Button
-						disabled={stopping}
-						onClick={stopAndGo}
-						className="gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
-					>
+					<Button disabled={stopping} onClick={stopAndGo} className="gap-1.5 rounded-xl">
 						{stopping && <Spinner className="size-4" />}
 						{t(`quitDialog.action_${mode}`)}
 					</Button>

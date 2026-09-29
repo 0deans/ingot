@@ -79,13 +79,13 @@ export const MobileServerDashboard = memo(() => {
 	// ── Wizard (full-screen) ──
 	if (wizardOpen) {
 		return (
-			<div className="h-dvh overflow-hidden bg-zinc-950">
+			<div className="h-dvh overflow-hidden bg-background">
 				<NewServerWizard
 					onCancel={() => setWizardOpen(false)}
 					onServerCreated={handleServerCreated}
 					importSlot={
 						<ImportServerButton
-							className="h-12 gap-2 rounded-2xl border-zinc-800"
+							className="h-12 gap-2 rounded-2xl border-border"
 							onImported={(created) => {
 								setWizardOpen(false)
 								refresh()
@@ -102,13 +102,13 @@ export const MobileServerDashboard = memo(() => {
 	if (!server) {
 		if (isLoading) {
 			return (
-				<div className="flex h-dvh items-center justify-center bg-zinc-950">
-					<div className="size-8 animate-spin rounded-full border-2 border-zinc-800 border-t-emerald-400" />
+				<div className="flex h-dvh items-center justify-center bg-background">
+					<div className="size-8 animate-spin rounded-full border-2 border-border border-t-primary" />
 				</div>
 			)
 		}
 		return (
-			<div className="h-dvh overflow-hidden bg-zinc-950">
+			<div className="h-dvh overflow-hidden bg-background">
 				<NoServersState
 					onCreate={() => setWizardOpen(true)}
 					importSlot={
@@ -137,8 +137,8 @@ export const MobileServerDashboard = memo(() => {
 	)
 
 	return (
-		<div className="flex h-dvh flex-col bg-zinc-950 text-zinc-100">
-			<header className="flex shrink-0 items-center gap-2 border-zinc-900 border-b px-3 py-2.5">
+		<div className="flex h-dvh flex-col bg-background text-foreground">
+			<header className="flex shrink-0 items-center gap-2 border-border border-b px-3 py-2.5">
 				<ServerSwitcherButton server={server} onClick={() => setSwitcherOpen(true)} />
 				<button
 					type="button"
@@ -147,8 +147,8 @@ export const MobileServerDashboard = memo(() => {
 					className={cn(
 						"flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
 						tab === "settings"
-							? "bg-emerald-500/15 text-emerald-400"
-							: "text-zinc-400 active:bg-zinc-900",
+							? "bg-primary/15 text-primary"
+							: "text-muted-foreground active:bg-card",
 					)}
 				>
 					<Settings2 className="size-5" />
@@ -168,7 +168,7 @@ export const MobileServerDashboard = memo(() => {
 				</FadeScroll>
 			)}
 
-			<nav className="grid shrink-0 grid-cols-5 border-zinc-900 border-t bg-zinc-950 pb-[env(safe-area-inset-bottom)]">
+			<nav className="grid shrink-0 grid-cols-5 border-border border-t bg-background pb-[env(safe-area-inset-bottom)]">
 				{/* Settings lives behind the gear in the top bar, keeping five tabs here */}
 				{WORKSPACE_TABS.filter((t) => t.id !== "settings").map(({ id, label, icon: Icon }) => (
 					<button
@@ -177,13 +177,13 @@ export const MobileServerDashboard = memo(() => {
 						onClick={() => setTab(id)}
 						className={cn(
 							"flex min-w-0 flex-col items-center gap-1 px-0.5 pt-2.5 pb-2 font-medium text-[10px] transition-colors",
-							tab === id ? "text-emerald-400" : "text-zinc-500 active:text-zinc-300",
+							tab === id ? "text-primary" : "text-muted-foreground active:text-foreground/80",
 						)}
 					>
 						<span
 							className={cn(
 								"flex h-7 w-12 items-center justify-center rounded-full transition-colors",
-								tab === id && "bg-emerald-500/15",
+								tab === id && "bg-primary/15",
 							)}
 						>
 							<Icon className="size-[18px]" />
@@ -214,12 +214,12 @@ export const MobileServerDashboard = memo(() => {
 							setSwitcherOpen(false)
 							setWizardOpen(true)
 						}}
-						className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 font-semibold text-sm text-white transition-colors hover:bg-emerald-500 active:bg-emerald-700"
+						className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary active:bg-primary"
 					>
 						<Plus className="size-4" /> {t("mobileServers.newServer")}
 					</button>
 					<ImportServerButton
-						className="h-11 gap-2 rounded-2xl border-zinc-800"
+						className="h-11 gap-2 rounded-2xl border-border"
 						onImported={(created) => {
 							refresh()
 							select(created.id)
@@ -231,7 +231,7 @@ export const MobileServerDashboard = memo(() => {
 							setSwitcherOpen(false)
 							setLicensesOpen(true)
 						}}
-						className="mt-1 self-center px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+						className="mt-1 self-center px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground/80"
 					>
 						{t("mobileServers.about")}
 					</button>
@@ -247,14 +247,14 @@ function ServerIcon({ serverId, className }: { serverId: string; className?: str
 	return (
 		<div
 			className={cn(
-				"flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900",
+				"flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card",
 				className,
 			)}
 		>
 			{icon ? (
 				<img src={icon} alt="" className="size-full object-cover [image-rendering:pixelated]" />
 			) : (
-				<Server className="size-4 text-zinc-500" />
+				<Server className="size-4 text-muted-foreground" />
 			)}
 		</div>
 	)
@@ -266,15 +266,15 @@ function ServerSwitcherButton({ server, onClick }: { server: ServerConfig; onCli
 		<button
 			type="button"
 			onClick={onClick}
-			className="flex min-w-0 flex-1 items-center gap-2.5 rounded-2xl px-1.5 py-1 text-left transition-colors active:bg-zinc-900"
+			className="flex min-w-0 flex-1 items-center gap-2.5 rounded-2xl px-1.5 py-1 text-left transition-colors active:bg-card"
 		>
 			<ServerIcon serverId={server.id} className="size-9" />
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-1">
-					<span className="truncate font-semibold text-sm text-zinc-50">{server.name}</span>
-					<ChevronDown className="size-4 shrink-0 text-zinc-500" />
+					<span className="truncate font-semibold text-foreground text-sm">{server.name}</span>
+					<ChevronDown className="size-4 shrink-0 text-muted-foreground" />
 				</div>
-				<p className="truncate text-[11px] text-zinc-500 capitalize">
+				<p className="truncate text-[11px] text-muted-foreground capitalize">
 					{server.core} {server.gameVersion}
 				</p>
 			</div>
@@ -299,17 +299,17 @@ function ServerRow({
 			onClick={onClick}
 			className={cn(
 				"flex items-center gap-3 rounded-2xl p-2.5 text-left transition-colors",
-				selected ? "bg-zinc-900" : "active:bg-zinc-900",
+				selected ? "bg-card" : "active:bg-card",
 			)}
 		>
 			<ServerIcon serverId={server.id} className="size-11" />
 			<div className="min-w-0 flex-1">
-				<p className="truncate font-medium text-sm text-zinc-100">{server.name}</p>
-				<p className="truncate text-[11px] text-zinc-500 capitalize">
+				<p className="truncate font-medium text-foreground text-sm">{server.name}</p>
+				<p className="truncate text-[11px] text-muted-foreground capitalize">
 					{server.core} {server.gameVersion} · {status}
 				</p>
 			</div>
-			{selected && <Check className="size-4 text-emerald-400" />}
+			{selected && <Check className="size-4 text-primary" />}
 		</button>
 	)
 }

@@ -98,13 +98,13 @@ export const SyncMasterDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-zinc-950 p-4 shadow-2xl backdrop-blur-2xl sm:max-w-lg sm:p-5">
+			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-background p-4 shadow-2xl backdrop-blur-2xl sm:max-w-lg sm:p-5">
 				<DialogHeader className="gap-1.5">
-					<div className="flex items-center gap-2 text-emerald-400">
+					<div className="flex items-center gap-2 text-primary">
 						<UploadCloud className="size-5" />
-						<DialogTitle className="font-semibold text-lg text-zinc-50">{title}</DialogTitle>
+						<DialogTitle className="font-semibold text-foreground text-lg">{title}</DialogTitle>
 					</div>
-					<DialogDescription className="text-xs text-zinc-400 leading-relaxed">
+					<DialogDescription className="text-muted-foreground text-xs leading-relaxed">
 						{description}
 					</DialogDescription>
 				</DialogHeader>
@@ -112,22 +112,22 @@ export const SyncMasterDialog = ({
 				<div className="flex flex-col gap-3 py-1">
 					{/* Option 1: Use Current Shared Storage if available */}
 					{category?.hasSharedData && (
-						<div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3 transition-colors hover:border-emerald-500/50">
+						<div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3 transition-colors hover:border-primary/50">
 							<div className="flex items-center gap-3">
-								<div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+								<div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/20 text-primary">
 									<Database className="size-4" />
 								</div>
 								<div>
-									<div className="font-medium text-xs text-zinc-50">
+									<div className="font-medium text-foreground text-xs">
 										{t("syncMaster.useExisting")}
 									</div>
-									<div className="text-[11px] text-zinc-400">
+									<div className="text-[11px] text-muted-foreground">
 										<Trans
 											i18nKey="syncMaster.keepCurrent"
 											values={{ file: category.file }}
 											components={{
 												code: (
-													<code className="rounded bg-zinc-900 px-1 py-0.5 font-mono text-[10px] text-emerald-300" />
+													<code className="rounded bg-card px-1 py-0.5 font-mono text-[10px] text-primary" />
 												),
 											}}
 										/>
@@ -139,7 +139,7 @@ export const SyncMasterDialog = ({
 								size="sm"
 								disabled={isSubmitting}
 								onClick={() => handleChoice({ type: "shared" })}
-								className="h-8 shrink-0 bg-emerald-600 text-white text-xs hover:bg-emerald-500"
+								className="h-8 shrink-0 text-xs"
 							>
 								{t("syncMaster.useShared")}
 							</Button>
@@ -148,7 +148,7 @@ export const SyncMasterDialog = ({
 
 					{/* Instances selection */}
 					<div className="flex flex-col gap-1.5">
-						<span className="font-medium text-[11px] text-zinc-400">
+						<span className="font-medium text-[11px] text-muted-foreground">
 							{category?.hasSharedData ? t("syncMaster.orCopyFrom") : t("syncMaster.copyFrom")}
 						</span>
 
@@ -166,8 +166,8 @@ export const SyncMasterDialog = ({
 												key={inst.id}
 												className={`flex items-center justify-between rounded-xl border p-2.5 transition-colors ${
 													isSelected
-														? "border-emerald-500/50 bg-emerald-500/10"
-														: "border-zinc-800/80 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70"
+														? "border-primary/50 bg-primary/10"
+														: "border-border/80 bg-card/40 hover:border-input hover:bg-card/70"
 												}`}
 											>
 												<div className="flex items-center gap-2.5">
@@ -205,14 +205,14 @@ export const SyncMasterDialog = ({
 					{/* Option 3: Start Empty */}
 					{category && (
 						<div className="flex items-center justify-between border-border/30 border-t pt-2">
-							<span className="text-[11px] text-zinc-400">{t("syncMaster.noCopy")}</span>
+							<span className="text-[11px] text-muted-foreground">{t("syncMaster.noCopy")}</span>
 							<Button
 								type="button"
 								variant="ghost"
 								size="sm"
 								disabled={isSubmitting}
 								onClick={() => handleChoice({ type: "empty" })}
-								className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+								className="h-7 gap-1.5 text-muted-foreground text-xs"
 							>
 								<FolderX className="size-3.5" />
 								{t("syncMaster.startFresh")}

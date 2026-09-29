@@ -2,11 +2,13 @@ import { History, Layers, Palette, RefreshCw, Server, Sliders, UploadCloud } fro
 import { memo, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { SharedSyncStatus, SyncSettings as SyncSettingsType } from "@/bindings"
+import { SectionCardHeader } from "@/components/common/section-card"
 import SyncMasterDialog, {
 	type InitialSyncCategoryTarget,
 	type SyncSourceChoice,
 } from "@/components/settings/sync-master-dialog"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { settingsService, useSyncSettings } from "@/services/settings-service"
 
@@ -170,87 +172,86 @@ export const SyncSettings = () => {
 	}
 
 	return (
-		<div className="flex flex-col gap-4 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
-			<div className="flex flex-col gap-1">
-				<div className="flex items-center gap-2">
-					<RefreshCw className="size-4 text-emerald-400" />
-					<h3 className="font-semibold text-foreground text-sm">{t("settings.sync.title")}</h3>
-				</div>
-				<p className="text-muted-foreground text-xs">{t("settings.sync.description")}</p>
-			</div>
-
-			{/* Synchronization Toggles */}
-			<div className="flex flex-col divide-y divide-border/30 overflow-hidden rounded-lg border border-border/30 bg-zinc-950/60">
-				{SYNC_ITEMS.map((item) => {
-					const Icon = item.icon
-					const isChecked = Boolean(syncSettings[item.key])
-					const itemTitle = t(`settings.sync.items.${item.key}.title`)
-					const itemDesc = t(`settings.sync.items.${item.key}.description`)
-					return (
-						<div
-							key={item.key}
-							className="flex items-center justify-between p-3.5 transition-colors hover:bg-zinc-900/30"
-						>
-							<div className="flex items-center gap-3">
-								<div
-									className={`flex size-8 items-center justify-center rounded-md bg-zinc-900 ${item.color}`}
-								>
-									<Icon className="size-4" />
-								</div>
-								<div>
-									<div className="flex items-center gap-2">
-										<span className="font-medium text-foreground text-xs sm:text-sm">
-											{itemTitle}
-										</span>
-										<code className="rounded bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
-											{item.file}
-										</code>
-									</div>
-									<div className="text-[11px] text-muted-foreground">{itemDesc}</div>
-								</div>
-							</div>
-
-							<div className="flex items-center gap-2">
-								{isChecked && (
-									<Button
-										type="button"
-										variant="ghost"
-										size="icon"
-										onClick={() => {
-											setActiveCategoryTarget({
-												key: item.key,
-												categoryName: item.categoryName,
-												title: itemTitle,
-												file: item.file,
-												hasSharedData: hasCategorySharedData(item.key),
-											})
-											setIsMasterOpen(true)
-										}}
-										className="size-7 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
-										title={t("settings.sync.reinitialize", { title: itemTitle })}
-									>
-										<UploadCloud className="size-3.5" />
-									</Button>
-								)}
-								<Switch
-									checked={isChecked}
-									onCheckedChange={(checked) => handleToggle(item, checked)}
-								/>
-							</div>
-						</div>
-					)
-				})}
-			</div>
-
-			<SyncMasterDialog
-				open={isMasterOpen}
-				onOpenChange={setIsMasterOpen}
-				category={activeCategoryTarget}
-				onSelectSource={handleSelectSource}
-				onCancel={handleDialogCancel}
-				onSuccess={refreshStatus}
+		<Card>
+			<SectionCardHeader
+				icon={RefreshCw}
+				title={t("settings.sync.title")}
+				description={t("settings.sync.description")}
 			/>
-		</div>
+			<CardContent className="flex flex-col gap-4">
+				{/* Synchronization Toggles */}
+				<div className="flex flex-col divide-y divide-border/30 overflow-hidden rounded-lg border border-border/30 bg-background/60">
+					{SYNC_ITEMS.map((item) => {
+						const Icon = item.icon
+						const isChecked = Boolean(syncSettings[item.key])
+						const itemTitle = t(`settings.sync.items.${item.key}.title`)
+						const itemDesc = t(`settings.sync.items.${item.key}.description`)
+						return (
+							<div
+								key={item.key}
+								className="flex items-center justify-between p-3.5 transition-colors hover:bg-card/30"
+							>
+								<div className="flex items-center gap-3">
+									<div
+										className={`flex size-8 items-center justify-center rounded-md bg-card ${item.color}`}
+									>
+										<Icon className="size-4" />
+									</div>
+									<div>
+										<div className="flex items-center gap-2">
+											<span className="font-medium text-foreground text-xs sm:text-sm">
+												{itemTitle}
+											</span>
+											<code className="rounded bg-card px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+												{item.file}
+											</code>
+										</div>
+										<div className="text-[11px] text-muted-foreground">{itemDesc}</div>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-2">
+									{isChecked && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											onClick={() => {
+												setActiveCategoryTarget({
+													key: item.key,
+													categoryName: item.categoryName,
+													title: itemTitle,
+													file: item.file,
+													hasSharedData: hasCategorySharedData(item.key),
+												})
+												setIsMasterOpen(true)
+											}}
+											className="size-7 text-muted-foreground"
+											title={t("settings.sync.reinitialize", { title: itemTitle })}
+										>
+											<UploadCloud className="size-3.5" />
+										</Button>
+									)}
+									<Switch
+										checked={isChecked}
+										onCheckedChange={(checked) => handleToggle(item, checked)}
+									/>
+								</div>
+							</div>
+						)
+					})}
+				</div>
+
+				<SyncMasterDialog
+					open={isMasterOpen}
+					onOpenChange={setIsMasterOpen}
+					category={activeCategoryTarget}
+					onSelectSource={handleSelectSource}
+					onCancel={handleDialogCancel}
+					onSuccess={refreshStatus}
+				/>
+			</CardContent>
+		</Card>
 	)
 }
 

@@ -27,7 +27,7 @@ const InstanceSearchHeader = ({
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
 					placeholder={t("instances.searchPlaceholder")}
-					className="border-border/50 bg-zinc-900/50 pl-9 focus-visible:ring-1"
+					className="pl-9 focus-visible:ring-1"
 				/>
 			</div>
 

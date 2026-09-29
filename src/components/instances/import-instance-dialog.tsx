@@ -248,18 +248,18 @@ export const ImportInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-zinc-950 p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-background p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
 				<DialogHeader className="gap-1">
 					<div className="flex items-center gap-2 text-primary">
 						<FolderOpen className="size-5 shrink-0" />
-						<DialogTitle className="truncate font-semibold text-lg text-zinc-50">
+						<DialogTitle className="truncate font-semibold text-foreground text-lg">
 							{step === "launchers" && t("importInstance.title")}
 							{step === "instances" &&
 								t("importInstance.selectInstance", { launcher: selectedLauncher?.name ?? "" })}
 							{step === "options" && t("importInstance.configure")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-xs text-zinc-400">
+					<DialogDescription className="text-muted-foreground text-xs">
 						{step === "launchers" && t("importInstance.description")}
 						{step === "instances" &&
 							t("importInstance.found", {
@@ -283,9 +283,9 @@ export const ImportInstanceDialog = ({
 								{launchers.map((l) => {
 									const meta = LAUNCHER_META[l.id] || {
 										icon: Box,
-										color: "text-zinc-400",
-										bg: "bg-zinc-800",
-										border: "hover:border-zinc-700",
+										color: "text-muted-foreground",
+										bg: "bg-muted",
+										border: "hover:border-input",
 									}
 									const Icon = meta.icon
 
@@ -300,7 +300,7 @@ export const ImportInstanceDialog = ({
 													handleBrowseLauncherFolder(l)
 												}
 											}}
-											className={`group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-3 text-left transition-all sm:p-3.5 ${meta.border} hover:bg-zinc-900/80`}
+											className={`group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/80 bg-card/40 p-3 text-left transition-all sm:p-3.5 ${meta.border} hover:bg-card/80`}
 										>
 											<div className="flex min-w-0 flex-1 items-center gap-3">
 												<div
@@ -319,7 +319,7 @@ export const ImportInstanceDialog = ({
 														{l.available && (
 															<Badge
 																variant="outline"
-																className="shrink-0 border-emerald-500/30 text-emerald-400"
+																className="shrink-0 border-primary/30 text-primary"
 															>
 																{t("common.installed")}
 															</Badge>
@@ -348,10 +348,10 @@ export const ImportInstanceDialog = ({
 								<button
 									type="button"
 									onClick={handleBrowseCustomFolder}
-									className="group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/40 border-dashed bg-zinc-900/20 p-3 text-left transition-all hover:border-primary/50 hover:bg-zinc-900/50 sm:p-3.5"
+									className="group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/40 border-dashed bg-card/20 p-3 text-left transition-all hover:border-primary/50 hover:bg-card/50 sm:p-3.5"
 								>
 									<div className="flex min-w-0 flex-1 items-center gap-3">
-										<div className="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300 transition-transform group-hover:scale-105">
+										<div className="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80 transition-transform group-hover:scale-105">
 											<FolderSearch className="size-5" />
 										</div>
 										<div className="min-w-0 flex-1">
@@ -383,7 +383,7 @@ export const ImportInstanceDialog = ({
 									variant="ghost"
 									size="sm"
 									onClick={() => setStep("launchers")}
-									className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
+									className="h-8 gap-1 text-muted-foreground text-xs"
 								>
 									<ArrowLeft className="size-3.5" />
 									<span>{t("importInstance.backToLaunchers")}</span>
@@ -395,7 +395,7 @@ export const ImportInstanceDialog = ({
 										variant="ghost"
 										size="sm"
 										onClick={() => handleBrowseLauncherFolder(selectedLauncher)}
-										className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
+										className="h-8 gap-1 text-muted-foreground text-xs"
 									>
 										<FolderSearch className="size-3.5" />
 										<span>{t("importInstance.changeFolder")}</span>
@@ -431,7 +431,7 @@ export const ImportInstanceDialog = ({
 									filteredInstances.map((inst) => (
 										<div
 											key={inst.id}
-											className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-900/70"
+											className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card/40 p-3 transition-colors hover:border-input hover:bg-card/70"
 										>
 											<div className="flex min-w-0 flex-1 items-center gap-3">
 												<div className="shrink-0">
@@ -446,17 +446,17 @@ export const ImportInstanceDialog = ({
 															MC {inst.gameVersion} • {inst.loader}
 														</span>
 														{inst.modsCount > 0 && (
-															<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
+															<span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80">
 																{t("importInstance.modsCount", { count: inst.modsCount })}
 															</span>
 														)}
 														{inst.savesCount > 0 && (
-															<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
+															<span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80">
 																{t("importInstance.worldsCount", { count: inst.savesCount })}
 															</span>
 														)}
 														{inst.screenshotsCount > 0 && (
-															<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
+															<span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80">
 																{t("importInstance.screenshotsCount", {
 																	count: inst.screenshotsCount,
 																})}
@@ -492,7 +492,7 @@ export const ImportInstanceDialog = ({
 									variant="ghost"
 									size="sm"
 									onClick={() => setStep(selectedLauncher ? "instances" : "launchers")}
-									className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
+									className="h-8 gap-1 text-muted-foreground text-xs"
 								>
 									<ArrowLeft className="size-3.5" />
 									<span>{t("versionChange.back")}</span>
@@ -500,7 +500,7 @@ export const ImportInstanceDialog = ({
 							</div>
 
 							{/* Instance Info Card */}
-							<div className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-3.5">
+							<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/40 p-3.5">
 								<div className="flex items-center gap-3">
 									<LoaderIcon loader={selectedInstance.loader} size={24} />
 									<div className="flex-1">
@@ -517,15 +517,15 @@ export const ImportInstanceDialog = ({
 									</div>
 								</div>
 
-								<div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[10px] text-zinc-400">
-									<span className="rounded bg-zinc-800 px-2 py-0.5">
+								<div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[10px] text-muted-foreground">
+									<span className="rounded bg-muted px-2 py-0.5">
 										MC {selectedInstance.gameVersion}
 									</span>
-									<span className="rounded bg-zinc-800 px-2 py-0.5">
+									<span className="rounded bg-muted px-2 py-0.5">
 										{selectedInstance.loader}{" "}
 										{selectedInstance.loaderVersion ? `(${selectedInstance.loaderVersion})` : ""}
 									</span>
-									<span className="truncate text-zinc-500">
+									<span className="truncate text-muted-foreground">
 										{t("importInstance.source", { path: selectedInstance.sourcePath })}
 									</span>
 								</div>
@@ -533,17 +533,17 @@ export const ImportInstanceDialog = ({
 
 							{/* Transfer components checkboxes */}
 							<div className="flex flex-col gap-2">
-								<span className="font-medium text-[11px] text-zinc-400">
+								<span className="font-medium text-[11px] text-muted-foreground">
 									{t("importInstance.components")}
 								</span>
 
 								<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 									<Label
 										htmlFor="copy-mods"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
-											<Layers className="size-4 shrink-0 text-sky-400" />
+											<Layers className="size-4 shrink-0 text-info" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.mods")}
@@ -563,10 +563,10 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-configs"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
-											<Sliders className="size-4 shrink-0 text-amber-400" />
+											<Sliders className="size-4 shrink-0 text-warning" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.configs")}
@@ -586,10 +586,10 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-saves"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
-											<HardDrive className="size-4 shrink-0 text-emerald-400" />
+											<HardDrive className="size-4 shrink-0 text-primary" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.worlds")}
@@ -611,7 +611,7 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-resourcepacks"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Box className="size-4 shrink-0 text-pink-400" />
@@ -634,7 +634,7 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-screenshots"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Camera className="size-4 shrink-0 text-cyan-400" />
@@ -661,7 +661,7 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-extra-data"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Sparkles className="size-4 shrink-0 text-teal-400" />
@@ -684,7 +684,7 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-options"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Sliders className="size-4 shrink-0 text-purple-400" />
@@ -707,10 +707,10 @@ export const ImportInstanceDialog = ({
 
 									<Label
 										htmlFor="copy-servers"
-										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
+										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-card/30 p-2.5 transition-colors hover:bg-card/60"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
-											<Server className="size-4 shrink-0 text-emerald-400" />
+											<Server className="size-4 shrink-0 text-primary" />
 											<div className="min-w-0 flex-1">
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.servers")}
@@ -730,12 +730,12 @@ export const ImportInstanceDialog = ({
 								</div>
 
 								{/* Info notice */}
-								<div className="mt-1 flex items-start gap-2.5 rounded-lg border border-border/40 bg-zinc-900/20 p-2.5 text-xs text-zinc-400">
+								<div className="mt-1 flex items-start gap-2.5 rounded-lg border border-border/40 bg-card/20 p-2.5 text-muted-foreground text-xs">
 									<Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-									<span className="text-[11px] text-zinc-400 leading-relaxed">
+									<span className="text-[11px] text-muted-foreground leading-relaxed">
 										<Trans
 											i18nKey="importInstance.note"
-											components={{ b: <strong className="text-zinc-200" /> }}
+											components={{ b: <strong className="text-foreground" /> }}
 										/>
 									</span>
 								</div>

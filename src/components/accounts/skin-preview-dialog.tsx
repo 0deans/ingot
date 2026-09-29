@@ -117,7 +117,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 										onOpenChange(false)
 										navigate({ to: "/skins" })
 									}}
-									className="gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
+									className="gap-1.5 font-medium text-xs"
 								>
 									<Sparkles className="size-3" />
 									{t("skinPreview.changeSkin")}
@@ -131,7 +131,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 										title={t("skinPreview.copyUrlTitle")}
 									>
 										{copied ? (
-											<Check className="size-3 text-emerald-400" />
+											<Check className="size-3 text-primary" />
 										) : (
 											<Copy className="size-3" />
 										)}

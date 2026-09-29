@@ -110,17 +110,17 @@ export function ServerWorkspace({
 
 	return (
 		<div className="flex size-full min-h-0 flex-col">
-			<header className="flex shrink-0 flex-col gap-3 border-zinc-800/60 border-b px-5 pt-4 lg:px-6">
+			<header className="flex shrink-0 flex-col gap-3 border-border/60 border-b px-5 pt-4 lg:px-6">
 				<div className="flex items-center gap-3">
 					<button
 						type="button"
 						onClick={onBack}
 						aria-label={t("serverWorkspace.back")}
-						className="flex size-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+						className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 					>
 						<ArrowLeft className="size-4" />
 					</button>
-					<div className="flex size-9 items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+					<div className="flex size-9 items-center justify-center overflow-hidden rounded-xl border border-border bg-card">
 						{icon ? (
 							<img
 								src={icon}
@@ -128,15 +128,15 @@ export function ServerWorkspace({
 								className="size-full object-cover [image-rendering:pixelated]"
 							/>
 						) : (
-							<Server className="size-4 text-zinc-500" />
+							<Server className="size-4 text-muted-foreground" />
 						)}
 					</div>
 					<div className="min-w-0">
 						<div className="flex items-center gap-2">
-							<h1 className="truncate font-semibold text-base text-zinc-50">{server.name}</h1>
+							<h1 className="truncate font-semibold text-base text-foreground">{server.name}</h1>
 							<StatusPill status={status} />
 						</div>
-						<p className="text-[11px] text-zinc-500 capitalize">
+						<p className="text-[11px] text-muted-foreground capitalize">
 							{server.core} {server.gameVersion}
 						</p>
 					</div>
@@ -150,8 +150,8 @@ export function ServerWorkspace({
 							className={cn(
 								"flex shrink-0 items-center gap-1.5 border-b-2 px-3 pb-2.5 font-medium text-xs transition-colors",
 								tab === id
-									? "border-emerald-400 text-zinc-100"
-									: "border-transparent text-zinc-500 hover:text-zinc-300",
+									? "border-primary text-foreground"
+									: "border-transparent text-muted-foreground hover:text-foreground/80",
 							)}
 						>
 							<Icon className="size-3.5" />

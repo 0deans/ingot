@@ -62,7 +62,7 @@ export function CompanionCard({
 
 	return (
 		<Card className="flex-row items-center gap-3 px-3.5 py-3">
-			<div className="flex size-10 shrink-0 items-center justify-center bg-zinc-900">
+			<div className="flex size-10 shrink-0 items-center justify-center bg-card">
 				<img
 					src="/ingot.svg"
 					alt=""
@@ -70,17 +70,17 @@ export function CompanionCard({
 				/>
 			</div>
 			<div className="min-w-0 flex-1">
-				<p className="flex items-baseline gap-1.5 truncate font-medium text-sm text-zinc-100">
+				<p className="flex items-baseline gap-1.5 truncate font-medium text-foreground text-sm">
 					Ingot
-					<span className="font-normal text-[10px] text-zinc-500 uppercase tracking-wider">
+					<span className="font-normal text-[10px] text-muted-foreground uppercase tracking-wider">
 						{t("companion.system")}
 					</span>
 				</p>
-				<p className="flex items-center gap-1.5 truncate text-[11px] text-zinc-500">
+				<p className="flex items-center gap-1.5 truncate text-[11px] text-muted-foreground">
 					<span
 						className={cn(
 							"size-1.5 shrink-0 rounded-full",
-							installed && status.enabled ? "bg-emerald-400" : "bg-zinc-600",
+							installed && status.enabled ? "bg-primary" : "bg-accent",
 						)}
 					/>
 					{installed
@@ -116,7 +116,7 @@ export function CompanionCard({
 					disabled={busy}
 					title={t("companion.remove", { context })}
 					aria-label={t("companion.remove", { context })}
-					className="flex size-8 shrink-0 items-center justify-center text-zinc-500 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-50"
+					className="flex size-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
 				>
 					{actions.remove.isPending ? (
 						<Spinner className="size-4" />
@@ -141,12 +141,7 @@ function ActionButton({
 	children: React.ReactNode
 }) {
 	return (
-		<Button
-			size="sm"
-			onClick={onClick}
-			disabled={disabled}
-			className="h-8 shrink-0 gap-1.5 bg-emerald-600 px-3 text-white hover:bg-emerald-500"
-		>
+		<Button size="sm" onClick={onClick} disabled={disabled} className="h-8 shrink-0 gap-1.5 px-3">
 			{busy ? <Spinner className="size-3.5" /> : children}
 		</Button>
 	)

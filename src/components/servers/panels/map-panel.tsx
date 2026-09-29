@@ -121,7 +121,7 @@ export function MapPanel({
 	if (isLoading) {
 		return (
 			<div className={cn("flex items-center justify-center", className)}>
-				<Spinner className="size-5 text-zinc-500" />
+				<Spinner className="size-5 text-muted-foreground" />
 			</div>
 		)
 	}
@@ -149,7 +149,7 @@ export function MapPanel({
 
 			{/* Top overlay: dimension switcher and refresh */}
 			<div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-				<div className="pointer-events-auto flex gap-1 overflow-x-auto rounded-xl border border-zinc-50/10 bg-zinc-950/80 p-1 backdrop-blur-md [scrollbar-width:none]">
+				<div className="pointer-events-auto flex gap-1 overflow-x-auto rounded-xl border border-border/10 bg-background/80 p-1 backdrop-blur-md [scrollbar-width:none]">
 					{dimensions?.map((d) => (
 						<button
 							key={d.id}
@@ -161,8 +161,8 @@ export function MapPanel({
 							className={cn(
 								"whitespace-nowrap rounded-lg px-3 py-1.5 font-medium text-xs transition-colors",
 								d.id === current.id
-									? "bg-zinc-50/15 text-zinc-50"
-									: "text-zinc-400 hover:text-zinc-200",
+									? "bg-foreground/15 text-foreground"
+									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
 							{dimensionStyle(d.id).label}
@@ -173,14 +173,14 @@ export function MapPanel({
 					{live && (
 						<span
 							title={t("map.liveTitle")}
-							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-emerald-300 backdrop-blur-md"
+							className="flex h-9 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-2.5 font-medium text-[11px] text-primary backdrop-blur-md"
 						>
-							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
+							<span className="size-1.5 animate-pulse rounded-full bg-primary" />
 							{t("map.live")}
 						</span>
 					)}
 					{isRunning && installedAt === server.id && (
-						<span className="flex h-9 items-center rounded-xl border border-amber-500/20 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-amber-200 backdrop-blur-md">
+						<span className="flex h-9 items-center rounded-xl border border-warning/20 bg-background/80 px-2.5 font-medium text-[11px] text-warning backdrop-blur-md">
 							{t("map.restartToGoLive")}
 						</span>
 					)}
@@ -193,12 +193,12 @@ export function MapPanel({
 							}}
 							disabled={installCompanion.isPending}
 							title={t("map.makeLiveTitle", { context: addonKind(server.core)?.kind ?? "plugin" })}
-							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
+							className="flex h-9 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-2.5 font-medium text-[11px] text-foreground backdrop-blur-md transition-colors hover:bg-background"
 						>
 							{installCompanion.isPending ? (
 								<Spinner className="size-3.5" />
 							) : (
-								<Radio className="size-3.5 text-emerald-400" />
+								<Radio className="size-3.5 text-primary" />
 							)}
 							{t("map.makeLive")}
 						</button>
@@ -210,10 +210,10 @@ export function MapPanel({
 							onClick={refresh}
 							disabled={refreshing}
 							title={t("map.refreshTitle")}
-							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-3 font-medium text-xs text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
+							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-3 font-medium text-foreground text-xs backdrop-blur-md transition-colors hover:bg-background"
 						>
 							{refreshNote ? (
-								<Check className="size-3.5 text-emerald-400" />
+								<Check className="size-3.5 text-primary" />
 							) : (
 								<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
 							)}
@@ -237,10 +237,10 @@ export function MapPanel({
 							onClick={() =>
 								setView((v) => ({ x: p.x, z: p.z, scale: Math.max(v?.scale ?? 2, 2) }))
 							}
-							className="flex items-center gap-2 rounded-xl border border-zinc-50/10 bg-zinc-950/80 py-1 pr-3 pl-1 text-left backdrop-blur-md transition-colors hover:bg-zinc-950"
+							className="flex items-center gap-2 rounded-xl border border-border/10 bg-background/80 py-1 pr-3 pl-1 text-left backdrop-blur-md transition-colors hover:bg-background"
 						>
 							<PlayerAvatar name={p.name} size={24} />
-							<span className="truncate font-medium text-xs text-zinc-50">{p.name}</span>
+							<span className="truncate font-medium text-foreground text-xs">{p.name}</span>
 						</button>
 					))}
 				</div>

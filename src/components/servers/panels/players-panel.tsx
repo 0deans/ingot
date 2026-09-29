@@ -142,12 +142,12 @@ function OnlinePlayerCard({ player, onClick }: { player: PlayerDetails; onClick:
 		<button
 			type="button"
 			onClick={onClick}
-			className="flex items-center gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-3 text-left transition-colors hover:border-zinc-700 hover:bg-zinc-900/70 active:scale-[0.99]"
+			className="flex items-center gap-3 rounded-2xl border border-border/80 bg-card/40 p-3 text-left transition-colors hover:border-input hover:bg-card/70 active:scale-[0.99]"
 		>
 			<PlayerAvatar name={player.name} size={44} online />
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center justify-between gap-2">
-					<span className="truncate font-semibold text-sm text-zinc-100">{player.name}</span>
+					<span className="truncate font-semibold text-foreground text-sm">{player.name}</span>
 					<Badge variant="outline" className={cn("shrink-0", dim.badge)}>
 						{dim.label}
 					</Badge>
@@ -156,7 +156,7 @@ function OnlinePlayerCard({ player, onClick }: { player: PlayerDetails; onClick:
 					<MiniBar icon={Heart} pct={health} color="#f43f5e" />
 					<MiniBar icon={Apple} pct={(player.food / 20) * 100} color="#f59e0b" />
 				</div>
-				<p className="mt-1.5 truncate font-mono text-[10px] text-zinc-500">
+				<p className="mt-1.5 truncate font-mono text-[10px] text-muted-foreground">
 					{player.gamemode} · {Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
 				</p>
 			</div>
@@ -168,7 +168,7 @@ function MiniBar({ icon: Icon, pct, color }: { icon: typeof Heart; pct: number; 
 	return (
 		<div className="flex items-center gap-1.5">
 			<Icon className="size-3 shrink-0" style={{ color }} />
-			<div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-800">
+			<div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
 				<div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
 			</div>
 		</div>
@@ -204,27 +204,27 @@ function AllPlayersList({
 		<div className="flex flex-col gap-3">
 			{data.length > 6 && (
 				<div className="relative">
-					<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-500" />
+					<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder={t("players.search")}
-						className="h-10 rounded-xl border-zinc-800 bg-zinc-900/60 pl-9 text-sm"
+						className="h-10 rounded-xl pl-9 text-sm"
 					/>
 				</div>
 			)}
-			<Card className="gap-0 divide-y divide-zinc-800/70 py-0">
+			<Card className="gap-0 divide-y divide-border/70 py-0">
 				{filtered.map((p) => (
 					<button
 						key={p.uuid || p.name}
 						type="button"
 						onClick={() => onSelect(p.name)}
-						className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-zinc-900/70"
+						className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-card/70"
 					>
 						<PlayerAvatar name={p.name} size={34} online={p.online} />
 						<div className="min-w-0 flex-1">
-							<p className="truncate font-medium text-sm text-zinc-100">{p.name}</p>
-							<p className="text-[11px] text-zinc-500">
+							<p className="truncate font-medium text-foreground text-sm">{p.name}</p>
+							<p className="text-[11px] text-muted-foreground">
 								{p.online
 									? t("players.onlineNow")
 									: t("players.lastSeen", { time: formatRelativeTime(p.lastSeen) })}

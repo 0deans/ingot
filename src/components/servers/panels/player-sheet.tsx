@@ -85,7 +85,7 @@ export function PlayerSheet({
 			<DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
 				<DialogTitle className="sr-only">{shownName}</DialogTitle>
 				{isLoading && !player ? (
-					<div className="flex items-center justify-center gap-2 py-16 text-sm text-zinc-500">
+					<div className="flex items-center justify-center gap-2 py-16 text-muted-foreground text-sm">
 						<Spinner className="size-4" /> {t("playerSheet.loading")}
 					</div>
 				) : !player ? (
@@ -97,7 +97,7 @@ export function PlayerSheet({
 						<PlayerHeader player={player} />
 
 						<div className="grid gap-4 px-4 pb-4 sm:grid-cols-2 sm:px-5">
-							<div className="flex flex-col gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-4">
+							<div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/40 p-4">
 								<StatBar
 									icon={Heart}
 									label={t("playerSheet.health")}
@@ -123,7 +123,7 @@ export function PlayerSheet({
 								)}
 								<div className="flex flex-col gap-1.5">
 									<div className="flex items-center justify-between text-xs">
-										<span className="flex items-center gap-1.5 text-zinc-400">
+										<span className="flex items-center gap-1.5 text-muted-foreground">
 											<Sparkles className="size-3.5 text-lime-400" />
 											{t("playerSheet.experience")}
 										</span>
@@ -131,7 +131,7 @@ export function PlayerSheet({
 											{t("playerSheet.level", { level: player.xpLevel })}
 										</span>
 									</div>
-									<div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
+									<div className="h-1.5 overflow-hidden rounded-full bg-muted">
 										<div
 											className="h-full rounded-full bg-lime-400"
 											style={{ width: `${player.xpProgress * 100}%` }}
@@ -140,8 +140,8 @@ export function PlayerSheet({
 								</div>
 							</div>
 
-							<div className="flex flex-col gap-2 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-4">
-								<span className="text-[11px] text-zinc-500 uppercase tracking-wider">
+							<div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/40 p-4">
+								<span className="text-[11px] text-muted-foreground uppercase tracking-wider">
 									{t("playerSheet.equipment")}
 								</span>
 								<div className="grid grid-cols-5 gap-1.5">
@@ -168,7 +168,7 @@ export function PlayerSheet({
 												})
 											}}
 											placeholder={
-												<span className="text-[9px] text-zinc-600">
+												<span className="text-[9px] text-muted-foreground/60">
 													{t(`playerSheet.slots.${label}`)}
 												</span>
 											}
@@ -176,7 +176,7 @@ export function PlayerSheet({
 									))}
 								</div>
 								<div className="mt-auto flex items-center justify-between pt-2 text-xs">
-									<span className="flex items-center gap-1.5 text-zinc-500">
+									<span className="flex items-center gap-1.5 text-muted-foreground">
 										<MapPin className="size-3.5" />
 										{Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
 									</span>
@@ -184,7 +184,7 @@ export function PlayerSheet({
 										<button
 											type="button"
 											onClick={() => onShowOnMap(player)}
-											className="font-medium text-emerald-400 hover:text-emerald-300"
+											className="font-medium text-primary hover:text-primary"
 										>
 											{t("playerSheet.showOnMap")}
 										</button>
@@ -263,9 +263,9 @@ function PlayerHeader({ player }: { player: PlayerDetails }) {
 		<div className="flex items-center gap-3.5 px-4 pt-2 pb-4 sm:px-5 sm:pt-5">
 			<PlayerAvatar name={player.name} size={56} online={player.online} />
 			<div className="min-w-0 flex-1">
-				<h2 className="truncate font-bold text-lg text-zinc-50">{player.name}</h2>
+				<h2 className="truncate font-bold text-foreground text-lg">{player.name}</h2>
 				<div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-					<span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-2 py-0.5 text-zinc-300">
+					<span className="rounded-full border border-input bg-muted/60 px-2 py-0.5 text-foreground/80">
 						{gamemodeLabel(t, player.gamemode)}
 					</span>
 					<span className={cn("rounded-full border px-2 py-0.5", dim.badge)}>{dim.label}</span>
@@ -274,7 +274,7 @@ function PlayerHeader({ player }: { player: PlayerDetails }) {
 							<Flame className="size-3" /> {t("playerSheet.onFire")}
 						</span>
 					)}
-					<span className="text-zinc-500">
+					<span className="text-muted-foreground">
 						{player.online
 							? t("players.onlineNow")
 							: t("players.lastSeen", { time: formatRelativeTime(player.lastSeen) })}
@@ -357,54 +357,54 @@ function ItemDetails({ item }: { item: ItemStack }) {
 	const durability =
 		maxDamage > 0 ? Math.max(0, Math.min(1, (maxDamage - item.damage) / maxDamage)) : null
 	return (
-		<div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+		<div className="flex flex-col gap-3 rounded-xl border border-border bg-card/60 p-3">
 			<div className="flex items-start gap-3">
 				<ItemIcon key={item.id} id={item.id} className="size-10 shrink-0" />
 				<div className="min-w-0 flex-1">
 					<p
 						className={cn(
 							"font-medium text-sm",
-							item.enchanted ? "text-violet-300" : "text-zinc-100",
+							item.enchanted ? "text-violet-300" : "text-foreground",
 						)}
 					>
 						{item.customName ?? prettyId(item.id)}
 					</p>
-					{item.customName && <p className="text-xs text-zinc-400">{prettyId(item.id)}</p>}
-					<p className="break-all font-mono text-[11px] text-zinc-500">{item.id}</p>
+					{item.customName && <p className="text-muted-foreground text-xs">{prettyId(item.id)}</p>}
+					<p className="break-all font-mono text-[11px] text-muted-foreground">{item.id}</p>
 				</div>
-				<span className="shrink-0 rounded-md bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-300">
+				<span className="shrink-0 rounded-md bg-muted px-2 py-0.5 font-mono text-foreground/80 text-xs">
 					×{item.count}
 				</span>
 			</div>
 
 			{durability !== null && (
 				<div className="space-y-1">
-					<p className="text-[11px] text-zinc-400">
+					<p className="text-[11px] text-muted-foreground">
 						{t("playerSheet.durability", {
 							left: Math.max(0, maxDamage - item.damage),
 							max: maxDamage,
 						})}
 					</p>
-					<div className="h-1 overflow-hidden rounded-full bg-zinc-800">
-						<div className="h-full bg-emerald-400" style={{ width: `${durability * 100}%` }} />
+					<div className="h-1 overflow-hidden rounded-full bg-muted">
+						<div className="h-full bg-primary" style={{ width: `${durability * 100}%` }} />
 					</div>
 				</div>
 			)}
 
 			{item.lore.length > 0 && (
-				<div className="whitespace-pre-line border-zinc-800 border-t pt-3 text-xs text-zinc-400 italic">
+				<div className="whitespace-pre-line border-border border-t pt-3 text-muted-foreground text-xs italic">
 					{item.lore.join("\n")}
 				</div>
 			)}
 
 			{item.enchantments.length > 0 ? (
-				<div className="border-zinc-800 border-t pt-3">
+				<div className="border-border border-t pt-3">
 					<p className="mb-2 text-[11px] text-violet-300">{t("playerSheet.enchanted")}</p>
 					<div className="grid gap-1.5 sm:grid-cols-2">
 						{item.enchantments.map((enchantment) => (
 							<div
 								key={enchantment.id}
-								className="flex min-w-0 items-center gap-2 text-xs text-zinc-200"
+								className="flex min-w-0 items-center gap-2 text-foreground text-xs"
 							>
 								<EnchantmentIcon id={enchantment.id} />
 								<span className="min-w-0 flex-1 truncate" title={enchantment.id}>
@@ -419,7 +419,7 @@ function ItemDetails({ item }: { item: ItemStack }) {
 				</div>
 			) : (
 				item.enchanted && (
-					<p className="border-zinc-800 border-t pt-3 text-[11px] text-violet-300">
+					<p className="border-border border-t pt-3 text-[11px] text-violet-300">
 						{t("playerSheet.enchanted")}
 					</p>
 				)
@@ -435,7 +435,7 @@ function EnchantmentIcon({ id }: { id: string }) {
 
 function EffectIcon({ id }: { id: string }) {
 	const Icon = effectIcon(id)
-	return <Icon className="size-8 shrink-0 p-1 text-zinc-400" aria-hidden="true" />
+	return <Icon className="size-8 shrink-0 p-1 text-muted-foreground" aria-hidden="true" />
 }
 
 function EffectsList({ player }: { player: PlayerDetails }) {
@@ -444,14 +444,14 @@ function EffectsList({ player }: { player: PlayerDetails }) {
 		return <EmptyState icon={Sparkles} title={t("playerSheet.noEffects")} className="py-6" />
 	}
 	return (
-		<div className="flex flex-col divide-y divide-zinc-800/70 rounded-xl border border-zinc-800">
+		<div className="flex flex-col divide-y divide-border/70 rounded-xl border border-border">
 			{player.effects.map((e) => (
 				<div key={e.id} className="flex items-center gap-2.5 px-3 py-2.5 text-xs">
 					<EffectIcon id={e.id} />
-					<span className="min-w-0 flex-1 text-zinc-200">
+					<span className="min-w-0 flex-1 text-foreground">
 						{prettyId(e.id)} {romanNumeral(e.amplifier + 1)}
 					</span>
-					<span className="font-mono text-zinc-500">{formatTicks(e.duration)}</span>
+					<span className="font-mono text-muted-foreground">{formatTicks(e.duration)}</span>
 				</div>
 			))}
 		</div>
@@ -479,8 +479,8 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 	}
 
 	return (
-		<div className="flex flex-col gap-3 border-zinc-800/80 border-t bg-zinc-950/60 p-4 sm:px-5">
-			<div className="grid grid-cols-4 gap-1 rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
+		<div className="flex flex-col gap-3 border-border/80 border-t bg-background/60 p-4 sm:px-5">
+			<div className="grid grid-cols-4 gap-1 rounded-xl border border-border bg-card/60 p-1">
 				{GAMEMODES.map((mode) => (
 					<button
 						key={mode}
@@ -489,8 +489,8 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 						className={cn(
 							"rounded-lg py-1.5 font-medium text-[11px] transition-colors",
 							player.gamemode === mode
-								? "bg-emerald-500/15 text-emerald-300"
-								: "text-zinc-500 hover:text-zinc-200",
+								? "bg-primary/15 text-primary"
+								: "text-muted-foreground hover:text-foreground",
 						)}
 					>
 						{gamemodeLabel(t, mode)}
@@ -607,10 +607,10 @@ function ActionButton({
 			className={cn(
 				"flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 py-1.5 text-center font-medium text-xs leading-tight transition-colors disabled:opacity-60",
 				danger
-					? "border-rose-500/20 bg-rose-500/5 text-rose-300 hover:bg-rose-500/15"
+					? "border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/15"
 					: active
-						? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-						: "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800",
+						? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+						: "border-border bg-card/60 text-foreground/80 hover:bg-muted",
 			)}
 		>
 			{busy ? <Spinner className="size-3.5 shrink-0" /> : <Icon className="size-3.5 shrink-0" />}

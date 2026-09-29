@@ -355,7 +355,7 @@ const SkinViewer3D = ({
 						? "absolute inset-0 z-0 size-full bg-transparent"
 						: borderless
 							? "size-full bg-transparent"
-							: "rounded-xl border border-border/50 bg-gradient-to-b from-zinc-900/90 to-zinc-950 shadow-inner",
+							: "rounded-xl border border-border/50 bg-gradient-to-b from-card/90 to-background shadow-inner",
 					!floatingToolbar && autoResize ? "size-full min-h-0 flex-1" : "",
 				)}
 			>
@@ -369,7 +369,7 @@ const SkinViewer3D = ({
 				/>
 
 				{isLoadingSkin && (
-					<div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-zinc-950/40 backdrop-blur-xs">
+					<div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-xs">
 						<Spinner className="size-6 text-primary" />
 					</div>
 				)}
@@ -386,7 +386,7 @@ const SkinViewer3D = ({
 						size="icon-xs"
 						onClick={handleResetView}
 						title={t("skinViewer.resetCamera")}
-						className="size-6 rounded-md border-border/50 bg-zinc-900/80 text-muted-foreground backdrop-blur-xs transition-colors hover:bg-zinc-800 hover:text-foreground active:scale-95"
+						className="size-6 rounded-md backdrop-blur-xs transition-colors active:scale-95"
 					>
 						<RotateCcw className="size-3" />
 					</Button>
@@ -399,7 +399,7 @@ const SkinViewer3D = ({
 							"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
 							isAutoRotate
 								? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
-								: "border-border/50 bg-zinc-900/80 text-muted-foreground hover:bg-zinc-800 hover:text-foreground",
+								: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
 						)}
 					>
 						<Sparkles className="size-3" />
@@ -413,7 +413,7 @@ const SkinViewer3D = ({
 							"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
 							animation === "walk"
 								? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
-								: "border-border/50 bg-zinc-900/80 text-muted-foreground hover:bg-zinc-800 hover:text-foreground",
+								: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
 						)}
 					>
 						<Footprints className="size-3" />
@@ -436,7 +436,7 @@ const SkinViewer3D = ({
 					{/* Animations Selector */}
 					{showToolbar && (
 						<>
-							<div className="flex items-center justify-between gap-1 rounded-lg border border-border/40 bg-zinc-950/60 p-1">
+							<div className="flex items-center justify-between gap-1 rounded-lg border border-border/40 bg-background/60 p-1">
 								<Button
 									variant={animation === "idle" ? "secondary" : "ghost"}
 									size="xs"

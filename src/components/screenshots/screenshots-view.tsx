@@ -191,7 +191,7 @@ const ScreenshotsView = () => {
 	return (
 		<div className="flex size-full flex-col overflow-hidden bg-background text-foreground">
 			{/* Top Header */}
-			<header className="flex shrink-0 items-center justify-between border-border/40 border-b bg-zinc-950/40 px-6 py-4 backdrop-blur-sm">
+			<header className="flex shrink-0 items-center justify-between border-border/40 border-b bg-background/40 px-6 py-4 backdrop-blur-sm">
 				<div className="flex items-center gap-3">
 					<div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 						<Camera className="size-5" />
@@ -199,7 +199,7 @@ const ScreenshotsView = () => {
 					<div>
 						<div className="flex items-center gap-2">
 							<h1 className="font-semibold text-lg tracking-tight">{t("screenshots.title")}</h1>
-							<span className="rounded-full bg-zinc-800/80 px-2 py-0.5 font-medium text-xs text-zinc-400">
+							<span className="rounded-full bg-muted/80 px-2 py-0.5 font-medium text-muted-foreground text-xs">
 								{screenshots.length}
 							</span>
 						</div>
@@ -241,7 +241,7 @@ const ScreenshotsView = () => {
 			</header>
 
 			{/* Filter & Toolbar */}
-			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/40 border-b bg-zinc-950/20 px-6 py-3">
+			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/40 border-b bg-background/20 px-6 py-3">
 				<div className="flex min-w-[200px] max-w-sm flex-1 items-center gap-2.5">
 					<div className="relative w-full">
 						<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -250,7 +250,7 @@ const ScreenshotsView = () => {
 							placeholder={t("screenshots.searchPlaceholder")}
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
-							className="h-9 w-full bg-zinc-900/60 px-8 text-xs placeholder:text-muted-foreground/60"
+							className="h-9 w-full px-8 text-xs placeholder:text-muted-foreground/60"
 						/>
 						{searchInput && (
 							<button
@@ -275,11 +275,7 @@ const ScreenshotsView = () => {
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
-								<Button
-									variant="outline"
-									size="sm"
-									className="h-9 max-w-[200px] gap-2 bg-zinc-900/60 text-xs"
-								>
+								<Button variant="outline" size="sm" className="h-9 max-w-[200px] gap-2 text-xs">
 									<Filter className="size-3.5 shrink-0 text-muted-foreground" />
 									<span className="truncate">{selectedInstanceLabel}</span>
 									<ChevronDown className="ml-auto size-3.5 shrink-0 opacity-60" />
@@ -321,7 +317,7 @@ const ScreenshotsView = () => {
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
-								<Button variant="outline" size="sm" className="h-9 gap-2 bg-zinc-900/60 text-xs">
+								<Button variant="outline" size="sm" className="h-9 gap-2 text-xs">
 									<ArrowUpDown className="size-3.5 text-muted-foreground" />
 									<span>{t(`screenshots.sorts.${sortBy}`)}</span>
 									<ChevronDown className="size-3.5 opacity-60" />
@@ -372,11 +368,11 @@ const ScreenshotsView = () => {
 				) : screenshots.length === 0 ? (
 					/* No screenshots in any instance */
 					<div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-						<div className="flex size-14 items-center justify-center rounded-2xl border border-border/40 bg-zinc-900 text-muted-foreground/60">
+						<div className="flex size-14 items-center justify-center rounded-2xl border border-border/40 bg-card text-muted-foreground/60">
 							<Camera className="size-7" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="font-semibold text-base text-zinc-200">
+							<h3 className="font-semibold text-base text-foreground">
 								{t("screenshots.emptyTitle")}
 							</h3>
 							<p className="max-w-md text-muted-foreground text-xs">
@@ -392,11 +388,11 @@ const ScreenshotsView = () => {
 				) : (
 					/* Filter returned no results */
 					<div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-						<div className="flex size-14 items-center justify-center rounded-2xl border border-border/40 bg-zinc-900 text-muted-foreground/60">
+						<div className="flex size-14 items-center justify-center rounded-2xl border border-border/40 bg-card text-muted-foreground/60">
 							<ImageOff className="size-7" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="font-semibold text-base text-zinc-200">
+							<h3 className="font-semibold text-base text-foreground">
 								{t("screenshots.noMatchTitle")}
 							</h3>
 							<p className="max-w-md text-muted-foreground text-xs">
@@ -461,18 +457,18 @@ const ScreenshotsView = () => {
 
 					{screenshotToDelete && (
 						<div className="flex flex-col gap-3 py-2">
-							<div className="aspect-video w-full overflow-hidden rounded-lg border border-border/40 bg-zinc-900">
+							<div className="aspect-video w-full overflow-hidden rounded-lg border border-border/40 bg-card">
 								<img
 									src={screenshotService.getImageUrl(screenshotToDelete.filePath)}
 									alt={screenshotToDelete.fileName}
 									className="size-full object-cover"
 								/>
 							</div>
-							<div className="flex items-center justify-between text-xs text-zinc-400">
-								<span className="truncate font-medium text-zinc-200">
+							<div className="flex items-center justify-between text-muted-foreground text-xs">
+								<span className="truncate font-medium text-foreground">
 									{screenshotToDelete.fileName}
 								</span>
-								<span className="flex shrink-0 items-center gap-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-300">
+								<span className="flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[11px] text-foreground/80">
 									<HardDrive className="size-3 text-primary" />
 									{screenshotToDelete.instanceName}
 								</span>

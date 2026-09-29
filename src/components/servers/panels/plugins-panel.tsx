@@ -142,8 +142,8 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 					className={cn(
 						"rounded-xl border px-3 py-2.5 text-left text-xs",
 						notice.kind === "success"
-							? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
-							: "border-rose-500/20 bg-rose-500/10 text-rose-300",
+							? "border-primary/20 bg-primary/10 text-primary"
+							: "border-destructive/20 bg-destructive/10 text-destructive",
 					)}
 				>
 					{notice.text}
@@ -245,7 +245,7 @@ function InstalledList({
 	if (loading) {
 		return (
 			<div className="flex justify-center py-10">
-				<Spinner className="size-5 text-zinc-500" />
+				<Spinner className="size-5 text-muted-foreground" />
 			</div>
 		)
 	}
@@ -253,13 +253,13 @@ function InstalledList({
 	if (plugins.length === 0 && hasSystem) {
 		return (
 			<Card className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
-				<p className="min-w-40 flex-1 text-sm text-zinc-400">
+				<p className="min-w-40 flex-1 text-muted-foreground text-sm">
 					{t("plugins.noOther", { context: kind.kind })}
 				</p>
 				<Button
 					variant="outline"
 					onClick={onBrowse}
-					className="ml-auto h-9 shrink-0 gap-2 rounded-xl border-zinc-800"
+					className="ml-auto h-9 shrink-0 gap-2 rounded-xl"
 				>
 					<Search className="size-4" /> {t("plugins.browse", { context: kind.kind })}
 				</Button>
@@ -278,10 +278,7 @@ function InstalledList({
 							: t("plugins.find", { context: kind.kind })
 					}
 					action={
-						<Button
-							onClick={onBrowse}
-							className="h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
-						>
+						<Button onClick={onBrowse} className="h-10 gap-2 rounded-xl">
 							<Search className="size-4" /> {t("plugins.browse", { context: kind.kind })}
 						</Button>
 					}
@@ -292,7 +289,7 @@ function InstalledList({
 
 	return (
 		<>
-			<Card className="gap-0 divide-y divide-zinc-800/70 py-0">
+			<Card className="gap-0 divide-y divide-border/70 py-0">
 				{plugins.map((p) => {
 					const update = updateFor(p)
 					return (
@@ -311,17 +308,19 @@ function InstalledList({
 									<p
 										className={cn(
 											"truncate font-medium text-sm",
-											p.enabled ? "text-zinc-100" : "text-zinc-500",
+											p.enabled ? "text-foreground" : "text-muted-foreground",
 										)}
 									>
 										{p.name}
 										{p.version && (
-											<span className="ml-1.5 font-normal text-xs text-zinc-500">{p.version}</span>
+											<span className="ml-1.5 font-normal text-muted-foreground text-xs">
+												{p.version}
+											</span>
 										)}
 									</p>
-									<p className="truncate text-[11px] text-zinc-500">
+									<p className="truncate text-[11px] text-muted-foreground">
 										{update ? (
-											<span className="text-sky-300">
+											<span className="text-info">
 												{t("plugins.updateAvailable", { version: update.latest.versionNumber })}
 											</span>
 										) : (
@@ -420,7 +419,7 @@ function InstalledDetails({
 				<PluginIcon url={plugin.iconUrl} name={plugin.name} className="size-12" />
 				<div className="min-w-0">
 					<DialogTitle className="truncate text-base">{plugin.name}</DialogTitle>
-					<p className="text-xs text-zinc-500">
+					<p className="text-muted-foreground text-xs">
 						{plugin.version ?? t("plugins.unknownVersion")}
 						{plugin.authors.length > 0 &&
 							` · ${t("plugins.byAuthors", { authors: plugin.authors.join(", ") })}`}
@@ -428,16 +427,16 @@ function InstalledDetails({
 				</div>
 			</div>
 			{plugin.description && (
-				<p className="text-sm text-zinc-300 leading-relaxed">{plugin.description}</p>
+				<p className="text-foreground/80 text-sm leading-relaxed">{plugin.description}</p>
 			)}
 			<dl className="grid grid-cols-2 gap-2 text-xs">
-				<div className="rounded-xl bg-zinc-900/60 p-2.5">
-					<dt className="text-zinc-500">{t("plugins.file")}</dt>
-					<dd className="truncate font-mono text-zinc-300">{plugin.fileName}</dd>
+				<div className="rounded-xl bg-card/60 p-2.5">
+					<dt className="text-muted-foreground">{t("plugins.file")}</dt>
+					<dd className="truncate font-mono text-foreground/80">{plugin.fileName}</dd>
 				</div>
-				<div className="rounded-xl bg-zinc-900/60 p-2.5">
-					<dt className="text-zinc-500">{t("plugins.size")}</dt>
-					<dd className="text-zinc-300">{formatBytes(plugin.size)}</dd>
+				<div className="rounded-xl bg-card/60 p-2.5">
+					<dt className="text-muted-foreground">{t("plugins.size")}</dt>
+					<dd className="text-foreground/80">{formatBytes(plugin.size)}</dd>
 				</div>
 			</dl>
 
@@ -445,7 +444,7 @@ function InstalledDetails({
 				<Button
 					onClick={onUpdate}
 					disabled={busy}
-					className="h-11 gap-2 rounded-xl bg-sky-600 text-white hover:bg-sky-500"
+					className="h-11 gap-2 rounded-xl bg-info text-info-foreground hover:bg-info/80"
 				>
 					{busy ? <Spinner className="size-4" /> : <ArrowUpCircle className="size-4" />}
 					{t("plugins.updateTo", { version: update.versionNumber })}
@@ -457,7 +456,7 @@ function InstalledDetails({
 						href={pageUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-zinc-800 text-sm text-zinc-300 hover:bg-zinc-900"
+						className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-border text-foreground/80 text-sm hover:bg-card"
 					>
 						<ExternalLink className="size-4" /> {t("pluginDetails.page")}
 					</a>
@@ -528,7 +527,7 @@ function BrowseView({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="relative">
-				<Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-500" />
+				<Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
 				<Input
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
@@ -536,7 +535,7 @@ function BrowseView({
 					autoCapitalize="off"
 					autoCorrect="off"
 					enterKeyHint="search"
-					className="h-11 rounded-xl border-zinc-800 bg-zinc-900/60 pl-10 text-sm"
+					className="h-11 rounded-xl pl-10 text-sm"
 				/>
 			</div>
 
@@ -553,7 +552,7 @@ function BrowseView({
 					/>
 				)}
 				<Select items={sortOptions} value={sort} onValueChange={(v) => v && setSort(v)}>
-					<SelectTrigger className="h-10 w-40 rounded-xl border-zinc-800 bg-zinc-900/60 text-xs">
+					<SelectTrigger className="h-10 w-40 rounded-xl text-xs">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -564,7 +563,7 @@ function BrowseView({
 						))}
 					</SelectContent>
 				</Select>
-				<div className="flex h-10 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 text-xs text-zinc-300">
+				<div className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card/60 px-3 text-foreground/80 text-xs">
 					<Switch
 						checked={compatibleOnly}
 						onCheckedChange={setCompatibleOnly}
@@ -580,7 +579,7 @@ function BrowseView({
 
 			{search.isLoading ? (
 				<div className="flex justify-center py-10">
-					<Spinner className="size-5 text-zinc-500" />
+					<Spinner className="size-5 text-muted-foreground" />
 				</div>
 			) : results.length === 0 ? (
 				<Card>
@@ -596,7 +595,7 @@ function BrowseView({
 				</Card>
 			) : (
 				<>
-					<p className="px-1 text-[11px] text-zinc-500">
+					<p className="px-1 text-[11px] text-muted-foreground">
 						{t("plugins.results", { count: total, formatted: formatCount(total) })}
 					</p>
 					<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
@@ -616,7 +615,7 @@ function BrowseView({
 							variant="outline"
 							onClick={() => search.fetchNextPage()}
 							disabled={search.isFetchingNextPage}
-							className="h-11 rounded-xl border-zinc-800"
+							className="h-11 rounded-xl"
 						>
 							{search.isFetchingNextPage ? <Spinner className="size-4" /> : t("plugins.loadMore")}
 						</Button>
@@ -652,7 +651,7 @@ function ResultCard({
 }) {
 	const { t } = useTranslation()
 	return (
-		<div className="flex min-w-0 items-start gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-3 transition-colors hover:border-zinc-700">
+		<div className="flex min-w-0 items-start gap-3 rounded-2xl border border-border/80 bg-card/40 p-3 transition-colors hover:border-input">
 			<button
 				type="button"
 				onClick={onOpen}
@@ -660,18 +659,18 @@ function ResultCard({
 			>
 				<PluginIcon url={project.iconUrl} name={project.title} className="size-12" />
 				<div className="min-w-0 flex-1">
-					<p className="truncate font-semibold text-sm text-zinc-100">{project.title}</p>
-					<p className="truncate text-[11px] text-zinc-500">
+					<p className="truncate font-semibold text-foreground text-sm">{project.title}</p>
+					<p className="truncate text-[11px] text-muted-foreground">
 						{project.author} · <Download className="inline size-3" />{" "}
 						{formatCount(project.downloads)}
 					</p>
-					<p className="mt-1 line-clamp-2 text-xs text-zinc-400 leading-relaxed">
+					<p className="mt-1 line-clamp-2 text-muted-foreground text-xs leading-relaxed">
 						{project.description}
 					</p>
 					{project.playersNeedIt && (
 						<Badge
 							variant="outline"
-							className="mt-1.5 border-amber-500/30 text-amber-300"
+							className="mt-1.5 border-warning/30 text-warning"
 							title={t("plugins.playersNeedItTitle")}
 						>
 							<Users />
@@ -692,8 +691,8 @@ function ResultCard({
 				className={cn(
 					"size-9 shrink-0 rounded-xl p-0",
 					installed
-						? "bg-emerald-500/15 text-emerald-300"
-						: "bg-emerald-600 text-white hover:bg-emerald-500",
+						? "bg-primary/15 text-primary"
+						: "bg-primary text-primary-foreground hover:bg-primary",
 				)}
 			>
 				{installing ? (

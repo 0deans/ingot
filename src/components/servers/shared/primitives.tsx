@@ -2,14 +2,7 @@ import type { LucideIcon } from "lucide-react"
 import { type ReactNode, useEffect, useRef, useState } from "react"
 import type { ItemStack } from "@/bindings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-	Card,
-	CardAction,
-	CardContent,
-	CardDescription,
-	CardTitle,
-	CardHeader as ShadcnCardHeader,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
 	Empty,
 	EmptyContent,
@@ -22,37 +15,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { avatarUrl, itemIconUrls, prettyId } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 
-/** Panel surfaces are shadcn Cards; CardHeader below adds the app's icon + title layout */
+export { SectionCardHeader as CardHeader } from "@/components/common/section-card"
+/** Panel surfaces are shadcn Cards with the shared section header */
 export { Card, CardContent }
-
-export function CardHeader({
-	icon: Icon,
-	title,
-	description,
-	action,
-}: {
-	icon?: LucideIcon
-	title: string
-	description?: ReactNode
-	action?: ReactNode
-}) {
-	return (
-		<ShadcnCardHeader>
-			<div className="flex min-w-0 items-start gap-2.5">
-				{Icon && (
-					<div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-						<Icon className="size-3.5" />
-					</div>
-				)}
-				<div className="flex min-w-0 flex-col gap-1">
-					<CardTitle>{title}</CardTitle>
-					{description && <CardDescription>{description}</CardDescription>}
-				</div>
-			</div>
-			{action && <CardAction>{action}</CardAction>}
-		</ShadcnCardHeader>
-	)
-}
 
 export function EmptyState({
 	icon: Icon,
@@ -128,7 +93,7 @@ export function PlayerAvatar({
 	return (
 		<div className={cn("relative shrink-0", className)} style={{ width: size, height: size }}>
 			{failed ? (
-				<div className="flex size-full items-center justify-center rounded-lg bg-zinc-800 font-semibold text-xs text-zinc-400">
+				<div className="flex size-full items-center justify-center rounded-lg bg-muted font-semibold text-muted-foreground text-xs">
 					{name.slice(0, 2).toUpperCase()}
 				</div>
 			) : (
@@ -137,14 +102,14 @@ export function PlayerAvatar({
 					alt=""
 					loading="lazy"
 					onError={() => setFailed(true)}
-					className="size-full rounded-lg bg-zinc-800 [image-rendering:pixelated]"
+					className="size-full rounded-lg bg-muted [image-rendering:pixelated]"
 				/>
 			)}
 			{online !== undefined && (
 				<span
 					className={cn(
-						"absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-zinc-950",
-						online ? "bg-emerald-400" : "bg-zinc-600",
+						"absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-border",
+						online ? "bg-primary" : "bg-accent",
 					)}
 				/>
 			)}
@@ -158,7 +123,7 @@ export function ItemIcon({ id, className }: { id: string; className?: string }) 
 	const [index, setIndex] = useState(0)
 	if (index >= urls.length) {
 		return (
-			<span className={cn("font-bold text-[9px] text-zinc-400 uppercase", className)}>
+			<span className={cn("font-bold text-[9px] text-muted-foreground uppercase", className)}>
 				{prettyId(id).slice(0, 3)}
 			</span>
 		)
@@ -197,10 +162,10 @@ export function ItemSlot({
 			onClick={() => item && onSelect?.(item)}
 			title={item ? (item.customName ?? prettyId(item.id)) : undefined}
 			className={cn(
-				"relative flex aspect-square items-center justify-center rounded-md border bg-zinc-900/80 transition-colors",
+				"relative flex aspect-square items-center justify-center rounded-md border bg-card/80 transition-colors",
 				size === "sm" ? "p-1" : "p-1.5",
-				selected ? "border-emerald-400/70 bg-emerald-500/10" : "border-zinc-800",
-				item && "hover:border-zinc-600",
+				selected ? "border-primary/70 bg-primary/10" : "border-border",
+				item && "hover:border-input",
 			)}
 		>
 			{item ? (
@@ -216,7 +181,7 @@ export function ItemSlot({
 						</span>
 					)}
 					{durability !== null && (
-						<span className="absolute inset-x-1 bottom-0.5 h-0.5 rounded-full bg-zinc-950">
+						<span className="absolute inset-x-1 bottom-0.5 h-0.5 rounded-full bg-background">
 							<span
 								className="block h-full rounded-full"
 								style={{
@@ -252,16 +217,16 @@ export function StatBar({
 	return (
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-center justify-between text-xs">
-				<span className="flex items-center gap-1.5 text-zinc-400">
+				<span className="flex items-center gap-1.5 text-muted-foreground">
 					<Icon className="size-3.5" style={{ color }} />
 					{label}
 				</span>
-				<span className="font-medium font-mono text-zinc-200">
+				<span className="font-medium font-mono text-foreground">
 					{Math.round(value * 10) / 10}
-					<span className="text-zinc-600">/{max}</span>
+					<span className="text-muted-foreground/60">/{max}</span>
 				</span>
 			</div>
-			<div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
+			<div className="h-1.5 overflow-hidden rounded-full bg-muted">
 				<div
 					className="h-full rounded-full transition-[width] duration-500"
 					style={{ width: `${pct}%`, background: color }}

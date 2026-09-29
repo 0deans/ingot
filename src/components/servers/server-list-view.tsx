@@ -160,7 +160,7 @@ export default function ServerListView() {
 					}}
 					importSlot={
 						<ImportServerButton
-							className="h-12 gap-2 rounded-2xl border-zinc-800"
+							className="h-12 gap-2 rounded-2xl border-border"
 							onImported={(created) => {
 								navigate({ search: (prev) => ({ ...prev, action: undefined }) })
 								refresh()
@@ -180,7 +180,7 @@ export default function ServerListView() {
 				<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
 					<div>
 						<div className="flex items-center gap-2.5">
-							<div className="flex size-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+							<div className="flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
 								<Server className="size-5" />
 							</div>
 							<h1 className="font-bold text-2xl text-foreground tracking-tight">
@@ -198,7 +198,7 @@ export default function ServerListView() {
 							disabled={isLoading}
 							className="h-9 gap-1.5 text-xs"
 						>
-							<RefreshCw className={cn("size-3.5", isLoading && "animate-spin text-emerald-400")} />
+							<RefreshCw className={cn("size-3.5", isLoading && "animate-spin text-primary")} />
 							<span>{t("common.refresh")}</span>
 						</Button>
 
@@ -209,7 +209,7 @@ export default function ServerListView() {
 									search: (prev) => ({ ...prev, action: "new" }),
 								})
 							}
-							className="h-9 gap-1.5 bg-emerald-600 font-semibold text-white text-xs shadow-emerald-950/20 shadow-md hover:bg-emerald-500"
+							className="h-9 gap-1.5 font-semibold text-xs"
 						>
 							<Plus className="size-4" />
 							<span>{t("servers.createServer")}</span>
@@ -223,9 +223,9 @@ export default function ServerListView() {
 
 				{/* Active Running Servers Multi-Banner */}
 				{runningList.length > 0 && (
-					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 shadow-emerald-950/10 shadow-lg backdrop-blur-md">
-						<div className="flex items-center gap-2 font-medium text-emerald-400 text-xs">
-							<span className="size-2 animate-ping rounded-full bg-emerald-400" />
+					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg shadow-primary/10 backdrop-blur-md">
+						<div className="flex items-center gap-2 font-medium text-primary text-xs">
+							<span className="size-2 animate-ping rounded-full bg-primary" />
 							{t("servers.activeServers", { count: runningList.length })}
 						</div>
 
@@ -235,7 +235,7 @@ export default function ServerListView() {
 								return (
 									<div
 										key={proc.serverId}
-										className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-900/30 px-3 py-1 font-medium text-emerald-200 text-xs shadow-sm"
+										className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 font-medium text-primary text-xs shadow-sm"
 									>
 										<span>
 											{t("servers.activeEntry", { name: srv?.name ?? "", port: proc.port })}
@@ -243,7 +243,7 @@ export default function ServerListView() {
 										<button
 											type="button"
 											onClick={() => srv && openPage(srv.id, "console")}
-											className="rounded p-0.5 text-emerald-300 transition-colors hover:text-zinc-50"
+											className="rounded p-0.5 text-primary transition-colors hover:text-foreground"
 											title={t("servers.openConsole")}
 										>
 											<Terminal className="size-3" />
@@ -251,7 +251,7 @@ export default function ServerListView() {
 										<button
 											type="button"
 											onClick={() => handleStop(proc.serverId)}
-											className="rounded p-0.5 text-emerald-400 transition-colors hover:bg-destructive/20 hover:text-destructive"
+											className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
 											title={t("servers.stopServer")}
 										>
 											<Square className="size-3 fill-current" />
@@ -272,7 +272,7 @@ export default function ServerListView() {
 							placeholder={t("servers.searchPlaceholder")}
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
-							className="h-8.5 rounded-lg border-border/60 bg-zinc-900/50 pr-8 pl-8.5 text-foreground text-xs placeholder:text-muted-foreground focus-visible:ring-emerald-500/50"
+							className="h-8.5 rounded-lg pr-8 pl-8.5 text-xs placeholder:text-muted-foreground"
 						/>
 						{searchInput && (
 							<button
@@ -311,8 +311,8 @@ export default function ServerListView() {
 
 				{/* Servers Grid or Empty State */}
 				{servers.length === 0 ? (
-					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-zinc-900/10 p-12 text-center">
-						<div className="flex size-14 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 shadow-inner">
+					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
+						<div className="flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/5 text-primary shadow-inner">
 							<Server className="size-7" />
 						</div>
 						<h3 className="mt-4 font-semibold text-base text-foreground">
@@ -327,7 +327,7 @@ export default function ServerListView() {
 									search: (prev) => ({ ...prev, action: "new" }),
 								})
 							}
-							className="mt-5 gap-2 bg-emerald-600 text-white text-xs hover:bg-emerald-500"
+							className="mt-5 gap-2 text-xs"
 							size="sm"
 						>
 							<Plus className="size-4" />
@@ -364,21 +364,23 @@ export default function ServerListView() {
 									search: (prev) => ({ ...prev, action: "new" }),
 								})
 							}
-							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-zinc-950/30 p-6 text-muted-foreground transition-all duration-200 hover:border-emerald-500/60 hover:bg-zinc-900/40 hover:text-zinc-50"
+							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
 						>
-							<div className="flex size-11 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-inner transition-transform group-hover:scale-110">
-								<Plus className="size-5 text-zinc-400 group-hover:text-emerald-400" />
+							<div className="flex size-11 items-center justify-center rounded-xl border border-border bg-card shadow-inner transition-transform group-hover:scale-110">
+								<Plus className="size-5 text-muted-foreground group-hover:text-primary" />
 							</div>
 							<div className="flex flex-col items-center gap-0.5 text-center">
-								<span className="font-semibold text-xs text-zinc-300 group-hover:text-zinc-50">
+								<span className="font-semibold text-foreground/80 text-xs group-hover:text-foreground">
 									{t("servers.createCardTitle")}
 								</span>
-								<span className="text-[11px] text-zinc-500">{t("servers.createCardSubtitle")}</span>
+								<span className="text-[11px] text-muted-foreground">
+									{t("servers.createCardSubtitle")}
+								</span>
 							</div>
 						</button>
 					</div>
 				) : (
-					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-zinc-900/10 p-12 text-center">
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
 						<p className="font-medium text-foreground text-sm">{t("servers.noMatchTitle")}</p>
 						<p className="mt-1 text-muted-foreground text-xs">{t("servers.noMatchSubtitle")}</p>
 						<Button

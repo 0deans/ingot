@@ -708,7 +708,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				<div className="flex flex-wrap items-center gap-2">
 					{/* Target Account Badge */}
 					{targetAccount ? (
-						<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-zinc-900/60 px-2.5 py-1.5 text-xs text-zinc-300">
+						<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-card/60 px-2.5 py-1.5 text-foreground/80 text-xs">
 							<SkinAvatar
 								username={targetAccount.username}
 								skinUrl={targetAccount.skinUrl}
@@ -716,7 +716,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							/>
 							<span className="max-w-[120px] truncate font-medium">{targetAccount.username}</span>
 							<span
-								className="size-1.5 rounded-full bg-emerald-500"
+								className="size-1.5 rounded-full bg-primary"
 								title={t("skinsPage.activeAccount")}
 							/>
 						</div>
@@ -751,7 +751,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			</div>
 
 			{/* Main Studio View Card */}
-			<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/40 bg-zinc-900/40 shadow-2xl backdrop-blur-md">
+			<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/40 bg-card/40 shadow-2xl backdrop-blur-md">
 				{/* Tab 1 & 2: Catalog & My Uploads */}
 				{activeTab !== "upload" && (
 					<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
@@ -768,7 +768,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									{totalItems > 0 ? `(${formatNumber(totalItems)})` : ""}
 								</TabsTrigger>
 								<TabsTrigger value="preview">
-									<Sparkles className="text-emerald-400" />
+									<Sparkles className="text-primary" />
 									{t("skinsPage.preview3d")}
 								</TabsTrigger>
 							</TabsList>
@@ -777,13 +777,13 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						{/* Left Showcase: Character Studio & Actions */}
 						<div
 							className={cn(
-								"relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-zinc-950 via-zinc-900/60 to-zinc-950 md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]",
+								"relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]",
 								mobileView === "preview" ? "flex w-full" : "hidden md:flex",
 							)}
 						>
 							{/* Background Studio Ambience */}
 							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.08),transparent_70%)]" />
-							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-emerald-500/10 blur-md" />
+							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-md" />
 
 							{/* Full-bleed 3D Viewer Stage - Fills entire container behind overlays */}
 							<div className="absolute inset-0 z-0 size-full">
@@ -801,18 +801,18 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							</div>
 
 							{/* Showcase Header (Floating Overlay) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-zinc-950/90 via-zinc-950/50 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-background/90 via-background/50 to-transparent p-4 lg:p-5">
 								<div className="pointer-events-auto flex items-center gap-1.5">
 									<Button
 										variant="ghost"
 										size="xs"
-										className="h-6 px-1.5 text-xs text-zinc-400 hover:text-zinc-200 md:hidden"
+										className="h-6 px-1.5 text-muted-foreground text-xs md:hidden"
 										onClick={() => setMobileView("catalog")}
 									>
 										<ChevronLeft className="mr-0.5 size-3.5" />
 										{t("skins.tabs.catalog")}
 									</Button>
-									<span className="font-semibold text-xs text-zinc-200">
+									<span className="font-semibold text-foreground text-xs">
 										{activeSkin.name
 											? activeSkin.name
 											: activeSkin.id === 0
@@ -829,10 +829,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<div className="pointer-events-none min-h-0 flex-1" />
 
 							{/* Primary Apply Button & Secondary Actions (Floating Overlay) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-zinc-950/95 via-zinc-950/60 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-background/95 via-background/60 to-transparent p-4 lg:p-5">
 								<Button
 									size="default"
-									className="pointer-events-auto h-11 w-full gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 font-semibold text-sm text-white shadow-emerald-950/50 shadow-lg transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-900/60 active:scale-[0.99] disabled:opacity-50"
+									className="pointer-events-auto h-11 w-full gap-2 rounded-xl font-semibold text-sm transition-all active:scale-[0.99] disabled:opacity-50"
 									disabled={
 										isApplying || !targetAccount || (activeSkin.id === 0 && !activeSkin.dataUrl)
 									}
@@ -852,7 +852,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									<Button
 										variant="outline"
 										size="xs"
-										className="h-8 gap-1.5 rounded-lg border-zinc-800/80 bg-zinc-900/80 text-xs text-zinc-300 backdrop-blur-xs hover:border-zinc-700 hover:bg-zinc-850"
+										className="h-8 gap-1.5 rounded-lg text-xs backdrop-blur-xs"
 										onClick={() => handleDownloadSkin(activeSkin)}
 									>
 										<Download className="size-3.5" />
@@ -861,7 +861,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									<Button
 										variant="outline"
 										size="xs"
-										className="h-8 gap-1.5 rounded-lg border-zinc-800/80 bg-zinc-900/80 text-xs text-zinc-300 backdrop-blur-xs hover:border-zinc-700 hover:bg-zinc-850"
+										className="h-8 gap-1.5 rounded-lg text-xs backdrop-blur-xs"
 										onClick={() => handleCopyUrl(activeSkin.skinUrl)}
 									>
 										<Copy className="size-3.5" />
@@ -879,16 +879,16 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							)}
 						>
 							{/* Filter Toolbar - Clean Single Row Layout */}
-							<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/30 border-b bg-zinc-950/40 px-4 py-2.5">
+							<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/30 border-b bg-background/40 px-4 py-2.5">
 								{/* Search Bar */}
 								<div className="relative min-w-[180px] max-w-xs flex-1">
-									<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-zinc-500" />
+									<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
 									<Input
 										type="text"
 										placeholder={t("skins.searchPlaceholder")}
 										value={searchInput}
 										onChange={(e) => setSearchInput(e.target.value)}
-										className="h-8 rounded-lg border-zinc-800 bg-zinc-900/80 pr-7 pl-8 text-xs text-zinc-200 placeholder:text-zinc-500 focus-visible:ring-emerald-500/50"
+										className="h-8 rounded-lg pr-7 pl-8 text-xs placeholder:text-muted-foreground"
 									/>
 									{searchInput && (
 										<button
@@ -900,7 +900,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													replace: true,
 												})
 											}}
-											className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+											className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground/80"
 										>
 											<X className="size-3" />
 										</button>
@@ -934,9 +934,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												<Button
 													variant="outline"
 													size="xs"
-													className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900/80 text-[11px] text-zinc-300 hover:bg-zinc-800"
+													className="h-8 gap-1.5 rounded-lg text-[11px]"
 												>
-													<ArrowUpDown className="size-3 text-zinc-400" />
+													<ArrowUpDown className="size-3 text-muted-foreground" />
 													<span>{t(`skins.sorts.${sortOption}`)}</span>
 													<ChevronDown className="size-3 opacity-60" />
 												</Button>
@@ -944,7 +944,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										/>
 										<DropdownMenuContent
 											align="end"
-											className="border-zinc-800 bg-zinc-950 p-1 text-zinc-200"
+											className="border-border bg-background p-1 text-foreground"
 										>
 											{SORT_OPTIONS.map((s) => (
 												<DropdownMenuItem
@@ -955,12 +955,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														})
 													}}
 													className={cn(
-														"flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-zinc-900",
-														sortOption === s.id && "bg-zinc-900 font-medium text-emerald-400",
+														"flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-card",
+														sortOption === s.id && "bg-card font-medium text-primary",
 													)}
 												>
 													<span>{t(`skins.sorts.${s.id}`)}</span>
-													{sortOption === s.id && <Check className="size-3 text-emerald-400" />}
+													{sortOption === s.id && <Check className="size-3 text-primary" />}
 												</DropdownMenuItem>
 											))}
 										</DropdownMenuContent>
@@ -971,20 +971,20 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										size="xs"
 										onClick={() => refetch()}
 										disabled={isFetching}
-										className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900/80 px-2 text-[11px] text-zinc-300 hover:bg-zinc-800"
+										className="h-8 gap-1.5 rounded-lg px-2 text-[11px]"
 										title={t("common.refresh")}
 									>
 										<RefreshCw
 											className={cn(
-												"size-3 text-zinc-400",
-												isFetching && "animate-spin text-emerald-400",
+												"size-3 text-muted-foreground",
+												isFetching && "animate-spin text-primary",
 											)}
 										/>
 										<span className="hidden sm:inline">{t("common.refresh")}</span>
 									</Button>
 
 									{totalItems > 0 && (
-										<span className="hidden font-mono text-[11px] text-zinc-500 xl:inline">
+										<span className="hidden font-mono text-[11px] text-muted-foreground xl:inline">
 											{t("skinsPage.count", {
 												count: totalItems,
 												formatted: formatNumber(totalItems),
@@ -997,8 +997,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							{/* Skins Grid Area */}
 							<div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
 								{isFetching && skins.length > 0 && (
-									<div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 rounded-full border border-zinc-700/80 bg-zinc-900/95 px-2.5 py-1 text-[11px] text-zinc-300 shadow-md backdrop-blur-xs">
-										<Spinner className="size-3 text-emerald-400" />
+									<div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 rounded-full border border-input/80 bg-card/95 px-2.5 py-1 text-[11px] text-foreground/80 shadow-md backdrop-blur-xs">
+										<Spinner className="size-3 text-primary" />
 										<span>{t("skinsPage.updating")}</span>
 									</div>
 								)}
@@ -1006,8 +1006,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								<ScrollArea className="flex-1">
 									<div className="min-h-full p-4">
 										{isLoading && skins.length === 0 ? (
-											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-2 text-zinc-400">
-												<Spinner className="size-6 text-emerald-400" />
+											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-2 text-muted-foreground">
+												<Spinner className="size-6 text-primary" />
 												<span className="text-xs">
 													{activeTab === "my-skins"
 														? t("skinsPage.loadingMine")
@@ -1016,8 +1016,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											</div>
 										) : catalogError ? (
 											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-3 p-4 text-center">
-												<AlertCircle className="size-8 text-rose-400" />
-												<p className="max-w-sm text-rose-300 text-xs">{catalogError}</p>
+												<AlertCircle className="size-8 text-destructive" />
+												<p className="max-w-sm text-destructive text-xs">{catalogError}</p>
 												<Button
 													size="sm"
 													variant="outline"
@@ -1029,20 +1029,20 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												</Button>
 											</div>
 										) : skins.length === 0 ? (
-											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-3 text-center text-zinc-500">
+											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
 												{activeTab === "my-skins" ? (
 													<>
-														<div className="flex size-12 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80">
-															<User className="size-6 text-zinc-400" />
+														<div className="flex size-12 items-center justify-center rounded-full border border-border bg-card/80">
+															<User className="size-6 text-muted-foreground" />
 														</div>
-														<p className="font-medium text-xs text-zinc-300">
+														<p className="font-medium text-foreground/80 text-xs">
 															{searchQuery
 																? t("skinsPage.noMatchingUploads")
 																: targetAccount
 																	? t("skinsPage.noUploadsFor", { name: targetAccount.username })
 																	: t("skinsPage.noActiveAccount")}
 														</p>
-														<p className="max-w-xs text-[11px] text-zinc-500">
+														<p className="max-w-xs text-[11px] text-muted-foreground">
 															{searchQuery
 																? t("skinsPage.tryDifferent")
 																: targetAccount
@@ -1053,7 +1053,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															<Button
 																type="button"
 																size="sm"
-																className="mt-1 h-8 gap-1.5 rounded-lg bg-emerald-600 px-3 text-white text-xs hover:bg-emerald-500"
+																className="mt-1 h-8 gap-1.5 rounded-lg px-3 text-xs"
 																onClick={() => handleTabChange("upload")}
 															>
 																<Upload className="size-3.5" />
@@ -1064,10 +1064,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												) : (
 													<>
 														<Search className="size-8 opacity-40" />
-														<p className="font-medium text-xs text-zinc-400">
+														<p className="font-medium text-muted-foreground text-xs">
 															{t("skinsPage.noSkins")}
 														</p>
-														<p className="text-[11px] text-zinc-500">
+														<p className="text-[11px] text-muted-foreground">
 															{t("skinsPage.tryDifferent")}
 														</p>
 													</>
@@ -1099,13 +1099,13 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															className={cn(
 																"group relative flex flex-col rounded-xl border p-2.5 text-left transition-all duration-150 hover:shadow-md",
 																isSelected
-																	? "border-emerald-500/80 bg-emerald-500/10 shadow-emerald-950/40 ring-1 ring-emerald-500/60"
-																	: "border-zinc-800/80 bg-zinc-900/50 hover:border-zinc-700/80 hover:bg-zinc-850/60",
+																	? "border-primary/80 bg-primary/10 shadow-primary/40 ring-1 ring-primary/60"
+																	: "border-border/80 bg-card/50 hover:border-input/80 hover:bg-card/60",
 															)}
 														>
 															{/* Active Selection Badge */}
 															{isSelected && (
-																<div className="absolute top-2 right-2 z-10 flex size-4 items-center justify-center rounded-full bg-emerald-500 text-zinc-950 shadow-xs">
+																<div className="absolute top-2 right-2 z-10 flex size-4 items-center justify-center rounded-full bg-primary text-background shadow-xs">
 																	<Check className="size-2.5 stroke-[3]" />
 																</div>
 															)}
@@ -1118,7 +1118,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																		e.stopPropagation()
 																		handleRemoveCustomSkin(skin, e)
 																	}}
-																	className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-zinc-900/90 text-zinc-400 any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-rose-500/20 hover:text-rose-400 focus-visible:opacity-100 group-hover:opacity-100"
+																	className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-card/90 text-muted-foreground any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-destructive/20 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
 																	title={t("skinsPage.deleteCustom")}
 																>
 																	<Trash2 className="size-3" />
@@ -1126,7 +1126,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															)}
 
 															{/* 2D Skin Body Preview */}
-															<div className="flex h-36 w-full items-center justify-center overflow-hidden rounded-lg bg-zinc-950/60 p-2">
+															<div className="flex h-36 w-full items-center justify-center overflow-hidden rounded-lg bg-background/60 p-2">
 																<SkinPreviewCanvas
 																	skinUrl={skin.dataUrl || skin.skinUrl}
 																	isSlim={skin.isSlim}
@@ -1138,12 +1138,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															{/* Skin Metadata Info */}
 															<div className="mt-2 flex flex-col gap-0.5">
 																<span
-																	className="truncate font-medium text-xs text-zinc-200 group-hover:text-emerald-400"
+																	className="truncate font-medium text-foreground text-xs group-hover:text-primary"
 																	title={title}
 																>
 																	{title}
 																</span>
-																<div className="flex items-center justify-between text-[10px] text-zinc-500">
+																<div className="flex items-center justify-between text-[10px] text-muted-foreground">
 																	<span>
 																		{skin.isSlim ? t("skinsPage.slim") : t("skinsPage.classic")}
 																	</span>
@@ -1164,15 +1164,15 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								</ScrollArea>
 
 								{/* Pagination Bar */}
-								<div className="flex shrink-0 flex-col gap-2 border-border/30 border-t bg-zinc-950/40 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
-									<span className="text-[11px] text-zinc-400">
+								<div className="flex shrink-0 flex-col gap-2 border-border/30 border-t bg-background/40 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
+									<span className="text-[11px] text-muted-foreground">
 										<Trans
 											i18nKey="skinsPage.pageOf"
 											values={{ page, total: lastPage }}
-											components={{ b: <strong className="text-zinc-200" /> }}
+											components={{ b: <strong className="text-foreground" /> }}
 										/>
 										{totalItems > 0 && (
-											<span className="ml-1 text-zinc-500">
+											<span className="ml-1 text-muted-foreground">
 												{t("skinsPage.total", { count: formatNumber(totalItems) })}
 											</span>
 										)}
@@ -1210,7 +1210,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								</div>
 
 								{/* Mobile Sticky Action Bar */}
-								<div className="flex shrink-0 items-center justify-between gap-3 border-border/30 border-t bg-zinc-950/95 px-3 py-2 backdrop-blur-md md:hidden">
+								<div className="flex shrink-0 items-center justify-between gap-3 border-border/30 border-t bg-background/95 px-3 py-2 backdrop-blur-md md:hidden">
 									<div className="flex min-w-0 items-center gap-2">
 										<SkinAvatar
 											username={`skin_${activeSkin.id}`}
@@ -1218,14 +1218,14 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											size={26}
 										/>
 										<div className="truncate">
-											<p className="truncate font-semibold text-xs text-zinc-200">
+											<p className="truncate font-semibold text-foreground text-xs">
 												{activeSkin.name
 													? activeSkin.name
 													: activeSkin.id === 0
 														? t("skinsPage.currentSkin")
 														: t("skinsPage.skinNumber", { id: activeSkin.id })}
 											</p>
-											<span className="text-[10px] text-zinc-400">
+											<span className="text-[10px] text-muted-foreground">
 												{activeSkin.isSlim ? t("skinsPage.alexSlim") : t("skinsPage.steveClassic")}
 											</span>
 										</div>
@@ -1234,7 +1234,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										<Button
 											variant="outline"
 											size="xs"
-											className="h-7 gap-1 border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-900"
+											className="h-7 gap-1 text-xs"
 											onClick={() => setMobileView("preview")}
 										>
 											<Eye className="size-3" />
@@ -1242,7 +1242,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										</Button>
 										<Button
 											size="xs"
-											className="h-7 gap-1 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
+											className="h-7 gap-1 font-medium text-xs"
 											disabled={
 												isApplying || !targetAccount || (activeSkin.id === 0 && !activeSkin.dataUrl)
 											}
@@ -1268,10 +1268,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				{activeTab === "upload" && (
 					<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
 						{/* Left Showcase: Live 3D Preview Stage */}
-						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-zinc-950 via-zinc-900/60 to-zinc-950 md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
+						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
 							{/* Background Studio Ambience */}
 							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.08),transparent_70%)]" />
-							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-emerald-500/10 blur-md" />
+							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-md" />
 
 							{/* Full-bleed 3D Viewer Stage */}
 							<div className="absolute inset-0 z-0 size-full">
@@ -1289,8 +1289,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							</div>
 
 							{/* Top Showcase Header (Floating Overlay) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-zinc-950/90 via-zinc-950/50 to-transparent p-4 lg:p-5">
-								<span className="font-semibold text-xs text-zinc-200">
+							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-background/90 via-background/50 to-transparent p-4 lg:p-5">
+								<span className="font-semibold text-foreground text-xs">
 									{t("skinsPage.livePreview")}
 								</span>
 								<Badge variant="secondary" className="pointer-events-auto backdrop-blur-xs">
@@ -1304,10 +1304,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<div className="pointer-events-none min-h-0 flex-1" />
 
 							{/* Primary Apply Button (Floating Overlay at Bottom of 3D stage) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-zinc-950/95 via-zinc-950/60 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-background/95 via-background/60 to-transparent p-4 lg:p-5">
 								<Button
 									size="default"
-									className="pointer-events-auto h-11 w-full gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 font-semibold text-sm text-white shadow-emerald-950/50 shadow-lg transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-900/60 active:scale-[0.99] disabled:opacity-50"
+									className="pointer-events-auto h-11 w-full gap-2 rounded-xl font-semibold text-sm transition-all active:scale-[0.99] disabled:opacity-50"
 									disabled={isApplying || !targetAccount || !uploadedDataUrl}
 									onClick={handleUploadSkin}
 								>
@@ -1331,10 +1331,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<div className="p-5 lg:p-8">
 								<div className="mx-auto flex w-full max-w-xl flex-col gap-5">
 									<div>
-										<h2 className="font-semibold text-base text-zinc-100">
+										<h2 className="font-semibold text-base text-foreground">
 											{t("skinsPage.uploadTitle")}
 										</h2>
-										<p className="mt-0.5 text-xs text-zinc-400">
+										<p className="mt-0.5 text-muted-foreground text-xs">
 											{t("skinsPage.uploadDescription")}
 										</p>
 									</div>
@@ -1347,10 +1347,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										className={cn(
 											"relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all sm:p-8",
 											isDragging
-												? "border-emerald-500 bg-emerald-500/10"
+												? "border-primary bg-primary/10"
 												: uploadedDataUrl
-													? "border-emerald-500/40 bg-zinc-900/40 hover:border-emerald-500/60"
-													: "border-zinc-800 bg-zinc-900/20 hover:border-zinc-700 hover:bg-zinc-900/40",
+													? "border-primary/40 bg-card/40 hover:border-primary/60"
+													: "border-border bg-card/20 hover:border-input hover:bg-card/40",
 										)}
 									>
 										<input
@@ -1365,16 +1365,18 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											}}
 										/>
 
-										<div className="mb-2.5 flex size-11 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-300">
-											<Upload className="size-5 text-emerald-400" />
+										<div className="mb-2.5 flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground/80">
+											<Upload className="size-5 text-primary" />
 										</div>
-										<p className="font-medium text-xs text-zinc-200 sm:text-sm">
+										<p className="font-medium text-foreground text-xs sm:text-sm">
 											{uploadedFileName || t("skinsPage.dropHint")}
 										</p>
-										<p className="mt-1 text-[11px] text-zinc-500">{t("skinsPage.supports")}</p>
+										<p className="mt-1 text-[11px] text-muted-foreground">
+											{t("skinsPage.supports")}
+										</p>
 
 										{uploadValidationDetails && (
-											<div className="mt-3 flex items-center gap-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] text-emerald-300">
+											<div className="mt-3 flex items-center gap-2.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[11px] text-primary">
 												<span>
 													{t("skinsPage.dimensions", { value: uploadValidationDetails.dimensions })}
 												</span>
@@ -1394,12 +1396,12 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									)}
 
 									{/* Skin Arm Model Choice */}
-									<div className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
+									<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
 										<div>
-											<span className="font-medium text-xs text-zinc-300">
+											<span className="font-medium text-foreground/80 text-xs">
 												{t("skinsPage.armModel")}
 											</span>
-											<p className="mt-0.5 text-[11px] text-zinc-500">
+											<p className="mt-0.5 text-[11px] text-muted-foreground">
 												{t("skinsPage.armModelHint")}
 											</p>
 										</div>
@@ -1409,13 +1411,13 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												className={cn(
 													"flex flex-col rounded-lg border p-3 text-left transition-all",
 													uploadedModel === "default"
-														? "border-emerald-500/60 bg-emerald-500/10 text-zinc-100 ring-1 ring-emerald-500/30"
-														: "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700",
+														? "border-primary/60 bg-primary/10 text-foreground ring-1 ring-primary/30"
+														: "border-border bg-card/60 text-muted-foreground hover:border-input",
 												)}
 												onClick={() => setUploadedModel("default")}
 											>
 												<span className="font-semibold text-xs">Steve</span>
-												<span className="text-[10px] text-zinc-500">
+												<span className="text-[10px] text-muted-foreground">
 													{t("skinsPage.classicArms")}
 												</span>
 											</button>
@@ -1424,29 +1426,31 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												className={cn(
 													"flex flex-col rounded-lg border p-3 text-left transition-all",
 													uploadedModel === "slim"
-														? "border-emerald-500/60 bg-emerald-500/10 text-zinc-100 ring-1 ring-emerald-500/30"
-														: "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700",
+														? "border-primary/60 bg-primary/10 text-foreground ring-1 ring-primary/30"
+														: "border-border bg-card/60 text-muted-foreground hover:border-input",
 												)}
 												onClick={() => setUploadedModel("slim")}
 											>
 												<span className="font-semibold text-xs">Alex</span>
-												<span className="text-[10px] text-zinc-500">{t("skinsPage.slimArms")}</span>
+												<span className="text-[10px] text-muted-foreground">
+													{t("skinsPage.slimArms")}
+												</span>
 											</button>
 										</div>
 									</div>
 
 									{/* Target Ely.by Account */}
-									<div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-3.5 text-xs">
+									<div className="flex items-center justify-between rounded-xl border border-border/80 bg-card/30 p-3.5 text-xs">
 										<div>
-											<div className="text-[11px] text-zinc-400">
+											<div className="text-[11px] text-muted-foreground">
 												{t("skinsPage.targetAccount")}
 											</div>
-											<div className="mt-0.5 font-semibold text-xs text-zinc-200">
+											<div className="mt-0.5 font-semibold text-foreground text-xs">
 												{targetAccount ? targetAccount.username : t("skinsPage.noAccount")}
 											</div>
 										</div>
 										{targetAccount && (
-											<Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+											<Badge variant="outline" className="border-primary/30 text-primary">
 												{t("skinsPage.readyToApply")}
 											</Badge>
 										)}
@@ -1460,15 +1464,15 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 			{/* Password Authentication Modal */}
 			<Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-				<DialogContent className="max-w-md border-zinc-800 bg-zinc-950 p-6 text-zinc-100">
+				<DialogContent className="max-w-md border-border bg-background p-6 text-foreground">
 					<DialogHeader>
-						<div className="mb-2 flex size-10 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900">
-							<KeyRound className="size-5 text-emerald-400" />
+						<div className="mb-2 flex size-10 items-center justify-center rounded-full border border-border bg-card">
+							<KeyRound className="size-5 text-primary" />
 						</div>
-						<DialogTitle className="text-base text-zinc-100">
+						<DialogTitle className="text-base text-foreground">
 							{t("skinsPage.passwordTitle")}
 						</DialogTitle>
-						<DialogDescription className="text-xs text-zinc-400">
+						<DialogDescription className="text-muted-foreground text-xs">
 							<Trans
 								i18nKey="skinsPage.passwordDescription"
 								values={{ name: targetAccount?.username ?? "" }}
@@ -1479,7 +1483,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 					<div className="space-y-3 py-2">
 						<div className="relative">
-							<Lock className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-zinc-500" />
+							<Lock className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								type="password"
 								placeholder={t("skinsPage.passwordPlaceholder")}
@@ -1490,10 +1494,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										handleProcessPendingAction()
 									}
 								}}
-								className="border-zinc-800 bg-zinc-900/80 pl-8 text-xs text-zinc-100"
+								className="pl-8 text-xs"
 							/>
 						</div>
-						{passwordError && <p className="text-rose-400 text-xs">{passwordError}</p>}
+						{passwordError && <p className="text-destructive text-xs">{passwordError}</p>}
 					</div>
 
 					<DialogFooter className="gap-2 sm:gap-0">
@@ -1501,7 +1505,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							variant="ghost"
 							size="sm"
 							onClick={() => setShowPasswordDialog(false)}
-							className="text-xs text-zinc-400 hover:text-zinc-200"
+							className="text-muted-foreground text-xs"
 						>
 							{t("common.cancel")}
 						</Button>
@@ -1509,7 +1513,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							size="sm"
 							onClick={handleProcessPendingAction}
 							disabled={isApplying || !passwordInput.trim()}
-							className="bg-emerald-600 text-white text-xs hover:bg-emerald-500"
+							className="text-xs"
 						>
 							{isApplying ? <Spinner className="size-3.5" /> : t("skinsPage.authorize")}
 						</Button>

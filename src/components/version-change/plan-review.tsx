@@ -34,33 +34,33 @@ const STATUS_ORDER: ItemStatus[] = [
 const STATUS: Record<ItemStatus, { icon: typeof CheckCircle2; className: string; chip: string }> = {
 	conflict: {
 		icon: ShieldAlert,
-		className: "text-red-400",
-		chip: "border-red-500/30 bg-red-500/10 text-red-300",
+		className: "text-destructive",
+		chip: "border-destructive/30 bg-destructive/10 text-destructive",
 	},
 	missing: {
 		icon: CircleSlash,
-		className: "text-amber-400",
-		chip: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+		className: "text-warning",
+		chip: "border-warning/30 bg-warning/10 text-warning",
 	},
 	unknown: {
 		icon: CircleHelp,
-		className: "text-zinc-400",
-		chip: "border-zinc-600/40 bg-zinc-800/40 text-zinc-300",
+		className: "text-muted-foreground",
+		chip: "border-input/40 bg-muted/40 text-foreground/80",
 	},
 	newDependency: {
 		icon: PlusCircle,
-		className: "text-sky-400",
-		chip: "border-sky-500/30 bg-sky-500/10 text-sky-300",
+		className: "text-info",
+		chip: "border-info/30 bg-info/10 text-info",
 	},
 	update: {
 		icon: Download,
-		className: "text-emerald-400",
-		chip: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+		className: "text-primary",
+		chip: "border-primary/30 bg-primary/10 text-primary",
 	},
 	works: {
 		icon: CheckCircle2,
-		className: "text-emerald-400/70",
-		chip: "border-zinc-700/60 bg-zinc-800/40 text-zinc-300",
+		className: "text-primary/70",
+		chip: "border-input/60 bg-muted/40 text-foreground/80",
 	},
 }
 
@@ -159,7 +159,7 @@ export function PlanReview({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-wrap items-center gap-2">
-				<span className="font-semibold text-sm text-zinc-50">
+				<span className="font-semibold text-foreground text-sm">
 					{planSide(plan, "from")} → {planSide(plan, "to")}
 				</span>
 				{groups.map(({ status, entries }) => (
@@ -179,7 +179,7 @@ export function PlanReview({
 			{plan.downgrade && (
 				<div
 					className={cn(
-						"flex flex-col gap-2 border border-red-500/30 bg-red-500/10 p-3 text-red-100 text-xs",
+						"flex flex-col gap-2 border border-destructive/30 bg-destructive/10 p-3 text-destructive text-xs",
 						box,
 					)}
 				>
@@ -190,7 +190,9 @@ export function PlanReview({
 							from: plan.fromGameVersion,
 						})}
 					</p>
-					<p className="text-red-200/80 leading-relaxed">{t("versionChange.downgradeWarning")}</p>
+					<p className="text-destructive/80 leading-relaxed">
+						{t("versionChange.downgradeWarning")}
+					</p>
 					<Label htmlFor="downgrade-ok" className="flex cursor-pointer items-center gap-2">
 						<Checkbox
 							id="downgrade-ok"
@@ -206,7 +208,7 @@ export function PlanReview({
 				<Label
 					htmlFor="backup-worlds"
 					className={cn(
-						"flex cursor-pointer items-start gap-2.5 border border-zinc-800 bg-zinc-900/40 p-3 text-xs",
+						"flex cursor-pointer items-start gap-2.5 border border-border bg-card/40 p-3 text-xs",
 						box,
 					)}
 				>
@@ -217,13 +219,13 @@ export function PlanReview({
 						className="mt-0.5"
 					/>
 					<span className="flex flex-col gap-0.5">
-						<span className="font-medium text-zinc-200">
+						<span className="font-medium text-foreground">
 							{t("versionChange.backupWorlds", {
 								count: plan.worlds.length,
 								size: formatBytes(worldsBytes),
 							})}
 						</span>
-						<span className="text-zinc-500 leading-relaxed">
+						<span className="text-muted-foreground leading-relaxed">
 							{t("versionChange.backupWorldsHint")}
 						</span>
 					</span>
@@ -233,7 +235,7 @@ export function PlanReview({
 			{plan.items.length === 0 && (
 				<p
 					className={cn(
-						"border border-zinc-800 bg-zinc-900/40 p-4 text-center text-xs text-zinc-400",
+						"border border-border bg-card/40 p-4 text-center text-muted-foreground text-xs",
 						box,
 					)}
 				>
@@ -253,7 +255,7 @@ export function PlanReview({
 						>
 							<Icon className="size-3.5" />
 							{statusLabel(status, plan.downgrade)}
-							<span className="font-normal text-zinc-500">{entries.length}</span>
+							<span className="font-normal text-muted-foreground">{entries.length}</span>
 						</h3>
 						{entries.map(({ item, index }) => (
 							<PlanRow
@@ -289,7 +291,7 @@ function PlanRow({
 	return (
 		<div
 			className={cn(
-				"flex items-center gap-3 border border-zinc-800/80 bg-zinc-900/30 px-3 py-2",
+				"flex items-center gap-3 border border-border/80 bg-card/30 px-3 py-2",
 				rounded && "rounded-xl",
 				off && "opacity-60",
 			)}
@@ -304,7 +306,7 @@ function PlanRow({
 			) : (
 				<div
 					className={cn(
-						"flex size-8 shrink-0 items-center justify-center bg-zinc-800 text-zinc-500",
+						"flex size-8 shrink-0 items-center justify-center bg-muted text-muted-foreground",
 						rounded && "rounded-lg",
 					)}
 				>
@@ -312,10 +314,10 @@ function PlanRow({
 				</div>
 			)}
 			<div className="min-w-0 flex-1">
-				<p className="flex items-center gap-1.5 truncate font-medium text-xs text-zinc-100">
+				<p className="flex items-center gap-1.5 truncate font-medium text-foreground text-xs">
 					<span className="truncate">{item.title}</span>
 					{kind && (
-						<span className="shrink-0 bg-zinc-800 px-1.5 py-px font-normal text-[10px] text-zinc-400">
+						<span className="shrink-0 bg-muted px-1.5 py-px font-normal text-[10px] text-muted-foreground">
 							{kind}
 						</span>
 					)}
@@ -323,7 +325,7 @@ function PlanRow({
 						<button
 							type="button"
 							onClick={() => openUrl(pageUrl).catch(console.error)}
-							className="inline-flex shrink-0 items-center gap-0.5 font-normal text-[10px] text-zinc-500 hover:text-zinc-200"
+							className="inline-flex shrink-0 items-center gap-0.5 font-normal text-[10px] text-muted-foreground hover:text-foreground"
 							title={t("versionChange.openOn", { site: SOURCE_LABEL[item.source] })}
 						>
 							{SOURCE_LABEL[item.source]}
@@ -331,17 +333,19 @@ function PlanRow({
 						</button>
 					)}
 				</p>
-				<p className="truncate text-[11px] text-zinc-500">
+				<p className="truncate text-[11px] text-muted-foreground">
 					{choice === "update" || choice === "add" ? (
 						<>
 							{item.currentVersion ?? (item.fileName ? "?" : t("versionChange.new"))}
 							{" → "}
-							<span className="text-emerald-300/90">{item.target?.versionNumber}</span>
+							<span className="text-primary/90">{item.target?.versionNumber}</span>
 						</>
 					) : (
 						(item.currentVersion ?? item.fileName)
 					)}
-					{item.note && <span className="text-zinc-400"> · {translatePlanNote(item.note)}</span>}
+					{item.note && (
+						<span className="text-muted-foreground"> · {translatePlanNote(item.note)}</span>
+					)}
 				</p>
 			</div>
 			{item.actions.length > 1 && (

@@ -10,16 +10,13 @@ export function AccountTypeBadge({ type, className }: { type: string; className?
 	switch (type as AccountType) {
 		case "ely":
 			return (
-				<Badge
-					variant="outline"
-					className={cn("border-emerald-500/30 text-emerald-400", className)}
-				>
+				<Badge variant="outline" className={cn("border-primary/30 text-primary", className)}>
 					Ely.by
 				</Badge>
 			)
 		case "microsoft":
 			return (
-				<Badge variant="outline" className={cn("border-sky-500/30 text-sky-400", className)}>
+				<Badge variant="outline" className={cn("border-info/30 text-info", className)}>
 					Microsoft
 				</Badge>
 			)

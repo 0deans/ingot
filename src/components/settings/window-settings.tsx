@@ -1,7 +1,9 @@
 import { Check, Maximize2, Monitor, RotateCcw } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { SectionCardHeader } from "@/components/common/section-card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useWindowSettings } from "@/services/settings-service"
@@ -57,123 +59,122 @@ export const WindowSettings = () => {
 	}
 
 	return (
-		<div className="flex flex-col gap-4 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
-			<div className="flex flex-col gap-1">
-				<div className="flex items-center gap-2">
-					<Monitor className="size-4 text-sky-400" />
-					<h3 className="font-semibold text-foreground text-sm">{t("settings.window.title")}</h3>
-				</div>
-				<p className="text-muted-foreground text-xs">{t("settings.window.description")}</p>
-			</div>
-
-			{/* Fullscreen Option */}
-			<div className="flex items-center justify-between rounded-lg border border-border/30 bg-zinc-950/60 p-3.5 transition-colors">
-				<div className="flex items-center gap-3">
-					<div className="flex size-8 items-center justify-center rounded-md bg-zinc-900 text-sky-400">
-						<Maximize2 className="size-4" />
-					</div>
-					<div>
-						<div className="font-medium text-foreground text-xs sm:text-sm">
-							{t("settings.window.fullscreenTitle")}
+		<Card>
+			<SectionCardHeader
+				icon={Monitor}
+				title={t("settings.window.title")}
+				description={t("settings.window.description")}
+			/>
+			<CardContent className="flex flex-col gap-4">
+				{/* Fullscreen Option */}
+				<div className="flex items-center justify-between rounded-lg border border-border/30 bg-background/60 p-3.5 transition-colors">
+					<div className="flex items-center gap-3">
+						<div className="flex size-8 items-center justify-center rounded-md bg-card text-info">
+							<Maximize2 className="size-4" />
 						</div>
-						<div className="text-[11px] text-muted-foreground">
-							{t("settings.window.fullscreenDesc")}
-						</div>
-					</div>
-				</div>
-
-				<Switch checked={windowSettings.fullscreen} onCheckedChange={handleToggleFullscreen} />
-			</div>
-
-			{/* Resolution Option (when not in fullscreen) */}
-			{!windowSettings.fullscreen && (
-				<div className="flex flex-col gap-3 rounded-lg border border-border/30 bg-zinc-950/60 p-3.5">
-					<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<div className="font-medium text-foreground text-xs sm:text-sm">
-								{t("settings.window.resolutionTitle")}
+								{t("settings.window.fullscreenTitle")}
 							</div>
 							<div className="text-[11px] text-muted-foreground">
-								{t("settings.window.resolutionDesc")}
+								{t("settings.window.fullscreenDesc")}
 							</div>
-						</div>
-
-						{/* Inputs */}
-						<div className="flex items-center gap-2">
-							<div className="flex items-center gap-1.5">
-								<span className="text-[11px] text-muted-foreground">W:</span>
-								<Input
-									type="number"
-									value={width}
-									onChange={(e) => setWidth(Number(e.target.value))}
-									onBlur={() => handleCommitResolution(width, height)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") handleCommitResolution(width, height)
-									}}
-									className="h-8 w-20 border-zinc-800 bg-zinc-900 px-2 text-center font-mono text-xs"
-								/>
-							</div>
-							<span className="text-muted-foreground text-xs">×</span>
-							<div className="flex items-center gap-1.5">
-								<span className="text-[11px] text-muted-foreground">H:</span>
-								<Input
-									type="number"
-									value={height}
-									onChange={(e) => setHeight(Number(e.target.value))}
-									onBlur={() => handleCommitResolution(width, height)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") handleCommitResolution(width, height)
-									}}
-									className="h-8 w-20 border-zinc-800 bg-zinc-900 px-2 text-center font-mono text-xs"
-								/>
-							</div>
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={handleReset}
-								title={t("settings.window.resetTo", { size: "854 × 480" })}
-								className="h-8 px-2 text-muted-foreground hover:text-foreground"
-							>
-								<RotateCcw className="size-3.5" />
-							</Button>
 						</div>
 					</div>
 
-					{/* Quick Presets */}
-					<div className="flex flex-wrap items-center gap-1.5 pt-1">
-						<span className="mr-1 text-[11px] text-muted-foreground">
-							{t("settings.window.presets")}
-						</span>
-						{RESOLUTION_PRESETS.map((preset) => {
-							const isCurrent =
-								windowSettings.width === preset.width && windowSettings.height === preset.height
-							return (
-								<button
-									key={preset.label}
-									type="button"
-									onClick={() => handleCommitResolution(preset.width, preset.height)}
-									className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] transition-colors ${
-										isCurrent
-											? "border-sky-500/40 bg-sky-500/10 font-medium text-sky-400"
-											: "border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:border-zinc-700 hover:text-zinc-50"
-									}`}
-								>
-									{isCurrent && <Check className="size-3" />}
-									<span>{preset.label}</span>
-									<span className="text-[10px] text-muted-foreground">
-										(
-										{preset.description === "Default"
-											? t("settings.window.defaultPreset")
-											: preset.description}
-										)
-									</span>
-								</button>
-							)
-						})}
-					</div>
+					<Switch checked={windowSettings.fullscreen} onCheckedChange={handleToggleFullscreen} />
 				</div>
-			)}
-		</div>
+
+				{/* Resolution Option (when not in fullscreen) */}
+				{!windowSettings.fullscreen && (
+					<div className="flex flex-col gap-3 rounded-lg border border-border/30 bg-background/60 p-3.5">
+						<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<div className="font-medium text-foreground text-xs sm:text-sm">
+									{t("settings.window.resolutionTitle")}
+								</div>
+								<div className="text-[11px] text-muted-foreground">
+									{t("settings.window.resolutionDesc")}
+								</div>
+							</div>
+
+							{/* Inputs */}
+							<div className="flex items-center gap-2">
+								<div className="flex items-center gap-1.5">
+									<span className="text-[11px] text-muted-foreground">W:</span>
+									<Input
+										type="number"
+										value={width}
+										onChange={(e) => setWidth(Number(e.target.value))}
+										onBlur={() => handleCommitResolution(width, height)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") handleCommitResolution(width, height)
+										}}
+										className="h-8 w-20 px-2 text-center font-mono text-xs"
+									/>
+								</div>
+								<span className="text-muted-foreground text-xs">×</span>
+								<div className="flex items-center gap-1.5">
+									<span className="text-[11px] text-muted-foreground">H:</span>
+									<Input
+										type="number"
+										value={height}
+										onChange={(e) => setHeight(Number(e.target.value))}
+										onBlur={() => handleCommitResolution(width, height)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") handleCommitResolution(width, height)
+										}}
+										className="h-8 w-20 px-2 text-center font-mono text-xs"
+									/>
+								</div>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={handleReset}
+									title={t("settings.window.resetTo", { size: "854 × 480" })}
+									className="h-8 px-2 text-muted-foreground"
+								>
+									<RotateCcw className="size-3.5" />
+								</Button>
+							</div>
+						</div>
+
+						{/* Quick Presets */}
+						<div className="flex flex-wrap items-center gap-1.5 pt-1">
+							<span className="mr-1 text-[11px] text-muted-foreground">
+								{t("settings.window.presets")}
+							</span>
+							{RESOLUTION_PRESETS.map((preset) => {
+								const isCurrent =
+									windowSettings.width === preset.width && windowSettings.height === preset.height
+								return (
+									<button
+										key={preset.label}
+										type="button"
+										onClick={() => handleCommitResolution(preset.width, preset.height)}
+										className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] transition-colors ${
+											isCurrent
+												? "border-info/40 bg-info/10 font-medium text-info"
+												: "border-border bg-card/80 text-foreground/80 hover:border-input hover:text-foreground"
+										}`}
+									>
+										{isCurrent && <Check className="size-3" />}
+										<span>{preset.label}</span>
+										<span className="text-[10px] text-muted-foreground">
+											(
+											{preset.description === "Default"
+												? t("settings.window.defaultPreset")
+												: preset.description}
+											)
+										</span>
+									</button>
+								)
+							})}
+						</div>
+					</div>
+				)}
+			</CardContent>
+		</Card>
 	)
 }
 

@@ -31,17 +31,17 @@ export const UpdateBanner = () => {
 	const isReady = status === "ready"
 
 	return (
-		<div className="relative z-50 w-full border-border/40 border-b bg-gradient-to-r from-emerald-950/40 via-zinc-900/60 to-emerald-950/30 px-4 py-2 text-foreground backdrop-blur-md transition-all">
+		<div className="relative z-50 w-full border-border/40 border-b bg-gradient-to-r from-primary/40 via-card/60 to-primary/30 px-4 py-2 text-foreground backdrop-blur-md transition-all">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex items-center gap-2.5">
 					<div
 						className={cn(
 							"flex size-6 shrink-0 items-center justify-center rounded-full text-xs",
 							isReady
-								? "bg-emerald-500/20 text-emerald-400"
+								? "bg-primary/20 text-primary"
 								: isDownloading
-									? "bg-sky-500/20 text-sky-400"
-									: "bg-emerald-500/20 text-emerald-400",
+									? "bg-info/20 text-info"
+									: "bg-primary/20 text-primary",
 						)}
 					>
 						{isReady ? (
@@ -77,7 +77,7 @@ export const UpdateBanner = () => {
 						<Button
 							size="sm"
 							onClick={() => relaunchApp()}
-							className="h-7 gap-1.5 bg-emerald-600 px-3 font-medium text-white text-xs hover:bg-emerald-500"
+							className="h-7 gap-1.5 px-3 font-medium text-xs"
 						>
 							<RefreshCw className="size-3" />
 							<span>{t("updateBanner.restartNow")}</span>
@@ -93,7 +93,7 @@ export const UpdateBanner = () => {
 						<Button
 							size="sm"
 							onClick={() => downloadAndInstall()}
-							className="h-7 gap-1.5 bg-emerald-600 px-3 font-medium text-white text-xs hover:bg-emerald-500"
+							className="h-7 gap-1.5 px-3 font-medium text-xs"
 						>
 							<Download className="size-3" />
 							<span>{t("updateBanner.updateNow")}</span>
@@ -104,7 +104,7 @@ export const UpdateBanner = () => {
 						<button
 							type="button"
 							onClick={dismissBanner}
-							className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-zinc-800 hover:text-foreground"
+							className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
 							title={t("updateBanner.dismiss")}
 						>
 							<X className="size-3.5" />

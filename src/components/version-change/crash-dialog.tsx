@@ -97,12 +97,12 @@ export default function VersionChangeCrashDialog() {
 		<Dialog open onOpenChange={(open) => !open && !busy && setCrash(null)}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-lg">
 				<div className="flex items-start gap-3">
-					<AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-400" />
+					<AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
 					<div className="flex flex-col gap-1">
 						<DialogTitle className="text-base">
 							{t("crashDialog.title", { name: crash.name, version: crash.toGameVersion })}
 						</DialogTitle>
-						<DialogDescription className="text-sm text-zinc-400 leading-relaxed">
+						<DialogDescription className="text-muted-foreground text-sm leading-relaxed">
 							{crash.suspects.length > 0
 								? t("crashDialog.suspects", { context: addon })
 								: t("crashDialog.noSuspects", { context: addon })}
@@ -117,12 +117,12 @@ export default function VersionChangeCrashDialog() {
 							return (
 								<div
 									key={`${suspect.folder}/${suspect.fileName}`}
-									className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-3 py-2"
+									className="flex items-center gap-3 rounded-xl border border-border bg-card/40 px-3 py-2"
 								>
-									<Package className="size-4 shrink-0 text-zinc-500" />
+									<Package className="size-4 shrink-0 text-muted-foreground" />
 									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-sm text-zinc-100">{suspect.title}</p>
-										<p className="truncate text-[11px] text-zinc-500">{suspect.fileName}</p>
+										<p className="truncate font-medium text-foreground text-sm">{suspect.title}</p>
+										<p className="truncate text-[11px] text-muted-foreground">{suspect.fileName}</p>
 									</div>
 									<Button
 										size="sm"
@@ -142,7 +142,7 @@ export default function VersionChangeCrashDialog() {
 							)
 						})}
 						{turnedOff.length > 0 && !undone && (
-							<p className="text-xs text-zinc-400">
+							<p className="text-muted-foreground text-xs">
 								{t("crashDialog.tryAgain", { context: target, count: turnedOff.length })}
 							</p>
 						)}
@@ -150,11 +150,11 @@ export default function VersionChangeCrashDialog() {
 				)}
 
 				{crash.excerpt && (
-					<details className="rounded-xl border border-zinc-800 bg-zinc-950/60 text-xs">
-						<summary className="cursor-pointer px-3 py-2 text-zinc-400">
+					<details className="rounded-xl border border-border bg-background/60 text-xs">
+						<summary className="cursor-pointer px-3 py-2 text-muted-foreground">
 							{t("crashDialog.details")}
 						</summary>
-						<pre className="max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-[11px] text-zinc-500">
+						<pre className="max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-[11px] text-muted-foreground">
 							{crash.excerpt}
 						</pre>
 					</details>
@@ -164,8 +164,8 @@ export default function VersionChangeCrashDialog() {
 					<p
 						className={
 							message.ok
-								? "rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-200 text-xs"
-								: "rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-200 text-xs"
+								? "rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-primary text-xs"
+								: "rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs"
 						}
 					>
 						{message.text}
@@ -182,11 +182,7 @@ export default function VersionChangeCrashDialog() {
 						{undone ? t("common.close") : t("crashDialog.keepTrying")}
 					</Button>
 					{!undone && (
-						<Button
-							disabled={busy !== null}
-							onClick={undo}
-							className="gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
-						>
+						<Button disabled={busy !== null} onClick={undo} className="gap-1.5 rounded-xl">
 							{busy === "undo" ? <Spinner className="size-4" /> : <Undo2 className="size-4" />}
 							{t("crashDialog.undo")}
 						</Button>

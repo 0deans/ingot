@@ -82,7 +82,7 @@ const Sidebar = () => {
 	}, [currentPathname, navigate])
 
 	return (
-		<aside className="flex w-16 flex-col items-center justify-between border-border/40 border-r bg-zinc-950/40 py-4 backdrop-blur-sm">
+		<aside className="flex w-16 flex-col items-center justify-between border-border/40 border-r bg-background/40 py-4 backdrop-blur-sm">
 			<div className="flex flex-col items-center gap-3">
 				<SidebarTab to="/" label={t("nav.instances")}>
 					<Gamepad2 className="size-5" />

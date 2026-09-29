@@ -5,7 +5,7 @@
  *   <Alert className={alertTone.warning}>…</Alert>
  */
 export const alertTone = {
-	success: "text-emerald-400 *:data-[slot=alert-description]:text-emerald-400/90",
-	warning: "text-amber-400 *:data-[slot=alert-description]:text-amber-400/90",
-	info: "text-sky-400 *:data-[slot=alert-description]:text-sky-400/90",
+	success: "text-primary *:data-[slot=alert-description]:text-primary/90",
+	warning: "text-warning *:data-[slot=alert-description]:text-warning/90",
+	info: "text-info *:data-[slot=alert-description]:text-info/90",
 } as const

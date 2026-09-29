@@ -245,7 +245,7 @@ export function WorldMap({
 				))}
 			</div>
 
-			<div className="absolute right-3 bottom-3 flex flex-col overflow-hidden rounded-xl border border-zinc-50/10 bg-zinc-950/80 backdrop-blur-md">
+			<div className="absolute right-3 bottom-3 flex flex-col overflow-hidden rounded-xl border border-border/10 bg-background/80 backdrop-blur-md">
 				<MapButton label={t("map.zoomIn")} onClick={() => zoomAt(1.5, size.w / 2, size.h / 2)}>
 					<Plus className="size-4" />
 				</MapButton>
@@ -255,7 +255,7 @@ export function WorldMap({
 				</MapButton>
 			</div>
 
-			<div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-zinc-950/80 px-2 py-1 font-mono text-[10px] text-zinc-300 backdrop-blur-md">
+			<div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-background/80 px-2 py-1 font-mono text-[10px] text-foreground/80 backdrop-blur-md">
 				<Crosshair className="size-3" />
 				{Math.floor(cursor?.x ?? view.x)}, {Math.floor(cursor?.z ?? view.z)}
 			</div>
@@ -278,7 +278,7 @@ function MapButton({
 			aria-label={label}
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={onClick}
-			className="flex size-9 items-center justify-center text-zinc-200 transition-colors hover:bg-zinc-50/10"
+			className="flex size-9 items-center justify-center text-foreground transition-colors hover:bg-foreground/10"
 		>
 			{children}
 		</button>

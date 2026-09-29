@@ -41,7 +41,7 @@ const RootLayout = () => {
 			<TooltipProvider>
 				<main
 					ref={mainRef}
-					className="flex h-dvh min-h-0 w-full flex-1 flex-col overflow-hidden bg-zinc-950"
+					className="flex h-dvh min-h-0 w-full flex-1 flex-col overflow-hidden bg-background"
 				>
 					<Outlet />
 				</main>

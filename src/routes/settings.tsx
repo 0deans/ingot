@@ -19,7 +19,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { createFileRoute } from "@tanstack/react-router"
-import { AppWindow, Layers, Minimize2, Plus, Power, ShieldCheck } from "lucide-react"
+import { AppWindow, Layers, Minimize2, Plus, Power, ShieldCheck, Users } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
@@ -32,6 +32,7 @@ import {
 } from "@/components/accounts/sortable-account-item"
 import { alertTone } from "@/components/common/alert-tones"
 import { ScrollArea } from "@/components/common/scroll-area"
+import { SectionCardHeader } from "@/components/common/section-card"
 import LanguageSettings from "@/components/settings/language-settings"
 import { LicensesSettings } from "@/components/settings/licenses"
 import MemoryAllocation from "@/components/settings/memory-allocation"
@@ -40,8 +41,16 @@ import ThemeSettings from "@/components/settings/theme-settings"
 import UpdateSettings from "@/components/settings/update-settings"
 import WindowSettings from "@/components/settings/window-settings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
 import { useAccounts } from "@/services/account-service"
 import { type LauncherBehavior, useLauncherBehavior } from "@/services/settings-service"
@@ -177,158 +186,126 @@ const SettingsPage = () => {
 					<ThemeSettings />
 
 					{/* Accounts & Security */}
-					<div className="flex flex-col gap-3 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
-						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-							<div>
-								<h3 className="font-semibold text-foreground text-sm">
-									{t("settings.accounts.title")}
-								</h3>
-								<p className="text-muted-foreground text-xs">
-									{t("settings.accounts.description")}
-								</p>
-							</div>
-							<div className="flex items-center gap-2">
+					<Card>
+						<SectionCardHeader
+							icon={Users}
+							title={t("settings.accounts.title")}
+							description={t("settings.accounts.description")}
+							action={
 								<Button
 									size="sm"
 									onClick={() =>
-										navigate({
-											search: (prev) => ({ ...prev, dialog: "add-account" }),
-										})
+										navigate({ search: (prev) => ({ ...prev, dialog: "add-account" }) })
 									}
-									className="gap-1.5 text-xs"
 								>
-									<Plus className="size-3.5" />
+									<Plus />
 									{t("accounts.addAccount")}
 								</Button>
-							</div>
-						</div>
+							}
+						/>
+						<CardContent className="flex flex-col gap-3">
+							<Alert className={alertTone.success}>
+								<ShieldCheck />
+								<AlertDescription>{t("settings.accounts.keyringActive")}</AlertDescription>
+							</Alert>
 
-						<Alert className={alertTone.success}>
-							<ShieldCheck />
-							<AlertDescription>{t("settings.accounts.keyringActive")}</AlertDescription>
-						</Alert>
-
-						<DndContext
-							sensors={sensors}
-							collisionDetection={closestCenter}
-							modifiers={modifiers}
-							onDragStart={handleDragStart}
-							onDragEnd={handleDragEnd}
-							onDragCancel={handleDragCancel}
-						>
-							<SortableContext
-								items={accounts.map((a) => a.id)}
-								strategy={verticalListSortingStrategy}
+							<DndContext
+								sensors={sensors}
+								collisionDetection={closestCenter}
+								modifiers={modifiers}
+								onDragStart={handleDragStart}
+								onDragEnd={handleDragEnd}
+								onDragCancel={handleDragCancel}
 							>
-								<div
-									className={cn(
-										"mt-2 flex flex-col divide-y divide-border/30 overflow-hidden rounded-lg border border-border/40 bg-zinc-950/60",
-										activeId && "select-none",
-									)}
+								<SortableContext
+									items={accounts.map((a) => a.id)}
+									strategy={verticalListSortingStrategy}
 								>
-									{accounts.length === 0 ? (
-										<div className="p-4 text-center text-muted-foreground text-xs">
-											{t("settings.accounts.empty")}
-										</div>
-									) : (
-										accounts.map((acc) => (
-											<SortableAccountItem
-												key={acc.id}
-												account={acc}
-												onPreviewSkin={(a) =>
-													navigate({
-														search: (prev) => ({ ...prev, preview: a.id }),
-													})
-												}
-												onSetActive={handleSetActive}
-												onRemove={handleRemove}
-											/>
-										))
-									)}
-								</div>
-							</SortableContext>
-							{typeof document !== "undefined"
-								? createPortal(
-										<DragOverlay dropAnimation={dropAnimationConfig} modifiers={modifiers}>
-											{activeAccount ? (
-												<AccountCardContent
-													key={activeAccount.id}
-													id={activeAccount.id}
-													account={activeAccount}
-													onPreviewSkin={() => {}}
-													onSetActive={() => {}}
-													onRemove={() => {}}
-													isOverlay
+									<div
+										className={cn(
+											"mt-2 flex flex-col divide-y divide-border/30 overflow-hidden rounded-lg border border-border/40 bg-background/60",
+											activeId && "select-none",
+										)}
+									>
+										{accounts.length === 0 ? (
+											<div className="p-4 text-center text-muted-foreground text-xs">
+												{t("settings.accounts.empty")}
+											</div>
+										) : (
+											accounts.map((acc) => (
+												<SortableAccountItem
+													key={acc.id}
+													account={acc}
+													onPreviewSkin={(a) =>
+														navigate({
+															search: (prev) => ({ ...prev, preview: a.id }),
+														})
+													}
+													onSetActive={handleSetActive}
+													onRemove={handleRemove}
 												/>
-											) : null}
-										</DragOverlay>,
-										document.body,
-									)
-								: null}
-						</DndContext>
-					</div>
+											))
+										)}
+									</div>
+								</SortableContext>
+								{typeof document !== "undefined"
+									? createPortal(
+											<DragOverlay dropAnimation={dropAnimationConfig} modifiers={modifiers}>
+												{activeAccount ? (
+													<AccountCardContent
+														key={activeAccount.id}
+														id={activeAccount.id}
+														account={activeAccount}
+														onPreviewSkin={() => {}}
+														onSetActive={() => {}}
+														onRemove={() => {}}
+														isOverlay
+													/>
+												) : null}
+											</DragOverlay>,
+											document.body,
+										)
+									: null}
+							</DndContext>
+						</CardContent>
+					</Card>
 
 					{/* Memory Allocation */}
 					<MemoryAllocation />
 
 					{/* Window & Launch Behavior */}
-					<div className="flex flex-col gap-3 rounded-xl border border-border/40 bg-zinc-900/40 p-4 sm:p-5">
-						<div className="flex flex-col gap-1">
-							<div className="flex items-center gap-2">
-								<Layers className="size-4 text-emerald-400" />
-								<h3 className="font-semibold text-foreground text-sm">
-									{t("settings.behavior.title")}
-								</h3>
-							</div>
-							<p className="text-muted-foreground text-xs">{t("settings.behavior.description")}</p>
-						</div>
-						<div className="grid grid-cols-1 gap-2.5 pt-1 sm:grid-cols-3">
-							{LAUNCHER_BEHAVIOR_OPTIONS.map((opt) => {
-								const isSelected = behavior === opt.id
-								const Icon = opt.icon
-								return (
-									<button
-										key={opt.id}
-										type="button"
-										onClick={() => setLauncherBehavior(opt.id)}
-										className={cn(
-											"flex flex-col items-start gap-2 rounded-lg border p-3.5 text-left transition-all",
-											isSelected
-												? "border-primary/60 bg-primary/10 shadow-sm"
-												: "border-border/30 bg-zinc-950/60 hover:border-border/60 hover:bg-zinc-900/60",
-										)}
-									>
-										<div className="flex w-full items-center justify-between">
-											<div
-												className={cn(
-													"flex size-7 items-center justify-center rounded-md transition-colors",
-													isSelected
-														? "bg-primary text-primary-foreground"
-														: "bg-zinc-900 text-muted-foreground",
-												)}
-											>
-												<Icon className="size-3.5" />
-											</div>
-											{isSelected && <Badge>{t("common.active")}</Badge>}
-										</div>
-										<div>
-											<div
-												className={cn(
-													"font-medium text-xs sm:text-sm",
-													isSelected ? "font-semibold text-foreground" : "text-zinc-300",
-												)}
-											>
-												{t(`settings.behavior.${opt.id}.label`)}
-											</div>
-											<div className="mt-0.5 text-[11px] text-muted-foreground leading-tight">
-												{t(`settings.behavior.${opt.id}.description`)}
-											</div>
-										</div>
-									</button>
-								)
-							})}
-						</div>
-					</div>
+					<Card>
+						<SectionCardHeader
+							icon={Layers}
+							title={t("settings.behavior.title")}
+							description={t("settings.behavior.description")}
+						/>
+						<CardContent className="flex flex-col gap-3">
+							<RadioGroup
+								value={behavior}
+								onValueChange={(value) => {
+									const option = LAUNCHER_BEHAVIOR_OPTIONS.find((o) => o.id === value)
+									if (option) setLauncherBehavior(option.id)
+								}}
+								className="grid-cols-1 sm:grid-cols-3"
+							>
+								{LAUNCHER_BEHAVIOR_OPTIONS.map(({ id, icon: Icon }) => (
+									<FieldLabel key={id} htmlFor={`behavior-${id}`}>
+										<Field orientation="horizontal">
+											<Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+											<FieldContent>
+												<FieldTitle>{t(`settings.behavior.${id}.label`)}</FieldTitle>
+												<FieldDescription>
+													{t(`settings.behavior.${id}.description`)}
+												</FieldDescription>
+											</FieldContent>
+											<RadioGroupItem value={id} id={`behavior-${id}`} />
+										</Field>
+									</FieldLabel>
+								))}
+							</RadioGroup>
+						</CardContent>
+					</Card>
 
 					{/* Window & Display */}
 					<WindowSettings />

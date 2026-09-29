@@ -70,7 +70,7 @@ export default function DeleteServerDialog({
 				</DialogHeader>
 
 				<div className="flex flex-col gap-3 py-2">
-					<div className="rounded-lg border border-border/40 bg-zinc-900/40 p-3 text-xs">
+					<div className="rounded-lg border border-border/40 bg-card/40 p-3 text-xs">
 						<div className="font-medium text-foreground">{t("deleteServer.details")}</div>
 						<div className="mt-1 font-mono text-[11px] text-muted-foreground">
 							{t("deleteServer.detailsLine", {
@@ -83,7 +83,7 @@ export default function DeleteServerDialog({
 
 					<Label
 						htmlFor="delete-files-checkbox"
-						className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border/40 bg-zinc-900/20 p-3 hover:bg-zinc-900/40"
+						className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border/40 bg-card/20 p-3 hover:bg-card/40"
 					>
 						<Checkbox
 							id="delete-files-checkbox"

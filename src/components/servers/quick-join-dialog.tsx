@@ -92,34 +92,34 @@ export function QuickJoinDialog({
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-base">
-						<Server className="size-4 text-emerald-400" />
+						<Server className="size-4 text-primary" />
 						<span>{t("quickJoin.title")}</span>
 					</DialogTitle>
 					<DialogDescription className="text-xs">
 						<Trans
 							i18nKey="quickJoin.description"
 							values={{ name: server.name, address: `127.0.0.1:${server.port}` }}
-							components={{ b: <span className="font-semibold text-zinc-200" /> }}
+							components={{ b: <span className="font-semibold text-foreground" /> }}
 						/>
 					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 pt-1">
-					<div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5 text-xs">
+					<div className="flex items-center justify-between rounded-lg border border-border bg-card/60 p-2.5 text-xs">
 						<div className="flex flex-col">
-							<span className="font-medium text-zinc-300">{server.name}</span>
+							<span className="font-medium text-foreground/80">{server.name}</span>
 							<span className="font-mono text-[11px] text-muted-foreground">
 								{t("quickJoin.target", { address: `127.0.0.1:${server.port}` })}
 							</span>
 						</div>
-						<span className="rounded bg-emerald-500/10 px-2 py-0.5 font-mono text-[11px] text-emerald-400">
+						<span className="rounded bg-primary/10 px-2 py-0.5 font-mono text-[11px] text-primary">
 							MC {server.gameVersion}
 						</span>
 					</div>
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<span className="font-medium text-[11px] text-zinc-400 uppercase tracking-wider">
+							<span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
 								{t("quickJoin.choose")}
 							</span>
 							{onCreateInstance && (
@@ -129,7 +129,7 @@ export function QuickJoinDialog({
 										onOpenChange(false)
 										onCreateInstance()
 									}}
-									className="flex items-center gap-1 text-[11px] text-emerald-400 transition-colors hover:text-emerald-300"
+									className="flex items-center gap-1 text-[11px] text-primary transition-colors hover:text-primary"
 								>
 									<Plus className="size-3" />
 									<span>{t("instances.newInstance")}</span>
@@ -142,10 +142,14 @@ export function QuickJoinDialog({
 								<Spinner className="size-5" />
 							</div>
 						) : instances.length === 0 ? (
-							<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-zinc-800 border-dashed p-6 text-center">
-								<AlertCircle className="size-6 text-amber-400" />
-								<p className="font-medium text-xs text-zinc-300">{t("quickJoin.noInstances")}</p>
-								<p className="text-[11px] text-zinc-500">{t("quickJoin.noInstancesHint")}</p>
+							<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border border-dashed p-6 text-center">
+								<AlertCircle className="size-6 text-warning" />
+								<p className="font-medium text-foreground/80 text-xs">
+									{t("quickJoin.noInstances")}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{t("quickJoin.noInstancesHint")}
+								</p>
 								{onCreateInstance && (
 									<Button
 										size="sm"
@@ -174,25 +178,22 @@ export function QuickJoinDialog({
 											className={cn(
 												"flex w-full items-center justify-between rounded-lg border p-2.5 text-left transition-all",
 												isSelected
-													? "border-emerald-500/60 bg-emerald-950/20 ring-1 ring-emerald-500/30"
-													: "border-border/50 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-800/60",
+													? "border-primary/60 bg-primary/10 ring-1 ring-primary/30"
+													: "border-border/50 bg-card/40 hover:border-input hover:bg-muted/60",
 											)}
 										>
 											<div className="flex items-center gap-2.5 truncate">
-												<div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900">
+												<div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border bg-card">
 													<LoaderIcon loader={inst.loader} size={16} />
 												</div>
 												<div className="flex flex-col truncate">
-													<span className="truncate font-medium text-xs text-zinc-200">
+													<span className="truncate font-medium text-foreground text-xs">
 														{inst.name}
 													</span>
-													<div className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-400">
+													<div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
 														<span>{inst.gameVersion}</span>
 														{isVersionMatch && (
-															<Badge
-																variant="outline"
-																className="border-emerald-500/30 text-emerald-300"
-															>
+															<Badge variant="outline" className="border-primary/30 text-primary">
 																{t("quickJoin.matches")}
 															</Badge>
 														)}
@@ -200,7 +201,7 @@ export function QuickJoinDialog({
 												</div>
 											</div>
 
-											{isSelected && <Check className="size-4 shrink-0 text-emerald-400" />}
+											{isSelected && <Check className="size-4 shrink-0 text-primary" />}
 										</button>
 									)
 								})}
@@ -223,7 +224,7 @@ export function QuickJoinDialog({
 							size="sm"
 							disabled={!selectedId}
 							onClick={handleJoin}
-							className="gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
+							className="gap-1.5 font-medium text-xs"
 						>
 							<Play className="size-3.5 fill-current" />
 							<span>{t("quickJoin.launch")}</span>

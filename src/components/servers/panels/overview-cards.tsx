@@ -47,7 +47,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 				setTimeout(() => setCopied(false), 1500)
 			}}
 		>
-			{copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+			{copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
 		</Button>
 	)
 }
@@ -62,10 +62,10 @@ function AddressRow({
 	children: ReactNode
 }) {
 	return (
-		<div className="flex min-w-0 items-center gap-3 rounded-xl bg-zinc-950/60 py-2 pr-2 pl-3">
-			<Icon className="size-4 shrink-0 text-zinc-500" />
+		<div className="flex min-w-0 items-center gap-3 rounded-xl bg-background/60 py-2 pr-2 pl-3">
+			<Icon className="size-4 shrink-0 text-muted-foreground" />
 			<div className="min-w-0 flex-1">
-				<p className="text-[10px] text-zinc-500 uppercase tracking-wider">{label}</p>
+				<p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
 				{children}
 			</div>
 		</div>
@@ -95,19 +95,19 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-start gap-3">
-				<div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+				<div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-info/10 text-info">
 					<Globe className="size-4" />
 				</div>
 				<div className="min-w-0">
-					<h3 className="font-semibold text-sm text-zinc-100">{t("join.title")}</h3>
-					<p className="text-xs text-zinc-500">{t("join.description")}</p>
+					<h3 className="font-semibold text-foreground text-sm">{t("join.title")}</h3>
+					<p className="text-muted-foreground text-xs">{t("join.description")}</p>
 				</div>
 			</div>
 
 			{lanAddress && (
 				<AddressRow icon={Wifi} label={t("join.sameWifi")}>
 					<div className="flex items-center justify-between gap-2">
-						<code className="truncate font-mono text-sm text-zinc-200">{lanAddress}</code>
+						<code className="truncate font-mono text-foreground text-sm">{lanAddress}</code>
 						<CopyButton text={lanAddress} label={t("join.copyLocal")} />
 					</div>
 				</AddressRow>
@@ -116,7 +116,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 			<AddressRow icon={Globe} label={t("join.anywhere")}>
 				{tunnel.isRunning && tunnel.publicAddress ? (
 					<div className="flex items-center justify-between gap-1">
-						<code className="truncate font-mono font-semibold text-emerald-300 text-sm">
+						<code className="truncate font-mono font-semibold text-primary text-sm">
 							{tunnel.publicAddress}
 						</code>
 						<div className="flex shrink-0">
@@ -136,12 +136,12 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 						href={tunnel.claimUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="inline-flex items-center gap-1 font-medium text-sky-300 text-sm hover:underline"
+						className="inline-flex items-center gap-1 font-medium text-info text-sm hover:underline"
 					>
 						{t("join.linkPlayit")} <ExternalLink className="size-3" />
 					</a>
 				) : tunnel.isRunning && tunnel.status === "no_tunnel" ? (
-					<p className="text-amber-200 text-xs leading-relaxed">
+					<p className="text-warning text-xs leading-relaxed">
 						<Trans
 							i18nKey="join.noTunnel"
 							values={{ port: server.port }}
@@ -152,19 +152,19 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 										href="https://playit.gg/account/tunnels"
 										target="_blank"
 										rel="noopener noreferrer"
-										className="font-semibold text-amber-300 underline"
+										className="font-semibold text-warning underline"
 									/>
 								),
 							}}
 						/>
 					</p>
 				) : tunnel.isRunning ? (
-					<p className="flex items-center gap-1.5 text-sm text-zinc-400">
-						<Spinner className="size-3.5 text-sky-400" />
+					<p className="flex items-center gap-1.5 text-muted-foreground text-sm">
+						<Spinner className="size-3.5 text-info" />
 						{tunnel.message ?? t("join.connecting")}
 					</p>
 				) : (
-					<p className="text-sm text-zinc-500">{t("join.notConnected")}</p>
+					<p className="text-muted-foreground text-sm">{t("join.notConnected")}</p>
 				)}
 			</AddressRow>
 
@@ -175,7 +175,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					variant="outline"
 					disabled={isBusy}
 					onClick={() => toggle(server.playitSecretKey)}
-					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl border-zinc-800 py-2 text-center leading-tight"
+					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl py-2 text-center leading-tight"
 				>
 					{isBusy && <Spinner className="size-4" />}
 					{tunnel.isRunning ? t("join.stopPlayit") : t("join.goPublic")}
@@ -183,7 +183,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 				<Button
 					onClick={share}
 					disabled={!bestAddress}
-					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl bg-sky-600 py-2 text-center text-white leading-tight hover:bg-sky-500"
+					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl bg-info py-2 text-center text-info-foreground leading-tight hover:bg-info/80"
 				>
 					{shared === "copied" ? <Check className="size-4" /> : <Share2 className="size-4" />}
 					{shared === "copied" ? t("skinPreview.copied") : t("join.share")}
@@ -200,7 +200,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 							className="size-48"
 						/>
 					</div>
-					<code className="font-mono font-semibold text-emerald-300 text-sm">
+					<code className="font-mono font-semibold text-primary text-sm">
 						{tunnel.publicAddress}
 					</code>
 				</DialogContent>
@@ -218,7 +218,7 @@ const HISTORY = 60
  * (the graph, gridlines, reference lines), so text never gets crossed out.
  */
 const CHART_CHIP =
-	"pointer-events-none absolute -translate-y-1/2 whitespace-nowrap rounded-[3px] bg-zinc-900 px-1 text-[9px] tabular-nums leading-3.5 ring-1 ring-zinc-800"
+	"pointer-events-none absolute -translate-y-1/2 whitespace-nowrap rounded-[3px] bg-card px-1 text-[9px] tabular-nums leading-3.5 ring-1 ring-border"
 
 /** Seconds between stat samples (useServerStats polls every 2s) */
 const SAMPLE_SECONDS = 2
@@ -313,7 +313,7 @@ function Chart({
 							stroke="currentColor"
 							strokeDasharray="2 4"
 							vectorEffect="non-scaling-stroke"
-							className="text-zinc-800"
+							className="text-border"
 						/>
 					))}
 					<line
@@ -323,7 +323,7 @@ function Chart({
 						y2={h - 0.5}
 						stroke="currentColor"
 						vectorEffect="non-scaling-stroke"
-						className="text-zinc-800"
+						className="text-border"
 					/>
 					{markers.map((m) => (
 						<line
@@ -362,7 +362,7 @@ function Chart({
 							y2={h}
 							stroke="currentColor"
 							vectorEffect="non-scaling-stroke"
-							className="text-zinc-600"
+							className="text-muted-foreground/60"
 						/>
 					)}
 				</svg>
@@ -370,7 +370,7 @@ function Chart({
 				{[max, max / 2].map((v) => (
 					<span
 						key={v}
-						className={cn(CHART_CHIP, "left-0 text-zinc-500")}
+						className={cn(CHART_CHIP, "left-0 text-muted-foreground")}
 						style={{ top: `${(y(v) / h) * 100}%` }}
 					>
 						{format(v)}
@@ -387,7 +387,7 @@ function Chart({
 				))}
 				{dot && (
 					<span
-						className="-translate-1/2 pointer-events-none absolute size-2 rounded-full ring-2 ring-zinc-950"
+						className="-translate-1/2 pointer-events-none absolute size-2 rounded-full ring-2 ring-border"
 						style={{
 							left: `${(dot[0] / w) * 100}%`,
 							top: `${(dot[1] / h) * 100}%`,
@@ -398,20 +398,20 @@ function Chart({
 				{hover !== null && dot && (
 					<span
 						className={cn(
-							"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-[10px] text-zinc-200 tabular-nums shadow-lg",
+							"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] text-foreground tabular-nums shadow-lg",
 							dot[0] / w > 0.6 && "-ml-1.5 -translate-x-full",
 						)}
 						style={{ left: `${(dot[0] / w) * 100}%` }}
 					>
 						{format(values[active])}
-						<span className="text-zinc-500">
+						<span className="text-muted-foreground">
 							{" · "}
 							{secondsAgo === 0 ? t("stats.now") : t("stats.ago", { time: formatAgo(secondsAgo) })}
 						</span>
 					</span>
 				)}
 			</div>
-			<div className="flex justify-between text-[9px] text-zinc-600 leading-none">
+			<div className="flex justify-between text-[9px] text-muted-foreground/60 leading-none">
 				<span>{t("stats.ago", { time: formatAgo(HISTORY * SAMPLE_SECONDS) })}</span>
 				<span>{t("stats.now")}</span>
 			</div>
@@ -456,23 +456,23 @@ function Metric({
 				}
 			: null
 	return (
-		<div className="flex min-w-0 select-none flex-col gap-3 rounded-xl bg-zinc-950/60 p-3">
+		<div className="flex min-w-0 select-none flex-col gap-3 rounded-xl bg-background/60 p-3">
 			<div className="flex min-w-0 items-baseline justify-between gap-3">
-				<p className="flex shrink-0 items-center gap-1.5 text-[11px] text-zinc-500 uppercase tracking-wider">
+				<p className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider">
 					<Icon className="size-3.5 self-center" style={{ color }} /> {label}
 				</p>
-				<p className="min-w-0 truncate text-right font-semibold text-base text-zinc-100 tabular-nums">
+				<p className="min-w-0 truncate text-right font-semibold text-base text-foreground tabular-nums">
 					{value}
-					{sub && <span className="font-normal text-xs text-zinc-500"> {sub}</span>}
+					{sub && <span className="font-normal text-muted-foreground text-xs"> {sub}</span>}
 				</p>
 			</div>
 			<Chart values={values} max={max} color={color} format={format} markers={markers} />
 			{summary && (
-				<dl className="grid grid-cols-3 gap-2 border-zinc-900 border-t pt-2.5 text-[11px]">
+				<dl className="grid grid-cols-3 gap-2 border-border border-t pt-2.5 text-[11px]">
 					{(["min", "avg", "peak"] as const).map((k) => (
 						<div key={k} className="min-w-0">
-							<dt className="text-zinc-600">{t(`stats.${k}`)}</dt>
-							<dd className="truncate text-zinc-300 tabular-nums">{format(summary[k])}</dd>
+							<dt className="text-muted-foreground/60">{t(`stats.${k}`)}</dt>
+							<dd className="truncate text-foreground/80 tabular-nums">{format(summary[k])}</dd>
 						</div>
 					))}
 				</dl>
@@ -503,10 +503,10 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-center gap-2">
-				<Activity className="size-4 text-zinc-400" />
-				<h3 className="font-semibold text-sm text-zinc-100">{t("stats.performance")}</h3>
-				{!latest && <Spinner className="size-3.5 text-zinc-500" />}
-				<span className="ml-auto text-[11px] text-zinc-600">{t("stats.touchHint")}</span>
+				<Activity className="size-4 text-muted-foreground" />
+				<h3 className="font-semibold text-foreground text-sm">{t("stats.performance")}</h3>
+				{!latest && <Spinner className="size-3.5 text-muted-foreground" />}
+				<span className="ml-auto text-[11px] text-muted-foreground/60">{t("stats.touchHint")}</span>
 			</div>
 			<div className="grid gap-2 lg:grid-cols-3">
 				<Metric
@@ -600,11 +600,11 @@ function DeviceBar({
 	const pct = (v: number) => `${Math.min(100, (v / Math.max(1, total)) * 100)}%`
 	return (
 		<div className="flex flex-col gap-1.5">
-			<div className="flex h-1.5 overflow-hidden rounded-full bg-zinc-800/80">
+			<div className="flex h-1.5 overflow-hidden rounded-full bg-muted/80">
 				<div style={{ width: pct(part), background: color }} />
-				<div className="bg-zinc-600" style={{ width: pct(Math.max(0, used - part)) }} />
+				<div className="bg-accent" style={{ width: pct(Math.max(0, used - part)) }} />
 			</div>
-			<p className="flex flex-wrap justify-between gap-x-3 text-[11px] text-zinc-500">
+			<p className="flex flex-wrap justify-between gap-x-3 text-[11px] text-muted-foreground">
 				<span>{t("stats.used", { label, used: format(used), total: format(total) })}</span>
 				{note && <span>{note}</span>}
 			</p>
@@ -639,18 +639,18 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-center gap-2">
-				<HardDrive className="size-4 text-zinc-400" />
-				<h3 className="font-semibold text-sm text-zinc-100">{t("storage.title")}</h3>
-				{isLoading && <Spinner className="size-3.5 text-zinc-500" />}
+				<HardDrive className="size-4 text-muted-foreground" />
+				<h3 className="font-semibold text-foreground text-sm">{t("storage.title")}</h3>
+				{isLoading && <Spinner className="size-3.5 text-muted-foreground" />}
 				{data && (
-					<span className="ml-auto font-semibold text-sm text-zinc-100 tabular-nums">
+					<span className="ml-auto font-semibold text-foreground text-sm tabular-nums">
 						{formatBytes(total)}
 					</span>
 				)}
 			</div>
 			{data && (
 				<>
-					<div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-zinc-800/80">
+					<div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-muted/80">
 						{data.categories.map((c) => (
 							<div
 								key={c.id}
@@ -672,20 +672,20 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 											className="size-2 shrink-0 rounded-full"
 											style={{ background: meta.color }}
 										/>
-										<span className="min-w-0 flex-1 truncate text-zinc-300">
+										<span className="min-w-0 flex-1 truncate text-foreground/80">
 											{t(`storage.${category(c.id)}`)}
 										</span>
-										<span className="text-zinc-500 tabular-nums">
+										<span className="text-muted-foreground tabular-nums">
 											{formatShare(c.bytes / Math.max(1, total))}
 										</span>
-										<span className="w-16 text-right text-zinc-200 tabular-nums">
+										<span className="w-16 text-right text-foreground tabular-nums">
 											{formatBytes(c.bytes)}
 										</span>
 									</div>
 									{c.id === "worlds" && data.worlds.length > 1 && (
 										<ul className="ml-4 flex flex-col gap-0.5">
 											{data.worlds.map((w) => (
-												<li key={w.name} className="flex gap-2 text-[11px] text-zinc-500">
+												<li key={w.name} className="flex gap-2 text-[11px] text-muted-foreground">
 													<span className="min-w-0 flex-1 truncate">{w.name}</span>
 													<span className="tabular-nums">{formatBytes(w.bytes)}</span>
 												</li>

@@ -191,9 +191,9 @@ const InstancesPage = () => {
 
 				{/* Active Running Instances Multi-Banner */}
 				{runningList.length > 0 && (
-					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 shadow-emerald-950/10 shadow-lg backdrop-blur-md">
-						<div className="flex items-center gap-2 font-medium text-emerald-400 text-xs">
-							<span className="size-2 animate-ping rounded-full bg-emerald-400" />
+					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg shadow-primary/10 backdrop-blur-md">
+						<div className="flex items-center gap-2 font-medium text-primary text-xs">
+							<span className="size-2 animate-ping rounded-full bg-primary" />
 							{t("instances.activeInstances", { count: runningList.length })}
 						</div>
 
@@ -203,7 +203,7 @@ const InstancesPage = () => {
 								return (
 									<div
 										key={proc.instanceId}
-										className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-900/30 px-3 py-1 font-medium text-emerald-200 text-xs shadow-sm"
+										className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 font-medium text-primary text-xs shadow-sm"
 									>
 										<span>
 											{t("instances.activeEntry", { name: inst?.name ?? "", pid: proc.pid })}
@@ -211,7 +211,7 @@ const InstancesPage = () => {
 										<button
 											type="button"
 											onClick={() => handleStop(proc.instanceId)}
-											className="rounded p-0.5 text-emerald-400 transition-colors hover:bg-destructive/20 hover:text-destructive"
+											className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
 											title={t("instances.stopProcess")}
 										>
 											<Square className="size-3 fill-current" />
@@ -228,7 +228,7 @@ const InstancesPage = () => {
 					<div className="flex items-center gap-2 font-semibold text-foreground text-sm">
 						<Layers className="size-4 text-primary" />
 						<span>{t("instances.allInstances")}</span>
-						<span className="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-[11px] text-zinc-400">
+						<span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
 							{instances.length}
 						</span>
 					</div>
@@ -236,8 +236,8 @@ const InstancesPage = () => {
 
 				{/* Instances Grid or Empty State */}
 				{instances.length === 0 ? (
-					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-zinc-900/10 p-12 text-center">
-						<div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/80 shadow-inner">
+					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
+						<div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card/80 shadow-inner">
 							<Gamepad2 className="size-6 text-primary" />
 						</div>
 						<h3 className="mt-4 font-semibold text-base text-foreground">
@@ -317,23 +317,23 @@ const InstancesPage = () => {
 									replace: true,
 								})
 							}
-							className="group flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-zinc-950/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-zinc-900/40 hover:text-zinc-50"
+							className="group flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
 						>
-							<div className="flex size-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-inner transition-transform group-hover:scale-110">
-								<Plus className="size-5 text-zinc-400 group-hover:text-primary" />
+							<div className="flex size-10 items-center justify-center rounded-xl border border-border bg-card shadow-inner transition-transform group-hover:scale-110">
+								<Plus className="size-5 text-muted-foreground group-hover:text-primary" />
 							</div>
 							<div className="flex flex-col items-center gap-0.5 text-center">
-								<span className="font-semibold text-xs text-zinc-300 group-hover:text-zinc-50">
+								<span className="font-semibold text-foreground/80 text-xs group-hover:text-foreground">
 									{t("instances.createCardTitle")}
 								</span>
-								<span className="text-[11px] text-zinc-500">
+								<span className="text-[11px] text-muted-foreground">
 									{t("instances.createCardSubtitle")}
 								</span>
 							</div>
 						</button>
 					</div>
 				) : (
-					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-zinc-900/10 p-12 text-center">
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
 						<p className="font-medium text-foreground text-sm">
 							{t("instances.noMatchTitle", { query: searchQuery })}
 						</p>

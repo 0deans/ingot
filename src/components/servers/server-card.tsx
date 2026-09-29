@@ -154,8 +154,8 @@ export default function ServerCard({
 			className={cn(
 				"group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-all duration-200",
 				isRunning
-					? "border-emerald-500/40 bg-zinc-900/70 shadow-emerald-950/20 shadow-lg ring-1 ring-emerald-500/20"
-					: "border-border/50 bg-zinc-900/40 hover:border-border/80 hover:bg-zinc-900/70",
+					? "border-primary/40 bg-card/70 shadow-lg shadow-primary/20 ring-1 ring-primary/20"
+					: "border-border/50 bg-card/40 hover:border-border/80 hover:bg-card/70",
 			)}
 		>
 			{/* Top Bar: Core Badge + Status */}
@@ -172,17 +172,17 @@ export default function ServerCard({
 
 				{/* Live Status Indicator */}
 				{isRunning ? (
-					<Badge variant="outline" className="border-emerald-500/30 font-mono text-emerald-400">
-						<span className="size-1.5 animate-ping rounded-full bg-emerald-400" />
+					<Badge variant="outline" className="border-primary/30 font-mono text-primary">
+						<span className="size-1.5 animate-ping rounded-full bg-primary" />
 						{formatUptime(uptime)}
 					</Badge>
 				) : isStarting ? (
-					<Badge variant="outline" className="border-amber-500/30 text-amber-400">
+					<Badge variant="outline" className="border-warning/30 text-warning">
 						<Spinner />
 						{t("overview.starting")}
 					</Badge>
 				) : isStopping ? (
-					<Badge variant="outline" className="border-rose-500/30 text-rose-400">
+					<Badge variant="outline" className="border-destructive/30 text-destructive">
 						<Spinner />
 						{t("overview.stopping")}
 					</Badge>
@@ -194,7 +194,7 @@ export default function ServerCard({
 			{/* Center Info: Icon + Name & Specs */}
 			<div className="my-3 flex items-start gap-3">
 				{/* Server Icon / Favicon */}
-				<div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-zinc-800/80 shadow-inner">
+				<div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-muted/80 shadow-inner">
 					{serverIcon ? (
 						<img
 							src={serverIcon}
@@ -202,7 +202,7 @@ export default function ServerCard({
 							className="size-full object-cover [image-rendering:pixelated]"
 						/>
 					) : (
-						<Server className="size-5 text-zinc-500" />
+						<Server className="size-5 text-muted-foreground" />
 					)}
 				</div>
 
@@ -210,7 +210,7 @@ export default function ServerCard({
 					<button
 						type="button"
 						onClick={() => onOpen?.(server)}
-						className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-emerald-300"
+						className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-primary"
 						title={t("serverCard.openPage")}
 					>
 						{server.name}
@@ -221,28 +221,28 @@ export default function ServerCard({
 						<button
 							type="button"
 							onClick={handleCopyAddress}
-							className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-zinc-400 transition-colors hover:text-emerald-400"
+							className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-primary"
 							title={t("serverCard.copyAddress")}
 						>
-							<Globe className="size-3 text-emerald-500/70" />
+							<Globe className="size-3 text-primary/70" />
 							<span>localhost:{server.port}</span>
 							{copied ? (
-								<Check className="size-3 text-emerald-400" />
+								<Check className="size-3 text-primary" />
 							) : (
 								<Copy className="size-2.5 opacity-60" />
 							)}
 						</button>
 
 						{/* RAM */}
-						<div className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">
-							<Cpu className="size-3 text-emerald-500/70" />
+						<div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+							<Cpu className="size-3 text-primary/70" />
 							<span>{formatMegabytes(server.memoryMaxMb, 0)}</span>
 						</div>
 
 						{/* Live SLP Player count badge (only when running) */}
 						{isRunning && (
-							<div className="flex items-center gap-1 font-mono text-[11px] text-emerald-400">
-								<Users className="size-3 text-emerald-400" />
+							<div className="flex items-center gap-1 font-mono text-[11px] text-primary">
+								<Users className="size-3 text-primary" />
 								<span>
 									{pingInfo
 										? `${pingInfo.players.online}/${pingInfo.players.max}`
@@ -253,8 +253,8 @@ export default function ServerCard({
 
 						{/* Live SLP Ping latency badge */}
 						{isRunning && pingInfo && (
-							<div className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">
-								<Signal className="size-2.5 text-emerald-400" />
+							<div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+								<Signal className="size-2.5 text-primary" />
 								<span>{pingInfo.pingMs}ms</span>
 							</div>
 						)}
@@ -271,7 +271,7 @@ export default function ServerCard({
 							<Button
 								size="sm"
 								onClick={() => onJoinServer?.(server)}
-								className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs shadow-emerald-950/40 shadow-sm hover:bg-emerald-500"
+								className="h-8 gap-1.5 font-medium text-xs"
 								title={t("serverCard.joinTitle")}
 							>
 								<Gamepad2 className="size-3.5" />
@@ -281,7 +281,7 @@ export default function ServerCard({
 								size="sm"
 								variant="secondary"
 								onClick={() => onOpenConsole(server)}
-								className="h-8 gap-1.5 bg-zinc-800 font-medium text-xs text-zinc-200 hover:bg-zinc-700"
+								className="h-8 gap-1.5 font-medium text-xs"
 							>
 								<Terminal className="size-3.5" />
 								<span>{t("serverTabs.console")}</span>
@@ -290,7 +290,7 @@ export default function ServerCard({
 								variant="outline"
 								size="sm"
 								onClick={() => onStop(server.id)}
-								className="h-8 gap-1 border-rose-500/30 text-rose-400 text-xs hover:bg-rose-500/10 hover:text-rose-300"
+								className="h-8 gap-1 border-destructive/30 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
 								title={t("servers.stopServer")}
 							>
 								<Square className="size-3 fill-current" />
@@ -302,7 +302,7 @@ export default function ServerCard({
 							size="sm"
 							onClick={() => onStart(server.id)}
 							disabled={isStarting || isStopping}
-							className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
+							className="h-8 gap-1.5 font-medium text-xs"
 						>
 							{isStarting ? (
 								<Spinner className="size-3.5" />
@@ -320,7 +320,7 @@ export default function ServerCard({
 						variant="ghost"
 						size="icon-xs"
 						onClick={() => onOpenConsole(server)}
-						className="size-8 text-muted-foreground hover:text-foreground"
+						className="size-8 text-muted-foreground"
 						title={t("servers.openConsole")}
 					>
 						<Terminal className="size-3.5" />
@@ -330,7 +330,7 @@ export default function ServerCard({
 						variant="ghost"
 						size="icon-xs"
 						onClick={() => onOpenSettings(server)}
-						className="size-8 text-muted-foreground hover:text-foreground"
+						className="size-8 text-muted-foreground"
 						title={t("mobileServers.settings")}
 					>
 						<Settings className="size-3.5" />
@@ -340,7 +340,7 @@ export default function ServerCard({
 						variant="ghost"
 						size="icon-xs"
 						onClick={() => onOpenFolder(server.id)}
-						className="size-8 text-muted-foreground hover:text-foreground"
+						className="size-8 text-muted-foreground"
 						title={t("serverCard.openFolder")}
 					>
 						<FolderOpen className="size-3.5" />

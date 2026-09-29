@@ -29,7 +29,7 @@ export function PluginIcon({
 	return (
 		<div
 			className={cn(
-				"flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900",
+				"flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card",
 				className,
 			)}
 		>
@@ -42,7 +42,9 @@ export function PluginIcon({
 					className="size-full object-cover"
 				/>
 			) : (
-				<span className="font-bold text-sm text-zinc-500">{name.slice(0, 1).toUpperCase()}</span>
+				<span className="font-bold text-muted-foreground text-sm">
+					{name.slice(0, 1).toUpperCase()}
+				</span>
 			)}
 		</div>
 	)
@@ -87,25 +89,25 @@ export function PluginDetailsSheet({
 			<DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
 				{shown && (
 					<>
-						<div className="flex flex-col gap-4 border-zinc-800/80 border-b p-4 pt-3 sm:p-5">
+						<div className="flex flex-col gap-4 border-border/80 border-b p-4 pt-3 sm:p-5">
 							<div className="flex items-start gap-3.5 pr-8">
 								<PluginIcon url={shown.iconUrl} name={shown.title} className="size-14" />
 								<div className="min-w-0 flex-1">
-									<DialogTitle className="truncate font-bold text-lg text-zinc-50">
+									<DialogTitle className="truncate font-bold text-foreground text-lg">
 										{shown.title}
 									</DialogTitle>
-									<p className="text-xs text-zinc-500">
+									<p className="text-muted-foreground text-xs">
 										{t("pluginDetails.byline", {
 											author: shown.author,
 											downloads: formatCount(shown.downloads),
 										})}{" "}
 										· {shown.source === "hangar" ? "Hangar" : "Modrinth"}
 									</p>
-									<p className="mt-1.5 text-sm text-zinc-300 leading-relaxed">
+									<p className="mt-1.5 text-foreground/80 text-sm leading-relaxed">
 										{shown.description}
 									</p>
 									{shown.playersNeedIt && (
-										<p className="mt-2 rounded-xl bg-amber-500/10 px-3 py-2 text-amber-200 text-xs leading-relaxed">
+										<p className="mt-2 rounded-xl bg-warning/10 px-3 py-2 text-warning text-xs leading-relaxed">
 											{t("pluginDetails.playersNeedIt")}
 										</p>
 									)}
@@ -122,8 +124,8 @@ export function PluginDetailsSheet({
 									className={cn(
 										"h-11 flex-1 gap-2 rounded-xl font-semibold",
 										installed
-											? "bg-emerald-500/15 text-emerald-300"
-											: "bg-emerald-600 text-white hover:bg-emerald-500",
+											? "bg-primary/15 text-primary"
+											: "bg-primary text-primary-foreground hover:bg-primary",
 									)}
 								>
 									{installing ? (
@@ -143,13 +145,13 @@ export function PluginDetailsSheet({
 									href={shown.pageUrl}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex h-11 items-center gap-1.5 rounded-xl border border-zinc-800 px-4 font-medium text-sm text-zinc-300 hover:bg-zinc-900"
+									className="flex h-11 items-center gap-1.5 rounded-xl border border-border px-4 font-medium text-foreground/80 text-sm hover:bg-card"
 								>
 									<ExternalLink className="size-4" /> {t("pluginDetails.page")}
 								</a>
 							</div>
 							{versions.isSuccess && !hasCompatible && (
-								<p className="text-amber-300 text-xs">
+								<p className="text-warning text-xs">
 									{t("pluginDetails.noCompatible", { version: gameVersion })}
 								</p>
 							)}
@@ -170,16 +172,18 @@ export function PluginDetailsSheet({
 							{tab === "about" &&
 								(page.isLoading ? (
 									<div className="flex justify-center py-10">
-										<Spinner className="size-5 text-zinc-500" />
+										<Spinner className="size-5 text-muted-foreground" />
 									</div>
 								) : html ? (
 									<div
-										className="plugin-page text-sm text-zinc-300 leading-relaxed"
+										className="plugin-page text-foreground/80 text-sm leading-relaxed"
 										// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with sanitizeHtml
 										dangerouslySetInnerHTML={{ __html: html }}
 									/>
 								) : (
-									<p className="text-sm text-zinc-500">{t("pluginDetails.noDescription")}</p>
+									<p className="text-muted-foreground text-sm">
+										{t("pluginDetails.noDescription")}
+									</p>
 								))}
 							{tab === "versions" && (
 								<VersionList
@@ -223,7 +227,7 @@ function VersionList({
 	const { t } = useTranslation()
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="flex items-center justify-between gap-3 px-1 text-xs text-zinc-400">
+			<div className="flex items-center justify-between gap-3 px-1 text-muted-foreground text-xs">
 				{t("pluginDetails.onlyFor", { version: gameVersion })}
 				<Switch
 					checked={compatibleOnly}
@@ -234,7 +238,7 @@ function VersionList({
 			{error ? <ErrorNote>{String(error)}</ErrorNote> : null}
 			{loading ? (
 				<div className="flex justify-center py-8">
-					<Spinner className="size-5 text-zinc-500" />
+					<Spinner className="size-5 text-muted-foreground" />
 				</div>
 			) : versions.length === 0 ? (
 				<EmptyState
@@ -243,19 +247,19 @@ function VersionList({
 					description={t("pluginDetails.noVersionsHint")}
 				/>
 			) : (
-				<ul className="divide-y divide-zinc-800/70 rounded-xl border border-zinc-800">
+				<ul className="divide-y divide-border/70 rounded-xl border border-border">
 					{versions.slice(0, 40).map((v) => (
 						<li key={v.id} className="flex items-center gap-3 px-3 py-2.5">
 							<div className="min-w-0 flex-1">
-								<p className="flex items-center gap-2 truncate font-medium text-sm text-zinc-100">
+								<p className="flex items-center gap-2 truncate font-medium text-foreground text-sm">
 									{v.versionNumber}
 									{v.channel !== "release" && (
-										<Badge variant="outline" className="border-amber-500/30 text-amber-300">
+										<Badge variant="outline" className="border-warning/30 text-warning">
 											{v.channel}
 										</Badge>
 									)}
 								</p>
-								<p className="truncate text-[11px] text-zinc-500">
+								<p className="truncate text-[11px] text-muted-foreground">
 									{summarizeVersions(v.gameVersions)}
 									{v.size > 0 && ` · ${formatBytes(v.size)}`}
 									{v.date && ` · ${formatDate(v.date)}`}
@@ -277,7 +281,7 @@ function VersionList({
 										href={v.externalUrl}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="text-emerald-400 text-xs hover:underline"
+										className="text-primary text-xs hover:underline"
 									>
 										{t("pluginDetails.website")}
 									</a>

@@ -317,15 +317,15 @@ export const InstallDialog = memo(
 					) : (
 						<div className="flex flex-col gap-4 py-2">
 							{/* Item summary banner */}
-							<div className="flex items-center gap-3 rounded-lg border border-border/40 bg-zinc-900/50 p-3">
+							<div className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/50 p-3">
 								{item.iconUrl ? (
 									<img
 										src={item.iconUrl}
 										alt=""
-										className="size-10 shrink-0 rounded-lg bg-zinc-800 object-cover"
+										className="size-10 shrink-0 rounded-lg bg-muted object-cover"
 									/>
 								) : (
-									<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800 font-bold text-xs">
+									<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted font-bold text-xs">
 										{item.title.charAt(0).toUpperCase()}
 									</div>
 								)}
@@ -367,7 +367,7 @@ export const InstallDialog = memo(
 									</div>
 
 									{selectedVersion && (
-										<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-zinc-950/40 p-2.5 text-muted-foreground text-xs">
+										<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-background/40 p-2.5 text-muted-foreground text-xs">
 											<span>{t("install.loaders")}</span>
 											{selectedVersion.loaders.map((l) => (
 												<Badge key={l} variant="secondary" className="font-mono capitalize">
@@ -387,9 +387,9 @@ export const InstallDialog = memo(
 								/* Single Mod/Resourcepack/Shader Flow: Select Instance */
 								<div className="flex flex-col gap-3">
 									{instances.length === 0 ? (
-										<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-center">
-											<AlertCircle className="size-6 text-amber-400" />
-											<p className="font-medium text-amber-300 text-xs">
+										<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 p-4 text-center">
+											<AlertCircle className="size-6 text-warning" />
+											<p className="font-medium text-warning text-xs">
 												{t("quickJoin.noInstances")}
 											</p>
 											<p className="text-[11px] text-muted-foreground">
@@ -418,7 +418,7 @@ export const InstallDialog = memo(
 														{t("install.fileVersion")}
 													</span>
 													{compatibleVersions.length > 0 && (
-														<span className="text-[11px] text-emerald-400">
+														<span className="text-[11px] text-primary">
 															✓ {t("install.compatibleCount", { count: compatibleVersions.length })}
 														</span>
 													)}
@@ -434,7 +434,7 @@ export const InstallDialog = memo(
 											</div>
 
 											{selectedVersion && (
-												<div className="flex flex-col gap-1 rounded-lg border border-border/30 bg-zinc-950/40 p-2.5 text-muted-foreground text-xs">
+												<div className="flex flex-col gap-1 rounded-lg border border-border/30 bg-background/40 p-2.5 text-muted-foreground text-xs">
 													<div className="flex items-center justify-between">
 														<span className="font-mono text-[11px] text-foreground">
 															{selectedVersion.filename}

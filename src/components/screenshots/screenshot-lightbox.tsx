@@ -103,24 +103,24 @@ const ScreenshotLightbox = ({
 			{/* Floating Top Controls */}
 			<div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4">
 				{/* Top-Left: Instance & Name pill */}
-				<div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-zinc-800/80 bg-zinc-950/80 px-3.5 py-1.5 shadow-2xl backdrop-blur-md">
-					<span className="flex items-center gap-1.5 font-medium text-xs text-zinc-300">
+				<div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-border/80 bg-background/80 px-3.5 py-1.5 shadow-2xl backdrop-blur-md">
+					<span className="flex items-center gap-1.5 font-medium text-foreground/80 text-xs">
 						<HardDrive className="size-3.5 text-primary" />
 						<span className="max-w-[160px] truncate">{screenshot.instanceName}</span>
 					</span>
-					<span className="text-zinc-600">•</span>
+					<span className="text-muted-foreground/60">•</span>
 					<span
 						title={screenshot.fileName}
-						className="max-w-[240px] truncate font-medium text-xs text-zinc-100"
+						className="max-w-[240px] truncate font-medium text-foreground text-xs"
 					>
 						{screenshot.fileName}
 					</span>
 				</div>
 
 				{/* Top-Right: Counter & Action buttons pill */}
-				<div className="pointer-events-auto flex items-center gap-1 rounded-full border border-zinc-800/80 bg-zinc-950/80 p-1 pl-3 shadow-2xl backdrop-blur-md">
+				<div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border/80 bg-background/80 p-1 pl-3 shadow-2xl backdrop-blur-md">
 					{currentIndex >= 0 && (
-						<span className="mr-1.5 font-mono text-xs text-zinc-400">
+						<span className="mr-1.5 font-mono text-muted-foreground text-xs">
 							{currentIndex + 1} / {allScreenshots.length}
 						</span>
 					)}
@@ -131,7 +131,7 @@ const ScreenshotLightbox = ({
 								<Button
 									size="icon"
 									variant="ghost"
-									className="size-8 rounded-full text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50"
+									className="size-8 rounded-full text-foreground/80"
 									onClick={() => onReveal(screenshot)}
 								>
 									<FolderOpen className="size-4" />
@@ -147,7 +147,7 @@ const ScreenshotLightbox = ({
 								<Button
 									size="icon"
 									variant="ghost"
-									className="size-8 rounded-full text-red-400 hover:bg-red-950/60 hover:text-red-300"
+									className="size-8 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
 									onClick={() => onDelete(screenshot)}
 								>
 									<Trash2 className="size-4" />
@@ -165,7 +165,7 @@ const ScreenshotLightbox = ({
 								<Button
 									size="icon"
 									variant="ghost"
-									className="size-8 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+									className="size-8 rounded-full text-muted-foreground"
 									onClick={onClose}
 								>
 									<X className="size-4" />
@@ -183,7 +183,7 @@ const ScreenshotLightbox = ({
 					size="icon"
 					variant="secondary"
 					aria-label={t("screenshots.lightbox.previous")}
-					className="absolute left-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-zinc-50 active:scale-95"
+					className="absolute left-4 z-20 size-12 rounded-full border shadow-2xl backdrop-blur-md transition-all hover:scale-110 active:scale-95"
 					onClick={goToPrev}
 				>
 					<ChevronLeft className="size-6" />
@@ -195,7 +195,7 @@ const ScreenshotLightbox = ({
 				<img
 					src={imageUrl}
 					alt={screenshot.fileName}
-					className="pointer-events-auto max-h-[86vh] max-w-[92vw] select-none rounded-xl object-contain shadow-2xl shadow-black ring-1 ring-zinc-50/10 transition-all duration-200"
+					className="pointer-events-auto max-h-[86vh] max-w-[92vw] select-none rounded-xl object-contain shadow-2xl shadow-black ring-1 ring-border/10 transition-all duration-200"
 				/>
 			</div>
 
@@ -205,7 +205,7 @@ const ScreenshotLightbox = ({
 					size="icon"
 					variant="secondary"
 					aria-label={t("screenshots.lightbox.next")}
-					className="absolute right-4 z-20 size-12 rounded-full border border-zinc-700/50 bg-zinc-900/80 text-zinc-200 shadow-2xl backdrop-blur-md transition-all hover:scale-110 hover:bg-zinc-800 hover:text-zinc-50 active:scale-95"
+					className="absolute right-4 z-20 size-12 rounded-full border shadow-2xl backdrop-blur-md transition-all hover:scale-110 active:scale-95"
 					onClick={goToNext}
 				>
 					<ChevronRight className="size-6" />
@@ -214,11 +214,11 @@ const ScreenshotLightbox = ({
 
 			{/* Floating Bottom Metadata Pill */}
 			<div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
-				<div className="pointer-events-auto flex items-center gap-3 rounded-full border border-zinc-800/80 bg-zinc-950/80 px-4 py-1.5 text-xs text-zinc-400 shadow-2xl backdrop-blur-md">
-					<span className="font-mono text-[11px] text-zinc-300">
+				<div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border/80 bg-background/80 px-4 py-1.5 text-muted-foreground text-xs shadow-2xl backdrop-blur-md">
+					<span className="font-mono text-[11px] text-foreground/80">
 						{formatBytes(screenshot.fileSizeBytes)}
 					</span>
-					<span className="text-zinc-600">•</span>
+					<span className="text-muted-foreground/60">•</span>
 					<span>{formatDate(screenshot.modifiedAt || screenshot.createdAt)}</span>
 				</div>
 			</div>

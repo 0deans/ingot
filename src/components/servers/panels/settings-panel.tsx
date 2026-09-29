@@ -181,7 +181,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 						type="button"
 						onClick={() => fileRef.current?.click()}
 						disabled={iconBusy}
-						className="group relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-700 border-dashed bg-zinc-900 transition-colors hover:border-emerald-500/60"
+						className="group relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-input border-dashed bg-card transition-colors hover:border-primary/60"
 					>
 						{icon ? (
 							<img
@@ -190,7 +190,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 								className="size-full object-cover [image-rendering:pixelated]"
 							/>
 						) : (
-							<ImagePlus className="size-5 text-zinc-500" />
+							<ImagePlus className="size-5 text-muted-foreground" />
 						)}
 						<span
 							className={cn(
@@ -213,20 +213,20 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 						onChange={(e) => onIcon(e.target.files?.[0])}
 					/>
 					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
-						<Label htmlFor={`name-${server.id}`} className="text-xs text-zinc-400">
+						<Label htmlFor={`name-${server.id}`} className="text-muted-foreground text-xs">
 							{t("serverSettings.name")}
 						</Label>
 						<Input
 							id={`name-${server.id}`}
 							value={name}
 							onChange={(e) => setName(e.target.value)}
-							className="h-10 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm"
+							className="h-10 rounded-xl text-sm"
 						/>
 					</div>
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					<Label htmlFor={`motd-${server.id}`} className="text-xs text-zinc-400">
+					<Label htmlFor={`motd-${server.id}`} className="text-muted-foreground text-xs">
 						{t("serverSettings.motd")}
 					</Label>
 					<Textarea
@@ -246,8 +246,8 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 								title={`§${code}`}
 								onClick={() => insertCode(code)}
 								className={cn(
-									"flex h-7 items-center justify-center rounded-md border border-zinc-800 text-[11px] text-zinc-300 transition-transform hover:scale-110",
-									label ? "min-w-7 bg-zinc-900 px-1.5" : "w-7",
+									"flex h-7 items-center justify-center rounded-md border border-border text-[11px] text-foreground/80 transition-transform hover:scale-110",
+									label ? "min-w-7 bg-card px-1.5" : "w-7",
 								)}
 								style={label ? { ...style, background: undefined } : style}
 							>
@@ -285,8 +285,8 @@ function SaveButton({
 			className={cn(
 				"h-10 gap-1.5 self-end rounded-xl px-4",
 				status === "saved"
-					? "bg-emerald-500/15 text-emerald-300"
-					: "bg-emerald-600 text-white hover:bg-emerald-500",
+					? "bg-primary/15 text-primary"
+					: "bg-primary text-primary-foreground hover:bg-primary",
 			)}
 		>
 			{status === "saving" ? (
@@ -336,7 +336,7 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 				title={t("serverSettings.memory")}
 				description={mobile ? t("serverSettings.memoryMobile") : t("serverSettings.memoryDesktop")}
 				action={
-					<span className="font-mono font-semibold text-emerald-300 text-sm">
+					<span className="font-mono font-semibold text-primary text-sm">
 						{formatMegabytes(ram)}
 					</span>
 				}
@@ -425,16 +425,16 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 			/>
 			{isLoading ? (
 				<div className="flex justify-center py-8">
-					<Spinner className="size-4 text-zinc-500" />
+					<Spinner className="size-4 text-muted-foreground" />
 				</div>
 			) : (
 				<CardContent className="flex flex-col gap-5">
 					{groups.map((group) => (
 						<div key={group.id} className="flex flex-col">
-							<h4 className="mb-1 font-semibold text-[11px] text-zinc-500 uppercase tracking-wider">
+							<h4 className="mb-1 font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
 								{group.title}
 							</h4>
-							<div className="divide-y divide-zinc-800/60">
+							<div className="divide-y divide-border/60">
 								{group.properties.map((def) => (
 									<PropertyRow
 										key={def.key}
@@ -453,7 +453,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 							<button
 								type="button"
 								onClick={() => setShowAll((s) => !s)}
-								className="flex items-center gap-1.5 self-start font-medium text-xs text-zinc-400 hover:text-zinc-200"
+								className="flex items-center gap-1.5 self-start font-medium text-muted-foreground text-xs hover:text-foreground"
 							>
 								<ChevronRight
 									className={cn("size-3.5 transition-transform", showAll && "rotate-90")}
@@ -463,12 +463,12 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 							{showAll && (
 								<div className="flex flex-col gap-2">
 									<div className="relative">
-										<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-500" />
+										<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
 										<Input
 											value={query}
 											onChange={(e) => setQuery(e.target.value)}
 											placeholder={t("serverSettings.filter")}
-											className="h-9 rounded-xl border-zinc-800 bg-zinc-950/60 pl-9 text-xs"
+											className="h-9 rounded-xl pl-9 text-xs"
 										/>
 									</div>
 									{others.map((e) => (
@@ -476,15 +476,15 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 											key={e.key}
 											className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"
 										>
-											<span className="truncate font-mono text-[11px] text-zinc-400 sm:w-64 sm:shrink-0">
+											<span className="truncate font-mono text-[11px] text-muted-foreground sm:w-64 sm:shrink-0">
 												{e.key}
 											</span>
 											<Input
 												value={draft[e.key] ?? e.value}
 												onChange={(ev) => set(e.key, ev.target.value)}
 												className={cn(
-													"h-8 rounded-lg border-zinc-800 bg-zinc-950/60 font-mono text-xs",
-													e.key in draft && "border-emerald-500/40",
+													"h-8 rounded-lg border-border bg-background/60 font-mono text-xs",
+													e.key in draft && "border-primary/40",
 												)}
 											/>
 										</div>
@@ -498,10 +498,10 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 					{(changed.length > 0 || status !== "idle") && (
 						// Solid bar across the card (its color is the card's zinc-900/40 over the page),
 						// so settings scrolling underneath never show through
-						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-zinc-800/80 border-t bg-[color-mix(in_oklab,var(--color-zinc-900)_40%,var(--color-zinc-950))] px-4 py-3">
+						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-border/80 border-t bg-[color-mix(in_oklab,var(--color-zinc-900)_40%,var(--color-zinc-950))] px-4 py-3">
 							{changed.length > 0 && (
 								<>
-									<span className="text-xs text-zinc-500">
+									<span className="text-muted-foreground text-xs">
 										{t("serverSettings.changed", { count: changed.length })}
 									</span>
 									<Button variant="ghost" onClick={() => setDraft({})} className="h-10 rounded-xl">
@@ -533,11 +533,11 @@ function PropertyRow({
 	return (
 		<div className="flex items-center justify-between gap-4 py-3">
 			<div className="min-w-0">
-				<p className="flex items-center gap-1.5 font-medium text-sm text-zinc-200">
+				<p className="flex items-center gap-1.5 font-medium text-foreground text-sm">
 					{def.label}
-					{changed && <span className="size-1.5 rounded-full bg-emerald-400" />}
+					{changed && <span className="size-1.5 rounded-full bg-primary" />}
 				</p>
-				<p className="text-xs text-zinc-500 leading-relaxed">{def.description}</p>
+				<p className="text-muted-foreground text-xs leading-relaxed">{def.description}</p>
 			</div>
 			<div className="shrink-0">
 				{control.type === "boolean" && (
@@ -545,7 +545,7 @@ function PropertyRow({
 				)}
 				{control.type === "select" && (
 					<Select items={control.options} value={value} onValueChange={(v) => v && onChange(v)}>
-						<SelectTrigger className="h-9 w-36 rounded-xl border-zinc-800 bg-zinc-950/60 text-xs">
+						<SelectTrigger className="h-9 w-36 rounded-xl text-xs">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -566,9 +566,11 @@ function PropertyRow({
 							max={control.max}
 							value={value}
 							onChange={(e) => onChange(e.target.value)}
-							className="h-9 w-24 rounded-xl border-zinc-800 bg-zinc-950/60 text-right font-mono text-xs"
+							className="h-9 w-24 rounded-xl text-right font-mono text-xs"
 						/>
-						{control.unit && <span className="w-10 text-[11px] text-zinc-500">{control.unit}</span>}
+						{control.unit && (
+							<span className="w-10 text-[11px] text-muted-foreground">{control.unit}</span>
+						)}
 					</div>
 				)}
 				{control.type === "text" && (
@@ -576,7 +578,7 @@ function PropertyRow({
 						value={value}
 						placeholder={control.placeholder}
 						onChange={(e) => onChange(e.target.value)}
-						className="h-9 w-40 rounded-xl border-zinc-800 bg-zinc-950/60 font-mono text-xs"
+						className="h-9 w-40 rounded-xl font-mono text-xs"
 					/>
 				)}
 			</div>
@@ -598,16 +600,18 @@ function ConfigFilesCard({ serverId }: { serverId: string }) {
 				title={t("serverSettings.configFiles")}
 				description={t("serverSettings.configFilesDesc")}
 			/>
-			<ul className="divide-y divide-zinc-800/60 border-zinc-800/60 border-t">
+			<ul className="divide-y divide-border/60 border-border/60 border-t">
 				{files.map((f) => (
 					<li key={f.path}>
 						<button
 							type="button"
 							onClick={() => setOpen(f.path)}
-							className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-900/60"
+							className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-card/60"
 						>
-							<span className="min-w-0 truncate font-mono text-xs text-zinc-300">{f.path}</span>
-							<span className="flex shrink-0 items-center gap-2 text-[11px] text-zinc-600">
+							<span className="min-w-0 truncate font-mono text-foreground/80 text-xs">
+								{f.path}
+							</span>
+							<span className="flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground/60">
 								{formatBytes(f.size)}
 								<ChevronRight className="size-3.5" />
 							</span>
@@ -667,7 +671,7 @@ function ConfigFileEditor({
 				<DialogTitle className="truncate pr-8 font-mono text-sm">{shownPath}</DialogTitle>
 				{isLoading ? (
 					<div className="flex flex-1 items-center justify-center">
-						<Spinner className="size-5 text-zinc-500" />
+						<Spinner className="size-5 text-muted-foreground" />
 					</div>
 				) : (
 					<Textarea

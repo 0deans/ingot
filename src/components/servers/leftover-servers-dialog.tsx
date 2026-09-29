@@ -68,12 +68,12 @@ export default function LeftoverServersDialog() {
 		<Dialog open onOpenChange={(open) => !open && !busy && setServers([])}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-md">
 				<div className="flex items-start gap-3">
-					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-400" />
+					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
 					<div className="flex flex-col gap-1">
 						<DialogTitle className="text-base">
 							{t("leftoverServers.title", { count: servers.length })}
 						</DialogTitle>
-						<DialogDescription className="text-sm text-zinc-400 leading-relaxed">
+						<DialogDescription className="text-muted-foreground text-sm leading-relaxed">
 							{t("leftoverServers.description", { count: servers.length })}
 						</DialogDescription>
 					</div>
@@ -85,12 +85,12 @@ export default function LeftoverServersDialog() {
 						return (
 							<div
 								key={server.serverId}
-								className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-3 py-2"
+								className="flex items-center gap-3 rounded-xl border border-border bg-card/40 px-3 py-2"
 							>
-								<Server className="size-4 shrink-0 text-zinc-500" />
+								<Server className="size-4 shrink-0 text-muted-foreground" />
 								<div className="min-w-0 flex-1">
-									<p className="truncate font-medium text-sm text-zinc-100">{server.name}</p>
-									<p className="truncate text-[11px] text-zinc-500">
+									<p className="truncate font-medium text-foreground text-sm">{server.name}</p>
+									<p className="truncate text-[11px] text-muted-foreground">
 										{t("leftoverServers.runningSince", { time: since(server.startedAt) })}
 									</p>
 								</div>
@@ -114,7 +114,9 @@ export default function LeftoverServersDialog() {
 				</div>
 
 				{!allStopped && (
-					<p className="text-xs text-zinc-400 leading-relaxed">{t("leftoverServers.stopNote")}</p>
+					<p className="text-muted-foreground text-xs leading-relaxed">
+						{t("leftoverServers.stopNote")}
+					</p>
 				)}
 
 				{error && (

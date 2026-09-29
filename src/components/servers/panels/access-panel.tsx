@@ -66,10 +66,10 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="flex-row items-center justify-between gap-3 px-4 py-3.5">
 			<div>
-				<p className="font-medium text-sm text-zinc-100">
+				<p className="font-medium text-foreground text-sm">
 					{enabled ? t("access.whitelistOn") : t("access.whitelistOff")}
 				</p>
-				<p className="text-xs text-zinc-500">
+				<p className="text-muted-foreground text-xs">
 					{enabled ? t("access.onlyListed") : t("access.anyone")}
 				</p>
 			</div>
@@ -117,12 +117,12 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 						autoCapitalize="off"
 						autoCorrect="off"
 						spellCheck={false}
-						className="h-10 flex-1 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm"
+						className="h-10 flex-1 rounded-xl text-sm"
 					/>
 					<Button
 						type="submit"
 						disabled={!name.trim() || add.isPending}
-						className="h-10 gap-1.5 rounded-xl bg-emerald-600 px-4 text-white hover:bg-emerald-500"
+						className="h-10 gap-1.5 rounded-xl px-4"
 					>
 						{add.isPending ? <Spinner className="size-4" /> : <Plus className="size-4" />}
 						{t(`access.${kind}.add`)}
@@ -137,18 +137,18 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 
 			{isLoading ? (
 				<div className="flex justify-center py-8">
-					<Spinner className="size-4 text-zinc-500" />
+					<Spinner className="size-4 text-muted-foreground" />
 				</div>
 			) : data.length === 0 ? (
 				<EmptyState icon={meta.icon} title={t(`access.${kind}.empty`)} className="pt-4" />
 			) : (
-				<ul className="divide-y divide-zinc-800/70 border-zinc-800/70 border-t">
+				<ul className="divide-y divide-border/70 border-border/70 border-t">
 					{data.map((entry) => (
 						<li key={entry.uuid || entry.name} className="flex items-center gap-3 px-4 py-2.5">
 							<PlayerAvatar name={entry.name} size={32} />
 							<div className="min-w-0 flex-1">
-								<p className="truncate font-medium text-sm text-zinc-100">{entry.name}</p>
-								<p className="truncate text-[11px] text-zinc-500">
+								<p className="truncate font-medium text-foreground text-sm">{entry.name}</p>
+								<p className="truncate text-[11px] text-muted-foreground">
 									{kind === "ops"
 										? t("access.permissionLevel", { level: entry.level ?? 4 })
 										: kind === "bans"
@@ -162,7 +162,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 								disabled={remove.isPending && remove.variables === entry.name}
 								onClick={() => remove.mutate(entry.name)}
 								aria-label={t("access.remove", { name: entry.name })}
-								className="text-zinc-500 hover:bg-rose-500/10 hover:text-rose-300"
+								className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 							>
 								{remove.isPending && remove.variables === entry.name ? (
 									<Spinner className="size-3.5" />

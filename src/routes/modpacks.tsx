@@ -359,7 +359,7 @@ const ModpacksPage = () => {
 									className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 font-medium text-xs transition-all ${
 										isSelected
 											? "border border-primary/40 bg-primary/15 text-primary"
-											: "border border-transparent bg-zinc-900/30 text-muted-foreground hover:bg-zinc-900/60 hover:text-foreground"
+											: "border border-transparent bg-card/30 text-muted-foreground hover:bg-card/60 hover:text-foreground"
 									}`}
 								>
 									<IconComponent className="size-3.5" />
@@ -443,7 +443,7 @@ const ModpacksPage = () => {
 								size="sm"
 								variant="ghost"
 								onClick={handleClearFilters}
-								className="h-8 gap-1 px-2.5 text-muted-foreground text-xs hover:text-foreground"
+								className="h-8 gap-1 px-2.5 text-muted-foreground text-xs"
 							>
 								<X className="size-3" />
 								{t("common.resetFilters")}
@@ -456,7 +456,7 @@ const ModpacksPage = () => {
 							variant="ghost"
 							disabled={isBusy}
 							onClick={() => refetch()}
-							className="ml-auto h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
+							className="ml-auto h-8 gap-1 text-muted-foreground text-xs"
 						>
 							<RefreshCw className={`size-3.5 ${isBusy ? "animate-spin" : ""}`} />
 							{t("common.refresh")}
@@ -542,7 +542,7 @@ const ModpacksPage = () => {
 						</EmptyContent>
 					</Empty>
 				) : items.length === 0 ? (
-					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border/40 bg-zinc-900/20 py-16 text-center">
+					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border/40 bg-card/20 py-16 text-center">
 						<Sparkles className="size-10 text-muted-foreground/40" />
 						<div className="flex flex-col gap-1">
 							<p className="font-semibold text-foreground text-sm">{t("modpacks.noMatchTitle")}</p>
@@ -565,7 +565,7 @@ const ModpacksPage = () => {
 							<div
 								key={`${item.source}-${item.id}`}
 								onClick={() => handleOpenDetails(item)}
-								className="group flex cursor-pointer flex-col justify-between rounded-xl border border-border/40 bg-zinc-900/40 p-4 backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-zinc-900/70"
+								className="group flex cursor-pointer flex-col justify-between rounded-xl border border-border/40 bg-card/40 p-4 backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-card/70"
 							>
 								<div className="flex flex-col gap-3">
 									{/* Top row: Icon + Info */}
@@ -574,14 +574,14 @@ const ModpacksPage = () => {
 											<img
 												src={item.iconUrl}
 												alt={item.title}
-												className="size-12 shrink-0 rounded-lg bg-zinc-800 object-cover"
+												className="size-12 shrink-0 rounded-lg bg-muted object-cover"
 												loading="lazy"
 												onError={(e) => {
 													e.currentTarget.style.display = "none"
 												}}
 											/>
 										) : (
-											<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-zinc-800 font-bold text-muted-foreground text-sm">
+											<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted font-bold text-muted-foreground text-sm">
 												{item.title.charAt(0).toUpperCase()}
 											</div>
 										)}
@@ -593,8 +593,8 @@ const ModpacksPage = () => {
 													variant="outline"
 													className={
 														item.source === "modrinth"
-															? "border-emerald-500/30 text-emerald-400"
-															: "border-amber-500/30 text-amber-400"
+															? "border-primary/30 text-primary"
+															: "border-warning/30 text-warning"
 													}
 												>
 													{item.source === "curseforge" && <Flame />}
@@ -651,7 +651,7 @@ const ModpacksPage = () => {
 												e.stopPropagation()
 												handleOpenDetails(item)
 											}}
-											className="h-7 px-2 text-muted-foreground text-xs hover:text-foreground"
+											className="h-7 px-2 text-muted-foreground text-xs"
 										>
 											<Info className="size-3" />
 											{t("modpacks.details")}

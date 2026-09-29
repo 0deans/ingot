@@ -277,7 +277,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 								onKeyDown={(e) => {
 									if (e.key === "Enter") handleCreate()
 								}}
-								className="border-border/50 bg-zinc-900/80 font-medium text-xs"
+								className="font-medium text-xs"
 							/>
 						</div>
 					</div>

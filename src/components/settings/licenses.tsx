@@ -136,7 +136,7 @@ export function LicensesDialog({
 			<DialogContent className="flex max-h-[85vh] flex-col gap-3 p-0 sm:max-w-lg">
 				<div className="px-5 pt-5">
 					<DialogTitle className="text-base">{t("settings.licenses.title")}</DialogTitle>
-					<p className="mt-1 text-xs text-zinc-500 leading-relaxed">
+					<p className="mt-1 text-muted-foreground text-xs leading-relaxed">
 						{t("settings.licenses.dialogSubtitle")}
 					</p>
 				</div>
@@ -144,34 +144,34 @@ export function LicensesDialog({
 					{GROUPS.map((group) => (
 						<section key={group.title} className="flex flex-col gap-2">
 							<div>
-								<h3 className="font-semibold text-sm text-zinc-100">{t(group.title)}</h3>
-								<p className="text-[11px] text-zinc-500">{t(group.note)}</p>
+								<h3 className="font-semibold text-foreground text-sm">{t(group.title)}</h3>
+								<p className="text-[11px] text-muted-foreground">{t(group.note)}</p>
 							</div>
-							<ul className="flex flex-col divide-y divide-zinc-800/70 border border-zinc-800/70">
+							<ul className="flex flex-col divide-y divide-border/70 border border-border/70">
 								{group.items.map((item) => (
 									<li key={item.name}>
 										<button
 											type="button"
 											onClick={() => openUrl(item.source).catch(console.error)}
-											className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-zinc-900/60"
+											className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-card/60"
 										>
 											<div className="min-w-0 flex-1">
-												<p className="truncate font-medium text-sm text-zinc-100">
+												<p className="truncate font-medium text-foreground text-sm">
 													{text(t, item.name)}
 												</p>
-												<p className="truncate text-[11px] text-zinc-500">{t(item.role)}</p>
+												<p className="truncate text-[11px] text-muted-foreground">{t(item.role)}</p>
 											</div>
-											<span className="shrink-0 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+											<span className="shrink-0 bg-card px-1.5 py-0.5 font-mono text-[10px] text-foreground/80">
 												{text(t, item.license)}
 											</span>
-											<ExternalLink className="size-3.5 shrink-0 text-zinc-600" />
+											<ExternalLink className="size-3.5 shrink-0 text-muted-foreground/60" />
 										</button>
 									</li>
 								))}
 							</ul>
 						</section>
 					))}
-					<p className="text-[11px] text-zinc-600 leading-relaxed">
+					<p className="text-[11px] text-muted-foreground/60 leading-relaxed">
 						{t("settings.licenses.trademark")}
 					</p>
 				</FadeScroll>
@@ -185,7 +185,7 @@ export function LicensesSettings() {
 	const { t } = useTranslation()
 	const [open, setOpen] = useState(false)
 	return (
-		<div className="flex items-center justify-between gap-4 border border-border/30 bg-zinc-950/40 p-4">
+		<div className="flex items-center justify-between gap-4 border border-border/30 bg-background/40 p-4">
 			<div className="flex min-w-0 items-center gap-3">
 				<Scale className="size-4 shrink-0 text-muted-foreground" />
 				<div className="min-w-0">

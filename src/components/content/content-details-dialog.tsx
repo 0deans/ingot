@@ -280,16 +280,16 @@ export const ContentDetailsDialog = memo(
 						className="flex h-[88vh] max-h-[88vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
 					>
 						{/* Header bar */}
-						<div className="flex items-center justify-between border-border/40 border-b bg-zinc-950/60 p-5">
+						<div className="flex items-center justify-between border-border/40 border-b bg-background/60 p-5">
 							<div className="mr-4 flex min-w-0 flex-1 items-center gap-4">
 								{item.iconUrl ? (
 									<img
 										src={item.iconUrl}
 										alt={item.title}
-										className="size-14 shrink-0 rounded-xl border border-border/40 bg-zinc-900 object-cover"
+										className="size-14 shrink-0 rounded-xl border border-border/40 bg-card object-cover"
 									/>
 								) : (
-									<div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border/40 bg-zinc-900 font-bold text-lg text-muted-foreground">
+									<div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border/40 bg-card font-bold text-lg text-muted-foreground">
 										{item.title.charAt(0).toUpperCase()}
 									</div>
 								)}
@@ -299,15 +299,15 @@ export const ContentDetailsDialog = memo(
 										<span
 											className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-[11px] ${
 												item.source === "modrinth"
-													? "border border-emerald-500/20 bg-emerald-500/15 text-emerald-400"
-													: "border border-amber-500/20 bg-amber-500/15 text-amber-400"
+													? "border border-primary/20 bg-primary/15 text-primary"
+													: "border border-warning/20 bg-warning/15 text-warning"
 											}`}
 										>
 											{item.source === "curseforge" && <Flame className="size-3 text-orange-400" />}
 											{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
 										</span>
 
-										<span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] text-muted-foreground capitalize">
+										<span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground capitalize">
 											{contentType(t, item.projectType)}
 										</span>
 
@@ -346,7 +346,7 @@ export const ContentDetailsDialog = memo(
 								<Button
 									size="sm"
 									onClick={() => onInstall(item)}
-									className="gap-1.5 font-semibold text-xs shadow-sm"
+									className="gap-1.5 font-semibold text-xs"
 								>
 									<Download className="size-3.5" />
 									{item.projectType === "modpack"
@@ -370,7 +370,7 @@ export const ContentDetailsDialog = memo(
 									type="button"
 									onClick={() => onOpenChange(false)}
 									aria-label={t("common.close")}
-									className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-zinc-800 hover:text-foreground"
+									className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 								>
 									<X className="size-4" />
 								</button>
@@ -378,7 +378,7 @@ export const ContentDetailsDialog = memo(
 						</div>
 
 						{/* Navigation Tabs */}
-						<div className="flex items-center gap-2 border-border/40 border-b bg-zinc-950/40 px-5 pt-2">
+						<div className="flex items-center gap-2 border-border/40 border-b bg-background/40 px-5 pt-2">
 							<button
 								type="button"
 								onClick={() => setActiveTab("overview")}
@@ -448,7 +448,7 @@ export const ContentDetailsDialog = memo(
 												</div>
 
 												{/* Featured Main Image Preview */}
-												<div className="group relative aspect-video w-full overflow-hidden rounded-xl border border-border/40 bg-zinc-950 shadow-md">
+												<div className="group relative aspect-video w-full overflow-hidden rounded-xl border border-border/40 bg-background shadow-md">
 													<img
 														src={
 															details.screenshots[
@@ -489,7 +489,7 @@ export const ContentDetailsDialog = memo(
 																activePhotoIndex < details.screenshots.length ? activePhotoIndex : 0
 															].title || item.title}
 														</span>
-														<span className="dark rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-zinc-300">
+														<span className="dark rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-foreground/80">
 															{activePhotoIndex + 1} / {details.screenshots.length}
 														</span>
 													</div>
@@ -503,7 +503,7 @@ export const ContentDetailsDialog = memo(
 															size="icon-sm"
 															variant="outline"
 															onClick={() => scrollGallery("left")}
-															className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+															className="size-8 shrink-0 rounded-lg"
 															aria-label={t("contentDetails.scrollLeft")}
 														>
 															<ChevronLeft className="size-4" />
@@ -522,7 +522,7 @@ export const ContentDetailsDialog = memo(
 																	className={`group relative h-18 w-28 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus:outline-hidden ${
 																		idx === activePhotoIndex
 																			? "border-primary opacity-100 shadow-md"
-																			: "border-transparent opacity-60 hover:border-zinc-50/20 hover:opacity-90"
+																			: "border-transparent opacity-60 hover:border-border/20 hover:opacity-90"
 																	}`}
 																>
 																	<img
@@ -544,7 +544,7 @@ export const ContentDetailsDialog = memo(
 															size="icon-sm"
 															variant="outline"
 															onClick={() => scrollGallery("right")}
-															className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+															className="size-8 shrink-0 rounded-lg"
 															aria-label={t("contentDetails.scrollRight")}
 														>
 															<ChevronRight className="size-4" />
@@ -562,7 +562,7 @@ export const ContentDetailsDialog = memo(
 														size="sm"
 														variant="outline"
 														onClick={() => handleOpenUrl(details.sourceUrl)}
-														className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+														className="h-7 gap-1.5 text-xs"
 													>
 														<ExternalLink className="size-3" />
 														{t("contentDetails.source")}
@@ -573,7 +573,7 @@ export const ContentDetailsDialog = memo(
 														size="sm"
 														variant="outline"
 														onClick={() => handleOpenUrl(details.issuesUrl)}
-														className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+														className="h-7 gap-1.5 text-xs"
 													>
 														<ExternalLink className="size-3" />
 														{t("contentDetails.issues")}
@@ -584,7 +584,7 @@ export const ContentDetailsDialog = memo(
 														size="sm"
 														variant="outline"
 														onClick={() => handleOpenUrl(details.wikiUrl)}
-														className="h-7 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+														className="h-7 gap-1.5 text-xs"
 													>
 														<ExternalLink className="size-3" />
 														{t("contentDetails.wiki")}
@@ -600,7 +600,7 @@ export const ContentDetailsDialog = memo(
 											</h3>
 											{details?.body ? (
 												<section
-													className="prose prose-invert prose-sm max-w-none space-y-3 text-muted-foreground text-xs leading-relaxed [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-primary/70 [&_blockquote]:border-l-4 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-zinc-800/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[11px] [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-zinc-900/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:text-lg [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:text-sm [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-zinc-800/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
+													className="prose prose-invert prose-sm max-w-none space-y-3 text-muted-foreground text-xs leading-relaxed [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-primary/70 [&_blockquote]:border-l-4 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-muted/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[11px] [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-card/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:text-lg [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:text-sm [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-card/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-muted/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
 													onClick={handleDescriptionClick}
 													onKeyDown={(e) => {
 														if (e.key === "Enter") {
@@ -627,7 +627,7 @@ export const ContentDetailsDialog = memo(
 								/* Versions & Files Tab */
 								<div className="flex min-h-0 flex-1 flex-col">
 									{/* Modern Version filters with Select components */}
-									<div className="flex flex-wrap items-center gap-3 border-border/40 border-b bg-zinc-950/20 px-6 py-3">
+									<div className="flex flex-wrap items-center gap-3 border-border/40 border-b bg-background/20 px-6 py-3">
 										<div className="flex items-center gap-2">
 											<span className="text-muted-foreground text-xs">
 												{t("modpacks.filters.loader")}
@@ -683,7 +683,7 @@ export const ContentDetailsDialog = memo(
 													setVersionLoaderFilter("")
 													setVersionGameVerFilter("")
 												}}
-												className="h-8 gap-1 text-muted-foreground text-xs hover:text-foreground"
+												className="h-8 gap-1 text-muted-foreground text-xs"
 											>
 												<X className="size-3" />
 												{t("console.clear")}
@@ -708,7 +708,7 @@ export const ContentDetailsDialog = memo(
 												filteredVersions.map((ver) => (
 													<div
 														key={ver.id}
-														className="flex flex-col gap-2 rounded-xl border border-border/40 bg-zinc-900/40 p-4 transition-all hover:border-border hover:bg-zinc-900/60"
+														className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4 transition-all hover:border-border hover:bg-card/60"
 													>
 														<div className="flex items-start justify-between gap-3">
 															<div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -718,10 +718,10 @@ export const ContentDetailsDialog = memo(
 																		className={cn(
 																			"uppercase",
 																			ver.versionType === "release"
-																				? "border-emerald-500/30 text-emerald-400"
+																				? "border-primary/30 text-primary"
 																				: ver.versionType === "beta"
-																					? "border-amber-500/30 text-amber-400"
-																					: "border-red-500/30 text-red-400",
+																					? "border-warning/30 text-warning"
+																					: "border-destructive/30 text-destructive",
 																		)}
 																	>
 																		{releaseType(t, ver.versionType)}
@@ -732,7 +732,9 @@ export const ContentDetailsDialog = memo(
 																</div>
 
 																<div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
-																	<span className="font-mono text-zinc-400">{ver.filename}</span>
+																	<span className="font-mono text-muted-foreground">
+																		{ver.filename}
+																	</span>
 																	{ver.sizeBytes > 0 && (
 																		<>
 																			<span>•</span>
@@ -789,12 +791,12 @@ export const ContentDetailsDialog = memo(
 					createPortal(
 						<div className="dark fade-in-0 fixed inset-x-0 top-10 bottom-0 z-60 flex animate-in flex-col justify-between bg-black/95 p-4 backdrop-blur-md duration-200">
 							{/* Top Bar */}
-							<div className="flex items-center justify-between text-zinc-50">
+							<div className="flex items-center justify-between text-foreground">
 								<div className="flex items-center gap-3">
-									<span className="rounded-md bg-zinc-50/10 px-2.5 py-1 font-medium text-xs">
+									<span className="rounded-md bg-foreground/10 px-2.5 py-1 font-medium text-xs">
 										{lightboxIndex + 1} / {details.screenshots.length}
 									</span>
-									<span className="truncate font-medium text-sm text-zinc-300">
+									<span className="truncate font-medium text-foreground/80 text-sm">
 										{details.screenshots[lightboxIndex].title || item.title}
 									</span>
 								</div>
@@ -803,7 +805,7 @@ export const ContentDetailsDialog = memo(
 										size="sm"
 										variant="ghost"
 										onClick={() => handleOpenUrl(details.screenshots[lightboxIndex].url)}
-										className="h-8 gap-1.5 text-xs text-zinc-300 hover:text-zinc-50"
+										className="h-8 gap-1.5 text-foreground/80 text-xs"
 									>
 										<ExternalLink className="size-3.5" />
 										{t("contentDetails.openOriginal")}
@@ -812,7 +814,7 @@ export const ContentDetailsDialog = memo(
 										type="button"
 										onClick={() => setLightboxIndex(null)}
 										aria-label={t("screenshots.lightbox.close")}
-										className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-50/10 hover:text-zinc-50"
+										className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 									>
 										<X className="size-5" />
 									</button>
@@ -861,7 +863,7 @@ export const ContentDetailsDialog = memo(
 										className={`relative h-14 w-24 shrink-0 overflow-hidden rounded-md border-2 transition-all focus:outline-hidden ${
 											idx === lightboxIndex
 												? "border-primary opacity-100 shadow-md"
-												: "border-transparent opacity-50 hover:border-zinc-50/20 hover:opacity-80"
+												: "border-transparent opacity-50 hover:border-border/20 hover:opacity-80"
 										}`}
 									>
 										<img src={s.url} alt="" className="size-full object-cover" />

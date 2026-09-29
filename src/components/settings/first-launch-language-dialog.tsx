@@ -51,17 +51,17 @@ export const FirstLaunchLanguageDialog = () => {
 				}
 			}}
 		>
-			<DialogContent className="flex max-h-[85vh] flex-col gap-4 border-border/60 bg-zinc-950 p-5 shadow-2xl sm:max-w-lg">
+			<DialogContent className="flex max-h-[85vh] flex-col gap-4 border-border/60 bg-background p-5 shadow-2xl sm:max-w-lg">
 				<DialogHeader className="gap-1.5 pr-8">
 					<div className="flex items-center gap-2.5">
-						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
 							<Globe className="size-5" />
 						</div>
 						<DialogTitle className="font-semibold text-foreground text-lg">
 							{t("onboarding.selectLanguageTitle")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-xs text-zinc-400 leading-relaxed">
+					<DialogDescription className="text-muted-foreground text-xs leading-relaxed">
 						{t("onboarding.selectLanguageSubtitle")}
 					</DialogDescription>
 				</DialogHeader>
@@ -79,23 +79,23 @@ export const FirstLaunchLanguageDialog = () => {
 									className={cn(
 										"flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
 										isSelected
-											? "border-emerald-500/50 bg-emerald-500/10"
-											: "border-zinc-800/80 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/70",
+											? "border-primary/50 bg-primary/10"
+											: "border-border/80 bg-card/30 hover:border-input hover:bg-card/70",
 									)}
 								>
 									<span className="min-w-0 flex-1">
 										<span
 											className={cn(
 												"block truncate font-medium text-sm",
-												isSelected ? "text-foreground" : "text-zinc-200",
+												isSelected ? "text-foreground" : "text-foreground",
 											)}
 										>
 											{loc.nativeName}
 										</span>
-										<span className="block truncate text-[11px] text-zinc-500">
+										<span className="block truncate text-[11px] text-muted-foreground">
 											{loc.name}
 											{isSystemDefault && (
-												<span className="text-emerald-400"> · {t("onboarding.detectedBadge")}</span>
+												<span className="text-primary"> · {t("onboarding.detectedBadge")}</span>
 											)}
 										</span>
 									</span>
@@ -103,8 +103,8 @@ export const FirstLaunchLanguageDialog = () => {
 										className={cn(
 											"flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
 											isSelected
-												? "border-emerald-500 bg-emerald-500 text-white"
-												: "border-zinc-700",
+												? "border-primary bg-primary text-primary-foreground"
+												: "border-input",
 										)}
 									>
 										{isSelected && <Check className="size-2.5" strokeWidth={3} />}
@@ -115,7 +115,7 @@ export const FirstLaunchLanguageDialog = () => {
 					</div>
 				</ScrollArea>
 
-				<DialogFooter className="flex flex-row items-center gap-2 border-zinc-800/80 border-t pt-4 sm:justify-between">
+				<DialogFooter className="flex flex-row items-center gap-2 border-border/80 border-t pt-4 sm:justify-between">
 					<ToggleGroup
 						variant="outline"
 						spacing={0}

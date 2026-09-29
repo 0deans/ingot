@@ -66,7 +66,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 									/>
 									{activeAccount?.accountType === "ely" && (
 										<span
-											className="absolute right-0.5 bottom-0.5 size-2.5 rounded-full border-2 border-zinc-950 bg-emerald-500"
+											className="absolute right-0.5 bottom-0.5 size-2.5 rounded-full border-2 border-border bg-primary"
 											title={t("accounts.securedViaEly")}
 										/>
 									)}
@@ -82,7 +82,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 						render={
 							<button
 								type="button"
-								className="group flex w-full items-center gap-2.5 rounded-xl border border-border/40 bg-zinc-900/60 p-2 text-left transition-colors hover:border-border/80 hover:bg-zinc-800/80 focus:outline-none"
+								className="group flex w-full items-center gap-2.5 rounded-xl border border-border/40 bg-card/60 p-2 text-left transition-colors hover:border-border/80 hover:bg-muted/80 focus:outline-none"
 							/>
 						}
 					>
@@ -102,7 +102,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 								{activeAccount?.accountType === "ely" ||
 								activeAccount?.accountType === "microsoft" ? (
 									<>
-										<ShieldCheck className="size-2.5 text-emerald-500/80" />
+										<ShieldCheck className="size-2.5 text-primary/80" />
 										{t("accounts.securedInVault")}
 									</>
 								) : (
@@ -117,7 +117,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 					align="end"
 					side={compact ? "right" : "top"}
 					sideOffset={8}
-					className="w-60 border-border/60 bg-zinc-950/95 p-1.5 shadow-xl backdrop-blur-md"
+					className="w-60 border-border/60 bg-background/95 p-1.5 shadow-xl backdrop-blur-md"
 				>
 					<DropdownMenuGroup>
 						<DropdownMenuLabel className="flex items-center justify-between text-[11px]">
@@ -149,7 +149,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 														{acc.accountType}
 													</span>
 													{acc.accountType !== "offline" && (
-														<ShieldCheck className="size-2.5 text-emerald-500" />
+														<ShieldCheck className="size-2.5 text-primary" />
 													)}
 												</div>
 											</div>

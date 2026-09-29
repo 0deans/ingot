@@ -45,32 +45,32 @@ export const DeleteInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="border-border/60 bg-zinc-950 sm:max-w-md">
+			<DialogContent className="border-border/60 bg-background sm:max-w-md">
 				<DialogHeader className="gap-2">
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive">
 						<AlertTriangle className="size-5" />
 					</div>
-					<DialogTitle className="font-semibold text-lg text-zinc-50">
+					<DialogTitle className="font-semibold text-foreground text-lg">
 						{t("deleteInstance.title")}
 					</DialogTitle>
-					<DialogDescription className="text-xs text-zinc-400">
+					<DialogDescription className="text-muted-foreground text-xs">
 						{t("deleteInstance.description")}
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3.5">
-					<div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900">
+				<div className="flex items-center gap-3 rounded-xl border border-border bg-card/50 p-3.5">
+					<div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
 						<LoaderIcon loader={instance.loader} size={22} />
 					</div>
 					<div className="flex min-w-0 flex-col">
-						<span className="truncate font-semibold text-sm text-zinc-50">{instance.name}</span>
-						<span className="text-[11px] text-zinc-400">
+						<span className="truncate font-semibold text-foreground text-sm">{instance.name}</span>
+						<span className="text-[11px] text-muted-foreground">
 							{String(instance.loader).toUpperCase()} • {instance.gameVersion}
 						</span>
 					</div>
 				</div>
 
-				<p className="text-[11px] text-zinc-500">{t("deleteInstance.note")}</p>
+				<p className="text-[11px] text-muted-foreground">{t("deleteInstance.note")}</p>
 
 				<DialogFooter>
 					<Button

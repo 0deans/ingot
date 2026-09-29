@@ -150,7 +150,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="border-border/60 bg-zinc-950/95 sm:max-w-md">
+			<DialogContent className="border-border/60 bg-background/95 sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle className="text-lg">{t("accounts.addAccount")}</DialogTitle>
 					<DialogDescription>{t("addAccount.description")}</DialogDescription>
@@ -240,7 +240,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 						{/* Offline Form */}
 						{activeTab === "offline" && (
 							<div className="grid gap-3.5 py-1">
-								<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-zinc-900/40 px-3 py-2 text-muted-foreground text-xs">
+								<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-card/40 px-3 py-2 text-muted-foreground text-xs">
 									<User className="size-4 shrink-0" />
 									<span>{t("addAccount.offlineNote")}</span>
 								</div>
@@ -292,7 +292,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								</Alert>
 
 								{deviceCode ? (
-									<div className="flex flex-col items-center gap-3 rounded-lg border border-border/40 bg-zinc-900/40 px-3 py-4 text-center">
+									<div className="flex flex-col items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-4 text-center">
 										<p className="text-muted-foreground text-xs">
 											{t("addAccount.microsoftEnterCode")}
 										</p>

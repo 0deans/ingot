@@ -37,21 +37,21 @@ export const InitialSyncDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-			<DialogContent className="max-w-md border-border/60 bg-zinc-950 p-6 shadow-2xl backdrop-blur-2xl">
+			<DialogContent className="max-w-md border-border/60 bg-background p-6 shadow-2xl backdrop-blur-2xl">
 				<DialogHeader className="gap-2">
-					<div className="flex items-center gap-2.5 text-emerald-400">
-						<div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+					<div className="flex items-center gap-2.5 text-primary">
+						<div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
 							<RefreshCw className="size-5" />
 						</div>
-						<DialogTitle className="font-semibold text-lg text-zinc-50">
+						<DialogTitle className="font-semibold text-foreground text-lg">
 							{t("initialSync.title")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-xs text-zinc-300 leading-relaxed">
+					<DialogDescription className="text-foreground/80 text-xs leading-relaxed">
 						<Trans
 							i18nKey="initialSync.description"
 							values={{ name: instanceName }}
-							components={{ b: <strong className="text-zinc-50" /> }}
+							components={{ b: <strong className="text-foreground" /> }}
 						/>
 					</DialogDescription>
 				</DialogHeader>
@@ -62,14 +62,14 @@ export const InitialSyncDialog = ({
 						type="button"
 						disabled={isSubmitting}
 						onClick={() => handleSelect("instance")}
-						className="group flex flex-col items-start gap-1 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3.5 text-left transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 focus:outline-none"
+						className="group flex flex-col items-start gap-1 rounded-xl border border-border bg-card/40 p-3.5 text-left transition-all hover:border-primary/50 hover:bg-primary/5 focus:outline-none"
 					>
 						<div className="flex w-full items-center justify-between">
-							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-emerald-400">
-								<ArrowUpFromLine className="size-3.5 text-emerald-400" />
+							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-primary">
+								<ArrowUpFromLine className="size-3.5 text-primary" />
 								{t("initialSync.fromInstance")}
 							</span>
-							<Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+							<Badge variant="outline" className="border-primary/30 text-primary">
 								{t("initialSync.uploadToShared")}
 							</Badge>
 						</div>
@@ -83,14 +83,14 @@ export const InitialSyncDialog = ({
 						type="button"
 						disabled={isSubmitting}
 						onClick={() => handleSelect("shared")}
-						className="group flex flex-col items-start gap-1 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3.5 text-left transition-all hover:border-sky-500/50 hover:bg-sky-500/5 focus:outline-none"
+						className="group flex flex-col items-start gap-1 rounded-xl border border-border bg-card/40 p-3.5 text-left transition-all hover:border-info/50 hover:bg-info/5 focus:outline-none"
 					>
 						<div className="flex w-full items-center justify-between">
-							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-sky-400">
-								<ArrowDownToLine className="size-3.5 text-sky-400" />
+							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-info">
+								<ArrowDownToLine className="size-3.5 text-info" />
 								{t("initialSync.fromShared")}
 							</span>
-							<Badge variant="outline" className="border-sky-500/30 text-sky-400">
+							<Badge variant="outline" className="border-info/30 text-info">
 								{t("initialSync.downloadToInstance")}
 							</Badge>
 						</div>

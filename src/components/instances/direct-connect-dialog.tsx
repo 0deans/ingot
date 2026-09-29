@@ -83,14 +83,14 @@ export function DirectConnectDialog({
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-base">
-						<Globe className="size-4 text-emerald-400" />
+						<Globe className="size-4 text-primary" />
 						<span>{t("directConnect.title")}</span>
 					</DialogTitle>
 					<DialogDescription className="text-xs">
 						<Trans
 							i18nKey="directConnect.description"
 							values={{ name: instanceName }}
-							components={{ b: <span className="font-semibold text-zinc-200" /> }}
+							components={{ b: <span className="font-semibold text-foreground" /> }}
 						/>
 					</DialogDescription>
 				</DialogHeader>
@@ -103,7 +103,7 @@ export function DirectConnectDialog({
 					className="space-y-4 pt-1"
 				>
 					<div className="space-y-1.5">
-						<Label htmlFor="server-address" className="font-medium text-xs text-zinc-300">
+						<Label htmlFor="server-address" className="font-medium text-foreground/80 text-xs">
 							{t("directConnect.address")}
 						</Label>
 						<div className="relative flex items-center">
@@ -121,7 +121,7 @@ export function DirectConnectDialog({
 					{/* Local Servers Section if any configured */}
 					{servers.length > 0 && (
 						<div className="space-y-1.5">
-							<span className="font-medium text-[11px] text-zinc-400 uppercase tracking-wider">
+							<span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
 								{t("directConnect.localServers")}
 							</span>
 							<div className="grid max-h-32 grid-cols-1 gap-1.5 overflow-y-auto">
@@ -134,14 +134,16 @@ export function DirectConnectDialog({
 											setAddress(addr)
 											handleLaunch(addr)
 										}}
-										className="group flex items-center justify-between rounded-lg border border-border/50 bg-zinc-900/60 px-2.5 py-1.5 text-left text-xs transition-colors hover:border-emerald-500/50 hover:bg-zinc-800/80"
+										className="group flex items-center justify-between rounded-lg border border-border/50 bg-card/60 px-2.5 py-1.5 text-left text-xs transition-colors hover:border-primary/50 hover:bg-muted/80"
 									>
 										<div className="flex items-center gap-2 truncate">
-											<Server className="size-3.5 shrink-0 text-emerald-400" />
-											<span className="truncate font-medium text-zinc-200">{srv.name}</span>
-											<span className="font-mono text-[11px] text-zinc-400">:{srv.port}</span>
+											<Server className="size-3.5 shrink-0 text-primary" />
+											<span className="truncate font-medium text-foreground">{srv.name}</span>
+											<span className="font-mono text-[11px] text-muted-foreground">
+												:{srv.port}
+											</span>
 										</div>
-										<ArrowRight className="size-3 text-zinc-500 transition-transform group-hover:translate-x-0.5 group-hover:text-emerald-400" />
+										<ArrowRight className="size-3 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
 									</button>
 								))}
 							</div>
@@ -151,14 +153,14 @@ export function DirectConnectDialog({
 					{/* Recent Servers Section */}
 					{recentServers.length > 0 && (
 						<div className="space-y-1.5">
-							<span className="font-medium text-[11px] text-zinc-400 uppercase tracking-wider">
+							<span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
 								{t("directConnect.recent")}
 							</span>
 							<div className="flex flex-wrap gap-1.5">
 								{recentServers.map((item) => (
 									<div
 										key={item}
-										className="group inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-50"
+										className="group inline-flex items-center gap-1 rounded-md border border-border bg-card/90 px-2 py-1 text-[11px] text-foreground/80 transition-colors hover:border-input hover:text-foreground"
 									>
 										<button
 											type="button"
@@ -166,7 +168,7 @@ export function DirectConnectDialog({
 												setAddress(item)
 												handleLaunch(item)
 											}}
-											className="flex items-center gap-1 font-mono hover:text-emerald-400"
+											className="flex items-center gap-1 font-mono hover:text-primary"
 										>
 											<Clock className="size-2.5 opacity-60" />
 											<span>{item}</span>
@@ -174,7 +176,7 @@ export function DirectConnectDialog({
 										<button
 											type="button"
 											onClick={(e) => handleRemoveRecent(item, e)}
-											className="ml-0.5 text-zinc-500 hover:text-rose-400"
+											className="ml-0.5 text-muted-foreground hover:text-destructive"
 											title={t("directConnect.removeRecent")}
 										>
 											<Trash2 className="size-2.5" />
@@ -199,7 +201,7 @@ export function DirectConnectDialog({
 							type="submit"
 							size="sm"
 							disabled={!address.trim()}
-							className="gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
+							className="gap-1.5 font-medium text-xs"
 						>
 							<Play className="size-3.5 fill-current" />
 							<span>{t("directConnect.launch")}</span>

@@ -57,11 +57,11 @@ export function OverviewPanel({
 export function StatusPill({ status }: { status: ServerStatus }) {
 	const { t } = useTranslation()
 	const styles: Record<ServerStatus, string> = {
-		running: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-		starting: "border-sky-500/30 bg-sky-500/10 text-sky-300",
-		stopping: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+		running: "border-primary/30 bg-primary/10 text-primary",
+		starting: "border-info/30 bg-info/10 text-info",
+		stopping: "border-warning/30 bg-warning/10 text-warning",
 		sleeping: "border-violet-500/30 bg-violet-500/10 text-violet-300",
-		stopped: "border-zinc-700 bg-zinc-800/60 text-zinc-400",
+		stopped: "border-input bg-muted/60 text-muted-foreground",
 	}
 	return (
 		<span
@@ -88,7 +88,7 @@ function SignalBars({ online }: { online: boolean }) {
 			{[0.35, 0.5, 0.65, 0.8, 1].map((h) => (
 				<span
 					key={h}
-					className={cn("w-[3px]", online ? "bg-emerald-400" : "bg-zinc-700")}
+					className={cn("w-[3px]", online ? "bg-primary" : "bg-accent")}
 					style={{ height: `${h * 100}%` }}
 				/>
 			))}
@@ -115,23 +115,23 @@ function ServerHero({ server }: { server: ServerConfig }) {
 
 	return (
 		<Card className="gap-3 p-3 sm:p-4">
-			<p className="px-1 text-[10px] text-zinc-500 uppercase tracking-wider">
+			<p className="px-1 text-[10px] text-muted-foreground uppercase tracking-wider">
 				{t("overview.howPlayersSee")}
 			</p>
-			<div className="dark flex items-center gap-3 rounded-xl bg-zinc-950 p-2.5 ring-1 ring-zinc-50/5">
-				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-900">
+			<div className="dark flex items-center gap-3 rounded-xl bg-background p-2.5 ring-1 ring-border/5">
+				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-card">
 					{icon ? (
 						<img src={icon} alt="" className="size-full object-cover [image-rendering:pixelated]" />
 					) : (
-						<Server className="size-6 text-zinc-600" />
+						<Server className="size-6 text-muted-foreground/60" />
 					)}
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<div className="flex items-center gap-2">
-						<p className="min-w-0 flex-1 truncate font-semibold text-sm text-zinc-100">
+						<p className="min-w-0 flex-1 truncate font-semibold text-foreground text-sm">
 							{server.name}
 						</p>
-						<span className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-zinc-400">
+						<span className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
 							{online ? `${players.length}/${maxPlayers}` : ""}
 							<SignalBars online={online} />
 						</span>
@@ -139,7 +139,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 					{online ? (
 						<MotdText motd={values.get("motd") || server.name} className="text-[11px]" />
 					) : (
-						<p className="font-mono text-[11px] text-rose-400/80">
+						<p className="font-mono text-[11px] text-destructive/80">
 							{shownStatus === "starting"
 								? t("overview.startingUp")
 								: shownStatus === "stopping"
@@ -151,9 +151,9 @@ function ServerHero({ server }: { server: ServerConfig }) {
 			</div>
 
 			{shownStatus === "starting" && (
-				<div className="flex items-center gap-2.5 rounded-xl bg-sky-500/[0.07] px-3 py-2.5 ring-1 ring-sky-500/20">
-					<Spinner className="size-4 shrink-0 text-sky-400" />
-					<span className="truncate text-sky-200 text-xs">
+				<div className="flex items-center gap-2.5 rounded-xl bg-info/[0.07] px-3 py-2.5 ring-1 ring-info/20">
+					<Spinner className="size-4 shrink-0 text-info" />
+					<span className="truncate text-info text-xs">
 						{step ? translateStep(step) : t("overview.preparing")}
 					</span>
 				</div>
@@ -172,18 +172,12 @@ function ServerHero({ server }: { server: ServerConfig }) {
 
 			<div className="flex gap-2">
 				{shownStatus === "stopped" && (
-					<Button
-						onClick={controls.start}
-						className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
-					>
+					<Button onClick={controls.start} className="h-11 flex-1 gap-2 rounded-xl font-semibold">
 						<Play className="size-4 fill-current" /> {t("overview.start")}
 					</Button>
 				)}
 				{shownStatus === "sleeping" && (
-					<Button
-						onClick={controls.start}
-						className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
-					>
+					<Button onClick={controls.start} className="h-11 flex-1 gap-2 rounded-xl font-semibold">
 						<Zap className="size-4" /> {t("overview.wake")}
 					</Button>
 				)}
@@ -191,7 +185,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 					<Button
 						variant="ghost"
 						onClick={controls.sleep}
-						className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900 text-zinc-200 hover:bg-zinc-800"
+						className="h-11 flex-1 gap-2 rounded-xl bg-card text-foreground"
 					>
 						<Moon className="size-4" /> {t("overview.sleep")}
 					</Button>
@@ -201,7 +195,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						variant="ghost"
 						onClick={controls.stop}
 						disabled={controls.isStopping}
-						className="h-11 flex-1 gap-2 rounded-xl bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200"
+						className="h-11 flex-1 gap-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
 					>
 						{controls.isStopping ? (
 							<Spinner className="size-4" />
@@ -212,7 +206,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 					</Button>
 				)}
 				{(shownStatus === "starting" || shownStatus === "stopping") && (
-					<Button disabled variant="ghost" className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900">
+					<Button disabled variant="ghost" className="h-11 flex-1 gap-2 rounded-xl bg-card">
 						<Spinner className="size-4" />
 						{shownStatus === "starting" ? t("overview.starting") : t("overview.stopping")}
 					</Button>
@@ -241,15 +235,15 @@ function StatTiles({
 			<button
 				type="button"
 				onClick={() => onNavigate("players")}
-				className="col-span-2 flex items-center justify-between gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-3.5 text-left transition-colors hover:bg-zinc-900/70 sm:col-span-2"
+				className="col-span-2 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card/40 p-3.5 text-left transition-colors hover:bg-card/70 sm:col-span-2"
 			>
 				<div>
-					<p className="flex items-center gap-1.5 text-[11px] text-zinc-500 uppercase tracking-wider">
+					<p className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider">
 						<Users className="size-3" /> {t("serverTabs.players")}
 					</p>
-					<p className="mt-1 font-semibold text-lg text-zinc-100">
+					<p className="mt-1 font-semibold text-foreground text-lg">
 						{isRunning ? players.length : 0}
-						<span className="text-sm text-zinc-600"> / {max}</span>
+						<span className="text-muted-foreground/60 text-sm"> / {max}</span>
 					</p>
 				</div>
 				<div className="flex -space-x-2">
@@ -258,10 +252,10 @@ function StatTiles({
 							key={p.name}
 							name={p.name}
 							size={30}
-							className="rounded-lg ring-2 ring-zinc-950"
+							className="rounded-lg ring-2 ring-border"
 						/>
 					))}
-					<ChevronRight className="ml-3 size-4 self-center text-zinc-600" />
+					<ChevronRight className="ml-3 size-4 self-center text-muted-foreground/60" />
 				</div>
 			</button>
 			<Tile
@@ -282,11 +276,11 @@ function StatTiles({
 
 function Tile({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
 	return (
-		<div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-3.5">
-			<p className="flex items-center gap-1.5 text-[11px] text-zinc-500 uppercase tracking-wider">
+		<div className="rounded-2xl border border-border/80 bg-card/40 p-3.5">
+			<p className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider">
 				<Icon className="size-3" /> {label}
 			</p>
-			<p className="mt-1 font-semibold text-lg text-zinc-100">{value}</p>
+			<p className="mt-1 font-semibold text-foreground text-lg">{value}</p>
 		</div>
 	)
 }
@@ -299,22 +293,24 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 		<button
 			type="button"
 			onClick={onOpen}
-			className="flex min-w-0 flex-col rounded-2xl border border-zinc-800/80 bg-zinc-950 text-left transition-colors hover:border-zinc-700"
+			className="flex min-w-0 flex-col rounded-2xl border border-border/80 bg-background text-left transition-colors hover:border-input"
 		>
 			<div className="flex items-center justify-between px-4 pt-4 pb-2">
-				<span className="flex items-center gap-2 font-semibold text-sm text-zinc-100">
-					<Terminal className="size-3.5 text-zinc-400" /> {t("serverTabs.console")}
+				<span className="flex items-center gap-2 font-semibold text-foreground text-sm">
+					<Terminal className="size-3.5 text-muted-foreground" /> {t("serverTabs.console")}
 				</span>
-				<ChevronRight className="size-4 text-zinc-600" />
+				<ChevronRight className="size-4 text-muted-foreground/60" />
 			</div>
 			<div
 				className={cn(
-					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-[10.5px] text-zinc-400 leading-relaxed",
+					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-[10.5px] text-muted-foreground leading-relaxed",
 					lines.length === 0 ? "items-center justify-center" : "justify-end",
 				)}
 			>
 				{lines.length === 0 ? (
-					<span className="font-sans text-xs text-zinc-600">{t("overview.noOutput")}</span>
+					<span className="font-sans text-muted-foreground/60 text-xs">
+						{t("overview.noOutput")}
+					</span>
 				) : (
 					lines.map((line, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: log lines are append-only

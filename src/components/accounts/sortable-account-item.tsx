@@ -45,10 +45,10 @@ export const AccountCardContent = memo(function AccountCardContent({
 			className={cn(
 				"relative flex flex-col gap-3 p-3.5 transition-colors sm:flex-row sm:items-center sm:justify-between",
 				isOverlay
-					? "cursor-grabbing rounded-lg bg-zinc-900 shadow-2xl ring-2 ring-primary/60"
+					? "cursor-grabbing rounded-lg bg-card shadow-2xl ring-2 ring-primary/60"
 					: isDragging
-						? "bg-zinc-900/40 opacity-25 ring-1 ring-dashed ring-primary/40 ring-inset"
-						: "hover:bg-zinc-900/30",
+						? "bg-card/40 opacity-25 ring-1 ring-dashed ring-primary/40 ring-inset"
+						: "hover:bg-card/30",
 			)}
 		>
 			<div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -59,8 +59,8 @@ export const AccountCardContent = memo(function AccountCardContent({
 					{...dragHandleProps}
 					style={{ touchAction: "none" }}
 					className={cn(
-						"flex size-8 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-zinc-800/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
-						(isDragging || isOverlay) && "cursor-grabbing bg-zinc-800/80 text-primary",
+						"flex size-8 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
+						(isDragging || isOverlay) && "cursor-grabbing bg-muted/80 text-primary",
 					)}
 					title={t("accounts.dragToReorder")}
 				>

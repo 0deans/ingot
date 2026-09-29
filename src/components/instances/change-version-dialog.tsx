@@ -150,11 +150,11 @@ export default function ChangeVersionDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
-			<DialogContent className="flex max-h-[90vh] w-full flex-col gap-3 border-border/60 bg-zinc-950 p-4 sm:max-w-2xl sm:p-5">
+			<DialogContent className="flex max-h-[90vh] w-full flex-col gap-3 border-border/60 bg-background p-4 sm:max-w-2xl sm:p-5">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={22} />
-						<DialogTitle className="font-semibold text-lg text-zinc-50">
+						<DialogTitle className="font-semibold text-foreground text-lg">
 							{t("versionChange.title")}
 						</DialogTitle>
 					</div>
@@ -179,14 +179,16 @@ export default function ChangeVersionDialog({
 										className={cn(
 											"flex flex-col items-center gap-1 border p-2 text-[11px] transition-colors",
 											loader === id
-												? "border-emerald-500/60 bg-emerald-500/10 text-zinc-50"
-												: "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:text-zinc-200",
+												? "border-primary/60 bg-primary/10 text-foreground"
+												: "border-border bg-card/40 text-muted-foreground hover:text-foreground",
 										)}
 									>
 										<LoaderIcon loader={id} size={18} />
 										{loaderName(id)}
 										{id === instance.loader && (
-											<span className="text-[9px] text-zinc-500">{t("versionChange.now")}</span>
+											<span className="text-[9px] text-muted-foreground">
+												{t("versionChange.now")}
+											</span>
 										)}
 									</button>
 								))}
@@ -197,16 +199,16 @@ export default function ChangeVersionDialog({
 								<span className="font-medium text-muted-foreground text-xs">
 									{t("versionChange.nowLabel")}
 								</span>
-								<div className="flex h-9 items-center gap-2 border border-zinc-800 bg-zinc-900/50 px-3 text-sm text-zinc-300">
+								<div className="flex h-9 items-center gap-2 border border-border bg-card/50 px-3 text-foreground/80 text-sm">
 									{instance.gameVersion}
 									{instance.loaderVersion && (
-										<span className="truncate text-xs text-zinc-500">
+										<span className="truncate text-muted-foreground text-xs">
 											· {loaderName(instance.loader)} {instance.loaderVersion}
 										</span>
 									)}
 								</div>
 							</div>
-							<ArrowRight className="mx-auto hidden size-4 text-zinc-600 sm:mb-2.5 sm:block" />
+							<ArrowRight className="mx-auto hidden size-4 text-muted-foreground/60 sm:mb-2.5 sm:block" />
 							<div className="grid gap-1.5">
 								<Label
 									htmlFor="target-version"
@@ -298,9 +300,9 @@ export default function ChangeVersionDialog({
 
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-10 text-center">
-						<Spinner className="size-7 text-emerald-400" />
-						<p className="font-medium text-sm text-zinc-200">{t("versionChange.applying")}</p>
-						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
+						<Spinner className="size-7 text-primary" />
+						<p className="font-medium text-foreground text-sm">{t("versionChange.applying")}</p>
+						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
 							{backupWorlds && (plan?.worlds.length ?? 0) > 0
 								? t("versionChange.applyingWithWorlds")
 								: t("versionChange.applyingHint")}
@@ -310,11 +312,11 @@ export default function ChangeVersionDialog({
 
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
-						<CheckCircle2 className="size-8 text-emerald-400" />
-						<p className="font-semibold text-sm text-zinc-50">
+						<CheckCircle2 className="size-8 text-primary" />
+						<p className="font-semibold text-foreground text-sm">
 							{t("versionChange.nowOn", { version: planSide(plan, "to") })}
 						</p>
-						<p className="max-w-sm text-xs text-zinc-400 leading-relaxed">
+						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
 							{t("versionChange.instanceDone", { version: planSide(plan, "from") })}
 						</p>
 					</div>
@@ -327,7 +329,7 @@ export default function ChangeVersionDialog({
 				)}
 
 				<DialogFooter className="flex flex-row items-center justify-between gap-2 border-border/40 border-t pt-3 sm:justify-between">
-					<p className="text-[11px] text-zinc-500">
+					<p className="text-[11px] text-muted-foreground">
 						{stage === "review" && plan && planSummary(plan, choices)}
 					</p>
 					<div className="flex gap-2">
@@ -341,19 +343,14 @@ export default function ChangeVersionDialog({
 								size="sm"
 								onClick={check}
 								disabled={busy || !target || unchanged || (modded && !loaderVersion)}
-								className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
+								className="gap-1.5"
 							>
 								{stage === "checking" && <Spinner className="size-3.5" />}
 								{stage === "checking" ? t("versionChange.checking") : t("versionChange.check")}
 							</Button>
 						)}
 						{stage === "review" && plan && (
-							<Button
-								size="sm"
-								onClick={apply}
-								disabled={plan.downgrade && !downgradeOk}
-								className="bg-emerald-600 text-white hover:bg-emerald-500"
-							>
+							<Button size="sm" onClick={apply} disabled={plan.downgrade && !downgradeOk}>
 								{t("versionChange.moveToVersion", { version: planSide(plan, "to") })}
 							</Button>
 						)}

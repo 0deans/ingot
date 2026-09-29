@@ -35,7 +35,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 	return (
 		<div
 			style={{ contentVisibility: "auto", containIntrinsicSize: "220px" }}
-			className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-zinc-950/40 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-black/40 hover:shadow-lg"
+			className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-background/40 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-black/40 hover:shadow-lg"
 		>
 			{/* Accessible full card click-to-fullscreen button */}
 			<button
@@ -46,7 +46,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 			/>
 
 			{/* Thumbnail container */}
-			<div className="relative aspect-video w-full overflow-hidden bg-zinc-900/60">
+			<div className="relative aspect-video w-full overflow-hidden bg-card/60">
 				{!loaded && !imageError && <Skeleton className="absolute inset-0 rounded-none" />}
 
 				{imageError ? (
@@ -93,7 +93,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								<Button
 									size="icon"
 									variant="secondary"
-									className="size-7 rounded-lg border border-zinc-700/60 bg-zinc-950/90 text-zinc-300 shadow-md hover:bg-zinc-800 hover:text-zinc-50"
+									className="size-7 rounded-lg border shadow-md"
 									onClick={(e) => e.stopPropagation()}
 								>
 									<MoreVertical className="size-3.5" />
@@ -108,7 +108,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 									onClick(screenshot)
 								}}
 							>
-								<Maximize2 className="size-3.5 text-zinc-400" />
+								<Maximize2 className="size-3.5 text-muted-foreground" />
 								<span>{t("screenshots.card.fullscreen")}</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem
@@ -118,12 +118,12 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 									onReveal(screenshot)
 								}}
 							>
-								<FolderOpen className="size-3.5 text-zinc-400" />
+								<FolderOpen className="size-3.5 text-muted-foreground" />
 								<span>{t("screenshots.card.showInFolder")}</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
-								className="gap-2 text-red-400 text-xs focus:text-red-300"
+								className="gap-2 text-destructive text-xs focus:text-destructive"
 								onClick={() => {
 									setMenuOpen(false)
 									onDelete(screenshot)
@@ -142,15 +142,15 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 				<div className="flex items-center justify-between gap-2">
 					<span
 						title={screenshot.fileName}
-						className="truncate font-medium text-xs text-zinc-200 transition-colors group-hover:text-primary"
+						className="truncate font-medium text-foreground text-xs transition-colors group-hover:text-primary"
 					>
 						{screenshot.fileName}
 					</span>
-					<span className="shrink-0 font-mono text-[10px] text-zinc-400">
+					<span className="shrink-0 font-mono text-[10px] text-muted-foreground">
 						{formatBytes(screenshot.fileSizeBytes)}
 					</span>
 				</div>
-				<div className="text-[10px] text-zinc-500">
+				<div className="text-[10px] text-muted-foreground">
 					{formatDate(screenshot.modifiedAt || screenshot.createdAt)}
 				</div>
 			</div>

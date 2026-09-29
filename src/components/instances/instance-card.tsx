@@ -147,37 +147,37 @@ export const InstanceCard = ({
 
 	return (
 		<div
-			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-zinc-950/60 p-5 transition-all duration-200 hover:border-zinc-700/80 hover:bg-zinc-900/50 hover:shadow-xl ${
+			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-all duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${
 				isRunning
-					? "border-emerald-500/40 shadow-emerald-950/20 ring-1 ring-emerald-500/20"
+					? "border-primary/40 shadow-primary/20 ring-1 ring-primary/20"
 					: isDownloading
-						? "border-amber-500/40 ring-1 ring-amber-500/20"
+						? "border-warning/40 ring-1 ring-warning/20"
 						: "border-border/50"
 			}`}
 		>
 			{/* Top Bar: Loader Badge & Status */}
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex items-center gap-2.5">
-					<div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-inner">
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card shadow-inner">
 						<LoaderIcon loader={loaderType} size={22} />
 					</div>
 					<div className="flex flex-col">
-						<span className="font-semibold text-[11px] text-zinc-400 uppercase tracking-wider">
+						<span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
 							{loaderName}
 						</span>
-						<span className="font-mono text-xs text-zinc-300">{versionStr}</span>
+						<span className="font-mono text-foreground/80 text-xs">{versionStr}</span>
 					</div>
 				</div>
 
 				{/* Status Pill */}
 				<div>
 					{isRunning ? (
-						<Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
-							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
+						<Badge variant="outline" className="border-primary/30 text-primary">
+							<span className="size-1.5 animate-pulse rounded-full bg-primary" />
 							{formatDuration(elapsedSeconds)}
 						</Badge>
 					) : isDownloading ? (
-						<Badge variant="outline" className="border-amber-500/30 text-amber-400">
+						<Badge variant="outline" className="border-warning/30 text-warning">
 							<Spinner />
 							{progress.percentage != null
 								? formatPercent(progress.percentage)
@@ -194,7 +194,7 @@ export const InstanceCard = ({
 			{/* Main Info */}
 			<div className="my-4 flex flex-col gap-2">
 				<h3
-					className="truncate font-semibold text-base text-zinc-50 tracking-tight"
+					className="truncate font-semibold text-base text-foreground tracking-tight"
 					title={instance.name}
 				>
 					{instance.name}
@@ -202,18 +202,18 @@ export const InstanceCard = ({
 
 				<div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
 					<span
-						className="inline-flex items-center gap-1 rounded-md border border-zinc-800/80 bg-zinc-900/60 px-2 py-0.5"
+						className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-card/60 px-2 py-0.5"
 						title={
 							hasCustomRam
 								? t("instances.card.customRamTooltip")
 								: t("instances.card.globalRamTooltip")
 						}
 					>
-						<HardDrive className="size-3 text-sky-400" />
+						<HardDrive className="size-3 text-info" />
 						<span>
 							{t("instances.card.ram", { size: formatMegabytes(effectiveRamMb) })}
 							{hasCustomRam && (
-								<span className="ml-1 font-medium text-[10px] text-sky-400">
+								<span className="ml-1 font-medium text-[10px] text-info">
 									{t("instances.card.customRam")}
 								</span>
 							)}
@@ -221,8 +221,8 @@ export const InstanceCard = ({
 					</span>
 
 					{instance.totalPlayTimeSeconds > 0 && (
-						<span className="inline-flex items-center gap-1 rounded-md border border-zinc-800/80 bg-zinc-900/60 px-2 py-0.5">
-							<Clock className="size-3 text-emerald-400" />
+						<span className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-card/60 px-2 py-0.5">
+							<Clock className="size-3 text-primary" />
 							<span>
 								{t("instances.card.playedDuration", {
 									duration: formatDuration(instance.totalPlayTimeSeconds),
@@ -234,15 +234,15 @@ export const InstanceCard = ({
 
 				{/* Progress Track if downloading */}
 				{isDownloading && (
-					<div className="mt-1 flex flex-col gap-1.5 rounded-lg border border-amber-500/20 bg-zinc-950/60 p-2.5 text-[11px]">
-						<div className="flex items-center justify-between font-medium text-amber-300">
+					<div className="mt-1 flex flex-col gap-1.5 rounded-lg border border-warning/20 bg-background/60 p-2.5 text-[11px]">
+						<div className="flex items-center justify-between font-medium text-warning">
 							<span className="truncate">{translateLaunchPhase(progress.phase)}</span>
 							<span className="font-mono">
 								{progress.percentage != null ? formatPercent(progress.percentage) : ""}
 							</span>
 						</div>
 						<Progress value={Math.min(100, Math.max(0, progress.percentage ?? 0))} />
-						<span className="truncate font-mono text-[10px] text-zinc-400">
+						<span className="truncate font-mono text-[10px] text-muted-foreground">
 							{translateLaunchDetail(progress.detail)}
 						</span>
 					</div>
@@ -273,11 +273,11 @@ export const InstanceCard = ({
 							<span>{t("instances.card.preparingBtn")}</span>
 						</Button>
 					) : (
-						<div className="inline-flex items-center rounded-md shadow-emerald-950/40 shadow-md">
+						<div className="inline-flex items-center rounded-md shadow-md shadow-primary/40">
 							<Button
 								size="sm"
 								onClick={() => onPlay()}
-								className="h-8 gap-1.5 rounded-r-none border-emerald-700/60 border-r bg-emerald-600 px-3.5 font-semibold text-white text-xs hover:bg-emerald-500 active:scale-[0.98]"
+								className="h-8 gap-1.5 rounded-r-none border-primary/60 border-r px-3.5 font-semibold text-xs active:scale-[0.98]"
 							>
 								<Play className="size-3.5 fill-current" />
 								<span>{t("instances.card.play")}</span>
@@ -291,7 +291,7 @@ export const InstanceCard = ({
 									render={
 										<Button
 											size="sm"
-											className="h-8 rounded-l-none bg-emerald-600 px-1.5 text-white hover:bg-emerald-500"
+											className="h-8 rounded-l-none px-1.5"
 											title={t("instances.card.quickPlayOptions")}
 										>
 											<ChevronDown className="size-3.5" />
@@ -300,14 +300,14 @@ export const InstanceCard = ({
 								/>
 								<DropdownMenuContent align="start" className="w-56">
 									<DropdownMenuGroup>
-										<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
+										<DropdownMenuLabel className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 											{t("instances.card.quickPlay")}
 										</DropdownMenuLabel>
 										<DropdownMenuItem
 											onClick={() => setDirectConnectOpen(true)}
 											className="cursor-pointer gap-2"
 										>
-											<Globe className="size-4 text-emerald-400" />
+											<Globe className="size-4 text-primary" />
 											<div className="flex flex-col">
 												<span className="font-medium text-xs">
 													{t("instances.card.directConnect")}
@@ -321,7 +321,7 @@ export const InstanceCard = ({
 										{supportsSingleplayerQP ? (
 											<DropdownMenuSub>
 												<DropdownMenuSubTrigger className="cursor-pointer gap-2">
-													<Compass className="size-4 text-sky-400" />
+													<Compass className="size-4 text-info" />
 													<div className="flex flex-col text-left">
 														<span className="font-medium text-xs">
 															{t("instances.card.quickLoadWorld")}
@@ -333,7 +333,7 @@ export const InstanceCard = ({
 												</DropdownMenuSubTrigger>
 												<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
 													<DropdownMenuGroup>
-														<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
+														<DropdownMenuLabel className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 															{t("instances.card.singleplayerSaves")}
 														</DropdownMenuLabel>
 														{loadingWorlds ? (
@@ -342,7 +342,7 @@ export const InstanceCard = ({
 																<span>{t("instances.card.scanningWorlds")}</span>
 															</div>
 														) : worlds.length === 0 ? (
-															<div className="p-2.5 text-xs text-zinc-400">
+															<div className="p-2.5 text-muted-foreground text-xs">
 																{t("instances.card.noSavedWorlds")}
 															</div>
 														) : (
@@ -356,18 +356,18 @@ export const InstanceCard = ({
 																		<img
 																			src={w.icon}
 																			alt=""
-																			className="size-7 shrink-0 rounded border border-zinc-800 object-cover"
+																			className="size-7 shrink-0 rounded border border-border object-cover"
 																		/>
 																	) : (
-																		<div className="flex size-7 shrink-0 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-400">
+																		<div className="flex size-7 shrink-0 items-center justify-center rounded border border-border bg-card text-muted-foreground">
 																			<Compass className="size-3.5" />
 																		</div>
 																	)}
 																	<div className="flex min-w-0 flex-col truncate">
-																		<span className="truncate font-medium text-xs text-zinc-200">
+																		<span className="truncate font-medium text-foreground text-xs">
 																			{w.displayName}
 																		</span>
-																		<span className="truncate text-[10px] text-zinc-500">
+																		<span className="truncate text-[10px] text-muted-foreground">
 																			{w.lastPlayed ? formatLastPlayed(w.lastPlayed) : w.folderName}
 																		</span>
 																	</div>
@@ -379,12 +379,12 @@ export const InstanceCard = ({
 											</DropdownMenuSub>
 										) : (
 											<DropdownMenuItem disabled className="gap-2 opacity-50">
-												<Compass className="size-4 text-zinc-500" />
+												<Compass className="size-4 text-muted-foreground" />
 												<div className="flex flex-col">
 													<span className="font-medium text-xs">
 														{t("instances.card.quickLoadWorld")}
 													</span>
-													<span className="text-[10px] text-zinc-500">
+													<span className="text-[10px] text-muted-foreground">
 														{t("instances.card.requires120")}
 													</span>
 												</div>
@@ -403,7 +403,7 @@ export const InstanceCard = ({
 						variant="ghost"
 						size="icon"
 						onClick={() => instanceService.openInstanceFolder(instance.id)}
-						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+						className="size-8 text-muted-foreground"
 						title={t("instances.card.openFolderTooltip")}
 					>
 						<FolderOpen className="size-3.5" />
@@ -413,7 +413,7 @@ export const InstanceCard = ({
 						variant="ghost"
 						size="icon"
 						onClick={onDuplicate}
-						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+						className="size-8 text-muted-foreground"
 						title={t("instances.card.duplicateTooltip")}
 					>
 						<Copy className="size-3.5" />
@@ -423,7 +423,7 @@ export const InstanceCard = ({
 						variant="ghost"
 						size="icon"
 						onClick={onSettings}
-						className="size-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+						className="size-8 text-muted-foreground"
 						title={t("instances.card.settingsTooltip")}
 					>
 						<Settings className="size-3.5" />
@@ -434,7 +434,7 @@ export const InstanceCard = ({
 							variant="ghost"
 							size="icon"
 							onClick={onDelete}
-							className="size-8 text-zinc-400 hover:bg-destructive/15 hover:text-destructive"
+							className="size-8 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
 							title={t("instances.card.deleteTooltip")}
 						>
 							<Trash2 className="size-3.5" />

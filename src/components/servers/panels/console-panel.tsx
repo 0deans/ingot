@@ -16,12 +16,12 @@ import { useServerLogs } from "@/services/server-service"
 import { EmptyState } from "../shared/primitives"
 
 function lineClass(line: string): string {
-	if (line.startsWith("[Ingot] Failed")) return "text-rose-400"
-	if (line.startsWith("[Ingot]")) return "text-sky-300"
-	if (/\bERROR\]|ERROR:|Exception|\bat [a-z]+\./.test(line)) return "text-rose-400"
-	if (/\bWARN\]|WARN:/.test(line)) return "text-amber-300"
-	if (/joined the game|left the game/.test(line)) return "text-emerald-300"
-	return "text-zinc-300"
+	if (line.startsWith("[Ingot] Failed")) return "text-destructive"
+	if (line.startsWith("[Ingot]")) return "text-info"
+	if (/\bERROR\]|ERROR:|Exception|\bat [a-z]+\./.test(line)) return "text-destructive"
+	if (/\bWARN\]|WARN:/.test(line)) return "text-warning"
+	if (/joined the game|left the game/.test(line)) return "text-primary"
+	return "text-foreground/80"
 }
 
 /** Edge fades only where there's more to scroll (same vars as .scroll-fade elsewhere); returns whether at the bottom */
@@ -101,7 +101,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 	}
 
 	return (
-		<div className={cn("relative flex min-h-0 flex-col overflow-hidden bg-zinc-950", className)}>
+		<div className={cn("relative flex min-h-0 flex-col overflow-hidden bg-background", className)}>
 			<div className="flex shrink-0 items-center gap-1 px-2 pt-2">
 				<button
 					type="button"
@@ -111,8 +111,8 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 					className={cn(
 						"flex h-7 items-center gap-1.5 rounded-full border px-2.5 font-medium text-[11px] transition-colors",
 						autoScroll
-							? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-							: "border-zinc-800 text-zinc-500 hover:text-zinc-300",
+							? "border-primary/30 bg-primary/10 text-primary"
+							: "border-border text-muted-foreground hover:text-foreground/80",
 					)}
 				>
 					<ArrowDownToLine className="size-3" />
@@ -127,7 +127,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 						setTimeout(() => setCopied(false), 1500)
 					}}
 				>
-					{copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+					{copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
 				</IconButton>
 				<IconButton label={t("console.clear")} onClick={clearLogs}>
 					<Eraser className="size-3.5" />
@@ -160,15 +160,15 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 				<button
 					type="button"
 					onClick={jumpToLatest}
-					className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 px-3 py-1.5 text-[11px] text-zinc-200 shadow-lg"
+					className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-input bg-card/95 px-3 py-1.5 text-[11px] text-foreground shadow-lg"
 				>
 					<ArrowDown className="size-3" /> {t("console.latest")}
 				</button>
 			)}
 
 			<div className="shrink-0 px-2 pb-2">
-				<div className="flex items-center gap-2 rounded-2xl bg-zinc-900/70 p-1 pl-3 ring-1 ring-zinc-800/60 focus-within:ring-zinc-700">
-					<span className="font-mono text-emerald-400 text-xs">/</span>
+				<div className="flex items-center gap-2 rounded-2xl bg-card/70 p-1 pl-3 ring-1 ring-border/60 focus-within:ring-border">
+					<span className="font-mono text-primary text-xs">/</span>
 					<input
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
@@ -179,14 +179,14 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 						autoCorrect="off"
 						spellCheck={false}
 						enterKeyHint="send"
-						className="h-9 min-w-0 flex-1 bg-transparent font-mono text-xs text-zinc-100 outline-none placeholder:text-zinc-600"
+						className="h-9 min-w-0 flex-1 bg-transparent font-mono text-foreground text-xs outline-none placeholder:text-muted-foreground/60"
 					/>
 					<button
 						type="button"
 						onClick={send}
 						disabled={!isRunning || !input.trim()}
 						aria-label={t("console.send")}
-						className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-500 disabled:bg-transparent disabled:text-zinc-600"
+						className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary disabled:bg-transparent disabled:text-muted-foreground/60"
 					>
 						<CornerDownLeft className="size-4" />
 					</button>
@@ -211,7 +211,7 @@ function IconButton({
 			title={label}
 			aria-label={label}
 			onClick={onClick}
-			className="flex size-7 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+			className="flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 		>
 			{children}
 		</button>
