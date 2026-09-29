@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
-	"productName": "ingot",
+	"productName": "Ingot",
 	"version": "0.5.3",
 	"identifier": "ingot",
 	"build": {

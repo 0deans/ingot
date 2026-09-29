@@ -207,10 +207,12 @@ jobs:
           RAW_APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
           echo "Found raw APK: $RAW_APK"
           VERSION=$(jq -r .version src-tauri/tauri.conf.json)
-          FINAL_APK="output-apks/ingot_${VERSION}_aarch64.apk"
+          FINAL_APK="output-apks/Ingot_${VERSION}_aarch64.apk"
           bash scripts/sign-android-apk.sh "$RAW_APK" "$FINAL_APK"
           ls -lh output-apks/
 
-          TAG="${{ github.ref_name }}"
+          # Same tag as the desktop release: the pushed tag, or v<version> for manual runs
+          TAG="${{ github.ref_type == 'tag' && github.ref_name || '' }}"
+          TAG="${TAG:-v$VERSION}"
           echo "Uploading $FINAL_APK to release $TAG..."
           gh release upload "$TAG" "$FINAL_APK" --clobber
