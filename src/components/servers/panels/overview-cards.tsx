@@ -8,7 +8,6 @@ import {
 	Gauge,
 	Globe,
 	HardDrive,
-	Loader2,
 	MemoryStick,
 	QrCode,
 	Share2,
@@ -17,8 +16,9 @@ import {
 import { type ReactNode, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
+import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
 import { formatDuration, formatMegabytes, formatNumber, formatPercent } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
 import { shareText } from "@/lib/share"
@@ -93,7 +93,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 	}
 
 	return (
-		<Card className="flex min-w-0 flex-col gap-3 p-4">
+		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-start gap-3">
 				<div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
 					<Globe className="size-4" />
@@ -160,7 +160,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					</p>
 				) : tunnel.isRunning ? (
 					<p className="flex items-center gap-1.5 text-sm text-zinc-400">
-						<Loader2 className="size-3.5 animate-spin text-sky-400" />
+						<Spinner className="size-3.5 text-sky-400" />
 						{tunnel.message ?? t("join.connecting")}
 					</p>
 				) : (
@@ -177,7 +177,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					onClick={() => toggle(server.playitSecretKey)}
 					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl border-zinc-800 py-2 text-center leading-tight"
 				>
-					{isBusy && <Loader2 className="size-4 animate-spin" />}
+					{isBusy && <Spinner className="size-4" />}
 					{tunnel.isRunning ? t("join.stopPlayit") : t("join.goPublic")}
 				</Button>
 				<Button
@@ -501,11 +501,11 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 	const tpsValues = firstTps < 0 ? [] : history.slice(firstTps).map((s) => s.tps ?? 0)
 
 	return (
-		<Card className="flex min-w-0 flex-col gap-3 p-4">
+		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-center gap-2">
 				<Activity className="size-4 text-zinc-400" />
 				<h3 className="font-semibold text-sm text-zinc-100">{t("stats.performance")}</h3>
-				{!latest && <Loader2 className="size-3.5 animate-spin text-zinc-500" />}
+				{!latest && <Spinner className="size-3.5 text-zinc-500" />}
 				<span className="ml-auto text-[11px] text-zinc-600">{t("stats.touchHint")}</span>
 			</div>
 			<div className="grid gap-2 lg:grid-cols-3">
@@ -637,11 +637,11 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 	const { data, isLoading } = useServerStorage(server.id)
 	const total = data?.totalBytes ?? 0
 	return (
-		<Card className="flex min-w-0 flex-col gap-3 p-4">
+		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-center gap-2">
 				<HardDrive className="size-4 text-zinc-400" />
 				<h3 className="font-semibold text-sm text-zinc-100">{t("storage.title")}</h3>
-				{isLoading && <Loader2 className="size-3.5 animate-spin text-zinc-500" />}
+				{isLoading && <Spinner className="size-3.5 text-zinc-500" />}
 				{data && (
 					<span className="ml-auto font-semibold text-sm text-zinc-100 tabular-nums">
 						{formatBytes(total)}

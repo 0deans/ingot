@@ -1,17 +1,29 @@
 import type { LucideIcon } from "lucide-react"
 import { type ReactNode, useEffect, useRef, useState } from "react"
 import type { ItemStack } from "@/bindings"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardTitle,
+	CardHeader as ShadcnCardHeader,
+} from "@/components/ui/card"
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { avatarUrl, itemIconUrls, prettyId } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 
-/** A rounded surface; the basic building block of every panel */
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
-	return (
-		<section className={cn("rounded-2xl border border-zinc-800/80 bg-zinc-900/40", className)}>
-			{children}
-		</section>
-	)
-}
+/** Panel surfaces are shadcn Cards; CardHeader below adds the app's icon + title layout */
+export { Card, CardContent }
 
 export function CardHeader({
 	icon: Icon,
@@ -25,20 +37,20 @@ export function CardHeader({
 	action?: ReactNode
 }) {
 	return (
-		<div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+		<ShadcnCardHeader>
 			<div className="flex min-w-0 items-start gap-2.5">
 				{Icon && (
-					<div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-zinc-800/80 text-zinc-300">
+					<div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
 						<Icon className="size-3.5" />
 					</div>
 				)}
-				<div className="min-w-0">
-					<h3 className="font-semibold text-sm text-zinc-100">{title}</h3>
-					{description && <p className="mt-0.5 text-xs text-zinc-500">{description}</p>}
+				<div className="flex min-w-0 flex-col gap-1">
+					<CardTitle>{title}</CardTitle>
+					{description && <CardDescription>{description}</CardDescription>}
 				</div>
 			</div>
-			{action && <div className="shrink-0">{action}</div>}
-		</div>
+			{action && <CardAction>{action}</CardAction>}
+		</ShadcnCardHeader>
 	)
 }
 
@@ -56,25 +68,20 @@ export function EmptyState({
 	className?: string
 }) {
 	return (
-		<div
-			className={cn(
-				"flex flex-col items-center justify-center gap-2 px-6 py-10 text-center",
-				className,
-			)}
-		>
-			<div className="flex size-11 items-center justify-center rounded-2xl bg-zinc-800/60 text-zinc-500">
-				<Icon className="size-5" />
-			</div>
-			<p className="mt-1 font-medium text-sm text-zinc-300">{title}</p>
-			{description && (
-				<p className="max-w-xs text-xs text-zinc-500 leading-relaxed">{description}</p>
-			)}
-			{action && <div className="mt-2">{action}</div>}
-		</div>
+		<Empty className={className}>
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<Icon />
+				</EmptyMedia>
+				<EmptyTitle>{title}</EmptyTitle>
+				{description && <EmptyDescription>{description}</EmptyDescription>}
+			</EmptyHeader>
+			{action && <EmptyContent>{action}</EmptyContent>}
+		</Empty>
 	)
 }
 
-/** Pill-style tab switcher */
+/** Tab switcher (shadcn Tabs) for panels that swap their own content */
 export function Segmented<T extends string>({
 	value,
 	onChange,
@@ -87,30 +94,21 @@ export function Segmented<T extends string>({
 	className?: string
 }) {
 	return (
-		<div
-			className={cn(
-				"flex shrink-0 gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1 [scrollbar-width:none]",
-				className,
-			)}
+		<Tabs
+			value={value}
+			onValueChange={(v) => onChange(v as T)}
+			className={cn("shrink-0", className)}
 		>
-			{options.map(({ value: v, label, icon: Icon }) => (
-				<button
-					key={v}
-					type="button"
-					onClick={() => onChange(v)}
-					className={cn(
-						// Long translations wrap at spaces (down to their longest word) before the strip scrolls
-						"flex min-w-min flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-center font-medium text-xs leading-tight transition-colors",
-						value === v
-							? "bg-zinc-800 text-zinc-100 shadow-sm"
-							: "text-zinc-500 hover:text-zinc-300",
-					)}
-				>
-					{Icon && <Icon className="size-3.5 shrink-0" />}
-					{label}
-				</button>
-			))}
-		</div>
+			{/* Long translations wrap at spaces (down to their longest word) before the list scrolls */}
+			<TabsList className="w-full overflow-x-auto group-data-horizontal/tabs:h-auto">
+				{options.map(({ value: v, label, icon: Icon }) => (
+					<TabsTrigger key={v} value={v} className="min-w-min whitespace-normal py-1 leading-tight">
+						{Icon && <Icon />}
+						{label}
+					</TabsTrigger>
+				))}
+			</TabsList>
+		</Tabs>
 	)
 }
 
@@ -275,9 +273,9 @@ export function StatBar({
 
 export function ErrorNote({ children }: { children: ReactNode }) {
 	return (
-		<div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2.5 text-rose-300 text-xs">
-			{children}
-		</div>
+		<Alert variant="destructive">
+			<AlertDescription>{children}</AlertDescription>
+		</Alert>
 	)
 }
 

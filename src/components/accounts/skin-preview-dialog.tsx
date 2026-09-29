@@ -2,15 +2,19 @@ import { useNavigate } from "@tanstack/react-router"
 import { Check, Copy, Download, Sparkles } from "lucide-react"
 import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { AccountTypeBadge } from "@/components/accounts/account-type-badge"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
-import SkinAvatar from "@/components/ui/skin-avatar"
+} from "@/components/common/dialog"
+import SkinAvatar from "@/components/common/skin-avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { accountService } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
 import SkinViewer3D, { DEFAULT_STEVE_SKIN } from "./skin-viewer-3d"
@@ -25,7 +29,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const [copied, setCopied] = useState(false)
-	const [downloadStatus, setDownloadStatus] = useState<string | null>(null)
+	const [isSaving, setIsSaving] = useState(false)
 
 	if (!account) return null
 
@@ -42,21 +46,17 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 	}
 
 	const handleDownload = async () => {
+		setIsSaving(true)
 		try {
-			setDownloadStatus(t("skinPreview.saving"))
 			const targetSkin = account.skinUrl || DEFAULT_STEVE_SKIN
 			const savedPath = await accountService.saveSkinToDownloads(account.username, targetSkin)
-			if (!savedPath) {
-				// User cancelled the file save dialog
-				setDownloadStatus(null)
-				return
-			}
-			setDownloadStatus(t("skinPreview.saved"))
-			setTimeout(() => setDownloadStatus(null), 3000)
+			// No path means the user cancelled the save dialog
+			if (savedPath) toast.success(t("skinPreview.saved"))
 		} catch (err) {
 			console.error("Failed to save skin:", err)
-			setDownloadStatus(t("skinPreview.error"))
-			setTimeout(() => setDownloadStatus(null), 2500)
+			toast.error(t("skinPreview.error"))
+		} finally {
+			setIsSaving(false)
 		}
 	}
 
@@ -82,25 +82,11 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 								<DialogTitle className="font-semibold text-base text-foreground">
 									{account.username}
 								</DialogTitle>
-								{account.accountType === "ely" && (
-									<span className="inline-flex items-center rounded-xs bg-emerald-500/15 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
-										Ely.by
-									</span>
-								)}
-								{account.accountType === "microsoft" && (
-									<span className="inline-flex items-center rounded-xs bg-sky-500/15 px-1.5 py-0.5 font-medium text-[10px] text-sky-400">
-										Microsoft
-									</span>
-								)}
-								{account.accountType === "offline" && (
-									<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1.5 py-0.5 font-medium text-[10px] text-zinc-400">
-										{t("accounts.offline")}
-									</span>
-								)}
+								<AccountTypeBadge type={account.accountType} />
 								{account.isActive && (
-									<span className="inline-flex items-center gap-1 rounded-xs bg-primary/20 px-1.5 py-0.5 font-medium text-[10px] text-primary">
-										<Check className="size-2.5" /> {t("common.active")}
-									</span>
+									<Badge>
+										<Check /> {t("common.active")}
+									</Badge>
 								)}
 							</div>
 							<DialogDescription className="font-mono text-[11px]">
@@ -155,20 +141,12 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 										variant="outline"
 										size="xs"
 										onClick={handleDownload}
+										disabled={isSaving}
 										className="gap-1 text-xs"
 										title={t("skinPreview.downloadTitle")}
 									>
-										{downloadStatus ? (
-											<>
-												<Check className="size-3 text-emerald-400" />
-												<span className="text-emerald-400">{downloadStatus}</span>
-											</>
-										) : (
-											<>
-												<Download className="size-3" />
-												{t("skinPreview.download")}
-											</>
-										)}
+										{isSaving ? <Spinner /> : <Download />}
+										{isSaving ? t("skinPreview.saving") : t("skinPreview.download")}
 									</Button>
 								</div>
 							</>

@@ -3,7 +3,6 @@ import {
 	Check,
 	Download,
 	ExternalLink,
-	Loader2,
 	Package,
 	Puzzle,
 	RotateCw,
@@ -20,8 +19,11 @@ import type {
 	PluginVersion,
 	ServerConfig,
 } from "@/bindings"
+import { alertTone } from "@/components/common/alert-tones"
+import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
 	Select,
@@ -30,6 +32,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { formatBytes, formatCount } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -191,22 +194,22 @@ function RestartBanner({ serverId, onDone }: { serverId: string; onDone: () => v
 		onDone()
 	}
 	return (
-		<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-amber-500/20 bg-amber-500/10 py-2 pr-2 pl-3">
-			<span className="min-w-40 flex-1 text-amber-200 text-xs">{t("plugins.restartToApply")}</span>
-			<Button
-				size="sm"
-				onClick={restart}
-				disabled={restarting}
-				className="ml-auto h-8 shrink-0 gap-1.5 rounded-lg bg-amber-500/20 text-amber-100 hover:bg-amber-500/30"
-			>
-				{restarting ? (
-					<Loader2 className="size-3.5 animate-spin" />
-				) : (
-					<RotateCw className="size-3.5" />
-				)}
-				{t("plugins.restart")}
-			</Button>
-		</div>
+		<Alert className={alertTone.warning}>
+			{/* The button drops below the text when a translation is too long to share a row */}
+			<AlertDescription className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+				<span className="min-w-40 flex-1">{t("plugins.restartToApply")}</span>
+				<Button
+					size="sm"
+					variant="outline"
+					onClick={restart}
+					disabled={restarting}
+					className="ml-auto"
+				>
+					{restarting ? <Spinner /> : <RotateCw />}
+					{t("plugins.restart")}
+				</Button>
+			</AlertDescription>
+		</Alert>
 	)
 }
 
@@ -242,14 +245,14 @@ function InstalledList({
 	if (loading) {
 		return (
 			<div className="flex justify-center py-10">
-				<Loader2 className="size-5 animate-spin text-zinc-500" />
+				<Spinner className="size-5 text-zinc-500" />
 			</div>
 		)
 	}
 	// Only Ingot's own: a short hint instead of a big "nothing installed"
 	if (plugins.length === 0 && hasSystem) {
 		return (
-			<Card className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
+			<Card className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
 				<p className="min-w-40 flex-1 text-sm text-zinc-400">
 					{t("plugins.noOther", { context: kind.kind })}
 				</p>
@@ -289,7 +292,7 @@ function InstalledList({
 
 	return (
 		<>
-			<Card className="divide-y divide-zinc-800/70 overflow-hidden">
+			<Card className="gap-0 divide-y divide-zinc-800/70 py-0">
 				{plugins.map((p) => {
 					const update = updateFor(p)
 					return (
@@ -444,11 +447,7 @@ function InstalledDetails({
 					disabled={busy}
 					className="h-11 gap-2 rounded-xl bg-sky-600 text-white hover:bg-sky-500"
 				>
-					{busy ? (
-						<Loader2 className="size-4 animate-spin" />
-					) : (
-						<ArrowUpCircle className="size-4" />
-					)}
+					{busy ? <Spinner className="size-4" /> : <ArrowUpCircle className="size-4" />}
 					{t("plugins.updateTo", { version: update.versionNumber })}
 				</Button>
 			)}
@@ -470,7 +469,7 @@ function InstalledDetails({
 						disabled={busy}
 						className="h-10 flex-1 gap-1.5 rounded-xl"
 					>
-						{busy ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+						{busy ? <Spinner className="size-4" /> : <Trash2 className="size-4" />}
 						{t("plugins.reallyDelete")}
 					</Button>
 				) : (
@@ -581,7 +580,7 @@ function BrowseView({
 
 			{search.isLoading ? (
 				<div className="flex justify-center py-10">
-					<Loader2 className="size-5 animate-spin text-zinc-500" />
+					<Spinner className="size-5 text-zinc-500" />
 				</div>
 			) : results.length === 0 ? (
 				<Card>
@@ -619,11 +618,7 @@ function BrowseView({
 							disabled={search.isFetchingNextPage}
 							className="h-11 rounded-xl border-zinc-800"
 						>
-							{search.isFetchingNextPage ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								t("plugins.loadMore")
-							)}
+							{search.isFetchingNextPage ? <Spinner className="size-4" /> : t("plugins.loadMore")}
 						</Button>
 					)}
 				</>
@@ -674,13 +669,14 @@ function ResultCard({
 						{project.description}
 					</p>
 					{project.playersNeedIt && (
-						<p
-							className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 font-medium text-[10px] text-amber-300"
+						<Badge
+							variant="outline"
+							className="mt-1.5 border-amber-500/30 text-amber-300"
 							title={t("plugins.playersNeedItTitle")}
 						>
-							<Users className="size-3" />
+							<Users />
 							{t("plugins.playersNeedIt")}
-						</p>
+						</Badge>
 					)}
 				</div>
 			</button>
@@ -701,7 +697,7 @@ function ResultCard({
 				)}
 			>
 				{installing ? (
-					<Loader2 className="size-4 animate-spin" />
+					<Spinner className="size-4" />
 				) : installed ? (
 					<Check className="size-4" />
 				) : (

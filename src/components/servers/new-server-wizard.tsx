@@ -1,12 +1,15 @@
 import i18n from "i18next"
-import { AlertCircle, ArrowLeft, Check, Cpu, Loader2, Plus, Server } from "lucide-react"
+import { AlertCircle, ArrowLeft, Check, Cpu, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ServerConfig, ServerCoreType } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { FadeScroll } from "@/components/servers/shared/primitives"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
 	Select,
 	SelectContent,
@@ -14,7 +17,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
-import Slider from "@/components/ui/slider"
+import { Slider } from "@/components/ui/slider"
+import { Spinner } from "@/components/ui/spinner"
 import { formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
 import { cn } from "@/lib/utils"
@@ -295,10 +299,10 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 				)}
 
 				{error && (
-					<div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-rose-300 text-xs">
-						<AlertCircle className="mt-0.5 size-3.5 shrink-0 text-rose-400" />
-						<span>{error}</span>
-					</div>
+					<Alert variant="destructive" className="mt-4">
+						<AlertCircle />
+						<AlertDescription>{error}</AlertDescription>
+					</Alert>
 				)}
 			</FadeScroll>
 
@@ -320,7 +324,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 					>
 						{isSubmitting ? (
 							<>
-								<Loader2 className="mr-2 size-4 animate-spin" />
+								<Spinner className="mr-2 size-4" />
 								{t("wizard.preparing")}
 							</>
 						) : (
@@ -368,14 +372,9 @@ function StepCore({
 						<div className="min-w-0 flex-1">
 							<div className="flex items-center gap-2">
 								<span className="font-semibold text-sm text-zinc-100">{c.name}</span>
-								<span
-									className={cn(
-										"rounded-full px-2 py-0.5 font-medium text-[10px]",
-										isSelected ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-800 text-zinc-400",
-									)}
-								>
+								<Badge variant={isSelected ? "default" : "secondary"}>
 									{t(`serverCores.${c.id}.badge`)}
-								</span>
+								</Badge>
 							</div>
 							<p className="mt-0.5 text-[11px] text-zinc-500 leading-snug">
 								{t(`serverCores.${c.id}.tagline`)}
@@ -440,9 +439,9 @@ function StepDetails({
 
 			{/* Server name */}
 			<div className="flex flex-col gap-1.5">
-				<label htmlFor="wiz-name" className="font-medium text-xs text-zinc-300">
+				<Label htmlFor="wiz-name" className="font-medium text-xs text-zinc-300">
 					{t("wizard.serverName")}
-				</label>
+				</Label>
 				<Input
 					id="wiz-name"
 					placeholder={t("wizard.namePlaceholder", { core: coreObj?.name ?? "Paper" })}
@@ -458,7 +457,7 @@ function StepDetails({
 				<span className="font-medium text-xs text-zinc-300">{t("wizard.minecraftVersion")}</span>
 				{isLoadingVersions ? (
 					<div className="flex h-11 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-500">
-						<Loader2 className="size-3.5 animate-spin text-emerald-400" />
+						<Spinner className="size-3.5 text-emerald-400" />
 						{t("newInstance.loadingVersions")}
 					</div>
 				) : (
@@ -481,9 +480,9 @@ function StepDetails({
 			{!isMobile && (
 				<div className="flex flex-col gap-1.5">
 					<div className="flex items-center justify-between">
-						<label htmlFor="wiz-port" className="font-medium text-xs text-zinc-300">
+						<Label htmlFor="wiz-port" className="font-medium text-xs text-zinc-300">
 							{t("wizard.serverPort")}
-						</label>
+						</Label>
 						{isPortConflict && (
 							<span className="font-medium text-[11px] text-rose-400">
 								{t("wizard.portInUseShort")}

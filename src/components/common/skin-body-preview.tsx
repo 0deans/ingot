@@ -1,4 +1,5 @@
 ﻿import { memo, useEffect, useRef, useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { accountService } from "@/services/account-service"
 
 interface SkinBodyPreviewProps {
@@ -151,9 +152,7 @@ const SkinBodyPreview = ({
 				className={`size-full ${hasError || isLoading ? "hidden" : "block"}`}
 				style={{ imageRendering: "pixelated" }}
 			/>
-			{(isLoading || hasError) && (
-				<div className="size-full animate-pulse rounded bg-zinc-800/60" />
-			)}
+			{(isLoading || hasError) && <Skeleton className="size-full" />}
 		</div>
 	)
 }

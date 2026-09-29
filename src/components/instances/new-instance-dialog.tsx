@@ -1,10 +1,6 @@
-import { Loader2 } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ModLoaderType, VersionManifestEntry } from "@/bindings"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -12,10 +8,16 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import SearchableSelect from "@/components/common/searchable-select"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import SearchableSelect from "@/components/ui/searchable-select"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { instanceService } from "@/services/instance-service"
 
 interface NewInstanceDialogProps {
@@ -170,26 +172,23 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 							<div className="font-medium text-muted-foreground text-xs">
 								{t("newInstance.modLoader")}
 							</div>
-							<div className="grid grid-cols-5 gap-1.5 rounded-lg border border-border/40 bg-zinc-950/40 p-1.5">
-								{LOADERS.map((item) => {
-									const active = loader === item.id
-									return (
-										<button
-											key={item.id}
-											type="button"
-											onClick={() => setLoader(item.id)}
-											className={`flex flex-col items-center justify-center gap-2 rounded-md p-2.5 font-medium text-xs transition-all ${
-												active
-													? "bg-primary text-primary-foreground shadow-sm"
-													: "text-muted-foreground hover:bg-zinc-800/60 hover:text-foreground"
-											}`}
-										>
-											<LoaderIcon loader={item.id} size={22} />
-											<span>{item.label}</span>
-										</button>
-									)
-								})}
-							</div>
+							<ToggleGroup
+								variant="outline"
+								value={[loader]}
+								onValueChange={(value) => value[0] && setLoader(value[0] as ModLoaderType)}
+								className="grid w-full grid-cols-5"
+							>
+								{LOADERS.map((item) => (
+									<ToggleGroupItem
+										key={item.id}
+										value={item.id}
+										className="h-auto flex-col gap-2 p-2.5 text-xs"
+									>
+										<LoaderIcon loader={item.id} size={22} />
+										<span>{item.label}</span>
+									</ToggleGroupItem>
+								))}
+							</ToggleGroup>
 						</div>
 
 						{/* Version Row */}
@@ -199,13 +198,13 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 							{/* Game Version */}
 							<div className="grid gap-1.5">
 								<div className="flex items-center justify-between">
-									<label
+									<Label
 										htmlFor="game-version"
 										className="font-medium text-muted-foreground text-xs"
 									>
 										{t("newInstance.minecraftVersion")}
-									</label>
-									<label
+									</Label>
+									<Label
 										htmlFor="snapshots-toggle"
 										className="flex cursor-pointer select-none items-center gap-1.5 font-normal text-muted-foreground text-xs transition-colors hover:text-foreground"
 									>
@@ -215,7 +214,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 											onCheckedChange={(checked) => setShowSnapshots(Boolean(checked))}
 										/>
 										<span>{t("newInstance.snapshots")}</span>
-									</label>
+									</Label>
 								</div>
 
 								<SearchableSelect
@@ -236,12 +235,12 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 							{/* Loader Version - Only visible when a loader is selected */}
 							{loader !== "vanilla" && (
 								<div className="grid gap-1.5">
-									<label
+									<Label
 										htmlFor="loader-version"
 										className="font-medium text-muted-foreground text-xs"
 									>
 										{t("newInstance.loaderVersion")}
-									</label>
+									</Label>
 
 									<SearchableSelect
 										id="loader-version"
@@ -264,9 +263,9 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 
 						{/* Instance Name */}
 						<div className="grid gap-1.5">
-							<label htmlFor="instance-name" className="font-medium text-muted-foreground text-xs">
+							<Label htmlFor="instance-name" className="font-medium text-muted-foreground text-xs">
 								{t("newInstance.name")}
-							</label>
+							</Label>
 							<Input
 								id="instance-name"
 								value={instanceName}
@@ -290,7 +289,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 						disabled={!instanceName.trim() || isSubmitting}
 						className="w-full gap-2"
 					>
-						{isSubmitting && <Loader2 className="size-3.5 animate-spin" />}
+						{isSubmitting && <Spinner className="size-3.5" />}
 						{t("quickJoin.createInstance")}
 					</Button>
 				</DialogFooter>

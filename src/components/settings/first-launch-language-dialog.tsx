@@ -1,6 +1,5 @@
 import { Check, Globe, Monitor, Moon, Sun } from "lucide-react"
 import { memo } from "react"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -8,8 +7,10 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Button } from "@/components/ui/button"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useLanguage } from "@/i18n/use-language"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
@@ -115,25 +116,22 @@ export const FirstLaunchLanguageDialog = () => {
 				</ScrollArea>
 
 				<DialogFooter className="flex flex-row items-center gap-2 border-zinc-800/80 border-t pt-4 sm:justify-between">
-					<div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900/60 p-0.5">
+					<ToggleGroup
+						variant="outline"
+						spacing={0}
+						value={[themeMode]}
+						onValueChange={(value) => {
+							const mode = THEMES.find((th) => th.mode === value[0])?.mode
+							if (mode) setThemeMode(mode)
+						}}
+						className="shrink-0"
+					>
 						{THEMES.map(({ mode, icon: Icon, label }) => (
-							<button
-								key={mode}
-								type="button"
-								aria-pressed={themeMode === mode}
-								onClick={() => setThemeMode(mode)}
-								title={t(label)}
-								className={cn(
-									"inline-flex size-8 items-center justify-center rounded-md transition-colors",
-									themeMode === mode
-										? "bg-zinc-800 text-foreground"
-										: "text-zinc-500 hover:text-zinc-200",
-								)}
-							>
-								<Icon className="size-4" />
-							</button>
+							<ToggleGroupItem key={mode} value={mode} aria-label={t(label)} title={t(label)}>
+								<Icon />
+							</ToggleGroupItem>
 						))}
-					</div>
+					</ToggleGroup>
 					<Button onClick={handleConfirm} className="h-9 min-w-0 flex-1 sm:flex-none sm:px-6">
 						<span className="truncate">
 							{t("onboarding.continueWith", {

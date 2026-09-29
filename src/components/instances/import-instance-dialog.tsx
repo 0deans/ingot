@@ -13,7 +13,6 @@ import {
 	Gamepad2,
 	HardDrive,
 	Layers,
-	Loader2,
 	Rocket,
 	Search,
 	Server,
@@ -23,9 +22,7 @@ import {
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { DetectedLauncher, ImportableInstance } from "@/bindings"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { alertTone } from "@/components/common/alert-tones"
 import {
 	Dialog,
 	DialogContent,
@@ -33,9 +30,16 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 import { importerService } from "@/services/importer-service"
 
 interface ImportInstanceDialogProps {
@@ -271,7 +275,7 @@ export const ImportInstanceDialog = ({
 					<ScrollArea scrollFade className="-mr-2 max-h-[min(520px,70vh)] py-1 pr-2">
 						{isLoadingLaunchers ? (
 							<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
-								<Loader2 className="size-6 animate-spin text-primary" />
+								<Spinner className="size-6 text-primary" />
 								<span>{t("importInstance.detecting")}</span>
 							</div>
 						) : (
@@ -313,9 +317,12 @@ export const ImportInstanceDialog = ({
 															{l.name}
 														</span>
 														{l.available && (
-															<span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
+															<Badge
+																variant="outline"
+																className="shrink-0 border-emerald-500/30 text-emerald-400"
+															>
 																{t("common.installed")}
-															</span>
+															</Badge>
 														)}
 													</div>
 													<div className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -413,7 +420,7 @@ export const ImportInstanceDialog = ({
 							<div className="flex flex-col gap-2 py-1">
 								{isLoadingInstances ? (
 									<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
-										<Loader2 className="size-6 animate-spin text-primary" />
+										<Spinner className="size-6 text-primary" />
 										<span>{t("importInstance.loadingInstances")}</span>
 									</div>
 								) : filteredInstances.length === 0 ? (
@@ -497,9 +504,9 @@ export const ImportInstanceDialog = ({
 								<div className="flex items-center gap-3">
 									<LoaderIcon loader={selectedInstance.loader} size={24} />
 									<div className="flex-1">
-										<label htmlFor="import-name" className="text-[10px] text-muted-foreground">
+										<Label htmlFor="import-name" className="text-[10px] text-muted-foreground">
 											{t("importInstance.nameInIngot")}
-										</label>
+										</Label>
 										<Input
 											id="import-name"
 											value={instanceName}
@@ -531,7 +538,7 @@ export const ImportInstanceDialog = ({
 								</span>
 
 								<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-									<label
+									<Label
 										htmlFor="copy-mods"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -552,9 +559,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyMods(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-configs"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -575,9 +582,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyConfigs(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-saves"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -600,9 +607,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopySaves(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-resourcepacks"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -623,9 +630,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyResourcePacks(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-screenshots"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -650,9 +657,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyScreenshots(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-extra-data"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -673,9 +680,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyExtraData(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-options"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -696,9 +703,9 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyOptions(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 
-									<label
+									<Label
 										htmlFor="copy-servers"
 										className="flex cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-border/40 bg-zinc-900/30 p-2.5 transition-colors hover:bg-zinc-900/60"
 									>
@@ -719,7 +726,7 @@ export const ImportInstanceDialog = ({
 											onCheckedChange={(c) => setCopyServers(Boolean(c))}
 											className="shrink-0"
 										/>
-									</label>
+									</Label>
 								</div>
 
 								{/* Info notice */}
@@ -735,10 +742,10 @@ export const ImportInstanceDialog = ({
 							</div>
 
 							{importStatus && (
-								<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-emerald-300 text-xs">
-									<CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-									<span>{importStatus}</span>
-								</div>
+								<Alert className={alertTone.success}>
+									<CheckCircle2 />
+									<AlertDescription>{importStatus}</AlertDescription>
+								</Alert>
 							)}
 						</div>
 					</ScrollArea>
@@ -751,11 +758,7 @@ export const ImportInstanceDialog = ({
 							disabled={isImporting || !instanceName.trim()}
 							className="w-full gap-1.5 font-medium"
 						>
-							{isImporting ? (
-								<Loader2 className="size-3.5 animate-spin" />
-							) : (
-								<Check className="size-3.5" />
-							)}
+							{isImporting ? <Spinner className="size-3.5" /> : <Check className="size-3.5" />}
 							{isImporting ? t("importInstance.importing") : t("importInstance.import")}
 						</Button>
 					</DialogFooter>

@@ -1,8 +1,10 @@
 import { Check, Eye, Settings, ShieldCheck, Trash2, UserPlus } from "lucide-react"
 import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { AccountTypeBadge } from "@/components/accounts/account-type-badge"
 import AddAccountDialog from "@/components/accounts/add-account-dialog"
 import SkinPreviewDialog from "@/components/accounts/skin-preview-dialog"
+import SkinAvatar from "@/components/common/skin-avatar"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
@@ -13,7 +15,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import SkinAvatar from "@/components/ui/skin-avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useAccounts } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
@@ -95,21 +96,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 								<span className="truncate font-semibold text-foreground text-xs">
 									{activeAccount ? activeAccount.username : t("accounts.noAccount")}
 								</span>
-								{activeAccount?.accountType === "ely" && (
-									<span className="inline-flex items-center rounded-xs bg-emerald-500/10 px-1 py-0.2 text-[9px] text-emerald-400">
-										Ely.by
-									</span>
-								)}
-								{activeAccount?.accountType === "microsoft" && (
-									<span className="inline-flex items-center rounded-xs bg-sky-500/10 px-1 py-0.2 text-[9px] text-sky-400">
-										Microsoft
-									</span>
-								)}
-								{activeAccount?.accountType === "offline" && (
-									<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1 py-0.2 text-[9px] text-zinc-400">
-										{t("accounts.offline")}
-									</span>
-								)}
+								{activeAccount && <AccountTypeBadge type={activeAccount.accountType} />}
 							</div>
 							<span className="flex items-center gap-1 text-[10px] text-muted-foreground">
 								{activeAccount?.accountType === "ely" ||

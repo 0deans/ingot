@@ -494,8 +494,10 @@
 	}
 
 	/* Fades an edge only while there is more content in that direction. The variables are
-	   set by Base UI ScrollArea viewports, and by FadeScroll for plain scroll containers. */
-	.scroll-fade {
+	   set by Base UI ScrollArea viewports, and by FadeScroll for plain scroll containers.
+	   The ScrollArea in components/common opts in with data-scroll-fade. */
+	.scroll-fade,
+	[data-scroll-fade] > [data-slot="scroll-area-viewport"] {
 		--fade-top: min(var(--scroll-area-overflow-y-start, 0px), 24px);
 		--fade-bottom: min(var(--scroll-area-overflow-y-end, 28px), 28px);
 		mask-image: linear-gradient(

@@ -1,8 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { Check, Loader2, Map as MapIcon, Radio, RefreshCw } from "lucide-react"
+import { Check, Map as MapIcon, Radio, RefreshCw } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
+import { Spinner } from "@/components/ui/spinner"
 import { dimensionStyle } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 import {
@@ -120,7 +121,7 @@ export function MapPanel({
 	if (isLoading) {
 		return (
 			<div className={cn("flex items-center justify-center", className)}>
-				<Loader2 className="size-5 animate-spin text-zinc-500" />
+				<Spinner className="size-5 text-zinc-500" />
 			</div>
 		)
 	}
@@ -195,7 +196,7 @@ export function MapPanel({
 							className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-50/10 bg-zinc-950/80 px-2.5 font-medium text-[11px] text-zinc-200 backdrop-blur-md transition-colors hover:bg-zinc-950"
 						>
 							{installCompanion.isPending ? (
-								<Loader2 className="size-3.5 animate-spin" />
+								<Spinner className="size-3.5" />
 							) : (
 								<Radio className="size-3.5 text-emerald-400" />
 							)}

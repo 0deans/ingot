@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle, Check, Loader2, Package, Undo2 } from "lucide-react"
+import { AlertTriangle, Check, Package, Undo2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { CrashSuspect, VersionChangeCrash } from "@/bindings"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/common/dialog"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
 import { instanceService } from "@/services/instance-service"
 import { rpc, serverService } from "@/services/server-service"
 
@@ -131,7 +132,7 @@ export default function VersionChangeCrashDialog() {
 										className="h-8 gap-1.5 rounded-lg text-xs"
 									>
 										{busy === suspect.fileName ? (
-											<Loader2 className="size-3.5 animate-spin" />
+											<Spinner className="size-3.5" />
 										) : off ? (
 											<Check className="size-3.5" />
 										) : null}
@@ -186,11 +187,7 @@ export default function VersionChangeCrashDialog() {
 							onClick={undo}
 							className="gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
 						>
-							{busy === "undo" ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								<Undo2 className="size-4" />
-							)}
+							{busy === "undo" ? <Spinner className="size-4" /> : <Undo2 className="size-4" />}
 							{t("crashDialog.undo")}
 						</Button>
 					)}

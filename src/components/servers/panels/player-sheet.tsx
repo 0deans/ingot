@@ -6,7 +6,6 @@ import {
 	Droplets,
 	Flame,
 	Heart,
-	Loader2,
 	LogOut,
 	MapPin,
 	Shield,
@@ -15,8 +14,11 @@ import {
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemStack, PlayerDetails } from "@/bindings"
+import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import {
 	dimensionStyle,
 	formatRelativeTime,
@@ -84,7 +86,7 @@ export function PlayerSheet({
 				<DialogTitle className="sr-only">{shownName}</DialogTitle>
 				{isLoading && !player ? (
 					<div className="flex items-center justify-center gap-2 py-16 text-sm text-zinc-500">
-						<Loader2 className="size-4 animate-spin" /> {t("playerSheet.loading")}
+						<Spinner className="size-4" /> {t("playerSheet.loading")}
 					</div>
 				) : !player ? (
 					<div className="p-5">
@@ -301,7 +303,7 @@ function InventoryGrid({
 				onSelect={onSelect}
 				selectedSlot={selectedSlot}
 			/>
-			<div className="h-px bg-zinc-800" />
+			<Separator />
 			<SlotGrid
 				items={player.inventory}
 				slots={9}
@@ -530,28 +532,31 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 			</div>
 
 			{confirm ? (
-				<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-2 pl-3">
-					<span className="min-w-40 flex-1 text-rose-200 text-xs">
-						{confirm === "kick"
-							? t("playerSheet.confirmKick", { name: player.name })
-							: t("playerSheet.confirmBan", { name: player.name })}
-					</span>
-					<div className="ml-auto flex gap-1.5">
-						<Button size="sm" variant="ghost" onClick={() => setConfirm(null)}>
-							{t("common.cancel")}
-						</Button>
-						<Button
-							size="sm"
-							variant="destructive"
-							onClick={() => {
-								run(confirm, `${confirm} ${player.name}`)
-								setConfirm(null)
-							}}
-						>
-							{t("playerSheet.confirm")}
-						</Button>
-					</div>
-				</div>
+				<Alert variant="destructive">
+					{/* Buttons drop below the question when a translation is too long to share a row */}
+					<AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+						<span className="min-w-40 flex-1">
+							{confirm === "kick"
+								? t("playerSheet.confirmKick", { name: player.name })
+								: t("playerSheet.confirmBan", { name: player.name })}
+						</span>
+						<div className="ml-auto flex gap-1.5">
+							<Button size="sm" variant="ghost" onClick={() => setConfirm(null)}>
+								{t("common.cancel")}
+							</Button>
+							<Button
+								size="sm"
+								variant="destructive"
+								onClick={() => {
+									run(confirm, `${confirm} ${player.name}`)
+									setConfirm(null)
+								}}
+							>
+								{t("playerSheet.confirm")}
+							</Button>
+						</div>
+					</AlertDescription>
+				</Alert>
 			) : (
 				<div className="grid grid-cols-2 gap-2">
 					<ActionButton
@@ -608,11 +613,7 @@ function ActionButton({
 						: "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800",
 			)}
 		>
-			{busy ? (
-				<Loader2 className="size-3.5 shrink-0 animate-spin" />
-			) : (
-				<Icon className="size-3.5 shrink-0" />
-			)}
+			{busy ? <Spinner className="size-3.5 shrink-0" /> : <Icon className="size-3.5 shrink-0" />}
 			{label}
 		</button>
 	)

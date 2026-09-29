@@ -13,7 +13,8 @@
 			"!**/src-tauri/target",
 			"!**/public",
 			"!**/routeTree.gen.ts",
-			"!**/bindings.ts"
+			"!**/bindings.ts",
+			"!**/src/components/ui"
 		]
 	},
 	"formatter": {
@@ -38,7 +39,10 @@
 			"correctness": {
 				"useHookAtTopLevel": "error",
 				"useJsxKeyInIterable": "error",
-				"noReactPropAssignments": "warn"
+				"noReactPropAssignments": "warn",
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error",
+				"noUnusedFunctionParameters": "error"
 			},
 			"style": {
 				"useImportType": "warn",

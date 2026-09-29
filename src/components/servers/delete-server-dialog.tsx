@@ -1,9 +1,7 @@
-import { AlertTriangle, Loader2, Trash2 } from "lucide-react"
+import { AlertTriangle, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +9,11 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 
 export interface DeleteServerDialogProps {
 	server: ServerConfig | null
@@ -79,7 +81,7 @@ export default function DeleteServerDialog({
 						</div>
 					</div>
 
-					<label
+					<Label
 						htmlFor="delete-files-checkbox"
 						className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border/40 bg-zinc-900/20 p-3 hover:bg-zinc-900/40"
 					>
@@ -97,7 +99,7 @@ export default function DeleteServerDialog({
 								{t("deleteServer.deleteFilesDesc")}
 							</span>
 						</div>
-					</label>
+					</Label>
 				</div>
 
 				<DialogFooter className="gap-2 sm:gap-0">
@@ -119,7 +121,7 @@ export default function DeleteServerDialog({
 					>
 						{isDeleting ? (
 							<>
-								<Loader2 className="size-3.5 animate-spin" />
+								<Spinner className="size-3.5" />
 								<span>{t("common.deleting")}</span>
 							</>
 						) : (

@@ -7,8 +7,10 @@ import { CSS } from "@dnd-kit/utilities"
 import { Check, Eye, GripVertical, Trash2 } from "lucide-react"
 import { memo, type Ref } from "react"
 import { useTranslation } from "react-i18next"
+import { AccountTypeBadge } from "@/components/accounts/account-type-badge"
+import SkinAvatar from "@/components/common/skin-avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import SkinAvatar from "@/components/ui/skin-avatar"
 import { cn } from "@/lib/utils"
 import type { AccountProfile } from "@/types/account"
 
@@ -88,25 +90,11 @@ export const AccountCardContent = memo(function AccountCardContent({
 						<span className="truncate font-semibold text-foreground text-sm">
 							{account.username}
 						</span>
-						{account.accountType === "ely" && (
-							<span className="inline-flex items-center rounded-xs bg-emerald-500/15 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
-								Ely.by
-							</span>
-						)}
-						{account.accountType === "microsoft" && (
-							<span className="inline-flex items-center rounded-xs bg-sky-500/15 px-1.5 py-0.5 font-medium text-[10px] text-sky-400">
-								Microsoft
-							</span>
-						)}
-						{account.accountType === "offline" && (
-							<span className="inline-flex items-center rounded-xs bg-zinc-800 px-1.5 py-0.5 font-medium text-[10px] text-zinc-400">
-								{t("accounts.offline")}
-							</span>
-						)}
+						<AccountTypeBadge type={account.accountType} />
 						{account.isActive && (
-							<span className="inline-flex items-center gap-1 rounded-xs bg-primary/20 px-1.5 py-0.5 font-medium text-[10px] text-primary">
-								<Check className="size-2.5" /> {t("common.active")}
-							</span>
+							<Badge>
+								<Check /> {t("common.active")}
+							</Badge>
 						)}
 					</div>
 					<span className="truncate font-mono text-[11px] text-muted-foreground">

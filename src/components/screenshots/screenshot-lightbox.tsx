@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatBytes, formatDateTime } from "@/lib/format"
 import { type ScreenshotInfo, screenshotService } from "@/services/screenshot-service"
@@ -156,7 +157,7 @@ const ScreenshotLightbox = ({
 						<TooltipContent side="bottom">{t("screenshots.deleteDialog.title")}</TooltipContent>
 					</Tooltip>
 
-					<div className="mx-0.5 h-4 w-px bg-zinc-800" />
+					<Separator orientation="vertical" className="mx-0.5 h-4" />
 
 					<Tooltip>
 						<TooltipTrigger

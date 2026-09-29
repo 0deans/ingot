@@ -6,7 +6,6 @@ import {
 	FolderOpen,
 	Globe,
 	HardDrive,
-	Loader2,
 	Play,
 	Settings,
 	Square,
@@ -23,10 +22,12 @@ import type {
 } from "@/bindings"
 import { DirectConnectDialog } from "@/components/instances/direct-connect-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSub,
@@ -34,6 +35,8 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Progress } from "@/components/ui/progress"
+import { Spinner } from "@/components/ui/spinner"
 import { translateLaunchDetail, translateLaunchPhase } from "@/lib/backend-text"
 import {
 	formatDuration as formatLocalDuration,
@@ -169,21 +172,21 @@ export const InstanceCard = ({
 				{/* Status Pill */}
 				<div>
 					{isRunning ? (
-						<span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-medium text-[11px] text-emerald-400 shadow-sm">
+						<Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
 							<span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
 							{formatDuration(elapsedSeconds)}
-						</span>
+						</Badge>
 					) : isDownloading ? (
-						<span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-medium text-[11px] text-amber-400 shadow-sm">
-							<Loader2 className="size-3 animate-spin" />
+						<Badge variant="outline" className="border-amber-500/30 text-amber-400">
+							<Spinner />
 							{progress.percentage != null
 								? formatPercent(progress.percentage)
 								: t("instances.card.preparing")}
-						</span>
+						</Badge>
 					) : (
-						<span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/80 px-2.5 py-0.5 text-[11px] text-zinc-400">
+						<Badge variant="outline" className="text-muted-foreground">
 							{formatLastPlayed(instance.lastPlayed)}
-						</span>
+						</Badge>
 					)}
 				</div>
 			</div>
@@ -238,14 +241,7 @@ export const InstanceCard = ({
 								{progress.percentage != null ? formatPercent(progress.percentage) : ""}
 							</span>
 						</div>
-						<div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-							<div
-								className="h-full rounded-full bg-amber-400 transition-all duration-200"
-								style={{
-									width: `${Math.min(100, Math.max(0, progress.percentage ?? 0))}%`,
-								}}
-							/>
-						</div>
+						<Progress value={Math.min(100, Math.max(0, progress.percentage ?? 0))} />
 						<span className="truncate font-mono text-[10px] text-zinc-400">
 							{translateLaunchDetail(progress.detail)}
 						</span>
@@ -273,7 +269,7 @@ export const InstanceCard = ({
 							disabled
 							className="h-8 gap-1.5 px-3.5 font-medium text-xs opacity-75"
 						>
-							<Loader2 className="size-3.5 animate-spin" />
+							<Spinner className="size-3.5" />
 							<span>{t("instances.card.preparingBtn")}</span>
 						</Button>
 					) : (
@@ -303,94 +299,98 @@ export const InstanceCard = ({
 									}
 								/>
 								<DropdownMenuContent align="start" className="w-56">
-									<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
-										{t("instances.card.quickPlay")}
-									</DropdownMenuLabel>
-									<DropdownMenuItem
-										onClick={() => setDirectConnectOpen(true)}
-										className="cursor-pointer gap-2"
-									>
-										<Globe className="size-4 text-emerald-400" />
-										<div className="flex flex-col">
-											<span className="font-medium text-xs">
-												{t("instances.card.directConnect")}
-											</span>
-											<span className="text-[10px] text-muted-foreground">
-												{t("instances.card.directConnectDesc")}
-											</span>
-										</div>
-									</DropdownMenuItem>
-
-									{supportsSingleplayerQP ? (
-										<DropdownMenuSub>
-											<DropdownMenuSubTrigger className="cursor-pointer gap-2">
-												<Compass className="size-4 text-sky-400" />
-												<div className="flex flex-col text-left">
-													<span className="font-medium text-xs">
-														{t("instances.card.quickLoadWorld")}
-													</span>
-													<span className="text-[10px] text-muted-foreground">
-														{t("instances.card.quickLoadWorldDesc")}
-													</span>
-												</div>
-											</DropdownMenuSubTrigger>
-											<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
-												<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
-													{t("instances.card.singleplayerSaves")}
-												</DropdownMenuLabel>
-												{loadingWorlds ? (
-													<div className="flex items-center gap-2 p-2.5 text-muted-foreground text-xs">
-														<Loader2 className="size-3.5 animate-spin" />
-														<span>{t("instances.card.scanningWorlds")}</span>
-													</div>
-												) : worlds.length === 0 ? (
-													<div className="p-2.5 text-xs text-zinc-400">
-														{t("instances.card.noSavedWorlds")}
-													</div>
-												) : (
-													worlds.map((w) => (
-														<DropdownMenuItem
-															key={w.folderName}
-															onClick={() => onPlay({ server: null, world: w.folderName })}
-															className="cursor-pointer gap-2.5 py-1.5"
-														>
-															{w.icon ? (
-																<img
-																	src={w.icon}
-																	alt=""
-																	className="size-7 shrink-0 rounded border border-zinc-800 object-cover"
-																/>
-															) : (
-																<div className="flex size-7 shrink-0 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-400">
-																	<Compass className="size-3.5" />
-																</div>
-															)}
-															<div className="flex min-w-0 flex-col truncate">
-																<span className="truncate font-medium text-xs text-zinc-200">
-																	{w.displayName}
-																</span>
-																<span className="truncate text-[10px] text-zinc-500">
-																	{w.lastPlayed ? formatLastPlayed(w.lastPlayed) : w.folderName}
-																</span>
-															</div>
-														</DropdownMenuItem>
-													))
-												)}
-											</DropdownMenuSubContent>
-										</DropdownMenuSub>
-									) : (
-										<DropdownMenuItem disabled className="gap-2 opacity-50">
-											<Compass className="size-4 text-zinc-500" />
+									<DropdownMenuGroup>
+										<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
+											{t("instances.card.quickPlay")}
+										</DropdownMenuLabel>
+										<DropdownMenuItem
+											onClick={() => setDirectConnectOpen(true)}
+											className="cursor-pointer gap-2"
+										>
+											<Globe className="size-4 text-emerald-400" />
 											<div className="flex flex-col">
 												<span className="font-medium text-xs">
-													{t("instances.card.quickLoadWorld")}
+													{t("instances.card.directConnect")}
 												</span>
-												<span className="text-[10px] text-zinc-500">
-													{t("instances.card.requires120")}
+												<span className="text-[10px] text-muted-foreground">
+													{t("instances.card.directConnectDesc")}
 												</span>
 											</div>
 										</DropdownMenuItem>
-									)}
+
+										{supportsSingleplayerQP ? (
+											<DropdownMenuSub>
+												<DropdownMenuSubTrigger className="cursor-pointer gap-2">
+													<Compass className="size-4 text-sky-400" />
+													<div className="flex flex-col text-left">
+														<span className="font-medium text-xs">
+															{t("instances.card.quickLoadWorld")}
+														</span>
+														<span className="text-[10px] text-muted-foreground">
+															{t("instances.card.quickLoadWorldDesc")}
+														</span>
+													</div>
+												</DropdownMenuSubTrigger>
+												<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
+													<DropdownMenuGroup>
+														<DropdownMenuLabel className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wider">
+															{t("instances.card.singleplayerSaves")}
+														</DropdownMenuLabel>
+														{loadingWorlds ? (
+															<div className="flex items-center gap-2 p-2.5 text-muted-foreground text-xs">
+																<Spinner className="size-3.5" />
+																<span>{t("instances.card.scanningWorlds")}</span>
+															</div>
+														) : worlds.length === 0 ? (
+															<div className="p-2.5 text-xs text-zinc-400">
+																{t("instances.card.noSavedWorlds")}
+															</div>
+														) : (
+															worlds.map((w) => (
+																<DropdownMenuItem
+																	key={w.folderName}
+																	onClick={() => onPlay({ server: null, world: w.folderName })}
+																	className="cursor-pointer gap-2.5 py-1.5"
+																>
+																	{w.icon ? (
+																		<img
+																			src={w.icon}
+																			alt=""
+																			className="size-7 shrink-0 rounded border border-zinc-800 object-cover"
+																		/>
+																	) : (
+																		<div className="flex size-7 shrink-0 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-400">
+																			<Compass className="size-3.5" />
+																		</div>
+																	)}
+																	<div className="flex min-w-0 flex-col truncate">
+																		<span className="truncate font-medium text-xs text-zinc-200">
+																			{w.displayName}
+																		</span>
+																		<span className="truncate text-[10px] text-zinc-500">
+																			{w.lastPlayed ? formatLastPlayed(w.lastPlayed) : w.folderName}
+																		</span>
+																	</div>
+																</DropdownMenuItem>
+															))
+														)}
+													</DropdownMenuGroup>
+												</DropdownMenuSubContent>
+											</DropdownMenuSub>
+										) : (
+											<DropdownMenuItem disabled className="gap-2 opacity-50">
+												<Compass className="size-4 text-zinc-500" />
+												<div className="flex flex-col">
+													<span className="font-medium text-xs">
+														{t("instances.card.quickLoadWorld")}
+													</span>
+													<span className="text-[10px] text-zinc-500">
+														{t("instances.card.requires120")}
+													</span>
+												</div>
+											</DropdownMenuItem>
+										)}
+									</DropdownMenuGroup>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</div>

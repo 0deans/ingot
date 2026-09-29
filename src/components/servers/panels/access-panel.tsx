@@ -1,15 +1,17 @@
-import { Ban, Crown, Loader2, Plus, Shield, X } from "lucide-react"
+import { Ban, Crown, Plus, Shield, X } from "lucide-react"
 import { type FormEvent, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AccessListKind, ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { isValidPlayerName } from "@/lib/minecraft"
 import { useAccessList, useServerPropertiesAll, useServerStatus } from "@/services/server-data"
 import { serverService } from "@/services/server-service"
 import {
 	Card,
+	CardContent,
 	CardHeader,
 	EmptyState,
 	ErrorNote,
@@ -62,7 +64,7 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 	}
 
 	return (
-		<Card className="flex items-center justify-between gap-3 px-4 py-3.5">
+		<Card className="flex-row items-center justify-between gap-3 px-4 py-3.5">
 			<div>
 				<p className="font-medium text-sm text-zinc-100">
 					{enabled ? t("access.whitelistOn") : t("access.whitelistOff")}
@@ -100,44 +102,42 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 	}
 
 	return (
-		<Card>
+		<Card className="pb-0">
 			<CardHeader
 				icon={meta.icon}
 				title={t(`access.${kind}.title`)}
 				description={t(`access.${kind}.description`)}
 			/>
-			<form onSubmit={submit} className="flex gap-2 px-4 pb-3">
-				<Input
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					placeholder={t("access.playerName")}
-					autoCapitalize="off"
-					autoCorrect="off"
-					spellCheck={false}
-					className="h-10 flex-1 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm"
-				/>
-				<Button
-					type="submit"
-					disabled={!name.trim() || add.isPending}
-					className="h-10 gap-1.5 rounded-xl bg-emerald-600 px-4 text-white hover:bg-emerald-500"
-				>
-					{add.isPending ? (
-						<Loader2 className="size-4 animate-spin" />
-					) : (
-						<Plus className="size-4" />
-					)}
-					{t(`access.${kind}.add`)}
-				</Button>
-			</form>
+			<CardContent>
+				<form onSubmit={submit} className="flex gap-2">
+					<Input
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+						placeholder={t("access.playerName")}
+						autoCapitalize="off"
+						autoCorrect="off"
+						spellCheck={false}
+						className="h-10 flex-1 rounded-xl border-zinc-800 bg-zinc-950/60 text-sm"
+					/>
+					<Button
+						type="submit"
+						disabled={!name.trim() || add.isPending}
+						className="h-10 gap-1.5 rounded-xl bg-emerald-600 px-4 text-white hover:bg-emerald-500"
+					>
+						{add.isPending ? <Spinner className="size-4" /> : <Plus className="size-4" />}
+						{t(`access.${kind}.add`)}
+					</Button>
+				</form>
+			</CardContent>
 			{error && (
-				<div className="px-4 pb-3">
+				<CardContent>
 					<ErrorNote>{error}</ErrorNote>
-				</div>
+				</CardContent>
 			)}
 
 			{isLoading ? (
 				<div className="flex justify-center py-8">
-					<Loader2 className="size-4 animate-spin text-zinc-500" />
+					<Spinner className="size-4 text-zinc-500" />
 				</div>
 			) : data.length === 0 ? (
 				<EmptyState icon={meta.icon} title={t(`access.${kind}.empty`)} className="pt-4" />
@@ -165,7 +165,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 								className="text-zinc-500 hover:bg-rose-500/10 hover:text-rose-300"
 							>
 								{remove.isPending && remove.variables === entry.name ? (
-									<Loader2 className="size-3.5 animate-spin" />
+									<Spinner className="size-3.5" />
 								) : (
 									<X className="size-3.5" />
 								)}

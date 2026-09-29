@@ -2,6 +2,9 @@ import { Crosshair, Minus, Plus } from "lucide-react"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MapRegion, PlayerDetails } from "@/bindings"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { avatarUrl } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 import { useMapTile } from "@/services/server-data"
@@ -235,9 +238,9 @@ export function WorldMap({
 							alt={p.name}
 							className="size-7 rounded-md shadow-black/50 shadow-lg ring-2 ring-white transition-transform [image-rendering:pixelated] group-hover:scale-110"
 						/>
-						<span className="rounded-md bg-zinc-950/80 px-1.5 py-0.5 font-medium text-[10px] text-zinc-50 backdrop-blur-sm">
+						<Badge variant="secondary" className="backdrop-blur-sm">
 							{p.name}
-						</span>
+						</Badge>
 					</button>
 				))}
 			</div>
@@ -246,7 +249,7 @@ export function WorldMap({
 				<MapButton label={t("map.zoomIn")} onClick={() => zoomAt(1.5, size.w / 2, size.h / 2)}>
 					<Plus className="size-4" />
 				</MapButton>
-				<div className="h-px bg-zinc-50/10" />
+				<Separator />
 				<MapButton label={t("map.zoomOut")} onClick={() => zoomAt(1 / 1.5, size.w / 2, size.h / 2)}>
 					<Minus className="size-4" />
 				</MapButton>
@@ -313,7 +316,7 @@ const RegionTile = memo(function RegionTile({
 					className={cn("size-full", pixelated && "[image-rendering:pixelated]")}
 				/>
 			) : (
-				isLoading && <div className="size-full animate-pulse bg-zinc-50/[0.03]" />
+				isLoading && <Skeleton className="size-full rounded-none" />
 			)}
 		</div>
 	)

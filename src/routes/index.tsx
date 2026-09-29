@@ -4,6 +4,7 @@ import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
+import { ScrollArea } from "@/components/common/scroll-area"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
@@ -13,7 +14,6 @@ import InstanceSettingsDialog from "@/components/instances/instance-settings-dia
 import NewInstanceDialog from "@/components/instances/new-instance-dialog"
 import SyncConflictDialog from "@/components/instances/sync-conflict-dialog"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	instanceService,
 	useAllInstancesProgress,

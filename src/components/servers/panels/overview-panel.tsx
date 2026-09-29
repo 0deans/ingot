@@ -2,7 +2,6 @@ import {
 	ChevronRight,
 	Clock,
 	Cpu,
-	Loader2,
 	Moon,
 	Play,
 	Server,
@@ -14,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next"
 import type { ServerConfig, ServerStatus } from "@/bindings"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { translateStep } from "@/lib/backend-text"
 import { formatMegabytes } from "@/lib/format"
 import { formatUptime } from "@/lib/minecraft"
@@ -114,7 +114,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 	const maxPlayers = values.get("max-players") || "20"
 
 	return (
-		<Card className="flex flex-col gap-3 p-3 sm:p-4">
+		<Card className="gap-3 p-3 sm:p-4">
 			<p className="px-1 text-[10px] text-zinc-500 uppercase tracking-wider">
 				{t("overview.howPlayersSee")}
 			</p>
@@ -152,7 +152,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 
 			{shownStatus === "starting" && (
 				<div className="flex items-center gap-2.5 rounded-xl bg-sky-500/[0.07] px-3 py-2.5 ring-1 ring-sky-500/20">
-					<Loader2 className="size-4 shrink-0 animate-spin text-sky-400" />
+					<Spinner className="size-4 shrink-0 text-sky-400" />
 					<span className="truncate text-sky-200 text-xs">
 						{step ? translateStep(step) : t("overview.preparing")}
 					</span>
@@ -204,7 +204,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						className="h-11 flex-1 gap-2 rounded-xl bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200"
 					>
 						{controls.isStopping ? (
-							<Loader2 className="size-4 animate-spin" />
+							<Spinner className="size-4" />
 						) : (
 							<Square className="size-3.5 fill-current" />
 						)}
@@ -213,7 +213,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 				)}
 				{(shownStatus === "starting" || shownStatus === "stopping") && (
 					<Button disabled variant="ghost" className="h-11 flex-1 gap-2 rounded-xl bg-zinc-900">
-						<Loader2 className="size-4 animate-spin" />
+						<Spinner className="size-4" />
 						{shownStatus === "starting" ? t("overview.starting") : t("overview.stopping")}
 					</Button>
 				)}

@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Copy, Minus, Square, X } from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Badge } from "@/components/ui/badge"
 
 /** Finger travel (CSS px) before a touch on the titlebar turns into a window drag */
 const DRAG_THRESHOLD = 6
@@ -206,9 +207,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 			<div data-tauri-drag-region className="pointer-events-none flex items-center gap-2">
 				<img src="/ingot.svg" alt="Ingot" className="size-4.5 rounded-sm object-contain" />
 				<span className="font-semibold text-foreground text-xs tracking-wide">{title}</span>
-				<span className="rounded-full bg-primary/10 px-1.5 py-0.5 font-medium text-[10px] text-primary">
-					v{APP_VERSION}
-				</span>
+				<Badge variant="secondary">v{APP_VERSION}</Badge>
 			</div>
 
 			{/* Draggable center region */}

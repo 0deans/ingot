@@ -1,9 +1,12 @@
 import { AlertTriangle, Cpu, Info, Sparkles } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { alertTone } from "@/components/common/alert-tones"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import Slider from "@/components/ui/slider"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
 import { formatMegabytes, formatNumber } from "@/lib/format"
 import { useMemorySettings } from "@/services/settings-service"
 
@@ -180,9 +183,9 @@ const MemoryAllocation = () => {
 			<div className="grid grid-cols-1 gap-4 pt-1 sm:grid-cols-2">
 				<div className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-zinc-950/40 p-3">
 					<div className="flex items-center justify-between">
-						<label htmlFor="min-ram-input" className="font-medium text-foreground text-xs">
+						<Label htmlFor="min-ram-input" className="font-medium text-foreground text-xs">
 							{t("settings.memory.minMemoryLabel")}
-						</label>
+						</Label>
 						<span className="font-mono text-muted-foreground text-xs">
 							{formatMegabytes(minRam)}
 						</span>
@@ -204,9 +207,9 @@ const MemoryAllocation = () => {
 
 				<div className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-zinc-950/40 p-3">
 					<div className="flex items-center justify-between">
-						<label htmlFor="max-ram-input" className="font-medium text-foreground text-xs">
+						<Label htmlFor="max-ram-input" className="font-medium text-foreground text-xs">
 							{t("settings.memory.maxMemoryLabel")}
-						</label>
+						</Label>
 						<span className="font-mono text-muted-foreground text-xs">
 							{formatMegabytes(maxRam)}
 						</span>
@@ -229,32 +232,28 @@ const MemoryAllocation = () => {
 
 			{/* Safety Warnings */}
 			{isHighRam && (
-				<div className="flex items-start gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-amber-400 text-xs">
-					<AlertTriangle className="mt-0.5 size-4 shrink-0" />
-					<div className="flex flex-col gap-0.5">
-						<span className="font-semibold">{t("settings.memory.highMemoryWarningTitle")}</span>
-						<span className="text-[11px] text-amber-300/90">
-							{t("settings.memory.highMemoryWarningDesc", {
-								maxGb: formatMbToGb(maxRam),
-								totalGb: formatMbToGb(totalRamMb),
-							})}
-						</span>
-					</div>
-				</div>
+				<Alert className={alertTone.warning}>
+					<AlertTriangle />
+					<AlertTitle>{t("settings.memory.highMemoryWarningTitle")}</AlertTitle>
+					<AlertDescription>
+						{t("settings.memory.highMemoryWarningDesc", {
+							maxGb: formatMbToGb(maxRam),
+							totalGb: formatMbToGb(totalRamMb),
+						})}
+					</AlertDescription>
+				</Alert>
 			)}
 
 			{!isHighRam && exceedsAvailable && (
-				<div className="flex items-start gap-2.5 rounded-lg border border-sky-500/20 bg-sky-500/10 p-2.5 text-sky-400 text-xs">
-					<Info className="mt-0.5 size-4 shrink-0" />
-					<div className="flex flex-col gap-0.5">
-						<span className="font-semibold">{t("settings.memory.memoryNoticeTitle")}</span>
-						<span className="text-[11px] text-sky-300/90">
-							{t("settings.memory.memoryNoticeDesc", {
-								availableGb: formatMbToGb(availableRamMb),
-							})}
-						</span>
-					</div>
-				</div>
+				<Alert className={alertTone.info}>
+					<Info />
+					<AlertTitle>{t("settings.memory.memoryNoticeTitle")}</AlertTitle>
+					<AlertDescription>
+						{t("settings.memory.memoryNoticeDesc", {
+							availableGb: formatMbToGb(availableRamMb),
+						})}
+					</AlertDescription>
+				</Alert>
 			)}
 
 			{/* Quick Presets */}

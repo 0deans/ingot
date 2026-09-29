@@ -1,10 +1,12 @@
 import { getCurrentWindow } from "@tauri-apps/api/window"
-import { Gamepad2, Loader2, Moon, Server, TriangleAlert } from "lucide-react"
+import { Gamepad2, Moon, Server, TriangleAlert } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { QuitRequest } from "@/bindings"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/common/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
 import { type QuitPrompt, quitService } from "@/services/quit-service"
 import { rpc } from "@/services/server-service"
 
@@ -109,7 +111,7 @@ export default function QuitDialog() {
 
 				{stopping ? (
 					<p className="flex items-center gap-2 text-xs text-zinc-400">
-						<Loader2 className="size-3.5 shrink-0 animate-spin" />
+						<Spinner className="size-3.5 shrink-0" />
 						{running.length > 0
 							? t("quitDialog.saving", { count: running.length })
 							: t("quitDialog.stopping")}
@@ -125,9 +127,9 @@ export default function QuitDialog() {
 				)}
 
 				{error && (
-					<p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-200 text-xs">
-						{error}
-					</p>
+					<Alert variant="destructive">
+						<AlertDescription>{error}</AlertDescription>
+					</Alert>
 				)}
 
 				<div className="flex flex-wrap justify-end gap-2">
@@ -154,7 +156,7 @@ export default function QuitDialog() {
 						onClick={stopAndGo}
 						className="gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
 					>
-						{stopping && <Loader2 className="size-4 animate-spin" />}
+						{stopping && <Spinner className="size-4" />}
 						{t(`quitDialog.action_${mode}`)}
 					</Button>
 				</div>

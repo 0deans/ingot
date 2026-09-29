@@ -7,7 +7,6 @@ import {
 	FileCode2,
 	FolderOpen,
 	ImagePlus,
-	Loader2,
 	Save,
 	Search,
 	SlidersHorizontal,
@@ -16,9 +15,12 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PropertyEntry, ServerConfig } from "@/bindings"
+import { alertTone } from "@/components/common/alert-tones"
+import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
 	Select,
 	SelectContent,
@@ -26,8 +28,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
-import Slider from "@/components/ui/slider"
+import { Slider } from "@/components/ui/slider"
+import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { formatBytes, formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
 import { toServerIcon } from "@/lib/server-icon"
@@ -44,7 +48,7 @@ import { rpc, serverService } from "@/services/server-service"
 import { useMemorySettings } from "@/services/settings-service"
 import DeleteServerDialog from "../delete-server-dialog"
 import { MC_COLORS, ServerListPreview } from "../shared/motd"
-import { Card, CardHeader, ErrorNote, useSticky } from "../shared/primitives"
+import { Card, CardContent, CardHeader, ErrorNote, useSticky } from "../shared/primitives"
 import {
 	HANDLED_ELSEWHERE,
 	KNOWN_KEYS,
@@ -65,10 +69,10 @@ export function SettingsPanel({
 	return (
 		<div className="flex flex-col gap-4">
 			{isRunning && (
-				<div className="flex items-start gap-2.5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-amber-200 text-xs">
-					<AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" />
-					{t("serverSettings.restartNote")}
-				</div>
+				<Alert className={alertTone.warning}>
+					<AlertTriangle />
+					<AlertDescription>{t("serverSettings.restartNote")}</AlertDescription>
+				</Alert>
 			)}
 			<IdentityCard server={server} isRunning={isRunning} />
 			<MemoryCard server={server} />
@@ -163,7 +167,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 				title={t("serverSettings.identity")}
 				description={t("serverSettings.identityDesc")}
 			/>
-			<div className="flex flex-col gap-4 px-4 pb-4">
+			<CardContent className="flex flex-col gap-4">
 				<ServerListPreview
 					motd={currentMotd}
 					icon={icon}
@@ -195,7 +199,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 							)}
 						>
 							{iconBusy ? (
-								<Loader2 className="size-4 animate-spin text-white" />
+								<Spinner className="size-4 text-white" />
 							) : (
 								<ImagePlus className="size-4 text-white" />
 							)}
@@ -209,9 +213,9 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 						onChange={(e) => onIcon(e.target.files?.[0])}
 					/>
 					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
-						<label htmlFor={`name-${server.id}`} className="text-xs text-zinc-400">
+						<Label htmlFor={`name-${server.id}`} className="text-xs text-zinc-400">
 							{t("serverSettings.name")}
-						</label>
+						</Label>
 						<Input
 							id={`name-${server.id}`}
 							value={name}
@@ -222,17 +226,17 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					<label htmlFor={`motd-${server.id}`} className="text-xs text-zinc-400">
+					<Label htmlFor={`motd-${server.id}`} className="text-xs text-zinc-400">
 						{t("serverSettings.motd")}
-					</label>
-					<textarea
+					</Label>
+					<Textarea
 						id={`motd-${server.id}`}
 						ref={motdRef}
 						rows={2}
 						value={currentMotd.split("\\n").join("\n")}
 						onChange={(e) => setMotd(e.target.value.split("\n").slice(0, 2).join("\n"))}
 						spellCheck={false}
-						className="resize-none rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 font-mono text-sm text-zinc-100 outline-none focus:border-zinc-600"
+						className="resize-none font-mono"
 					/>
 					<div className="flex flex-wrap gap-1">
 						{MOTD_CODES.map(({ code, label, style }) => (
@@ -255,7 +259,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 
 				{error && <ErrorNote>{error}</ErrorNote>}
 				<SaveButton dirty={dirty} status={status} onClick={onSave} />
-			</div>
+			</CardContent>
 		</Card>
 	)
 }
@@ -286,7 +290,7 @@ function SaveButton({
 			)}
 		>
 			{status === "saving" ? (
-				<Loader2 className="size-4 animate-spin" />
+				<Spinner className="size-4" />
 			) : status === "saved" ? (
 				<Check className="size-4" />
 			) : (
@@ -337,7 +341,7 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 					</span>
 				}
 			/>
-			<div className="flex flex-col gap-3 px-4 pb-4">
+			<CardContent className="flex flex-col gap-3">
 				<Slider
 					min={512}
 					max={max}
@@ -346,7 +350,7 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 					onValueChange={(v) => setRam(Array.isArray(v) ? v[0] : (v as number))}
 				/>
 				<SaveButton dirty={ram !== server.memoryMaxMb} status={status} onClick={onSave} />
-			</div>
+			</CardContent>
 		</Card>
 	)
 }
@@ -421,10 +425,10 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 			/>
 			{isLoading ? (
 				<div className="flex justify-center py-8">
-					<Loader2 className="size-4 animate-spin text-zinc-500" />
+					<Spinner className="size-4 text-zinc-500" />
 				</div>
 			) : (
-				<div className="flex flex-col gap-5 px-4 pb-4">
+				<CardContent className="flex flex-col gap-5">
 					{groups.map((group) => (
 						<div key={group.id} className="flex flex-col">
 							<h4 className="mb-1 font-semibold text-[11px] text-zinc-500 uppercase tracking-wider">
@@ -508,7 +512,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 							<SaveButton dirty={changed.length > 0} status={status} onClick={onSave} />
 						</div>
 					)}
-				</div>
+				</CardContent>
 			)}
 		</Card>
 	)
@@ -588,7 +592,7 @@ function ConfigFilesCard({ serverId }: { serverId: string }) {
 	const [open, setOpen] = useState<string | null>(null)
 	if (files.length === 0) return null
 	return (
-		<Card>
+		<Card className="pb-0">
 			<CardHeader
 				icon={FileCode2}
 				title={t("serverSettings.configFiles")}
@@ -663,16 +667,16 @@ function ConfigFileEditor({
 				<DialogTitle className="truncate pr-8 font-mono text-sm">{shownPath}</DialogTitle>
 				{isLoading ? (
 					<div className="flex flex-1 items-center justify-center">
-						<Loader2 className="size-5 animate-spin text-zinc-500" />
+						<Spinner className="size-5 text-zinc-500" />
 					</div>
 				) : (
-					<textarea
+					<Textarea
 						value={current}
 						onChange={(e) => setText(e.target.value)}
 						spellCheck={false}
 						autoCapitalize="off"
 						autoCorrect="off"
-						className="min-h-0 flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs text-zinc-200 leading-relaxed outline-none focus:border-zinc-600"
+						className="field-sizing-fixed min-h-0 flex-1 resize-none font-mono text-xs leading-relaxed"
 					/>
 				)}
 				{error && <ErrorNote>{error}</ErrorNote>}
@@ -703,7 +707,7 @@ function DangerCard({ server, onDeleted }: { server: ServerConfig; onDeleted?: (
 	return (
 		<Card>
 			<CardHeader title={t("serverSettings.manage")} />
-			<div className="flex flex-wrap gap-2 px-4 pb-4">
+			<CardContent className="flex flex-wrap gap-2">
 				{!mobile && (
 					<Button
 						variant="outline"
@@ -722,7 +726,7 @@ function DangerCard({ server, onDeleted }: { server: ServerConfig; onDeleted?: (
 					<Trash2 className="size-4" />
 					{t("deleteServer.title")}
 				</Button>
-			</div>
+			</CardContent>
 			<DeleteServerDialog
 				server={deleting ? server : null}
 				open={deleting}

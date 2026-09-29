@@ -2,6 +2,7 @@ import { Apple, Heart, Search, Users } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { dimensionStyle, formatRelativeTime } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -147,9 +148,9 @@ function OnlinePlayerCard({ player, onClick }: { player: PlayerDetails; onClick:
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center justify-between gap-2">
 					<span className="truncate font-semibold text-sm text-zinc-100">{player.name}</span>
-					<span className={cn("shrink-0 rounded-full border px-1.5 py-px text-[10px]", dim.badge)}>
+					<Badge variant="outline" className={cn("shrink-0", dim.badge)}>
 						{dim.label}
-					</span>
+					</Badge>
 				</div>
 				<div className="mt-2 grid grid-cols-2 gap-2">
 					<MiniBar icon={Heart} pct={health} color="#f43f5e" />
@@ -212,7 +213,7 @@ function AllPlayersList({
 					/>
 				</div>
 			)}
-			<Card className="divide-y divide-zinc-800/70 overflow-hidden">
+			<Card className="gap-0 divide-y divide-zinc-800/70 py-0">
 				{filtered.map((p) => (
 					<button
 						key={p.uuid || p.name}

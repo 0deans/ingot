@@ -2,8 +2,6 @@ import { AlertTriangle, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +9,9 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Button } from "@/components/ui/button"
 
 interface DeleteInstanceDialogProps {
 	instance: InstanceConfig | null

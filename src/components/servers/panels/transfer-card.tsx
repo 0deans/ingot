@@ -5,7 +5,6 @@ import {
 	CheckCircle2,
 	Copy,
 	FileArchive,
-	Loader2,
 	Package,
 	Share2,
 	Undo2,
@@ -21,8 +20,10 @@ import type {
 	ServerCoreType,
 	VersionPlan,
 } from "@/bindings"
+import { alertTone } from "@/components/common/alert-tones"
+import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import {
 	Select,
 	SelectContent,
@@ -30,6 +31,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
 import {
 	loaderName,
 	PlanReview,
@@ -39,9 +41,10 @@ import {
 import { formatPercent } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
 import { canShareFiles, shareFile } from "@/lib/share"
+import { cn } from "@/lib/utils"
 import { useServerStatus } from "@/services/server-data"
 import { rpc, serverService } from "@/services/server-service"
-import { Card, CardHeader, ErrorNote } from "../shared/primitives"
+import { Card, CardContent, CardHeader, ErrorNote } from "../shared/primitives"
 
 type Busy = "export-configs" | "export-full" | "copy" | "version" | "undo" | null
 
@@ -132,7 +135,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 				title={t("transfer.title")}
 				description={t("transfer.description")}
 			/>
-			<div className="flex flex-col gap-2 px-4 pb-4">
+			<CardContent className="flex flex-col gap-2">
 				<div className="grid grid-cols-2 gap-2">
 					<ActionButton
 						icon={canShareFiles() ? Share2 : Package}
@@ -200,7 +203,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								className="h-8 gap-1.5 rounded-lg text-xs"
 							>
 								{busy === "undo" ? (
-									<Loader2 className="size-3.5 animate-spin" />
+									<Spinner className="size-3.5" />
 								) : (
 									<Undo2 className="size-3.5" />
 								)}
@@ -211,13 +214,13 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 				)}
 				{notice &&
 					(notice.ok ? (
-						<p className="break-all rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-emerald-200 text-xs">
-							{notice.text}
-						</p>
+						<Alert className={cn(alertTone.success, "break-all")}>
+							<AlertDescription>{notice.text}</AlertDescription>
+						</Alert>
 					) : (
 						<ErrorNote>{notice.text}</ErrorNote>
 					))}
-			</div>
+			</CardContent>
 			{/* Mounted only while open, so every opening starts from the version picker */}
 			{versionOpen && (
 				<ChangeVersionDialog
@@ -257,7 +260,7 @@ function ActionButton({
 			className="flex min-w-0 items-start gap-2.5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-left transition-colors hover:bg-zinc-900 disabled:opacity-50"
 		>
 			{busy ? (
-				<Loader2 className="mt-0.5 size-4 shrink-0 animate-spin text-zinc-300" />
+				<Spinner className="mt-0.5 size-4 shrink-0 text-zinc-300" />
 			) : (
 				<Icon className="mt-0.5 size-4 shrink-0 text-zinc-400" />
 			)}
@@ -400,7 +403,7 @@ function ChangeVersionDialog({
 						)}
 						{isLoading ? (
 							<div className="flex justify-center py-4">
-								<Loader2 className="size-5 animate-spin text-zinc-500" />
+								<Spinner className="size-5 text-zinc-500" />
 							</div>
 						) : (
 							<Select items={options} value={target} onValueChange={(v) => v && setVersion(v)}>
@@ -439,7 +442,7 @@ function ChangeVersionDialog({
 
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
-						<Loader2 className="size-7 animate-spin text-emerald-400" />
+						<Spinner className="size-7 text-emerald-400" />
 						<p className="font-medium text-sm text-zinc-200">{t("versionChange.applying")}</p>
 						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
 							{t("versionChange.applyingHint")}
@@ -477,11 +480,7 @@ function ChangeVersionDialog({
 								disabled={!target || unchanged || busy}
 								className="h-11 gap-2 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
 							>
-								{busy ? (
-									<Loader2 className="size-4 animate-spin" />
-								) : (
-									<ArrowUpDown className="size-4" />
-								)}
+								{busy ? <Spinner className="size-4" /> : <ArrowUpDown className="size-4" />}
 								{busy ? t("versionChange.checking") : t("versionChange.check")}
 							</Button>
 						)}
@@ -568,11 +567,7 @@ export function ImportServerButton({
 				disabled={progress !== null}
 				className={className}
 			>
-				{progress !== null ? (
-					<Loader2 className="size-4 animate-spin" />
-				) : (
-					<Upload className="size-4" />
-				)}
+				{progress !== null ? <Spinner className="size-4" /> : <Upload className="size-4" />}
 				{progress === null
 					? t("transfer.import")
 					: progress < 1
@@ -581,24 +576,26 @@ export function ImportServerButton({
 			</Button>
 			{error && <ErrorNote>{error}</ErrorNote>}
 			{partial && (
-				<div className="flex flex-col gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-amber-100 text-xs">
-					<p className="font-semibold">{t("transfer.partial", { name: partial.server.name })}</p>
-					<ul className="list-disc pl-4 text-amber-200/80">
-						{partial.warnings.map((w) => (
-							<li key={w}>{w}</li>
-						))}
-					</ul>
-					<Button
-						size="sm"
-						onClick={() => {
-							setPartial(null)
-							onImported?.(partial.server)
-						}}
-						className="self-start rounded-lg bg-amber-500/20 text-amber-50 hover:bg-amber-500/30"
-					>
-						{t("transfer.openServer")}
-					</Button>
-				</div>
+				<Alert className={alertTone.warning}>
+					<AlertTitle>{t("transfer.partial", { name: partial.server.name })}</AlertTitle>
+					<AlertDescription className="flex flex-col items-start gap-2">
+						<ul className="list-disc pl-4">
+							{partial.warnings.map((w) => (
+								<li key={w}>{w}</li>
+							))}
+						</ul>
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => {
+								setPartial(null)
+								onImported?.(partial.server)
+							}}
+						>
+							{t("transfer.openServer")}
+						</Button>
+					</AlertDescription>
+				</Alert>
 			)}
 		</>
 	)

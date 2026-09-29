@@ -16,6 +16,8 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemAction, ItemStatus, PlanItem, Source, VersionPlan } from "@/bindings"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { translatePlanNote } from "@/lib/backend-text"
 import { formatBytes } from "@/lib/minecraft"
 
@@ -189,19 +191,19 @@ export function PlanReview({
 						})}
 					</p>
 					<p className="text-red-200/80 leading-relaxed">{t("versionChange.downgradeWarning")}</p>
-					<label htmlFor="downgrade-ok" className="flex cursor-pointer items-center gap-2">
+					<Label htmlFor="downgrade-ok" className="flex cursor-pointer items-center gap-2">
 						<Checkbox
 							id="downgrade-ok"
 							checked={downgradeOk}
 							onCheckedChange={(c) => onDowngradeOk(Boolean(c))}
 						/>
 						{t("versionChange.downgradeOk")}
-					</label>
+					</Label>
 				</div>
 			)}
 
 			{plan.worlds.length > 0 && (
-				<label
+				<Label
 					htmlFor="backup-worlds"
 					className={cn(
 						"flex cursor-pointer items-start gap-2.5 border border-zinc-800 bg-zinc-900/40 p-3 text-xs",
@@ -225,7 +227,7 @@ export function PlanReview({
 							{t("versionChange.backupWorldsHint")}
 						</span>
 					</span>
-				</label>
+				</Label>
 			)}
 
 			{plan.items.length === 0 && (
@@ -343,29 +345,23 @@ function PlanRow({
 				</p>
 			</div>
 			{item.actions.length > 1 && (
-				<div
-					className={cn(
-						"flex shrink-0 border border-zinc-800 bg-zinc-950 p-0.5",
-						rounded && "rounded-lg",
-					)}
+				<ToggleGroup
+					variant="outline"
+					size="sm"
+					spacing={0}
+					value={choice ? [choice] : []}
+					onValueChange={(value) => {
+						const action = item.actions.find((a) => a === value[0])
+						if (action) onChoose(action)
+					}}
+					className={cn("shrink-0", !rounded && "rounded-none *:rounded-none")}
 				>
 					{item.actions.map((action) => (
-						<button
-							key={action}
-							type="button"
-							onClick={() => onChoose(action)}
-							className={cn(
-								"px-2 py-1 text-[11px] transition-colors",
-								rounded && "rounded-md",
-								choice === action
-									? "bg-zinc-800 font-medium text-zinc-50"
-									: "text-zinc-500 hover:text-zinc-200",
-							)}
-						>
+						<ToggleGroupItem key={action} value={action}>
 							{t(`versionChange.actions.${action}`)}
-						</button>
+						</ToggleGroupItem>
 					))}
-				</div>
+				</ToggleGroup>
 			)}
 		</div>
 	)

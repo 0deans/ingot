@@ -1,7 +1,8 @@
-import { ArrowUpCircle, Download, Loader2, Trash2 } from "lucide-react"
+import { ArrowUpCircle, Download, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useCompanionStatus, usePluginActions } from "@/services/server-data"
 import { Card } from "../shared/primitives"
@@ -60,7 +61,7 @@ export function CompanionCard({
 	}
 
 	return (
-		<Card className="flex items-center gap-3 px-3.5 py-3">
+		<Card className="flex-row items-center gap-3 px-3.5 py-3">
 			<div className="flex size-10 shrink-0 items-center justify-center bg-zinc-900">
 				<img
 					src="/ingot.svg"
@@ -118,7 +119,7 @@ export function CompanionCard({
 					className="flex size-8 shrink-0 items-center justify-center text-zinc-500 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-50"
 				>
 					{actions.remove.isPending ? (
-						<Loader2 className="size-4 animate-spin" />
+						<Spinner className="size-4" />
 					) : (
 						<Trash2 className="size-4" />
 					)}
@@ -146,7 +147,7 @@ function ActionButton({
 			disabled={disabled}
 			className="h-8 shrink-0 gap-1.5 bg-emerald-600 px-3 text-white hover:bg-emerald-500"
 		>
-			{busy ? <Loader2 className="size-3.5 animate-spin" /> : children}
+			{busy ? <Spinner className="size-3.5" /> : children}
 		</Button>
 	)
 }

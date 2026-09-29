@@ -1,18 +1,23 @@
 import { openUrl } from "@tauri-apps/plugin-opener"
-import { AlertCircle, Check, ExternalLink, Loader2, ShieldCheck, User } from "lucide-react"
+import { AlertCircle, Check, ExternalLink, ShieldCheck, User } from "lucide-react"
 import { memo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MicrosoftDeviceCode } from "@/bindings"
-import { Button } from "@/components/ui/button"
+import { alertTone } from "@/components/common/alert-tones"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { accountService } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
 
@@ -154,68 +159,36 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 				<ScrollArea scrollFade className="min-h-0 w-full flex-1 pr-1">
 					<div className="flex flex-col gap-4 py-1">
 						{/* Account Type Selector */}
-						<div className="flex rounded-lg border border-border/40 bg-zinc-900/60 p-1">
-							<button
-								type="button"
-								onClick={() => {
-									cancelMicrosoftLogin()
-									setActiveTab("ely")
-									setErrorMessage(null)
-								}}
-								className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
-									activeTab === "ely"
-										? "bg-primary text-primary-foreground shadow-xs"
-										: "text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								Ely.by
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									cancelMicrosoftLogin()
-									setActiveTab("offline")
-									setErrorMessage(null)
-								}}
-								className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
-									activeTab === "offline"
-										? "bg-primary text-primary-foreground shadow-xs"
-										: "text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								{t("accounts.offline")}
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setActiveTab("microsoft")
-									setErrorMessage(null)
-								}}
-								className={`flex-1 rounded-md py-1.5 font-medium text-xs transition-all ${
-									activeTab === "microsoft"
-										? "bg-primary text-primary-foreground shadow-xs"
-										: "text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								Microsoft
-							</button>
-						</div>
+						<Tabs
+							value={activeTab}
+							onValueChange={(tab) => {
+								if (tab !== "microsoft") cancelMicrosoftLogin()
+								setActiveTab(tab as TabType)
+								setErrorMessage(null)
+							}}
+						>
+							<TabsList className="w-full">
+								<TabsTrigger value="ely">Ely.by</TabsTrigger>
+								<TabsTrigger value="offline">{t("accounts.offline")}</TabsTrigger>
+								<TabsTrigger value="microsoft">Microsoft</TabsTrigger>
+							</TabsList>
+						</Tabs>
 
 						{/* Ely.by Form */}
 						{activeTab === "ely" && (
 							<div className="grid gap-3.5 py-1">
-								<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
-									<ShieldCheck className="size-4 shrink-0" />
-									<span>{t("addAccount.tokensSecure")}</span>
-								</div>
+								<Alert className={alertTone.success}>
+									<ShieldCheck />
+									<AlertDescription>{t("addAccount.tokensSecure")}</AlertDescription>
+								</Alert>
 
 								<div className="grid gap-1.5">
-									<label
+									<Label
 										htmlFor="ely-username"
 										className="font-medium text-muted-foreground text-xs"
 									>
 										{t("addAccount.usernameOrEmail")}
-									</label>
+									</Label>
 									<Input
 										id="ely-username"
 										placeholder={t("addAccount.usernamePlaceholder")}
@@ -227,12 +200,12 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								</div>
 
 								<div className="grid gap-1.5">
-									<label
+									<Label
 										htmlFor="ely-password"
 										className="font-medium text-muted-foreground text-xs"
 									>
 										{t("addAccount.password")}
-									</label>
+									</Label>
 									<Input
 										id="ely-password"
 										type="password"
@@ -254,7 +227,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								>
 									{isLoading ? (
 										<>
-											<Loader2 className="mr-1.5 size-3.5 animate-spin" />
+											<Spinner className="mr-1.5 size-3.5" />
 											{t("addAccount.connecting")}
 										</>
 									) : (
@@ -273,12 +246,12 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								</div>
 
 								<div className="grid gap-1.5">
-									<label
+									<Label
 										htmlFor="offline-name"
 										className="font-medium text-muted-foreground text-xs"
 									>
 										{t("addAccount.nickname")}
-									</label>
+									</Label>
 									<Input
 										id="offline-name"
 										placeholder={t("addAccount.nicknamePlaceholder")}
@@ -300,7 +273,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								>
 									{isLoading ? (
 										<>
-											<Loader2 className="mr-1.5 size-3.5 animate-spin" />
+											<Spinner className="mr-1.5 size-3.5" />
 											{t("addAccount.adding")}
 										</>
 									) : (
@@ -313,10 +286,10 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 						{/* Microsoft: device code sign-in */}
 						{activeTab === "microsoft" && (
 							<div className="grid gap-3.5 py-1">
-								<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
-									<ShieldCheck className="size-4 shrink-0" />
-									<span>{t("addAccount.microsoftNote")}</span>
-								</div>
+								<Alert className={alertTone.success}>
+									<ShieldCheck />
+									<AlertDescription>{t("addAccount.microsoftNote")}</AlertDescription>
+								</Alert>
 
 								{deviceCode ? (
 									<div className="flex flex-col items-center gap-3 rounded-lg border border-border/40 bg-zinc-900/40 px-3 py-4 text-center">
@@ -331,7 +304,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 											{t("addAccount.microsoftOpenPage")}
 										</Button>
 										<p className="flex items-center gap-1.5 text-muted-foreground text-xs">
-											<Loader2 className="size-3.5 animate-spin" />
+											<Spinner className="size-3.5" />
 											{t("addAccount.microsoftWaiting")}
 										</p>
 									</div>
@@ -344,7 +317,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 									>
 										{isLoading ? (
 											<>
-												<Loader2 className="mr-1.5 size-3.5 animate-spin" />
+												<Spinner className="mr-1.5 size-3.5" />
 												{t("addAccount.connecting")}
 											</>
 										) : (
@@ -357,17 +330,17 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 						{/* Error / Success Feedback */}
 						{errorMessage && (
-							<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs">
-								<AlertCircle className="size-4 shrink-0" />
-								<span>{errorMessage}</span>
-							</div>
+							<Alert variant="destructive">
+								<AlertCircle />
+								<AlertDescription>{errorMessage}</AlertDescription>
+							</Alert>
 						)}
 
 						{successMessage && (
-							<div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-400 text-xs">
-								<Check className="size-4 shrink-0" />
-								<span>{successMessage}</span>
-							</div>
+							<Alert className={alertTone.success}>
+								<Check />
+								<AlertDescription>{successMessage}</AlertDescription>
+							</Alert>
 						)}
 					</div>
 				</ScrollArea>

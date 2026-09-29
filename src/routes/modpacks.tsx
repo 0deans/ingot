@@ -1,8 +1,8 @@
 import { queryOptions, useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import {
+	AlertCircle,
 	Box,
-	Check,
 	ChevronLeft,
 	ChevronRight,
 	Download,
@@ -18,12 +18,21 @@ import {
 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import * as v from "valibot"
+import { ScrollArea } from "@/components/common/scroll-area"
 import { ContentDetailsDialog } from "@/components/content/content-details-dialog"
 import { InstallDialog } from "@/components/content/install-dialog"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+} from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -31,6 +40,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { formatCount } from "@/lib/format"
 import {
 	type ContentSort,
@@ -183,7 +194,6 @@ const ModpacksPage = () => {
 
 	const [installItem, setInstallItem] = useState<UnifiedContentItem | null>(null)
 	const [installVersion, setInstallVersion] = useState<UnifiedContentVersion | null>(null)
-	const [successNotification, setSuccessNotification] = useState<string | null>(null)
 
 	const handleCategoryChange = (category: ContentType) => {
 		navigate({
@@ -264,8 +274,7 @@ const ModpacksPage = () => {
 	}
 
 	const handleInstallSuccess = (message: string) => {
-		setSuccessNotification(message)
-		setTimeout(() => setSuccessNotification(null), 5000)
+		toast.success(message)
 	}
 
 	const totalPages = Math.ceil(totalHits / PAGE_SIZE)
@@ -275,21 +284,6 @@ const ModpacksPage = () => {
 		<ScrollArea className="size-full flex-1" scrollFade>
 			<div className="flex flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Notification Banner */}
-				{successNotification && (
-					<div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-300 text-xs shadow-sm">
-						<div className="flex items-center gap-2">
-							<Check className="size-4 text-emerald-400" />
-							<span className="font-medium">{successNotification}</span>
-						</div>
-						<button
-							type="button"
-							onClick={() => setSuccessNotification(null)}
-							className="text-muted-foreground hover:text-foreground"
-						>
-							<X className="size-3.5" />
-						</button>
-					</div>
-				)}
 
 				{/* Header */}
 				<div className="flex flex-col gap-2">
@@ -334,23 +328,22 @@ const ModpacksPage = () => {
 						</div>
 
 						{/* Source Selector */}
-						<div className="flex items-center rounded-lg border border-border/40 bg-zinc-900/40 p-1 backdrop-blur-xs">
+						<ToggleGroup
+							variant="outline"
+							spacing={0}
+							value={[activeSource]}
+							onValueChange={(value) => {
+								const source = SOURCES.find((s) => s.id === value[0])?.id
+								if (source) handleSourceChange(source)
+							}}
+						>
 							{SOURCES.map((s) => (
-								<button
-									key={s.id}
-									type="button"
-									onClick={() => handleSourceChange(s.id)}
-									className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-colors ${
-										activeSource === s.id
-											? "bg-primary text-primary-foreground shadow-xs"
-											: "text-muted-foreground hover:bg-zinc-800/60 hover:text-foreground"
-									}`}
-								>
-									{s.id === "curseforge" && <Flame className="size-3.5 text-orange-400" />}
+								<ToggleGroupItem key={s.id} value={s.id}>
+									{s.id === "curseforge" && <Flame className="text-orange-400" />}
 									{t(`modpacks.sources.${s.id}`)}
-								</button>
+								</ToggleGroupItem>
 							))}
-						</div>
+						</ToggleGroup>
 					</div>
 
 					{/* Category Tabs */}
@@ -515,32 +508,39 @@ const ModpacksPage = () => {
 							<div
 								// biome-ignore lint/suspicious/noArrayIndexKey: Loading skeleton placeholder
 								key={i}
-								className="flex animate-pulse flex-col gap-3 rounded-xl border border-border/40 bg-zinc-900/30 p-4"
+								className="flex flex-col gap-3 rounded-xl border border-border/40 p-4"
 							>
 								<div className="flex items-center gap-3">
-									<div className="size-12 rounded-lg bg-zinc-800" />
+									<Skeleton className="size-12 rounded-lg" />
 									<div className="flex flex-1 flex-col gap-2">
-										<div className="h-4 w-3/4 rounded bg-zinc-800" />
-										<div className="h-3 w-1/2 rounded bg-zinc-800/60" />
+										<Skeleton className="h-4 w-3/4" />
+										<Skeleton className="h-3 w-1/2" />
 									</div>
 								</div>
-								<div className="h-10 rounded bg-zinc-800/40" />
+								<Skeleton className="h-10" />
 								<div className="mt-2 flex justify-between">
-									<div className="h-4 w-16 rounded bg-zinc-800/50" />
-									<div className="h-4 w-16 rounded bg-zinc-800/50" />
+									<Skeleton className="h-4 w-16" />
+									<Skeleton className="h-4 w-16" />
 								</div>
 							</div>
 						))}
 					</div>
 				) : error ? (
-					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 py-12 text-center">
-						<p className="font-medium text-destructive text-sm">
-							{error instanceof Error ? error.message : t("modpacks.loadFailed")}
-						</p>
-						<Button size="sm" variant="outline" onClick={() => refetch()}>
-							{t("common.tryAgain")}
-						</Button>
-					</div>
+					<Empty className="border">
+						<EmptyHeader>
+							<EmptyMedia variant="icon" className="text-destructive">
+								<AlertCircle />
+							</EmptyMedia>
+							<EmptyDescription className="text-destructive">
+								{error instanceof Error ? error.message : t("modpacks.loadFailed")}
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<Button size="sm" variant="outline" onClick={() => refetch()}>
+								{t("common.tryAgain")}
+							</Button>
+						</EmptyContent>
+					</Empty>
 				) : items.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border/40 bg-zinc-900/20 py-16 text-center">
 						<Sparkles className="size-10 text-muted-foreground/40" />
@@ -589,21 +589,22 @@ const ModpacksPage = () => {
 										<div className="flex min-w-0 flex-1 flex-col">
 											<div className="flex items-center gap-1.5">
 												{/* Source Badge */}
-												<span
-													className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-[10px] ${
+												<Badge
+													variant="outline"
+													className={
 														item.source === "modrinth"
-															? "border border-emerald-500/20 bg-emerald-500/15 text-emerald-400"
-															: "border border-amber-500/20 bg-amber-500/15 text-amber-400"
-													}`}
+															? "border-emerald-500/30 text-emerald-400"
+															: "border-amber-500/30 text-amber-400"
+													}
 												>
-													{item.source === "curseforge" && <Flame className="size-2.5" />}
+													{item.source === "curseforge" && <Flame />}
 													{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
-												</span>
+												</Badge>
 
 												{/* Type Badge */}
-												<span className="rounded bg-zinc-800/80 px-1.5 py-0.5 text-[10px] text-muted-foreground capitalize">
+												<Badge variant="secondary" className="capitalize">
 													{item.projectType}
-												</span>
+												</Badge>
 											</div>
 
 											<h3 className="mt-1 truncate font-semibold text-foreground text-sm transition-colors group-hover:text-primary">
@@ -623,17 +624,14 @@ const ModpacksPage = () => {
 									{/* Tags & Loaders */}
 									<div className="flex flex-wrap items-center gap-1">
 										{item.loaders.slice(0, 3).map((ldr) => (
-											<span
-												key={ldr}
-												className="rounded bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 capitalize"
-											>
+											<Badge key={ldr} variant="secondary" className="font-mono capitalize">
 												{ldr}
-											</span>
+											</Badge>
 										))}
 										{item.latestVersion && (
-											<span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">
+											<Badge variant="outline" className="font-mono">
 												{item.latestVersion}
-											</span>
+											</Badge>
 										)}
 									</div>
 								</div>

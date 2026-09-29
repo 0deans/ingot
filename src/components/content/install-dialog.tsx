@@ -1,9 +1,8 @@
 import i18n from "i18next"
-import { AlertCircle, Download, FolderPlus, Loader2 } from "lucide-react"
+import { AlertCircle, Download, FolderPlus } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -11,9 +10,17 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import {
+	SearchableSelect,
+	type SearchableSelectOption,
+} from "@/components/common/searchable-select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 import {
 	type ContentSource,
 	contentService,
@@ -277,7 +284,7 @@ export const InstallDialog = memo(
 
 					{isLoadingData ? (
 						<div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground text-xs">
-							<Loader2 className="size-6 animate-spin text-primary" />
+							<Spinner className="size-6 text-primary" />
 							<span>{t("install.loading")}</span>
 						</div>
 					) : errorMessage && versions.length === 0 ? (
@@ -334,9 +341,9 @@ export const InstallDialog = memo(
 								/* Modpack Flow: Instance Name + Version Selection */
 								<div className="flex flex-col gap-3">
 									<div className="flex flex-col gap-1.5">
-										<label htmlFor="modpack-name" className="font-medium text-foreground text-xs">
+										<Label htmlFor="modpack-name" className="font-medium text-foreground text-xs">
 											{t("newInstance.name")}
-										</label>
+										</Label>
 										<Input
 											id="modpack-name"
 											value={modpackName}
@@ -363,21 +370,15 @@ export const InstallDialog = memo(
 										<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-zinc-950/40 p-2.5 text-muted-foreground text-xs">
 											<span>{t("install.loaders")}</span>
 											{selectedVersion.loaders.map((l) => (
-												<span
-													key={l}
-													className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 capitalize"
-												>
+												<Badge key={l} variant="secondary" className="font-mono capitalize">
 													{l}
-												</span>
+												</Badge>
 											))}
 											<span className="ml-2">{t("install.minecraft")}</span>
 											{selectedVersion.gameVersions.map((gv) => (
-												<span
-													key={gv}
-													className="rounded bg-primary/15 px-1.5 py-0.5 font-mono text-[10px] text-primary"
-												>
+												<Badge key={gv} variant="outline" className="font-mono">
 													{gv}
-												</span>
+												</Badge>
 											))}
 										</div>
 									)}
@@ -443,20 +444,14 @@ export const InstallDialog = memo(
 													<div className="mt-1 flex flex-wrap items-center gap-1.5">
 														<span>{t("install.supports")}</span>
 														{selectedVersion.loaders.map((l) => (
-															<span
-																key={l}
-																className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 capitalize"
-															>
+															<Badge key={l} variant="secondary" className="font-mono capitalize">
 																{l}
-															</span>
+															</Badge>
 														))}
 														{selectedVersion.gameVersions.map((gv) => (
-															<span
-																key={gv}
-																className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary"
-															>
+															<Badge key={gv} variant="outline" className="font-mono">
 																{gv}
-															</span>
+															</Badge>
 														))}
 													</div>
 												</div>
@@ -467,9 +462,9 @@ export const InstallDialog = memo(
 							)}
 
 							{errorMessage && (
-								<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 text-destructive text-xs">
-									{errorMessage}
-								</div>
+								<Alert variant="destructive">
+									<AlertDescription>{errorMessage}</AlertDescription>
+								</Alert>
 							)}
 						</div>
 					)}
@@ -497,7 +492,7 @@ export const InstallDialog = memo(
 						>
 							{isSubmitting ? (
 								<>
-									<Loader2 className="size-3.5 animate-spin" />
+									<Spinner className="size-3.5" />
 									<span>{t("pluginDetails.installing")}</span>
 								</>
 							) : (

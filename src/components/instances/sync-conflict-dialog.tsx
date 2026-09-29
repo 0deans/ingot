@@ -2,14 +2,17 @@ import { AlertTriangle, ArrowDownToLine, ArrowUpFromLine, ShieldAlert, XCircle }
 import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { SyncConflictInfo } from "@/bindings"
+import { alertTone } from "@/components/common/alert-tones"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 
 interface SyncConflictDialogProps {
 	conflict: SyncConflictInfo | null
@@ -60,20 +63,22 @@ export const SyncConflictDialog = ({
 				</DialogHeader>
 
 				{/* Conflicting items pill list */}
-				<div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-amber-300 text-xs sm:p-2.5">
-					<AlertTriangle className="size-3.5 shrink-0" />
-					<span className="text-[11px]">{t("syncConflict.conflictingFiles")}</span>
-					{conflict.hasInstanceOptions && conflict.hasSharedOptions && (
-						<code className="rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">
-							options.txt
-						</code>
-					)}
-					{conflict.hasInstanceServers && conflict.hasSharedServers && (
-						<code className="rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">
-							servers.dat
-						</code>
-					)}
-				</div>
+				<Alert className={alertTone.warning}>
+					<AlertTriangle />
+					<AlertDescription className="flex flex-wrap items-center gap-1.5">
+						<span className="text-[11px]">{t("syncConflict.conflictingFiles")}</span>
+						{conflict.hasInstanceOptions && conflict.hasSharedOptions && (
+							<code className="rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">
+								options.txt
+							</code>
+						)}
+						{conflict.hasInstanceServers && conflict.hasSharedServers && (
+							<code className="rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">
+								servers.dat
+							</code>
+						)}
+					</AlertDescription>
+				</Alert>
 
 				<div className="flex min-h-0 flex-1 flex-col gap-1.5">
 					<div className="shrink-0 font-medium text-[11px] text-muted-foreground">
@@ -94,9 +99,7 @@ export const SyncConflictDialog = ({
 										<ArrowDownToLine className="size-4 shrink-0 text-sky-400" />
 										<span>{t("syncConflict.useShared")}</span>
 									</span>
-									<span className="shrink-0 whitespace-nowrap rounded-md bg-zinc-800/80 px-2 py-0.5 font-medium text-[10px] text-zinc-400">
-										{t("syncConflict.overwritesLocal")}
-									</span>
+									<Badge variant="secondary">{t("syncConflict.overwritesLocal")}</Badge>
 								</div>
 								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
 									<Trans
@@ -118,9 +121,7 @@ export const SyncConflictDialog = ({
 										<ArrowUpFromLine className="size-4 shrink-0 text-emerald-400" />
 										<span>{t("syncConflict.useInstance")}</span>
 									</span>
-									<span className="shrink-0 whitespace-nowrap rounded-md bg-zinc-800/80 px-2 py-0.5 font-medium text-[10px] text-zinc-400">
-										{t("syncConflict.overwritesShared")}
-									</span>
+									<Badge variant="secondary">{t("syncConflict.overwritesShared")}</Badge>
 								</div>
 								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
 									<Trans
@@ -142,9 +143,7 @@ export const SyncConflictDialog = ({
 										<XCircle className="size-4 shrink-0 text-zinc-400" />
 										<span>{t("syncConflict.disable")}</span>
 									</span>
-									<span className="shrink-0 whitespace-nowrap rounded-md bg-zinc-800/80 px-2 py-0.5 font-medium text-[10px] text-zinc-400">
-										{t("syncConflict.noChanges")}
-									</span>
+									<Badge variant="secondary">{t("syncConflict.noChanges")}</Badge>
 								</div>
 								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
 									{t("syncConflict.disableDesc")}

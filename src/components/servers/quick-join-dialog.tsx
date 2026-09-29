@@ -1,9 +1,7 @@
-import { AlertCircle, Check, Loader2, Play, Plus, Server } from "lucide-react"
+import { AlertCircle, Check, Play, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +9,11 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useInstances } from "@/services/instance-service"
 
@@ -137,7 +139,7 @@ export function QuickJoinDialog({
 
 						{isLoading ? (
 							<div className="flex items-center justify-center p-8 text-muted-foreground">
-								<Loader2 className="size-5 animate-spin" />
+								<Spinner className="size-5" />
 							</div>
 						) : instances.length === 0 ? (
 							<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-zinc-800 border-dashed p-6 text-center">
@@ -187,9 +189,12 @@ export function QuickJoinDialog({
 													<div className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-400">
 														<span>{inst.gameVersion}</span>
 														{isVersionMatch && (
-															<span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] text-emerald-300">
+															<Badge
+																variant="outline"
+																className="border-emerald-500/30 text-emerald-300"
+															>
 																{t("quickJoin.matches")}
-															</span>
+															</Badge>
 														)}
 													</div>
 												</div>

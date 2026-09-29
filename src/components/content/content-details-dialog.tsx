@@ -8,7 +8,6 @@ import {
 	ExternalLink,
 	Flame,
 	Globe,
-	Loader2,
 	Maximize2,
 	X,
 } from "lucide-react"
@@ -16,9 +15,10 @@ import { marked } from "marked"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
+import { Dialog, DialogContent } from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -26,8 +26,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
 import { formatBytes, formatCount, formatDate as formatLocalDate, formatNumber } from "@/lib/format"
 import { sanitizeHtml } from "@/lib/sanitize-html"
+import { cn } from "@/lib/utils"
 import {
 	type ContentSource,
 	contentService,
@@ -407,7 +409,7 @@ export const ContentDetailsDialog = memo(
 						<div className="flex min-h-0 flex-1 flex-col bg-background/50">
 							{isLoading ? (
 								<div className="flex flex-1 items-center justify-center gap-2 text-muted-foreground text-sm">
-									<Loader2 className="size-5 animate-spin text-primary" />
+									<Spinner className="size-5 text-primary" />
 									<span>{t("contentDetails.loading")}</span>
 								</div>
 							) : error ? (
@@ -711,17 +713,19 @@ export const ContentDetailsDialog = memo(
 														<div className="flex items-start justify-between gap-3">
 															<div className="flex min-w-0 flex-1 flex-col gap-1">
 																<div className="flex items-center gap-2">
-																	<span
-																		className={`rounded px-1.5 py-0.5 font-medium text-[10px] uppercase ${
+																	<Badge
+																		variant="outline"
+																		className={cn(
+																			"uppercase",
 																			ver.versionType === "release"
-																				? "border border-emerald-500/20 bg-emerald-500/15 text-emerald-400"
+																				? "border-emerald-500/30 text-emerald-400"
 																				: ver.versionType === "beta"
-																					? "border border-amber-500/20 bg-amber-500/15 text-amber-400"
-																					: "border border-red-500/20 bg-red-500/15 text-red-400"
-																		}`}
+																					? "border-amber-500/30 text-amber-400"
+																					: "border-red-500/30 text-red-400",
+																		)}
 																	>
 																		{releaseType(t, ver.versionType)}
-																	</span>
+																	</Badge>
 																	<h4 className="truncate font-semibold text-foreground text-sm">
 																		{ver.name}
 																	</h4>
@@ -757,20 +761,14 @@ export const ContentDetailsDialog = memo(
 
 														<div className="mt-1 flex flex-wrap items-center gap-1.5 border-border/20 border-t pt-2">
 															{ver.loaders.map((l) => (
-																<span
-																	key={l}
-																	className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 capitalize"
-																>
+																<Badge key={l} variant="secondary" className="font-mono capitalize">
 																	{l}
-																</span>
+																</Badge>
 															))}
 															{ver.gameVersions.map((gv) => (
-																<span
-																	key={gv}
-																	className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary"
-																>
+																<Badge key={gv} variant="outline" className="font-mono">
 																	{gv}
-																</span>
+																</Badge>
 															))}
 														</div>
 													</div>

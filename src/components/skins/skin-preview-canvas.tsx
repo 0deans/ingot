@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { accountService } from "@/services/account-service"
 
 interface SkinPreviewCanvasProps {
@@ -205,9 +206,7 @@ function SkinPreviewCanvas({
 					style={{ imageRendering: "pixelated" }}
 				/>
 			)}
-			{isLoading && !renderedUrl && (
-				<div className="size-full animate-pulse rounded bg-zinc-800/60" />
-			)}
+			{isLoading && !renderedUrl && <Skeleton className="size-full" />}
 		</div>
 	)
 }

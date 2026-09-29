@@ -1,7 +1,6 @@
 import { ArrowRight, Clock, Globe, Play, Server, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -9,8 +8,10 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useServers } from "@/services/server-service"
 
 export interface DirectConnectDialogProps {
@@ -102,9 +103,9 @@ export function DirectConnectDialog({
 					className="space-y-4 pt-1"
 				>
 					<div className="space-y-1.5">
-						<label htmlFor="server-address" className="font-medium text-xs text-zinc-300">
+						<Label htmlFor="server-address" className="font-medium text-xs text-zinc-300">
 							{t("directConnect.address")}
-						</label>
+						</Label>
 						<div className="relative flex items-center">
 							<Input
 								id="server-address"

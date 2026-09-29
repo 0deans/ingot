@@ -30,6 +30,8 @@ import {
 	AccountCardContent,
 	SortableAccountItem,
 } from "@/components/accounts/sortable-account-item"
+import { alertTone } from "@/components/common/alert-tones"
+import { ScrollArea } from "@/components/common/scroll-area"
 import LanguageSettings from "@/components/settings/language-settings"
 import { LicensesSettings } from "@/components/settings/licenses"
 import MemoryAllocation from "@/components/settings/memory-allocation"
@@ -37,8 +39,9 @@ import SyncSettings from "@/components/settings/sync-settings"
 import ThemeSettings from "@/components/settings/theme-settings"
 import UpdateSettings from "@/components/settings/update-settings"
 import WindowSettings from "@/components/settings/window-settings"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useAccounts } from "@/services/account-service"
 import { type LauncherBehavior, useLauncherBehavior } from "@/services/settings-service"
@@ -200,10 +203,10 @@ const SettingsPage = () => {
 							</div>
 						</div>
 
-						<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-emerald-400 text-xs">
-							<ShieldCheck className="size-4 shrink-0" />
-							<span>{t("settings.accounts.keyringActive")}</span>
-						</div>
+						<Alert className={alertTone.success}>
+							<ShieldCheck />
+							<AlertDescription>{t("settings.accounts.keyringActive")}</AlertDescription>
+						</Alert>
 
 						<DndContext
 							sensors={sensors}
@@ -306,11 +309,7 @@ const SettingsPage = () => {
 											>
 												<Icon className="size-3.5" />
 											</div>
-											{isSelected && (
-												<span className="rounded-full bg-primary/20 px-2 py-0.5 font-medium text-[10px] text-primary">
-													{t("common.active")}
-												</span>
-											)}
+											{isSelected && <Badge>{t("common.active")}</Badge>}
 										</div>
 										<div>
 											<div

@@ -1,6 +1,7 @@
 import { Check, Monitor, Moon, Palette, Sun } from "lucide-react"
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
+import { Badge } from "@/components/ui/badge"
 import { type ThemeMode, useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
@@ -55,10 +56,10 @@ export const ThemeSettings = () => {
 									<Icon className="size-4" />
 								</div>
 								{isSelected && (
-									<span className="inline-flex items-center gap-1 rounded-full bg-primary/20 px-2 py-0.5 font-medium text-[10px] text-primary">
+									<Badge>
 										<Check className="size-2.5" />
 										{t("common.active")}
-									</span>
+									</Badge>
 								)}
 							</div>
 

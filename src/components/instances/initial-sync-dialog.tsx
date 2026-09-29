@@ -7,7 +7,8 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { Badge } from "@/components/ui/badge"
 
 interface InitialSyncDialogProps {
 	instanceName: string
@@ -68,9 +69,9 @@ export const InitialSyncDialog = ({
 								<ArrowUpFromLine className="size-3.5 text-emerald-400" />
 								{t("initialSync.fromInstance")}
 							</span>
-							<span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
+							<Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
 								{t("initialSync.uploadToShared")}
-							</span>
+							</Badge>
 						</div>
 						<p className="text-[11px] text-muted-foreground leading-snug">
 							{t("initialSync.fromInstanceDesc")}
@@ -89,9 +90,9 @@ export const InitialSyncDialog = ({
 								<ArrowDownToLine className="size-3.5 text-sky-400" />
 								{t("initialSync.fromShared")}
 							</span>
-							<span className="rounded bg-sky-500/10 px-1.5 py-0.5 font-medium text-[10px] text-sky-400">
+							<Badge variant="outline" className="border-sky-500/30 text-sky-400">
 								{t("initialSync.downloadToInstance")}
-							</span>
+							</Badge>
 						</div>
 						<p className="text-[11px] text-muted-foreground leading-snug">
 							{t("initialSync.fromSharedDesc")}

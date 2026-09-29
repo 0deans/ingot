@@ -1,15 +1,4 @@
-import {
-	Eye,
-	Footprints,
-	Hand,
-	Loader2,
-	Pause,
-	Play,
-	RotateCcw,
-	Sparkles,
-	User,
-	Zap,
-} from "lucide-react"
+import { Eye, Footprints, Hand, Pause, Play, RotateCcw, Sparkles, User, Zap } from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -20,6 +9,7 @@ import {
 	WaveAnimation,
 } from "skinview3d"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { accountService } from "@/services/account-service"
 
@@ -380,7 +370,7 @@ const SkinViewer3D = ({
 
 				{isLoadingSkin && (
 					<div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-zinc-950/40 backdrop-blur-xs">
-						<Loader2 className="size-6 animate-spin text-primary" />
+						<Spinner className="size-6 text-primary" />
 					</div>
 				)}
 

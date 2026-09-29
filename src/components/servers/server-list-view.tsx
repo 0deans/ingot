@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
 import type { ServerConfig } from "@/bindings"
+import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from "@/lib/utils"
 import type { serverCoreSchema } from "@/routes/servers"
 import { instanceService } from "@/services/instance-service"
@@ -290,27 +291,22 @@ export default function ServerListView() {
 						)}
 					</div>
 
-					<div className="flex items-center gap-1 rounded-lg border border-border/40 bg-zinc-900/50 p-0.5">
+					<ToggleGroup
+						variant="outline"
+						size="sm"
+						spacing={0}
+						value={[coreFilter]}
+						onValueChange={(value) => {
+							const core = CORE_FILTERS.find((c) => c.id === value[0])?.id
+							if (core) navigate({ search: (prev) => ({ ...prev, core }) })
+						}}
+					>
 						{CORE_FILTERS.map((c) => (
-							<button
-								key={c.id}
-								type="button"
-								onClick={() =>
-									navigate({
-										search: (prev) => ({ ...prev, core: c.id }),
-									})
-								}
-								className={cn(
-									"rounded-md px-2.5 py-1 font-medium text-xs transition-colors",
-									coreFilter === c.id
-										? "bg-zinc-800 text-foreground shadow-xs"
-										: "text-muted-foreground hover:text-foreground",
-								)}
-							>
+							<ToggleGroupItem key={c.id} value={c.id}>
 								{c.id === "all" ? t("servers.allCores") : c.label}
-							</button>
+							</ToggleGroupItem>
 						))}
-					</div>
+					</ToggleGroup>
 				</div>
 
 				{/* Servers Grid or Empty State */}

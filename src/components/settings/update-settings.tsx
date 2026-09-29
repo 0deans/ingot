@@ -4,13 +4,16 @@ import {
 	CheckCircle2,
 	Download,
 	ExternalLink,
-	Loader2,
 	RefreshCw,
 	Sparkles,
 } from "lucide-react"
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Spinner } from "@/components/ui/spinner"
 import { formatRelative } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useUpdateService } from "@/services/update-service"
@@ -59,9 +62,9 @@ export const UpdateSettings = () => {
 								<span className="font-medium text-foreground text-xs sm:text-sm">
 									Ingot v{updateInfo?.currentVersion || APP_VERSION}
 								</span>
-								<span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+								<Badge variant="secondary" className="font-mono">
 									{t("settings.updates.releaseChannel")}
-								</span>
+								</Badge>
 							</div>
 							<div className="text-[11px] text-muted-foreground">
 								{t("settings.updates.lastChecked", { time: formatLastChecked(lastCheckedAt) })}
@@ -128,19 +131,14 @@ export const UpdateSettings = () => {
 					<div className="mt-2 flex flex-col gap-2 rounded-lg border border-sky-500/30 bg-sky-950/20 p-3">
 						<div className="flex items-center justify-between text-xs">
 							<div className="flex items-center gap-2 text-sky-300">
-								<Loader2 className="size-3.5 animate-spin" />
+								<Spinner className="size-3.5" />
 								<span className="font-medium">
 									{t("settings.updates.downloading", { version: updateInfo?.version })}
 								</span>
 							</div>
 							<span className="font-mono text-sky-400 text-xs">{downloadProgress}%</span>
 						</div>
-						<div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-							<div
-								className="h-full bg-sky-500 transition-all duration-200"
-								style={{ width: `${downloadProgress}%` }}
-							/>
-						</div>
+						<Progress value={downloadProgress} />
 					</div>
 				)}
 
@@ -179,13 +177,11 @@ export const UpdateSettings = () => {
 
 				{/* Error Panel */}
 				{status === "error" && errorMessage && (
-					<div className="mt-1 flex items-start gap-2 rounded-md border border-red-500/30 bg-red-950/20 p-2.5 text-red-300 text-xs">
-						<AlertCircle className="mt-0.5 size-3.5 shrink-0 text-red-400" />
-						<div className="flex-1">
-							<div className="font-medium">{t("settings.updates.errorTitle")}</div>
-							<div className="mt-0.5 text-[11px] text-red-400/80">{errorMessage}</div>
-						</div>
-					</div>
+					<Alert variant="destructive" className="mt-1">
+						<AlertCircle />
+						<AlertTitle>{t("settings.updates.errorTitle")}</AlertTitle>
+						<AlertDescription>{errorMessage}</AlertDescription>
+					</Alert>
 				)}
 			</div>
 		</div>

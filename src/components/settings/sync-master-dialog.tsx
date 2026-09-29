@@ -1,16 +1,19 @@
-import { Check, CheckCircle2, Database, FolderX, Loader2, UploadCloud } from "lucide-react"
+import { Check, CheckCircle2, Database, FolderX, UploadCloud } from "lucide-react"
 import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
+import { alertTone } from "@/components/common/alert-tones"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { useInstances } from "@/services/instance-service"
 import { settingsService } from "@/services/settings-service"
 
@@ -185,7 +188,7 @@ export const SyncMasterDialog = ({
 													className="h-7 gap-1 text-xs"
 												>
 													{isSubmitting && isSelected ? (
-														<Loader2 className="size-3 animate-spin" />
+														<Spinner className="size-3" />
 													) : isSelected ? (
 														<Check className="size-3" />
 													) : null}
@@ -219,10 +222,10 @@ export const SyncMasterDialog = ({
 				</div>
 
 				{statusMessage && (
-					<div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-emerald-300 text-xs">
-						<CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-						<span>{statusMessage}</span>
-					</div>
+					<Alert className={alertTone.success}>
+						<CheckCircle2 />
+						<AlertDescription>{statusMessage}</AlertDescription>
+					</Alert>
 				)}
 			</DialogContent>
 		</Dialog>

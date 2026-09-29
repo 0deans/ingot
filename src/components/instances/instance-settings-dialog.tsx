@@ -6,7 +6,6 @@ import {
 	DownloadCloud,
 	FolderOpen,
 	HardDrive,
-	Loader2,
 	Monitor,
 	RefreshCw,
 	Terminal,
@@ -16,10 +15,6 @@ import {
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { InstanceConfig, VersionBackup } from "@/bindings"
-import ChangeVersionDialog from "@/components/instances/change-version-dialog"
-import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -27,10 +22,16 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import ChangeVersionDialog from "@/components/instances/change-version-dialog"
+import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import Slider from "@/components/ui/slider"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
+import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { loaderName } from "@/components/version-change/plan-review"
 import { formatMegabytes } from "@/lib/format"
@@ -318,9 +319,9 @@ export const InstanceSettingsDialog = ({
 					<div className="flex flex-col gap-4 py-1 pr-1">
 						{/* Instance Name */}
 						<div className="flex flex-col gap-2">
-							<label htmlFor="instance-name-input" className="font-medium text-foreground text-xs">
+							<Label htmlFor="instance-name-input" className="font-medium text-foreground text-xs">
 								{t("newInstance.name")}
-							</label>
+							</Label>
 							<Input
 								id="instance-name-input"
 								value={name}
@@ -387,11 +388,7 @@ export const InstanceSettingsDialog = ({
 											disabled={versionBusy}
 											className="h-7 gap-1.5 text-[11px]"
 										>
-											{versionBusy ? (
-												<Loader2 className="size-3 animate-spin" />
-											) : (
-												<Undo2 className="size-3" />
-											)}
+											{versionBusy ? <Spinner className="size-3" /> : <Undo2 className="size-3" />}
 											{t("transfer.undo", { version: backupSide(versionBackup, "from") })}
 										</Button>
 									</div>
@@ -473,7 +470,7 @@ export const InstanceSettingsDialog = ({
 											min={MIN_RAM_LIMIT_MB}
 											max={totalRamMb}
 											step={STEP_MB}
-											value={minRamMb}
+											value={[minRamMb]}
 											onValueChange={(val) => {
 												const n = Array.isArray(val) ? val[0] : val
 												setMinRamMb(Math.min(n, maxRamMb))
@@ -492,7 +489,7 @@ export const InstanceSettingsDialog = ({
 											min={MIN_RAM_LIMIT_MB}
 											max={totalRamMb}
 											step={STEP_MB}
-											value={maxRamMb}
+											value={[maxRamMb]}
 											onValueChange={(val) => {
 												const n = Array.isArray(val) ? val[0] : val
 												setMaxRamMb(Math.max(n, minRamMb))
@@ -620,17 +617,18 @@ export const InstanceSettingsDialog = ({
 													{ label: "1280 × 720", w: 1280, h: 720 },
 													{ label: "1920 × 1080", w: 1920, h: 1080 },
 												].map((p) => (
-													<button
+													<Button
 														key={p.label}
 														type="button"
+														size="xs"
+														variant="outline"
 														onClick={() => {
 															setInstanceWidth(p.w)
 															setInstanceHeight(p.h)
 														}}
-														className="rounded border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-300 hover:text-zinc-50"
 													>
 														{p.label}
-													</button>
+													</Button>
 												))}
 											</div>
 										</div>
@@ -690,7 +688,7 @@ export const InstanceSettingsDialog = ({
 										className="h-8 gap-1.5 border-emerald-600/30 bg-emerald-950/30 text-emerald-300 text-xs hover:bg-emerald-900/40"
 									>
 										{isSyncing ? (
-											<Loader2 className="size-3.5 animate-spin" />
+											<Spinner className="size-3.5" />
 										) : (
 											<UploadCloud className="size-3.5" />
 										)}
@@ -706,7 +704,7 @@ export const InstanceSettingsDialog = ({
 										className="h-8 gap-1.5 border-sky-600/30 bg-sky-950/30 text-sky-300 text-xs hover:bg-sky-900/40"
 									>
 										{isSyncing ? (
-											<Loader2 className="size-3.5 animate-spin" />
+											<Spinner className="size-3.5" />
 										) : (
 											<DownloadCloud className="size-3.5" />
 										)}

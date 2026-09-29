@@ -1,9 +1,11 @@
-import { Check, Loader2, Server, TriangleAlert } from "lucide-react"
+import { Check, Server, TriangleAlert } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { LeftoverServer } from "@/bindings"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/common/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
 import { formatDateTime } from "@/lib/format"
 import { rpc, serverService } from "@/services/server-service"
 
@@ -100,7 +102,7 @@ export default function LeftoverServersDialog() {
 									className="h-8 gap-1.5 rounded-lg text-xs"
 								>
 									{busy === server.serverId ? (
-										<Loader2 className="size-3.5 animate-spin" />
+										<Spinner className="size-3.5" />
 									) : done ? (
 										<Check className="size-3.5" />
 									) : null}
@@ -116,9 +118,9 @@ export default function LeftoverServersDialog() {
 				)}
 
 				{error && (
-					<p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-200 text-xs">
-						{error}
-					</p>
+					<Alert variant="destructive">
+						<AlertDescription>{error}</AlertDescription>
+					</Alert>
 				)}
 
 				<div className="flex justify-end">

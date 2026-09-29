@@ -15,7 +15,6 @@ import {
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
-import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -23,7 +22,9 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -31,7 +32,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Kbd } from "@/components/ui/kbd"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { screenshotSortSchema } from "@/routes/screenshots"
 import { useInstances } from "@/services/instance-service"
@@ -379,10 +380,7 @@ const ScreenshotsView = () => {
 								{t("screenshots.emptyTitle")}
 							</h3>
 							<p className="max-w-md text-muted-foreground text-xs">
-								{t("screenshots.emptySubtitlePrefix")}{" "}
-								<kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
-									F2
-								</kbd>
+								{t("screenshots.emptySubtitlePrefix")} <Kbd>F2</Kbd>
 								{t("screenshots.emptySubtitleSuffix")}
 							</p>
 						</div>

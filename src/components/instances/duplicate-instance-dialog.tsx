@@ -1,9 +1,8 @@
-import { Copy, Loader2 } from "lucide-react"
+import { Copy } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
+import { alertTone } from "@/components/common/alert-tones"
 import {
 	Dialog,
 	DialogContent,
@@ -11,8 +10,13 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/common/dialog"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 import { instanceService, rpc } from "@/services/instance-service"
 
 interface DuplicateInstanceDialogProps {
@@ -96,9 +100,9 @@ export const DuplicateInstanceDialog = ({
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					<label htmlFor="duplicate-name" className="font-medium text-xs text-zinc-300">
+					<Label htmlFor="duplicate-name" className="font-medium text-xs text-zinc-300">
 						{t("duplicateInstance.nameLabel")}
-					</label>
+					</Label>
 					<Input
 						id="duplicate-name"
 						value={name}
@@ -111,7 +115,7 @@ export const DuplicateInstanceDialog = ({
 					/>
 				</div>
 
-				<label className="flex cursor-pointer items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3">
+				<Label className="flex cursor-pointer items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3">
 					<input
 						type="checkbox"
 						checked={includeWorlds}
@@ -133,19 +137,19 @@ export const DuplicateInstanceDialog = ({
 							{t("duplicateInstance.copyWorldsDesc")}
 						</span>
 					</span>
-				</label>
+				</Label>
 
 				<p className="text-[11px] text-zinc-500">{t("duplicateInstance.note")}</p>
 
 				{blocked && (
-					<p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-200 text-xs">
-						{t("duplicateInstance.running")}
-					</p>
+					<Alert className={alertTone.warning}>
+						<AlertDescription>{t("duplicateInstance.running")}</AlertDescription>
+					</Alert>
 				)}
 				{error && (
-					<p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-red-200 text-xs">
-						{error}
-					</p>
+					<Alert variant="destructive">
+						<AlertDescription>{error}</AlertDescription>
+					</Alert>
 				)}
 
 				<DialogFooter>
@@ -155,7 +159,7 @@ export const DuplicateInstanceDialog = ({
 						disabled={busy || blocked || !name.trim()}
 						className="w-full gap-1.5 bg-emerald-600 font-semibold text-white hover:bg-emerald-500"
 					>
-						{busy ? <Loader2 className="size-4 animate-spin" /> : <Copy className="size-4" />}
+						{busy ? <Spinner className="size-4" /> : <Copy className="size-4" />}
 						{busy ? t("duplicateInstance.copying") : t("duplicateInstance.action")}
 					</Button>
 				</DialogFooter>

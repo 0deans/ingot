@@ -12,10 +12,12 @@ import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
 import LeftoverServersDialog from "@/components/servers/leftover-servers-dialog"
 import FirstLaunchLanguageDialog from "@/components/settings/first-launch-language-dialog"
+import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import VersionChangeCrashDialog from "@/components/version-change/crash-dialog"
 import { isMobileEnvironment } from "@/lib/platform"
 import { useScrollRestoration } from "@/lib/scroll-restoration"
+import { useTheme } from "@/lib/theme"
 
 export interface RouterContext {
 	queryClient: QueryClient
@@ -26,6 +28,7 @@ const RootLayout = () => {
 	const isMobile = isMobileEnvironment()
 	const navigate = useNavigate()
 	const currentPath = useRouterState({ select: (s) => s.location.pathname })
+	const { resolvedTheme } = useTheme()
 
 	useEffect(() => {
 		if (isMobile && currentPath !== "/servers") {
@@ -45,6 +48,7 @@ const RootLayout = () => {
 				<FirstLaunchLanguageDialog />
 				<VersionChangeCrashDialog />
 				<LeftoverServersDialog />
+				<Toaster theme={resolvedTheme} />
 			</TooltipProvider>
 		)
 	}
@@ -61,6 +65,7 @@ const RootLayout = () => {
 			<FirstLaunchLanguageDialog />
 			<VersionChangeCrashDialog />
 			<LeftoverServersDialog />
+			<Toaster theme={resolvedTheme} />
 			<QuitDialog />
 		</TooltipProvider>
 	)

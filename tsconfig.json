@@ -16,8 +16,9 @@
 
 		/* Linting */
 		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
+		// Unused code is reported by Biome, which skips the vendored shadcn files in src/components/ui
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
 		"noFallthroughCasesInSwitch": true,
 
 		"ignoreDeprecations": "6.0",

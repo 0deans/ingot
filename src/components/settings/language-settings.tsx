@@ -1,6 +1,6 @@
 import { Globe } from "lucide-react"
 import { memo, useMemo } from "react"
-import SearchableSelect from "@/components/ui/searchable-select"
+import SearchableSelect from "@/components/common/searchable-select"
 import { useLanguage } from "@/i18n/use-language"
 
 /** One searchable dropdown: there are too many languages for a grid of cards */

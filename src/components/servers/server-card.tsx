@@ -5,7 +5,6 @@ import {
 	FolderOpen,
 	Gamepad2,
 	Globe,
-	Loader2,
 	Play,
 	Server,
 	Settings,
@@ -23,7 +22,9 @@ import type {
 	ServerCoreType,
 	ServerPingResponse,
 } from "@/bindings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { formatDuration, formatMegabytes } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
@@ -160,37 +161,33 @@ export default function ServerCard({
 			{/* Top Bar: Core Badge + Status */}
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex items-center gap-2">
-					<span
-						className={cn(
-							"rounded-lg border px-2 py-0.5 font-semibold text-[10px] uppercase tracking-wider",
-							getCoreBadgeStyle(server.core),
-						)}
+					<Badge
+						variant="outline"
+						className={cn("uppercase tracking-wider", getCoreBadgeStyle(server.core))}
 					>
 						{server.core}
-					</span>
+					</Badge>
 					<span className="font-mono text-[11px] text-muted-foreground">{server.gameVersion}</span>
 				</div>
 
 				{/* Live Status Indicator */}
 				{isRunning ? (
-					<div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-400">
+					<Badge variant="outline" className="border-emerald-500/30 font-mono text-emerald-400">
 						<span className="size-1.5 animate-ping rounded-full bg-emerald-400" />
-						<span className="font-medium font-mono">{formatUptime(uptime)}</span>
-					</div>
+						{formatUptime(uptime)}
+					</Badge>
 				) : isStarting ? (
-					<div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-400">
-						<Loader2 className="size-3 animate-spin" />
-						<span>{t("overview.starting")}</span>
-					</div>
+					<Badge variant="outline" className="border-amber-500/30 text-amber-400">
+						<Spinner />
+						{t("overview.starting")}
+					</Badge>
 				) : isStopping ? (
-					<div className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[11px] text-rose-400">
-						<Loader2 className="size-3 animate-spin" />
-						<span>{t("overview.stopping")}</span>
-					</div>
+					<Badge variant="outline" className="border-rose-500/30 text-rose-400">
+						<Spinner />
+						{t("overview.stopping")}
+					</Badge>
 				) : (
-					<span className="rounded-full border border-border/40 bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-500">
-						{t("serverCard.offline")}
-					</span>
+					<Badge variant="outline">{t("serverCard.offline")}</Badge>
 				)}
 			</div>
 
@@ -308,7 +305,7 @@ export default function ServerCard({
 							className="h-8 gap-1.5 bg-emerald-600 font-medium text-white text-xs hover:bg-emerald-500"
 						>
 							{isStarting ? (
-								<Loader2 className="size-3.5 animate-spin" />
+								<Spinner className="size-3.5" />
 							) : (
 								<Play className="size-3.5 fill-current" />
 							)}

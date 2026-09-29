@@ -1,6 +1,7 @@
 import { FolderOpen, HardDrive, ImageOff, Maximize2, MoreVertical, Trash2 } from "lucide-react"
 import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
@@ -9,6 +10,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { formatBytes, formatDateTime } from "@/lib/format"
 import { type ScreenshotInfo, screenshotService } from "@/services/screenshot-service"
 
@@ -45,9 +47,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 
 			{/* Thumbnail container */}
 			<div className="relative aspect-video w-full overflow-hidden bg-zinc-900/60">
-				{!loaded && !imageError && (
-					<div className="absolute inset-0 animate-pulse bg-zinc-800/40" />
-				)}
+				{!loaded && !imageError && <Skeleton className="absolute inset-0 rounded-none" />}
 
 				{imageError ? (
 					<div className="flex size-full flex-col items-center justify-center gap-1.5 p-3 text-center text-muted-foreground">
@@ -73,10 +73,10 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 
 				{/* Top-left instance tag (clean opaque bg, no heavy backdrop-blur) */}
 				<div className="pointer-events-none absolute top-2 left-2 z-10">
-					<span className="inline-flex max-w-[140px] items-center gap-1 truncate rounded-md border border-zinc-800/90 bg-zinc-950/90 px-2 py-0.5 font-medium text-[10px] text-zinc-300 shadow-sm">
+					<Badge variant="secondary" className="max-w-[140px]">
 						<HardDrive className="size-2.5 shrink-0 text-primary" />
 						<span className="truncate">{screenshot.instanceName}</span>
-					</span>
+					</Badge>
 				</div>
 
 				{/* Top-right subtle 3-dots action menu (does not block click-to-fullscreen) */}

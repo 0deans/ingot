@@ -1,11 +1,13 @@
 import i18n from "i18next"
-import { Check, Download, ExternalLink, Loader2, Package } from "lucide-react"
+import { Check, Download, ExternalLink, Package } from "lucide-react"
 import { marked } from "marked"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PluginProject, PluginVersion } from "@/bindings"
+import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { formatDate } from "@/lib/format"
 import { formatBytes, formatCount } from "@/lib/minecraft"
@@ -125,7 +127,7 @@ export function PluginDetailsSheet({
 									)}
 								>
 									{installing ? (
-										<Loader2 className="size-4 animate-spin" />
+										<Spinner className="size-4" />
 									) : installed ? (
 										<Check className="size-4" />
 									) : (
@@ -168,7 +170,7 @@ export function PluginDetailsSheet({
 							{tab === "about" &&
 								(page.isLoading ? (
 									<div className="flex justify-center py-10">
-										<Loader2 className="size-5 animate-spin text-zinc-500" />
+										<Spinner className="size-5 text-zinc-500" />
 									</div>
 								) : html ? (
 									<div
@@ -232,7 +234,7 @@ function VersionList({
 			{error ? <ErrorNote>{String(error)}</ErrorNote> : null}
 			{loading ? (
 				<div className="flex justify-center py-8">
-					<Loader2 className="size-5 animate-spin text-zinc-500" />
+					<Spinner className="size-5 text-zinc-500" />
 				</div>
 			) : versions.length === 0 ? (
 				<EmptyState
@@ -248,9 +250,9 @@ function VersionList({
 								<p className="flex items-center gap-2 truncate font-medium text-sm text-zinc-100">
 									{v.versionNumber}
 									{v.channel !== "release" && (
-										<span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 text-[10px] text-amber-300">
+										<Badge variant="outline" className="border-amber-500/30 text-amber-300">
 											{v.channel}
-										</span>
+										</Badge>
 									)}
 								</p>
 								<p className="truncate text-[11px] text-zinc-500">

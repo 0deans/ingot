@@ -1,7 +1,9 @@
-import { CheckCircle2, Download, Loader2, RefreshCw, Sparkles, X } from "lucide-react"
+import { CheckCircle2, Download, RefreshCw, Sparkles, X } from "lucide-react"
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useUpdateService } from "@/services/update-service"
 
@@ -45,7 +47,7 @@ export const UpdateBanner = () => {
 						{isReady ? (
 							<CheckCircle2 className="size-3.5" />
 						) : isDownloading ? (
-							<Loader2 className="size-3.5 animate-spin" />
+							<Spinner className="size-3.5" />
 						) : (
 							<Sparkles className="size-3.5" />
 						)}
@@ -82,12 +84,7 @@ export const UpdateBanner = () => {
 						</Button>
 					) : isDownloading ? (
 						<div className="flex items-center gap-2">
-							<div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-800 sm:w-32">
-								<div
-									className="h-full bg-emerald-500 transition-all duration-200"
-									style={{ width: `${downloadProgress}%` }}
-								/>
-							</div>
+							<Progress value={downloadProgress} className="w-24 sm:w-32" />
 							<span className="font-mono text-[11px] text-muted-foreground">
 								{downloadProgress}%
 							</span>

@@ -1,5 +1,5 @@
 import { cn } from "cn"
-import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react"
+import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
@@ -9,8 +9,7 @@ import type {
 	VersionManifestEntry,
 	VersionPlan,
 } from "@/bindings"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
+import { alertTone } from "@/components/common/alert-tones"
 import {
 	Dialog,
 	DialogContent,
@@ -18,9 +17,14 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import SearchableSelect from "@/components/ui/searchable-select"
+} from "@/components/common/dialog"
+import { ScrollArea } from "@/components/common/scroll-area"
+import SearchableSelect from "@/components/common/searchable-select"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 import {
 	loaderName,
 	PlanReview,
@@ -204,12 +208,12 @@ export default function ChangeVersionDialog({
 							</div>
 							<ArrowRight className="mx-auto hidden size-4 text-zinc-600 sm:mb-2.5 sm:block" />
 							<div className="grid gap-1.5">
-								<label
+								<Label
 									htmlFor="target-version"
 									className="font-medium text-muted-foreground text-xs"
 								>
 									{t("versionChange.moveTo")}
-								</label>
+								</Label>
 								<SearchableSelect
 									id="target-version"
 									value={target}
@@ -231,12 +235,12 @@ export default function ChangeVersionDialog({
 						</div>
 						{modded && (
 							<div className="grid gap-1.5">
-								<label
+								<Label
 									htmlFor="target-loader"
 									className="font-medium text-muted-foreground text-xs"
 								>
 									{t("versionChange.loaderVersion", { loader: loaderName(loader) })}
-								</label>
+								</Label>
 								<SearchableSelect
 									id="target-loader"
 									value={loaderVersion}
@@ -264,9 +268,11 @@ export default function ChangeVersionDialog({
 							</div>
 						)}
 						{loaderChanges && (
-							<p className="border border-sky-500/20 bg-sky-500/5 p-3 text-sky-100/80 text-xs leading-relaxed">
-								{t("versionChange.loaderSwitchNote", { loader: loaderName(loader) })}
-							</p>
+							<Alert className={alertTone.info}>
+								<AlertDescription>
+									{t("versionChange.loaderSwitchNote", { loader: loaderName(loader) })}
+								</AlertDescription>
+							</Alert>
 						)}
 					</div>
 				)}
@@ -292,7 +298,7 @@ export default function ChangeVersionDialog({
 
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-10 text-center">
-						<Loader2 className="size-7 animate-spin text-emerald-400" />
+						<Spinner className="size-7 text-emerald-400" />
 						<p className="font-medium text-sm text-zinc-200">{t("versionChange.applying")}</p>
 						<p className="max-w-sm text-xs text-zinc-500 leading-relaxed">
 							{backupWorlds && (plan?.worlds.length ?? 0) > 0
@@ -315,9 +321,9 @@ export default function ChangeVersionDialog({
 				)}
 
 				{error && (
-					<p className="whitespace-pre-wrap border border-red-500/30 bg-red-500/10 p-3 text-red-200 text-xs">
-						{error}
-					</p>
+					<Alert variant="destructive" className="whitespace-pre-wrap">
+						<AlertDescription>{error}</AlertDescription>
+					</Alert>
 				)}
 
 				<DialogFooter className="flex flex-row items-center justify-between gap-2 border-border/40 border-t pt-3 sm:justify-between">
@@ -337,7 +343,7 @@ export default function ChangeVersionDialog({
 								disabled={busy || !target || unchanged || (modded && !loaderVersion)}
 								className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
 							>
-								{stage === "checking" && <Loader2 className="size-3.5 animate-spin" />}
+								{stage === "checking" && <Spinner className="size-3.5" />}
 								{stage === "checking" ? t("versionChange.checking") : t("versionChange.check")}
 							</Button>
 						)}

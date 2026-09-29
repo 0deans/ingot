@@ -12,7 +12,7 @@ import {
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/components/common/scroll-area"
 import { cn } from "@/lib/utils"
 import { useServerIcon, useServerStatus } from "@/services/server-data"
 import { ConsolePanel } from "./panels/console-panel"
