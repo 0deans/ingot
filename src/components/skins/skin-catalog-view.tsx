@@ -140,6 +140,9 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 				sort: params.sort,
 				model: params.model,
 				account: params.tab === "my-skins" ? params.accountId : undefined,
+				// Applying a skin gives the account a new cache-busted skin URL; keying on it
+				// rebuilds the "current skin" entry instead of reusing the stale one
+				accountSkin: params.tab === "my-skins" ? params.accountSkinUrl : undefined,
 			},
 		],
 		queryFn: async () => {
