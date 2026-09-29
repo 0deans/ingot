@@ -19,6 +19,7 @@ import { formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
+import { useMemorySettings } from "@/services/settings-service"
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
@@ -525,8 +526,15 @@ function StepRam({
 	version: string
 }) {
 	const { t } = useTranslation()
+	const { systemMemory } = useMemorySettings()
 	const coreObj = SERVER_CORES.find((c) => c.id === core)
 	const ramLabel = formatMegabytes(ramMb)
+	const minRam = isMobile ? 512 : 1024
+	const maxRam = systemMemory?.totalMb
+		? Math.max(minRam, Math.floor(systemMemory.totalMb / 512) * 512)
+		: isMobile
+			? 4096
+			: 16384
 
 	return (
 		<div className="flex flex-col gap-4 pt-2">
@@ -563,10 +571,10 @@ function StepRam({
 					<span className="font-bold font-mono text-emerald-400 text-sm">{ramLabel}</span>
 				</div>
 				<Slider
-					min={isMobile ? 512 : 1024}
-					max={isMobile ? 4096 : 16384}
+					min={minRam}
+					max={maxRam}
 					step={512}
-					value={[ramMb]}
+					value={[Math.min(ramMb, maxRam)]}
 					onValueChange={(val: number | readonly number[]) =>
 						onRamChange(Array.isArray(val) ? val[0] : (val as number))
 					}

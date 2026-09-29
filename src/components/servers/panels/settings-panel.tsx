@@ -41,6 +41,7 @@ import {
 	useServerStatus,
 } from "@/services/server-data"
 import { rpc, serverService } from "@/services/server-service"
+import { useMemorySettings } from "@/services/settings-service"
 import DeleteServerDialog from "../delete-server-dialog"
 import { MC_COLORS, ServerListPreview } from "../shared/motd"
 import { Card, CardHeader, ErrorNote, useSticky } from "../shared/primitives"
@@ -302,8 +303,13 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 	const { t } = useTranslation()
 	const [ram, setRam] = useState(server.memoryMaxMb)
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
+	const { systemMemory } = useMemorySettings()
 	const mobile = isMobileEnvironment()
-	const max = mobile ? 8192 : 16384
+	const max = systemMemory?.totalMb
+		? Math.max(512, Math.floor(systemMemory.totalMb / 512) * 512)
+		: mobile
+			? 8192
+			: 16384
 	useEffect(() => setRam(server.memoryMaxMb), [server.memoryMaxMb])
 
 	if (server.core === "pumpkin") return null
