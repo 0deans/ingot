@@ -1,14 +1,14 @@
 import { ArrowDownToLine, ArrowUpFromLine, RefreshCw } from "lucide-react"
 import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
+import { Badge } from "@/components/ui/badge"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dialog"
 
 interface InitialSyncDialogProps {
 	instanceName: string
@@ -37,7 +37,7 @@ export const InitialSyncDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-			<DialogContent className="max-w-md border-border/60 bg-background p-6 shadow-2xl backdrop-blur-2xl">
+			<DialogContent className="max-w-md p-6">
 				<DialogHeader className="gap-2">
 					<div className="flex items-center gap-2.5 text-primary">
 						<div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">

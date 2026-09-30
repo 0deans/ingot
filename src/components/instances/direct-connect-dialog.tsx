@@ -1,6 +1,7 @@
 import { ArrowRight, Clock, Globe, Play, Server, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -8,10 +9,10 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useServers } from "@/services/server-service"
 
 export interface DirectConnectDialogProps {
@@ -173,14 +174,21 @@ export function DirectConnectDialog({
 											<Clock className="size-2.5 opacity-60" />
 											<span>{item}</span>
 										</button>
-										<button
-											type="button"
-											onClick={(e) => handleRemoveRecent(item, e)}
-											className="ml-0.5 text-muted-foreground hover:text-destructive"
-											title={t("directConnect.removeRecent")}
-										>
-											<Trash2 className="size-2.5" />
-										</button>
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<button
+														type="button"
+														onClick={(e) => handleRemoveRecent(item, e)}
+														className="ml-0.5 text-muted-foreground hover:text-destructive"
+														aria-label={t("directConnect.removeRecent")}
+													/>
+												}
+											>
+												<Trash2 className="size-2.5" />
+											</TooltipTrigger>
+											<TooltipContent>{t("directConnect.removeRecent")}</TooltipContent>
+										</Tooltip>
 									</div>
 								))}
 							</div>

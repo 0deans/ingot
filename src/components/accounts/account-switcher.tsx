@@ -156,28 +156,42 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 										</div>
 
 										<div className="flex items-center gap-1">
-											<Button
-												variant="ghost"
-												size="icon-xs"
-												className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
-												onClick={(e) => {
-													e.stopPropagation()
-													setPreviewAccount(acc)
-												}}
-												title={t("accounts.previewSkin")}
-											>
-												<Eye className="size-3" />
-											</Button>
+											<Tooltip>
+												<TooltipTrigger
+													render={
+														<Button
+															variant="ghost"
+															size="icon-xs"
+															className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
+															onClick={(e) => {
+																e.stopPropagation()
+																setPreviewAccount(acc)
+															}}
+															aria-label={t("accounts.previewSkin")}
+														/>
+													}
+												>
+													<Eye className="size-3" />
+												</TooltipTrigger>
+												<TooltipContent>{t("accounts.previewSkin")}</TooltipContent>
+											</Tooltip>
 											{isCurrent && <Check className="size-3.5 text-primary" />}
-											<Button
-												variant="ghost"
-												size="icon-xs"
-												className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
-												onClick={(e) => handleRemoveAccount(e, acc.id)}
-												title={t("accounts.removeAccount")}
-											>
-												<Trash2 className="size-3" />
-											</Button>
+											<Tooltip>
+												<TooltipTrigger
+													render={
+														<Button
+															variant="ghost"
+															size="icon-xs"
+															className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
+															onClick={(e) => handleRemoveAccount(e, acc.id)}
+															aria-label={t("accounts.removeAccount")}
+														/>
+													}
+												>
+													<Trash2 className="size-3" />
+												</TooltipTrigger>
+												<TooltipContent>{t("accounts.removeAccount")}</TooltipContent>
+											</Tooltip>
 										</div>
 									</DropdownMenuItem>
 								)

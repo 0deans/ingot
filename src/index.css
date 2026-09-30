@@ -578,3 +578,42 @@
 		@apply border border-zinc-800 px-2 py-1;
 	}
 }
+
+/*
+ * shadcn Dialog adjustments. src/components/ui/dialog.tsx stays unmodified; these rules target
+ * its data-slot attributes instead.
+ */
+
+/* Layered, so a single dialog can still override them with its own classes */
+@layer components {
+	[data-slot="dialog-content"] {
+		max-height: calc(100dvh - var(--dialog-screen-inset, 2rem));
+		overflow-y: auto;
+	}
+}
+
+/* Unlayered, because they replace classes shadcn sets itself (grid, inset-0, top-1/2) */
+[data-slot="dialog-content"] {
+	/* A column lets scroll areas inside shrink to fit, so a tall dialog scrolls in one place */
+	display: flex;
+	flex-direction: column;
+}
+/* Desktop: keep the custom 2.5rem title bar uncovered and center dialogs in the space below it */
+[data-platform="desktop"] {
+	--dialog-screen-inset: 3.5rem;
+}
+[data-platform="desktop"] [data-slot="dialog-overlay"] {
+	top: 2.5rem;
+}
+[data-platform="desktop"] [data-slot="dialog-content"] {
+	top: calc(50% + 1.25rem);
+}
+/* Base UI draws no backdrop for a dialog opened from another one; dim the dialog underneath */
+[data-slot="dialog-content"][data-nested-dialog-open]::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: oklch(0 0 0 / 0.5);
+	pointer-events: none;
+}

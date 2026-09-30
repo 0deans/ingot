@@ -11,6 +11,7 @@ import { AccountTypeBadge } from "@/components/accounts/account-type-badge"
 import SkinAvatar from "@/components/common/skin-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { AccountProfile } from "@/types/account"
 
@@ -53,37 +54,50 @@ export const AccountCardContent = memo(function AccountCardContent({
 		>
 			<div className="flex min-w-0 items-center gap-2 sm:gap-3">
 				{/* Drag handle */}
-				<button
-					type="button"
-					aria-label={t("accounts.reorder", { name: account.username })}
-					{...dragHandleProps}
-					style={{ touchAction: "none" }}
-					className={cn(
-						"flex size-8 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
-						(isDragging || isOverlay) && "cursor-grabbing bg-muted/80 text-primary",
-					)}
-					title={t("accounts.dragToReorder")}
-				>
-					<GripVertical className="size-4" />
-				</button>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<button
+								type="button"
+								aria-label={t("accounts.reorder", { name: account.username })}
+								{...dragHandleProps}
+								style={{ touchAction: "none" }}
+								className={cn(
+									"flex size-8 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
+									(isDragging || isOverlay) && "cursor-grabbing bg-muted/80 text-primary",
+								)}
+							/>
+						}
+					>
+						<GripVertical className="size-4" />
+					</TooltipTrigger>
+					<TooltipContent>{t("accounts.dragToReorder")}</TooltipContent>
+				</Tooltip>
 
 				{/* Avatar preview button */}
-				<button
-					type="button"
-					onClick={() => onPreviewSkin(account)}
-					className="group/avatar relative shrink-0 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-					title={t("accounts.clickToPreview")}
-				>
-					<SkinAvatar
-						username={account.username}
-						skinUrl={account.skinUrl}
-						size={38}
-						className="transition-transform group-hover/avatar:scale-105"
-					/>
-					<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover/avatar:opacity-100">
-						<Eye className="size-3.5 text-white" />
-					</div>
-				</button>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<button
+								type="button"
+								onClick={() => onPreviewSkin(account)}
+								className="group/avatar relative shrink-0 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+								aria-label={t("accounts.clickToPreview")}
+							/>
+						}
+					>
+						<SkinAvatar
+							username={account.username}
+							skinUrl={account.skinUrl}
+							size={38}
+							className="transition-transform group-hover/avatar:scale-105"
+						/>
+						<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover/avatar:opacity-100">
+							<Eye className="size-3.5 text-white" />
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>{t("accounts.clickToPreview")}</TooltipContent>
+				</Tooltip>
 
 				<div className="flex min-w-0 flex-col">
 					<div className="flex flex-wrap items-center gap-2">
@@ -104,30 +118,43 @@ export const AccountCardContent = memo(function AccountCardContent({
 			</div>
 
 			<div className="flex flex-wrap items-center justify-end gap-1.5 self-end sm:self-auto">
-				<Button
-					variant="outline"
-					size="xs"
-					onClick={() => onPreviewSkin(account)}
-					className="gap-1.5 text-xs"
-					title={t("accounts.previewSkin")}
-				>
-					<Eye className="size-3.5" />
-					{t("accounts.skin")}
-				</Button>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Button
+								variant="outline"
+								size="xs"
+								onClick={() => onPreviewSkin(account)}
+								className="gap-1.5 text-xs"
+							/>
+						}
+					>
+						<Eye className="size-3.5" />
+						{t("accounts.skin")}
+					</TooltipTrigger>
+					<TooltipContent>{t("accounts.previewSkin")}</TooltipContent>
+				</Tooltip>
 				{!account.isActive && (
 					<Button variant="outline" size="xs" onClick={() => onSetActive(account.id)}>
 						{t("accounts.setAsActive")}
 					</Button>
 				)}
-				<Button
-					variant="ghost"
-					size="icon-xs"
-					className="text-muted-foreground hover:text-destructive"
-					onClick={() => onRemove(account.id)}
-					title={t("accounts.removeAccount")}
-				>
-					<Trash2 className="size-3.5" />
-				</Button>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Button
+								variant="ghost"
+								size="icon-xs"
+								className="text-muted-foreground hover:text-destructive"
+								onClick={() => onRemove(account.id)}
+								aria-label={t("accounts.removeAccount")}
+							/>
+						}
+					>
+						<Trash2 className="size-3.5" />
+					</TooltipTrigger>
+					<TooltipContent>{t("accounts.removeAccount")}</TooltipContent>
+				</Tooltip>
 			</div>
 		</div>
 	)

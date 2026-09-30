@@ -28,6 +28,11 @@ import { Trans, useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import SkinViewer3D, { DEFAULT_STEVE_SKIN } from "@/components/accounts/skin-viewer-3d"
 import { alertTone } from "@/components/common/alert-tones"
+import { ScrollArea } from "@/components/common/scroll-area"
+import SkinAvatar from "@/components/common/skin-avatar"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -35,12 +40,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import SkinAvatar from "@/components/common/skin-avatar"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -52,6 +52,7 @@ import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatBytes, formatCount, formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { accountService, skinStorageService, useAccounts } from "@/services/account-service"
@@ -966,22 +967,28 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										</DropdownMenuContent>
 									</DropdownMenu>
 
-									<Button
-										variant="outline"
-										size="xs"
-										onClick={() => refetch()}
-										disabled={isFetching}
-										className="h-8 gap-1.5 rounded-lg px-2 text-[11px]"
-										title={t("common.refresh")}
-									>
-										<RefreshCw
-											className={cn(
-												"size-3 text-muted-foreground",
-												isFetching && "animate-spin text-primary",
-											)}
-										/>
-										<span className="hidden sm:inline">{t("common.refresh")}</span>
-									</Button>
+									<Tooltip>
+										<TooltipTrigger
+											render={
+												<Button
+													variant="outline"
+													size="xs"
+													onClick={() => refetch()}
+													disabled={isFetching}
+													className="h-8 gap-1.5 rounded-lg px-2 text-[11px]"
+												/>
+											}
+										>
+											<RefreshCw
+												className={cn(
+													"size-3 text-muted-foreground",
+													isFetching && "animate-spin text-primary",
+												)}
+											/>
+											<span className="hidden sm:inline">{t("common.refresh")}</span>
+										</TooltipTrigger>
+										<TooltipContent>{t("common.refresh")}</TooltipContent>
+									</Tooltip>
 
 									{totalItems > 0 && (
 										<span className="hidden font-mono text-[11px] text-muted-foreground xl:inline">
@@ -1112,17 +1119,24 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 															{/* Custom Skin Remove Button */}
 															{skin.isCustom && (
-																<button
-																	type="button"
-																	onClick={(e) => {
-																		e.stopPropagation()
-																		handleRemoveCustomSkin(skin, e)
-																	}}
-																	className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-card/90 text-muted-foreground any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-destructive/20 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
-																	title={t("skinsPage.deleteCustom")}
-																>
-																	<Trash2 className="size-3" />
-																</button>
+																<Tooltip>
+																	<TooltipTrigger
+																		render={
+																			<button
+																				type="button"
+																				onClick={(e) => {
+																					e.stopPropagation()
+																					handleRemoveCustomSkin(skin, e)
+																				}}
+																				className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-card/90 text-muted-foreground any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-destructive/20 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+																				aria-label={t("skinsPage.deleteCustom")}
+																			/>
+																		}
+																	>
+																		<Trash2 className="size-3" />
+																	</TooltipTrigger>
+																	<TooltipContent>{t("skinsPage.deleteCustom")}</TooltipContent>
+																</Tooltip>
 															)}
 
 															{/* 2D Skin Body Preview */}
@@ -1464,7 +1478,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 			{/* Password Authentication Modal */}
 			<Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-				<DialogContent className="max-w-md border-border bg-background p-6 text-foreground">
+				<DialogContent className="max-w-md p-6">
 					<DialogHeader>
 						<div className="mb-2 flex size-10 items-center justify-center rounded-full border border-border bg-card">
 							<KeyRound className="size-5 text-primary" />

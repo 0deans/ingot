@@ -4,17 +4,18 @@ import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { AccountTypeBadge } from "@/components/accounts/account-type-badge"
+import SkinAvatar from "@/components/common/skin-avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import SkinAvatar from "@/components/common/skin-avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { accountService } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
 import SkinViewer3D, { DEFAULT_STEVE_SKIN } from "./skin-viewer-3d"
@@ -70,7 +71,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 				<div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(16,185,129,0.08),transparent_70%)]" />
 
 				{/* Floating Header */}
-				<DialogHeader className="pointer-events-none relative z-10 flex shrink-0 bg-gradient-to-b from-popover/90 via-popover/50 to-transparent p-4 sm:p-5 sm:pb-2">
+				<DialogHeader className="pointer-events-none relative z-10 flex shrink-0 p-4 sm:p-5 sm:pb-2">
 					<div className="pointer-events-auto flex items-center gap-3">
 						<SkinAvatar
 							username={account.username}
@@ -123,31 +124,45 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 									{t("skinPreview.changeSkin")}
 								</Button>
 								<div className="flex items-center gap-2">
-									<Button
-										variant="outline"
-										size="xs"
-										onClick={handleCopyUrl}
-										className="gap-1 text-xs"
-										title={t("skinPreview.copyUrlTitle")}
-									>
-										{copied ? (
-											<Check className="size-3 text-primary" />
-										) : (
-											<Copy className="size-3" />
-										)}
-										{copied ? t("skinPreview.copied") : t("skinPreview.copyUrl")}
-									</Button>
-									<Button
-										variant="outline"
-										size="xs"
-										onClick={handleDownload}
-										disabled={isSaving}
-										className="gap-1 text-xs"
-										title={t("skinPreview.downloadTitle")}
-									>
-										{isSaving ? <Spinner /> : <Download />}
-										{isSaving ? t("skinPreview.saving") : t("skinPreview.download")}
-									</Button>
+									<Tooltip>
+										<TooltipTrigger
+											render={
+												<Button
+													variant="outline"
+													size="xs"
+													onClick={handleCopyUrl}
+													className="gap-1 text-xs"
+													aria-label={t("skinPreview.copyUrlTitle")}
+												/>
+											}
+										>
+											{copied ? (
+												<Check className="size-3 text-primary" />
+											) : (
+												<Copy className="size-3" />
+											)}
+											{copied ? t("skinPreview.copied") : t("skinPreview.copyUrl")}
+										</TooltipTrigger>
+										<TooltipContent>{t("skinPreview.copyUrlTitle")}</TooltipContent>
+									</Tooltip>
+									<Tooltip>
+										<TooltipTrigger
+											render={
+												<Button
+													variant="outline"
+													size="xs"
+													onClick={handleDownload}
+													disabled={isSaving}
+													className="gap-1 text-xs"
+													aria-label={t("skinPreview.downloadTitle")}
+												/>
+											}
+										>
+											{isSaving ? <Spinner /> : <Download />}
+											{isSaving ? t("skinPreview.saving") : t("skinPreview.download")}
+										</TooltipTrigger>
+										<TooltipContent>{t("skinPreview.downloadTitle")}</TooltipContent>
+									</Tooltip>
 								</div>
 							</>
 						}

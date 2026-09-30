@@ -15,10 +15,10 @@ import { marked } from "marked"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
-import { Dialog, DialogContent } from "@/components/common/dialog"
 import { ScrollArea } from "@/components/common/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import {
 	Select,
 	SelectContent,
@@ -51,6 +51,13 @@ interface ContentDetailsDialogProps {
 }
 
 const formatDownloads = formatCount
+
+const VERSION_FILTER_LOADERS = [
+	{ value: "fabric", label: "Fabric" },
+	{ value: "forge", label: "Forge" },
+	{ value: "neoforge", label: "NeoForge" },
+	{ value: "quilt", label: "Quilt" },
+]
 
 /** "mod", "resourcepack"... in the user's language (unknown types as they are) */
 function contentType(t: TFunction, type: string): string {
@@ -200,6 +207,16 @@ export const ContentDetailsDialog = memo(
 			}
 			return Array.from(set).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
 		}, [details])
+
+		// Select items give each filter's trigger its label ("All loaders", not "all")
+		const loaderFilterItems = [
+			{ value: "all", label: t("modpacks.filters.allLoaders") },
+			...VERSION_FILTER_LOADERS,
+		]
+		const gameVersionFilterItems = [
+			{ value: "all", label: t("modpacks.filters.allVersions") },
+			...availableGameVersions.map((gv) => ({ value: gv, label: gv })),
+		]
 
 		const filteredVersions = useMemo(() => {
 			if (!details) return []
@@ -633,20 +650,21 @@ export const ContentDetailsDialog = memo(
 												{t("modpacks.filters.loader")}
 											</span>
 											<Select
+												items={loaderFilterItems}
 												value={versionLoaderFilter || "all"}
 												onValueChange={(val) =>
 													setVersionLoaderFilter(!val || val === "all" ? "" : val)
 												}
 											>
 												<SelectTrigger className="h-8 w-32">
-													<SelectValue placeholder={t("modpacks.filters.allLoaders")} />
+													<SelectValue />
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value="all">{t("modpacks.filters.allLoaders")}</SelectItem>
-													<SelectItem value="fabric">Fabric</SelectItem>
-													<SelectItem value="forge">Forge</SelectItem>
-													<SelectItem value="neoforge">NeoForge</SelectItem>
-													<SelectItem value="quilt">Quilt</SelectItem>
+													{loaderFilterItems.map((item) => (
+														<SelectItem key={item.value} value={item.value}>
+															{item.label}
+														</SelectItem>
+													))}
 												</SelectContent>
 											</Select>
 										</div>
@@ -656,19 +674,19 @@ export const ContentDetailsDialog = memo(
 												{t("contentDetails.gameVersion")}
 											</span>
 											<Select
+												items={gameVersionFilterItems}
 												value={versionGameVerFilter || "all"}
 												onValueChange={(val) =>
 													setVersionGameVerFilter(!val || val === "all" ? "" : val)
 												}
 											>
 												<SelectTrigger className="h-8 w-36">
-													<SelectValue placeholder={t("modpacks.filters.allVersions")} />
+													<SelectValue />
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value="all">{t("modpacks.filters.allVersions")}</SelectItem>
-													{availableGameVersions.map((gv) => (
-														<SelectItem key={gv} value={gv}>
-															{gv}
+													{gameVersionFilterItems.map((item) => (
+														<SelectItem key={item.value} value={item.value}>
+															{item.label}
 														</SelectItem>
 													))}
 												</SelectContent>

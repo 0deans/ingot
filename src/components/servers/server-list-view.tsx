@@ -7,7 +7,14 @@ import type { ServerConfig } from "@/bindings"
 import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { serverCoreSchema } from "@/routes/servers"
 import { instanceService } from "@/services/instance-service"
@@ -40,6 +47,10 @@ export default function ServerListView() {
 
 	const searchQuery = search.q ?? ""
 	const coreFilter = search.core ?? "all"
+	const coreItems = CORE_FILTERS.map((c) => ({
+		value: c.id,
+		label: c.id === "all" ? t("servers.allCores") : c.label,
+	}))
 	const action = search.action
 	const openServerId = search.server
 	const deletingServerId = search.delete
@@ -240,22 +251,36 @@ export default function ServerListView() {
 										<span>
 											{t("servers.activeEntry", { name: srv?.name ?? "", port: proc.port })}
 										</span>
-										<button
-											type="button"
-											onClick={() => srv && openPage(srv.id, "console")}
-											className="rounded p-0.5 text-primary transition-colors hover:text-foreground"
-											title={t("servers.openConsole")}
-										>
-											<Terminal className="size-3" />
-										</button>
-										<button
-											type="button"
-											onClick={() => handleStop(proc.serverId)}
-											className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
-											title={t("servers.stopServer")}
-										>
-											<Square className="size-3 fill-current" />
-										</button>
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<button
+														type="button"
+														onClick={() => srv && openPage(srv.id, "console")}
+														className="rounded p-0.5 text-primary transition-colors hover:text-foreground"
+														aria-label={t("servers.openConsole")}
+													/>
+												}
+											>
+												<Terminal className="size-3" />
+											</TooltipTrigger>
+											<TooltipContent>{t("servers.openConsole")}</TooltipContent>
+										</Tooltip>
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<button
+														type="button"
+														onClick={() => handleStop(proc.serverId)}
+														className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
+														aria-label={t("servers.stopServer")}
+													/>
+												}
+											>
+												<Square className="size-3 fill-current" />
+											</TooltipTrigger>
+											<TooltipContent>{t("servers.stopServer")}</TooltipContent>
+										</Tooltip>
 									</div>
 								)
 							})}
@@ -291,22 +316,25 @@ export default function ServerListView() {
 						)}
 					</div>
 
-					<ToggleGroup
-						variant="outline"
-						size="sm"
-						spacing={0}
-						value={[coreFilter]}
+					<Select
+						items={coreItems}
+						value={coreFilter}
 						onValueChange={(value) => {
-							const core = CORE_FILTERS.find((c) => c.id === value[0])?.id
+							const core = CORE_FILTERS.find((c) => c.id === value)?.id
 							if (core) navigate({ search: (prev) => ({ ...prev, core }) })
 						}}
 					>
-						{CORE_FILTERS.map((c) => (
-							<ToggleGroupItem key={c.id} value={c.id}>
-								{c.id === "all" ? t("servers.allCores") : c.label}
-							</ToggleGroupItem>
-						))}
-					</ToggleGroup>
+						<SelectTrigger className="w-36">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{coreItems.map((item) => (
+								<SelectItem key={item.value} value={item.value}>
+									{item.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 
 				{/* Servers Grid or Empty State */}

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { useUpdateService } from "@/services/update-service"
 
@@ -101,14 +102,21 @@ export const UpdateBanner = () => {
 					)}
 
 					{!isDownloading && (
-						<button
-							type="button"
-							onClick={dismissBanner}
-							className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-							title={t("updateBanner.dismiss")}
-						>
-							<X className="size-3.5" />
-						</button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<button
+										type="button"
+										onClick={dismissBanner}
+										className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+										aria-label={t("updateBanner.dismiss")}
+									/>
+								}
+							>
+								<X className="size-3.5" />
+							</TooltipTrigger>
+							<TooltipContent>{t("updateBanner.dismiss")}</TooltipContent>
+						</Tooltip>
 					)}
 				</div>
 			</div>

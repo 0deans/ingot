@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { dimensionStyle } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 import {
@@ -185,44 +186,58 @@ export function MapPanel({
 						</span>
 					)}
 					{companion?.supported && companion.fileName === null && (
-						<button
-							type="button"
-							onClick={async () => {
-								await installCompanion.mutateAsync().catch(() => {})
-								if (isRunning) setInstalledAt(server.id)
-							}}
-							disabled={installCompanion.isPending}
-							title={t("map.makeLiveTitle", { context: addonKind(server.core)?.kind ?? "plugin" })}
-							className="flex h-9 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-2.5 font-medium text-[11px] text-foreground backdrop-blur-md transition-colors hover:bg-background"
-						>
-							{installCompanion.isPending ? (
-								<Spinner className="size-3.5" />
-							) : (
-								<Radio className="size-3.5 text-primary" />
-							)}
-							{t("map.makeLive")}
-						</button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<button
+										type="button"
+										onClick={async () => {
+											await installCompanion.mutateAsync().catch(() => {})
+											if (isRunning) setInstalledAt(server.id)
+										}}
+										disabled={installCompanion.isPending}
+										className="flex h-9 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-2.5 font-medium text-[11px] text-foreground backdrop-blur-md transition-colors hover:bg-background"
+									/>
+								}
+							>
+								{installCompanion.isPending ? (
+									<Spinner className="size-3.5" />
+								) : (
+									<Radio className="size-3.5 text-primary" />
+								)}
+								{t("map.makeLive")}
+							</TooltipTrigger>
+							<TooltipContent>
+								{t("map.makeLiveTitle", { context: addonKind(server.core)?.kind ?? "plugin" })}
+							</TooltipContent>
+						</Tooltip>
 					)}
 					{/* Live maps update themselves; otherwise re-read what the server saved */}
 					{!live && (
-						<button
-							type="button"
-							onClick={refresh}
-							disabled={refreshing}
-							title={t("map.refreshTitle")}
-							className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-3 font-medium text-foreground text-xs backdrop-blur-md transition-colors hover:bg-background"
-						>
-							{refreshNote ? (
-								<Check className="size-3.5 text-primary" />
-							) : (
-								<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
-							)}
-							{refreshNote ? (
-								<span>{refreshNote}</span>
-							) : (
-								<span className="hidden sm:inline">{refreshing ? "Checking..." : "Refresh"}</span>
-							)}
-						</button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<button
+										type="button"
+										onClick={refresh}
+										disabled={refreshing}
+										className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-3 font-medium text-foreground text-xs backdrop-blur-md transition-colors hover:bg-background"
+									/>
+								}
+							>
+								{refreshNote ? (
+									<Check className="size-3.5 text-primary" />
+								) : (
+									<RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
+								)}
+								{refreshNote ? (
+									<span>{refreshNote}</span>
+								) : (
+									<span className="hidden sm:inline">{refreshing ? "Checking..." : "Refresh"}</span>
+								)}
+							</TooltipTrigger>
+							<TooltipContent>{t("map.refreshTitle")}</TooltipContent>
+						</Tooltip>
 					)}
 				</div>
 			</div>

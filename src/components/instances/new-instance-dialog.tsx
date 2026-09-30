@@ -1,6 +1,11 @@
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ModLoaderType, VersionManifestEntry } from "@/bindings"
+import { ScrollArea } from "@/components/common/scroll-area"
+import SearchableSelect from "@/components/common/searchable-select"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -8,12 +13,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import SearchableSelect from "@/components/common/searchable-select"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"

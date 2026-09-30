@@ -21,9 +21,9 @@ import type {
 	VersionPlan,
 } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import {
 	Select,
 	SelectContent,

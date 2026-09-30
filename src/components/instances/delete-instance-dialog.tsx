@@ -2,6 +2,8 @@ import { AlertTriangle, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -9,9 +11,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 
 interface DeleteInstanceDialogProps {
 	instance: InstanceConfig | null
@@ -45,7 +45,7 @@ export const DeleteInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="border-border/60 bg-background sm:max-w-md">
+			<DialogContent className="sm:max-w-md">
 				<DialogHeader className="gap-2">
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive">
 						<AlertTriangle className="size-5" />

@@ -10,6 +10,7 @@ import {
 } from "skinview3d"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { accountService } from "@/services/account-service"
 
@@ -381,43 +382,72 @@ const SkinViewer3D = ({
 						floatingControlsClassName || "top-2 right-2",
 					)}
 				>
-					<Button
-						variant="outline"
-						size="icon-xs"
-						onClick={handleResetView}
-						title={t("skinViewer.resetCamera")}
-						className="size-6 rounded-md backdrop-blur-xs transition-colors active:scale-95"
-					>
-						<RotateCcw className="size-3" />
-					</Button>
-					<Button
-						variant={isAutoRotate ? "default" : "outline"}
-						size="icon-xs"
-						onClick={() => setIsAutoRotate(!isAutoRotate)}
-						title={isAutoRotate ? t("skinViewer.pauseRotation") : t("skinViewer.autoRotate")}
-						className={cn(
-							"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
-							isAutoRotate
-								? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
-								: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
-						)}
-					>
-						<Sparkles className="size-3" />
-					</Button>
-					<Button
-						variant={animation === "walk" ? "default" : "outline"}
-						size="icon-xs"
-						onClick={() => setAnimation(animation === "walk" ? "idle" : "walk")}
-						title={animation === "walk" ? t("skinViewer.idlePose") : t("skinViewer.playWalk")}
-						className={cn(
-							"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
-							animation === "walk"
-								? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
-								: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
-						)}
-					>
-						<Footprints className="size-3" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="outline"
+									size="icon-xs"
+									onClick={handleResetView}
+									className="size-6 rounded-md backdrop-blur-xs transition-colors active:scale-95"
+									aria-label={t("skinViewer.resetCamera")}
+								/>
+							}
+						>
+							<RotateCcw className="size-3" />
+						</TooltipTrigger>
+						<TooltipContent>{t("skinViewer.resetCamera")}</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant={isAutoRotate ? "default" : "outline"}
+									size="icon-xs"
+									onClick={() => setIsAutoRotate(!isAutoRotate)}
+									className={cn(
+										"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
+										isAutoRotate
+											? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
+											: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
+									)}
+									aria-label={
+										isAutoRotate ? t("skinViewer.pauseRotation") : t("skinViewer.autoRotate")
+									}
+								/>
+							}
+						>
+							<Sparkles className="size-3" />
+						</TooltipTrigger>
+						<TooltipContent>
+							{isAutoRotate ? t("skinViewer.pauseRotation") : t("skinViewer.autoRotate")}
+						</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant={animation === "walk" ? "default" : "outline"}
+									size="icon-xs"
+									onClick={() => setAnimation(animation === "walk" ? "idle" : "walk")}
+									className={cn(
+										"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
+										animation === "walk"
+											? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
+											: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
+									)}
+									aria-label={
+										animation === "walk" ? t("skinViewer.idlePose") : t("skinViewer.playWalk")
+									}
+								/>
+							}
+						>
+							<Footprints className="size-3" />
+						</TooltipTrigger>
+						<TooltipContent>
+							{animation === "walk" ? t("skinViewer.idlePose") : t("skinViewer.playWalk")}
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 
@@ -437,55 +467,86 @@ const SkinViewer3D = ({
 					{showToolbar && (
 						<>
 							<div className="flex items-center justify-between gap-1 rounded-lg border border-border/40 bg-background/60 p-1">
-								<Button
-									variant={animation === "idle" ? "secondary" : "ghost"}
-									size="xs"
-									onClick={() => setAnimation("idle")}
-									className="flex-1 text-[11px]"
-									title={t("skinViewer.idleTitle")}
-								>
-									<Play className="mr-1 size-2.5" />
-									{t("skinViewer.idle")}
-								</Button>
-								<Button
-									variant={animation === "walk" ? "secondary" : "ghost"}
-									size="xs"
-									onClick={() => setAnimation("walk")}
-									className="flex-1 text-[11px]"
-									title={t("skinViewer.walkTitle")}
-								>
-									<Footprints className="mr-1 size-2.5" />
-									{t("skinViewer.walk")}
-								</Button>
-								<Button
-									variant={animation === "run" ? "secondary" : "ghost"}
-									size="xs"
-									onClick={() => setAnimation("run")}
-									className="flex-1 text-[11px]"
-									title={t("skinViewer.runTitle")}
-								>
-									<Zap className="mr-1 size-2.5" />
-									{t("skinViewer.run")}
-								</Button>
-								<Button
-									variant={animation === "wave" ? "secondary" : "ghost"}
-									size="xs"
-									onClick={() => setAnimation("wave")}
-									className="flex-1 text-[11px]"
-									title={t("skinViewer.waveTitle")}
-								>
-									<Hand className="mr-1 size-2.5" />
-									{t("skinViewer.wave")}
-								</Button>
-								<Button
-									variant={animation === "none" ? "secondary" : "ghost"}
-									size="xs"
-									onClick={() => setAnimation("none")}
-									className="size-6 px-0"
-									title={t("skinViewer.pause")}
-								>
-									<Pause className="size-2.5" />
-								</Button>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												variant={animation === "idle" ? "secondary" : "ghost"}
+												size="xs"
+												onClick={() => setAnimation("idle")}
+												className="flex-1 text-[11px]"
+											/>
+										}
+									>
+										<Play className="mr-1 size-2.5" />
+										{t("skinViewer.idle")}
+									</TooltipTrigger>
+									<TooltipContent>{t("skinViewer.idleTitle")}</TooltipContent>
+								</Tooltip>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												variant={animation === "walk" ? "secondary" : "ghost"}
+												size="xs"
+												onClick={() => setAnimation("walk")}
+												className="flex-1 text-[11px]"
+											/>
+										}
+									>
+										<Footprints className="mr-1 size-2.5" />
+										{t("skinViewer.walk")}
+									</TooltipTrigger>
+									<TooltipContent>{t("skinViewer.walkTitle")}</TooltipContent>
+								</Tooltip>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												variant={animation === "run" ? "secondary" : "ghost"}
+												size="xs"
+												onClick={() => setAnimation("run")}
+												className="flex-1 text-[11px]"
+											/>
+										}
+									>
+										<Zap className="mr-1 size-2.5" />
+										{t("skinViewer.run")}
+									</TooltipTrigger>
+									<TooltipContent>{t("skinViewer.runTitle")}</TooltipContent>
+								</Tooltip>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												variant={animation === "wave" ? "secondary" : "ghost"}
+												size="xs"
+												onClick={() => setAnimation("wave")}
+												className="flex-1 text-[11px]"
+											/>
+										}
+									>
+										<Hand className="mr-1 size-2.5" />
+										{t("skinViewer.wave")}
+									</TooltipTrigger>
+									<TooltipContent>{t("skinViewer.waveTitle")}</TooltipContent>
+								</Tooltip>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												variant={animation === "none" ? "secondary" : "ghost"}
+												size="xs"
+												onClick={() => setAnimation("none")}
+												className="size-6 px-0"
+												aria-label={t("skinViewer.pause")}
+											/>
+										}
+									>
+										<Pause className="size-2.5" />
+									</TooltipTrigger>
+									<TooltipContent>{t("skinViewer.pause")}</TooltipContent>
+								</Tooltip>
 							</div>
 
 							{/* Model Options (Layers & Slim Arm toggle) */}

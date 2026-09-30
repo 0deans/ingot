@@ -18,6 +18,7 @@ import type { ItemAction, ItemStatus, PlanItem, Source, VersionPlan } from "@/bi
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { translatePlanNote } from "@/lib/backend-text"
 import { formatBytes } from "@/lib/minecraft"
 
@@ -322,15 +323,24 @@ function PlanRow({
 						</span>
 					)}
 					{item.source && pageUrl && (
-						<button
-							type="button"
-							onClick={() => openUrl(pageUrl).catch(console.error)}
-							className="inline-flex shrink-0 items-center gap-0.5 font-normal text-[10px] text-muted-foreground hover:text-foreground"
-							title={t("versionChange.openOn", { site: SOURCE_LABEL[item.source] })}
-						>
-							{SOURCE_LABEL[item.source]}
-							<ExternalLink className="size-2.5" />
-						</button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<button
+										type="button"
+										onClick={() => openUrl(pageUrl).catch(console.error)}
+										className="inline-flex shrink-0 items-center gap-0.5 font-normal text-[10px] text-muted-foreground hover:text-foreground"
+										aria-label={t("versionChange.openOn", { site: SOURCE_LABEL[item.source] })}
+									/>
+								}
+							>
+								{SOURCE_LABEL[item.source]}
+								<ExternalLink className="size-2.5" />
+							</TooltipTrigger>
+							<TooltipContent>
+								{t("versionChange.openOn", { site: SOURCE_LABEL[item.source] })}
+							</TooltipContent>
+						</Tooltip>
 					)}
 				</p>
 				<p className="truncate text-[11px] text-muted-foreground">

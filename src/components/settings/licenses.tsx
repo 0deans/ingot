@@ -3,9 +3,9 @@ import type { TFunction } from "i18next"
 import { ExternalLink, Scale } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
 import { FadeScroll } from "@/components/servers/shared/primitives"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import type { TranslationKey } from "@/i18n"
 
 interface Component {

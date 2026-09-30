@@ -375,6 +375,10 @@ const ModpacksPage = () => {
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground text-xs">{t("modpacks.filters.loader")}</span>
 							<Select
+								items={LOADERS.map((ldr) => ({
+									value: ldr.id || "all",
+									label: ldr.id ? ldr.label : t("modpacks.filters.allLoaders"),
+								}))}
 								value={activeLoader || "all"}
 								onValueChange={(val) => handleLoaderChange(!val || val === "all" ? "" : val)}
 							>
@@ -395,6 +399,10 @@ const ModpacksPage = () => {
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground text-xs">{t("modpacks.filters.version")}</span>
 							<Select
+								items={POPULAR_VERSIONS.map((v) => ({
+									value: v.id || "all",
+									label: v.id ? v.label : t("modpacks.filters.allVersions"),
+								}))}
 								value={activeVersion || "all"}
 								onValueChange={(val) => handleVersionChange(!val || val === "all" ? "" : val)}
 							>
@@ -415,6 +423,7 @@ const ModpacksPage = () => {
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground text-xs">{t("modpacks.filters.sort")}</span>
 							<Select
+								items={SORTS.map((s) => ({ value: s.id, label: t(`modpacks.sorts.${s.id}`) }))}
 								value={activeSort}
 								onValueChange={(val) => val && v.is(sortSchema, val) && handleSortChange(val)}
 							>

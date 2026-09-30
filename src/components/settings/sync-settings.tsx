@@ -10,6 +10,7 @@ import SyncMasterDialog, {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { settingsService, useSyncSettings } from "@/services/settings-service"
 
 type SyncItemKey =
@@ -212,25 +213,34 @@ export const SyncSettings = () => {
 
 								<div className="flex items-center gap-2">
 									{isChecked && (
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											onClick={() => {
-												setActiveCategoryTarget({
-													key: item.key,
-													categoryName: item.categoryName,
-													title: itemTitle,
-													file: item.file,
-													hasSharedData: hasCategorySharedData(item.key),
-												})
-												setIsMasterOpen(true)
-											}}
-											className="size-7 text-muted-foreground"
-											title={t("settings.sync.reinitialize", { title: itemTitle })}
-										>
-											<UploadCloud className="size-3.5" />
-										</Button>
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														onClick={() => {
+															setActiveCategoryTarget({
+																key: item.key,
+																categoryName: item.categoryName,
+																title: itemTitle,
+																file: item.file,
+																hasSharedData: hasCategorySharedData(item.key),
+															})
+															setIsMasterOpen(true)
+														}}
+														className="size-7 text-muted-foreground"
+														aria-label={t("settings.sync.reinitialize", { title: itemTitle })}
+													/>
+												}
+											>
+												<UploadCloud className="size-3.5" />
+											</TooltipTrigger>
+											<TooltipContent>
+												{t("settings.sync.reinitialize", { title: itemTitle })}
+											</TooltipContent>
+										</Tooltip>
 									)}
 									<Switch
 										checked={isChecked}

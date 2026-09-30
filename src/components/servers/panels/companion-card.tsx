@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { useCompanionStatus, usePluginActions } from "@/services/server-data"
 import { Card } from "../shared/primitives"
@@ -110,20 +111,26 @@ export function CompanionCard({
 				)
 			)}
 			{installed && (
-				<button
-					type="button"
-					onClick={remove}
-					disabled={busy}
-					title={t("companion.remove", { context })}
-					aria-label={t("companion.remove", { context })}
-					className="flex size-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-				>
-					{actions.remove.isPending ? (
-						<Spinner className="size-4" />
-					) : (
-						<Trash2 className="size-4" />
-					)}
-				</button>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<button
+								type="button"
+								onClick={remove}
+								disabled={busy}
+								aria-label={t("companion.remove", { context })}
+								className="flex size-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+							/>
+						}
+					>
+						{actions.remove.isPending ? (
+							<Spinner className="size-4" />
+						) : (
+							<Trash2 className="size-4" />
+						)}
+					</TooltipTrigger>
+					<TooltipContent>{t("companion.remove", { context })}</TooltipContent>
+				</Tooltip>
 			)}
 		</Card>
 	)

@@ -3,16 +3,16 @@ import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { SyncConflictInfo } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dialog"
 
 interface SyncConflictDialogProps {
 	conflict: SyncConflictInfo | null
@@ -43,7 +43,7 @@ export const SyncConflictDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-background p-4 shadow-2xl backdrop-blur-2xl sm:max-w-lg sm:p-5 md:max-w-xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 p-4 sm:max-w-lg sm:p-5 md:max-w-xl">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5 text-warning">
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">

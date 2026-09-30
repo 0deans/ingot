@@ -14,6 +14,7 @@ import InstanceSettingsDialog from "@/components/instances/instance-settings-dia
 import NewInstanceDialog from "@/components/instances/new-instance-dialog"
 import SyncConflictDialog from "@/components/instances/sync-conflict-dialog"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	instanceService,
 	useAllInstancesProgress,
@@ -208,14 +209,21 @@ const InstancesPage = () => {
 										<span>
 											{t("instances.activeEntry", { name: inst?.name ?? "", pid: proc.pid })}
 										</span>
-										<button
-											type="button"
-											onClick={() => handleStop(proc.instanceId)}
-											className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
-											title={t("instances.stopProcess")}
-										>
-											<Square className="size-3 fill-current" />
-										</button>
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<button
+														type="button"
+														onClick={() => handleStop(proc.instanceId)}
+														className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
+														aria-label={t("instances.stopProcess")}
+													/>
+												}
+											>
+												<Square className="size-3 fill-current" />
+											</TooltipTrigger>
+											<TooltipContent>{t("instances.stopProcess")}</TooltipContent>
+										</Tooltip>
 									</div>
 								)
 							})}

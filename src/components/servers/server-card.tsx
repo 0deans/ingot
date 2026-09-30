@@ -25,6 +25,7 @@ import type {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDuration, formatMegabytes } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { serverService } from "@/services/server-service"
@@ -207,31 +208,43 @@ export default function ServerCard({
 				</div>
 
 				<div className="flex min-w-0 flex-1 flex-col gap-1">
-					<button
-						type="button"
-						onClick={() => onOpen?.(server)}
-						className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-primary"
-						title={t("serverCard.openPage")}
-					>
-						{server.name}
-					</button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<button
+									type="button"
+									onClick={() => onOpen?.(server)}
+									className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-primary"
+								/>
+							}
+						>
+							{server.name}
+						</TooltipTrigger>
+						<TooltipContent>{t("serverCard.openPage")}</TooltipContent>
+					</Tooltip>
 
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 						{/* Address / Port with Click-to-copy */}
-						<button
-							type="button"
-							onClick={handleCopyAddress}
-							className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-primary"
-							title={t("serverCard.copyAddress")}
-						>
-							<Globe className="size-3 text-primary/70" />
-							<span>localhost:{server.port}</span>
-							{copied ? (
-								<Check className="size-3 text-primary" />
-							) : (
-								<Copy className="size-2.5 opacity-60" />
-							)}
-						</button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<button
+										type="button"
+										onClick={handleCopyAddress}
+										className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-primary"
+									/>
+								}
+							>
+								<Globe className="size-3 text-primary/70" />
+								<span>localhost:{server.port}</span>
+								{copied ? (
+									<Check className="size-3 text-primary" />
+								) : (
+									<Copy className="size-2.5 opacity-60" />
+								)}
+							</TooltipTrigger>
+							<TooltipContent>{t("serverCard.copyAddress")}</TooltipContent>
+						</Tooltip>
 
 						{/* RAM */}
 						<div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
@@ -268,15 +281,21 @@ export default function ServerCard({
 				<div className="flex items-center gap-2">
 					{isRunning ? (
 						<>
-							<Button
-								size="sm"
-								onClick={() => onJoinServer?.(server)}
-								className="h-8 gap-1.5 font-medium text-xs"
-								title={t("serverCard.joinTitle")}
-							>
-								<Gamepad2 className="size-3.5" />
-								<span>{t("serverCard.join")}</span>
-							</Button>
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<Button
+											size="sm"
+											onClick={() => onJoinServer?.(server)}
+											className="h-8 gap-1.5 font-medium text-xs"
+										/>
+									}
+								>
+									<Gamepad2 className="size-3.5" />
+									<span>{t("serverCard.join")}</span>
+								</TooltipTrigger>
+								<TooltipContent>{t("serverCard.joinTitle")}</TooltipContent>
+							</Tooltip>
 							<Button
 								size="sm"
 								variant="secondary"
@@ -286,16 +305,22 @@ export default function ServerCard({
 								<Terminal className="size-3.5" />
 								<span>{t("serverTabs.console")}</span>
 							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => onStop(server.id)}
-								className="h-8 gap-1 border-destructive/30 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
-								title={t("servers.stopServer")}
-							>
-								<Square className="size-3 fill-current" />
-								<span>{t("common.stop")}</span>
-							</Button>
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => onStop(server.id)}
+											className="h-8 gap-1 border-destructive/30 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
+										/>
+									}
+								>
+									<Square className="size-3 fill-current" />
+									<span>{t("common.stop")}</span>
+								</TooltipTrigger>
+								<TooltipContent>{t("servers.stopServer")}</TooltipContent>
+							</Tooltip>
 						</>
 					) : (
 						<Button
@@ -316,46 +341,74 @@ export default function ServerCard({
 
 				{/* Secondary Management Buttons */}
 				<div className="flex items-center gap-1">
-					<Button
-						variant="ghost"
-						size="icon-xs"
-						onClick={() => onOpenConsole(server)}
-						className="size-8 text-muted-foreground"
-						title={t("servers.openConsole")}
-					>
-						<Terminal className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									onClick={() => onOpenConsole(server)}
+									className="size-8 text-muted-foreground"
+									aria-label={t("servers.openConsole")}
+								/>
+							}
+						>
+							<Terminal className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("servers.openConsole")}</TooltipContent>
+					</Tooltip>
 
-					<Button
-						variant="ghost"
-						size="icon-xs"
-						onClick={() => onOpenSettings(server)}
-						className="size-8 text-muted-foreground"
-						title={t("mobileServers.settings")}
-					>
-						<Settings className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									onClick={() => onOpenSettings(server)}
+									className="size-8 text-muted-foreground"
+									aria-label={t("mobileServers.settings")}
+								/>
+							}
+						>
+							<Settings className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("mobileServers.settings")}</TooltipContent>
+					</Tooltip>
 
-					<Button
-						variant="ghost"
-						size="icon-xs"
-						onClick={() => onOpenFolder(server.id)}
-						className="size-8 text-muted-foreground"
-						title={t("serverCard.openFolder")}
-					>
-						<FolderOpen className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									onClick={() => onOpenFolder(server.id)}
+									className="size-8 text-muted-foreground"
+									aria-label={t("serverCard.openFolder")}
+								/>
+							}
+						>
+							<FolderOpen className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("serverCard.openFolder")}</TooltipContent>
+					</Tooltip>
 
-					<Button
-						variant="ghost"
-						size="icon-xs"
-						onClick={() => onDelete(server)}
-						disabled={isRunning}
-						className="size-8 text-muted-foreground hover:text-destructive"
-						title={t("deleteServer.title")}
-					>
-						<Trash2 className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									onClick={() => onDelete(server)}
+									disabled={isRunning}
+									className="size-8 text-muted-foreground hover:text-destructive"
+									aria-label={t("deleteServer.title")}
+								/>
+							}
+						>
+							<Trash2 className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("deleteServer.title")}</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 		</div>

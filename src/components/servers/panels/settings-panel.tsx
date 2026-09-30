@@ -16,9 +16,9 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PropertyEntry, ServerConfig } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -32,6 +32,7 @@ import { Slider } from "@/components/ui/slider"
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatBytes, formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
 import { toServerIcon } from "@/lib/server-icon"
@@ -240,19 +241,25 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 					/>
 					<div className="flex flex-wrap gap-1">
 						{MOTD_CODES.map(({ code, label, style }) => (
-							<button
-								key={code}
-								type="button"
-								title={`§${code}`}
-								onClick={() => insertCode(code)}
-								className={cn(
-									"flex h-7 items-center justify-center rounded-md border border-border text-[11px] text-foreground/80 transition-transform hover:scale-110",
-									label ? "min-w-7 bg-card px-1.5" : "w-7",
-								)}
-								style={label ? { ...style, background: undefined } : style}
-							>
-								{code === "r" ? t("serverSettings.motdReset") : label}
-							</button>
+							<Tooltip key={code}>
+								<TooltipTrigger
+									render={
+										<button
+											type="button"
+											onClick={() => insertCode(code)}
+											className={cn(
+												"flex h-7 items-center justify-center rounded-md border border-border text-[11px] text-foreground/80 transition-transform hover:scale-110",
+												label ? "min-w-7 bg-card px-1.5" : "w-7",
+											)}
+											style={label ? { ...style, background: undefined } : style}
+											aria-label={`§${code}`}
+										/>
+									}
+								>
+									{code === "r" ? t("serverSettings.motdReset") : label}
+								</TooltipTrigger>
+								<TooltipContent>{`§${code}`}</TooltipContent>
+							</Tooltip>
 						))}
 					</div>
 				</div>

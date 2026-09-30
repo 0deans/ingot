@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { translateLaunchDetail, translateLaunchPhase } from "@/lib/backend-text"
 import {
 	formatDuration as formatLocalDuration,
@@ -287,17 +288,24 @@ export const InstanceCard = ({
 									if (open) loadWorlds()
 								}}
 							>
-								<DropdownMenuTrigger
-									render={
-										<Button
-											size="sm"
-											className="h-8 rounded-l-none px-1.5"
-											title={t("instances.card.quickPlayOptions")}
-										>
-											<ChevronDown className="size-3.5" />
-										</Button>
-									}
-								/>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<DropdownMenuTrigger
+												render={
+													<Button
+														size="sm"
+														className="h-8 rounded-l-none px-1.5"
+														aria-label={t("instances.card.quickPlayOptions")}
+													>
+														<ChevronDown className="size-3.5" />
+													</Button>
+												}
+											/>
+										}
+									/>
+									<TooltipContent>{t("instances.card.quickPlayOptions")}</TooltipContent>
+								</Tooltip>
 								<DropdownMenuContent align="start" className="w-56">
 									<DropdownMenuGroup>
 										<DropdownMenuLabel className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -399,46 +407,74 @@ export const InstanceCard = ({
 
 				{/* Utility Actions */}
 				<div className="flex items-center gap-1">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => instanceService.openInstanceFolder(instance.id)}
-						className="size-8 text-muted-foreground"
-						title={t("instances.card.openFolderTooltip")}
-					>
-						<FolderOpen className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => instanceService.openInstanceFolder(instance.id)}
+									className="size-8 text-muted-foreground"
+									aria-label={t("instances.card.openFolderTooltip")}
+								/>
+							}
+						>
+							<FolderOpen className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("instances.card.openFolderTooltip")}</TooltipContent>
+					</Tooltip>
 
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={onDuplicate}
-						className="size-8 text-muted-foreground"
-						title={t("instances.card.duplicateTooltip")}
-					>
-						<Copy className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={onDuplicate}
+									className="size-8 text-muted-foreground"
+									aria-label={t("instances.card.duplicateTooltip")}
+								/>
+							}
+						>
+							<Copy className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("instances.card.duplicateTooltip")}</TooltipContent>
+					</Tooltip>
 
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={onSettings}
-						className="size-8 text-muted-foreground"
-						title={t("instances.card.settingsTooltip")}
-					>
-						<Settings className="size-3.5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={onSettings}
+									className="size-8 text-muted-foreground"
+									aria-label={t("instances.card.settingsTooltip")}
+								/>
+							}
+						>
+							<Settings className="size-3.5" />
+						</TooltipTrigger>
+						<TooltipContent>{t("instances.card.settingsTooltip")}</TooltipContent>
+					</Tooltip>
 
 					{!isRunning && !isDownloading && (
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={onDelete}
-							className="size-8 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-							title={t("instances.card.deleteTooltip")}
-						>
-							<Trash2 className="size-3.5" />
-						</Button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={onDelete}
+										className="size-8 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+										aria-label={t("instances.card.deleteTooltip")}
+									/>
+								}
+							>
+								<Trash2 className="size-3.5" />
+							</TooltipTrigger>
+							<TooltipContent>{t("instances.card.deleteTooltip")}</TooltipContent>
+						</Tooltip>
 					)}
 				</div>
 			</div>

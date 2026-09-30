@@ -4,16 +4,16 @@ import { memo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MicrosoftDeviceCode } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
@@ -150,7 +150,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="border-border/60 bg-background/95 sm:max-w-md">
+			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle className="text-lg">{t("accounts.addAccount")}</DialogTitle>
 					<DialogDescription>{t("addAccount.description")}</DialogDescription>

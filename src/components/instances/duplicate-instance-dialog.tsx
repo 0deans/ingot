@@ -3,6 +3,9 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InstanceConfig } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -10,10 +13,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
@@ -74,7 +74,7 @@ export const DuplicateInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={(next) => !busy && onOpenChange(next)}>
-			<DialogContent className="border-border/60 bg-background sm:max-w-md">
+			<DialogContent className="sm:max-w-md">
 				<DialogHeader className="gap-2">
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
 						<Copy className="size-5" />

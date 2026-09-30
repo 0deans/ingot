@@ -15,6 +15,11 @@ import {
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { InstanceConfig, VersionBackup } from "@/bindings"
+import { ScrollArea } from "@/components/common/scroll-area"
+import ChangeVersionDialog from "@/components/instances/change-version-dialog"
+import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -22,12 +27,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import ChangeVersionDialog from "@/components/instances/change-version-dialog"
-import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
@@ -298,7 +298,7 @@ export const InstanceSettingsDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-background p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 p-4 sm:max-w-xl sm:p-5 md:max-w-2xl">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={24} />
@@ -779,7 +779,7 @@ export const InstanceSettingsDialog = ({
 					</div>
 				</ScrollArea>
 
-				<DialogFooter className="mt-2 flex flex-row items-center justify-between border-border/40 border-t pt-3 sm:flex-row sm:justify-between">
+				<DialogFooter className="mt-2 flex flex-row items-center justify-between pt-3 sm:flex-row sm:justify-between">
 					<Button
 						type="button"
 						variant="ghost"

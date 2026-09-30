@@ -23,6 +23,12 @@ import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { DetectedLauncher, ImportableInstance } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
+import { ScrollArea } from "@/components/common/scroll-area"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -30,13 +36,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
@@ -248,7 +248,7 @@ export const ImportInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] w-full gap-3 border-border/60 bg-background p-4 shadow-2xl backdrop-blur-2xl sm:max-w-xl sm:p-5 md:max-w-2xl">
+			<DialogContent className="max-h-[90vh] w-full gap-3 p-4 sm:max-w-xl sm:p-5 md:max-w-2xl">
 				<DialogHeader className="gap-1">
 					<div className="flex items-center gap-2 text-primary">
 						<FolderOpen className="size-5 shrink-0" />
@@ -752,7 +752,7 @@ export const ImportInstanceDialog = ({
 				)}
 
 				{step === "options" && (
-					<DialogFooter className="mt-2 border-border/40 border-t pt-3">
+					<DialogFooter className="mt-2 pt-3">
 						<Button
 							onClick={handleImport}
 							disabled={isImporting || !instanceName.trim()}

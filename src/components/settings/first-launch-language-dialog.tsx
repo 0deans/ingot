@@ -1,5 +1,7 @@
 import { Check, Globe, Monitor, Moon, Sun } from "lucide-react"
 import { memo } from "react"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -7,10 +9,9 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLanguage } from "@/i18n/use-language"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
@@ -51,7 +52,7 @@ export const FirstLaunchLanguageDialog = () => {
 				}
 			}}
 		>
-			<DialogContent className="flex max-h-[85vh] flex-col gap-4 border-border/60 bg-background p-5 shadow-2xl sm:max-w-lg">
+			<DialogContent className="flex max-h-[85vh] flex-col gap-4 p-5 sm:max-w-lg">
 				<DialogHeader className="gap-1.5 pr-8">
 					<div className="flex items-center gap-2.5">
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -115,7 +116,7 @@ export const FirstLaunchLanguageDialog = () => {
 					</div>
 				</ScrollArea>
 
-				<DialogFooter className="flex flex-row items-center gap-2 border-border/80 border-t pt-4 sm:justify-between">
+				<DialogFooter className="flex flex-row items-center gap-2 pt-4 sm:justify-between">
 					<ToggleGroup
 						variant="outline"
 						spacing={0}
@@ -127,9 +128,12 @@ export const FirstLaunchLanguageDialog = () => {
 						className="shrink-0"
 					>
 						{THEMES.map(({ mode, icon: Icon, label }) => (
-							<ToggleGroupItem key={mode} value={mode} aria-label={t(label)} title={t(label)}>
-								<Icon />
-							</ToggleGroupItem>
+							<Tooltip key={mode}>
+								<TooltipTrigger render={<ToggleGroupItem value={mode} aria-label={t(label)} />}>
+									<Icon />
+								</TooltipTrigger>
+								<TooltipContent>{t(label)}</TooltipContent>
+							</Tooltip>
 						))}
 					</ToggleGroup>
 					<Button onClick={handleConfirm} className="h-9 min-w-0 flex-1 sm:flex-none sm:px-6">

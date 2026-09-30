@@ -10,6 +10,11 @@ import type {
 	VersionPlan,
 } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
+import { ScrollArea } from "@/components/common/scroll-area"
+import SearchableSelect from "@/components/common/searchable-select"
+import LoaderIcon from "@/components/instances/loader-icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -17,12 +22,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import SearchableSelect from "@/components/common/searchable-select"
-import LoaderIcon from "@/components/instances/loader-icon"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import {
@@ -150,7 +150,7 @@ export default function ChangeVersionDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
-			<DialogContent className="flex max-h-[90vh] w-full flex-col gap-3 border-border/60 bg-background p-4 sm:max-w-2xl sm:p-5">
+			<DialogContent className="flex max-h-[90vh] w-full flex-col gap-3 p-4 sm:max-w-2xl sm:p-5">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={22} />
@@ -328,7 +328,7 @@ export default function ChangeVersionDialog({
 					</Alert>
 				)}
 
-				<DialogFooter className="flex flex-row items-center justify-between gap-2 border-border/40 border-t pt-3 sm:justify-between">
+				<DialogFooter className="flex flex-row items-center justify-between gap-2 pt-3 sm:justify-between">
 					<p className="text-[11px] text-muted-foreground">
 						{stage === "review" && plan && planSummary(plan, choices)}
 					</p>

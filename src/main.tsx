@@ -6,8 +6,12 @@ import ReactDOM from "react-dom/client"
 import "@/i18n"
 import "@/lib/theme"
 import "./index.css"
+import { isMobileEnvironment } from "./lib/platform"
 import { recordLocation } from "./lib/tab-history"
 import { routeTree } from "./routeTree.gen"
+
+// Lets CSS tell the desktop window (with its custom title bar) from the phone layout
+document.documentElement.dataset.platform = isMobileEnvironment() ? "mobile" : "desktop"
 
 export const queryClient = new QueryClient({
 	defaultOptions: {

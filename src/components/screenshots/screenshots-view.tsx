@@ -15,6 +15,8 @@ import {
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
+import { ScrollArea } from "@/components/common/scroll-area"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -22,9 +24,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/common/dialog"
-import { ScrollArea } from "@/components/common/scroll-area"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,

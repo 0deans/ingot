@@ -20,10 +20,10 @@ import type {
 	ServerConfig,
 } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { Dialog, DialogContent, DialogTitle } from "@/components/common/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
 	Select,
