@@ -215,7 +215,7 @@ const ScreenshotLightbox = ({
 			{/* Floating Bottom Metadata Pill */}
 			<div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
 				<div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border/80 bg-background/80 px-4 py-1.5 text-muted-foreground text-xs shadow-2xl backdrop-blur-md">
-					<span className="font-mono text-[11px] text-foreground/80">
+					<span className="font-mono text-2xs text-foreground/80">
 						{formatBytes(screenshot.fileSizeBytes)}
 					</span>
 					<span className="text-muted-foreground/60">•</span>

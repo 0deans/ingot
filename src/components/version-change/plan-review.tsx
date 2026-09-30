@@ -15,6 +15,7 @@ import {
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemAction, ItemStatus, PlanItem, Source, VersionPlan } from "@/bindings"
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -167,7 +168,7 @@ export function PlanReview({
 					<span
 						key={status}
 						className={cn(
-							"border px-2 py-0.5 text-[11px]",
+							"border px-2 py-0.5 text-2xs",
 							rounded && "rounded-full",
 							STATUS[status].chip,
 						)}
@@ -318,7 +319,7 @@ function PlanRow({
 				<p className="flex items-center gap-1.5 truncate font-medium text-foreground text-xs">
 					<span className="truncate">{item.title}</span>
 					{kind && (
-						<span className="shrink-0 bg-muted px-1.5 py-px font-normal text-[10px] text-muted-foreground">
+						<span className="shrink-0 bg-muted px-1.5 py-px font-normal text-3xs text-muted-foreground">
 							{kind}
 						</span>
 					)}
@@ -326,10 +327,11 @@ function PlanRow({
 						<Tooltip>
 							<TooltipTrigger
 								render={
-									<button
-										type="button"
+									<Button
+										variant="link"
+										size="xs"
 										onClick={() => openUrl(pageUrl).catch(console.error)}
-										className="inline-flex shrink-0 items-center gap-0.5 font-normal text-[10px] text-muted-foreground hover:text-foreground"
+										className="h-auto gap-0.5 p-0 font-normal text-3xs text-muted-foreground"
 										aria-label={t("versionChange.openOn", { site: SOURCE_LABEL[item.source] })}
 									/>
 								}
@@ -343,7 +345,7 @@ function PlanRow({
 						</Tooltip>
 					)}
 				</p>
-				<p className="truncate text-[11px] text-muted-foreground">
+				<p className="truncate text-2xs text-muted-foreground">
 					{choice === "update" || choice === "add" ? (
 						<>
 							{item.currentVersion ?? (item.fileName ? "?" : t("versionChange.new"))}

@@ -66,7 +66,7 @@ export function StatusPill({ status }: { status: ServerStatus }) {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-medium text-[11px]",
+				"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-medium text-2xs",
 				styles[status],
 			)}
 		>
@@ -115,7 +115,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 
 	return (
 		<Card className="gap-3 p-3 sm:p-4">
-			<p className="px-1 text-[10px] text-muted-foreground uppercase tracking-wider">
+			<p className="px-1 text-3xs text-muted-foreground uppercase tracking-wider">
 				{t("overview.howPlayersSee")}
 			</p>
 			<div className="dark flex items-center gap-3 rounded-xl bg-background p-2.5 ring-1 ring-border/5">
@@ -131,15 +131,15 @@ function ServerHero({ server }: { server: ServerConfig }) {
 						<p className="min-w-0 flex-1 truncate font-semibold text-foreground text-sm">
 							{server.name}
 						</p>
-						<span className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+						<span className="flex shrink-0 items-center gap-1.5 font-mono text-2xs text-muted-foreground">
 							{online ? `${players.length}/${maxPlayers}` : ""}
 							<SignalBars online={online} />
 						</span>
 					</div>
 					{online ? (
-						<MotdText motd={values.get("motd") || server.name} className="text-[11px]" />
+						<MotdText motd={values.get("motd") || server.name} className="text-2xs" />
 					) : (
-						<p className="font-mono text-[11px] text-destructive/80">
+						<p className="font-mono text-2xs text-destructive/80">
 							{shownStatus === "starting"
 								? t("overview.startingUp")
 								: shownStatus === "stopping"
@@ -238,7 +238,7 @@ function StatTiles({
 				className="col-span-2 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card/40 p-3.5 text-left transition-colors hover:bg-card/70 sm:col-span-2"
 			>
 				<div>
-					<p className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider">
+					<p className="flex items-center gap-1.5 text-2xs text-muted-foreground uppercase tracking-wider">
 						<Users className="size-3" /> {t("serverTabs.players")}
 					</p>
 					<p className="mt-1 font-semibold text-foreground text-lg">
@@ -277,7 +277,7 @@ function StatTiles({
 function Tile({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
 	return (
 		<div className="rounded-2xl border border-border/80 bg-card/40 p-3.5">
-			<p className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider">
+			<p className="flex items-center gap-1.5 text-2xs text-muted-foreground uppercase tracking-wider">
 				<Icon className="size-3" /> {label}
 			</p>
 			<p className="mt-1 font-semibold text-foreground text-lg">{value}</p>
@@ -303,7 +303,7 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 			</div>
 			<div
 				className={cn(
-					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-[10.5px] text-muted-foreground leading-relaxed",
+					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-3xs text-muted-foreground leading-relaxed",
 					lines.length === 0 ? "items-center justify-center" : "justify-end",
 				)}
 			>

@@ -123,7 +123,7 @@ export function ServerListPreview({
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<div className="flex items-center justify-between gap-2">
 					<span className="truncate font-medium text-foreground text-sm">{name}</span>
-					<span className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+					<span className="flex shrink-0 items-center gap-1.5 font-mono text-2xs text-muted-foreground">
 						{online}/{max}
 						<Signal
 							className={cn("size-3", isRunning ? "text-primary" : "text-muted-foreground/60")}

@@ -2,7 +2,7 @@ import { FolderDown, Plus, Search } from "lucide-react"
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 
 interface InstanceSearchHeaderProps {
 	searchQuery: string
@@ -21,15 +21,16 @@ const InstanceSearchHeader = ({
 
 	return (
 		<div className="flex items-center justify-between gap-4">
-			<div className="relative max-w-sm flex-1">
-				<Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-				<Input
+			<InputGroup className="max-w-sm flex-1">
+				<InputGroupAddon>
+					<Search />
+				</InputGroupAddon>
+				<InputGroupInput
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
 					placeholder={t("instances.searchPlaceholder")}
-					className="pl-9 focus-visible:ring-1"
 				/>
-			</div>
+			</InputGroup>
 
 			<div className="flex items-center gap-2">
 				{onOpenImport && (

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { create } from "zustand"
 import {
 	createTauRPCProxy,
 	type PlayitTunnelStatus,
@@ -13,12 +14,12 @@ import {
 
 export const rpc = createTauRPCProxy()
 
-let cachedServers: ServerConfig[] = []
-let cachedRunning: Map<string, RunningServerSummary> = new Map()
-const logSubscribers = new Map<string, Set<(event: ServerLogEvent) => void>>()
+const useServerStore = create<{
+	servers: ServerConfig[]
+	running: Map<string, RunningServerSummary>
+}>(() => ({ servers: [], running: new Map() }))
 
-const serverListeners = new Set<(servers: ServerConfig[]) => void>()
-const runningListeners = new Set<(running: Map<string, RunningServerSummary>) => void>()
+const logSubscribers = new Map<string, Set<(event: ServerLogEvent) => void>>()
 
 let isInitialized = false
 
@@ -28,8 +29,7 @@ async function initListeners() {
 
 	try {
 		const running = await rpc.get_running_servers()
-		cachedRunning = new Map(running.map((r) => [r.serverId, r]))
-		notifyRunning()
+		useServerStore.setState({ running: new Map(running.map((r) => [r.serverId, r])) })
 	} catch (e) {
 		console.error("Failed to load initial running servers:", e)
 	}
@@ -37,6 +37,8 @@ async function initListeners() {
 	try {
 		await rpc.on_server_status_changed.on((event: ServerStatusEvent) => {
 			if (!event?.serverId) return
+			// Replaced, never mutated in place, so selectors see the change
+			const cachedRunning = new Map(useServerStore.getState().running)
 			if (event.status === "running" && event.pid) {
 				const existing = cachedRunning.get(event.serverId)
 				cachedRunning.set(event.serverId, {
@@ -66,7 +68,7 @@ async function initListeners() {
 					})
 				}
 			}
-			notifyRunning()
+			useServerStore.setState({ running: cachedRunning })
 			serverService.refreshServers()
 		})
 	} catch (e) {
@@ -88,19 +90,6 @@ async function initListeners() {
 	}
 }
 
-function notifyServers() {
-	for (const listener of serverListeners) {
-		listener([...cachedServers])
-	}
-}
-
-function notifyRunning() {
-	const copy = new Map(cachedRunning)
-	for (const listener of runningListeners) {
-		listener(copy)
-	}
-}
-
 export const serverService = {
 	async getServers(): Promise<ServerConfig[]> {
 		return this.refreshServers()
@@ -110,8 +99,7 @@ export const serverService = {
 		try {
 			await initListeners()
 			const servers = await rpc.get_servers()
-			cachedServers = servers
-			notifyServers()
+			useServerStore.setState({ servers })
 			return servers
 		} catch (e) {
 			console.error("Failed to load servers:", e)
@@ -239,10 +227,13 @@ export const serverService = {
 	isPortInUse(port: number, excludeServerId?: string): boolean {
 		const internalPort = (p: number) => (p <= 55535 ? p + 10000 : p - 10000)
 		const wanted = [port, internalPort(port)]
-		return cachedServers.some(
-			(s) =>
-				s.id !== excludeServerId && [s.port, internalPort(s.port)].some((p) => wanted.includes(p)),
-		)
+		return useServerStore
+			.getState()
+			.servers.some(
+				(s) =>
+					s.id !== excludeServerId &&
+					[s.port, internalPort(s.port)].some((p) => wanted.includes(p)),
+			)
 	},
 
 	getNextAvailablePort(): number {
@@ -255,29 +246,11 @@ export const serverService = {
 }
 
 export function useServers() {
-	const [servers, setServers] = useState<ServerConfig[]>(cachedServers)
-	const [isLoading, setIsLoading] = useState(cachedServers.length === 0)
+	const servers = useServerStore((s) => s.servers)
+	const [isLoading, setIsLoading] = useState(servers.length === 0)
 
 	useEffect(() => {
-		let isMounted = true
-
-		const listener = (updated: ServerConfig[]) => {
-			if (isMounted) {
-				setServers(updated)
-				setIsLoading(false)
-			}
-		}
-
-		serverListeners.add(listener)
-
-		serverService.refreshServers().finally(() => {
-			if (isMounted) setIsLoading(false)
-		})
-
-		return () => {
-			isMounted = false
-			serverListeners.delete(listener)
-		}
+		serverService.refreshServers().finally(() => setIsLoading(false))
 	}, [])
 
 	return {
@@ -288,31 +261,15 @@ export function useServers() {
 }
 
 export function useRunningServers() {
-	const [runningMap, setRunningMap] = useState<Map<string, RunningServerSummary>>(cachedRunning)
+	const runningMap = useServerStore((s) => s.running)
 
 	useEffect(() => {
-		let isMounted = true
-
-		const listener = (updated: Map<string, RunningServerSummary>) => {
-			if (isMounted) {
-				setRunningMap(updated)
-			}
-		}
-
-		runningListeners.add(listener)
 		initListeners()
-
-		return () => {
-			isMounted = false
-			runningListeners.delete(listener)
-		}
 	}, [])
-
-	const runningList = Array.from(runningMap.values())
 
 	return {
 		runningMap,
-		runningList,
+		runningList: Array.from(runningMap.values()),
 	}
 }
 

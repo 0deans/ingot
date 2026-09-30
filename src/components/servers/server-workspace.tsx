@@ -13,7 +13,8 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { ScrollArea } from "@/components/common/scroll-area"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useServerIcon, useServerStatus } from "@/services/server-data"
 import { ConsolePanel } from "./panels/console-panel"
 import { MapPanel } from "./panels/map-panel"
@@ -112,14 +113,15 @@ export function ServerWorkspace({
 		<div className="flex size-full min-h-0 flex-col">
 			<header className="flex shrink-0 flex-col gap-3 border-border/60 border-b px-5 pt-4 lg:px-6">
 				<div className="flex items-center gap-3">
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon"
 						onClick={onBack}
 						aria-label={t("serverWorkspace.back")}
-						className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						className="text-muted-foreground"
 					>
 						<ArrowLeft className="size-4" />
-					</button>
+					</Button>
 					<div className="flex size-9 items-center justify-center overflow-hidden rounded-xl border border-border bg-card">
 						{icon ? (
 							<img
@@ -136,29 +138,21 @@ export function ServerWorkspace({
 							<h1 className="truncate font-semibold text-base text-foreground">{server.name}</h1>
 							<StatusPill status={status} />
 						</div>
-						<p className="text-[11px] text-muted-foreground capitalize">
+						<p className="text-2xs text-muted-foreground capitalize">
 							{server.core} {server.gameVersion}
 						</p>
 					</div>
 				</div>
-				<nav className="-mb-px flex gap-1 overflow-x-auto [scrollbar-width:none]">
-					{WORKSPACE_TABS.map(({ id, label, icon: Icon }) => (
-						<button
-							key={id}
-							type="button"
-							onClick={() => onTabChange(id)}
-							className={cn(
-								"flex shrink-0 items-center gap-1.5 border-b-2 px-3 pb-2.5 font-medium text-xs transition-colors",
-								tab === id
-									? "border-primary text-foreground"
-									: "border-transparent text-muted-foreground hover:text-foreground/80",
-							)}
-						>
-							<Icon className="size-3.5" />
-							{tabLabel(id, label, server.core)}
-						</button>
-					))}
-				</nav>
+				<Tabs value={tab} onValueChange={(value) => onTabChange(value as WorkspaceTab)}>
+					<TabsList variant="line" className="overflow-x-auto [scrollbar-width:none]">
+						{WORKSPACE_TABS.map(({ id, label, icon: Icon }) => (
+							<TabsTrigger key={id} value={id}>
+								<Icon />
+								{tabLabel(id, label, server.core)}
+							</TabsTrigger>
+						))}
+					</TabsList>
+				</Tabs>
 			</header>
 
 			{fill ? (

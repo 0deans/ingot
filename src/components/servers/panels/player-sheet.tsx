@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
 	dimensionStyle,
 	formatRelativeTime,
@@ -141,7 +142,7 @@ export function PlayerSheet({
 							</div>
 
 							<div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/40 p-4">
-								<span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+								<span className="text-2xs text-muted-foreground uppercase tracking-wider">
 									{t("playerSheet.equipment")}
 								</span>
 								<div className="grid grid-cols-5 gap-1.5">
@@ -168,7 +169,7 @@ export function PlayerSheet({
 												})
 											}}
 											placeholder={
-												<span className="text-[9px] text-muted-foreground/60">
+												<span className="text-3xs text-muted-foreground/60">
 													{t(`playerSheet.slots.${label}`)}
 												</span>
 											}
@@ -181,13 +182,14 @@ export function PlayerSheet({
 										{Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
 									</span>
 									{onShowOnMap && (
-										<button
-											type="button"
+										<Button
+											variant="link"
+											size="xs"
 											onClick={() => onShowOnMap(player)}
-											className="font-medium text-primary hover:text-primary"
+											className="h-auto p-0"
 										>
 											{t("playerSheet.showOnMap")}
-										</button>
+										</Button>
 									)}
 								</div>
 							</div>
@@ -264,7 +266,7 @@ function PlayerHeader({ player }: { player: PlayerDetails }) {
 			<PlayerAvatar name={player.name} size={56} online={player.online} />
 			<div className="min-w-0 flex-1">
 				<h2 className="truncate font-bold text-foreground text-lg">{player.name}</h2>
-				<div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+				<div className="mt-1 flex flex-wrap items-center gap-1.5 text-2xs">
 					<span className="rounded-full border border-input bg-muted/60 px-2 py-0.5 text-foreground/80">
 						{gamemodeLabel(t, player.gamemode)}
 					</span>
@@ -370,7 +372,7 @@ function ItemDetails({ item }: { item: ItemStack }) {
 						{item.customName ?? prettyId(item.id)}
 					</p>
 					{item.customName && <p className="text-muted-foreground text-xs">{prettyId(item.id)}</p>}
-					<p className="break-all font-mono text-[11px] text-muted-foreground">{item.id}</p>
+					<p className="break-all font-mono text-2xs text-muted-foreground">{item.id}</p>
 				</div>
 				<span className="shrink-0 rounded-md bg-muted px-2 py-0.5 font-mono text-foreground/80 text-xs">
 					×{item.count}
@@ -379,7 +381,7 @@ function ItemDetails({ item }: { item: ItemStack }) {
 
 			{durability !== null && (
 				<div className="space-y-1">
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-2xs text-muted-foreground">
 						{t("playerSheet.durability", {
 							left: Math.max(0, maxDamage - item.damage),
 							max: maxDamage,
@@ -399,7 +401,7 @@ function ItemDetails({ item }: { item: ItemStack }) {
 
 			{item.enchantments.length > 0 ? (
 				<div className="border-border border-t pt-3">
-					<p className="mb-2 text-[11px] text-violet-300">{t("playerSheet.enchanted")}</p>
+					<p className="mb-2 text-2xs text-violet-300">{t("playerSheet.enchanted")}</p>
 					<div className="grid gap-1.5 sm:grid-cols-2">
 						{item.enchantments.map((enchantment) => (
 							<div
@@ -419,7 +421,7 @@ function ItemDetails({ item }: { item: ItemStack }) {
 				</div>
 			) : (
 				item.enchanted && (
-					<p className="border-border border-t pt-3 text-[11px] text-violet-300">
+					<p className="border-border border-t pt-3 text-2xs text-violet-300">
 						{t("playerSheet.enchanted")}
 					</p>
 				)
@@ -480,23 +482,23 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 
 	return (
 		<div className="flex flex-col gap-3 border-border/80 border-t bg-background/60 p-4 sm:px-5">
-			<div className="grid grid-cols-4 gap-1 rounded-xl border border-border bg-card/60 p-1">
+			<ToggleGroup
+				variant="outline"
+				size="sm"
+				spacing={0}
+				value={[player.gamemode]}
+				onValueChange={(value) => {
+					const mode = GAMEMODES.find((m) => m === value[0])
+					if (mode) run(`gm-${mode}`, `gamemode ${mode} ${player.name}`)
+				}}
+				className="grid w-full grid-cols-4"
+			>
 				{GAMEMODES.map((mode) => (
-					<button
-						key={mode}
-						type="button"
-						onClick={() => run(`gm-${mode}`, `gamemode ${mode} ${player.name}`)}
-						className={cn(
-							"rounded-lg py-1.5 font-medium text-[11px] transition-colors",
-							player.gamemode === mode
-								? "bg-primary/15 text-primary"
-								: "text-muted-foreground hover:text-foreground",
-						)}
-					>
+					<ToggleGroupItem key={mode} value={mode} className="text-2xs">
 						{gamemodeLabel(t, mode)}
-					</button>
+					</ToggleGroupItem>
 				))}
-			</div>
+			</ToggleGroup>
 
 			<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 				<ActionButton
@@ -600,21 +602,15 @@ function ActionButton({
 	danger?: boolean
 }) {
 	return (
-		<button
-			type="button"
+		<Button
+			variant={danger ? "destructive" : active ? "secondary" : "outline"}
 			onClick={onClick}
 			disabled={busy}
-			className={cn(
-				"flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 py-1.5 text-center font-medium text-xs leading-tight transition-colors disabled:opacity-60",
-				danger
-					? "border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/15"
-					: active
-						? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
-						: "border-border bg-card/60 text-foreground/80 hover:bg-muted",
-			)}
+			// Long translations wrap instead of overflowing the grid cell
+			className="h-auto min-h-10 min-w-0 whitespace-normal px-2 py-1.5 text-xs leading-tight"
 		>
-			{busy ? <Spinner className="size-3.5 shrink-0" /> : <Icon className="size-3.5 shrink-0" />}
+			{busy ? <Spinner /> : <Icon />}
 			{label}
-		</button>
+		</Button>
 	)
 }

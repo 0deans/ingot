@@ -64,13 +64,13 @@ export const DeleteInstanceDialog = ({
 					</div>
 					<div className="flex min-w-0 flex-col">
 						<span className="truncate font-semibold text-foreground text-sm">{instance.name}</span>
-						<span className="text-[11px] text-muted-foreground">
+						<span className="text-2xs text-muted-foreground">
 							{String(instance.loader).toUpperCase()} • {instance.gameVersion}
 						</span>
 					</div>
 				</div>
 
-				<p className="text-[11px] text-muted-foreground">{t("deleteInstance.note")}</p>
+				<p className="text-2xs text-muted-foreground">{t("deleteInstance.note")}</p>
 
 				<DialogFooter>
 					<Button

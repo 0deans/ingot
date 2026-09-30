@@ -155,7 +155,7 @@ export default function ServerCard({
 			className={cn(
 				"group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-all duration-200",
 				isRunning
-					? "border-primary/40 bg-card/70 shadow-lg shadow-primary/20 ring-1 ring-primary/20"
+					? "border-primary/40 bg-card/70 shadow-lg ring-1 ring-primary/20"
 					: "border-border/50 bg-card/40 hover:border-border/80 hover:bg-card/70",
 			)}
 		>
@@ -168,7 +168,7 @@ export default function ServerCard({
 					>
 						{server.core}
 					</Badge>
-					<span className="font-mono text-[11px] text-muted-foreground">{server.gameVersion}</span>
+					<span className="font-mono text-2xs text-muted-foreground">{server.gameVersion}</span>
 				</div>
 
 				{/* Live Status Indicator */}
@@ -231,7 +231,7 @@ export default function ServerCard({
 									<button
 										type="button"
 										onClick={handleCopyAddress}
-										className="flex cursor-pointer items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-primary"
+										className="flex cursor-pointer items-center gap-1 font-mono text-2xs text-muted-foreground transition-colors hover:text-primary"
 									/>
 								}
 							>
@@ -247,14 +247,14 @@ export default function ServerCard({
 						</Tooltip>
 
 						{/* RAM */}
-						<div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+						<div className="flex items-center gap-1 font-mono text-2xs text-muted-foreground">
 							<Cpu className="size-3 text-primary/70" />
 							<span>{formatMegabytes(server.memoryMaxMb, 0)}</span>
 						</div>
 
 						{/* Live SLP Player count badge (only when running) */}
 						{isRunning && (
-							<div className="flex items-center gap-1 font-mono text-[11px] text-primary">
+							<div className="flex items-center gap-1 font-mono text-2xs text-primary">
 								<Users className="size-3 text-primary" />
 								<span>
 									{pingInfo
@@ -266,7 +266,7 @@ export default function ServerCard({
 
 						{/* Live SLP Ping latency badge */}
 						{isRunning && pingInfo && (
-							<div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+							<div className="flex items-center gap-1 font-mono text-2xs text-muted-foreground">
 								<Signal className="size-2.5 text-primary" />
 								<span>{pingInfo.pingMs}ms</span>
 							</div>

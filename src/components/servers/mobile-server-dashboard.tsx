@@ -5,7 +5,16 @@ import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { NewServerWizard, NoServersState } from "@/components/servers/new-server-wizard"
 import { ImportServerButton } from "@/components/servers/panels/transfer-card"
 import { LicensesDialog } from "@/components/settings/licenses"
+import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+	Item,
+	ItemActions,
+	ItemContent,
+	ItemDescription,
+	ItemMedia,
+	ItemTitle,
+} from "@/components/ui/item"
 import { cn } from "@/lib/utils"
 import { useAndroidHostService } from "@/services/hosting"
 import { useServerIcon, useServerStatus } from "@/services/server-data"
@@ -140,19 +149,15 @@ export const MobileServerDashboard = memo(() => {
 		<div className="flex h-dvh flex-col bg-background text-foreground">
 			<header className="flex shrink-0 items-center gap-2 border-border border-b px-3 py-2.5">
 				<ServerSwitcherButton server={server} onClick={() => setSwitcherOpen(true)} />
-				<button
-					type="button"
+				<Button
+					variant={tab === "settings" ? "secondary" : "ghost"}
+					size="icon-lg"
 					onClick={() => setTab("settings")}
 					aria-label={t("mobileServers.settings")}
-					className={cn(
-						"flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
-						tab === "settings"
-							? "bg-primary/15 text-primary"
-							: "text-muted-foreground active:bg-card",
-					)}
+					aria-pressed={tab === "settings"}
 				>
-					<Settings2 className="size-5" />
-				</button>
+					<Settings2 />
+				</Button>
 			</header>
 
 			{/* Console and map fill the whole area; other tabs scroll */}
@@ -176,7 +181,7 @@ export const MobileServerDashboard = memo(() => {
 						type="button"
 						onClick={() => setTab(id)}
 						className={cn(
-							"flex min-w-0 flex-col items-center gap-1 px-0.5 pt-2.5 pb-2 font-medium text-[10px] transition-colors",
+							"flex min-w-0 flex-col items-center gap-1 px-0.5 pt-2.5 pb-2 font-medium text-3xs transition-colors",
 							tab === id ? "text-primary" : "text-muted-foreground active:text-foreground/80",
 						)}
 					>
@@ -208,16 +213,17 @@ export const MobileServerDashboard = memo(() => {
 							/>
 						))}
 					</FadeScroll>
-					<button
-						type="button"
+					<Button
+						size="lg"
 						onClick={() => {
 							setSwitcherOpen(false)
 							setWizardOpen(true)
 						}}
-						className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary active:bg-primary"
+						className="h-12 w-full"
 					>
-						<Plus className="size-4" /> {t("mobileServers.newServer")}
-					</button>
+						<Plus />
+						{t("mobileServers.newServer")}
+					</Button>
 					<ImportServerButton
 						className="h-11 gap-2 rounded-2xl border-border"
 						onImported={(created) => {
@@ -225,16 +231,17 @@ export const MobileServerDashboard = memo(() => {
 							select(created.id)
 						}}
 					/>
-					<button
-						type="button"
+					<Button
+						variant="link"
+						size="sm"
 						onClick={() => {
 							setSwitcherOpen(false)
 							setLicensesOpen(true)
 						}}
-						className="mt-1 self-center px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground/80"
+						className="mt-1 self-center text-muted-foreground"
 					>
 						{t("mobileServers.about")}
-					</button>
+					</Button>
 				</DialogContent>
 			</Dialog>
 			<LicensesDialog open={licensesOpen} onOpenChange={setLicensesOpen} />
@@ -263,23 +270,27 @@ function ServerIcon({ serverId, className }: { serverId: string; className?: str
 function ServerSwitcherButton({ server, onClick }: { server: ServerConfig; onClick: () => void }) {
 	const { status } = useServerStatus(server.id)
 	return (
-		<button
-			type="button"
-			onClick={onClick}
-			className="flex min-w-0 flex-1 items-center gap-2.5 rounded-2xl px-1.5 py-1 text-left transition-colors active:bg-card"
+		<Item
+			size="sm"
+			render={<button type="button" onClick={onClick} />}
+			className="min-w-0 flex-1 flex-nowrap px-1.5 py-1 text-left active:bg-muted/50"
 		>
-			<ServerIcon serverId={server.id} className="size-9" />
-			<div className="min-w-0 flex-1">
-				<div className="flex items-center gap-1">
-					<span className="truncate font-semibold text-foreground text-sm">{server.name}</span>
+			<ItemMedia>
+				<ServerIcon serverId={server.id} className="size-9" />
+			</ItemMedia>
+			<ItemContent className="min-w-0">
+				<ItemTitle>
+					<span className="truncate">{server.name}</span>
 					<ChevronDown className="size-4 shrink-0 text-muted-foreground" />
-				</div>
-				<p className="truncate text-[11px] text-muted-foreground capitalize">
+				</ItemTitle>
+				<ItemDescription className="truncate capitalize">
 					{server.core} {server.gameVersion}
-				</p>
-			</div>
-			<StatusPill status={status} />
-		</button>
+				</ItemDescription>
+			</ItemContent>
+			<ItemActions>
+				<StatusPill status={status} />
+			</ItemActions>
+		</Item>
 	)
 }
 
@@ -294,23 +305,22 @@ function ServerRow({
 }) {
 	const { status } = useServerStatus(server.id)
 	return (
-		<button
-			type="button"
-			onClick={onClick}
-			className={cn(
-				"flex items-center gap-3 rounded-2xl p-2.5 text-left transition-colors",
-				selected ? "bg-card" : "active:bg-card",
-			)}
+		<Item
+			variant={selected ? "muted" : "default"}
+			render={<button type="button" onClick={onClick} aria-current={selected || undefined} />}
+			className="text-left active:bg-muted/50"
 		>
-			<ServerIcon serverId={server.id} className="size-11" />
-			<div className="min-w-0 flex-1">
-				<p className="truncate font-medium text-foreground text-sm">{server.name}</p>
-				<p className="truncate text-[11px] text-muted-foreground capitalize">
+			<ItemMedia>
+				<ServerIcon serverId={server.id} className="size-11" />
+			</ItemMedia>
+			<ItemContent className="min-w-0">
+				<ItemTitle className="truncate">{server.name}</ItemTitle>
+				<ItemDescription className="truncate capitalize">
 					{server.core} {server.gameVersion} · {status}
-				</p>
-			</div>
+				</ItemDescription>
+			</ItemContent>
 			{selected && <Check className="size-4 text-primary" />}
-		</button>
+		</Item>
 	)
 }
 

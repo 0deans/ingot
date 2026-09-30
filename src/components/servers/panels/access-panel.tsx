@@ -148,7 +148,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 							<PlayerAvatar name={entry.name} size={32} />
 							<div className="min-w-0 flex-1">
 								<p className="truncate font-medium text-foreground text-sm">{entry.name}</p>
-								<p className="truncate text-[11px] text-muted-foreground">
+								<p className="truncate text-2xs text-muted-foreground">
 									{kind === "ops"
 										? t("access.permissionLevel", { level: entry.level ?? 4 })
 										: kind === "bans"

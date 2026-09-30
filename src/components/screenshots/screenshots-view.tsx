@@ -31,7 +31,12 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { screenshotSortSchema } from "@/routes/screenshots"
@@ -243,31 +248,35 @@ const ScreenshotsView = () => {
 			{/* Filter & Toolbar */}
 			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/40 border-b bg-background/20 px-6 py-3">
 				<div className="flex min-w-[200px] max-w-sm flex-1 items-center gap-2.5">
-					<div className="relative w-full">
-						<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-						<Input
+					<InputGroup className="w-full">
+						<InputGroupAddon>
+							<Search />
+						</InputGroupAddon>
+						<InputGroupInput
 							type="text"
 							placeholder={t("screenshots.searchPlaceholder")}
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
-							className="h-9 w-full px-8 text-xs placeholder:text-muted-foreground/60"
+							className="text-xs"
 						/>
 						{searchInput && (
-							<button
-								type="button"
-								onClick={() => {
-									setSearchInput("")
-									navigate({
-										search: (prev) => ({ ...prev, q: "" }),
-										replace: true,
-									})
-								}}
-								className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-							>
-								<X className="size-3.5" />
-							</button>
+							<InputGroupAddon align="inline-end">
+								<InputGroupButton
+									size="icon-xs"
+									aria-label={t("common.clearSearch")}
+									onClick={() => {
+										setSearchInput("")
+										navigate({
+											search: (prev) => ({ ...prev, q: "" }),
+											replace: true,
+										})
+									}}
+								>
+									<X />
+								</InputGroupButton>
+							</InputGroupAddon>
 						)}
-					</div>
+					</InputGroup>
 				</div>
 
 				<div className="flex items-center gap-2">
@@ -306,7 +315,7 @@ const ScreenshotsView = () => {
 										}
 									>
 										<span className="flex-1 truncate">{opt.name}</span>
-										<span className="ml-2 text-[10px] text-muted-foreground">{count}</span>
+										<span className="ml-2 text-3xs text-muted-foreground">{count}</span>
 									</DropdownMenuItem>
 								)
 							})}
@@ -468,7 +477,7 @@ const ScreenshotsView = () => {
 								<span className="truncate font-medium text-foreground">
 									{screenshotToDelete.fileName}
 								</span>
-								<span className="flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[11px] text-foreground/80">
+								<span className="flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-2xs text-foreground/80">
 									<HardDrive className="size-3 text-primary" />
 									{screenshotToDelete.instanceName}
 								</span>

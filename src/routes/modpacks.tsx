@@ -32,7 +32,12 @@ import {
 	EmptyHeader,
 	EmptyMedia,
 } from "@/components/ui/empty"
-import { Input } from "@/components/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "@/components/ui/input-group"
 import {
 	Select,
 	SelectContent,
@@ -41,6 +46,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { formatCount } from "@/lib/format"
 import {
@@ -300,32 +306,35 @@ const ModpacksPage = () => {
 				<div className="flex flex-col gap-4">
 					<div className="flex flex-wrap items-center gap-3">
 						{/* Search Input */}
-						<div className="relative min-w-[280px] flex-1">
-							<Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-							<Input
+						<InputGroup className="min-w-[280px] flex-1">
+							<InputGroupAddon>
+								<Search />
+							</InputGroupAddon>
+							<InputGroupInput
 								type="text"
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
 								placeholder={t("modpacks.searchPlaceholder")}
-								className="h-10 px-9 text-sm"
+								className="text-sm"
 							/>
 							{searchInput && (
-								<button
-									type="button"
-									onClick={() => {
-										setSearchInput("")
-										navigate({
-											search: (prev) => ({ ...prev, query: "", page: 0 }),
-											replace: true,
-										})
-									}}
-									aria-label={t("common.clearSearch")}
-									className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-								>
-									<X className="size-4" />
-								</button>
+								<InputGroupAddon align="inline-end">
+									<InputGroupButton
+										size="icon-xs"
+										aria-label={t("common.clearSearch")}
+										onClick={() => {
+											setSearchInput("")
+											navigate({
+												search: (prev) => ({ ...prev, query: "", page: 0 }),
+												replace: true,
+											})
+										}}
+									>
+										<X />
+									</InputGroupButton>
+								</InputGroupAddon>
 							)}
-						</div>
+						</InputGroup>
 
 						{/* Source Selector */}
 						<ToggleGroup
@@ -347,27 +356,22 @@ const ModpacksPage = () => {
 					</div>
 
 					{/* Category Tabs */}
-					<div className="flex flex-wrap items-center gap-2 border-border/40 border-b pb-3">
-						{CATEGORIES.map((cat) => {
-							const IconComponent = cat.icon
-							const isSelected = activeCategory === cat.id
-							return (
-								<button
-									key={cat.id}
-									type="button"
-									onClick={() => handleCategoryChange(cat.id)}
-									className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 font-medium text-xs transition-all ${
-										isSelected
-											? "border border-primary/40 bg-primary/15 text-primary"
-											: "border border-transparent bg-card/30 text-muted-foreground hover:bg-card/60 hover:text-foreground"
-									}`}
-								>
-									<IconComponent className="size-3.5" />
-									{t(`modpacks.categories.${cat.id}`)}
-								</button>
-							)
-						})}
-					</div>
+					<Tabs
+						value={activeCategory}
+						onValueChange={(value) => {
+							const category = CATEGORIES.find((c) => c.id === value)?.id
+							if (category !== undefined) handleCategoryChange(category)
+						}}
+					>
+						<TabsList variant="line" className="max-w-full overflow-x-auto [scrollbar-width:none]">
+							{CATEGORIES.map(({ id, icon: Icon }) => (
+								<TabsTrigger key={id} value={id}>
+									<Icon />
+									{t(`modpacks.categories.${id}`)}
+								</TabsTrigger>
+							))}
+						</TabsList>
+					</Tabs>
 
 					{/* Filter Dropdowns / Options */}
 					<div className="flex flex-wrap items-center gap-3">

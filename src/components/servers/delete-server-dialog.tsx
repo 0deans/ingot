@@ -72,7 +72,7 @@ export default function DeleteServerDialog({
 				<div className="flex flex-col gap-3 py-2">
 					<div className="rounded-lg border border-border/40 bg-card/40 p-3 text-xs">
 						<div className="font-medium text-foreground">{t("deleteServer.details")}</div>
-						<div className="mt-1 font-mono text-[11px] text-muted-foreground">
+						<div className="mt-1 font-mono text-2xs text-muted-foreground">
 							{t("deleteServer.detailsLine", {
 								core: server.core.toUpperCase(),
 								version: server.gameVersion,
@@ -95,7 +95,7 @@ export default function DeleteServerDialog({
 							<span className="font-medium text-foreground text-xs">
 								{t("deleteServer.deleteFiles")}
 							</span>
-							<span className="text-[11px] text-muted-foreground">
+							<span className="text-2xs text-muted-foreground">
 								{t("deleteServer.deleteFilesDesc")}
 							</span>
 						</div>

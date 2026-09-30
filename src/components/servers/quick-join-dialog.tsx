@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Play, Plus, Server } from "lucide-react"
+import { AlertCircle, Play, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
@@ -13,8 +13,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Spinner } from "@/components/ui/spinner"
-import { cn } from "@/lib/utils"
 import { useInstances } from "@/services/instance-service"
 
 export interface QuickJoinDialogProps {
@@ -108,32 +115,33 @@ export function QuickJoinDialog({
 					<div className="flex items-center justify-between rounded-lg border border-border bg-card/60 p-2.5 text-xs">
 						<div className="flex flex-col">
 							<span className="font-medium text-foreground/80">{server.name}</span>
-							<span className="font-mono text-[11px] text-muted-foreground">
+							<span className="font-mono text-2xs text-muted-foreground">
 								{t("quickJoin.target", { address: `127.0.0.1:${server.port}` })}
 							</span>
 						</div>
-						<span className="rounded bg-primary/10 px-2 py-0.5 font-mono text-[11px] text-primary">
+						<span className="rounded bg-primary/10 px-2 py-0.5 font-mono text-2xs text-primary">
 							MC {server.gameVersion}
 						</span>
 					</div>
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
 								{t("quickJoin.choose")}
 							</span>
 							{onCreateInstance && (
-								<button
-									type="button"
+								<Button
+									variant="link"
+									size="xs"
 									onClick={() => {
 										onOpenChange(false)
 										onCreateInstance()
 									}}
-									className="flex items-center gap-1 text-[11px] text-primary transition-colors hover:text-primary"
+									className="h-auto p-0"
 								>
-									<Plus className="size-3" />
-									<span>{t("instances.newInstance")}</span>
-								</button>
+									<Plus />
+									{t("instances.newInstance")}
+								</Button>
 							)}
 						</div>
 
@@ -147,9 +155,7 @@ export function QuickJoinDialog({
 								<p className="font-medium text-foreground/80 text-xs">
 									{t("quickJoin.noInstances")}
 								</p>
-								<p className="text-[11px] text-muted-foreground">
-									{t("quickJoin.noInstancesHint")}
-								</p>
+								<p className="text-2xs text-muted-foreground">{t("quickJoin.noInstancesHint")}</p>
 								{onCreateInstance && (
 									<Button
 										size="sm"
@@ -165,47 +171,31 @@ export function QuickJoinDialog({
 								)}
 							</div>
 						) : (
-							<div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
-								{instances.map((inst) => {
-									const isSelected = inst.id === selectedId
-									const isVersionMatch = inst.gameVersion === server.gameVersion
-
-									return (
-										<button
-											key={inst.id}
-											type="button"
-											onClick={() => setSelectedId(inst.id)}
-											className={cn(
-												"flex w-full items-center justify-between rounded-lg border p-2.5 text-left transition-all",
-												isSelected
-													? "border-primary/60 bg-primary/10 ring-1 ring-primary/30"
-													: "border-border/50 bg-card/40 hover:border-input hover:bg-muted/60",
-											)}
-										>
-											<div className="flex items-center gap-2.5 truncate">
-												<div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border bg-card">
-													<LoaderIcon loader={inst.loader} size={16} />
-												</div>
-												<div className="flex flex-col truncate">
-													<span className="truncate font-medium text-foreground text-xs">
-														{inst.name}
-													</span>
-													<div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-														<span>{inst.gameVersion}</span>
-														{isVersionMatch && (
-															<Badge variant="outline" className="border-primary/30 text-primary">
-																{t("quickJoin.matches")}
-															</Badge>
-														)}
-													</div>
-												</div>
-											</div>
-
-											{isSelected && <Check className="size-4 shrink-0 text-primary" />}
-										</button>
-									)
-								})}
-							</div>
+							<RadioGroup
+								value={selectedId}
+								onValueChange={(id) => setSelectedId(id as string)}
+								className="max-h-56 overflow-y-auto pr-1"
+							>
+								{instances.map((inst) => (
+									<FieldLabel key={inst.id} htmlFor={`quick-join-${inst.id}`}>
+										<Field orientation="horizontal" className="items-center">
+											<LoaderIcon loader={inst.loader} size={16} />
+											<FieldContent className="min-w-0">
+												<FieldTitle className="truncate">{inst.name}</FieldTitle>
+												<FieldDescription className="flex items-center gap-1.5 font-mono">
+													{inst.gameVersion}
+													{inst.gameVersion === server.gameVersion && (
+														<Badge variant="outline" className="border-primary/30 text-primary">
+															{t("quickJoin.matches")}
+														</Badge>
+													)}
+												</FieldDescription>
+											</FieldContent>
+											<RadioGroupItem value={inst.id} id={`quick-join-${inst.id}`} />
+										</Field>
+									</FieldLabel>
+								))}
+							</RadioGroup>
 						)}
 					</div>
 

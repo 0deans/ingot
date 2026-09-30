@@ -150,7 +150,7 @@ export const InstanceCard = ({
 		<div
 			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-all duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${
 				isRunning
-					? "border-primary/40 shadow-primary/20 ring-1 ring-primary/20"
+					? "border-primary/40 ring-1 ring-primary/20"
 					: isDownloading
 						? "border-warning/40 ring-1 ring-warning/20"
 						: "border-border/50"
@@ -163,7 +163,7 @@ export const InstanceCard = ({
 						<LoaderIcon loader={loaderType} size={22} />
 					</div>
 					<div className="flex flex-col">
-						<span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+						<span className="font-semibold text-2xs text-muted-foreground uppercase tracking-wider">
 							{loaderName}
 						</span>
 						<span className="font-mono text-foreground/80 text-xs">{versionStr}</span>
@@ -201,7 +201,7 @@ export const InstanceCard = ({
 					{instance.name}
 				</h3>
 
-				<div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+				<div className="flex flex-wrap items-center gap-2 text-2xs text-muted-foreground">
 					<span
 						className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-card/60 px-2 py-0.5"
 						title={
@@ -214,7 +214,7 @@ export const InstanceCard = ({
 						<span>
 							{t("instances.card.ram", { size: formatMegabytes(effectiveRamMb) })}
 							{hasCustomRam && (
-								<span className="ml-1 font-medium text-[10px] text-info">
+								<span className="ml-1 font-medium text-3xs text-info">
 									{t("instances.card.customRam")}
 								</span>
 							)}
@@ -235,7 +235,7 @@ export const InstanceCard = ({
 
 				{/* Progress Track if downloading */}
 				{isDownloading && (
-					<div className="mt-1 flex flex-col gap-1.5 rounded-lg border border-warning/20 bg-background/60 p-2.5 text-[11px]">
+					<div className="mt-1 flex flex-col gap-1.5 rounded-lg border border-warning/20 bg-background/60 p-2.5 text-2xs">
 						<div className="flex items-center justify-between font-medium text-warning">
 							<span className="truncate">{translateLaunchPhase(progress.phase)}</span>
 							<span className="font-mono">
@@ -243,7 +243,7 @@ export const InstanceCard = ({
 							</span>
 						</div>
 						<Progress value={Math.min(100, Math.max(0, progress.percentage ?? 0))} />
-						<span className="truncate font-mono text-[10px] text-muted-foreground">
+						<span className="truncate font-mono text-3xs text-muted-foreground">
 							{translateLaunchDetail(progress.detail)}
 						</span>
 					</div>
@@ -274,7 +274,7 @@ export const InstanceCard = ({
 							<span>{t("instances.card.preparingBtn")}</span>
 						</Button>
 					) : (
-						<div className="inline-flex items-center rounded-md shadow-md shadow-primary/40">
+						<div className="inline-flex items-center rounded-md shadow-md">
 							<Button
 								size="sm"
 								onClick={() => onPlay()}
@@ -308,7 +308,7 @@ export const InstanceCard = ({
 								</Tooltip>
 								<DropdownMenuContent align="start" className="w-56">
 									<DropdownMenuGroup>
-										<DropdownMenuLabel className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+										<DropdownMenuLabel className="font-semibold text-3xs text-muted-foreground uppercase tracking-wider">
 											{t("instances.card.quickPlay")}
 										</DropdownMenuLabel>
 										<DropdownMenuItem
@@ -320,7 +320,7 @@ export const InstanceCard = ({
 												<span className="font-medium text-xs">
 													{t("instances.card.directConnect")}
 												</span>
-												<span className="text-[10px] text-muted-foreground">
+												<span className="text-3xs text-muted-foreground">
 													{t("instances.card.directConnectDesc")}
 												</span>
 											</div>
@@ -334,14 +334,14 @@ export const InstanceCard = ({
 														<span className="font-medium text-xs">
 															{t("instances.card.quickLoadWorld")}
 														</span>
-														<span className="text-[10px] text-muted-foreground">
+														<span className="text-3xs text-muted-foreground">
 															{t("instances.card.quickLoadWorldDesc")}
 														</span>
 													</div>
 												</DropdownMenuSubTrigger>
 												<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
 													<DropdownMenuGroup>
-														<DropdownMenuLabel className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+														<DropdownMenuLabel className="font-semibold text-3xs text-muted-foreground uppercase tracking-wider">
 															{t("instances.card.singleplayerSaves")}
 														</DropdownMenuLabel>
 														{loadingWorlds ? (
@@ -375,7 +375,7 @@ export const InstanceCard = ({
 																		<span className="truncate font-medium text-foreground text-xs">
 																			{w.displayName}
 																		</span>
-																		<span className="truncate text-[10px] text-muted-foreground">
+																		<span className="truncate text-3xs text-muted-foreground">
 																			{w.lastPlayed ? formatLastPlayed(w.lastPlayed) : w.folderName}
 																		</span>
 																	</div>
@@ -392,7 +392,7 @@ export const InstanceCard = ({
 													<span className="font-medium text-xs">
 														{t("instances.card.quickLoadWorld")}
 													</span>
-													<span className="text-[10px] text-muted-foreground">
+													<span className="text-3xs text-muted-foreground">
 														{t("instances.card.requires120")}
 													</span>
 												</div>

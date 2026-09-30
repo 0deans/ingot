@@ -1,5 +1,5 @@
 import i18n from "i18next"
-import { AlertCircle, ArrowLeft, Check, Cpu, Plus, Server } from "lucide-react"
+import { AlertCircle, ArrowLeft, Cpu, Plus, Server } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ServerConfig, ServerCoreType } from "@/bindings"
@@ -8,8 +8,16 @@ import { FadeScroll } from "@/components/servers/shared/primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
 	Select,
 	SelectContent,
@@ -243,13 +251,9 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 		<div className="flex h-full min-h-0 flex-col overflow-hidden bg-background text-foreground">
 			{/* ── Header ── */}
 			<div className="flex shrink-0 items-center gap-3 px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
-				<button
-					type="button"
-					onClick={goBack}
-					className="flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-card hover:text-foreground active:bg-muted"
-				>
+				<Button variant="ghost" size="icon-lg" onClick={goBack} className="text-muted-foreground">
 					<ArrowLeft className="size-5" />
-				</button>
+				</Button>
 				<div className="flex flex-1 flex-col gap-0.5">
 					<p className="font-semibold text-foreground text-sm">
 						{step === 0
@@ -258,7 +262,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 								? t("wizard.stepName")
 								: t("wizard.stepMemory")}
 					</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-2xs text-muted-foreground">
 						{t("wizard.stepOf", { step: step + 1, total: TOTAL_STEPS })}
 					</p>
 				</div>
@@ -344,47 +348,32 @@ function StepCore({
 }) {
 	const { t } = useTranslation()
 	return (
-		<div className="flex flex-col gap-2 pt-1">
-			{SERVER_CORES.map((c) => {
-				const isSelected = core === c.id
-				return (
-					<button
-						key={c.id}
-						type="button"
-						onClick={() => onSelect(c.id)}
-						className={cn(
-							"flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all duration-150",
-							isSelected
-								? "border-primary/60 bg-primary/10 ring-1 ring-primary/40"
-								: "border-border bg-card/50 active:bg-card",
-						)}
-					>
-						<div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card">
-							<LoaderIcon loader={c.id} size={22} />
-						</div>
-						<div className="min-w-0 flex-1">
-							<div className="flex items-center gap-2">
-								<span className="font-semibold text-foreground text-sm">{c.name}</span>
-								<Badge variant={isSelected ? "default" : "secondary"}>
+		<RadioGroup
+			value={core}
+			onValueChange={(value) => {
+				const next = SERVER_CORES.find((c) => c.id === value)?.id
+				if (next) onSelect(next)
+			}}
+			className="pt-1"
+		>
+			{SERVER_CORES.map((c) => (
+				<FieldLabel key={c.id} htmlFor={`core-${c.id}`}>
+					<Field orientation="horizontal" className="items-center">
+						<LoaderIcon loader={c.id} size={22} />
+						<FieldContent>
+							<FieldTitle>
+								{c.name}
+								<Badge variant={core === c.id ? "default" : "secondary"}>
 									{t(`serverCores.${c.id}.badge`)}
 								</Badge>
-							</div>
-							<p className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
-								{t(`serverCores.${c.id}.tagline`)}
-							</p>
-						</div>
-						<div
-							className={cn(
-								"flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
-								isSelected ? "border-primary bg-primary" : "border-input bg-transparent",
-							)}
-						>
-							{isSelected && <Check className="size-3 text-background" strokeWidth={3} />}
-						</div>
-					</button>
-				)
-			})}
-		</div>
+							</FieldTitle>
+							<FieldDescription>{t(`serverCores.${c.id}.tagline`)}</FieldDescription>
+						</FieldContent>
+						<RadioGroupItem value={c.id} id={`core-${c.id}`} />
+					</Field>
+				</FieldLabel>
+			))}
+		</RadioGroup>
 	)
 }
 
@@ -426,7 +415,7 @@ function StepDetails({
 				</div>
 				<div>
 					<p className="font-medium text-foreground text-sm">{coreObj?.name}</p>
-					<p className="text-[11px] text-muted-foreground">{t(`serverCores.${core}.badge`)}</p>
+					<p className="text-2xs text-muted-foreground">{t(`serverCores.${core}.badge`)}</p>
 				</div>
 			</div>
 
@@ -479,7 +468,7 @@ function StepDetails({
 							{t("wizard.serverPort")}
 						</Label>
 						{isPortConflict && (
-							<span className="font-medium text-[11px] text-destructive">
+							<span className="font-medium text-2xs text-destructive">
 								{t("wizard.portInUseShort")}
 							</span>
 						)}
@@ -598,7 +587,7 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 					<div className="absolute size-28 rounded-full bg-primary/10 blur-2xl" />
 					<div className="absolute size-20 rounded-full bg-primary/15 blur-xl" />
 					{/* Icon */}
-					<div className="relative flex size-20 items-center justify-center rounded-3xl border border-primary/30 bg-primary/10 shadow-[0_0_40px_rgba(16,185,129,0.15)]">
+					<div className="relative flex size-20 items-center justify-center rounded-3xl border border-primary/30 bg-primary/10 shadow-[0_0_40px_color-mix(in_oklab,var(--primary)_15%,transparent)]">
 						<Server className="size-9 text-primary" />
 					</div>
 				</div>
@@ -627,7 +616,7 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 					</div>
 					<div>
 						<p className="font-semibold text-foreground text-sm">{t("wizard.createAServer")}</p>
-						<p className="text-[11px] text-muted-foreground">{t("wizard.createAServerHint")}</p>
+						<p className="text-2xs text-muted-foreground">{t("wizard.createAServerHint")}</p>
 					</div>
 					<Plus className="ml-auto size-5 shrink-0 text-primary" />
 				</button>

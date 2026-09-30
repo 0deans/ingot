@@ -673,6 +673,7 @@
 		"makeLiveTitle_mod": "Cài đặt mod Ingot để cập nhật bản đồ trong thời gian thực mà không cần lưu thế giới",
 		"makeLive": "Bật trực tiếp",
 		"refreshTitle": "Kiểm tra các khu vực mới lưu",
+		"checking": "Đang kiểm tra...",
 		"ariaLabel": "Bản đồ thế giới. Kéo để di chuyển, cuộn chuột hoặc chụm ngón tay để thu phóng.",
 		"zoomIn": "Phóng to",
 		"zoomOut": "Thu nhỏ",

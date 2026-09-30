@@ -340,7 +340,7 @@ export const InstanceSettingsDialog = ({
 										<h4 className="font-medium text-foreground text-xs">
 											{t("wizard.minecraftVersion")}
 										</h4>
-										<p className="text-[11px] text-muted-foreground">
+										<p className="text-2xs text-muted-foreground">
 											{instance.gameVersion}
 											{instance.loaderVersion
 												? ` · ${t("instanceSettings.loader", { version: instance.loaderVersion })}`
@@ -360,7 +360,7 @@ export const InstanceSettingsDialog = ({
 							</div>
 							{versionBackup && (
 								<div className="flex flex-wrap items-center justify-between gap-2 border-border/80 border-t pt-3">
-									<p className="text-[11px] text-muted-foreground">
+									<p className="text-2xs text-muted-foreground">
 										{t(
 											versionBackup.worldsBackedUp
 												? "instanceSettings.backupWithWorlds"
@@ -378,7 +378,7 @@ export const InstanceSettingsDialog = ({
 											size="sm"
 											onClick={handleDiscardBackup}
 											disabled={versionBusy}
-											className="h-7 text-[11px] text-muted-foreground"
+											className="h-7 text-2xs text-muted-foreground"
 										>
 											{t("transfer.deleteBackup")}
 										</Button>
@@ -386,7 +386,7 @@ export const InstanceSettingsDialog = ({
 											size="sm"
 											onClick={handleUndoVersion}
 											disabled={versionBusy}
-											className="h-7 gap-1.5 text-[11px]"
+											className="h-7 gap-1.5 text-2xs"
 										>
 											{versionBusy ? <Spinner className="size-3" /> : <Undo2 className="size-3" />}
 											{t("transfer.undo", { version: backupSide(versionBackup, "from") })}
@@ -396,9 +396,7 @@ export const InstanceSettingsDialog = ({
 							)}
 							{versionMsg && (
 								<p
-									className={
-										versionMsg.ok ? "text-[11px] text-primary" : "text-[11px] text-destructive"
-									}
+									className={versionMsg.ok ? "text-2xs text-primary" : "text-2xs text-destructive"}
 								>
 									{versionMsg.text}
 								</p>
@@ -414,25 +412,17 @@ export const InstanceSettingsDialog = ({
 										<h4 className="font-medium text-foreground text-xs">
 											{t("settings.memory.title")}
 										</h4>
-										<p className="text-[11px] text-muted-foreground">
+										<p className="text-2xs text-muted-foreground">
 											{t("instanceSettings.memoryOverride")}
 										</p>
 									</div>
 								</div>
 
-								<button
-									type="button"
-									onClick={() => setUseCustomRam(!useCustomRam)}
-									className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none ${
-										useCustomRam ? "bg-primary" : "bg-muted"
-									}`}
-								>
-									<span
-										className={`pointer-events-none inline-block size-4 rounded-full bg-white shadow-lg ring-0 transition-transform ${
-											useCustomRam ? "translate-x-4" : "translate-x-0"
-										}`}
-									/>
-								</button>
+								<Switch
+									checked={useCustomRam}
+									onCheckedChange={setUseCustomRam}
+									aria-label={t("instanceSettings.memoryOverride")}
+								/>
 							</div>
 
 							{useCustomRam ? (
@@ -445,14 +435,15 @@ export const InstanceSettingsDialog = ({
 											{ min: 6144, max: 8192 },
 											{ min: 8192, max: 12288 },
 										].map((p) => (
-											<button
+											<Button
 												key={p.min}
 												type="button"
+												variant="outline"
+												size="xs"
 												onClick={() => applyPreset(p.min, p.max)}
-												className="rounded-md border border-border bg-card/80 px-2.5 py-1 text-[11px] text-foreground/80 transition-colors hover:border-input hover:text-foreground"
 											>
 												{formatMegabytes(p.min)} – {formatMegabytes(p.max)}
-											</button>
+											</Button>
 										))}
 									</div>
 
@@ -498,7 +489,7 @@ export const InstanceSettingsDialog = ({
 									</div>
 								</div>
 							) : (
-								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-[11px] text-muted-foreground">
+								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-2xs text-muted-foreground">
 									<Trans
 										i18nKey="instanceSettings.inheritMemory"
 										values={{
@@ -519,7 +510,7 @@ export const InstanceSettingsDialog = ({
 									<h4 className="font-medium text-foreground text-xs">
 										{t("instanceSettings.jvmArgs")}
 									</h4>
-									<p className="text-[11px] text-muted-foreground">
+									<p className="text-2xs text-muted-foreground">
 										{t("instanceSettings.jvmArgsHint")}
 									</p>
 								</div>
@@ -541,9 +532,7 @@ export const InstanceSettingsDialog = ({
 									<h4 className="font-medium text-foreground text-xs">
 										{t("instanceSettings.java")}
 									</h4>
-									<p className="text-[11px] text-muted-foreground">
-										{t("instanceSettings.javaHint")}
-									</p>
+									<p className="text-2xs text-muted-foreground">{t("instanceSettings.javaHint")}</p>
 								</div>
 							</div>
 
@@ -564,7 +553,7 @@ export const InstanceSettingsDialog = ({
 										<h4 className="font-medium text-foreground text-xs">
 											{t("settings.window.title")}
 										</h4>
-										<p className="text-[11px] text-muted-foreground">
+										<p className="text-2xs text-muted-foreground">
 											{t("instanceSettings.windowOverride")}
 										</p>
 									</div>
@@ -580,7 +569,7 @@ export const InstanceSettingsDialog = ({
 											<span className="font-medium text-foreground text-xs">
 												{t("settings.window.fullscreenTitle")}
 											</span>
-											<p className="text-[11px] text-muted-foreground">
+											<p className="text-2xs text-muted-foreground">
 												{t("instanceSettings.fullscreenHint")}
 											</p>
 										</div>
@@ -635,7 +624,7 @@ export const InstanceSettingsDialog = ({
 									)}
 								</div>
 							) : (
-								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
+								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2 text-2xs text-muted-foreground">
 									<Trans
 										i18nKey="instanceSettings.inheritDisplay"
 										values={{
@@ -658,7 +647,7 @@ export const InstanceSettingsDialog = ({
 										<h4 className="font-medium text-foreground text-xs">
 											{t("settings.sync.title")}
 										</h4>
-										<p className="text-[11px] text-muted-foreground">
+										<p className="text-2xs text-muted-foreground">
 											{t("instanceSettings.syncHint")}
 										</p>
 									</div>
@@ -673,7 +662,7 @@ export const InstanceSettingsDialog = ({
 									<div className="font-medium text-foreground text-xs">
 										{t("instanceSettings.manualSync")}
 									</div>
-									<div className="text-[11px] text-muted-foreground">
+									<div className="text-2xs text-muted-foreground">
 										{t("instanceSettings.manualSyncHint")}
 									</div>
 								</div>
@@ -725,7 +714,7 @@ export const InstanceSettingsDialog = ({
 										) : (
 											<AlertCircle className="size-3.5 shrink-0 text-destructive" />
 										)}
-										<span className="text-[11px]">{syncStatusMsg}</span>
+										<span className="text-2xs">{syncStatusMsg}</span>
 									</div>
 								)}
 							</div>
@@ -771,7 +760,7 @@ export const InstanceSettingsDialog = ({
 									))}
 								</div>
 							) : (
-								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
+								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2 text-2xs text-muted-foreground">
 									{t("instanceSettings.inheritSync")}
 								</div>
 							)}

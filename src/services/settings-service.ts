@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { create } from "zustand"
 import {
 	createTauRPCProxy,
 	type MemorySettings,
@@ -12,91 +13,50 @@ import {
 
 const rpc = createTauRPCProxy()
 
-let cachedMemory: MemorySettings = {
-	minRamMb: 2048,
-	maxRamMb: 4096,
-}
-let cachedSystemMemory: SystemMemoryInfo | null = null
-const memoryListeners = new Set<(mem: MemorySettings) => void>()
-
-function notifyMemory(mem: MemorySettings) {
-	cachedMemory = mem
-	for (const listener of memoryListeners) {
-		listener(mem)
-	}
-}
-
 export type LauncherBehavior = "keepOpen" | "hideToTray" | "close"
 
-let cachedBehavior: LauncherBehavior = "keepOpen"
-const behaviorListeners = new Set<(b: LauncherBehavior) => void>()
-
-function notifyBehavior(b: LauncherBehavior) {
-	cachedBehavior = b
-	for (const listener of behaviorListeners) {
-		listener(b)
-	}
+interface SettingsState {
+	memory: MemorySettings
+	systemMemory: SystemMemoryInfo | null
+	behavior: LauncherBehavior
+	windowSettings: WindowSettings
+	syncSettings: SyncSettings
 }
 
-let cachedWindowSettings: WindowSettings = {
-	fullscreen: false,
-	width: 854,
-	height: 480,
-}
-const windowSettingsListeners = new Set<(ws: WindowSettings) => void>()
+const useSettingsStore = create<SettingsState>(() => ({
+	memory: { minRamMb: 2048, maxRamMb: 4096 },
+	systemMemory: null,
+	behavior: "keepOpen",
+	windowSettings: { fullscreen: false, width: 854, height: 480 },
+	syncSettings: {
+		syncOptions: false,
+		syncServers: false,
+		syncResourcePacks: false,
+		syncCommandHistory: false,
+		syncCreativeHotbars: false,
+		initializedCategories: [],
+	},
+}))
 
-function notifyWindowSettings(ws: WindowSettings) {
-	cachedWindowSettings = ws
-	for (const listener of windowSettingsListeners) {
-		listener(ws)
-	}
-}
-
-let cachedSyncSettings: SyncSettings = {
-	syncOptions: false,
-	syncServers: false,
-	syncResourcePacks: false,
-	syncCommandHistory: false,
-	syncCreativeHotbars: false,
-	initializedCategories: [],
-}
-const syncSettingsListeners = new Set<(ss: SyncSettings) => void>()
-
-function notifySyncSettings(ss: SyncSettings) {
-	cachedSyncSettings = ss
-	for (const listener of syncSettingsListeners) {
-		listener(ss)
-	}
-}
+const state = () => useSettingsStore.getState()
+const set = (patch: Partial<SettingsState>) => useSettingsStore.setState(patch)
 
 export const settingsService = {
-	getCachedLauncherBehavior(): LauncherBehavior {
-		return cachedBehavior
-	},
-
-	subscribeBehavior(listener: (b: LauncherBehavior) => void): () => void {
-		behaviorListeners.add(listener)
-		listener(cachedBehavior)
-		return () => {
-			behaviorListeners.delete(listener)
-		}
-	},
-
 	async getLauncherBehavior(): Promise<LauncherBehavior> {
 		try {
 			const b = (await rpc.get_launcher_behavior()) as LauncherBehavior
-			notifyBehavior(b)
+			set({ behavior: b })
 			return b
 		} catch (error) {
 			console.error("Failed to load launcher behavior:", error)
-			return cachedBehavior
+			return state().behavior
 		}
 	},
 
 	async setLauncherBehavior(behavior: LauncherBehavior): Promise<LauncherBehavior> {
 		try {
 			const b = (await rpc.set_launcher_behavior(behavior)) as LauncherBehavior
-			notifyBehavior(b)
+			set({ behavior: b })
 			return b
 		} catch (error) {
 			console.error("Failed to save launcher behavior:", error)
@@ -104,26 +64,10 @@ export const settingsService = {
 		}
 	},
 
-	getCachedMemorySettings(): MemorySettings {
-		return cachedMemory
-	},
-
-	getCachedSystemMemory(): SystemMemoryInfo | null {
-		return cachedSystemMemory
-	},
-
-	subscribeMemory(listener: (mem: MemorySettings) => void): () => void {
-		memoryListeners.add(listener)
-		listener(cachedMemory)
-		return () => {
-			memoryListeners.delete(listener)
-		}
-	},
-
 	async getSystemMemory(): Promise<SystemMemoryInfo> {
 		try {
 			const info = await rpc.get_system_memory()
-			cachedSystemMemory = info
+			set({ systemMemory: info })
 			return info
 		} catch (error) {
 			console.error("Failed to query system memory:", error)
@@ -135,7 +79,7 @@ export const settingsService = {
 				availableMb: 10240,
 				usedMb: 6144,
 			}
-			cachedSystemMemory = fallback
+			set({ systemMemory: fallback })
 			return fallback
 		}
 	},
@@ -143,18 +87,18 @@ export const settingsService = {
 	async getMemorySettings(): Promise<MemorySettings> {
 		try {
 			const mem = await rpc.get_memory_settings()
-			notifyMemory(mem)
+			set({ memory: mem })
 			return mem
 		} catch (error) {
 			console.error("Failed to load memory settings:", error)
-			return cachedMemory
+			return state().memory
 		}
 	},
 
 	async setMemorySettings(minRamMb: number, maxRamMb: number): Promise<MemorySettings> {
 		try {
 			const mem = await rpc.set_memory_settings(minRamMb, maxRamMb)
-			notifyMemory(mem)
+			set({ memory: mem })
 			return mem
 		} catch (error) {
 			console.error("Failed to save memory settings:", error)
@@ -162,33 +106,21 @@ export const settingsService = {
 		}
 	},
 
-	getCachedWindowSettings(): WindowSettings {
-		return cachedWindowSettings
-	},
-
-	subscribeWindowSettings(listener: (ws: WindowSettings) => void): () => void {
-		windowSettingsListeners.add(listener)
-		listener(cachedWindowSettings)
-		return () => {
-			windowSettingsListeners.delete(listener)
-		}
-	},
-
 	async getWindowSettings(): Promise<WindowSettings> {
 		try {
 			const ws = await rpc.get_window_settings()
-			notifyWindowSettings(ws)
+			set({ windowSettings: ws })
 			return ws
 		} catch (error) {
 			console.error("Failed to load window settings:", error)
-			return cachedWindowSettings
+			return state().windowSettings
 		}
 	},
 
 	async setWindowSettings(settings: WindowSettings): Promise<WindowSettings> {
 		try {
 			const ws = await rpc.set_window_settings(settings)
-			notifyWindowSettings(ws)
+			set({ windowSettings: ws })
 			return ws
 		} catch (error) {
 			console.error("Failed to save window settings:", error)
@@ -196,33 +128,21 @@ export const settingsService = {
 		}
 	},
 
-	getCachedSyncSettings(): SyncSettings {
-		return cachedSyncSettings
-	},
-
-	subscribeSyncSettings(listener: (ss: SyncSettings) => void): () => void {
-		syncSettingsListeners.add(listener)
-		listener(cachedSyncSettings)
-		return () => {
-			syncSettingsListeners.delete(listener)
-		}
-	},
-
 	async getSyncSettings(): Promise<SyncSettings> {
 		try {
 			const ss = await rpc.get_sync_settings()
-			notifySyncSettings(ss)
+			set({ syncSettings: ss })
 			return ss
 		} catch (error) {
 			console.error("Failed to load sync settings:", error)
-			return cachedSyncSettings
+			return state().syncSettings
 		}
 	},
 
 	async setSyncSettings(settings: SyncSettings): Promise<SyncSettings> {
 		try {
 			const ss = await rpc.set_sync_settings(settings)
-			notifySyncSettings(ss)
+			set({ syncSettings: ss })
 			return ss
 		} catch (error) {
 			console.error("Failed to save sync settings:", error)
@@ -289,25 +209,14 @@ export const settingsService = {
 }
 
 export function useMemorySettings() {
-	const [memory, setMemory] = useState<MemorySettings>(settingsService.getCachedMemorySettings())
-	const [systemMemory, setSystemMemory] = useState<SystemMemoryInfo | null>(
-		settingsService.getCachedSystemMemory(),
-	)
-	const [isLoading, setIsLoading] = useState(!settingsService.getCachedSystemMemory())
+	const memory = useSettingsStore((s) => s.memory)
+	const systemMemory = useSettingsStore((s) => s.systemMemory)
+	const [isLoading, setIsLoading] = useState(!systemMemory)
 
 	useEffect(() => {
-		const unsubscribe = settingsService.subscribeMemory((updated) => {
-			setMemory(updated)
-		})
-
-		Promise.all([settingsService.getMemorySettings(), settingsService.getSystemMemory()]).then(
-			([, sysInfo]) => {
-				setSystemMemory(sysInfo)
-				setIsLoading(false)
-			},
+		Promise.all([settingsService.getMemorySettings(), settingsService.getSystemMemory()]).then(() =>
+			setIsLoading(false),
 		)
-
-		return unsubscribe
 	}, [])
 
 	return {
@@ -319,24 +228,23 @@ export function useMemorySettings() {
 	}
 }
 
-export function useLauncherBehavior() {
-	const [behavior, setBehavior] = useState<LauncherBehavior>(
-		settingsService.getCachedLauncherBehavior(),
-	)
+/** Subscribes to one settings slice and reloads it from the backend on mount. */
+function useLoadedSetting<K extends keyof SettingsState>(key: K, load: () => Promise<unknown>) {
+	const value = useSettingsStore((s) => s[key])
 	const [isLoading, setIsLoading] = useState(true)
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: load once on mount
 	useEffect(() => {
-		const unsubscribe = settingsService.subscribeBehavior((updated) => {
-			setBehavior(updated)
-		})
-
-		settingsService.getLauncherBehavior().finally(() => {
-			setIsLoading(false)
-		})
-
-		return unsubscribe
+		load().finally(() => setIsLoading(false))
 	}, [])
 
+	return [value, isLoading] as const
+}
+
+export function useLauncherBehavior() {
+	const [behavior, isLoading] = useLoadedSetting("behavior", () =>
+		settingsService.getLauncherBehavior(),
+	)
 	return {
 		behavior,
 		isLoading,
@@ -345,23 +253,9 @@ export function useLauncherBehavior() {
 }
 
 export function useWindowSettings() {
-	const [windowSettings, setWindowSettingsState] = useState<WindowSettings>(
-		settingsService.getCachedWindowSettings(),
+	const [windowSettings, isLoading] = useLoadedSetting("windowSettings", () =>
+		settingsService.getWindowSettings(),
 	)
-	const [isLoading, setIsLoading] = useState(true)
-
-	useEffect(() => {
-		const unsubscribe = settingsService.subscribeWindowSettings((updated) => {
-			setWindowSettingsState(updated)
-		})
-
-		settingsService.getWindowSettings().finally(() => {
-			setIsLoading(false)
-		})
-
-		return unsubscribe
-	}, [])
-
 	return {
 		windowSettings,
 		isLoading,
@@ -370,23 +264,9 @@ export function useWindowSettings() {
 }
 
 export function useSyncSettings() {
-	const [syncSettings, setSyncSettingsState] = useState<SyncSettings>(
-		settingsService.getCachedSyncSettings(),
+	const [syncSettings, isLoading] = useLoadedSetting("syncSettings", () =>
+		settingsService.getSyncSettings(),
 	)
-	const [isLoading, setIsLoading] = useState(true)
-
-	useEffect(() => {
-		const unsubscribe = settingsService.subscribeSyncSettings((updated) => {
-			setSyncSettingsState(updated)
-		})
-
-		settingsService.getSyncSettings().finally(() => {
-			setIsLoading(false)
-		})
-
-		return unsubscribe
-	}, [])
-
 	return {
 		syncSettings,
 		isLoading,

@@ -673,6 +673,7 @@
 		"makeLiveTitle_mod": "安装 Ingot 模组即可实时更新地图，无需等待保存世界",
 		"makeLive": "启用实时更新",
 		"refreshTitle": "检查最新保存的区域",
+		"checking": "正在检查...",
 		"ariaLabel": "世界地图。拖动以平移，滚动或捏合以缩放。",
 		"zoomIn": "放大",
 		"zoomOut": "缩小",

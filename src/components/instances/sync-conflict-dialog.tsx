@@ -13,6 +13,14 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import {
+	Item,
+	ItemActions,
+	ItemContent,
+	ItemDescription,
+	ItemMedia,
+	ItemTitle,
+} from "@/components/ui/item"
 
 interface SyncConflictDialogProps {
 	conflict: SyncConflictInfo | null
@@ -66,14 +74,14 @@ export const SyncConflictDialog = ({
 				<Alert className={alertTone.warning}>
 					<AlertTriangle />
 					<AlertDescription className="flex flex-wrap items-center gap-1.5">
-						<span className="text-[11px]">{t("syncConflict.conflictingFiles")}</span>
+						<span className="text-2xs">{t("syncConflict.conflictingFiles")}</span>
 						{conflict.hasInstanceOptions && conflict.hasSharedOptions && (
-							<code className="rounded bg-warning/10 px-1.5 py-0.5 font-mono text-[10px] text-warning">
+							<code className="rounded bg-warning/10 px-1.5 py-0.5 font-mono text-3xs text-warning">
 								options.txt
 							</code>
 						)}
 						{conflict.hasInstanceServers && conflict.hasSharedServers && (
-							<code className="rounded bg-warning/10 px-1.5 py-0.5 font-mono text-[10px] text-warning">
+							<code className="rounded bg-warning/10 px-1.5 py-0.5 font-mono text-3xs text-warning">
 								servers.dat
 							</code>
 						)}
@@ -81,74 +89,93 @@ export const SyncConflictDialog = ({
 				</Alert>
 
 				<div className="flex min-h-0 flex-1 flex-col gap-1.5">
-					<div className="shrink-0 font-medium text-[11px] text-muted-foreground">
+					<div className="shrink-0 font-medium text-2xs text-muted-foreground">
 						{t("syncConflict.choose")}
 					</div>
 
 					<ScrollArea scrollFade className="-mr-2 max-h-[min(380px,50vh)] p-0.5 pr-2">
 						<div className="flex flex-col gap-2">
 							{/* Option 1: Use Shared Data */}
-							<button
-								type="button"
-								disabled={isProcessing}
-								onClick={() => handleChoice("use_shared")}
-								className="group flex cursor-pointer flex-col items-start gap-1 rounded-xl border border-border/80 bg-card/40 p-3 text-left transition-all hover:border-info/50 hover:bg-info/5 focus:outline-none sm:p-3.5"
-							>
-								<div className="flex w-full items-center justify-between gap-2">
-									<span className="flex items-center gap-2 font-semibold text-foreground text-xs group-hover:text-info sm:text-sm">
-										<ArrowDownToLine className="size-4 shrink-0 text-info" />
-										<span>{t("syncConflict.useShared")}</span>
-									</span>
-									<Badge variant="secondary">{t("syncConflict.overwritesLocal")}</Badge>
-								</div>
-								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
-									<Trans
-										i18nKey="syncConflict.useSharedDesc"
-										components={{ code: <code className="text-foreground/80" /> }}
+							<Item
+								variant="outline"
+								render={
+									<button
+										type="button"
+										disabled={isProcessing}
+										onClick={() => handleChoice("use_shared")}
 									/>
-								</p>
-							</button>
+								}
+								className="items-start text-left hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
+							>
+								<ItemMedia variant="icon" className="text-info">
+									<ArrowDownToLine />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>{t("syncConflict.useShared")}</ItemTitle>
+									<ItemDescription>
+										<Trans
+											i18nKey="syncConflict.useSharedDesc"
+											components={{ code: <code className="text-foreground/80" /> }}
+										/>
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Badge variant="secondary">{t("syncConflict.overwritesLocal")}</Badge>
+								</ItemActions>
+							</Item>
 
 							{/* Option 2: Use Instance as Master */}
-							<button
-								type="button"
-								disabled={isProcessing}
-								onClick={() => handleChoice("use_instance")}
-								className="group flex cursor-pointer flex-col items-start gap-1 rounded-xl border border-border/80 bg-card/40 p-3 text-left transition-all hover:border-primary/50 hover:bg-primary/5 focus:outline-none sm:p-3.5"
-							>
-								<div className="flex w-full items-center justify-between gap-2">
-									<span className="flex items-center gap-2 font-semibold text-foreground text-xs group-hover:text-primary sm:text-sm">
-										<ArrowUpFromLine className="size-4 shrink-0 text-primary" />
-										<span>{t("syncConflict.useInstance")}</span>
-									</span>
-									<Badge variant="secondary">{t("syncConflict.overwritesShared")}</Badge>
-								</div>
-								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
-									<Trans
-										i18nKey="syncConflict.useInstanceDesc"
-										components={{ code: <code className="text-foreground/80" /> }}
+							<Item
+								variant="outline"
+								render={
+									<button
+										type="button"
+										disabled={isProcessing}
+										onClick={() => handleChoice("use_instance")}
 									/>
-								</p>
-							</button>
+								}
+								className="items-start text-left hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
+							>
+								<ItemMedia variant="icon" className="text-primary">
+									<ArrowUpFromLine />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>{t("syncConflict.useInstance")}</ItemTitle>
+									<ItemDescription>
+										<Trans
+											i18nKey="syncConflict.useInstanceDesc"
+											components={{ code: <code className="text-foreground/80" /> }}
+										/>
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Badge variant="secondary">{t("syncConflict.overwritesShared")}</Badge>
+								</ItemActions>
+							</Item>
 
 							{/* Option 3: Disable Sync for this instance */}
-							<button
-								type="button"
-								disabled={isProcessing}
-								onClick={() => handleChoice("disable_sync")}
-								className="group flex cursor-pointer flex-col items-start gap-1 rounded-xl border border-border/80 bg-card/40 p-3 text-left transition-all hover:border-input hover:bg-muted/30 focus:outline-none sm:p-3.5"
+							<Item
+								variant="outline"
+								render={
+									<button
+										type="button"
+										disabled={isProcessing}
+										onClick={() => handleChoice("disable_sync")}
+									/>
+								}
+								className="items-start text-left hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
 							>
-								<div className="flex w-full items-center justify-between gap-2">
-									<span className="flex items-center gap-2 font-semibold text-foreground text-xs group-hover:text-foreground sm:text-sm">
-										<XCircle className="size-4 shrink-0 text-muted-foreground" />
-										<span>{t("syncConflict.disable")}</span>
-									</span>
+								<ItemMedia variant="icon" className="text-muted-foreground">
+									<XCircle />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>{t("syncConflict.disable")}</ItemTitle>
+									<ItemDescription>{t("syncConflict.disableDesc")}</ItemDescription>
+								</ItemContent>
+								<ItemActions>
 									<Badge variant="secondary">{t("syncConflict.noChanges")}</Badge>
-								</div>
-								<p className="pl-6 text-[11px] text-muted-foreground leading-relaxed">
-									{t("syncConflict.disableDesc")}
-								</p>
-							</button>
+								</ItemActions>
+							</Item>
 						</div>
 					</ScrollArea>
 				</div>

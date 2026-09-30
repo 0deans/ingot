@@ -3,7 +3,8 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { dimensionStyle, formatRelativeTime } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
 import { useKnownPlayers, useOnlinePlayers, useServerStatus } from "@/services/server-data"
@@ -156,7 +157,7 @@ function OnlinePlayerCard({ player, onClick }: { player: PlayerDetails; onClick:
 					<MiniBar icon={Heart} pct={health} color="#f43f5e" />
 					<MiniBar icon={Apple} pct={(player.food / 20) * 100} color="#f59e0b" />
 				</div>
-				<p className="mt-1.5 truncate font-mono text-[10px] text-muted-foreground">
+				<p className="mt-1.5 truncate font-mono text-3xs text-muted-foreground">
 					{player.gamemode} · {Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
 				</p>
 			</div>
@@ -203,34 +204,37 @@ function AllPlayersList({
 	return (
 		<div className="flex flex-col gap-3">
 			{data.length > 6 && (
-				<div className="relative">
-					<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
-					<Input
+				<InputGroup>
+					<InputGroupAddon>
+						<Search />
+					</InputGroupAddon>
+					<InputGroupInput
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder={t("players.search")}
-						className="h-10 rounded-xl pl-9 text-sm"
+						className="text-sm"
 					/>
-				</div>
+				</InputGroup>
 			)}
 			<Card className="gap-0 divide-y divide-border/70 py-0">
 				{filtered.map((p) => (
-					<button
+					<Item
 						key={p.uuid || p.name}
-						type="button"
-						onClick={() => onSelect(p.name)}
-						className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-card/70"
+						render={<button type="button" onClick={() => onSelect(p.name)} />}
+						className="rounded-none px-3.5 text-left hover:bg-muted/50"
 					>
-						<PlayerAvatar name={p.name} size={34} online={p.online} />
-						<div className="min-w-0 flex-1">
-							<p className="truncate font-medium text-foreground text-sm">{p.name}</p>
-							<p className="text-[11px] text-muted-foreground">
+						<ItemMedia>
+							<PlayerAvatar name={p.name} size={34} online={p.online} />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle>{p.name}</ItemTitle>
+							<ItemDescription>
 								{p.online
 									? t("players.onlineNow")
 									: t("players.lastSeen", { time: formatRelativeTime(p.lastSeen) })}
-							</p>
-						</div>
-					</button>
+							</ItemDescription>
+						</ItemContent>
+					</Item>
 				))}
 			</Card>
 		</div>

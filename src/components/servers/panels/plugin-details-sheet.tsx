@@ -259,7 +259,7 @@ function VersionList({
 										</Badge>
 									)}
 								</p>
-								<p className="truncate text-[11px] text-muted-foreground">
+								<p className="truncate text-2xs text-muted-foreground">
 									{summarizeVersions(v.gameVersions)}
 									{v.size > 0 && ` · ${formatBytes(v.size)}`}
 									{v.date && ` · ${formatDate(v.date)}`}

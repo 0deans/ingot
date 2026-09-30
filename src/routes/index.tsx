@@ -192,7 +192,7 @@ const InstancesPage = () => {
 
 				{/* Active Running Instances Multi-Banner */}
 				{runningList.length > 0 && (
-					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg shadow-primary/10 backdrop-blur-md">
+					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg backdrop-blur-md">
 						<div className="flex items-center gap-2 font-medium text-primary text-xs">
 							<span className="size-2 animate-ping rounded-full bg-primary" />
 							{t("instances.activeInstances", { count: runningList.length })}
@@ -212,10 +212,11 @@ const InstancesPage = () => {
 										<Tooltip>
 											<TooltipTrigger
 												render={
-													<button
-														type="button"
+													<Button
+														variant="ghost"
+														size="icon-xs"
 														onClick={() => handleStop(proc.instanceId)}
-														className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
+														className="text-primary hover:bg-destructive/20 hover:text-destructive"
 														aria-label={t("instances.stopProcess")}
 													/>
 												}
@@ -236,7 +237,7 @@ const InstancesPage = () => {
 					<div className="flex items-center gap-2 font-semibold text-foreground text-sm">
 						<Layers className="size-4 text-primary" />
 						<span>{t("instances.allInstances")}</span>
-						<span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+						<span className="rounded-full bg-muted px-2 py-0.5 font-mono text-2xs text-muted-foreground">
 							{instances.length}
 						</span>
 					</div>
@@ -334,7 +335,7 @@ const InstancesPage = () => {
 								<span className="font-semibold text-foreground/80 text-xs group-hover:text-foreground">
 									{t("instances.createCardTitle")}
 								</span>
-								<span className="text-[11px] text-muted-foreground">
+								<span className="text-2xs text-muted-foreground">
 									{t("instances.createCardSubtitle")}
 								</span>
 							</div>

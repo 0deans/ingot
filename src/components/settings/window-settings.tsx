@@ -1,4 +1,4 @@
-import { Check, Maximize2, Monitor, RotateCcw } from "lucide-react"
+import { Maximize2, Monitor, RotateCcw } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SectionCardHeader } from "@/components/common/section-card"
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useWindowSettings } from "@/services/settings-service"
 
@@ -77,7 +78,7 @@ export const WindowSettings = () => {
 							<div className="font-medium text-foreground text-xs sm:text-sm">
 								{t("settings.window.fullscreenTitle")}
 							</div>
-							<div className="text-[11px] text-muted-foreground">
+							<div className="text-2xs text-muted-foreground">
 								{t("settings.window.fullscreenDesc")}
 							</div>
 						</div>
@@ -94,7 +95,7 @@ export const WindowSettings = () => {
 								<div className="font-medium text-foreground text-xs sm:text-sm">
 									{t("settings.window.resolutionTitle")}
 								</div>
-								<div className="text-[11px] text-muted-foreground">
+								<div className="text-2xs text-muted-foreground">
 									{t("settings.window.resolutionDesc")}
 								</div>
 							</div>
@@ -102,7 +103,7 @@ export const WindowSettings = () => {
 							{/* Inputs */}
 							<div className="flex items-center gap-2">
 								<div className="flex items-center gap-1.5">
-									<span className="text-[11px] text-muted-foreground">W:</span>
+									<span className="text-2xs text-muted-foreground">W:</span>
 									<Input
 										type="number"
 										value={width}
@@ -116,7 +117,7 @@ export const WindowSettings = () => {
 								</div>
 								<span className="text-muted-foreground text-xs">×</span>
 								<div className="flex items-center gap-1.5">
-									<span className="text-[11px] text-muted-foreground">H:</span>
+									<span className="text-2xs text-muted-foreground">H:</span>
 									<Input
 										type="number"
 										value={height}
@@ -151,35 +152,32 @@ export const WindowSettings = () => {
 
 						{/* Quick Presets */}
 						<div className="flex flex-wrap items-center gap-1.5 pt-1">
-							<span className="mr-1 text-[11px] text-muted-foreground">
+							<span className="mr-1 text-2xs text-muted-foreground">
 								{t("settings.window.presets")}
 							</span>
-							{RESOLUTION_PRESETS.map((preset) => {
-								const isCurrent =
-									windowSettings.width === preset.width && windowSettings.height === preset.height
-								return (
-									<button
-										key={preset.label}
-										type="button"
-										onClick={() => handleCommitResolution(preset.width, preset.height)}
-										className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] transition-colors ${
-											isCurrent
-												? "border-info/40 bg-info/10 font-medium text-info"
-												: "border-border bg-card/80 text-foreground/80 hover:border-input hover:text-foreground"
-										}`}
-									>
-										{isCurrent && <Check className="size-3" />}
-										<span>{preset.label}</span>
-										<span className="text-[10px] text-muted-foreground">
-											(
+							<ToggleGroup
+								variant="outline"
+								size="sm"
+								className="flex-wrap"
+								value={RESOLUTION_PRESETS.filter(
+									(p) => p.width === windowSettings.width && p.height === windowSettings.height,
+								).map((p) => p.label)}
+								onValueChange={(value) => {
+									const preset = RESOLUTION_PRESETS.find((p) => p.label === value[0])
+									if (preset) handleCommitResolution(preset.width, preset.height)
+								}}
+							>
+								{RESOLUTION_PRESETS.map((preset) => (
+									<ToggleGroupItem key={preset.label} value={preset.label}>
+										{preset.label}
+										<span className="text-3xs text-muted-foreground">
 											{preset.description === "Default"
 												? t("settings.window.defaultPreset")
 												: preset.description}
-											)
 										</span>
-									</button>
-								)
-							})}
+									</ToggleGroupItem>
+								))}
+							</ToggleGroup>
 						</div>
 					</div>
 				)}

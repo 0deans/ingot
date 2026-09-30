@@ -90,7 +90,7 @@ export default function LeftoverServersDialog() {
 								<Server className="size-4 shrink-0 text-muted-foreground" />
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium text-foreground text-sm">{server.name}</p>
-									<p className="truncate text-[11px] text-muted-foreground">
+									<p className="truncate text-2xs text-muted-foreground">
 										{t("leftoverServers.runningSince", { time: since(server.startedAt) })}
 									</p>
 								</div>

@@ -1,4 +1,3 @@
-import { cn } from "cn"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
 	loaderName,
 	PlanReview,
@@ -169,30 +169,32 @@ export default function ChangeVersionDialog({
 							<span className="font-medium text-muted-foreground text-xs">
 								{t("newInstance.modLoader")}
 							</span>
-							<div className="grid grid-cols-5 gap-1.5">
+							<ToggleGroup
+								variant="outline"
+								disabled={busy}
+								value={[loader]}
+								onValueChange={(value) => {
+									const next = LOADERS.find((id) => id === value[0])
+									if (next) setLoader(next)
+								}}
+								className="grid w-full grid-cols-5"
+							>
 								{LOADERS.map((id) => (
-									<button
+									<ToggleGroupItem
 										key={id}
-										type="button"
-										disabled={busy}
-										onClick={() => setLoader(id)}
-										className={cn(
-											"flex flex-col items-center gap-1 border p-2 text-[11px] transition-colors",
-											loader === id
-												? "border-primary/60 bg-primary/10 text-foreground"
-												: "border-border bg-card/40 text-muted-foreground hover:text-foreground",
-										)}
+										value={id}
+										className="h-auto flex-col gap-1 p-2 text-2xs"
 									>
 										<LoaderIcon loader={id} size={18} />
 										{loaderName(id)}
 										{id === instance.loader && (
-											<span className="text-[9px] text-muted-foreground">
+											<span className="text-3xs text-muted-foreground">
 												{t("versionChange.now")}
 											</span>
 										)}
-									</button>
+									</ToggleGroupItem>
 								))}
-							</div>
+							</ToggleGroup>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
 							<div className="grid gap-1.5">
@@ -329,7 +331,7 @@ export default function ChangeVersionDialog({
 				)}
 
 				<DialogFooter className="flex flex-row items-center justify-between gap-2 pt-3 sm:justify-between">
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-2xs text-muted-foreground">
 						{stage === "review" && plan && planSummary(plan, choices)}
 					</p>
 					<div className="flex gap-2">

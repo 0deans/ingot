@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MapRegion, PlayerDetails } from "@/bindings"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { avatarUrl } from "@/lib/minecraft"
@@ -255,7 +256,7 @@ export function WorldMap({
 				</MapButton>
 			</div>
 
-			<div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-background/80 px-2 py-1 font-mono text-[10px] text-foreground/80 backdrop-blur-md">
+			<div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-background/80 px-2 py-1 font-mono text-3xs text-foreground/80 backdrop-blur-md">
 				<Crosshair className="size-3" />
 				{Math.floor(cursor?.x ?? view.x)}, {Math.floor(cursor?.z ?? view.z)}
 			</div>
@@ -273,15 +274,16 @@ function MapButton({
 	children: React.ReactNode
 }) {
 	return (
-		<button
-			type="button"
+		<Button
+			variant="ghost"
+			size="icon-lg"
 			aria-label={label}
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={onClick}
-			className="flex size-9 items-center justify-center text-foreground transition-colors hover:bg-foreground/10"
+			className="text-foreground"
 		>
 			{children}
-		</button>
+		</Button>
 	)
 }
 

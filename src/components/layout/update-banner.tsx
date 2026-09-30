@@ -66,7 +66,7 @@ export const UpdateBanner = () => {
 									: t("updateBanner.available", { version: updateInfo.version })}
 						</span>
 						{!isDownloading && !isReady && (
-							<span className="text-[11px] text-muted-foreground">
+							<span className="text-2xs text-muted-foreground">
 								{t("updateBanner.currentVersion", { version: updateInfo.currentVersion })}
 							</span>
 						)}
@@ -86,9 +86,7 @@ export const UpdateBanner = () => {
 					) : isDownloading ? (
 						<div className="flex items-center gap-2">
 							<Progress value={downloadProgress} className="w-24 sm:w-32" />
-							<span className="font-mono text-[11px] text-muted-foreground">
-								{downloadProgress}%
-							</span>
+							<span className="font-mono text-2xs text-muted-foreground">{downloadProgress}%</span>
 						</div>
 					) : (
 						<Button
@@ -105,10 +103,11 @@ export const UpdateBanner = () => {
 						<Tooltip>
 							<TooltipTrigger
 								render={
-									<button
-										type="button"
+									<Button
+										variant="ghost"
+										size="icon-xs"
 										onClick={dismissBanner}
-										className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+										className="text-muted-foreground"
 										aria-label={t("updateBanner.dismiss")}
 									/>
 								}

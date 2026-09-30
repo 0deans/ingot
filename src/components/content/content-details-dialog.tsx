@@ -27,6 +27,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatBytes, formatCount, formatDate as formatLocalDate, formatNumber } from "@/lib/format"
 import { sanitizeHtml } from "@/lib/sanitize-html"
 import { cn } from "@/lib/utils"
@@ -314,7 +315,7 @@ export const ContentDetailsDialog = memo(
 								<div className="flex min-w-0 flex-1 flex-col gap-1">
 									<div className="flex items-center gap-2">
 										<span
-											className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-[11px] ${
+											className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-2xs ${
 												item.source === "modrinth"
 													? "border border-primary/20 bg-primary/15 text-primary"
 													: "border border-warning/20 bg-warning/15 text-warning"
@@ -324,7 +325,7 @@ export const ContentDetailsDialog = memo(
 											{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
 										</span>
 
-										<span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground capitalize">
+										<span className="rounded bg-muted px-1.5 py-0.5 text-2xs text-muted-foreground capitalize">
 											{contentType(t, item.projectType)}
 										</span>
 
@@ -383,44 +384,32 @@ export const ContentDetailsDialog = memo(
 									</Button>
 								)}
 
-								<button
-									type="button"
+								<Button
+									variant="ghost"
+									size="icon"
 									onClick={() => onOpenChange(false)}
 									aria-label={t("common.close")}
-									className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 								>
-									<X className="size-4" />
-								</button>
+									<X />
+								</Button>
 							</div>
 						</div>
 
 						{/* Navigation Tabs */}
-						<div className="flex items-center gap-2 border-border/40 border-b bg-background/40 px-5 pt-2">
-							<button
-								type="button"
-								onClick={() => setActiveTab("overview")}
-								className={`border-b-2 px-3 pb-2 font-medium text-xs transition-colors ${
-									activeTab === "overview"
-										? "border-primary text-primary"
-										: "border-transparent text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								{t("serverTabs.overview")}
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("versions")}
-								className={`border-b-2 px-3 pb-2 font-medium text-xs transition-colors ${
-									activeTab === "versions"
-										? "border-primary text-primary"
-										: "border-transparent text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								{details
-									? t("contentDetails.versionsCount", { count: details.versions.length })
-									: t("contentDetails.versions")}
-							</button>
-						</div>
+						<Tabs
+							value={activeTab}
+							onValueChange={(tab) => setActiveTab(tab as typeof activeTab)}
+							className="border-border/40 border-b px-5 pt-2"
+						>
+							<TabsList variant="line">
+								<TabsTrigger value="overview">{t("serverTabs.overview")}</TabsTrigger>
+								<TabsTrigger value="versions">
+									{details
+										? t("contentDetails.versionsCount", { count: details.versions.length })
+										: t("contentDetails.versions")}
+								</TabsTrigger>
+							</TabsList>
+						</Tabs>
 
 						{/* Tab Content */}
 						<div className="flex min-h-0 flex-1 flex-col bg-background/50">
@@ -459,7 +448,7 @@ export const ContentDetailsDialog = memo(
 													<h3 className="font-semibold text-foreground text-sm">
 														{t("contentDetails.gallery", { count: details.screenshots.length })}
 													</h3>
-													<span className="text-[11px] text-muted-foreground">
+													<span className="text-2xs text-muted-foreground">
 														{t("contentDetails.clickToOpen")}
 													</span>
 												</div>
@@ -506,7 +495,7 @@ export const ContentDetailsDialog = memo(
 																activePhotoIndex < details.screenshots.length ? activePhotoIndex : 0
 															].title || item.title}
 														</span>
-														<span className="dark rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-foreground/80">
+														<span className="dark rounded bg-black/60 px-2 py-0.5 font-mono text-2xs text-foreground/80">
 															{activePhotoIndex + 1} / {details.screenshots.length}
 														</span>
 													</div>
@@ -548,7 +537,7 @@ export const ContentDetailsDialog = memo(
 																		className="size-full object-cover"
 																	/>
 																	{s.title && (
-																		<div className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent p-1 text-left text-[9px] text-white">
+																		<div className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent p-1 text-left text-3xs text-white">
 																			{s.title}
 																		</div>
 																	)}
@@ -617,7 +606,7 @@ export const ContentDetailsDialog = memo(
 											</h3>
 											{details?.body ? (
 												<section
-													className="prose prose-invert prose-sm max-w-none space-y-3 text-muted-foreground text-xs leading-relaxed [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-primary/70 [&_blockquote]:border-l-4 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-muted/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[11px] [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-card/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:text-lg [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:text-sm [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-card/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-muted/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
+													className="prose prose-invert prose-sm max-w-none space-y-3 text-muted-foreground text-xs leading-relaxed [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-primary/70 [&_blockquote]:border-l-4 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-muted/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-2xs [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-card/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:text-lg [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:text-sm [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-card/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-muted/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
 													onClick={handleDescriptionClick}
 													onKeyDown={(e) => {
 														if (e.key === "Enter") {
@@ -828,14 +817,14 @@ export const ContentDetailsDialog = memo(
 										<ExternalLink className="size-3.5" />
 										{t("contentDetails.openOriginal")}
 									</Button>
-									<button
-										type="button"
+									<Button
+										variant="ghost"
+										size="icon"
 										onClick={() => setLightboxIndex(null)}
 										aria-label={t("screenshots.lightbox.close")}
-										className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 									>
-										<X className="size-5" />
-									</button>
+										<X />
+									</Button>
 								</div>
 							</div>
 

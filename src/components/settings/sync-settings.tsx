@@ -203,11 +203,11 @@ export const SyncSettings = () => {
 											<span className="font-medium text-foreground text-xs sm:text-sm">
 												{itemTitle}
 											</span>
-											<code className="rounded bg-card px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+											<code className="rounded bg-card px-1.5 py-0.5 font-mono text-3xs text-muted-foreground">
 												{item.file}
 											</code>
 										</div>
-										<div className="text-[11px] text-muted-foreground">{itemDesc}</div>
+										<div className="text-2xs text-muted-foreground">{itemDesc}</div>
 									</div>
 								</div>
 

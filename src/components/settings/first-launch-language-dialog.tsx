@@ -1,4 +1,4 @@
-import { Check, Globe, Monitor, Moon, Sun } from "lucide-react"
+import { Globe, Monitor, Moon, Sun } from "lucide-react"
 import { memo } from "react"
 import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
@@ -10,11 +10,18 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLanguage } from "@/i18n/use-language"
 import { useTheme } from "@/lib/theme"
-import { cn } from "@/lib/utils"
 
 const THEMES = [
 	{ mode: "auto", icon: Monitor, label: "settings.theme.auto" },
@@ -68,52 +75,28 @@ export const FirstLaunchLanguageDialog = () => {
 				</DialogHeader>
 
 				<ScrollArea scrollFade className="-mx-1 min-h-0 flex-1">
-					<div className="grid grid-cols-1 gap-1.5 p-1 sm:grid-cols-2">
-						{locales.map((loc) => {
-							const isSelected = language === loc.code
-							const isSystemDefault = systemLanguage === loc.code
-							return (
-								<button
-									key={loc.code}
-									type="button"
-									onClick={() => previewLanguage(loc.code)}
-									className={cn(
-										"flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
-										isSelected
-											? "border-primary/50 bg-primary/10"
-											: "border-border/80 bg-card/30 hover:border-input hover:bg-card/70",
-									)}
-								>
-									<span className="min-w-0 flex-1">
-										<span
-											className={cn(
-												"block truncate font-medium text-sm",
-												isSelected ? "text-foreground" : "text-foreground",
-											)}
-										>
-											{loc.nativeName}
-										</span>
-										<span className="block truncate text-[11px] text-muted-foreground">
+					<RadioGroup
+						value={language}
+						onValueChange={(code) => previewLanguage(code as string)}
+						className="grid-cols-1 gap-1.5 p-1 sm:grid-cols-2"
+					>
+						{locales.map((loc) => (
+							<FieldLabel key={loc.code} htmlFor={`language-${loc.code}`}>
+								<Field orientation="horizontal" className="items-center">
+									<FieldContent className="min-w-0">
+										<FieldTitle className="truncate">{loc.nativeName}</FieldTitle>
+										<FieldDescription className="truncate">
 											{loc.name}
-											{isSystemDefault && (
+											{systemLanguage === loc.code && (
 												<span className="text-primary"> · {t("onboarding.detectedBadge")}</span>
 											)}
-										</span>
-									</span>
-									<span
-										className={cn(
-											"flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
-											isSelected
-												? "border-primary bg-primary text-primary-foreground"
-												: "border-input",
-										)}
-									>
-										{isSelected && <Check className="size-2.5" strokeWidth={3} />}
-									</span>
-								</button>
-							)
-						})}
-					</div>
+										</FieldDescription>
+									</FieldContent>
+									<RadioGroupItem value={loc.code} id={`language-${loc.code}`} />
+								</Field>
+							</FieldLabel>
+						))}
+					</RadioGroup>
 				</ScrollArea>
 
 				<DialogFooter className="flex flex-row items-center gap-2 pt-4 sm:justify-between">

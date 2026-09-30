@@ -6,7 +6,12 @@ import type * as v from "valibot"
 import type { ServerConfig } from "@/bindings"
 import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "@/components/ui/input-group"
 import {
 	Select,
 	SelectContent,
@@ -234,7 +239,7 @@ export default function ServerListView() {
 
 				{/* Active Running Servers Multi-Banner */}
 				{runningList.length > 0 && (
-					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg shadow-primary/10 backdrop-blur-md">
+					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg backdrop-blur-md">
 						<div className="flex items-center gap-2 font-medium text-primary text-xs">
 							<span className="size-2 animate-ping rounded-full bg-primary" />
 							{t("servers.activeServers", { count: runningList.length })}
@@ -254,10 +259,11 @@ export default function ServerListView() {
 										<Tooltip>
 											<TooltipTrigger
 												render={
-													<button
-														type="button"
+													<Button
+														variant="ghost"
+														size="icon-xs"
 														onClick={() => srv && openPage(srv.id, "console")}
-														className="rounded p-0.5 text-primary transition-colors hover:text-foreground"
+														className="text-primary"
 														aria-label={t("servers.openConsole")}
 													/>
 												}
@@ -269,10 +275,11 @@ export default function ServerListView() {
 										<Tooltip>
 											<TooltipTrigger
 												render={
-													<button
-														type="button"
+													<Button
+														variant="ghost"
+														size="icon-xs"
 														onClick={() => handleStop(proc.serverId)}
-														className="rounded p-0.5 text-primary transition-colors hover:bg-destructive/20 hover:text-destructive"
+														className="text-primary hover:bg-destructive/20 hover:text-destructive"
 														aria-label={t("servers.stopServer")}
 													/>
 												}
@@ -290,31 +297,35 @@ export default function ServerListView() {
 
 				{/* Search & Core Filter Bar */}
 				<div className="flex flex-wrap items-center justify-between gap-3 border-border/30 border-b pb-3">
-					<div className="relative min-w-[220px] max-w-sm flex-1">
-						<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
-						<Input
+					<InputGroup className="min-w-[220px] max-w-sm flex-1">
+						<InputGroupAddon>
+							<Search />
+						</InputGroupAddon>
+						<InputGroupInput
 							type="text"
 							placeholder={t("servers.searchPlaceholder")}
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
-							className="h-8.5 rounded-lg pr-8 pl-8.5 text-xs placeholder:text-muted-foreground"
+							className="text-xs"
 						/>
 						{searchInput && (
-							<button
-								type="button"
-								onClick={() => {
-									setSearchInput("")
-									navigate({
-										search: (prev) => ({ ...prev, q: "" }),
-										replace: true,
-									})
-								}}
-								className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-							>
-								<X className="size-3.5" />
-							</button>
+							<InputGroupAddon align="inline-end">
+								<InputGroupButton
+									size="icon-xs"
+									aria-label={t("common.clearSearch")}
+									onClick={() => {
+										setSearchInput("")
+										navigate({
+											search: (prev) => ({ ...prev, q: "" }),
+											replace: true,
+										})
+									}}
+								>
+									<X />
+								</InputGroupButton>
+							</InputGroupAddon>
 						)}
-					</div>
+					</InputGroup>
 
 					<Select
 						items={coreItems}
@@ -401,7 +412,7 @@ export default function ServerListView() {
 								<span className="font-semibold text-foreground/80 text-xs group-hover:text-foreground">
 									{t("servers.createCardTitle")}
 								</span>
-								<span className="text-[11px] text-muted-foreground">
+								<span className="text-2xs text-muted-foreground">
 									{t("servers.createCardSubtitle")}
 								</span>
 							</div>

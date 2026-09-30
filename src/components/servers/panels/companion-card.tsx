@@ -73,11 +73,11 @@ export function CompanionCard({
 			<div className="min-w-0 flex-1">
 				<p className="flex items-baseline gap-1.5 truncate font-medium text-foreground text-sm">
 					Ingot
-					<span className="font-normal text-[10px] text-muted-foreground uppercase tracking-wider">
+					<span className="font-normal text-3xs text-muted-foreground uppercase tracking-wider">
 						{t("companion.system")}
 					</span>
 				</p>
-				<p className="flex items-center gap-1.5 truncate text-[11px] text-muted-foreground">
+				<p className="flex items-center gap-1.5 truncate text-2xs text-muted-foreground">
 					<span
 						className={cn(
 							"size-1.5 shrink-0 rounded-full",
@@ -114,12 +114,13 @@ export function CompanionCard({
 				<Tooltip>
 					<TooltipTrigger
 						render={
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="icon"
 								onClick={remove}
 								disabled={busy}
 								aria-label={t("companion.remove", { context })}
-								className="flex size-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+								className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
 							/>
 						}
 					>

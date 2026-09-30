@@ -681,6 +681,7 @@
 		"makeLiveTitle_mod": "Installiere die Ingot-Mod, um die Karte in Echtzeit zu aktualisieren, ohne die Welt zu speichern",
 		"makeLive": "Live schalten",
 		"refreshTitle": "Nach neu gespeicherten Gebieten suchen",
+		"checking": "Wird geprüft...",
 		"ariaLabel": "Weltkarte. Ziehen zum Verschieben, scrollen oder zoomen mit zwei Fingern.",
 		"zoomIn": "Hineinzoomen",
 		"zoomOut": "Herauszoomen",

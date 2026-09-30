@@ -65,7 +65,7 @@ function AddressRow({
 		<div className="flex min-w-0 items-center gap-3 rounded-xl bg-background/60 py-2 pr-2 pl-3">
 			<Icon className="size-4 shrink-0 text-muted-foreground" />
 			<div className="min-w-0 flex-1">
-				<p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+				<p className="text-3xs text-muted-foreground uppercase tracking-wider">{label}</p>
 				{children}
 			</div>
 		</div>
@@ -218,7 +218,7 @@ const HISTORY = 60
  * (the graph, gridlines, reference lines), so text never gets crossed out.
  */
 const CHART_CHIP =
-	"pointer-events-none absolute -translate-y-1/2 whitespace-nowrap rounded-[3px] bg-card px-1 text-[9px] tabular-nums leading-3.5 ring-1 ring-border"
+	"pointer-events-none absolute -translate-y-1/2 whitespace-nowrap rounded-sm bg-card px-1 text-3xs tabular-nums leading-3.5 ring-1 ring-border"
 
 /** Seconds between stat samples (useServerStats polls every 2s) */
 const SAMPLE_SECONDS = 2
@@ -398,7 +398,7 @@ function Chart({
 				{hover !== null && dot && (
 					<span
 						className={cn(
-							"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] text-foreground tabular-nums shadow-lg",
+							"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-border bg-card px-1.5 py-0.5 text-3xs text-foreground tabular-nums shadow-lg",
 							dot[0] / w > 0.6 && "-ml-1.5 -translate-x-full",
 						)}
 						style={{ left: `${(dot[0] / w) * 100}%` }}
@@ -411,7 +411,7 @@ function Chart({
 					</span>
 				)}
 			</div>
-			<div className="flex justify-between text-[9px] text-muted-foreground/60 leading-none">
+			<div className="flex justify-between text-3xs text-muted-foreground/60 leading-none">
 				<span>{t("stats.ago", { time: formatAgo(HISTORY * SAMPLE_SECONDS) })}</span>
 				<span>{t("stats.now")}</span>
 			</div>
@@ -458,7 +458,7 @@ function Metric({
 	return (
 		<div className="flex min-w-0 select-none flex-col gap-3 rounded-xl bg-background/60 p-3">
 			<div className="flex min-w-0 items-baseline justify-between gap-3">
-				<p className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider">
+				<p className="flex shrink-0 items-center gap-1.5 text-2xs text-muted-foreground uppercase tracking-wider">
 					<Icon className="size-3.5 self-center" style={{ color }} /> {label}
 				</p>
 				<p className="min-w-0 truncate text-right font-semibold text-base text-foreground tabular-nums">
@@ -468,7 +468,7 @@ function Metric({
 			</div>
 			<Chart values={values} max={max} color={color} format={format} markers={markers} />
 			{summary && (
-				<dl className="grid grid-cols-3 gap-2 border-border border-t pt-2.5 text-[11px]">
+				<dl className="grid grid-cols-3 gap-2 border-border border-t pt-2.5 text-2xs">
 					{(["min", "avg", "peak"] as const).map((k) => (
 						<div key={k} className="min-w-0">
 							<dt className="text-muted-foreground/60">{t(`stats.${k}`)}</dt>
@@ -506,7 +506,7 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 				<Activity className="size-4 text-muted-foreground" />
 				<h3 className="font-semibold text-foreground text-sm">{t("stats.performance")}</h3>
 				{!latest && <Spinner className="size-3.5 text-muted-foreground" />}
-				<span className="ml-auto text-[11px] text-muted-foreground/60">{t("stats.touchHint")}</span>
+				<span className="ml-auto text-2xs text-muted-foreground/60">{t("stats.touchHint")}</span>
 			</div>
 			<div className="grid gap-2 lg:grid-cols-3">
 				<Metric
@@ -604,7 +604,7 @@ function DeviceBar({
 				<div style={{ width: pct(part), background: color }} />
 				<div className="bg-accent" style={{ width: pct(Math.max(0, used - part)) }} />
 			</div>
-			<p className="flex flex-wrap justify-between gap-x-3 text-[11px] text-muted-foreground">
+			<p className="flex flex-wrap justify-between gap-x-3 text-2xs text-muted-foreground">
 				<span>{t("stats.used", { label, used: format(used), total: format(total) })}</span>
 				{note && <span>{note}</span>}
 			</p>
@@ -685,7 +685,7 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 									{c.id === "worlds" && data.worlds.length > 1 && (
 										<ul className="ml-4 flex flex-col gap-0.5">
 											{data.worlds.map((w) => (
-												<li key={w.name} className="flex gap-2 text-[11px] text-muted-foreground">
+												<li key={w.name} className="flex gap-2 text-2xs text-muted-foreground">
 													<span className="min-w-0 flex-1 truncate">{w.name}</span>
 													<span className="tabular-nums">{formatBytes(w.bytes)}</span>
 												</li>

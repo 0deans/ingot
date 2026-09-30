@@ -24,6 +24,7 @@ import { alertTone } from "@/components/common/alert-tones"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item"
 import {
 	Select,
 	SelectContent,
@@ -253,22 +254,19 @@ function ActionButton({
 	onClick: () => void
 }) {
 	return (
-		<button
-			type="button"
-			onClick={onClick}
-			disabled={disabled}
-			className="flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-background/60 p-3 text-left transition-colors hover:bg-card disabled:opacity-50"
+		<Item
+			variant="outline"
+			render={<button type="button" onClick={onClick} disabled={disabled} />}
+			className="min-w-0 flex-nowrap items-start text-left hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
 		>
-			{busy ? (
-				<Spinner className="mt-0.5 size-4 shrink-0 text-foreground/80" />
-			) : (
-				<Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-			)}
-			<span className="min-w-0">
-				<span className="block font-medium text-foreground text-sm leading-tight">{label}</span>
-				<span className="mt-0.5 block text-[11px] text-muted-foreground leading-tight">{hint}</span>
-			</span>
-		</button>
+			<ItemMedia variant="icon" className="text-muted-foreground">
+				{busy ? <Spinner /> : <Icon />}
+			</ItemMedia>
+			<ItemContent className="min-w-0">
+				<ItemTitle>{label}</ItemTitle>
+				<ItemDescription>{hint}</ItemDescription>
+			</ItemContent>
+		</Item>
 	)
 }
 
@@ -392,7 +390,7 @@ function ChangeVersionDialog({
 										>
 											{loaderName(id)}
 											{id === server.core && (
-												<span className="ml-1 text-[10px] text-muted-foreground">
+												<span className="ml-1 text-3xs text-muted-foreground">
 													{t("versionChange.now")}
 												</span>
 											)}
@@ -465,7 +463,7 @@ function ChangeVersionDialog({
 				{error && <ErrorNote>{error}</ErrorNote>}
 
 				<div className="flex items-center justify-between gap-2">
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-2xs text-muted-foreground">
 						{stage === "review" && plan && planSummary(plan, choices)}
 					</p>
 					<div className="flex gap-2">

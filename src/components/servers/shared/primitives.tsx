@@ -123,7 +123,7 @@ export function ItemIcon({ id, className }: { id: string; className?: string }) 
 	const [index, setIndex] = useState(0)
 	if (index >= urls.length) {
 		return (
-			<span className={cn("font-bold text-[9px] text-muted-foreground uppercase", className)}>
+			<span className={cn("font-bold text-3xs text-muted-foreground uppercase", className)}>
 				{prettyId(id).slice(0, 3)}
 			</span>
 		)
@@ -176,7 +176,7 @@ export function ItemSlot({
 						className={cn("size-full", item.enchanted && "drop-shadow-[0_0_4px_#c084fc]")}
 					/>
 					{item.count > 1 && (
-						<span className="absolute right-0.5 bottom-0 font-bold text-[10px] text-white [text-shadow:1px_1px_0_#000]">
+						<span className="absolute right-0.5 bottom-0 font-bold text-3xs text-white [text-shadow:1px_1px_0_#000]">
 							{item.count}
 						</span>
 					)}

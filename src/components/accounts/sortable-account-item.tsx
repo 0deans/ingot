@@ -61,9 +61,8 @@ export const AccountCardContent = memo(function AccountCardContent({
 								type="button"
 								aria-label={t("accounts.reorder", { name: account.username })}
 								{...dragHandleProps}
-								style={{ touchAction: "none" }}
 								className={cn(
-									"flex size-8 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
+									"flex size-8 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
 									(isDragging || isOverlay) && "cursor-grabbing bg-muted/80 text-primary",
 								)}
 							/>
@@ -111,7 +110,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 							</Badge>
 						)}
 					</div>
-					<span className="truncate font-mono text-[11px] text-muted-foreground">
+					<span className="truncate font-mono text-2xs text-muted-foreground">
 						UUID: {account.uuid}
 					</span>
 				</div>

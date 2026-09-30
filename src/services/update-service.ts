@@ -1,6 +1,6 @@
 import { relaunch } from "@tauri-apps/plugin-process"
 import { check, type Update } from "@tauri-apps/plugin-updater"
-import { useEffect, useState } from "react"
+import { create } from "zustand"
 import { isMobileEnvironment } from "@/lib/platform"
 import { quitService } from "@/services/quit-service"
 
@@ -34,7 +34,7 @@ export interface UpdateState {
 const isTauri =
 	typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
 
-let cachedState: UpdateState = {
+const useUpdateStore = create<UpdateState>(() => ({
 	status: "idle",
 	updateInfo: null,
 	downloadProgress: 0,
@@ -43,35 +43,15 @@ let cachedState: UpdateState = {
 	lastCheckedAt: null,
 	errorMessage: null,
 	isBannerDismissed: false,
-}
+}))
 
 let activeUpdateHandle: Update | null = null
-const stateListeners = new Set<(state: UpdateState) => void>()
-
-function notifyListeners() {
-	for (const listener of stateListeners) {
-		listener({ ...cachedState })
-	}
-}
 
 function updateState(partial: Partial<UpdateState>) {
-	cachedState = { ...cachedState, ...partial }
-	notifyListeners()
+	useUpdateStore.setState(partial)
 }
 
 export const updateService = {
-	getState(): UpdateState {
-		return { ...cachedState }
-	},
-
-	subscribe(listener: (state: UpdateState) => void): () => void {
-		stateListeners.add(listener)
-		listener({ ...cachedState })
-		return () => {
-			stateListeners.delete(listener)
-		}
-	},
-
 	async checkForUpdates(silent = false): Promise<UpdateInfo | null> {
 		if (!isTauri || isMobileEnvironment()) {
 			if (!isTauri) {
@@ -232,13 +212,7 @@ if (typeof window !== "undefined" && isTauri && !isMobileEnvironment()) {
 }
 
 export function useUpdateService() {
-	const [state, setState] = useState<UpdateState>(updateService.getState())
-
-	useEffect(() => {
-		return updateService.subscribe((updated) => {
-			setState(updated)
-		})
-	}, [])
+	const state = useUpdateStore()
 
 	return {
 		...state,

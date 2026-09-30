@@ -697,6 +697,7 @@
 		"makeLiveTitle_mod": "Nainstalujte mod Ingot, aby se mapa obnovovala živě bez ukládání světa",
 		"makeLive": "Zapnout živou mapu",
 		"refreshTitle": "Zkontrolovat nově uložené oblasti",
+		"checking": "Kontrola...",
 		"ariaLabel": "Mapa světa. Tažením posunete; kolečkem nebo sevřením přiblížíte.",
 		"zoomIn": "Přiblížit",
 		"zoomOut": "Oddálit",

@@ -121,13 +121,13 @@ export const SyncMasterDialog = ({
 									<div className="font-medium text-foreground text-xs">
 										{t("syncMaster.useExisting")}
 									</div>
-									<div className="text-[11px] text-muted-foreground">
+									<div className="text-2xs text-muted-foreground">
 										<Trans
 											i18nKey="syncMaster.keepCurrent"
 											values={{ file: category.file }}
 											components={{
 												code: (
-													<code className="rounded bg-card px-1 py-0.5 font-mono text-[10px] text-primary" />
+													<code className="rounded bg-card px-1 py-0.5 font-mono text-3xs text-primary" />
 												),
 											}}
 										/>
@@ -148,7 +148,7 @@ export const SyncMasterDialog = ({
 
 					{/* Instances selection */}
 					<div className="flex flex-col gap-1.5">
-						<span className="font-medium text-[11px] text-muted-foreground">
+						<span className="font-medium text-2xs text-muted-foreground">
 							{category?.hasSharedData ? t("syncMaster.orCopyFrom") : t("syncMaster.copyFrom")}
 						</span>
 
@@ -174,7 +174,7 @@ export const SyncMasterDialog = ({
 													<LoaderIcon loader={inst.loader} size={20} />
 													<div>
 														<div className="font-medium text-foreground text-xs">{inst.name}</div>
-														<div className="text-[10px] text-muted-foreground">
+														<div className="text-3xs text-muted-foreground">
 															MC {inst.gameVersion} • {inst.loader}
 														</div>
 													</div>
@@ -205,7 +205,7 @@ export const SyncMasterDialog = ({
 					{/* Option 3: Start Empty */}
 					{category && (
 						<div className="flex items-center justify-between border-border/30 border-t pt-2">
-							<span className="text-[11px] text-muted-foreground">{t("syncMaster.noCopy")}</span>
+							<span className="text-2xs text-muted-foreground">{t("syncMaster.noCopy")}</span>
 							<Button
 								type="button"
 								variant="ghost"

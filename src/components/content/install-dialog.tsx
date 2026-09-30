@@ -392,7 +392,7 @@ export const InstallDialog = memo(
 											<p className="font-medium text-warning text-xs">
 												{t("quickJoin.noInstances")}
 											</p>
-											<p className="text-[11px] text-muted-foreground">
+											<p className="text-2xs text-muted-foreground">
 												{t("install.noInstancesHint")}
 											</p>
 										</div>
@@ -418,7 +418,7 @@ export const InstallDialog = memo(
 														{t("install.fileVersion")}
 													</span>
 													{compatibleVersions.length > 0 && (
-														<span className="text-[11px] text-primary">
+														<span className="text-2xs text-primary">
 															✓ {t("install.compatibleCount", { count: compatibleVersions.length })}
 														</span>
 													)}
@@ -436,7 +436,7 @@ export const InstallDialog = memo(
 											{selectedVersion && (
 												<div className="flex flex-col gap-1 rounded-lg border border-border/30 bg-background/40 p-2.5 text-muted-foreground text-xs">
 													<div className="flex items-center justify-between">
-														<span className="font-mono text-[11px] text-foreground">
+														<span className="font-mono text-2xs text-foreground">
 															{selectedVersion.filename}
 														</span>
 														<span className="capitalize">{selectedVersion.versionType}</span>

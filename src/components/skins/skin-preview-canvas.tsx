@@ -194,16 +194,14 @@ function SkinPreviewCanvas({
 					alt=""
 					width={width}
 					height={height}
-					className="size-full select-none object-contain"
-					style={{ imageRendering: "pixelated" }}
+					className="size-full select-none object-contain [image-rendering:pixelated]"
 				/>
 			) : (
 				<canvas
 					ref={canvasRef}
 					width={width}
 					height={height}
-					className={`size-full ${hasError || isLoading ? "hidden" : "block"}`}
-					style={{ imageRendering: "pixelated" }}
+					className={`size-full [image-rendering:pixelated] ${hasError || isLoading ? "hidden" : "block"}`}
 				/>
 			)}
 			{isLoading && !renderedUrl && <Skeleton className="size-full" />}

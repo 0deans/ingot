@@ -1,3 +1,4 @@
+import { create } from "zustand"
 import type { QuitRequest } from "@/bindings"
 import { rpc } from "@/services/server-service"
 
@@ -11,18 +12,16 @@ export interface QuitPrompt {
 	proceed?: () => Promise<void>
 }
 
-const listeners = new Set<(prompt: QuitPrompt) => void>()
+/** The prompt the quit dialog is showing, if any */
+export const useQuitPrompt = create<QuitPrompt | null>(() => null)
 
 export const quitService = {
-	subscribe(listener: (prompt: QuitPrompt) => void): () => void {
-		listeners.add(listener)
-		return () => {
-			listeners.delete(listener)
-		}
+	ask(prompt: QuitPrompt) {
+		useQuitPrompt.setState(prompt, true)
 	},
 
-	ask(prompt: QuitPrompt) {
-		for (const listener of listeners) listener(prompt)
+	dismiss() {
+		useQuitPrompt.setState(null, true)
 	},
 
 	/**

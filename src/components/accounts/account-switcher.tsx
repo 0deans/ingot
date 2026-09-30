@@ -98,7 +98,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 								</span>
 								{activeAccount && <AccountTypeBadge type={activeAccount.accountType} />}
 							</div>
-							<span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+							<span className="flex items-center gap-1 text-3xs text-muted-foreground">
 								{activeAccount?.accountType === "ely" ||
 								activeAccount?.accountType === "microsoft" ? (
 									<>
@@ -120,9 +120,9 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 					className="w-60 border-border/60 bg-background/95 p-1.5 shadow-xl backdrop-blur-md"
 				>
 					<DropdownMenuGroup>
-						<DropdownMenuLabel className="flex items-center justify-between text-[11px]">
+						<DropdownMenuLabel className="flex items-center justify-between text-2xs">
 							<span>{t("accounts.minecraftAccounts")}</span>
-							<span className="font-normal text-[10px] text-muted-foreground">
+							<span className="font-normal text-3xs text-muted-foreground">
 								{t("accounts.linkedCount", { count: accounts.length })}
 							</span>
 						</DropdownMenuLabel>
@@ -145,7 +145,7 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 											<div className="flex flex-col">
 												<span className="font-medium text-xs">{acc.username}</span>
 												<div className="flex items-center gap-1">
-													<span className="text-[9px] text-muted-foreground capitalize">
+													<span className="text-3xs text-muted-foreground capitalize">
 														{acc.accountType}
 													</span>
 													{acc.accountType !== "offline" && (

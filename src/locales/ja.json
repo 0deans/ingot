@@ -673,6 +673,7 @@
 		"makeLiveTitle_mod": "ワールドをセーブすることなくマップをリアルタイムで更新するには、Ingot Mod をインストールしてください",
 		"makeLive": "ライブ化",
 		"refreshTitle": "新しく保存されたエリアを確認",
+		"checking": "確認中...",
 		"ariaLabel": "ワールドマップ。ドラッグで移動、スクロールまたはピンチでズーム。",
 		"zoomIn": "拡大",
 		"zoomOut": "縮小",

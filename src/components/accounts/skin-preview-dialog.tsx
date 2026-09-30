@@ -63,12 +63,9 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				style={{ padding: 0 }}
-				className="!p-0 sm:!p-0 !gap-0 sm:!max-w-md flex h-[580px] max-h-[calc(100vh-3.5rem)] flex-col justify-between overflow-hidden"
-			>
+			<DialogContent className="!p-0 sm:!p-0 !gap-0 sm:!max-w-md flex h-[580px] max-h-[calc(100vh-3.5rem)] flex-col justify-between overflow-hidden p-0">
 				{/* Background Studio Lighting Glow */}
-				<div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(16,185,129,0.08),transparent_70%)]" />
+				<div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" />
 
 				{/* Floating Header */}
 				<DialogHeader className="pointer-events-none relative z-10 flex shrink-0 p-4 sm:p-5 sm:pb-2">
@@ -90,7 +87,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 									</Badge>
 								)}
 							</div>
-							<DialogDescription className="font-mono text-[11px]">
+							<DialogDescription className="font-mono text-2xs">
 								UUID: {account.uuid}
 							</DialogDescription>
 						</div>

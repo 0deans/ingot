@@ -683,6 +683,7 @@
 		"makeLiveTitle_mod": "Install the Ingot mod to update the map in real time, without saving the world",
 		"makeLive": "Make live",
 		"refreshTitle": "Check for newly saved areas",
+		"checking": "Checking...",
 		"ariaLabel": "World map. Drag to move, scroll or pinch to zoom.",
 		"zoomIn": "Zoom in",
 		"zoomOut": "Zoom out"

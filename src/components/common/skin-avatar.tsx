@@ -84,8 +84,7 @@ const SkinAvatar = ({ skinUrl, username, size = 36, className = "" }: SkinAvatar
 				ref={canvasRef}
 				width={size}
 				height={size}
-				className={`size-full ${hasError || isLoading ? "hidden" : "block"}`}
-				style={{ imageRendering: "pixelated" }}
+				className={`size-full [image-rendering:pixelated] ${hasError || isLoading ? "hidden" : "block"}`}
 			/>
 
 			{(hasError || isLoading || !skinUrl) && (

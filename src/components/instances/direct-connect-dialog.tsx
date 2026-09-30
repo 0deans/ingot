@@ -1,6 +1,7 @@
 import { ArrowRight, Clock, Globe, Play, Server, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -11,6 +12,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useServers } from "@/services/server-service"
@@ -122,30 +124,40 @@ export function DirectConnectDialog({
 					{/* Local Servers Section if any configured */}
 					{servers.length > 0 && (
 						<div className="space-y-1.5">
-							<span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
 								{t("directConnect.localServers")}
 							</span>
 							<div className="grid max-h-32 grid-cols-1 gap-1.5 overflow-y-auto">
 								{servers.map((srv) => (
-									<button
+									<Item
 										key={srv.id}
-										type="button"
-										onClick={() => {
-											const addr = `127.0.0.1:${srv.port}`
-											setAddress(addr)
-											handleLaunch(addr)
-										}}
-										className="group flex items-center justify-between rounded-lg border border-border/50 bg-card/60 px-2.5 py-1.5 text-left text-xs transition-colors hover:border-primary/50 hover:bg-muted/80"
+										variant="outline"
+										size="xs"
+										render={
+											<button
+												type="button"
+												onClick={() => {
+													const addr = `127.0.0.1:${srv.port}`
+													setAddress(addr)
+													handleLaunch(addr)
+												}}
+											/>
+										}
+										className="text-left hover:bg-muted/50"
 									>
-										<div className="flex items-center gap-2 truncate">
-											<Server className="size-3.5 shrink-0 text-primary" />
-											<span className="truncate font-medium text-foreground">{srv.name}</span>
-											<span className="font-mono text-[11px] text-muted-foreground">
-												:{srv.port}
-											</span>
-										</div>
-										<ArrowRight className="size-3 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-									</button>
+										<ItemMedia variant="icon" className="text-primary">
+											<Server />
+										</ItemMedia>
+										<ItemContent className="min-w-0">
+											<ItemTitle className="truncate">
+												{srv.name}
+												<span className="font-mono font-normal text-2xs text-muted-foreground">
+													:{srv.port}
+												</span>
+											</ItemTitle>
+										</ItemContent>
+										<ArrowRight className="size-3 text-muted-foreground" />
+									</Item>
 								))}
 							</div>
 						</div>
@@ -154,42 +166,41 @@ export function DirectConnectDialog({
 					{/* Recent Servers Section */}
 					{recentServers.length > 0 && (
 						<div className="space-y-1.5">
-							<span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
 								{t("directConnect.recent")}
 							</span>
 							<div className="flex flex-wrap gap-1.5">
 								{recentServers.map((item) => (
-									<div
-										key={item}
-										className="group inline-flex items-center gap-1 rounded-md border border-border bg-card/90 px-2 py-1 text-[11px] text-foreground/80 transition-colors hover:border-input hover:text-foreground"
-									>
-										<button
-											type="button"
+									<Badge key={item} variant="outline" className="h-auto gap-0.5 py-0 pr-0.5">
+										<Button
+											variant="ghost"
+											size="xs"
 											onClick={() => {
 												setAddress(item)
 												handleLaunch(item)
 											}}
-											className="flex items-center gap-1 font-mono hover:text-primary"
+											className="h-6 px-1 font-mono"
 										>
-											<Clock className="size-2.5 opacity-60" />
-											<span>{item}</span>
-										</button>
+											<Clock />
+											{item}
+										</Button>
 										<Tooltip>
 											<TooltipTrigger
 												render={
-													<button
-														type="button"
+													<Button
+														variant="ghost"
+														size="icon-xs"
 														onClick={(e) => handleRemoveRecent(item, e)}
-														className="ml-0.5 text-muted-foreground hover:text-destructive"
+														className="text-muted-foreground hover:text-destructive"
 														aria-label={t("directConnect.removeRecent")}
 													/>
 												}
 											>
-												<Trash2 className="size-2.5" />
+												<Trash2 />
 											</TooltipTrigger>
 											<TooltipContent>{t("directConnect.removeRecent")}</TooltipContent>
 										</Tooltip>
-									</div>
+									</Badge>
 								))}
 							</div>
 						</div>

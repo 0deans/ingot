@@ -3,7 +3,10 @@ import { Check, Map as MapIcon, Radio, RefreshCw } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { dimensionStyle } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -150,53 +153,55 @@ export function MapPanel({
 
 			{/* Top overlay: dimension switcher and refresh */}
 			<div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-				<div className="pointer-events-auto flex gap-1 overflow-x-auto rounded-xl border border-border/10 bg-background/80 p-1 backdrop-blur-md [scrollbar-width:none]">
+				<ToggleGroup
+					size="sm"
+					value={[current.id]}
+					onValueChange={(value) => {
+						const next = dimensions?.find((d) => d.id === value[0])
+						if (!next) return
+						setDimension(next.id)
+						initialized.current = null
+					}}
+					className="pointer-events-auto max-w-full overflow-x-auto border bg-background/80 p-1 backdrop-blur-md [scrollbar-width:none]"
+				>
 					{dimensions?.map((d) => (
-						<button
-							key={d.id}
-							type="button"
-							onClick={() => {
-								setDimension(d.id)
-								initialized.current = null
-							}}
-							className={cn(
-								"whitespace-nowrap rounded-lg px-3 py-1.5 font-medium text-xs transition-colors",
-								d.id === current.id
-									? "bg-foreground/15 text-foreground"
-									: "text-muted-foreground hover:text-foreground",
-							)}
-						>
+						<ToggleGroupItem key={d.id} value={d.id}>
 							{dimensionStyle(d.id).label}
-						</button>
+						</ToggleGroupItem>
 					))}
-				</div>
+				</ToggleGroup>
 				<div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
 					{live && (
-						<span
+						<Badge
+							variant="outline"
 							title={t("map.liveTitle")}
-							className="flex h-9 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-2.5 font-medium text-[11px] text-primary backdrop-blur-md"
+							className="h-8 bg-background/80 text-primary backdrop-blur-md"
 						>
 							<span className="size-1.5 animate-pulse rounded-full bg-primary" />
 							{t("map.live")}
-						</span>
+						</Badge>
 					)}
 					{isRunning && installedAt === server.id && (
-						<span className="flex h-9 items-center rounded-xl border border-warning/20 bg-background/80 px-2.5 font-medium text-[11px] text-warning backdrop-blur-md">
+						<Badge
+							variant="outline"
+							className="h-8 border-warning/30 bg-background/80 text-warning backdrop-blur-md"
+						>
 							{t("map.restartToGoLive")}
-						</span>
+						</Badge>
 					)}
 					{companion?.supported && companion.fileName === null && (
 						<Tooltip>
 							<TooltipTrigger
 								render={
-									<button
-										type="button"
+									<Button
+										variant="outline"
+										size="sm"
 										onClick={async () => {
 											await installCompanion.mutateAsync().catch(() => {})
 											if (isRunning) setInstalledAt(server.id)
 										}}
 										disabled={installCompanion.isPending}
-										className="flex h-9 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-2.5 font-medium text-[11px] text-foreground backdrop-blur-md transition-colors hover:bg-background"
+										className="bg-background/80 backdrop-blur-md"
 									/>
 								}
 							>
@@ -217,11 +222,12 @@ export function MapPanel({
 						<Tooltip>
 							<TooltipTrigger
 								render={
-									<button
-										type="button"
+									<Button
+										variant="outline"
+										size="sm"
 										onClick={refresh}
 										disabled={refreshing}
-										className="pointer-events-auto flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border/10 bg-background/80 px-3 font-medium text-foreground text-xs backdrop-blur-md transition-colors hover:bg-background"
+										className="bg-background/80 backdrop-blur-md"
 									/>
 								}
 							>
@@ -233,7 +239,9 @@ export function MapPanel({
 								{refreshNote ? (
 									<span>{refreshNote}</span>
 								) : (
-									<span className="hidden sm:inline">{refreshing ? "Checking..." : "Refresh"}</span>
+									<span className="hidden sm:inline">
+										{refreshing ? t("map.checking") : t("common.refresh")}
+									</span>
 								)}
 							</TooltipTrigger>
 							<TooltipContent>{t("map.refreshTitle")}</TooltipContent>
@@ -246,17 +254,18 @@ export function MapPanel({
 			{players.length > 0 && (
 				<div className="absolute top-16 left-3 flex max-w-[60%] flex-col gap-1.5">
 					{players.map((p) => (
-						<button
+						<Button
 							key={p.name}
-							type="button"
+							variant="outline"
+							size="sm"
 							onClick={() =>
 								setView((v) => ({ x: p.x, z: p.z, scale: Math.max(v?.scale ?? 2, 2) }))
 							}
-							className="flex items-center gap-2 rounded-xl border border-border/10 bg-background/80 py-1 pr-3 pl-1 text-left backdrop-blur-md transition-colors hover:bg-background"
+							className="justify-start bg-background/80 pl-1 backdrop-blur-md"
 						>
-							<PlayerAvatar name={p.name} size={24} />
-							<span className="truncate font-medium text-foreground text-xs">{p.name}</span>
-						</button>
+							<PlayerAvatar name={p.name} size={20} />
+							<span className="truncate">{p.name}</span>
+						</Button>
 					))}
 				</div>
 			)}

@@ -10,6 +10,15 @@ import {
 import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
+import { Button } from "@/components/ui/button"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+	InputGroupText,
+} from "@/components/ui/input-group"
+import { Toggle } from "@/components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { useServerStatus } from "@/services/server-data"
@@ -104,21 +113,10 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 	return (
 		<div className={cn("relative flex min-h-0 flex-col overflow-hidden bg-background", className)}>
 			<div className="flex shrink-0 items-center gap-1 px-2 pt-2">
-				<button
-					type="button"
-					role="switch"
-					aria-checked={autoScroll}
-					onClick={() => setAutoScroll((v) => !v)}
-					className={cn(
-						"flex h-7 items-center gap-1.5 rounded-full border px-2.5 font-medium text-[11px] transition-colors",
-						autoScroll
-							? "border-primary/30 bg-primary/10 text-primary"
-							: "border-border text-muted-foreground hover:text-foreground/80",
-					)}
-				>
-					<ArrowDownToLine className="size-3" />
+				<Toggle variant="outline" size="sm" pressed={autoScroll} onPressedChange={setAutoScroll}>
+					<ArrowDownToLine />
 					{autoScroll ? t("console.autoScrollOn") : t("console.autoScrollOff")}
-				</button>
+				</Toggle>
 				<span className="ml-auto" />
 				<IconButton
 					label={t("console.copyAll")}
@@ -137,7 +135,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 
 			<div
 				ref={scrollRef}
-				className="scroll-fade min-h-0 flex-1 overflow-y-auto px-3 py-2 font-mono text-[11px] leading-relaxed"
+				className="scroll-fade min-h-0 flex-1 overflow-y-auto px-3 py-2 font-mono text-2xs leading-relaxed"
 			>
 				{logs.length === 0 ? (
 					<div className="flex h-full items-center justify-center font-sans">
@@ -158,19 +156,23 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 			</div>
 
 			{!atBottom && (
-				<button
-					type="button"
+				<Button
+					variant="secondary"
+					size="xs"
 					onClick={jumpToLatest}
-					className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-input bg-card/95 px-3 py-1.5 text-[11px] text-foreground shadow-lg"
+					className="absolute bottom-16 left-1/2 -translate-x-1/2 shadow-lg"
 				>
-					<ArrowDown className="size-3" /> {t("console.latest")}
-				</button>
+					<ArrowDown />
+					{t("console.latest")}
+				</Button>
 			)}
 
 			<div className="shrink-0 px-2 pb-2">
-				<div className="flex items-center gap-2 rounded-2xl bg-card/70 p-1 pl-3 ring-1 ring-border/60 focus-within:ring-border">
-					<span className="font-mono text-primary text-xs">/</span>
-					<input
+				<InputGroup>
+					<InputGroupAddon>
+						<InputGroupText className="font-mono text-primary">/</InputGroupText>
+					</InputGroupAddon>
+					<InputGroupInput
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
 						onKeyDown={onKeyDown}
@@ -180,18 +182,20 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 						autoCorrect="off"
 						spellCheck={false}
 						enterKeyHint="send"
-						className="h-9 min-w-0 flex-1 bg-transparent font-mono text-foreground text-xs outline-none placeholder:text-muted-foreground/60"
+						className="font-mono"
 					/>
-					<button
-						type="button"
-						onClick={send}
-						disabled={!isRunning || !input.trim()}
-						aria-label={t("console.send")}
-						className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary disabled:bg-transparent disabled:text-muted-foreground/60"
-					>
-						<CornerDownLeft className="size-4" />
-					</button>
-				</div>
+					<InputGroupAddon align="inline-end">
+						<InputGroupButton
+							variant="default"
+							size="icon-xs"
+							onClick={send}
+							disabled={!isRunning || !input.trim()}
+							aria-label={t("console.send")}
+						>
+							<CornerDownLeft />
+						</InputGroupButton>
+					</InputGroupAddon>
+				</InputGroup>
 			</div>
 		</div>
 	)
@@ -210,11 +214,12 @@ function IconButton({
 		<Tooltip>
 			<TooltipTrigger
 				render={
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon-sm"
 						aria-label={label}
 						onClick={onClick}
-						className="flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						className="text-muted-foreground"
 					/>
 				}
 			>

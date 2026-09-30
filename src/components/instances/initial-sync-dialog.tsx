@@ -9,6 +9,14 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import {
+	Item,
+	ItemActions,
+	ItemContent,
+	ItemDescription,
+	ItemMedia,
+	ItemTitle,
+} from "@/components/ui/item"
 
 interface InitialSyncDialogProps {
 	instanceName: string
@@ -58,46 +66,56 @@ export const InitialSyncDialog = ({
 
 				<div className="flex flex-col gap-3 py-2">
 					{/* Option 1: From this instance */}
-					<button
-						type="button"
-						disabled={isSubmitting}
-						onClick={() => handleSelect("instance")}
-						className="group flex flex-col items-start gap-1 rounded-xl border border-border bg-card/40 p-3.5 text-left transition-all hover:border-primary/50 hover:bg-primary/5 focus:outline-none"
+					<Item
+						variant="outline"
+						render={
+							<button
+								type="button"
+								disabled={isSubmitting}
+								onClick={() => handleSelect("instance")}
+							/>
+						}
+						className="items-start text-left hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
 					>
-						<div className="flex w-full items-center justify-between">
-							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-primary">
-								<ArrowUpFromLine className="size-3.5 text-primary" />
-								{t("initialSync.fromInstance")}
-							</span>
+						<ItemMedia variant="icon" className="text-primary">
+							<ArrowUpFromLine />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle>{t("initialSync.fromInstance")}</ItemTitle>
+							<ItemDescription>{t("initialSync.fromInstanceDesc")}</ItemDescription>
+						</ItemContent>
+						<ItemActions>
 							<Badge variant="outline" className="border-primary/30 text-primary">
 								{t("initialSync.uploadToShared")}
 							</Badge>
-						</div>
-						<p className="text-[11px] text-muted-foreground leading-snug">
-							{t("initialSync.fromInstanceDesc")}
-						</p>
-					</button>
+						</ItemActions>
+					</Item>
 
 					{/* Option 2: From shared storage */}
-					<button
-						type="button"
-						disabled={isSubmitting}
-						onClick={() => handleSelect("shared")}
-						className="group flex flex-col items-start gap-1 rounded-xl border border-border bg-card/40 p-3.5 text-left transition-all hover:border-info/50 hover:bg-info/5 focus:outline-none"
+					<Item
+						variant="outline"
+						render={
+							<button
+								type="button"
+								disabled={isSubmitting}
+								onClick={() => handleSelect("shared")}
+							/>
+						}
+						className="items-start text-left hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
 					>
-						<div className="flex w-full items-center justify-between">
-							<span className="flex items-center gap-1.5 font-semibold text-foreground text-xs group-hover:text-info">
-								<ArrowDownToLine className="size-3.5 text-info" />
-								{t("initialSync.fromShared")}
-							</span>
+						<ItemMedia variant="icon" className="text-info">
+							<ArrowDownToLine />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle>{t("initialSync.fromShared")}</ItemTitle>
+							<ItemDescription>{t("initialSync.fromSharedDesc")}</ItemDescription>
+						</ItemContent>
+						<ItemActions>
 							<Badge variant="outline" className="border-info/30 text-info">
 								{t("initialSync.downloadToInstance")}
 							</Badge>
-						</div>
-						<p className="text-[11px] text-muted-foreground leading-snug">
-							{t("initialSync.fromSharedDesc")}
-						</p>
-					</button>
+						</ItemActions>
+					</Item>
 				</div>
 			</DialogContent>
 		</Dialog>

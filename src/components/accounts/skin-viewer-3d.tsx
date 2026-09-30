@@ -474,7 +474,7 @@ const SkinViewer3D = ({
 												variant={animation === "idle" ? "secondary" : "ghost"}
 												size="xs"
 												onClick={() => setAnimation("idle")}
-												className="flex-1 text-[11px]"
+												className="flex-1 text-2xs"
 											/>
 										}
 									>
@@ -490,7 +490,7 @@ const SkinViewer3D = ({
 												variant={animation === "walk" ? "secondary" : "ghost"}
 												size="xs"
 												onClick={() => setAnimation("walk")}
-												className="flex-1 text-[11px]"
+												className="flex-1 text-2xs"
 											/>
 										}
 									>
@@ -506,7 +506,7 @@ const SkinViewer3D = ({
 												variant={animation === "run" ? "secondary" : "ghost"}
 												size="xs"
 												onClick={() => setAnimation("run")}
-												className="flex-1 text-[11px]"
+												className="flex-1 text-2xs"
 											/>
 										}
 									>
@@ -522,7 +522,7 @@ const SkinViewer3D = ({
 												variant={animation === "wave" ? "secondary" : "ghost"}
 												size="xs"
 												onClick={() => setAnimation("wave")}
-												className="flex-1 text-[11px]"
+												className="flex-1 text-2xs"
 											/>
 										}
 									>
@@ -555,7 +555,7 @@ const SkinViewer3D = ({
 									variant="outline"
 									size="xs"
 									onClick={() => setShowOuterLayer(!showOuterLayer)}
-									className="flex-1 text-[11px]"
+									className="flex-1 text-2xs"
 								>
 									<Eye className="mr-1.5 size-3 text-muted-foreground" />
 									{showOuterLayer ? t("skinViewer.outerOn") : t("skinViewer.outerOff")}
@@ -567,7 +567,7 @@ const SkinViewer3D = ({
 										setHasUserOverriddenModel(true)
 										setIsSlim(!isSlim)
 									}}
-									className="flex-1 text-[11px]"
+									className="flex-1 text-2xs"
 								>
 									<User className="mr-1.5 size-3 text-muted-foreground" />
 									{isSlim ? t("skinViewer.modelSlim") : t("skinViewer.modelClassic")}

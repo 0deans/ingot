@@ -697,6 +697,7 @@
 		"makeLiveTitle_mod": "Zainstaluj mod Ingot, aby mapa odświeżała się na żywo bez zapisywania świata",
 		"makeLive": "Włącz mapę na żywo",
 		"refreshTitle": "Sprawdź nowo zapisane obszary",
+		"checking": "Sprawdzanie...",
 		"ariaLabel": "Mapa świata. Przeciągnij, aby przesunąć; kółkiem lub gestem uszczypnięcia zmień przybliżenie.",
 		"zoomIn": "Przybliż",
 		"zoomOut": "Oddal",

@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
-import { type QuitPrompt, quitService } from "@/services/quit-service"
+import { quitService, useQuitPrompt } from "@/services/quit-service"
 import { rpc } from "@/services/server-service"
 
 /**
@@ -16,15 +16,15 @@ import { rpc } from "@/services/server-service"
  */
 export default function QuitDialog() {
 	const { t } = useTranslation()
-	const [prompt, setPrompt] = useState<QuitPrompt | null>(null)
+	const prompt = useQuitPrompt()
 	const [stopping, setStopping] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
+	// A new prompt starts without the previous one's error
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on every new prompt
+	useEffect(() => setError(null), [prompt])
+
 	useEffect(() => {
-		const unsubscribe = quitService.subscribe((next) => {
-			setPrompt(next)
-			setError(null)
-		})
 		let unlisten: (() => void) | undefined
 		let cancelled = false
 		rpc.on_quit_requested
@@ -36,7 +36,6 @@ export default function QuitDialog() {
 			.catch(console.error)
 		return () => {
 			cancelled = true
-			unsubscribe()
 			unlisten?.()
 		}
 	}, [])
@@ -54,7 +53,7 @@ export default function QuitDialog() {
 			if (mode === "quit") {
 				await rpc.quit_app()
 			} else {
-				setPrompt(null)
+				quitService.dismiss()
 				await prompt.proceed?.()
 			}
 		} catch (e) {
@@ -67,14 +66,14 @@ export default function QuitDialog() {
 	const keepInTray = async () => {
 		try {
 			await getCurrentWindow().hide()
-			setPrompt(null)
+			quitService.dismiss()
 		} catch (e) {
 			setError(String(e))
 		}
 	}
 
 	return (
-		<Dialog open onOpenChange={(open) => !open && !stopping && setPrompt(null)}>
+		<Dialog open onOpenChange={(open) => !open && !stopping && quitService.dismiss()}>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-md">
 				<div className="flex items-start gap-3">
 					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
@@ -102,7 +101,7 @@ export default function QuitDialog() {
 							<p className="min-w-0 flex-1 truncate font-medium text-foreground text-sm">
 								{server.name}
 							</p>
-							<span className="shrink-0 text-[11px] text-muted-foreground">
+							<span className="shrink-0 text-2xs text-muted-foreground">
 								{server.sleeping ? t("serverStatus.sleeping") : t("serverStatus.running")}
 							</span>
 						</div>
@@ -136,7 +135,7 @@ export default function QuitDialog() {
 					<Button
 						variant="ghost"
 						disabled={stopping}
-						onClick={() => setPrompt(null)}
+						onClick={() => quitService.dismiss()}
 						className="rounded-xl"
 					>
 						{t("common.cancel")}

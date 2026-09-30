@@ -1,35 +1,27 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
+import { create } from "zustand"
 import { type AccountProfile, createTauRPCProxy, type MicrosoftDeviceCode } from "@/bindings"
 
 export const rpc = createTauRPCProxy()
 
-let cachedAccounts: AccountProfile[] = []
-let isInitialFetched = false
-const listeners = new Set<(accounts: AccountProfile[]) => void>()
+const useAccountStore = create<{ accounts: AccountProfile[]; fetched: boolean }>(() => ({
+	accounts: [],
+	fetched: false,
+}))
+const current = () => useAccountStore.getState().accounts
 const skinCache = new Map<string, string>()
 
 function notify(accounts: AccountProfile[]) {
-	cachedAccounts = accounts
-	for (const listener of listeners) {
-		listener(accounts)
-	}
+	useAccountStore.setState({ accounts })
 }
 
 export const accountService = {
 	getCachedAccounts(): AccountProfile[] {
-		return cachedAccounts
+		return current()
 	},
 
 	isFetched(): boolean {
-		return isInitialFetched
-	},
-
-	subscribe(listener: (accounts: AccountProfile[]) => void): () => void {
-		listeners.add(listener)
-		listener(cachedAccounts)
-		return () => {
-			listeners.delete(listener)
-		}
+		return useAccountStore.getState().fetched
 	},
 
 	async getAccounts(): Promise<AccountProfile[]> {
@@ -39,19 +31,20 @@ export const accountService = {
 	async refreshAccounts(): Promise<AccountProfile[]> {
 		try {
 			const list = await rpc.get_accounts()
-			isInitialFetched = true
-			notify(list)
+			useAccountStore.setState({ accounts: list, fetched: true })
 			return list
 		} catch (error) {
 			console.error("Failed to load accounts:", error)
-			return cachedAccounts
+			return current()
 		}
 	},
 
 	async elyLogin(username: string, password: string): Promise<AccountProfile> {
 		const account = await rpc.ely_login(username, password)
 		const updated = [
-			...cachedAccounts.filter((a) => a.id !== account.id).map((a) => ({ ...a, isActive: false })),
+			...current()
+				.filter((a) => a.id !== account.id)
+				.map((a) => ({ ...a, isActive: false })),
 			account,
 		]
 		notify(updated)
@@ -77,7 +70,9 @@ export const accountService = {
 	async addOfflineAccount(username: string): Promise<AccountProfile> {
 		const account = await rpc.add_offline_account(username)
 		const updated = [
-			...cachedAccounts.filter((a) => a.id !== account.id).map((a) => ({ ...a, isActive: false })),
+			...current()
+				.filter((a) => a.id !== account.id)
+				.map((a) => ({ ...a, isActive: false })),
 			account,
 		]
 		notify(updated)
@@ -86,7 +81,7 @@ export const accountService = {
 
 	async setActiveAccount(accountId: string): Promise<void> {
 		await rpc.set_active_account(accountId)
-		const updated = cachedAccounts.map((a) => ({
+		const updated = current().map((a) => ({
 			...a,
 			isActive: a.id === accountId,
 		}))
@@ -95,7 +90,7 @@ export const accountService = {
 
 	async removeAccount(accountId: string): Promise<void> {
 		await rpc.remove_account(accountId)
-		const remaining = cachedAccounts.filter((a) => a.id !== accountId)
+		const remaining = current().filter((a) => a.id !== accountId)
 		if (remaining.length > 0 && !remaining.some((a) => a.isActive)) {
 			remaining[0] = { ...remaining[0], isActive: true }
 		}
@@ -135,15 +130,14 @@ export const accountService = {
 	async reorderAccounts(accountIds: string[]): Promise<void> {
 		const reordered: AccountProfile[] = []
 		for (const id of accountIds) {
-			const found = cachedAccounts.find((a) => a.id === id)
+			const found = current().find((a) => a.id === id)
 			if (found) reordered.push(found)
 		}
-		for (const acc of cachedAccounts) {
+		for (const acc of current()) {
 			if (!reordered.some((a) => a.id === acc.id)) {
 				reordered.push(acc)
 			}
 		}
-		cachedAccounts = reordered
 		notify(reordered)
 
 		try {
@@ -242,18 +236,10 @@ export const skinStorageService = {
 }
 
 export function useAccounts() {
-	const [accounts, setAccounts] = useState<AccountProfile[]>(accountService.getCachedAccounts())
+	const accounts = useAccountStore((s) => s.accounts)
 
 	useEffect(() => {
-		const unsubscribe = accountService.subscribe((updated) => {
-			setAccounts(updated)
-		})
-
-		if (!accountService.isFetched()) {
-			accountService.refreshAccounts()
-		}
-
-		return unsubscribe
+		if (!accountService.isFetched()) accountService.refreshAccounts()
 	}, [])
 
 	const activeAccount = accounts.find((a) => a.isActive) || accounts[0]

@@ -18,8 +18,11 @@ import type { PropertyEntry, ServerConfig } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import { Item, ItemActions, ItemContent, ItemTitle } from "@/components/ui/item"
 import { Label } from "@/components/ui/label"
 import {
 	Select,
@@ -248,7 +251,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 											type="button"
 											onClick={() => insertCode(code)}
 											className={cn(
-												"flex h-7 items-center justify-center rounded-md border border-border text-[11px] text-foreground/80 transition-transform hover:scale-110",
+												"flex h-7 items-center justify-center rounded-md border border-border text-2xs text-foreground/80 transition-transform hover:scale-110",
 												label ? "min-w-7 bg-card px-1.5" : "w-7",
 											)}
 											style={label ? { ...style, background: undefined } : style}
@@ -438,7 +441,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 				<CardContent className="flex flex-col gap-5">
 					{groups.map((group) => (
 						<div key={group.id} className="flex flex-col">
-							<h4 className="mb-1 font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+							<h4 className="mb-1 font-semibold text-2xs text-muted-foreground uppercase tracking-wider">
 								{group.title}
 							</h4>
 							<div className="divide-y divide-border/60">
@@ -456,56 +459,51 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 					))}
 
 					{(data?.length ?? 0) > 0 && (
-						<div className="flex flex-col gap-2">
-							<button
-								type="button"
-								onClick={() => setShowAll((s) => !s)}
-								className="flex items-center gap-1.5 self-start font-medium text-muted-foreground text-xs hover:text-foreground"
+						<Collapsible open={showAll} onOpenChange={setShowAll} className="flex flex-col gap-2">
+							<CollapsibleTrigger
+								render={
+									<Button variant="ghost" size="sm" className="self-start text-muted-foreground" />
+								}
 							>
-								<ChevronRight
-									className={cn("size-3.5 transition-transform", showAll && "rotate-90")}
-								/>
+								<ChevronRight className={cn("transition-transform", showAll && "rotate-90")} />
 								{t("serverSettings.allOther")}
-							</button>
-							{showAll && (
-								<div className="flex flex-col gap-2">
-									<div className="relative">
-										<Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+							</CollapsibleTrigger>
+							<CollapsibleContent className="flex flex-col gap-2">
+								<InputGroup>
+									<InputGroupAddon>
+										<Search />
+									</InputGroupAddon>
+									<InputGroupInput
+										value={query}
+										onChange={(e) => setQuery(e.target.value)}
+										placeholder={t("serverSettings.filter")}
+										className="text-xs"
+									/>
+								</InputGroup>
+								{others.map((e) => (
+									<div
+										key={e.key}
+										className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"
+									>
+										<span className="truncate font-mono text-2xs text-muted-foreground sm:w-64 sm:shrink-0">
+											{e.key}
+										</span>
 										<Input
-											value={query}
-											onChange={(e) => setQuery(e.target.value)}
-											placeholder={t("serverSettings.filter")}
-											className="h-9 rounded-xl pl-9 text-xs"
+											value={draft[e.key] ?? e.value}
+											onChange={(ev) => set(e.key, ev.target.value)}
+											className={cn("h-8 font-mono text-xs", e.key in draft && "border-primary/40")}
 										/>
 									</div>
-									{others.map((e) => (
-										<div
-											key={e.key}
-											className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"
-										>
-											<span className="truncate font-mono text-[11px] text-muted-foreground sm:w-64 sm:shrink-0">
-												{e.key}
-											</span>
-											<Input
-												value={draft[e.key] ?? e.value}
-												onChange={(ev) => set(e.key, ev.target.value)}
-												className={cn(
-													"h-8 rounded-lg border-border bg-background/60 font-mono text-xs",
-													e.key in draft && "border-primary/40",
-												)}
-											/>
-										</div>
-									))}
-								</div>
-							)}
-						</div>
+								))}
+							</CollapsibleContent>
+						</Collapsible>
 					)}
 
 					{error && <ErrorNote>{error}</ErrorNote>}
 					{(changed.length > 0 || status !== "idle") && (
-						// Solid bar across the card (its color is the card's zinc-900/40 over the page),
-						// so settings scrolling underneath never show through
-						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-border/80 border-t bg-[color-mix(in_oklab,var(--color-zinc-900)_40%,var(--color-zinc-950))] px-4 py-3">
+						// Solid bar across the card, in the card's own color, so settings scrolling
+						// underneath never show through
+						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-border/80 border-t bg-card px-4 py-3">
 							{changed.length > 0 && (
 								<>
 									<span className="text-muted-foreground text-xs">
@@ -576,7 +574,7 @@ function PropertyRow({
 							className="h-9 w-24 rounded-xl text-right font-mono text-xs"
 						/>
 						{control.unit && (
-							<span className="w-10 text-[11px] text-muted-foreground">{control.unit}</span>
+							<span className="w-10 text-2xs text-muted-foreground">{control.unit}</span>
 						)}
 					</div>
 				)}
@@ -610,19 +608,18 @@ function ConfigFilesCard({ serverId }: { serverId: string }) {
 			<ul className="divide-y divide-border/60 border-border/60 border-t">
 				{files.map((f) => (
 					<li key={f.path}>
-						<button
-							type="button"
-							onClick={() => setOpen(f.path)}
-							className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-card/60"
+						<Item
+							render={<button type="button" onClick={() => setOpen(f.path)} />}
+							className="rounded-none px-4 text-left hover:bg-muted/50"
 						>
-							<span className="min-w-0 truncate font-mono text-foreground/80 text-xs">
-								{f.path}
-							</span>
-							<span className="flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground/60">
+							<ItemContent>
+								<ItemTitle className="font-mono text-xs">{f.path}</ItemTitle>
+							</ItemContent>
+							<ItemActions className="text-2xs text-muted-foreground">
 								{formatBytes(f.size)}
 								<ChevronRight className="size-3.5" />
-							</span>
-						</button>
+							</ItemActions>
+						</Item>
 					</li>
 				))}
 			</ul>

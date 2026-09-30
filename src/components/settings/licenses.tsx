@@ -3,9 +3,13 @@ import type { TFunction } from "i18next"
 import { ExternalLink, Scale } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { SectionCardHeader } from "@/components/common/section-card"
 import { FadeScroll } from "@/components/servers/shared/primitives"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item"
 import type { TranslationKey } from "@/i18n"
 
 interface Component {
@@ -145,33 +149,37 @@ export function LicensesDialog({
 						<section key={group.title} className="flex flex-col gap-2">
 							<div>
 								<h3 className="font-semibold text-foreground text-sm">{t(group.title)}</h3>
-								<p className="text-[11px] text-muted-foreground">{t(group.note)}</p>
+								<p className="text-2xs text-muted-foreground">{t(group.note)}</p>
 							</div>
 							<ul className="flex flex-col divide-y divide-border/70 border border-border/70">
 								{group.items.map((item) => (
 									<li key={item.name}>
-										<button
-											type="button"
-											onClick={() => openUrl(item.source).catch(console.error)}
-											className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-card/60"
+										<Item
+											render={
+												<button
+													type="button"
+													onClick={() => openUrl(item.source).catch(console.error)}
+												/>
+											}
+											className="rounded-none text-left hover:bg-muted/50"
 										>
-											<div className="min-w-0 flex-1">
-												<p className="truncate font-medium text-foreground text-sm">
-													{text(t, item.name)}
-												</p>
-												<p className="truncate text-[11px] text-muted-foreground">{t(item.role)}</p>
-											</div>
-											<span className="shrink-0 bg-card px-1.5 py-0.5 font-mono text-[10px] text-foreground/80">
-												{text(t, item.license)}
-											</span>
-											<ExternalLink className="size-3.5 shrink-0 text-muted-foreground/60" />
-										</button>
+											<ItemContent>
+												<ItemTitle>{text(t, item.name)}</ItemTitle>
+												<ItemDescription>{t(item.role)}</ItemDescription>
+											</ItemContent>
+											<ItemActions>
+												<Badge variant="secondary" className="font-mono">
+													{text(t, item.license)}
+												</Badge>
+												<ExternalLink className="size-3.5 text-muted-foreground" />
+											</ItemActions>
+										</Item>
 									</li>
 								))}
 							</ul>
 						</section>
 					))}
-					<p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+					<p className="text-2xs text-muted-foreground/60 leading-relaxed">
 						{t("settings.licenses.trademark")}
 					</p>
 				</FadeScroll>
@@ -185,18 +193,18 @@ export function LicensesSettings() {
 	const { t } = useTranslation()
 	const [open, setOpen] = useState(false)
 	return (
-		<div className="flex items-center justify-between gap-4 border border-border/30 bg-background/40 p-4">
-			<div className="flex min-w-0 items-center gap-3">
-				<Scale className="size-4 shrink-0 text-muted-foreground" />
-				<div className="min-w-0">
-					<p className="font-medium text-sm">{t("settings.licenses.title")}</p>
-					<p className="text-muted-foreground text-xs">{t("settings.licenses.description")}</p>
-				</div>
-			</div>
-			<Button variant="outline" size="sm" onClick={() => setOpen(true)} className="shrink-0">
-				{t("common.view")}
-			</Button>
+		<Card>
+			<SectionCardHeader
+				icon={Scale}
+				title={t("settings.licenses.title")}
+				description={t("settings.licenses.description")}
+				action={
+					<Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+						{t("common.view")}
+					</Button>
+				}
+			/>
 			<LicensesDialog open={open} onOpenChange={setOpen} />
-		</div>
+		</Card>
 	)
 }

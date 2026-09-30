@@ -122,7 +122,7 @@ export default function VersionChangeCrashDialog() {
 									<Package className="size-4 shrink-0 text-muted-foreground" />
 									<div className="min-w-0 flex-1">
 										<p className="truncate font-medium text-foreground text-sm">{suspect.title}</p>
-										<p className="truncate text-[11px] text-muted-foreground">{suspect.fileName}</p>
+										<p className="truncate text-2xs text-muted-foreground">{suspect.fileName}</p>
 									</div>
 									<Button
 										size="sm"
@@ -154,7 +154,7 @@ export default function VersionChangeCrashDialog() {
 						<summary className="cursor-pointer px-3 py-2 text-muted-foreground">
 							{t("crashDialog.details")}
 						</summary>
-						<pre className="max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-[11px] text-muted-foreground">
+						<pre className="max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-2xs text-muted-foreground">
 							{crash.excerpt}
 						</pre>
 					</details>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import type {
 	InstalledPlugin,
 	PluginProject,
@@ -24,7 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import {
 	Select,
 	SelectContent,
@@ -61,17 +62,12 @@ export function addonKind(core: ServerConfig["core"]): AddonKind | null {
 	return null
 }
 
-interface Notice {
-	kind: "success" | "error"
-	text: string
-}
-
 export function PluginsPanel({ server }: { server: ServerConfig }) {
 	const { t } = useTranslation()
 	const kind = addonKind(server.core)
 	const { isRunning } = useServerStatus(server.id)
 	const [view, setView] = useState<"installed" | "browse">("installed")
-	const [notice, setNotice] = useState<Notice | null>(null)
+
 	const [needsRestart, setNeedsRestart] = useState(false)
 	const installed = useInstalledPlugins(server.id)
 	const actions = usePluginActions(server.id)
@@ -97,7 +93,8 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 	}
 
 	const changed = (text: string, error = false) => {
-		setNotice({ kind: error ? "error" : "success", text })
+		if (error) toast.error(text)
+		else toast.success(text)
 		if (!error && isRunning) setNeedsRestart(true)
 	}
 
@@ -135,20 +132,6 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 			/>
 
 			{needsRestart && <RestartBanner serverId={server.id} onDone={() => setNeedsRestart(false)} />}
-			{notice && (
-				<button
-					type="button"
-					onClick={() => setNotice(null)}
-					className={cn(
-						"rounded-xl border px-3 py-2.5 text-left text-xs",
-						notice.kind === "success"
-							? "border-primary/20 bg-primary/10 text-primary"
-							: "border-destructive/20 bg-destructive/10 text-destructive",
-					)}
-				>
-					{notice.text}
-				</button>
-			)}
 
 			{view === "installed" && <CompanionCard server={server} onChanged={changed} />}
 			{view === "installed" ? (
@@ -318,7 +301,7 @@ function InstalledList({
 											</span>
 										)}
 									</p>
-									<p className="truncate text-[11px] text-muted-foreground">
+									<p className="truncate text-2xs text-muted-foreground">
 										{update ? (
 											<span className="text-info">
 												{t("plugins.updateAvailable", { version: update.latest.versionNumber })}
@@ -526,18 +509,20 @@ function BrowseView({
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="relative">
-				<Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-				<Input
+			<InputGroup>
+				<InputGroupAddon>
+					<Search />
+				</InputGroupAddon>
+				<InputGroupInput
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
 					placeholder={t("plugins.searchPlaceholder", { context: kind.kind })}
 					autoCapitalize="off"
 					autoCorrect="off"
 					enterKeyHint="search"
-					className="h-11 rounded-xl pl-10 text-sm"
+					className="text-sm"
 				/>
-			</div>
+			</InputGroup>
 
 			<div className="flex flex-wrap items-center gap-2">
 				{hangarAvailable && (
@@ -595,7 +580,7 @@ function BrowseView({
 				</Card>
 			) : (
 				<>
-					<p className="px-1 text-[11px] text-muted-foreground">
+					<p className="px-1 text-2xs text-muted-foreground">
 						{t("plugins.results", { count: total, formatted: formatCount(total) })}
 					</p>
 					<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
@@ -660,7 +645,7 @@ function ResultCard({
 				<PluginIcon url={project.iconUrl} name={project.title} className="size-12" />
 				<div className="min-w-0 flex-1">
 					<p className="truncate font-semibold text-foreground text-sm">{project.title}</p>
-					<p className="truncate text-[11px] text-muted-foreground">
+					<p className="truncate text-2xs text-muted-foreground">
 						{project.author} · <Download className="inline size-3" />{" "}
 						{formatCount(project.downloads)}
 					</p>

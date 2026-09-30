@@ -52,7 +52,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 				{imageError ? (
 					<div className="flex size-full flex-col items-center justify-center gap-1.5 p-3 text-center text-muted-foreground">
 						<ImageOff className="size-6 opacity-40" />
-						<span className="text-[11px]">{t("screenshots.card.unavailable")}</span>
+						<span className="text-2xs">{t("screenshots.card.unavailable")}</span>
 					</div>
 				) : (
 					<img
@@ -146,11 +146,11 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 					>
 						{screenshot.fileName}
 					</span>
-					<span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+					<span className="shrink-0 font-mono text-3xs text-muted-foreground">
 						{formatBytes(screenshot.fileSizeBytes)}
 					</span>
 				</div>
-				<div className="text-[10px] text-muted-foreground">
+				<div className="text-3xs text-muted-foreground">
 					{formatDate(screenshot.modifiedAt || screenshot.createdAt)}
 				</div>
 			</div>

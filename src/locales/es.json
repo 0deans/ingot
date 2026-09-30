@@ -689,6 +689,7 @@
 		"makeLiveTitle_mod": "Instala el mod de Ingot para actualizar el mapa en tiempo real, sin guardar el mundo",
 		"makeLive": "Activar en vivo",
 		"refreshTitle": "Buscar zonas guardadas recientemente",
+		"checking": "Comprobando...",
 		"ariaLabel": "Mapa del mundo. Arrastra para moverte, usa la rueda o pellizca para hacer zoom.",
 		"zoomIn": "Acercar",
 		"zoomOut": "Alejar",

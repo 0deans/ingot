@@ -6,6 +6,7 @@ import { alertTone } from "@/components/common/alert-tones"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -14,6 +15,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
@@ -93,7 +101,7 @@ export const DuplicateInstanceDialog = ({
 					</div>
 					<div className="flex min-w-0 flex-col">
 						<span className="truncate font-semibold text-foreground text-sm">{instance.name}</span>
-						<span className="text-[11px] text-muted-foreground">
+						<span className="text-2xs text-muted-foreground">
 							{String(instance.loader).toUpperCase()} • {instance.gameVersion}
 						</span>
 					</div>
@@ -115,31 +123,30 @@ export const DuplicateInstanceDialog = ({
 					/>
 				</div>
 
-				<Label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card/40 p-3">
-					<input
-						type="checkbox"
-						checked={includeWorlds}
-						onChange={(e) => setIncludeWorlds(e.target.checked)}
-						disabled={busy}
-						className="mt-0.5 size-4 accent-emerald-500"
-					/>
-					<span className="flex flex-col gap-0.5">
-						<span className="font-medium text-foreground text-sm">
-							{t("duplicateInstance.copyWorlds")}
-							{worldCount !== null && (
-								<span className="font-normal text-muted-foreground">
-									{" "}
-									({worldCount === 0 ? t("duplicateInstance.noWorldsYet") : worldCount})
-								</span>
-							)}
-						</span>
-						<span className="text-[11px] text-muted-foreground">
-							{t("duplicateInstance.copyWorldsDesc")}
-						</span>
-					</span>
-				</Label>
+				<FieldLabel htmlFor="duplicate-include-worlds">
+					<Field orientation="horizontal">
+						<Checkbox
+							id="duplicate-include-worlds"
+							checked={includeWorlds}
+							onCheckedChange={setIncludeWorlds}
+							disabled={busy}
+						/>
+						<FieldContent>
+							<FieldTitle>
+								{t("duplicateInstance.copyWorlds")}
+								{worldCount !== null && (
+									<span className="font-normal text-muted-foreground">
+										{" "}
+										({worldCount === 0 ? t("duplicateInstance.noWorldsYet") : worldCount})
+									</span>
+								)}
+							</FieldTitle>
+							<FieldDescription>{t("duplicateInstance.copyWorldsDesc")}</FieldDescription>
+						</FieldContent>
+					</Field>
+				</FieldLabel>
 
-				<p className="text-[11px] text-muted-foreground">{t("duplicateInstance.note")}</p>
+				<p className="text-2xs text-muted-foreground">{t("duplicateInstance.note")}</p>
 
 				{blocked && (
 					<Alert className={alertTone.warning}>

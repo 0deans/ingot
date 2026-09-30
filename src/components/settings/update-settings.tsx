@@ -66,7 +66,7 @@ export const UpdateSettings = () => {
 										{t("settings.updates.releaseChannel")}
 									</Badge>
 								</div>
-								<div className="text-[11px] text-muted-foreground">
+								<div className="text-2xs text-muted-foreground">
 									{t("settings.updates.lastChecked", { time: formatLastChecked(lastCheckedAt) })}
 								</div>
 							</div>
@@ -102,7 +102,7 @@ export const UpdateSettings = () => {
 									href={`https://github.com/0deans/ingot/releases/tag/v${updateInfo.version}`}
 									target="_blank"
 									rel="noreferrer"
-									className="flex items-center gap-1 text-[11px] text-primary/80 hover:text-primary hover:underline"
+									className="flex items-center gap-1 text-2xs text-primary/80 hover:text-primary hover:underline"
 								>
 									<span>{t("settings.updates.changelog")}</span>
 									<ExternalLink className="size-3" />
@@ -110,7 +110,7 @@ export const UpdateSettings = () => {
 							</div>
 
 							{updateInfo.body && (
-								<p className="line-clamp-3 whitespace-pre-line font-sans text-[11px] text-foreground/80">
+								<p className="line-clamp-3 whitespace-pre-line font-sans text-2xs text-foreground/80">
 									{updateInfo.body}
 								</p>
 							)}
@@ -153,7 +153,7 @@ export const UpdateSettings = () => {
 									<div className="font-medium text-primary text-xs">
 										{t("settings.updates.installedTitle")}
 									</div>
-									<div className="text-[11px] text-muted-foreground">
+									<div className="text-2xs text-muted-foreground">
 										{t("settings.updates.installedDesc")}
 									</div>
 								</div>

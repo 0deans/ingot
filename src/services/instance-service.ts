@@ -1,5 +1,6 @@
 import i18n from "i18next"
 import { useEffect, useState } from "react"
+import { create } from "zustand"
 import {
 	createTauRPCProxy,
 	type InstanceConfig,
@@ -14,13 +15,30 @@ import {
 
 export const rpc = createTauRPCProxy()
 
-let cachedInstances: InstanceConfig[] = []
-let cachedRunning: Map<string, RunningInstanceSummary> = new Map()
-const progressMap: Map<string, LaunchProgressEvent> = new Map()
+interface InstanceState {
+	instances: InstanceConfig[]
+	running: Map<string, RunningInstanceSummary>
+	progress: Map<string, LaunchProgressEvent>
+}
 
-const instanceListeners = new Set<(instances: InstanceConfig[]) => void>()
-const runningListeners = new Set<(running: Map<string, RunningInstanceSummary>) => void>()
-const progressListeners = new Set<(progress: Map<string, LaunchProgressEvent>) => void>()
+const useInstanceStore = create<InstanceState>(() => ({
+	instances: [],
+	running: new Map(),
+	progress: new Map(),
+}))
+
+// Maps are replaced (never mutated) so selectors see a new reference on every change.
+function setRunning(update: (running: Map<string, RunningInstanceSummary>) => void) {
+	const running = new Map(useInstanceStore.getState().running)
+	update(running)
+	useInstanceStore.setState({ running })
+}
+
+function setProgress(update: (progress: Map<string, LaunchProgressEvent>) => void) {
+	const progress = new Map(useInstanceStore.getState().progress)
+	update(progress)
+	useInstanceStore.setState({ progress })
+}
 
 let isInitialized = false
 
@@ -30,8 +48,7 @@ async function initListeners() {
 
 	try {
 		const running = await rpc.get_running_instances()
-		cachedRunning = new Map(running.map((r) => [r.instanceId, r]))
-		notifyRunning()
+		useInstanceStore.setState({ running: new Map(running.map((r) => [r.instanceId, r])) })
 	} catch (e) {
 		console.error("Failed to load initial running instances:", e)
 	}
@@ -39,18 +56,18 @@ async function initListeners() {
 	try {
 		await rpc.on_instance_status_changed.on((event: InstanceStatusEvent) => {
 			if (!event?.instanceId) return
-			if (event.isRunning) {
-				cachedRunning.set(event.instanceId, {
-					instanceId: event.instanceId,
-					pid: event.pid,
-					startedAt: event.startedAt,
-				})
-			} else {
-				cachedRunning.delete(event.instanceId)
-			}
-			progressMap.delete(event.instanceId)
-			notifyProgress()
-			notifyRunning()
+			setRunning((running) => {
+				if (event.isRunning) {
+					running.set(event.instanceId, {
+						instanceId: event.instanceId,
+						pid: event.pid,
+						startedAt: event.startedAt,
+					})
+				} else {
+					running.delete(event.instanceId)
+				}
+			})
+			setProgress((progress) => progress.delete(event.instanceId))
 			instanceService.refreshInstances()
 		})
 	} catch (e) {
@@ -60,31 +77,10 @@ async function initListeners() {
 	try {
 		await rpc.on_launch_progress.on((event: LaunchProgressEvent) => {
 			if (!event?.instanceId) return
-			progressMap.set(event.instanceId, event)
-			notifyProgress()
+			setProgress((progress) => progress.set(event.instanceId, event))
 		})
 	} catch (e) {
 		console.error("Failed to setup on_launch_progress listener:", e)
-	}
-}
-
-function notifyInstances() {
-	for (const listener of instanceListeners) {
-		listener([...cachedInstances])
-	}
-}
-
-function notifyRunning() {
-	const copy = new Map(cachedRunning)
-	for (const listener of runningListeners) {
-		listener(copy)
-	}
-}
-
-function notifyProgress() {
-	const copy = new Map(progressMap)
-	for (const listener of progressListeners) {
-		listener(copy)
 	}
 }
 
@@ -97,12 +93,11 @@ export const instanceService = {
 		try {
 			await initListeners()
 			const instances = await rpc.get_instances()
-			cachedInstances = instances
-			notifyInstances()
+			useInstanceStore.setState({ instances })
 			return instances
 		} catch (e) {
 			console.error("Failed to fetch instances:", e)
-			return cachedInstances
+			return useInstanceStore.getState().instances
 		}
 	},
 
@@ -128,8 +123,9 @@ export const instanceService = {
 	},
 
 	async deleteInstance(instanceId: string): Promise<void> {
-		cachedInstances = cachedInstances.filter((i) => i.id !== instanceId)
-		notifyInstances()
+		useInstanceStore.setState((state) => ({
+			instances: state.instances.filter((i) => i.id !== instanceId),
+		}))
 		try {
 			await rpc.delete_instance(instanceId)
 		} finally {
@@ -147,25 +143,25 @@ export const instanceService = {
 	},
 
 	async launchInstance(instanceId: string, quickPlay?: QuickPlayOptions | null): Promise<number> {
-		progressMap.set(instanceId, {
-			instanceId,
-			phase: "Preparing launch",
-			currentStep: 0,
-			totalSteps: 10,
-			percentage: 0,
-			detail: quickPlay?.server
-				? i18n.t("backend.launch.connecting", { server: quickPlay.server })
-				: quickPlay?.world
-					? i18n.t("backend.launch.loadingWorld", { world: quickPlay.world })
-					: i18n.t("backend.launch.initializing"),
-		})
-		notifyProgress()
+		setProgress((progress) =>
+			progress.set(instanceId, {
+				instanceId,
+				phase: "Preparing launch",
+				currentStep: 0,
+				totalSteps: 10,
+				percentage: 0,
+				detail: quickPlay?.server
+					? i18n.t("backend.launch.connecting", { server: quickPlay.server })
+					: quickPlay?.world
+						? i18n.t("backend.launch.loadingWorld", { world: quickPlay.world })
+						: i18n.t("backend.launch.initializing"),
+			}),
+		)
 		try {
 			const pid = await rpc.launch_instance(instanceId, quickPlay || null)
 			return pid
 		} catch (e) {
-			progressMap.delete(instanceId)
-			notifyProgress()
+			setProgress((progress) => progress.delete(instanceId))
 			throw e
 		}
 	},
@@ -176,10 +172,8 @@ export const instanceService = {
 
 	async killInstance(instanceId: string): Promise<void> {
 		await rpc.kill_instance(instanceId)
-		cachedRunning.delete(instanceId)
-		progressMap.delete(instanceId)
-		notifyRunning()
-		notifyProgress()
+		setRunning((running) => running.delete(instanceId))
+		setProgress((progress) => progress.delete(instanceId))
 	},
 
 	async getAvailableGameVersions(): Promise<VersionManifestEntry[]> {
@@ -189,44 +183,14 @@ export const instanceService = {
 	async getAvailableLoaderVersions(gameVersion: string, loader: ModLoaderType): Promise<string[]> {
 		return rpc.get_available_loader_versions(gameVersion, loader)
 	},
-
-	subscribeInstances(listener: (instances: InstanceConfig[]) => void): () => void {
-		instanceListeners.add(listener)
-		listener([...cachedInstances])
-		return () => {
-			instanceListeners.delete(listener)
-		}
-	},
-
-	subscribeRunning(listener: (running: Map<string, RunningInstanceSummary>) => void): () => void {
-		runningListeners.add(listener)
-		listener(new Map(cachedRunning))
-		return () => {
-			runningListeners.delete(listener)
-		}
-	},
-
-	subscribeProgress(listener: (progress: Map<string, LaunchProgressEvent>) => void): () => void {
-		progressListeners.add(listener)
-		listener(new Map(progressMap))
-		return () => {
-			progressListeners.delete(listener)
-		}
-	},
 }
 
 export function useInstances() {
-	const [instances, setInstances] = useState<InstanceConfig[]>(cachedInstances)
-	const [isLoading, setIsLoading] = useState<boolean>(cachedInstances.length === 0)
+	const instances = useInstanceStore((s) => s.instances)
+	const [isLoading, setIsLoading] = useState(instances.length === 0)
 
 	useEffect(() => {
-		const unsub = instanceService.subscribeInstances((insts) => {
-			setInstances(insts)
-		})
-		instanceService.refreshInstances().finally(() => {
-			setIsLoading(false)
-		})
-		return unsub
+		instanceService.refreshInstances().finally(() => setIsLoading(false))
 	}, [])
 
 	return {
@@ -237,15 +201,10 @@ export function useInstances() {
 }
 
 export function useRunningInstances() {
-	const [running, setRunning] = useState<Map<string, RunningInstanceSummary>>(
-		new Map(cachedRunning),
-	)
+	const running = useInstanceStore((s) => s.running)
 
 	useEffect(() => {
 		initListeners()
-		return instanceService.subscribeRunning((r) => {
-			setRunning(r)
-		})
 	}, [])
 
 	return {
@@ -257,33 +216,11 @@ export function useRunningInstances() {
 }
 
 export function useAllInstancesProgress(): Map<string, LaunchProgressEvent> {
-	const [progress, setProgress] = useState<Map<string, LaunchProgressEvent>>(new Map(progressMap))
-
-	useEffect(() => {
-		return instanceService.subscribeProgress((map) => {
-			setProgress(map)
-		})
-	}, [])
-
-	return progress
+	return useInstanceStore((s) => s.progress)
 }
 
 export function useInstanceProgress(instanceId: string | undefined) {
-	const [progress, setProgress] = useState<LaunchProgressEvent | undefined>(
-		instanceId ? progressMap.get(instanceId) : undefined,
-	)
-
-	useEffect(() => {
-		if (!instanceId) {
-			setProgress(undefined)
-			return
-		}
-		return instanceService.subscribeProgress((map) => {
-			setProgress(map.get(instanceId))
-		})
-	}, [instanceId])
-
-	return progress
+	return useInstanceStore((s) => (instanceId ? s.progress.get(instanceId) : undefined))
 }
 
 export function getRequiredJavaVersion(gameVersion: string): number {

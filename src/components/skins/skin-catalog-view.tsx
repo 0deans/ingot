@@ -47,8 +47,22 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -783,7 +797,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							)}
 						>
 							{/* Background Studio Ambience */}
-							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.08),transparent_70%)]" />
+							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" />
 							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-md" />
 
 							{/* Full-bleed 3D Viewer Stage - Fills entire container behind overlays */}
@@ -882,31 +896,35 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							{/* Filter Toolbar - Clean Single Row Layout */}
 							<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/30 border-b bg-background/40 px-4 py-2.5">
 								{/* Search Bar */}
-								<div className="relative min-w-[180px] max-w-xs flex-1">
-									<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-									<Input
+								<InputGroup className="min-w-[180px] max-w-xs flex-1">
+									<InputGroupAddon>
+										<Search />
+									</InputGroupAddon>
+									<InputGroupInput
 										type="text"
 										placeholder={t("skins.searchPlaceholder")}
 										value={searchInput}
 										onChange={(e) => setSearchInput(e.target.value)}
-										className="h-8 rounded-lg pr-7 pl-8 text-xs placeholder:text-muted-foreground"
+										className="text-xs"
 									/>
 									{searchInput && (
-										<button
-											type="button"
-											onClick={() => {
-												setSearchInput("")
-												navigate({
-													search: (prev) => ({ ...prev, q: "", page: 1 }),
-													replace: true,
-												})
-											}}
-											className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground/80"
-										>
-											<X className="size-3" />
-										</button>
+										<InputGroupAddon align="inline-end">
+											<InputGroupButton
+												size="icon-xs"
+												aria-label={t("common.clearSearch")}
+												onClick={() => {
+													setSearchInput("")
+													navigate({
+														search: (prev) => ({ ...prev, q: "", page: 1 }),
+														replace: true,
+													})
+												}}
+											>
+												<X />
+											</InputGroupButton>
+										</InputGroupAddon>
 									)}
-								</div>
+								</InputGroup>
 
 								{/* Filter Controls: Model & Sort */}
 								<div className="flex items-center gap-2">
@@ -935,7 +953,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												<Button
 													variant="outline"
 													size="xs"
-													className="h-8 gap-1.5 rounded-lg text-[11px]"
+													className="h-8 gap-1.5 rounded-lg text-2xs"
 												>
 													<ArrowUpDown className="size-3 text-muted-foreground" />
 													<span>{t(`skins.sorts.${sortOption}`)}</span>
@@ -975,7 +993,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 													size="xs"
 													onClick={() => refetch()}
 													disabled={isFetching}
-													className="h-8 gap-1.5 rounded-lg px-2 text-[11px]"
+													className="h-8 gap-1.5 rounded-lg px-2 text-2xs"
 												/>
 											}
 										>
@@ -991,7 +1009,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									</Tooltip>
 
 									{totalItems > 0 && (
-										<span className="hidden font-mono text-[11px] text-muted-foreground xl:inline">
+										<span className="hidden font-mono text-2xs text-muted-foreground xl:inline">
 											{t("skinsPage.count", {
 												count: totalItems,
 												formatted: formatNumber(totalItems),
@@ -1004,7 +1022,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							{/* Skins Grid Area */}
 							<div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
 								{isFetching && skins.length > 0 && (
-									<div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 rounded-full border border-input/80 bg-card/95 px-2.5 py-1 text-[11px] text-foreground/80 shadow-md backdrop-blur-xs">
+									<div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 rounded-full border border-input/80 bg-card/95 px-2.5 py-1 text-2xs text-foreground/80 shadow-md backdrop-blur-xs">
 										<Spinner className="size-3 text-primary" />
 										<span>{t("skinsPage.updating")}</span>
 									</div>
@@ -1049,7 +1067,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																	? t("skinsPage.noUploadsFor", { name: targetAccount.username })
 																	: t("skinsPage.noActiveAccount")}
 														</p>
-														<p className="max-w-xs text-[11px] text-muted-foreground">
+														<p className="max-w-xs text-2xs text-muted-foreground">
 															{searchQuery
 																? t("skinsPage.tryDifferent")
 																: targetAccount
@@ -1074,7 +1092,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														<p className="font-medium text-muted-foreground text-xs">
 															{t("skinsPage.noSkins")}
 														</p>
-														<p className="text-[11px] text-muted-foreground">
+														<p className="text-2xs text-muted-foreground">
 															{t("skinsPage.tryDifferent")}
 														</p>
 													</>
@@ -1106,7 +1124,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															className={cn(
 																"group relative flex flex-col rounded-xl border p-2.5 text-left transition-all duration-150 hover:shadow-md",
 																isSelected
-																	? "border-primary/80 bg-primary/10 shadow-primary/40 ring-1 ring-primary/60"
+																	? "border-primary/80 bg-primary/10 ring-1 ring-primary/60"
 																	: "border-border/80 bg-card/50 hover:border-input/80 hover:bg-card/60",
 															)}
 														>
@@ -1122,13 +1140,14 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																<Tooltip>
 																	<TooltipTrigger
 																		render={
-																			<button
-																				type="button"
+																			<Button
+																				variant="ghost"
+																				size="icon-xs"
 																				onClick={(e) => {
 																					e.stopPropagation()
 																					handleRemoveCustomSkin(skin, e)
 																				}}
-																				className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-lg bg-card/90 text-muted-foreground any-pointer-coarse:opacity-100 opacity-0 transition-all hover:bg-destructive/20 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+																				className="absolute top-2 right-2 z-10 bg-card/90 text-muted-foreground any-pointer-coarse:opacity-100 opacity-0 hover:bg-destructive/20 hover:text-destructive group-hover:opacity-100"
 																				aria-label={t("skinsPage.deleteCustom")}
 																			/>
 																		}
@@ -1157,7 +1176,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 																>
 																	{title}
 																</span>
-																<div className="flex items-center justify-between text-[10px] text-muted-foreground">
+																<div className="flex items-center justify-between text-3xs text-muted-foreground">
 																	<span>
 																		{skin.isSlim ? t("skinsPage.slim") : t("skinsPage.classic")}
 																	</span>
@@ -1179,7 +1198,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 								{/* Pagination Bar */}
 								<div className="flex shrink-0 flex-col gap-2 border-border/30 border-t bg-background/40 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
-									<span className="text-[11px] text-muted-foreground">
+									<span className="text-2xs text-muted-foreground">
 										<Trans
 											i18nKey="skinsPage.pageOf"
 											values={{ page, total: lastPage }}
@@ -1239,7 +1258,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 														? t("skinsPage.currentSkin")
 														: t("skinsPage.skinNumber", { id: activeSkin.id })}
 											</p>
-											<span className="text-[10px] text-muted-foreground">
+											<span className="text-3xs text-muted-foreground">
 												{activeSkin.isSlim ? t("skinsPage.alexSlim") : t("skinsPage.steveClassic")}
 											</span>
 										</div>
@@ -1284,7 +1303,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						{/* Left Showcase: Live 3D Preview Stage */}
 						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
 							{/* Background Studio Ambience */}
-							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.08),transparent_70%)]" />
+							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" />
 							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-md" />
 
 							{/* Full-bleed 3D Viewer Stage */}
@@ -1385,12 +1404,10 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										<p className="font-medium text-foreground text-xs sm:text-sm">
 											{uploadedFileName || t("skinsPage.dropHint")}
 										</p>
-										<p className="mt-1 text-[11px] text-muted-foreground">
-											{t("skinsPage.supports")}
-										</p>
+										<p className="mt-1 text-2xs text-muted-foreground">{t("skinsPage.supports")}</p>
 
 										{uploadValidationDetails && (
-											<div className="mt-3 flex items-center gap-2.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[11px] text-primary">
+											<div className="mt-3 flex items-center gap-2.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-2xs text-primary">
 												<span>
 													{t("skinsPage.dimensions", { value: uploadValidationDetails.dimensions })}
 												</span>
@@ -1415,48 +1432,40 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											<span className="font-medium text-foreground/80 text-xs">
 												{t("skinsPage.armModel")}
 											</span>
-											<p className="mt-0.5 text-[11px] text-muted-foreground">
+											<p className="mt-0.5 text-2xs text-muted-foreground">
 												{t("skinsPage.armModelHint")}
 											</p>
 										</div>
-										<div className="grid grid-cols-2 gap-2.5 pt-1">
-											<button
-												type="button"
-												className={cn(
-													"flex flex-col rounded-lg border p-3 text-left transition-all",
-													uploadedModel === "default"
-														? "border-primary/60 bg-primary/10 text-foreground ring-1 ring-primary/30"
-														: "border-border bg-card/60 text-muted-foreground hover:border-input",
-												)}
-												onClick={() => setUploadedModel("default")}
-											>
-												<span className="font-semibold text-xs">Steve</span>
-												<span className="text-[10px] text-muted-foreground">
-													{t("skinsPage.classicArms")}
-												</span>
-											</button>
-											<button
-												type="button"
-												className={cn(
-													"flex flex-col rounded-lg border p-3 text-left transition-all",
-													uploadedModel === "slim"
-														? "border-primary/60 bg-primary/10 text-foreground ring-1 ring-primary/30"
-														: "border-border bg-card/60 text-muted-foreground hover:border-input",
-												)}
-												onClick={() => setUploadedModel("slim")}
-											>
-												<span className="font-semibold text-xs">Alex</span>
-												<span className="text-[10px] text-muted-foreground">
-													{t("skinsPage.slimArms")}
-												</span>
-											</button>
-										</div>
+										<RadioGroup
+											value={uploadedModel}
+											onValueChange={(model) => setUploadedModel(model as typeof uploadedModel)}
+											className="grid-cols-2 pt-1"
+										>
+											<FieldLabel htmlFor="skin-model-default">
+												<Field orientation="horizontal">
+													<FieldContent>
+														<FieldTitle>Steve</FieldTitle>
+														<FieldDescription>{t("skinsPage.classicArms")}</FieldDescription>
+													</FieldContent>
+													<RadioGroupItem value="default" id="skin-model-default" />
+												</Field>
+											</FieldLabel>
+											<FieldLabel htmlFor="skin-model-slim">
+												<Field orientation="horizontal">
+													<FieldContent>
+														<FieldTitle>Alex</FieldTitle>
+														<FieldDescription>{t("skinsPage.slimArms")}</FieldDescription>
+													</FieldContent>
+													<RadioGroupItem value="slim" id="skin-model-slim" />
+												</Field>
+											</FieldLabel>
+										</RadioGroup>
 									</div>
 
 									{/* Target Ely.by Account */}
 									<div className="flex items-center justify-between rounded-xl border border-border/80 bg-card/30 p-3.5 text-xs">
 										<div>
-											<div className="text-[11px] text-muted-foreground">
+											<div className="text-2xs text-muted-foreground">
 												{t("skinsPage.targetAccount")}
 											</div>
 											<div className="mt-0.5 font-semibold text-foreground text-xs">

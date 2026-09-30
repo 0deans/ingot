@@ -689,6 +689,7 @@
 		"makeLiveTitle_mod": "Installer le mod Ingot pour mettre à jour la carte en temps réel, sans sauvegarder le monde",
 		"makeLive": "Passer en direct",
 		"refreshTitle": "Chercher les zones nouvellement sauvegardées",
+		"checking": "Vérification...",
 		"ariaLabel": "Carte du monde. Faites glisser pour déplacer, molette ou pincement pour zoomer.",
 		"zoomIn": "Zoom avant",
 		"zoomOut": "Zoom arrière",

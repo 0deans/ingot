@@ -38,6 +38,15 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import {
+	Item,
+	ItemActions,
+	ItemContent,
+	ItemDescription,
+	ItemMedia,
+	ItemTitle,
+} from "@/components/ui/item"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { importerService } from "@/services/importer-service"
@@ -290,84 +299,70 @@ export const ImportInstanceDialog = ({
 									const Icon = meta.icon
 
 									return (
-										<button
+										<Item
 											key={l.id}
-											type="button"
-											onClick={() => {
-												if (l.available) {
-													handleSelectLauncher(l)
-												} else {
-													handleBrowseLauncherFolder(l)
-												}
-											}}
-											className={`group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/80 bg-card/40 p-3 text-left transition-all sm:p-3.5 ${meta.border} hover:bg-card/80`}
+											variant="outline"
+											render={
+												<button
+													type="button"
+													onClick={() => {
+														if (l.available) {
+															handleSelectLauncher(l)
+														} else {
+															handleBrowseLauncherFolder(l)
+														}
+													}}
+												/>
+											}
+											className="flex-nowrap text-left hover:bg-muted/50"
 										>
-											<div className="flex min-w-0 flex-1 items-center gap-3">
-												<div
-													className={`flex size-9.5 shrink-0 items-center justify-center rounded-xl ${meta.bg} ${meta.color} transition-transform group-hover:scale-105`}
-												>
-													<Icon className="size-5" />
-												</div>
-												<div className="min-w-0 flex-1">
-													<div className="flex items-center gap-2">
-														<span
-															className="truncate font-semibold text-foreground text-sm"
-															title={l.name}
-														>
-															{l.name}
-														</span>
-														{l.available && (
-															<Badge
-																variant="outline"
-																className="shrink-0 border-primary/30 text-primary"
-															>
-																{t("common.installed")}
-															</Badge>
-														)}
-													</div>
-													<div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-														{l.available
-															? t("importInstance.instancesFound", { count: l.instancesCount })
-															: t("importInstance.notDetected")}
-													</div>
-												</div>
-											</div>
-
-											<div className="shrink-0 text-muted-foreground/40 transition-colors group-hover:text-foreground">
+											<ItemMedia className={`size-9.5 rounded-lg ${meta.bg} ${meta.color}`}>
+												<Icon className="size-5" />
+											</ItemMedia>
+											<ItemContent className="min-w-0">
+												<ItemTitle>
+													<span className="truncate" title={l.name}>
+														{l.name}
+													</span>
+													{l.available && (
+														<Badge variant="outline" className="border-primary/30 text-primary">
+															{t("common.installed")}
+														</Badge>
+													)}
+												</ItemTitle>
+												<ItemDescription className="truncate">
+													{l.available
+														? t("importInstance.instancesFound", { count: l.instancesCount })
+														: t("importInstance.notDetected")}
+												</ItemDescription>
+											</ItemContent>
+											<ItemActions className="text-muted-foreground">
 												{l.available ? (
-													<ChevronRight className="size-4.5 transition-transform group-hover:translate-x-0.5" />
+													<ChevronRight className="size-4" />
 												) : (
 													<FolderSearch className="size-4" />
 												)}
-											</div>
-										</button>
+											</ItemActions>
+										</Item>
 									)
 								})}
 
 								{/* Custom Folder Card */}
-								<button
-									type="button"
-									onClick={handleBrowseCustomFolder}
-									className="group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/40 border-dashed bg-card/20 p-3 text-left transition-all hover:border-primary/50 hover:bg-card/50 sm:p-3.5"
+								<Item
+									variant="outline"
+									render={<button type="button" onClick={handleBrowseCustomFolder} />}
+									className="flex-nowrap border-dashed text-left hover:bg-muted/50"
 								>
-									<div className="flex min-w-0 flex-1 items-center gap-3">
-										<div className="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80 transition-transform group-hover:scale-105">
-											<FolderSearch className="size-5" />
-										</div>
-										<div className="min-w-0 flex-1">
-											<div className="truncate font-semibold text-foreground text-sm">
-												{t("importInstance.custom")}
-											</div>
-											<div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-												{t("importInstance.customHint")}
-											</div>
-										</div>
-									</div>
-
-									<div className="shrink-0 text-muted-foreground/40 transition-colors group-hover:text-foreground">
-										<FolderSearch className="size-4" />
-									</div>
-								</button>
+									<ItemMedia className="size-9.5 rounded-lg bg-muted">
+										<FolderSearch className="size-5" />
+									</ItemMedia>
+									<ItemContent className="min-w-0">
+										<ItemTitle>{t("importInstance.custom")}</ItemTitle>
+										<ItemDescription className="truncate">
+											{t("importInstance.customHint")}
+										</ItemDescription>
+									</ItemContent>
+								</Item>
 							</div>
 						)}
 					</ScrollArea>
@@ -404,15 +399,17 @@ export const ImportInstanceDialog = ({
 							</div>
 
 							{instances.length > 3 && (
-								<div className="relative max-w-xs flex-1">
-									<Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-									<Input
+								<InputGroup className="max-w-xs flex-1">
+									<InputGroupAddon>
+										<Search />
+									</InputGroupAddon>
+									<InputGroupInput
 										placeholder={t("importInstance.filter")}
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
-										className="h-8 pl-8 text-xs"
+										className="text-xs"
 									/>
-								</div>
+								</InputGroup>
 							)}
 						</div>
 
@@ -441,7 +438,7 @@ export const ImportInstanceDialog = ({
 													<div className="truncate font-semibold text-foreground text-xs sm:text-sm">
 														{inst.name}
 													</div>
-													<div className="flex flex-wrap items-center gap-2 pt-0.5 text-[10px] text-muted-foreground">
+													<div className="flex flex-wrap items-center gap-2 pt-0.5 text-3xs text-muted-foreground">
 														<span>
 															MC {inst.gameVersion} • {inst.loader}
 														</span>
@@ -504,7 +501,7 @@ export const ImportInstanceDialog = ({
 								<div className="flex items-center gap-3">
 									<LoaderIcon loader={selectedInstance.loader} size={24} />
 									<div className="flex-1">
-										<Label htmlFor="import-name" className="text-[10px] text-muted-foreground">
+										<Label htmlFor="import-name" className="text-3xs text-muted-foreground">
 											{t("importInstance.nameInIngot")}
 										</Label>
 										<Input
@@ -517,7 +514,7 @@ export const ImportInstanceDialog = ({
 									</div>
 								</div>
 
-								<div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[10px] text-muted-foreground">
+								<div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-3xs text-muted-foreground">
 									<span className="rounded bg-muted px-2 py-0.5">
 										MC {selectedInstance.gameVersion}
 									</span>
@@ -533,7 +530,7 @@ export const ImportInstanceDialog = ({
 
 							{/* Transfer components checkboxes */}
 							<div className="flex flex-col gap-2">
-								<span className="font-medium text-[11px] text-muted-foreground">
+								<span className="font-medium text-2xs text-muted-foreground">
 									{t("importInstance.components")}
 								</span>
 
@@ -548,7 +545,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.mods")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.modFiles", { count: selectedInstance.modsCount })}
 												</div>
 											</div>
@@ -571,7 +568,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.configs")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.configsHint")}
 												</div>
 											</div>
@@ -594,7 +591,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.worlds")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.singleplayerWorlds", {
 														count: selectedInstance.savesCount,
 													})}
@@ -619,7 +616,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.packs")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.packsHint")}
 												</div>
 											</div>
@@ -642,7 +639,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("screenshots.title")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{selectedInstance.screenshotsCount > 0
 														? t("importInstance.screenshotsCount", {
 																count: selectedInstance.screenshotsCount,
@@ -669,7 +666,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.modData")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.modDataHint")}
 												</div>
 											</div>
@@ -692,7 +689,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.options")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.optionsHint")}
 												</div>
 											</div>
@@ -715,7 +712,7 @@ export const ImportInstanceDialog = ({
 												<div className="truncate font-medium text-foreground text-xs">
 													{t("importInstance.servers")}
 												</div>
-												<div className="truncate text-[10px] text-muted-foreground">
+												<div className="truncate text-3xs text-muted-foreground">
 													{t("importInstance.serversHint")}
 												</div>
 											</div>
@@ -732,7 +729,7 @@ export const ImportInstanceDialog = ({
 								{/* Info notice */}
 								<div className="mt-1 flex items-start gap-2.5 rounded-lg border border-border/40 bg-card/20 p-2.5 text-muted-foreground text-xs">
 									<Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-									<span className="text-[11px] text-muted-foreground leading-relaxed">
+									<span className="text-2xs text-muted-foreground leading-relaxed">
 										<Trans
 											i18nKey="importInstance.note"
 											components={{ b: <strong className="text-foreground" /> }}

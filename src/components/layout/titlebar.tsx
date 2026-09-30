@@ -4,6 +4,7 @@ import { Copy, Minus, Square, X } from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 /** Finger travel (CSS px) before a touch on the titlebar turns into a window drag */
 const DRAG_THRESHOLD = 6
@@ -215,32 +216,35 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 
 			{/* Window control buttons */}
 			<div className="flex items-center gap-0.5">
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon-sm"
 					onClick={handleMinimize}
 					aria-label={t("common.minimize")}
-					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+					className="text-muted-foreground"
 				>
 					<Minus className="size-3.5" />
-				</button>
+				</Button>
 
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon-sm"
 					onClick={handleToggleMaximize}
 					aria-label={isMaximized ? t("common.restore") : t("common.maximize")}
-					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+					className="text-muted-foreground"
 				>
 					{isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
-				</button>
+				</Button>
 
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon-sm"
 					onClick={handleClose}
 					aria-label={t("common.close")}
-					className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+					className="text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
 				>
 					<X className="size-3.5" />
-				</button>
+				</Button>
 			</div>
 		</header>
 	)

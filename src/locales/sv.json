@@ -681,6 +681,7 @@
 		"makeLiveTitle_mod": "Installera Ingot-modden för att uppdatera kartan i realtid, utan att spara världen",
 		"makeLive": "Gå live",
 		"refreshTitle": "Sök efter nyligen sparade områden",
+		"checking": "Kontrollerar...",
 		"ariaLabel": "Världskarta. Dra för att flytta, rulla eller nyp för att zooma.",
 		"zoomIn": "Zooma in",
 		"zoomOut": "Zooma ut",
