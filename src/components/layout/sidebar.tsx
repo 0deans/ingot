@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router"
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router"
 import { Camera, Gamepad2, Server, Settings, Shirt, Sparkles } from "lucide-react"
 import { type ComponentProps, memo, type ReactNode, useCallback } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
@@ -15,7 +15,17 @@ interface SidebarTabProps {
 
 const SidebarTab = memo(({ to, label, children }: SidebarTabProps) => {
 	const navigate = useNavigate()
+	const router = useRouter()
 	const currentPathname = useRouterState({ select: (s) => s.location.pathname })
+
+	const handleIntent = useCallback(() => {
+		const destination = getTabDestination(to, currentPathname)
+		if (destination !== to) {
+			router
+				.preloadRoute({ href: destination } as unknown as Parameters<typeof router.preloadRoute>[0])
+				.catch(() => {})
+		}
+	}, [router, to, currentPathname])
 
 	const handleClick = useCallback(
 		(e: React.MouseEvent) => {
@@ -46,6 +56,10 @@ const SidebarTab = memo(({ to, label, children }: SidebarTabProps) => {
 				render={
 					<Link
 						to={to}
+						preload="intent"
+						preloadDelay={50}
+						onMouseEnter={handleIntent}
+						onFocus={handleIntent}
 						aria-label={label}
 						onClick={handleClick}
 						activeProps={{
@@ -69,6 +83,7 @@ SidebarTab.displayName = "SidebarTab"
 
 const Sidebar = () => {
 	const navigate = useNavigate()
+	const router = useRouter()
 	const currentPathname = useRouterState({ select: (s) => s.location.pathname })
 	const { t } = useLanguage()
 
@@ -80,6 +95,17 @@ const Sidebar = () => {
 			navigate({ to: "/settings" })
 		}
 	}, [currentPathname, navigate])
+
+	const handlePreloadSettings = useCallback(() => {
+		const destination = getTabDestination("/settings", currentPathname)
+		if (destination !== "/settings") {
+			router
+				.preloadRoute({ href: destination } as unknown as Parameters<typeof router.preloadRoute>[0])
+				.catch(() => {})
+		} else {
+			router.preloadRoute({ to: "/settings" }).catch(() => {})
+		}
+	}, [router, currentPathname])
 
 	return (
 		<aside className="flex w-16 flex-col items-center justify-between border-border/40 border-r bg-background/40 py-4 backdrop-blur-sm">
@@ -111,7 +137,11 @@ const Sidebar = () => {
 				</SidebarTab>
 
 				{/* Interactive Account Switcher with OS Keyring protection */}
-				<AccountSwitcher compact onOpenSettings={handleOpenSettings} />
+				<AccountSwitcher
+					compact
+					onOpenSettings={handleOpenSettings}
+					onPreloadSettings={handlePreloadSettings}
+				/>
 			</div>
 		</aside>
 	)

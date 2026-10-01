@@ -22,9 +22,14 @@ import type { AccountProfile } from "@/types/account"
 interface AccountSwitcherProps {
 	compact?: boolean
 	onOpenSettings?: () => void
+	onPreloadSettings?: () => void
 }
 
-const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherProps) => {
+const AccountSwitcher = ({
+	compact = false,
+	onOpenSettings,
+	onPreloadSettings,
+}: AccountSwitcherProps) => {
 	const { t } = useTranslation()
 	const { accounts, activeAccount, setActiveAccount, removeAccount } = useAccounts()
 	const [isAddOpen, setIsAddOpen] = useState(false)
@@ -207,7 +212,12 @@ const AccountSwitcher = ({ compact = false, onOpenSettings }: AccountSwitcherPro
 					</DropdownMenuItem>
 
 					{onOpenSettings && (
-						<DropdownMenuItem onClick={onOpenSettings} className="gap-2 text-xs">
+						<DropdownMenuItem
+							onClick={onOpenSettings}
+							onMouseEnter={onPreloadSettings}
+							onFocus={onPreloadSettings}
+							className="gap-2 text-xs"
+						>
 							<Settings className="size-3.5" />
 							<span>{t("accounts.manageAccounts")}</span>
 						</DropdownMenuItem>

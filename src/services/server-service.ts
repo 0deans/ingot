@@ -90,21 +90,33 @@ async function initListeners() {
 	}
 }
 
+let refreshServersPromise: Promise<ServerConfig[]> | null = null
+
 export const serverService = {
 	async getServers(): Promise<ServerConfig[]> {
 		return this.refreshServers()
 	},
 
 	async refreshServers(): Promise<ServerConfig[]> {
-		try {
-			await initListeners()
-			const servers = await rpc.get_servers()
-			useServerStore.setState({ servers })
-			return servers
-		} catch (e) {
-			console.error("Failed to load servers:", e)
-			return []
+		if (refreshServersPromise) {
+			return refreshServersPromise
 		}
+
+		refreshServersPromise = (async () => {
+			try {
+				await initListeners()
+				const servers = await rpc.get_servers()
+				useServerStore.setState({ servers })
+				return servers
+			} catch (e) {
+				console.error("Failed to load servers:", e)
+				return []
+			} finally {
+				refreshServersPromise = null
+			}
+		})()
+
+		return refreshServersPromise
 	},
 
 	async createServer(

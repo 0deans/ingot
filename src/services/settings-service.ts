@@ -41,16 +41,38 @@ const useSettingsStore = create<SettingsState>(() => ({
 const state = () => useSettingsStore.getState()
 const set = (patch: Partial<SettingsState>) => useSettingsStore.setState(patch)
 
+let launcherBehaviorPromise: Promise<LauncherBehavior> | null = null
+let systemMemoryPromise: Promise<SystemMemoryInfo> | null = null
+let memorySettingsPromise: Promise<MemorySettings> | null = null
+let windowSettingsPromise: Promise<WindowSettings> | null = null
+let syncSettingsPromise: Promise<SyncSettings> | null = null
+
 export const settingsService = {
+	async preloadSettings(): Promise<void> {
+		await Promise.all([
+			this.getLauncherBehavior(),
+			this.getMemorySettings(),
+			this.getSystemMemory(),
+			this.getWindowSettings(),
+			this.getSyncSettings(),
+		])
+	},
+
 	async getLauncherBehavior(): Promise<LauncherBehavior> {
-		try {
-			const b = (await rpc.get_launcher_behavior()) as LauncherBehavior
-			set({ behavior: b })
-			return b
-		} catch (error) {
-			console.error("Failed to load launcher behavior:", error)
-			return state().behavior
-		}
+		if (launcherBehaviorPromise) return launcherBehaviorPromise
+		launcherBehaviorPromise = (async () => {
+			try {
+				const b = (await rpc.get_launcher_behavior()) as LauncherBehavior
+				set({ behavior: b })
+				return b
+			} catch (error) {
+				console.error("Failed to load launcher behavior:", error)
+				return state().behavior
+			} finally {
+				launcherBehaviorPromise = null
+			}
+		})()
+		return launcherBehaviorPromise
 	},
 
 	async setLauncherBehavior(behavior: LauncherBehavior): Promise<LauncherBehavior> {
@@ -65,34 +87,46 @@ export const settingsService = {
 	},
 
 	async getSystemMemory(): Promise<SystemMemoryInfo> {
-		try {
-			const info = await rpc.get_system_memory()
-			set({ systemMemory: info })
-			return info
-		} catch (error) {
-			console.error("Failed to query system memory:", error)
-			const fallback: SystemMemoryInfo = {
-				totalBytes: 16 * 1024 * 1024 * 1024,
-				availableBytes: 10 * 1024 * 1024 * 1024,
-				usedBytes: 6 * 1024 * 1024 * 1024,
-				totalMb: 16384,
-				availableMb: 10240,
-				usedMb: 6144,
+		if (systemMemoryPromise) return systemMemoryPromise
+		systemMemoryPromise = (async () => {
+			try {
+				const info = await rpc.get_system_memory()
+				set({ systemMemory: info })
+				return info
+			} catch (error) {
+				console.error("Failed to query system memory:", error)
+				const fallback: SystemMemoryInfo = {
+					totalBytes: 16 * 1024 * 1024 * 1024,
+					availableBytes: 10 * 1024 * 1024 * 1024,
+					usedBytes: 6 * 1024 * 1024 * 1024,
+					totalMb: 16384,
+					availableMb: 10240,
+					usedMb: 6144,
+				}
+				set({ systemMemory: fallback })
+				return fallback
+			} finally {
+				systemMemoryPromise = null
 			}
-			set({ systemMemory: fallback })
-			return fallback
-		}
+		})()
+		return systemMemoryPromise
 	},
 
 	async getMemorySettings(): Promise<MemorySettings> {
-		try {
-			const mem = await rpc.get_memory_settings()
-			set({ memory: mem })
-			return mem
-		} catch (error) {
-			console.error("Failed to load memory settings:", error)
-			return state().memory
-		}
+		if (memorySettingsPromise) return memorySettingsPromise
+		memorySettingsPromise = (async () => {
+			try {
+				const mem = await rpc.get_memory_settings()
+				set({ memory: mem })
+				return mem
+			} catch (error) {
+				console.error("Failed to load memory settings:", error)
+				return state().memory
+			} finally {
+				memorySettingsPromise = null
+			}
+		})()
+		return memorySettingsPromise
 	},
 
 	async setMemorySettings(minRamMb: number, maxRamMb: number): Promise<MemorySettings> {
@@ -107,14 +141,20 @@ export const settingsService = {
 	},
 
 	async getWindowSettings(): Promise<WindowSettings> {
-		try {
-			const ws = await rpc.get_window_settings()
-			set({ windowSettings: ws })
-			return ws
-		} catch (error) {
-			console.error("Failed to load window settings:", error)
-			return state().windowSettings
-		}
+		if (windowSettingsPromise) return windowSettingsPromise
+		windowSettingsPromise = (async () => {
+			try {
+				const ws = await rpc.get_window_settings()
+				set({ windowSettings: ws })
+				return ws
+			} catch (error) {
+				console.error("Failed to load window settings:", error)
+				return state().windowSettings
+			} finally {
+				windowSettingsPromise = null
+			}
+		})()
+		return windowSettingsPromise
 	},
 
 	async setWindowSettings(settings: WindowSettings): Promise<WindowSettings> {
@@ -129,14 +169,20 @@ export const settingsService = {
 	},
 
 	async getSyncSettings(): Promise<SyncSettings> {
-		try {
-			const ss = await rpc.get_sync_settings()
-			set({ syncSettings: ss })
-			return ss
-		} catch (error) {
-			console.error("Failed to load sync settings:", error)
-			return state().syncSettings
-		}
+		if (syncSettingsPromise) return syncSettingsPromise
+		syncSettingsPromise = (async () => {
+			try {
+				const ss = await rpc.get_sync_settings()
+				set({ syncSettings: ss })
+				return ss
+			} catch (error) {
+				console.error("Failed to load sync settings:", error)
+				return state().syncSettings
+			} finally {
+				syncSettingsPromise = null
+			}
+		})()
+		return syncSettingsPromise
 	},
 
 	async setSyncSettings(settings: SyncSettings): Promise<SyncSettings> {

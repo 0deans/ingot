@@ -15,6 +15,8 @@ function notify(accounts: AccountProfile[]) {
 	useAccountStore.setState({ accounts })
 }
 
+let refreshAccountsPromise: Promise<AccountProfile[]> | null = null
+
 export const accountService = {
 	getCachedAccounts(): AccountProfile[] {
 		return current()
@@ -29,14 +31,24 @@ export const accountService = {
 	},
 
 	async refreshAccounts(): Promise<AccountProfile[]> {
-		try {
-			const list = await rpc.get_accounts()
-			useAccountStore.setState({ accounts: list, fetched: true })
-			return list
-		} catch (error) {
-			console.error("Failed to load accounts:", error)
-			return current()
+		if (refreshAccountsPromise) {
+			return refreshAccountsPromise
 		}
+
+		refreshAccountsPromise = (async () => {
+			try {
+				const list = await rpc.get_accounts()
+				useAccountStore.setState({ accounts: list, fetched: true })
+				return list
+			} catch (error) {
+				console.error("Failed to load accounts:", error)
+				return current()
+			} finally {
+				refreshAccountsPromise = null
+			}
+		})()
+
+		return refreshAccountsPromise
 	},
 
 	async elyLogin(username: string, password: string): Promise<AccountProfile> {

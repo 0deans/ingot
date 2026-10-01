@@ -31,6 +31,9 @@ export const router = createRouter({
 	routeTree,
 	history: memoryHistory,
 	scrollRestoration: true,
+	defaultPreload: "intent",
+	defaultPreloadDelay: 50,
+	defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
 	context: {
 		queryClient,
 	},

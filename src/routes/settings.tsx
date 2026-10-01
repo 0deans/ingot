@@ -52,8 +52,12 @@ import {
 } from "@/components/ui/field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
-import { useAccounts } from "@/services/account-service"
-import { type LauncherBehavior, useLauncherBehavior } from "@/services/settings-service"
+import { accountService, useAccounts } from "@/services/account-service"
+import {
+	type LauncherBehavior,
+	settingsService,
+	useLauncherBehavior,
+} from "@/services/settings-service"
 
 export const settingsDialogSchema = v.picklist(["add-account"])
 
@@ -353,5 +357,8 @@ const MemoizedSettingsPage = memo(SettingsPage)
 
 export const Route = createFileRoute("/settings")({
 	validateSearch: settingsSearchSchema,
+	loader: async () => {
+		await Promise.all([accountService.refreshAccounts(), settingsService.preloadSettings()])
+	},
 	component: MemoizedSettingsPage,
 })

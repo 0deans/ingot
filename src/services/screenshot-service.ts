@@ -13,23 +13,34 @@ const useScreenshotStore = create<{
 
 const state = () => useScreenshotStore.getState()
 
+let refreshScreenshotsPromise: Promise<ScreenshotInfo[]> | null = null
+
 export const screenshotService = {
 	async getScreenshots(): Promise<ScreenshotInfo[]> {
 		return this.refreshScreenshots()
 	},
 
 	async refreshScreenshots(): Promise<ScreenshotInfo[]> {
-		try {
-			useScreenshotStore.setState({ loading: true })
-			const list = await rpc.get_all_screenshots()
-			useScreenshotStore.setState({ screenshots: list, fetched: true })
-			return list
-		} catch (error) {
-			console.error("Failed to load screenshots:", error)
-			return state().screenshots
-		} finally {
-			useScreenshotStore.setState({ loading: false })
+		if (refreshScreenshotsPromise) {
+			return refreshScreenshotsPromise
 		}
+
+		refreshScreenshotsPromise = (async () => {
+			try {
+				useScreenshotStore.setState({ loading: true })
+				const list = await rpc.get_all_screenshots()
+				useScreenshotStore.setState({ screenshots: list, fetched: true })
+				return list
+			} catch (error) {
+				console.error("Failed to load screenshots:", error)
+				return state().screenshots
+			} finally {
+				useScreenshotStore.setState({ loading: false })
+				refreshScreenshotsPromise = null
+			}
+		})()
+
+		return refreshScreenshotsPromise
 	},
 
 	async deleteScreenshot(instanceId: string, fileName: string): Promise<void> {
