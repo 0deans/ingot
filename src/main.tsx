@@ -59,12 +59,14 @@ if (rootElement) {
 	)
 }
 
-requestAnimationFrame(() => {
-	const appWindow = getCurrentWindow()
-	appWindow
-		.show()
-		.then(() => {
-			appWindow.setFocus().catch(() => {})
-		})
-		.catch(() => {})
+router.load().finally(() => {
+	requestAnimationFrame(() => {
+		const appWindow = getCurrentWindow()
+		appWindow
+			.show()
+			.then(() => {
+				appWindow.setFocus().catch(() => {})
+			})
+			.catch(() => {})
+	})
 })

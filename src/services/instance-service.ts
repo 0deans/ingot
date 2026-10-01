@@ -84,21 +84,31 @@ async function initListeners() {
 	}
 }
 
+let refreshInstancesPromise: Promise<InstanceConfig[]> | null = null
+
 export const instanceService = {
 	async getInstances(): Promise<InstanceConfig[]> {
 		return this.refreshInstances()
 	},
 
 	async refreshInstances(): Promise<InstanceConfig[]> {
-		try {
-			await initListeners()
-			const instances = await rpc.get_instances()
-			useInstanceStore.setState({ instances })
-			return instances
-		} catch (e) {
-			console.error("Failed to fetch instances:", e)
-			return useInstanceStore.getState().instances
-		}
+		if (refreshInstancesPromise) return refreshInstancesPromise
+
+		refreshInstancesPromise = (async () => {
+			try {
+				await initListeners()
+				const instances = await rpc.get_instances()
+				useInstanceStore.setState({ instances })
+				return instances
+			} catch (e) {
+				console.error("Failed to fetch instances:", e)
+				return useInstanceStore.getState().instances
+			} finally {
+				refreshInstancesPromise = null
+			}
+		})()
+
+		return refreshInstancesPromise
 	},
 
 	async createInstance(

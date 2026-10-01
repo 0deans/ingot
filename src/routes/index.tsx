@@ -49,7 +49,7 @@ const InstancesPage = () => {
 	const [searchInput, setSearchInput] = useState(searchQuery)
 	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
 
-	const { instances, refresh } = useInstances()
+	const { instances, isLoading, refresh } = useInstances()
 	const { runningMap, runningList } = useRunningInstances()
 	const progressMap = useAllInstancesProgress()
 	const { memory } = useMemorySettings()
@@ -245,46 +245,67 @@ const InstancesPage = () => {
 
 				{/* Instances Grid or Empty State */}
 				{instances.length === 0 ? (
-					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
-						<div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card/80 shadow-inner">
-							<Gamepad2 className="size-6 text-primary" />
+					isLoading ? (
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{Array.from({ length: 4 }).map((_, i) => (
+								<div
+									// biome-ignore lint/suspicious/noArrayIndexKey: Static placeholder keys
+									key={i}
+									className="flex min-h-[220px] animate-pulse flex-col justify-between rounded-2xl border border-border/40 bg-card/20 p-4"
+								>
+									<div className="flex items-center gap-3">
+										<div className="size-10 rounded-xl bg-muted/60" />
+										<div className="space-y-2">
+											<div className="h-4 w-28 rounded bg-muted/60" />
+											<div className="h-3 w-16 rounded bg-muted/40" />
+										</div>
+									</div>
+									<div className="h-8 w-full rounded-xl bg-muted/40" />
+								</div>
+							))}
 						</div>
-						<h3 className="mt-4 font-semibold text-base text-foreground">
-							{t("instances.emptyTitle")}
-						</h3>
-						<p className="mt-1.5 max-w-sm text-muted-foreground text-xs">
-							{t("instances.emptySubtitle")}
-						</p>
-						<div className="mt-5 flex items-center gap-3">
-							<Button
-								onClick={() =>
-									navigate({
-										search: (prev) => ({ ...prev, action: "new" }),
-										replace: true,
-									})
-								}
-								className="gap-2"
-								size="sm"
-							>
-								<Plus className="size-4" />
-								{t("instances.createFirst")}
-							</Button>
-							<Button
-								variant="outline"
-								onClick={() =>
-									navigate({
-										search: (prev) => ({ ...prev, action: "import" }),
-										replace: true,
-									})
-								}
-								className="gap-2"
-								size="sm"
-							>
-								<FolderDown className="size-4" />
-								{t("instances.importFromLauncher")}
-							</Button>
+					) : (
+						<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
+							<div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card/80 shadow-inner">
+								<Gamepad2 className="size-6 text-primary" />
+							</div>
+							<h3 className="mt-4 font-semibold text-base text-foreground">
+								{t("instances.emptyTitle")}
+							</h3>
+							<p className="mt-1.5 max-w-sm text-muted-foreground text-xs">
+								{t("instances.emptySubtitle")}
+							</p>
+							<div className="mt-5 flex items-center gap-3">
+								<Button
+									onClick={() =>
+										navigate({
+											search: (prev) => ({ ...prev, action: "new" }),
+											replace: true,
+										})
+									}
+									className="gap-2"
+									size="sm"
+								>
+									<Plus className="size-4" />
+									{t("instances.createFirst")}
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										navigate({
+											search: (prev) => ({ ...prev, action: "import" }),
+											replace: true,
+										})
+									}
+									className="gap-2"
+									size="sm"
+								>
+									<FolderDown className="size-4" />
+									{t("instances.importFromLauncher")}
+								</Button>
+							</div>
 						</div>
-					</div>
+					)
 				) : filteredInstances.length > 0 ? (
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 						{filteredInstances.map((inst) => (
@@ -428,5 +449,6 @@ const MemoizedInstancesPage = memo(InstancesPage)
 
 export const Route = createFileRoute("/")({
 	validateSearch: instancesSearchSchema,
+	loader: () => instanceService.refreshInstances(),
 	component: MemoizedInstancesPage,
 })
