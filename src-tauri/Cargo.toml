@@ -42,6 +42,7 @@ indexmap = { version = "2", features = ["serde"] }
 tar = "0.4"
 fastnbt = "2"
 png = "0.18"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
 md5 = { version = "0.10", package = "md-5" }
 if-addrs = "0.15.0"
 sha2 = "0.11.0"
@@ -55,6 +56,18 @@ tauri-plugin-updater = "2"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.dev.package.image]
+opt-level = 3
+
+[profile.dev.package.png]
+opt-level = 3
+
+[profile.dev.package.zune-jpeg]
+opt-level = 3
+
+[profile.dev.package.zune-core]
+opt-level = 3
+
 [profile.release]
 codegen-units = 16
 lto = "thin"

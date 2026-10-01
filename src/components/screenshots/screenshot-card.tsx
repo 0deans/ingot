@@ -32,7 +32,7 @@ function formatDate(timestamp: number): string {
 const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotCardProps) => {
 	const { t } = useTranslation()
 	const [imageError, setImageError] = useState(false)
-	const imageUrl = screenshotService.getImageUrl(screenshot.filePath)
+	const imageUrl = screenshotService.getThumbnailUrl(screenshot)
 	const [loaded, setLoaded] = useState(() => loadedScreenshotImageCache.has(imageUrl))
 	const [menuOpen, setMenuOpen] = useState(false)
 
@@ -42,7 +42,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 	}, [imageUrl])
 
 	return (
-		<div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-background/40 shadow-sm transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md">
+		<div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-card transition-colors duration-150 [contain-intrinsic-size:280px_210px] [content-visibility:auto] hover:border-primary/50">
 			{/* Accessible full card click-to-fullscreen button */}
 			<button
 				type="button"
@@ -52,7 +52,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 			/>
 
 			{/* Thumbnail container */}
-			<div className="relative aspect-video w-full overflow-hidden bg-card/60">
+			<div className="relative aspect-video w-full overflow-hidden bg-muted/20">
 				{!loaded && !imageError && (
 					<Skeleton className="absolute inset-0 rounded-none bg-muted/30" />
 				)}
@@ -66,12 +66,11 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 					<img
 						src={imageUrl}
 						alt={screenshot.fileName}
-						loading="lazy"
 						decoding="async"
 						onLoad={handleImageLoad}
 						onError={() => setImageError(true)}
-						className={`size-full transform-gpu object-cover transition-transform duration-200 group-hover:scale-105 ${
-							loaded ? "opacity-100" : "opacity-0"
+						className={`size-full object-cover ${
+							loaded ? "opacity-100" : "opacity-0 transition-opacity duration-150"
 						}`}
 					/>
 				)}
@@ -148,7 +147,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 			</div>
 
 			{/* Info strip */}
-			<div className="pointer-events-none relative z-10 flex flex-col gap-1 p-2.5">
+			<div className="pointer-events-none relative z-10 flex h-[54px] flex-col justify-center gap-1 p-2.5">
 				<div className="flex items-center justify-between gap-2">
 					<span
 						title={screenshot.fileName}

@@ -338,6 +338,14 @@ pub trait AppApi {
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<ScreenshotInfo>, String>;
 
+    async fn get_screenshot_thumbnail(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        file_name: String,
+        file_path: String,
+        modified_at: u64,
+    ) -> Result<String, String>;
+
     async fn delete_screenshot(
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
@@ -1360,6 +1368,27 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<ScreenshotInfo>, String> {
         screenshots::get_all_screenshots(&app_handle)
+    }
+
+    async fn get_screenshot_thumbnail(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        file_name: String,
+        file_path: String,
+        modified_at: u64,
+    ) -> Result<String, String> {
+        tokio::task::spawn_blocking(move || {
+            screenshots::get_or_create_thumbnail(
+                &app_handle,
+                &instance_id,
+                &file_name,
+                &file_path,
+                modified_at,
+            )
+        })
+        .await
+        .map_err(|e| e.to_string())?
     }
 
     async fn delete_screenshot(

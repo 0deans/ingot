@@ -78,11 +78,34 @@ export const screenshotService = {
 		return cached
 	},
 
-	preloadThumbnails(screenshots: ScreenshotInfo[], limit = 24): void {
+	getThumbnailUrl(screenshot: ScreenshotInfo): string {
+		const targetPath = screenshot.thumbnailPath || screenshot.filePath
+		return this.getImageUrl(targetPath)
+	},
+
+	async ensureThumbnail(screenshot: ScreenshotInfo): Promise<string> {
+		if (screenshot.thumbnailPath) {
+			return this.getImageUrl(screenshot.thumbnailPath)
+		}
+		try {
+			const thumbPath = await rpc.get_screenshot_thumbnail(
+				screenshot.instanceId,
+				screenshot.fileName,
+				screenshot.filePath,
+				screenshot.modifiedAt,
+			)
+			screenshot.thumbnailPath = thumbPath
+			return this.getImageUrl(thumbPath)
+		} catch {
+			return this.getImageUrl(screenshot.filePath)
+		}
+	},
+
+	preloadThumbnails(screenshots: ScreenshotInfo[], limit = 30): void {
 		if (typeof window === "undefined") return
 		const slice = screenshots.slice(0, limit)
 		for (const s of slice) {
-			const url = this.getImageUrl(s.filePath)
+			const url = this.getThumbnailUrl(s)
 			if (loadedScreenshotImageCache.has(url)) continue
 			const img = new Image()
 			img.onload = () => loadedScreenshotImageCache.add(url)
