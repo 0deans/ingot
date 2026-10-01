@@ -42,7 +42,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 	}, [imageUrl])
 
 	return (
-		<div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-background/40 shadow-sm transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-black/40 hover:shadow-lg">
+		<div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-background/40 shadow-sm transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md">
 			{/* Accessible full card click-to-fullscreen button */}
 			<button
 				type="button"
@@ -70,7 +70,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 						decoding="async"
 						onLoad={handleImageLoad}
 						onError={() => setImageError(true)}
-						className={`size-full object-cover transition-transform duration-200 group-hover:scale-105 ${
+						className={`size-full transform-gpu object-cover transition-transform duration-200 group-hover:scale-105 ${
 							loaded ? "opacity-100" : "opacity-0"
 						}`}
 					/>
@@ -108,39 +108,41 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								</Button>
 							}
 						/>
-						<DropdownMenuContent align="end" className="w-44">
-							<DropdownMenuItem
-								className="gap-2 text-xs"
-								onClick={() => {
-									setMenuOpen(false)
-									onClick(screenshot)
-								}}
-							>
-								<Maximize2 className="size-3.5 text-muted-foreground" />
-								<span>{t("screenshots.card.fullscreen")}</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="gap-2 text-xs"
-								onClick={() => {
-									setMenuOpen(false)
-									onReveal(screenshot)
-								}}
-							>
-								<FolderOpen className="size-3.5 text-muted-foreground" />
-								<span>{t("screenshots.card.showInFolder")}</span>
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								className="gap-2 text-destructive text-xs focus:text-destructive"
-								onClick={() => {
-									setMenuOpen(false)
-									onDelete(screenshot)
-								}}
-							>
-								<Trash2 className="size-3.5" />
-								<span>{t("common.delete")}</span>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
+						{menuOpen && (
+							<DropdownMenuContent align="end" className="w-44">
+								<DropdownMenuItem
+									className="gap-2 text-xs"
+									onClick={() => {
+										setMenuOpen(false)
+										onClick(screenshot)
+									}}
+								>
+									<Maximize2 className="size-3.5 text-muted-foreground" />
+									<span>{t("screenshots.card.fullscreen")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="gap-2 text-xs"
+									onClick={() => {
+										setMenuOpen(false)
+										onReveal(screenshot)
+									}}
+								>
+									<FolderOpen className="size-3.5 text-muted-foreground" />
+									<span>{t("screenshots.card.showInFolder")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									className="gap-2 text-destructive text-xs focus:text-destructive"
+									onClick={() => {
+										setMenuOpen(false)
+										onDelete(screenshot)
+									}}
+								>
+									<Trash2 className="size-3.5" />
+									<span>{t("common.delete")}</span>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						)}
 					</DropdownMenu>
 				</div>
 			</div>

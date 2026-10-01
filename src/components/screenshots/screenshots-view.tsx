@@ -1,4 +1,5 @@
 import { getRouteApi } from "@tanstack/react-router"
+import { useVirtualizer } from "@tanstack/react-virtual"
 import {
 	ArrowUpDown,
 	Camera,
@@ -12,7 +13,7 @@ import {
 	Trash2,
 	X,
 } from "lucide-react"
-import { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
 import { ScrollArea } from "@/components/common/scroll-area"
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 import type { screenshotSortSchema } from "@/routes/screenshots"
 import { useCachedInstances } from "@/services/instance-service"
 import {
@@ -48,6 +50,15 @@ import {
 } from "@/services/screenshot-service"
 import ScreenshotCard from "./screenshot-card"
 import ScreenshotLightbox from "./screenshot-lightbox"
+
+function getColumnCount(width: number): number {
+	if (width >= 1536) return 6
+	if (width >= 1280) return 5
+	if (width >= 1024) return 4
+	if (width >= 768) return 3
+	if (width >= 480) return 2
+	return 1
+}
 
 const routeApi = getRouteApi("/screenshots")
 
@@ -196,6 +207,64 @@ const ScreenshotsView = () => {
 			setIsDeleting(false)
 		}
 	}
+
+	const parentRef = useRef<HTMLDivElement | null>(null)
+	const [containerWidth, setContainerWidth] = useState(() => {
+		if (typeof window !== "undefined") {
+			return Math.max(window.innerWidth - 240, 320)
+		}
+		return 1024
+	})
+
+	const columnCount = useMemo(() => getColumnCount(containerWidth), [containerWidth])
+
+	const estimatedRowHeight = useMemo(() => {
+		const availableWidth = Math.max(containerWidth - 48, 200)
+		const totalGapWidth = (columnCount - 1) * 16
+		const cardWidth = Math.max((availableWidth - totalGapWidth) / columnCount, 100)
+		return Math.round(cardWidth * (9 / 16) + 54)
+	}, [containerWidth, columnCount])
+
+	useEffect(() => {
+		const el = parentRef.current
+		if (!el) return
+
+		const updateWidth = () => {
+			setContainerWidth(el.clientWidth)
+		}
+
+		updateWidth()
+		const observer = new ResizeObserver(updateWidth)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [])
+
+	const rowCount = Math.ceil(filteredScreenshots.length / columnCount)
+
+	const rowVirtualizer = useVirtualizer({
+		count: rowCount,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => estimatedRowHeight,
+		overscan: 2,
+		gap: 16,
+		paddingStart: 24,
+		paddingEnd: 24,
+	})
+
+	// Re-measure when row height changes to update row offsets
+	useEffect(() => {
+		if (estimatedRowHeight > 0) {
+			rowVirtualizer.measure()
+		}
+	}, [estimatedRowHeight, rowVirtualizer])
+
+	// Reset scroll position when search/filter/sort changes
+	const filterKey = `${searchQuery}:${selectedInstanceId}:${sortBy}`
+	useEffect(() => {
+		if (filterKey && parentRef.current) {
+			parentRef.current.scrollTop = 0
+		}
+	}, [filterKey])
 
 	const handleCardClick = useCallback(
 		(s: ScreenshotInfo) => {
@@ -382,18 +451,51 @@ const ScreenshotsView = () => {
 			</div>
 
 			{/* Main Gallery Area */}
-			<ScrollArea scrollFade className="min-h-0 flex-1 [transform:translateZ(0)]">
+			<ScrollArea viewportRef={parentRef} className="min-h-0 flex-1">
 				{filteredScreenshots.length > 0 ? (
-					<div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-						{filteredScreenshots.map((item) => (
-							<ScreenshotCard
-								key={`${item.instanceId}-${item.fileName}`}
-								screenshot={item}
-								onClick={handleCardClick}
-								onDelete={handleCardDelete}
-								onReveal={handleCardReveal}
-							/>
-						))}
+					<div
+						style={{
+							height: `${rowVirtualizer.getTotalSize()}px`,
+							width: "100%",
+							position: "relative",
+						}}
+						className={cn(rowVirtualizer.isScrolling && "pointer-events-none")}
+					>
+						{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+							const startIndex = virtualRow.index * columnCount
+							const rowScreenshots = filteredScreenshots.slice(startIndex, startIndex + columnCount)
+							return (
+								<div
+									key={virtualRow.key}
+									style={{
+										position: "absolute",
+										top: 0,
+										left: 0,
+										width: "100%",
+										height: `${virtualRow.size}px`,
+										transform: `translateY(${virtualRow.start}px)`,
+									}}
+									className="px-6"
+								>
+									<div
+										className="grid gap-4"
+										style={{
+											gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
+										}}
+									>
+										{rowScreenshots.map((item) => (
+											<ScreenshotCard
+												key={`${item.instanceId}-${item.fileName}`}
+												screenshot={item}
+												onClick={handleCardClick}
+												onDelete={handleCardDelete}
+												onReveal={handleCardReveal}
+											/>
+										))}
+									</div>
+								</div>
+							)
+						})}
 					</div>
 				) : screenshots.length === 0 ? (
 					/* No screenshots in any instance */
