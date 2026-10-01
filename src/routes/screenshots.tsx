@@ -34,10 +34,13 @@ const MemoizedScreenshotsPage = memo(ScreenshotsPage)
 export const Route = createFileRoute("/screenshots")({
 	validateSearch: screenshotsSearchSchema,
 	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData({
+		const list = await context.queryClient.ensureQueryData({
 			queryKey: ["screenshots"],
 			queryFn: () => screenshotService.getScreenshots(),
 		})
+		if (Array.isArray(list)) {
+			screenshotService.preloadThumbnails(list)
+		}
 	},
 	component: MemoizedScreenshotsPage,
 })

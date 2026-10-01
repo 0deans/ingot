@@ -210,6 +210,10 @@ export function useInstances() {
 	}
 }
 
+export function useCachedInstances(): InstanceConfig[] {
+	return useInstanceStore((s) => s.instances)
+}
+
 export function useRunningInstances() {
 	const running = useInstanceStore((s) => s.running)
 

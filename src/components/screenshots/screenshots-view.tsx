@@ -12,7 +12,7 @@ import {
 	Trash2,
 	X,
 } from "lucide-react"
-import { memo, useEffect, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
 import { ScrollArea } from "@/components/common/scroll-area"
@@ -40,8 +40,12 @@ import {
 import { Kbd } from "@/components/ui/kbd"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { screenshotSortSchema } from "@/routes/screenshots"
-import { useInstances } from "@/services/instance-service"
-import { screenshotService, useScreenshots } from "@/services/screenshot-service"
+import { useCachedInstances } from "@/services/instance-service"
+import {
+	type ScreenshotInfo,
+	screenshotService,
+	useScreenshots,
+} from "@/services/screenshot-service"
 import ScreenshotCard from "./screenshot-card"
 import ScreenshotLightbox from "./screenshot-lightbox"
 
@@ -68,7 +72,7 @@ const ScreenshotsView = () => {
 		openScreenshotsFolder,
 		revealScreenshotFile,
 	} = useScreenshots()
-	const { instances } = useInstances()
+	const instances = useCachedInstances()
 
 	const search = routeApi.useSearch()
 	const navigate = routeApi.useNavigate()
@@ -192,6 +196,31 @@ const ScreenshotsView = () => {
 			setIsDeleting(false)
 		}
 	}
+
+	const handleCardClick = useCallback(
+		(s: ScreenshotInfo) => {
+			navigate({
+				search: (prev) => ({ ...prev, lightbox: s.fileName }),
+			})
+		},
+		[navigate],
+	)
+
+	const handleCardDelete = useCallback(
+		(s: ScreenshotInfo) => {
+			navigate({
+				search: (prev) => ({ ...prev, delete: s.fileName }),
+			})
+		},
+		[navigate],
+	)
+
+	const handleCardReveal = useCallback(
+		(s: ScreenshotInfo) => {
+			revealScreenshotFile(s.filePath)
+		},
+		[revealScreenshotFile],
+	)
 
 	return (
 		<div className="flex size-full flex-col overflow-hidden bg-background text-foreground">
@@ -360,17 +389,9 @@ const ScreenshotsView = () => {
 							<ScreenshotCard
 								key={`${item.instanceId}-${item.fileName}`}
 								screenshot={item}
-								onClick={(s) =>
-									navigate({
-										search: (prev) => ({ ...prev, lightbox: s.fileName }),
-									})
-								}
-								onDelete={(s) =>
-									navigate({
-										search: (prev) => ({ ...prev, delete: s.fileName }),
-									})
-								}
-								onReveal={(s) => revealScreenshotFile(s.filePath)}
+								onClick={handleCardClick}
+								onDelete={handleCardDelete}
+								onReveal={handleCardReveal}
 							/>
 						))}
 					</div>

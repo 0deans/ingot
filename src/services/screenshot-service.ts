@@ -15,6 +15,10 @@ const state = () => useScreenshotStore.getState()
 
 let refreshScreenshotsPromise: Promise<ScreenshotInfo[]> | null = null
 
+export const loadedScreenshotImageCache = new Set<string>()
+
+const urlCache = new Map<string, string>()
+
 export const screenshotService = {
 	async getScreenshots(): Promise<ScreenshotInfo[]> {
 		return this.refreshScreenshots()
@@ -61,11 +65,28 @@ export const screenshotService = {
 	},
 
 	getImageUrl(filePath: string): string {
-		try {
-			return convertFileSrc(filePath)
-		} catch (e) {
-			console.error("Failed to convert file src:", e)
-			return filePath
+		let cached = urlCache.get(filePath)
+		if (!cached) {
+			try {
+				cached = convertFileSrc(filePath)
+			} catch (e) {
+				console.error("Failed to convert file src:", e)
+				cached = filePath
+			}
+			urlCache.set(filePath, cached)
+		}
+		return cached
+	},
+
+	preloadThumbnails(screenshots: ScreenshotInfo[], limit = 24): void {
+		if (typeof window === "undefined") return
+		const slice = screenshots.slice(0, limit)
+		for (const s of slice) {
+			const url = this.getImageUrl(s.filePath)
+			if (loadedScreenshotImageCache.has(url)) continue
+			const img = new Image()
+			img.onload = () => loadedScreenshotImageCache.add(url)
+			img.src = url
 		}
 	},
 }

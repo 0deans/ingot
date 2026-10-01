@@ -1,5 +1,5 @@
 import { FolderOpen, HardDrive, ImageOff, Maximize2, MoreVertical, Trash2 } from "lucide-react"
-import { memo, useState } from "react"
+import { memo, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatBytes, formatDateTime } from "@/lib/format"
-import { type ScreenshotInfo, screenshotService } from "@/services/screenshot-service"
+import {
+	loadedScreenshotImageCache,
+	type ScreenshotInfo,
+	screenshotService,
+} from "@/services/screenshot-service"
 
 interface ScreenshotCardProps {
 	screenshot: ScreenshotInfo
@@ -28,15 +32,17 @@ function formatDate(timestamp: number): string {
 const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotCardProps) => {
 	const { t } = useTranslation()
 	const [imageError, setImageError] = useState(false)
-	const [loaded, setLoaded] = useState(false)
-	const [menuOpen, setMenuOpen] = useState(false)
 	const imageUrl = screenshotService.getImageUrl(screenshot.filePath)
+	const [loaded, setLoaded] = useState(() => loadedScreenshotImageCache.has(imageUrl))
+	const [menuOpen, setMenuOpen] = useState(false)
+
+	const handleImageLoad = useCallback(() => {
+		loadedScreenshotImageCache.add(imageUrl)
+		setLoaded(true)
+	}, [imageUrl])
 
 	return (
-		<div
-			style={{ contentVisibility: "auto", containIntrinsicSize: "220px" }}
-			className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-background/40 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-black/40 hover:shadow-lg"
-		>
+		<div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/40 bg-background/40 shadow-sm transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-black/40 hover:shadow-lg">
 			{/* Accessible full card click-to-fullscreen button */}
 			<button
 				type="button"
@@ -47,7 +53,9 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 
 			{/* Thumbnail container */}
 			<div className="relative aspect-video w-full overflow-hidden bg-card/60">
-				{!loaded && !imageError && <Skeleton className="absolute inset-0 rounded-none" />}
+				{!loaded && !imageError && (
+					<Skeleton className="absolute inset-0 rounded-none bg-muted/30" />
+				)}
 
 				{imageError ? (
 					<div className="flex size-full flex-col items-center justify-center gap-1.5 p-3 text-center text-muted-foreground">
@@ -60,9 +68,9 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 						alt={screenshot.fileName}
 						loading="lazy"
 						decoding="async"
-						onLoad={() => setLoaded(true)}
+						onLoad={handleImageLoad}
 						onError={() => setImageError(true)}
-						className={`size-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+						className={`size-full object-cover transition-transform duration-200 group-hover:scale-105 ${
 							loaded ? "opacity-100" : "opacity-0"
 						}`}
 					/>
