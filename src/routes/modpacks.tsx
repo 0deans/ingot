@@ -16,7 +16,7 @@ import {
 	SunMedium,
 	X,
 } from "lucide-react"
-import { memo, useEffect, useState } from "react"
+import { memo, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -115,6 +115,149 @@ const SORTS = [
 const formatDownloads = formatCount
 
 const PAGE_SIZE = 24
+
+const SKELETON_KEYS = [
+	"skel-0",
+	"skel-1",
+	"skel-2",
+	"skel-3",
+	"skel-4",
+	"skel-5",
+	"skel-6",
+	"skel-7",
+	"skel-8",
+]
+
+interface ContentCardProps {
+	item: UnifiedContentItem
+	onOpenDetails: (item: UnifiedContentItem) => void
+	onStartInstall: (item: UnifiedContentItem) => void
+}
+
+const ContentCard = memo(function ContentCard({
+	item,
+	onOpenDetails,
+	onStartInstall,
+}: ContentCardProps) {
+	const { t } = useTranslation()
+
+	return (
+		<div className="group relative flex flex-col justify-between rounded-xl border border-border/40 bg-card p-4 transition-colors duration-150 [contain-intrinsic-size:320px_220px] [content-visibility:auto] hover:border-primary/40">
+			{/* Accessible full card click-to-open button */}
+			<button
+				type="button"
+				aria-label={item.title}
+				onClick={() => onOpenDetails(item)}
+				className="absolute inset-0 z-10 size-full cursor-pointer border-none bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+			/>
+
+			<div className="relative z-0 flex flex-col gap-3">
+				{/* Top row: Icon + Info */}
+				<div className="flex items-start gap-3">
+					{item.iconUrl ? (
+						<img
+							src={item.iconUrl}
+							alt={item.title}
+							decoding="async"
+							className="size-12 shrink-0 rounded-lg bg-muted object-cover"
+							onError={(e) => {
+								e.currentTarget.style.display = "none"
+							}}
+						/>
+					) : (
+						<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted font-bold text-muted-foreground text-sm">
+							{item.title.charAt(0).toUpperCase()}
+						</div>
+					)}
+
+					<div className="flex min-w-0 flex-1 flex-col">
+						<div className="flex items-center gap-1.5">
+							{/* Source Badge */}
+							<Badge
+								variant="outline"
+								className={
+									item.source === "modrinth"
+										? "border-primary/30 text-primary"
+										: "border-warning/30 text-warning"
+								}
+							>
+								{item.source === "curseforge" && <Flame />}
+								{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
+							</Badge>
+
+							{/* Type Badge */}
+							<Badge variant="secondary" className="capitalize">
+								{item.projectType}
+							</Badge>
+						</div>
+
+						<h3 className="mt-1 truncate font-semibold text-foreground text-sm transition-colors group-hover:text-primary">
+							{item.title}
+						</h3>
+						<span className="truncate text-muted-foreground text-xs">
+							{t("modpacks.byAuthor", { author: item.author })}
+						</span>
+					</div>
+				</div>
+
+				{/* Description */}
+				<p className="line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+					{item.description || t("modpacks.noDescription")}
+				</p>
+
+				{/* Tags & Loaders */}
+				<div className="flex flex-wrap items-center gap-1">
+					{item.loaders.slice(0, 3).map((ldr) => (
+						<Badge key={ldr} variant="secondary" className="font-mono capitalize">
+							{ldr}
+						</Badge>
+					))}
+					{item.latestVersion && (
+						<Badge variant="outline" className="font-mono">
+							{item.latestVersion}
+						</Badge>
+					)}
+				</div>
+			</div>
+
+			{/* Card Footer */}
+			<div className="relative z-20 mt-4 flex items-center justify-between border-border/30 border-t pt-3">
+				<div className="flex items-center gap-1 text-muted-foreground text-xs">
+					<Download className="size-3.5" />
+					<span>{formatDownloads(item.downloads)}</span>
+				</div>
+
+				<div className="flex items-center gap-1.5">
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={(e) => {
+							e.stopPropagation()
+							onOpenDetails(item)
+						}}
+						className="h-7 px-2 text-muted-foreground text-xs"
+					>
+						<Info className="size-3" />
+						{t("modpacks.details")}
+					</Button>
+
+					<Button
+						size="sm"
+						variant="default"
+						onClick={(e) => {
+							e.stopPropagation()
+							onStartInstall(item)
+						}}
+						className="h-7 gap-1 px-2.5 font-semibold text-xs"
+					>
+						<Download className="size-3" />
+						{t("common.install")}
+					</Button>
+				</div>
+			</div>
+		</div>
+	)
+})
 
 export const modpacksQueryOptions = (search: ModpacksSearchParams) =>
 	queryOptions({
@@ -260,12 +403,15 @@ const ModpacksPage = () => {
 		})
 	}
 
-	const handleOpenDetails = (item: UnifiedContentItem) => {
-		navigate({
-			search: (prev) => ({ ...prev, details: item.id }),
-			replace: true,
-		})
-	}
+	const handleOpenDetails = useCallback(
+		(item: UnifiedContentItem) => {
+			navigate({
+				search: (prev) => ({ ...prev, details: item.id }),
+				replace: true,
+			})
+		},
+		[navigate],
+	)
 
 	const handleCloseDetails = () => {
 		navigate({
@@ -274,10 +420,13 @@ const ModpacksPage = () => {
 		})
 	}
 
-	const handleStartInstall = (item: UnifiedContentItem, specificVer?: UnifiedContentVersion) => {
-		setInstallItem(item)
-		setInstallVersion(specificVer ?? null)
-	}
+	const handleStartInstall = useCallback(
+		(item: UnifiedContentItem, specificVer?: UnifiedContentVersion) => {
+			setInstallItem(item)
+			setInstallVersion(specificVer ?? null)
+		},
+		[],
+	)
 
 	const handleInstallSuccess = (message: string) => {
 		toast.success(message)
@@ -287,7 +436,7 @@ const ModpacksPage = () => {
 	const isBusy = isLoading || isFetching
 
 	return (
-		<ScrollArea className="size-full flex-1" scrollFade>
+		<ScrollArea className="size-full flex-1">
 			<div className="flex flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Notification Banner */}
 
@@ -520,12 +669,8 @@ const ModpacksPage = () => {
 				{/* Content Grid */}
 				{isLoading && items.length === 0 ? (
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{Array.from({ length: 9 }).map((_, i) => (
-							<div
-								// biome-ignore lint/suspicious/noArrayIndexKey: Loading skeleton placeholder
-								key={i}
-								className="flex flex-col gap-3 rounded-xl border border-border/40 p-4"
-							>
+						{SKELETON_KEYS.map((key) => (
+							<div key={key} className="flex flex-col gap-3 rounded-xl border border-border/40 p-4">
 								<div className="flex items-center gap-3">
 									<Skeleton className="size-12 rounded-lg" />
 									<div className="flex flex-1 flex-col gap-2">
@@ -576,118 +721,12 @@ const ModpacksPage = () => {
 				) : (
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{items.map((item) => (
-							// biome-ignore lint/a11y/useKeyWithClickEvents: Clicking card opens details dialog
-							// biome-ignore lint/a11y/noStaticElementInteractions: Clicking card opens details dialog
-							<div
+							<ContentCard
 								key={`${item.source}-${item.id}`}
-								onClick={() => handleOpenDetails(item)}
-								className="group flex cursor-pointer flex-col justify-between rounded-xl border border-border/40 bg-card/40 p-4 backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-card/70"
-							>
-								<div className="flex flex-col gap-3">
-									{/* Top row: Icon + Info */}
-									<div className="flex items-start gap-3">
-										{item.iconUrl ? (
-											<img
-												src={item.iconUrl}
-												alt={item.title}
-												className="size-12 shrink-0 rounded-lg bg-muted object-cover"
-												loading="lazy"
-												onError={(e) => {
-													e.currentTarget.style.display = "none"
-												}}
-											/>
-										) : (
-											<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted font-bold text-muted-foreground text-sm">
-												{item.title.charAt(0).toUpperCase()}
-											</div>
-										)}
-
-										<div className="flex min-w-0 flex-1 flex-col">
-											<div className="flex items-center gap-1.5">
-												{/* Source Badge */}
-												<Badge
-													variant="outline"
-													className={
-														item.source === "modrinth"
-															? "border-primary/30 text-primary"
-															: "border-warning/30 text-warning"
-													}
-												>
-													{item.source === "curseforge" && <Flame />}
-													{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
-												</Badge>
-
-												{/* Type Badge */}
-												<Badge variant="secondary" className="capitalize">
-													{item.projectType}
-												</Badge>
-											</div>
-
-											<h3 className="mt-1 truncate font-semibold text-foreground text-sm transition-colors group-hover:text-primary">
-												{item.title}
-											</h3>
-											<span className="truncate text-muted-foreground text-xs">
-												{t("modpacks.byAuthor", { author: item.author })}
-											</span>
-										</div>
-									</div>
-
-									{/* Description */}
-									<p className="line-clamp-2 text-muted-foreground text-xs leading-relaxed">
-										{item.description || t("modpacks.noDescription")}
-									</p>
-
-									{/* Tags & Loaders */}
-									<div className="flex flex-wrap items-center gap-1">
-										{item.loaders.slice(0, 3).map((ldr) => (
-											<Badge key={ldr} variant="secondary" className="font-mono capitalize">
-												{ldr}
-											</Badge>
-										))}
-										{item.latestVersion && (
-											<Badge variant="outline" className="font-mono">
-												{item.latestVersion}
-											</Badge>
-										)}
-									</div>
-								</div>
-
-								{/* Card Footer */}
-								<div className="mt-4 flex items-center justify-between border-border/30 border-t pt-3">
-									<div className="flex items-center gap-1 text-muted-foreground text-xs">
-										<Download className="size-3.5" />
-										<span>{formatDownloads(item.downloads)}</span>
-									</div>
-
-									<div className="flex items-center gap-1.5">
-										<Button
-											size="sm"
-											variant="ghost"
-											onClick={(e) => {
-												e.stopPropagation()
-												handleOpenDetails(item)
-											}}
-											className="h-7 px-2 text-muted-foreground text-xs"
-										>
-											<Info className="size-3" />
-											{t("modpacks.details")}
-										</Button>
-
-										<Button
-											size="sm"
-											variant="default"
-											onClick={(e) => {
-												e.stopPropagation()
-												handleStartInstall(item)
-											}}
-											className="h-7 gap-1 px-2.5 font-semibold text-xs"
-										>
-											<Download className="size-3" />
-											{t("common.install")}
-										</Button>
-									</div>
-								</div>
-							</div>
+								item={item}
+								onOpenDetails={handleOpenDetails}
+								onStartInstall={handleStartInstall}
+							/>
 						))}
 					</div>
 				)}

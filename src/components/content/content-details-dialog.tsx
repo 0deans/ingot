@@ -439,7 +439,7 @@ export const ContentDetailsDialog = memo(
 									</Button>
 								</div>
 							) : activeTab === "overview" ? (
-								<ScrollArea className="flex-1" scrollFade>
+								<ScrollArea className="flex-1">
 									<div className="flex flex-col gap-6 p-6">
 										{/* Gallery: Featured Large Preview + Scrollable Thumbnail Strip */}
 										{details?.screenshots && details.screenshots.length > 0 && (
@@ -705,7 +705,7 @@ export const ContentDetailsDialog = memo(
 										</span>
 									</div>
 
-									<ScrollArea className="flex-1" scrollFade>
+									<ScrollArea className="flex-1">
 										<div className="flex flex-col gap-3 p-6">
 											{filteredVersions.length === 0 ? (
 												<div className="py-12 text-center text-muted-foreground text-xs">
