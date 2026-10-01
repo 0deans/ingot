@@ -64,10 +64,14 @@ export function Segmented<T extends string>({
 			onValueChange={(v) => onChange(v as T)}
 			className={cn("shrink-0", className)}
 		>
-			{/* Long translations wrap at spaces (down to their longest word) before the list scrolls */}
-			<TabsList className="w-full overflow-x-auto group-data-horizontal/tabs:h-auto">
+			{/* Long translations wrap at spaces (down to their longest word) */}
+			<TabsList className="w-full overflow-hidden group-data-horizontal/tabs:h-auto">
 				{options.map(({ value: v, label, icon: Icon }) => (
-					<TabsTrigger key={v} value={v} className="min-w-min whitespace-normal py-1 leading-tight">
+					<TabsTrigger
+						key={v}
+						value={v}
+						className="h-full min-w-min whitespace-normal py-1 leading-tight [overflow-wrap:anywhere]"
+					>
 						{Icon && <Icon />}
 						{label}
 					</TabsTrigger>

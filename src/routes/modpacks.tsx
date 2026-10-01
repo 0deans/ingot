@@ -363,7 +363,10 @@ const ModpacksPage = () => {
 							if (category !== undefined) handleCategoryChange(category)
 						}}
 					>
-						<TabsList variant="line" className="max-w-full overflow-x-auto [scrollbar-width:none]">
+						<TabsList
+							variant="line"
+							className="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+						>
 							{CATEGORIES.map(({ id, icon: Icon }) => (
 								<TabsTrigger key={id} value={id}>
 									<Icon />
