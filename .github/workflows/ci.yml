@@ -41,13 +41,19 @@ jobs:
         run: pnpm exec biome ci
 
   rust:
-    name: Rust tests
-    runs-on: ubuntu-22.04
+    name: Rust tests (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-22.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
       - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -56,7 +62,9 @@ jobs:
             libxdo-dev \
             libssl-dev \
             libayatana-appindicator3-dev \
-            librsvg2-dev
+            librsvg2-dev \
+            dbus-x11 \
+            gnome-keyring
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -68,10 +76,32 @@ jobs:
 
       # Tauri embeds the built frontend at compile time; the tests don't need the real one
       - name: Placeholder frontend build
+        shell: bash
         run: |
           mkdir -p dist
           [ -f dist/index.html ] || echo '<!doctype html><title>Ingot</title>' > dist/index.html
 
       - name: Run tests
         working-directory: src-tauri
+        if: runner.os == 'Linux'
         run: cargo test --lib --locked
+
+      - name: Run keyring regression tests
+        working-directory: src-tauri
+        if: runner.os != 'Linux'
+        run: cargo test --lib --locked keyring_store::tests
+
+      - name: Test native desktop vault
+        working-directory: src-tauri
+        if: runner.os != 'Linux'
+        run: cargo test --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
+
+      - name: Test Linux Secret Service
+        working-directory: src-tauri
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          dbus-run-session -- bash -e -c '
+            printf "%s" "ci-test-keyring" | gnome-keyring-daemon --unlock --components=secrets
+            cargo test --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
+          '
