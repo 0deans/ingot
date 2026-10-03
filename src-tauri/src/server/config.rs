@@ -25,6 +25,7 @@ pub enum ServerCoreType {
     NeoForge,
     Forge,
     Quilt,
+    Bedrock,
 }
 
 impl Default for ServerCoreType {
@@ -45,6 +46,7 @@ impl std::fmt::Display for ServerCoreType {
             Self::NeoForge => write!(f, "NeoForge"),
             Self::Forge => write!(f, "Forge"),
             Self::Quilt => write!(f, "Quilt"),
+            Self::Bedrock => write!(f, "Bedrock"),
         }
     }
 }
@@ -245,7 +247,7 @@ pub fn create_server<R: Runtime>(
             check_port(&servers, &id, p)?;
             p
         }
-        None => free_port(&servers, &id),
+        None => free_port_for_core(&servers, &id, &core),
     };
 
     let server_dir = get_server_dir(app, &id)?;
@@ -267,6 +269,7 @@ pub fn create_server<R: Runtime>(
     props.motd = format!("§6§l{}§r §7- Ingot Minecraft Server", name);
     let _ = write_server_properties_to_dir(&server_dir, &props);
 
+    let is_bedrock = core == ServerCoreType::Bedrock;
     let config = ServerConfig {
         id: id.clone(),
         name,
@@ -274,13 +277,13 @@ pub fn create_server<R: Runtime>(
         game_version,
         build_number,
         port: selected_port,
-        memory_min_mb: memory_min_mb.unwrap_or(2048),
-        memory_max_mb: memory_max_mb.unwrap_or(4096),
+        memory_min_mb: memory_min_mb.unwrap_or(if is_bedrock { 1024 } else { 2048 }),
+        memory_max_mb: memory_max_mb.unwrap_or(if is_bedrock { 2048 } else { 4096 }),
         icon: None,
         java_path: None,
         jvm_args: None,
         auto_start: Some(false),
-        sleep_enabled: Some(true),
+        sleep_enabled: Some(!is_bedrock),
         idle_timeout_seconds: Some(600), // 10 minutes default
         internal_port: Some(internal_port_for(selected_port)),
         playit_enabled: Some(false),
@@ -395,13 +398,18 @@ pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Resul
     }
 }
 
-/// Lowest free port from 25565
-pub fn free_port(servers: &[ServerConfig], server_id: &str) -> u16 {
-    let mut port = 25565;
+/// Lowest free port starting from base depending on core type (19132 for Bedrock, 25565 for Java)
+pub fn free_port_for_core(servers: &[ServerConfig], server_id: &str, core: &ServerCoreType) -> u16 {
+    let mut port = if *core == ServerCoreType::Bedrock { 19132 } else { 25565 };
     while port_owner(servers, server_id, port).is_some() && port < u16::MAX - 1 {
         port += 1;
     }
     port
+}
+
+/// Lowest free port from 25565
+pub fn free_port(servers: &[ServerConfig], server_id: &str) -> u16 {
+    free_port_for_core(servers, server_id, &ServerCoreType::Paper)
 }
 
 /// Parses server.properties from a key=value file format

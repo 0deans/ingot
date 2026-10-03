@@ -119,6 +119,25 @@
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Cross-platform Windows & console edition",
+		"installed": "Installed",
+		"notInstalled": "Not Installed",
+		"editionPreview": "Preview Edition",
+		"editionRetail": "Retail Edition",
+		"description": "Minecraft Bedrock Edition is available through the Microsoft Store. Install it directly from the Store or launch it from Ingot.",
+		"readyToPlay": "Ready to launch",
+		"launching": "Starting...",
+		"play": "Play Bedrock",
+		"msStoreEdition": "Windows Store Edition",
+		"installStore": "Install via Microsoft Store",
+		"openWorlds": "Worlds Folder",
+		"openResourcePacks": "Resource Packs",
+		"openBehaviorPacks": "Behavior Packs",
+		"openScreenshots": "Screenshots Folder",
+		"store": "Microsoft Store Page"
+	},
 	"modpacks": {
 		"title": "Discover Content",
 		"subtitle": "Search and install mods, modpacks, resource packs, and shaders directly into your instances from Modrinth and CurseForge.",
@@ -1184,6 +1203,10 @@
 			"tagline": "Ultra lightweight, Rust-powered — instant boot, < 60 MB RAM",
 			"badge": "Mobile Native"
 		},
+		"bedrock": {
+			"tagline": "Official Minecraft Bedrock Dedicated Server (BDS) for mobile & console crossplay",
+			"badge": "Bedrock / BDS"
+		},
 		"vanilla": {
 			"tagline": "Official unmodded Minecraft server directly from Mojang",
 			"badge": "Original"
@@ -1214,6 +1237,8 @@
 		"version": "Version",
 		"ram": "RAM",
 		"memory": "Memory (RAM)",
+		"nativeMemoryTitle": "Native Memory Management",
+		"nativeMemoryDesc": "This server runs natively as a compiled binary. It dynamically allocates system memory as needed without fixed JVM limits.",
 		"heroLine1": "Your first server,",
 		"heroLine2": "in seconds.",
 		"heroText": "Ingot downloads, configures and runs a Minecraft server right on this device. Invite friends from anywhere.",

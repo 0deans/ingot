@@ -359,6 +359,12 @@ pub trait AppApi {
 
     async fn reveal_screenshot_file(file_path: String) -> Result<(), String>;
 
+    // Bedrock Edition Client
+    async fn get_bedrock_client_status() -> Result<crate::minecraft::bedrock::BedrockClientStatus, String>;
+    async fn launch_bedrock_client() -> Result<(), String>;
+    async fn install_bedrock_client() -> Result<(), String>;
+    async fn open_bedrock_folder(kind: String) -> Result<(), String>;
+
     // Content Discovery (CurseForge & Modrinth)
     async fn search_content(
         source: String,
@@ -1410,6 +1416,24 @@ impl AppApi for AppApiImpl {
 
     async fn reveal_screenshot_file(self, file_path: String) -> Result<(), String> {
         screenshots::reveal_screenshot_file(&file_path)
+    }
+
+    async fn get_bedrock_client_status(
+        self,
+    ) -> Result<crate::minecraft::bedrock::BedrockClientStatus, String> {
+        Ok(crate::minecraft::bedrock::detect_bedrock_status())
+    }
+
+    async fn launch_bedrock_client(self) -> Result<(), String> {
+        crate::minecraft::bedrock::launch_bedrock()
+    }
+
+    async fn install_bedrock_client(self) -> Result<(), String> {
+        crate::minecraft::bedrock::install_bedrock()
+    }
+
+    async fn open_bedrock_folder(self, kind: String) -> Result<(), String> {
+        crate::minecraft::bedrock::open_bedrock_folder(&kind)
     }
 
     async fn search_content(

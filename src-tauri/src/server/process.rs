@@ -564,6 +564,14 @@ where
             public_port,
             sandbox.as_ref().map(|(dir, rootfs)| (dir.as_path(), rootfs.as_path())),
         )?
+    } else if config.core == ServerCoreType::Bedrock {
+        step("Preparing Bedrock Dedicated Server...");
+        step("Downloading Bedrock files (first start only)...");
+        let bin = crate::server::bedrock::ensure_bedrock_server_binary(&client, &server_dir, &game_ver).await?;
+        crate::server::bedrock::configure_bedrock_properties(&server_dir, &config)?;
+        let mut b_cmd = tokio::process::Command::new(bin);
+        b_cmd.current_dir(&server_dir);
+        b_cmd
     } else {
         // Construct command arguments with Aikar's G1GC flags
         let mut args: Vec<String> = Vec::new();
@@ -745,8 +753,8 @@ where
         let mut lines = BufReader::new(stdout).lines();
         while let Ok(Some(raw)) = lines.next_line().await {
             let line = clean_console_line(&raw);
-            // Vanilla/Paper/Fabric: "Done (12.345s)! For help, type "help""
-            if line.contains("Done (") && line.contains("For help") {
+            // Vanilla/Paper/Fabric: "Done (12.345s)! For help, type "help"", Bedrock: "Server started."
+            if (line.contains("Done (") && line.contains("For help")) || line.contains("Server started") {
                 ready.store(true, std::sync::atomic::Ordering::SeqCst);
                 // Started fine after a version change: nothing more to watch
                 crate::version_change::crash::first_start_ok(&server_dir_out);
@@ -770,12 +778,14 @@ where
             // Typical formats:
             //   "[HH:MM:SS] [Server thread/INFO]: PlayerName joined the game"
             //   "[HH:MM:SS] [Server thread/INFO]: PlayerName left the game"
-            if line.contains("joined the game") || line.contains("left the game") {
-                // Extract the player name: the word just before "joined" or "left"
+            //   Bedrock: "Player connected: PlayerName, xuid: ..."
+            //   Bedrock: "Player disconnected: PlayerName, xuid: ..."
+            if line.contains("joined the game") || line.contains("left the game")
+                || line.contains("Player connected: ") || line.contains("Player disconnected: ")
+            {
                 let extract_player = |line: &str, keyword: &str| -> Option<String> {
                     let idx = line.find(keyword)?;
                     let before = line[..idx].trim();
-                    // The name is the last word before the keyword
                     before.split_whitespace().last().map(|s| s.to_string())
                 };
 
@@ -788,6 +798,18 @@ where
                     }
                 } else if line.contains("left the game") {
                     if let Some(name) = extract_player(&line, " left the game") {
+                        guard.retain(|p| p != &name);
+                    }
+                } else if line.contains("Player connected: ") {
+                    if let Some(rest) = line.split("Player connected: ").nth(1) {
+                        let name = rest.split(',').next().unwrap_or(rest).trim().to_string();
+                        if !name.is_empty() && !guard.contains(&name) {
+                            guard.push(name);
+                        }
+                    }
+                } else if line.contains("Player disconnected: ") {
+                    if let Some(rest) = line.split("Player disconnected: ").nth(1) {
+                        let name = rest.split(',').next().unwrap_or(rest).trim().to_string();
                         guard.retain(|p| p != &name);
                     }
                 }

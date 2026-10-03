@@ -49,7 +49,7 @@ fn jar_for(core: &ServerCoreType, game_version: &str) -> Option<&'static [u8]> {
         }
         // Quilt runs Fabric mods
         ServerCoreType::Fabric | ServerCoreType::Quilt => (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR),
-        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::NeoForge | ServerCoreType::Forge => None,
+        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Bedrock => None,
     }
 }
 

@@ -17,6 +17,7 @@ export const serverCoreSchema = v.picklist([
 	"folia",
 	"vanilla",
 	"pumpkin",
+	"bedrock",
 ])
 
 export const serversSearchSchema = v.object({

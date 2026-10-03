@@ -491,8 +491,8 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 
 	if (!isRunning) return null
 	const latest = history[history.length - 1]
-	const pumpkin = server.core === "pumpkin"
-	const memoryLimit = pumpkin ? (latest?.systemMemoryTotalMb ?? 1) : server.memoryMaxMb
+	const isNative = server.core === "pumpkin" || server.core === "bedrock"
+	const memoryLimit = isNative ? (latest?.systemMemoryTotalMb ?? 1) : server.memoryMaxMb
 	const memoryValues = history.map((s) => s.memoryMb)
 	// Round the scale up so labels are tidy and the allocation line sits below the top
 	const memoryMax = Math.ceil((Math.max(memoryLimit, ...memoryValues) * 1.1) / 512) * 512
@@ -529,7 +529,7 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 					color="#a78bfa"
 					format={formatMb}
 					markers={
-						pumpkin ? [] : [{ value: memoryLimit, label: t("stats.allocated"), color: "#a78bfa" }]
+						isNative ? [] : [{ value: memoryLimit, label: t("stats.allocated"), color: "#a78bfa" }]
 					}
 					footer={
 						latest && (

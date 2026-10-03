@@ -73,6 +73,10 @@ const SERVER_CORES: {
 		name: "PumpkinMC",
 	},
 	{
+		id: "bedrock",
+		name: "Bedrock Dedicated Server",
+	},
+	{
 		id: "vanilla",
 		name: "Vanilla",
 	},
@@ -169,6 +173,8 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 		if (coreObj && (!name || SERVER_CORES.some((c) => name.startsWith(c.name)))) {
 			setName(t("wizard.defaultName", { core: coreObj.name }))
 		}
+		const basePort = newCore === "bedrock" ? 19132 : 25565
+		setPort(serverService.getNextAvailablePort(basePort))
 	}
 
 	const isPortConflict = serverService.isPortInUse(port)
@@ -511,7 +517,10 @@ function StepRam({
 	const { t } = useTranslation()
 	const { systemMemory } = useMemorySettings()
 	const coreObj = SERVER_CORES.find((c) => c.id === core)
-	const ramLabel = formatMegabytes(ramMb)
+	const isNative = core === "pumpkin" || core === "bedrock"
+	const ramLabel = isNative
+		? t("overview.native", { defaultValue: "Native" })
+		: formatMegabytes(ramMb)
 	const minRam = isMobile ? 512 : 1024
 	const maxRam = systemMemory?.totalMb
 		? Math.max(minRam, Math.floor(systemMemory.totalMb / 512) * 512)
@@ -544,26 +553,45 @@ function StepRam({
 				</div>
 			</div>
 
-			{/* RAM slider */}
-			<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/60 p-4">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-1.5">
-						<Cpu className="size-3.5 text-primary" />
-						<span className="font-medium text-foreground text-sm">{t("wizard.memory")}</span>
+			{/* RAM slider or Native info */}
+			{isNative ? (
+				<div className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 text-muted-foreground text-xs">
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary">
+						<Cpu className="size-4" />
 					</div>
-					<span className="font-bold font-mono text-primary text-sm">{ramLabel}</span>
+					<div>
+						<p className="font-medium text-foreground">
+							{t("wizard.nativeMemoryTitle", { defaultValue: "Native Memory Management" })}
+						</p>
+						<p className="mt-0.5 text-2xs leading-relaxed">
+							{t("wizard.nativeMemoryDesc", {
+								defaultValue:
+									"This server runs natively as a compiled binary. It dynamically allocates system memory as needed without fixed JVM limits.",
+							})}
+						</p>
+					</div>
 				</div>
-				<Slider
-					min={minRam}
-					max={maxRam}
-					step={512}
-					value={[Math.min(ramMb, maxRam)]}
-					onValueChange={(val: number | readonly number[]) =>
-						onRamChange(Array.isArray(val) ? val[0] : (val as number))
-					}
-					className="my-1"
-				/>
-			</div>
+			) : (
+				<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/60 p-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-1.5">
+							<Cpu className="size-3.5 text-primary" />
+							<span className="font-medium text-foreground text-sm">{t("wizard.memory")}</span>
+						</div>
+						<span className="font-bold font-mono text-primary text-sm">{ramLabel}</span>
+					</div>
+					<Slider
+						min={minRam}
+						max={maxRam}
+						step={512}
+						value={[Math.min(ramMb, maxRam)]}
+						onValueChange={(val: number | readonly number[]) =>
+							onRamChange(Array.isArray(val) ? val[0] : (val as number))
+						}
+						className="my-1"
+					/>
+				</div>
+			)}
 		</div>
 	)
 }

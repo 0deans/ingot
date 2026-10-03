@@ -166,6 +166,7 @@ pub async fn fetch_core_versions(
             Ok(versions)
         }
         ServerCoreType::Pumpkin => crate::server::pumpkin::fetch_pumpkin_versions(client).await,
+        ServerCoreType::Bedrock => crate::server::bedrock::fetch_bedrock_versions(client).await,
         ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
             crate::server::installer::fetch_game_versions(client, core).await
         }
@@ -354,6 +355,10 @@ pub async fn ensure_server_jar(
         ServerCoreType::Pumpkin => {
             crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
             Ok("Pumpkin binary ready".to_string())
+        }
+        ServerCoreType::Bedrock => {
+            crate::server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_version).await?;
+            Ok("Bedrock server binary ready".to_string())
         }
         ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => unreachable!("handled above"),
     }

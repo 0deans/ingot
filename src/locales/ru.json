@@ -119,6 +119,25 @@
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Кроссплатформенная версия для Windows и консолей",
+		"installed": "Установлена",
+		"notInstalled": "Не установлена",
+		"editionPreview": "Превью-версия (Preview)",
+		"editionRetail": "Релизная версия (Retail)",
+		"description": "Minecraft Bedrock Edition доступна в Microsoft Store. Установите её из магазина или запустите прямо из Ingot.",
+		"readyToPlay": "Готова к запуску",
+		"launching": "Запуск...",
+		"play": "Играть в Bedrock",
+		"msStoreEdition": "Версия Microsoft Store",
+		"installStore": "Установить из Microsoft Store",
+		"openWorlds": "Папка миров",
+		"openResourcePacks": "Ресурспаки",
+		"openBehaviorPacks": "Наборы параметров",
+		"openScreenshots": "Папка скриншотов",
+		"store": "Страница в Microsoft Store"
+	},
 	"modpacks": {
 		"title": "Каталог контента",
 		"subtitle": "Ищите и устанавливайте моды, модпаки, ресурспаки и шейдеры напрямую в ваши сборки из Modrinth и CurseForge.",
@@ -1212,6 +1231,10 @@
 			"tagline": "Сверхлёгкий, на Rust — мгновенный запуск, < 60 МБ ОЗУ",
 			"badge": "Нативно для телефона"
 		},
+		"bedrock": {
+			"tagline": "Официальный сервер Minecraft Bedrock (BDS) для кроссплея с телефонов и консолей",
+			"badge": "Bedrock / BDS"
+		},
 		"vanilla": {
 			"tagline": "Официальный сервер Minecraft без модификаций прямо от Mojang",
 			"badge": "Оригинал"
@@ -1242,6 +1265,8 @@
 		"version": "Версия",
 		"ram": "ОЗУ",
 		"memory": "Память (ОЗУ)",
+		"nativeMemoryTitle": "Нативное управление памятью",
+		"nativeMemoryDesc": "Этот сервер запускается как нативный бинарный файл. Он динамически запрашивает память системы без ограничений кучи JVM.",
 		"heroLine1": "Ваш первый сервер —",
 		"heroLine2": "за секунды.",
 		"heroText": "Ingot скачивает, настраивает и запускает сервер Minecraft прямо на этом устройстве. Приглашайте друзей откуда угодно.",

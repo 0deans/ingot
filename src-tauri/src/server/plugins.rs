@@ -152,7 +152,7 @@ pub fn platform(core: &ServerCoreType) -> Option<Platform> {
             modrinth_loaders: &["quilt", "fabric"],
             hangar: false,
         }),
-        ServerCoreType::Vanilla | ServerCoreType::Pumpkin => None,
+        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::Bedrock => None,
     }
 }
 

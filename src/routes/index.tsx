@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
 import { ScrollArea } from "@/components/common/scroll-area"
+import BedrockCard from "@/components/instances/bedrock-card"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
@@ -231,6 +232,11 @@ const InstancesPage = () => {
 						</div>
 					</div>
 				)}
+
+				{/* Bedrock Edition Card */}
+				{(!searchQuery ||
+					"bedrock".includes(searchQuery.toLowerCase()) ||
+					"minecraft".includes(searchQuery.toLowerCase())) && <BedrockCard />}
 
 				{/* Instances Section Header */}
 				<div className="flex items-center justify-between border-border/30 border-b pb-2">

@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, FolderOpen, HardDrive, Trash2, X } from "luc
 import { memo, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
+import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -105,7 +106,11 @@ const ScreenshotLightbox = ({
 				{/* Top-Left: Instance & Name pill */}
 				<div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-border/80 bg-background/80 px-3.5 py-1.5 shadow-2xl backdrop-blur-md">
 					<span className="flex items-center gap-1.5 font-medium text-foreground/80 text-xs">
-						<HardDrive className="size-3.5 text-primary" />
+						{screenshot.instanceId === "bedrock" ? (
+							<LoaderIcon loader="bedrock" size={14} className="shrink-0" />
+						) : (
+							<HardDrive className="size-3.5 text-primary" />
+						)}
 						<span className="max-w-[160px] truncate">{screenshot.instanceName}</span>
 					</span>
 					<span className="text-muted-foreground/60">•</span>

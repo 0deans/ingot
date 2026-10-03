@@ -248,8 +248,8 @@ export const serverService = {
 			)
 	},
 
-	getNextAvailablePort(): number {
-		let port = 25565
+	getNextAvailablePort(startPort = 25565): number {
+		let port = startPort
 		while (this.isPortInUse(port)) {
 			port += 1
 		}

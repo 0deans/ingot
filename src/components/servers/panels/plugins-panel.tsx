@@ -84,7 +84,12 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 				<EmptyState
 					icon={Puzzle}
 					title={t("plugins.unsupported", {
-						core: server.core === "pumpkin" ? "Pumpkin" : t("versionChange.vanilla"),
+						core:
+							server.core === "pumpkin"
+								? "Pumpkin"
+								: server.core === "bedrock"
+									? "Bedrock"
+									: t("versionChange.vanilla"),
 					})}
 					description={t("plugins.unsupportedHint")}
 				/>

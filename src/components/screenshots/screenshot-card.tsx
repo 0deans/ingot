@@ -1,6 +1,7 @@
 import { FolderOpen, HardDrive, ImageOff, Maximize2, MoreVertical, Trash2 } from "lucide-react"
 import { memo, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
+import LoaderIcon from "@/components/instances/loader-icon"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -80,8 +81,12 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 
 				{/* Top-left instance tag (clean opaque bg, no heavy backdrop-blur) */}
 				<div className="pointer-events-none absolute top-2 left-2 z-10">
-					<Badge variant="secondary" className="max-w-[140px]">
-						<HardDrive className="size-2.5 shrink-0 text-primary" />
+					<Badge variant="secondary" className="max-w-[140px] gap-1.5">
+						{screenshot.instanceId === "bedrock" ? (
+							<LoaderIcon loader="bedrock" size={12} className="shrink-0" />
+						) : (
+							<HardDrive className="size-2.5 shrink-0 text-primary" />
+						)}
 						<span className="truncate">{screenshot.instanceName}</span>
 					</Badge>
 				</div>

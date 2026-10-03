@@ -50,7 +50,11 @@ impl ServerSupervisorManager {
         FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static + Clone,
     {
         let server_id = config.id.clone();
-        let sleep_enabled = config.sleep_enabled.unwrap_or(true);
+        let sleep_enabled = if config.core == super::config::ServerCoreType::Bedrock {
+            false
+        } else {
+            config.sleep_enabled.unwrap_or(true)
+        };
         let public_port = config.port;
         let internal_port = super::config::internal_port(&config);
         let idle_timeout = config.idle_timeout_seconds.unwrap_or(600); // 10 minutes default

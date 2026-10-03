@@ -1,5 +1,6 @@
 import { cn } from "cn"
 import type React from "react"
+import bedrockIcon from "@/assets/loaders/bedrock.svg"
 import fabricIcon from "@/assets/loaders/fabric.svg"
 import foliaIcon from "@/assets/loaders/folia.svg"
 import forgeIcon from "@/assets/loaders/forge.png"
@@ -53,6 +54,9 @@ export const LoaderIcon: React.FC<LoaderIconProps> = ({
 	} else if (normalized === "pumpkin") {
 		src = pumpkinIcon
 		defaultAlt = "PumpkinMC"
+	} else if (normalized === "bedrock") {
+		src = bedrockIcon
+		defaultAlt = "Bedrock Edition"
 	}
 
 	return (
@@ -61,6 +65,7 @@ export const LoaderIcon: React.FC<LoaderIconProps> = ({
 			alt={alt || defaultAlt}
 			className={cn(
 				"shrink-0 select-none object-contain",
+				normalized === "pumpkin" && "[image-rendering:pixelated]",
 				// Paper's and Folia's logos are plain white: dark on the light theme
 				(normalized === "paper" || normalized === "folia") && "invert dark:invert-0",
 				className,

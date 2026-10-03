@@ -326,7 +326,7 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 			: 16384
 	useEffect(() => setRam(server.memoryMaxMb), [server.memoryMaxMb])
 
-	if (server.core === "pumpkin") return null
+	if (server.core === "pumpkin" || server.core === "bedrock") return null
 
 	const onSave = async () => {
 		setStatus("saving")

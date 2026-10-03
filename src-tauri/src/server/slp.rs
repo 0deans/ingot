@@ -1,4 +1,4 @@
-﻿use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::time::Instant;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -87,11 +87,15 @@ fn extract_motd_text(desc_val: &serde_json::Value) -> String {
 pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, String> {
     let addr = format!("{}:{}", host, port);
     
-    // Connect with a 2-second timeout
-    let stream_res = timeout(Duration::from_secs(2), TcpStream::connect(&addr)).await;
-    let mut stream = stream_res
-        .map_err(|_| format!("Connection timeout to {}", addr))?
-        .map_err(|e| format!("Failed to connect to {}: {}", addr, e))?;
+    // Connect with a 1.5-second timeout
+    let stream_res = timeout(Duration::from_millis(1500), TcpStream::connect(&addr)).await;
+    let mut stream = match stream_res {
+        Ok(Ok(s)) => s,
+        _ => {
+            // If TCP fails (e.g. Bedrock Dedicated Server on UDP), fall back to Bedrock RakNet ping
+            return ping_bedrock(host, port).await;
+        }
+    };
 
     let start = Instant::now();
 
@@ -215,3 +219,76 @@ pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, St
         ping_ms,
     })
 }
+
+/// Pings a Minecraft Bedrock Dedicated Server using RakNet Unconnected Ping over UDP
+pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, String> {
+    use tokio::net::UdpSocket;
+    let socket = UdpSocket::bind("0.0.0.0:0")
+        .await
+        .map_err(|e| format!("Failed to bind UDP socket: {e}"))?;
+
+    let target_addr = format!("{host}:{port}");
+    socket.connect(&target_addr)
+        .await
+        .map_err(|e| format!("Failed to connect UDP to {target_addr}: {e}"))?;
+
+    let start = Instant::now();
+    let time_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
+
+    let mut packet = Vec::with_capacity(33);
+    packet.push(0x01); // ID_UNCONNECTED_PING
+    packet.extend_from_slice(&time_ms.to_be_bytes());
+    packet.extend_from_slice(&[
+        0x00, 0xff, 0xff, 0x00, 0xfe, 0xfe, 0xfe, 0xfe,
+        0xfd, 0xfd, 0xfd, 0xfd, 0x12, 0x34, 0x56, 0x78,
+    ]); // RakNet offline magic
+    packet.extend_from_slice(&0x0123456789abcdefu64.to_be_bytes()); // Client GUID
+
+    socket.send(&packet)
+        .await
+        .map_err(|e| format!("Failed to send Bedrock ping: {e}"))?;
+
+    let mut buf = [0u8; 2048];
+    let len = timeout(Duration::from_millis(1500), socket.recv(&mut buf))
+        .await
+        .map_err(|_| "Bedrock ping timed out".to_string())?
+        .map_err(|e| format!("Failed to receive Bedrock pong: {e}"))?;
+
+    let ping_ms = start.elapsed().as_millis() as u64;
+
+    // ID_UNCONNECTED_PONG is 0x1c
+    if len < 35 || buf[0] != 0x1c {
+        return Err("Invalid Bedrock pong packet".to_string());
+    }
+
+    // Packet structure: [1: id][8: time][8: guid][16: magic][2: str_len][str_data]
+    let str_len = u16::from_be_bytes([buf[33], buf[34]]) as usize;
+    let end = (35 + str_len).min(len);
+    let str_data = String::from_utf8_lossy(&buf[35..end]);
+
+    let parts: Vec<&str> = str_data.split(';').collect();
+    let motd = parts.get(1).unwrap_or(&"Bedrock Server").to_string();
+    let protocol = parts.get(2).and_then(|p| p.parse::<i32>().ok()).unwrap_or(0);
+    let version_name = parts.get(3).unwrap_or(&"Bedrock").to_string();
+    let online_players = parts.get(4).and_then(|o| o.parse::<u32>().ok()).unwrap_or(0);
+    let max_players = parts.get(5).and_then(|m| m.parse::<u32>().ok()).unwrap_or(10);
+
+    Ok(ServerPingResponse {
+        version: ServerVersionInfo {
+            name: version_name,
+            protocol,
+        },
+        players: ServerPlayersInfo {
+            max: max_players,
+            online: online_players,
+            sample: None,
+        },
+        motd,
+        favicon: None,
+        ping_ms,
+    })
+}
+

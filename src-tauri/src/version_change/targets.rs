@@ -76,6 +76,7 @@ pub fn can_switch(from: &ServerCoreType, to: &ServerCoreType) -> bool {
         Fabric | Quilt | NeoForge | Forge => 2,
         Vanilla => 3,
         Pumpkin => 4,
+        Bedrock => 5,
     };
     from == to || (family(from) == family(to) && family(from) <= 2)
 }

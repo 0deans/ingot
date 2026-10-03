@@ -267,7 +267,9 @@ function StatTiles({
 				icon={Cpu}
 				label={t("serverSettings.memory")}
 				value={
-					server.core === "pumpkin" ? t("overview.native") : formatMegabytes(server.memoryMaxMb)
+					server.core === "pumpkin" || server.core === "bedrock"
+						? t("overview.native")
+						: formatMegabytes(server.memoryMaxMb)
 				}
 			/>
 		</div>

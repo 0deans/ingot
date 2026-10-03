@@ -62,6 +62,10 @@ function getCoreBadgeStyle(core: ServerCoreType) {
 			return "border-cyan-500/30 bg-cyan-500/10 text-cyan-400"
 		case "vanilla":
 			return "border-amber-500/30 bg-amber-500/10 text-amber-400"
+		case "pumpkin":
+			return "border-orange-500/30 bg-orange-500/10 text-orange-400"
+		case "bedrock":
+			return "border-teal-500/30 bg-teal-500/10 text-teal-400"
 		default:
 			return "border-zinc-800 bg-zinc-900 text-zinc-400"
 	}
@@ -249,7 +253,11 @@ export default function ServerCard({
 						{/* RAM */}
 						<div className="flex items-center gap-1 font-mono text-2xs text-muted-foreground">
 							<Cpu className="size-3 text-primary/70" />
-							<span>{formatMegabytes(server.memoryMaxMb, 0)}</span>
+							<span>
+								{server.core === "pumpkin" || server.core === "bedrock"
+									? t("overview.native", { defaultValue: "Native" })
+									: formatMegabytes(server.memoryMaxMb, 0)}
+							</span>
 						</div>
 
 						{/* Live SLP Player count badge (only when running) */}
