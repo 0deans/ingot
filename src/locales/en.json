@@ -483,6 +483,7 @@
 		"map": "Map",
 		"plugins": "Plugins",
 		"mods": "Mods",
+		"packs": "Add-Ons",
 		"settings": "Settings",
 		"home": "Home"
 	},
@@ -687,6 +688,7 @@
 		"noneHint": "Everyone who has joined this server will be listed here, with their last saved inventory.",
 		"search": "Search players",
 		"onlineNow": "Online now",
+		"connected": "Connected",
 		"lastSeen": "Last seen {{time}}"
 	},
 	"map": {
@@ -695,6 +697,8 @@
 		"updatedAreas_other": "Updated {{count}} areas",
 		"noWorld": "No world yet",
 		"noWorldHint": "Start the server once so it generates a world. Explored areas will appear on the map.",
+		"bedrockUnsupported": "Map unavailable for Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server stores worlds in LevelDB format. Live chunk map rendering is only available for Java servers.",
 		"liveTitle": "Ingot keeps the map current from server memory",
 		"live": "Live",
 		"restartToGoLive": "Restart to go live",
@@ -1134,7 +1138,8 @@
 		"confirmKick": "Kick {{name}}?",
 		"confirmBan": "Ban {{name}}?",
 		"confirm": "Confirm",
-		"kick": "Kick"
+		"kick": "Kick",
+		"bedrockNote": "Bedrock Dedicated Server does not expose live inventory, equipment, or health over the console. Management commands are available below."
 	},
 	"transfer": {
 		"zipArchive": "Zip archive",
@@ -1248,6 +1253,9 @@
 	"plugins": {
 		"unsupported": "{{core}} servers can't use plugins",
 		"unsupportedHint": "Create a Paper or Purpur server to add plugins, or a Fabric server for mods.",
+		"bedrockPacksTitle": "Bedrock Add-Ons & Packs",
+		"bedrockPacksDesc": "Bedrock Dedicated Server uses Behavior Packs and Resource Packs instead of Java plugins. Place your packs into the server's behavior_packs and resource_packs folders.",
+		"openServerFolder": "Open Server Folder",
 		"installed": "Installed {{name}}.",
 		"installedWith": "Installed {{name}} and {{extras}}.",
 		"browse_plugin": "Browse plugins",

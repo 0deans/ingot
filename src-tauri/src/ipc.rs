@@ -1880,12 +1880,17 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<Vec<KnownPlayer>, String> {
-        let dir = server::get_server_dir(&app_handle, &server_id)?;
-        let world = dir.join(server::map::level_name(&dir));
-        let mut known =
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        let mut known = if config.core == ServerCoreType::Bedrock {
+            tauri::async_runtime::spawn_blocking(move || server::live::known_bedrock_players(&dir))
+                .await
+                .map_err(|e| e.to_string())?
+        } else {
+            let world = dir.join(server::map::level_name(&dir));
             tauri::async_runtime::spawn_blocking(move || server::live::known_players(&dir, &world))
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| e.to_string())?
+        };
         if is_server_running(&server_id).await {
             if let Ok(online) =
                 server::live::list_online(get_server_process_manager(), &server_id).await
@@ -1918,6 +1923,18 @@ impl AppApi for AppApiImpl {
         server_id: String,
         name: String,
     ) -> Result<PlayerDetails, String> {
+        let (dir, config) = server_with_config(&app_handle, &server_id)?;
+        if config.core == ServerCoreType::Bedrock {
+            if is_server_running(&server_id).await {
+                if let Ok(details) =
+                    server::live::query_player(get_server_process_manager(), &server_id, &name).await
+                {
+                    return Ok(details);
+                }
+            }
+            return Ok(server::live::offline_bedrock_player(&dir, &name));
+        }
+
         if is_server_running(&server_id).await {
             if let Ok(details) =
                 server::live::query_player(get_server_process_manager(), &server_id, &name).await
@@ -1925,7 +1942,6 @@ impl AppApi for AppApiImpl {
                 return Ok(details);
             }
         }
-        let dir = server::get_server_dir(&app_handle, &server_id)?;
         let world = dir.join(server::map::level_name(&dir));
         tauri::async_runtime::spawn_blocking(move || {
             server::live::offline_player(&dir, &world, &name)

@@ -124,9 +124,11 @@ pub struct ConfigFile {
 const CONFIG_EXTENSIONS: [&str; 7] = ["yml", "yaml", "json", "json5", "toml", "properties", "conf"];
 
 /// Managed through dedicated UI or runtime data - not shown as editable configs
-const HIDDEN_FILES: [&str; 8] = [
+const HIDDEN_FILES: [&str; 10] = [
     "whitelist.json",
+    "allowlist.json",
     "ops.json",
+    "permissions.json",
     "banned-players.json",
     "banned-ips.json",
     "usercache.json",
@@ -214,11 +216,31 @@ pub enum AccessListKind {
 }
 
 impl AccessListKind {
-    fn file_name(self) -> &'static str {
+    pub fn file_name(self) -> &'static str {
         match self {
             Self::Whitelist => "whitelist.json",
             Self::Ops => "ops.json",
             Self::Bans => "banned-players.json",
+        }
+    }
+
+    pub fn file_path(self, server_dir: &Path) -> std::path::PathBuf {
+        match self {
+            Self::Whitelist => {
+                if server_dir.join("allowlist.json").exists() {
+                    server_dir.join("allowlist.json")
+                } else {
+                    server_dir.join("whitelist.json")
+                }
+            }
+            Self::Ops => {
+                if server_dir.join("permissions.json").exists() {
+                    server_dir.join("permissions.json")
+                } else {
+                    server_dir.join("ops.json")
+                }
+            }
+            Self::Bans => server_dir.join("banned-players.json"),
         }
     }
 
@@ -259,14 +281,38 @@ fn read_json_list(path: &Path) -> Vec<serde_json::Value> {
 }
 
 pub fn read_access_list(server_dir: &Path, kind: AccessListKind) -> Vec<AccessEntry> {
-    read_json_list(&server_dir.join(kind.file_name()))
+    let path = kind.file_path(server_dir);
+    read_json_list(&path)
         .iter()
         .filter_map(|v| {
+            let name = v.get("name").and_then(|n| n.as_str()).map(|n| n.to_string());
+            let uuid = v
+                .get("uuid")
+                .or_else(|| v.get("xuid"))
+                .and_then(|u| u.as_str())
+                .unwrap_or_default()
+                .to_string();
+            let level = v
+                .get("level")
+                .and_then(|l| l.as_i64())
+                .map(|l| l as i32)
+                .or_else(|| {
+                    if v.get("permission").and_then(|p| p.as_str()) == Some("operator") {
+                        Some(4)
+                    } else {
+                        None
+                    }
+                });
+            let reason = v.get("reason").and_then(|r| r.as_str()).map(str::to_string);
+            let name = name.unwrap_or_else(|| if !uuid.is_empty() { uuid.clone() } else { String::new() });
+            if name.is_empty() {
+                return None;
+            }
             Some(AccessEntry {
-                name: v.get("name")?.as_str()?.to_string(),
-                uuid: v.get("uuid").and_then(|u| u.as_str()).unwrap_or_default().to_string(),
-                level: v.get("level").and_then(|l| l.as_i64()).map(|l| l as i32),
-                reason: v.get("reason").and_then(|r| r.as_str()).map(str::to_string),
+                name,
+                uuid,
+                level,
+                reason,
             })
         })
         .collect()
@@ -274,19 +320,34 @@ pub fn read_access_list(server_dir: &Path, kind: AccessListKind) -> Vec<AccessEn
 
 /// Edits the list file directly (server stopped)
 pub fn add_access_entry(server_dir: &Path, kind: AccessListKind, name: &str, uuid: &str) -> Result<(), String> {
-    let path = server_dir.join(kind.file_name());
+    let path = kind.file_path(server_dir);
+    let is_bedrock_allowlist = path.file_name().and_then(|n| n.to_str()) == Some("allowlist.json");
+    let is_bedrock_permissions = path.file_name().and_then(|n| n.to_str()) == Some("permissions.json");
+
     let mut list = read_json_list(&path);
-    if list
-        .iter()
-        .any(|v| v.get("name").and_then(|n| n.as_str()).is_some_and(|n| n.eq_ignore_ascii_case(name)))
-    {
+    if list.iter().any(|v| {
+        v.get("name").and_then(|n| n.as_str()).is_some_and(|n| n.eq_ignore_ascii_case(name))
+            || (is_bedrock_permissions && v.get("xuid").and_then(|x| x.as_str()).is_some_and(|x| x == uuid))
+    }) {
         return Ok(());
     }
     list.push(match kind {
-        AccessListKind::Whitelist => serde_json::json!({ "uuid": uuid, "name": name }),
-        AccessListKind::Ops => serde_json::json!({
-            "uuid": uuid, "name": name, "level": 4, "bypassesPlayerLimit": false
-        }),
+        AccessListKind::Whitelist => {
+            if is_bedrock_allowlist {
+                serde_json::json!({ "ignoresPlayerLimit": false, "name": name, "xuid": uuid })
+            } else {
+                serde_json::json!({ "uuid": uuid, "name": name })
+            }
+        }
+        AccessListKind::Ops => {
+            if is_bedrock_permissions {
+                serde_json::json!({ "permission": "operator", "xuid": uuid })
+            } else {
+                serde_json::json!({
+                    "uuid": uuid, "name": name, "level": 4, "bypassesPlayerLimit": false
+                })
+            }
+        }
         AccessListKind::Bans => serde_json::json!({
             "uuid": uuid,
             "name": name,
@@ -297,15 +358,19 @@ pub fn add_access_entry(server_dir: &Path, kind: AccessListKind, name: &str, uui
         }),
     });
     let raw = serde_json::to_string_pretty(&list).map_err(|e| e.to_string())?;
-    fs::write(&path, raw).map_err(|e| format!("Failed to write {}: {e}", kind.file_name()))
+    fs::write(&path, raw).map_err(|e| format!("Failed to write {}: {e}", path.display()))
 }
 
 pub fn remove_access_entry(server_dir: &Path, kind: AccessListKind, name: &str) -> Result<(), String> {
-    let path = server_dir.join(kind.file_name());
+    let path = kind.file_path(server_dir);
     let mut list = read_json_list(&path);
-    list.retain(|v| !v.get("name").and_then(|n| n.as_str()).is_some_and(|n| n.eq_ignore_ascii_case(name)));
+    list.retain(|v| {
+        let matches_name = v.get("name").and_then(|n| n.as_str()).is_some_and(|n| n.eq_ignore_ascii_case(name));
+        let matches_xuid = v.get("xuid").and_then(|x| x.as_str()).is_some_and(|x| x.eq_ignore_ascii_case(name));
+        !matches_name && !matches_xuid
+    });
     let raw = serde_json::to_string_pretty(&list).map_err(|e| e.to_string())?;
-    fs::write(&path, raw).map_err(|e| format!("Failed to write {}: {e}", kind.file_name()))
+    fs::write(&path, raw).map_err(|e| format!("Failed to write {}: {e}", path.display()))
 }
 
 /// Minecraft's ban date format: "2026-09-26 12:00:00 +0000"

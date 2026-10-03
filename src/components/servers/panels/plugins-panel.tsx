@@ -78,18 +78,33 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 		if (!isRunning) setNeedsRestart(false)
 	}, [isRunning])
 
+	if (server.core === "bedrock") {
+		return (
+			<Card className="p-6">
+				<div className="mx-auto flex max-w-md flex-col items-center py-8 text-center">
+					<div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+						<Package className="size-6" />
+					</div>
+					<h3 className="mb-1 font-semibold text-foreground text-lg">
+						{t("plugins.bedrockPacksTitle")}
+					</h3>
+					<p className="mb-6 text-muted-foreground text-sm">{t("plugins.bedrockPacksDesc")}</p>
+					<Button variant="outline" onClick={() => rpc.open_server_folder(server.id)}>
+						<ExternalLink className="mr-2 size-4" />
+						{t("plugins.openServerFolder")}
+					</Button>
+				</div>
+			</Card>
+		)
+	}
+
 	if (!kind) {
 		return (
 			<Card>
 				<EmptyState
 					icon={Puzzle}
 					title={t("plugins.unsupported", {
-						core:
-							server.core === "pumpkin"
-								? "Pumpkin"
-								: server.core === "bedrock"
-									? "Bedrock"
-									: t("versionChange.vanilla"),
+						core: server.core === "pumpkin" ? "Pumpkin" : t("versionChange.vanilla"),
 					})}
 					description={t("plugins.unsupportedHint")}
 				/>

@@ -51,6 +51,7 @@ export function PlayersPanel({
 					players={onlinePlayers}
 					error={online.error}
 					isLoading={online.isLoading}
+					isBedrock={server.core === "bedrock"}
 					onSelect={setSelected}
 				/>
 			)}
@@ -63,9 +64,10 @@ export function PlayersPanel({
 				serverId={server.id}
 				name={selected}
 				isRunning={isRunning}
+				core={server.core}
 				onClose={() => setSelected(null)}
 				onShowOnMap={
-					onShowOnMap
+					server.core !== "bedrock" && onShowOnMap
 						? (p) => {
 								setSelected(null)
 								onShowOnMap(p)
@@ -82,12 +84,14 @@ function OnlineList({
 	players,
 	error,
 	isLoading,
+	isBedrock = false,
 	onSelect,
 }: {
 	isRunning: boolean
 	players: PlayerDetails[]
 	error: unknown
 	isLoading: boolean
+	isBedrock?: boolean
 	onSelect: (name: string) => void
 }) {
 	const { t } = useTranslation()
@@ -130,13 +134,27 @@ function OnlineList({
 	return (
 		<div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
 			{players.map((p) => (
-				<OnlinePlayerCard key={p.name} player={p} onClick={() => onSelect(p.name)} />
+				<OnlinePlayerCard
+					key={p.name}
+					player={p}
+					isBedrock={isBedrock}
+					onClick={() => onSelect(p.name)}
+				/>
 			))}
 		</div>
 	)
 }
 
-function OnlinePlayerCard({ player, onClick }: { player: PlayerDetails; onClick: () => void }) {
+function OnlinePlayerCard({
+	player,
+	isBedrock,
+	onClick,
+}: {
+	player: PlayerDetails
+	isBedrock?: boolean
+	onClick: () => void
+}) {
+	const { t } = useTranslation()
 	const dim = dimensionStyle(player.dimension)
 	const health = Math.min(100, ((player.health + player.absorption) / player.maxHealth) * 100)
 	return (
@@ -153,13 +171,25 @@ function OnlinePlayerCard({ player, onClick }: { player: PlayerDetails; onClick:
 						{dim.label}
 					</Badge>
 				</div>
-				<div className="mt-2 grid grid-cols-2 gap-2">
-					<MiniBar icon={Heart} pct={health} color="#f43f5e" />
-					<MiniBar icon={Apple} pct={(player.food / 20) * 100} color="#f59e0b" />
-				</div>
-				<p className="mt-1.5 truncate font-mono text-3xs text-muted-foreground">
-					{player.gamemode} · {Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
-				</p>
+				{isBedrock ? (
+					<div className="mt-2">
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-medium text-3xs text-primary">
+							<span className="size-1.5 rounded-full bg-current" />
+							{t("players.connected")}
+						</span>
+					</div>
+				) : (
+					<>
+						<div className="mt-2 grid grid-cols-2 gap-2">
+							<MiniBar icon={Heart} pct={health} color="#f43f5e" />
+							<MiniBar icon={Apple} pct={(player.food / 20) * 100} color="#f59e0b" />
+						</div>
+						<p className="mt-1.5 truncate font-mono text-3xs text-muted-foreground">
+							{player.gamemode} · {Math.floor(player.x)}, {Math.floor(player.y)},{" "}
+							{Math.floor(player.z)}
+						</p>
+					</>
+				)}
 			</div>
 		</button>
 	)

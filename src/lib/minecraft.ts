@@ -101,9 +101,9 @@ export function formatUptime(seconds: number): string {
 	return formatDuration(seconds, seconds < 3600)
 }
 
-/** Minecraft usernames (offline servers allow up to 32 chars) */
-export function isValidPlayerName(name: string): boolean {
-	return /^[A-Za-z0-9_]{1,32}$/.test(name)
+/** Minecraft usernames (offline servers allow up to 32 chars, Bedrock gamertags allow spaces) */
+export function isValidPlayerName(name: string, isBedrock = false): boolean {
+	return isBedrock ? /^[A-Za-z0-9_ ]{1,32}$/.test(name) : /^[A-Za-z0-9_]{1,32}$/.test(name)
 }
 
 // Formatting follows the language picked in Ingot

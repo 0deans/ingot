@@ -122,6 +122,18 @@ export function MapPanel({
 		return () => clearTimeout(timer)
 	}, [refreshNote])
 
+	if (server.core === "bedrock") {
+		return (
+			<div className={cn("flex items-center justify-center", className)}>
+				<EmptyState
+					icon={MapIcon}
+					title={t("map.bedrockUnsupported")}
+					description={t("map.bedrockUnsupportedHint")}
+				/>
+			</div>
+		)
+	}
+
 	if (isLoading) {
 		return (
 			<div className={cn("flex items-center justify-center", className)}>

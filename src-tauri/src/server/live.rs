@@ -648,7 +648,43 @@ pub fn is_valid_player_name(name: &str) -> bool {
     !name.is_empty() && name.len() <= 32 && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
+pub fn bedrock_player_details(name: &str, online: bool, xuid: Option<String>) -> PlayerDetails {
+    PlayerDetails {
+        name: name.to_string(),
+        uuid: xuid,
+        online,
+        health: 20.0,
+        max_health: 20.0,
+        absorption: 0.0,
+        food: 20,
+        saturation: 5.0,
+        xp_level: 0,
+        xp_progress: 0.0,
+        gamemode: "survival".to_string(),
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        yaw: 0.0,
+        dimension: "minecraft:overworld".to_string(),
+        air: 300,
+        on_fire: false,
+        selected_slot: 0,
+        inventory: Vec::new(),
+        head: None,
+        chest: None,
+        legs: None,
+        feet: None,
+        offhand: None,
+        ender_items: Vec::new(),
+        effects: Vec::new(),
+        last_seen: None,
+    }
+}
+
 pub async fn list_online(pm: &ServerProcessManager, server_id: &str) -> Result<Vec<(String, Option<String>)>, String> {
+    if pm.is_bedrock(server_id).await {
+        return Ok(pm.get_bedrock_online_players(server_id).await);
+    }
     let line = pm
         .query(server_id, "list uuids", is_list_reply, Duration::from_secs(3))
         .await?;
@@ -658,6 +694,10 @@ pub async fn list_online(pm: &ServerProcessManager, server_id: &str) -> Result<V
 pub async fn query_player(pm: &ServerProcessManager, server_id: &str, name: &str) -> Result<PlayerDetails, String> {
     if !is_valid_player_name(name) {
         return Err(format!("Invalid player name: {name}"));
+    }
+    if pm.is_bedrock(server_id).await {
+        let xuid = pm.get_player_xuid(server_id, name).await;
+        return Ok(bedrock_player_details(name, true, xuid));
     }
     let line = pm
         .query(
@@ -687,6 +727,21 @@ pub async fn online_players(pm: &ServerProcessManager, server_id: &str) -> Resul
         if at.elapsed() < Duration::from_millis(1500) {
             return Ok(players);
         }
+    }
+
+    if pm.is_bedrock(server_id).await {
+        let players: Vec<PlayerDetails> = pm
+            .get_bedrock_online_players(server_id)
+            .await
+            .into_iter()
+            .map(|(name, xuid)| bedrock_player_details(&name, true, xuid))
+            .collect();
+        if let Ok(mut cache) = CACHE.lock() {
+            cache
+                .get_or_insert_with(HashMap::new)
+                .insert(server_id.to_string(), (Instant::now(), players.clone()));
+        }
+        return Ok(players);
     }
 
     let mut players = Vec::new();
@@ -790,6 +845,50 @@ pub fn offline_player(server_dir: &Path, world_dir: &Path, name: &str) -> Result
         }
     }
     Err(format!("No saved data for {name}"))
+}
+
+/// Reads known Bedrock players from allowlist.json / whitelist.json
+pub fn known_bedrock_players(server_dir: &Path) -> Vec<KnownPlayer> {
+    let mut players: Vec<KnownPlayer> = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+
+    for filename in ["allowlist.json", "whitelist.json"] {
+        let path = server_dir.join(filename);
+        if let Ok(raw) = std::fs::read_to_string(&path) {
+            if let Ok(entries) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) {
+                for entry in entries {
+                    if let Some(name) = entry.get("name").and_then(|n| n.as_str()) {
+                        let lower = name.to_ascii_lowercase();
+                        if !seen.contains(&lower) {
+                            seen.insert(lower);
+                            let uuid = entry
+                                .get("xuid")
+                                .or_else(|| entry.get("uuid"))
+                                .and_then(|u| u.as_str())
+                                .unwrap_or_default()
+                                .to_string();
+                            players.push(KnownPlayer {
+                                name: name.to_string(),
+                                uuid,
+                                online: false,
+                                last_seen: None,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    players
+}
+
+pub fn offline_bedrock_player(server_dir: &Path, name: &str) -> PlayerDetails {
+    let known = known_bedrock_players(server_dir);
+    let xuid = known
+        .iter()
+        .find(|p| p.name.eq_ignore_ascii_case(name))
+        .map(|p| p.uuid.clone());
+    bedrock_player_details(name, false, xuid)
 }
 
 #[cfg(test)]

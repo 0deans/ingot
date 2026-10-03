@@ -28,20 +28,18 @@ const LISTS: Record<AccessListKind, { icon: typeof Shield }> = {
 
 export function AccessPanel({ server }: { server: ServerConfig }) {
 	const { t } = useTranslation()
+	const isBedrock = server.core === "bedrock"
 	const [kind, setKind] = useState<AccessListKind>("whitelist")
+	const options = [
+		{ value: "whitelist" as const, label: t("access.tabs.whitelist"), icon: Shield },
+		{ value: "ops" as const, label: t("access.tabs.ops"), icon: Crown },
+		...(!isBedrock ? [{ value: "bans" as const, label: t("access.tabs.bans"), icon: Ban }] : []),
+	]
 	return (
 		<div className="flex flex-col gap-3">
-			<Segmented
-				value={kind}
-				onChange={setKind}
-				options={[
-					{ value: "whitelist", label: t("access.tabs.whitelist"), icon: Shield },
-					{ value: "ops", label: t("access.tabs.ops"), icon: Crown },
-					{ value: "bans", label: t("access.tabs.bans"), icon: Ban },
-				]}
-			/>
+			<Segmented value={kind} onChange={setKind} options={options} />
 			{kind === "whitelist" && <WhitelistToggle server={server} />}
-			<AccessList key={kind} serverId={server.id} kind={kind} />
+			<AccessList key={kind} serverId={server.id} kind={kind} isBedrock={isBedrock} />
 		</div>
 	)
 }
@@ -50,16 +48,32 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 	const { t } = useTranslation()
 	const { isRunning } = useServerStatus(server.id)
 	const { values, save } = useServerPropertiesAll(server.id)
-	const enabled = values.get("white-list") === "true"
+	const isBedrock = server.core === "bedrock"
+	const enabled = isBedrock
+		? values.get("allow-list") === "true" || values.get("white-list") === "true"
+		: values.get("white-list") === "true"
 
 	const toggle = async (next: boolean) => {
-		await save.mutateAsync([
-			{ key: "white-list", value: String(next) },
-			// Also kick players who aren't on the list when it's turned on
-			{ key: "enforce-whitelist", value: String(next) },
-		])
+		const updates = isBedrock
+			? [
+					{ key: "allow-list", value: String(next) },
+					{ key: "white-list", value: String(next) },
+				]
+			: [
+					{ key: "white-list", value: String(next) },
+					// Also kick players who aren't on the list when it's turned on
+					{ key: "enforce-whitelist", value: String(next) },
+				]
+		await save.mutateAsync(updates)
 		if (isRunning) {
-			await serverService.sendCommand(server.id, next ? "whitelist on" : "whitelist off")
+			const cmd = isBedrock
+				? next
+					? "allowlist on"
+					: "allowlist off"
+				: next
+					? "whitelist on"
+					: "whitelist off"
+			await serverService.sendCommand(server.id, cmd)
 		}
 	}
 
@@ -78,7 +92,15 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 	)
 }
 
-function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind }) {
+function AccessList({
+	serverId,
+	kind,
+	isBedrock = false,
+}: {
+	serverId: string
+	kind: AccessListKind
+	isBedrock?: boolean
+}) {
 	const { t } = useTranslation()
 	const meta = LISTS[kind]
 	const { data = [], isLoading, add, remove } = useAccessList(serverId, kind)
@@ -88,7 +110,7 @@ function AccessList({ serverId, kind }: { serverId: string; kind: AccessListKind
 	const submit = async (e: FormEvent) => {
 		e.preventDefault()
 		const trimmed = name.trim()
-		if (!isValidPlayerName(trimmed)) {
+		if (!isValidPlayerName(trimmed, isBedrock)) {
 			setError(t("access.invalidName"))
 			return
 		}

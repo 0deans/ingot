@@ -45,7 +45,13 @@ struct Manifest {
 
 /// Regenerated automatically, machine-specific, or huge and re-downloadable
 const SKIP_DIRS: [&str; 7] = ["cache", "libraries", "versions", "logs", "crash-reports", "debug", ".ingot"];
-const SKIP_FILES: [&str; 3] = ["server.jar", "session.lock", "usercache.json"];
+const SKIP_FILES: [&str; 5] = [
+    "server.jar",
+    "bedrock_server.exe",
+    "bedrock_server",
+    "session.lock",
+    "usercache.json",
+];
 /// Written by the Forge, NeoForge and Quilt installers, which run again after an import
 const INSTALLER_FILES: [&str; 5] = ["quilt-server-launch.jar", "run.bat", "run.sh", "user_jvm_args.txt", "README.txt"];
 /// The one file kept from .ingot: which plugins/mods came from Modrinth or Hangar (for
@@ -58,7 +64,10 @@ fn is_installer_file(name: &str) -> bool {
 }
 
 fn is_world_dir(dir: &Path) -> bool {
-    dir.join("level.dat").exists() || dir.join("region").is_dir()
+    dir.join("level.dat").exists()
+        || dir.join("region").is_dir()
+        || dir.join("levelname.txt").exists()
+        || dir.file_name().is_some_and(|n| n.to_ascii_lowercase() == "worlds")
 }
 
 fn is_config_file(name: &str) -> bool {

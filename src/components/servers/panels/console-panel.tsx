@@ -30,7 +30,8 @@ function lineClass(line: string): string {
 	if (line.startsWith("[Ingot]")) return "text-info"
 	if (/\bERROR\]|ERROR:|Exception|\bat [a-z]+\./.test(line)) return "text-destructive"
 	if (/\bWARN\]|WARN:/.test(line)) return "text-warning"
-	if (/joined the game|left the game/.test(line)) return "text-primary"
+	if (/joined the game|left the game|Player connected:|Player disconnected:/.test(line))
+		return "text-primary"
 	return "text-foreground/80"
 }
 

@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ItemStack, PlayerDetails } from "@/bindings"
+import type { ItemStack, PlayerDetails, ServerConfig } from "@/bindings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils"
 import { useAccessList, usePlayerDetails } from "@/services/server-data"
 import { serverService } from "@/services/server-service"
 import {
+	Card,
 	EmptyState,
 	ErrorNote,
 	FadeScroll,
@@ -52,12 +53,14 @@ export function PlayerSheet({
 	serverId,
 	name,
 	isRunning,
+	core,
 	onClose,
 	onShowOnMap,
 }: {
 	serverId: string
 	name: string | null
 	isRunning: boolean
+	core?: ServerConfig["core"]
 	onClose: () => void
 	onShowOnMap?: (player: PlayerDetails) => void
 }) {
@@ -95,162 +98,179 @@ export function PlayerSheet({
 					</div>
 				) : (
 					<FadeScroll className="flex min-h-0 flex-col">
-						<PlayerHeader player={player} />
+						<PlayerHeader player={player} core={core} />
 
-						<div className="grid gap-4 px-4 pb-4 sm:grid-cols-2 sm:px-5">
-							<div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/40 p-4">
-								<StatBar
-									icon={Heart}
-									label={t("playerSheet.health")}
-									value={player.health + player.absorption}
-									max={player.maxHealth}
-									color="#f43f5e"
-								/>
-								<StatBar
-									icon={Apple}
-									label={t("playerSheet.hunger")}
-									value={player.food}
-									max={20}
-									color="#f59e0b"
-								/>
-								{player.air < 300 && (
-									<StatBar
-										icon={Droplets}
-										label={t("playerSheet.air")}
-										value={player.air}
-										max={300}
-										color="#38bdf8"
-									/>
-								)}
-								<div className="flex flex-col gap-1.5">
-									<div className="flex items-center justify-between text-xs">
-										<span className="flex items-center gap-1.5 text-muted-foreground">
-											<Sparkles className="size-3.5 text-lime-400" />
-											{t("playerSheet.experience")}
-										</span>
-										<span className="font-medium font-mono text-lime-300">
-											{t("playerSheet.level", { level: player.xpLevel })}
-										</span>
-									</div>
-									<div className="h-1.5 overflow-hidden rounded-full bg-muted">
-										<div
-											className="h-full rounded-full bg-lime-400"
-											style={{ width: `${player.xpProgress * 100}%` }}
+						{core === "bedrock" ? (
+							<div className="p-4 sm:p-5">
+								<Card className="flex flex-col items-center justify-center p-6 text-center">
+									<Shield className="mb-2 size-8 text-primary/70" />
+									<p className="max-w-md text-muted-foreground text-sm">
+										{t("playerSheet.bedrockNote")}
+									</p>
+								</Card>
+							</div>
+						) : (
+							<>
+								<div className="grid gap-4 px-4 pb-4 sm:grid-cols-2 sm:px-5">
+									<div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/40 p-4">
+										<StatBar
+											icon={Heart}
+											label={t("playerSheet.health")}
+											value={player.health + player.absorption}
+											max={player.maxHealth}
+											color="#f43f5e"
 										/>
+										<StatBar
+											icon={Apple}
+											label={t("playerSheet.hunger")}
+											value={player.food}
+											max={20}
+											color="#f59e0b"
+										/>
+										{player.air < 300 && (
+											<StatBar
+												icon={Droplets}
+												label={t("playerSheet.air")}
+												value={player.air}
+												max={300}
+												color="#38bdf8"
+											/>
+										)}
+										<div className="flex flex-col gap-1.5">
+											<div className="flex items-center justify-between text-xs">
+												<span className="flex items-center gap-1.5 text-muted-foreground">
+													<Sparkles className="size-3.5 text-lime-400" />
+													{t("playerSheet.experience")}
+												</span>
+												<span className="font-medium font-mono text-lime-300">
+													{t("playerSheet.level", { level: player.xpLevel })}
+												</span>
+											</div>
+											<div className="h-1.5 overflow-hidden rounded-full bg-muted">
+												<div
+													className="h-full rounded-full bg-lime-400"
+													style={{ width: `${player.xpProgress * 100}%` }}
+												/>
+											</div>
+										</div>
+									</div>
+
+									<div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/40 p-4">
+										<span className="text-2xs text-muted-foreground uppercase tracking-wider">
+											{t("playerSheet.equipment")}
+										</span>
+										<div className="grid grid-cols-5 gap-1.5">
+											{(
+												[
+													["head", player.head],
+													["chest", player.chest],
+													["legs", player.legs],
+													["feet", player.feet],
+													["offhand", player.offhand],
+												] as const
+											).map(([label, item]) => (
+												<ItemSlot
+													key={label}
+													item={item}
+													selected={activeSelection?.area === label}
+													onSelect={(selected) => {
+														setTab("inventory")
+														setSelection({
+															serverId,
+															playerName: player.name,
+															area: label,
+															slot: selected.slot,
+														})
+													}}
+													placeholder={
+														<span className="text-3xs text-muted-foreground/60">
+															{t(`playerSheet.slots.${label}`)}
+														</span>
+													}
+												/>
+											))}
+										</div>
+										<div className="mt-auto flex items-center justify-between pt-2 text-xs">
+											<span className="flex items-center gap-1.5 text-muted-foreground">
+												<MapPin className="size-3.5" />
+												{Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
+											</span>
+											{onShowOnMap && (
+												<Button
+													variant="link"
+													size="xs"
+													onClick={() => onShowOnMap(player)}
+													className="h-auto p-0"
+												>
+													{t("playerSheet.showOnMap")}
+												</Button>
+											)}
+										</div>
 									</div>
 								</div>
-							</div>
 
-							<div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/40 p-4">
-								<span className="text-2xs text-muted-foreground uppercase tracking-wider">
-									{t("playerSheet.equipment")}
-								</span>
-								<div className="grid grid-cols-5 gap-1.5">
-									{(
-										[
-											["head", player.head],
-											["chest", player.chest],
-											["legs", player.legs],
-											["feet", player.feet],
-											["offhand", player.offhand],
-										] as const
-									).map(([label, item]) => (
-										<ItemSlot
-											key={label}
-											item={item}
-											selected={activeSelection?.area === label}
-											onSelect={(selected) => {
-												setTab("inventory")
+								<div className="flex flex-col gap-3 px-4 pb-4 sm:px-5">
+									<Segmented
+										value={tab}
+										onChange={(t) => {
+											setTab(t)
+											setSelection(null)
+										}}
+										options={[
+											{ value: "inventory", label: t("playerSheet.inventory") },
+											{
+												value: "ender",
+												label: t("playerSheet.ender", { count: player.enderItems.length }),
+											},
+											{
+												value: "effects",
+												label: t("playerSheet.effects", { count: player.effects.length }),
+											},
+										]}
+									/>
+
+									{tab === "inventory" && (
+										<InventoryGrid
+											player={player}
+											selectedSlot={
+												activeSelection?.area === "inventory" ? activeSelection.slot : null
+											}
+											onSelect={(item) =>
 												setSelection({
 													serverId,
 													playerName: player.name,
-													area: label,
-													slot: selected.slot,
+													area: "inventory",
+													slot: item.slot,
 												})
-											}}
-											placeholder={
-												<span className="text-3xs text-muted-foreground/60">
-													{t(`playerSheet.slots.${label}`)}
-												</span>
 											}
 										/>
-									))}
-								</div>
-								<div className="mt-auto flex items-center justify-between pt-2 text-xs">
-									<span className="flex items-center gap-1.5 text-muted-foreground">
-										<MapPin className="size-3.5" />
-										{Math.floor(player.x)}, {Math.floor(player.y)}, {Math.floor(player.z)}
-									</span>
-									{onShowOnMap && (
-										<Button
-											variant="link"
-											size="xs"
-											onClick={() => onShowOnMap(player)}
-											className="h-auto p-0"
-										>
-											{t("playerSheet.showOnMap")}
-										</Button>
 									)}
+									{tab === "ender" && (
+										<SlotGrid
+											items={player.enderItems}
+											slots={27}
+											offset={0}
+											selectedSlot={activeSelection?.area === "ender" ? activeSelection.slot : null}
+											onSelect={(item) =>
+												setSelection({
+													serverId,
+													playerName: player.name,
+													area: "ender",
+													slot: item.slot,
+												})
+											}
+										/>
+									)}
+									{tab === "effects" && <EffectsList player={player} />}
+
+									{selectedItem && <ItemDetails item={selectedItem} />}
 								</div>
-							</div>
-						</div>
+							</>
+						)}
 
-						<div className="flex flex-col gap-3 px-4 pb-4 sm:px-5">
-							<Segmented
-								value={tab}
-								onChange={(t) => {
-									setTab(t)
-									setSelection(null)
-								}}
-								options={[
-									{ value: "inventory", label: t("playerSheet.inventory") },
-									{
-										value: "ender",
-										label: t("playerSheet.ender", { count: player.enderItems.length }),
-									},
-									{
-										value: "effects",
-										label: t("playerSheet.effects", { count: player.effects.length }),
-									},
-								]}
-							/>
-
-							{tab === "inventory" && (
-								<InventoryGrid
-									player={player}
-									selectedSlot={activeSelection?.area === "inventory" ? activeSelection.slot : null}
-									onSelect={(item) =>
-										setSelection({
-											serverId,
-											playerName: player.name,
-											area: "inventory",
-											slot: item.slot,
-										})
-									}
-								/>
-							)}
-							{tab === "ender" && (
-								<SlotGrid
-									items={player.enderItems}
-									slots={27}
-									offset={0}
-									selectedSlot={activeSelection?.area === "ender" ? activeSelection.slot : null}
-									onSelect={(item) =>
-										setSelection({
-											serverId,
-											playerName: player.name,
-											area: "ender",
-											slot: item.slot,
-										})
-									}
-								/>
-							)}
-							{tab === "effects" && <EffectsList player={player} />}
-
-							{selectedItem && <ItemDetails item={selectedItem} />}
-						</div>
-
-						{player.online && isRunning && <PlayerActions serverId={serverId} player={player} />}
+						{player.online && isRunning && (
+							<PlayerActions serverId={serverId} player={player} core={core} />
+						)}
 					</FadeScroll>
 				)}
 			</DialogContent>
@@ -258,7 +278,7 @@ export function PlayerSheet({
 	)
 }
 
-function PlayerHeader({ player }: { player: PlayerDetails }) {
+function PlayerHeader({ player, core }: { player: PlayerDetails; core?: ServerConfig["core"] }) {
 	const { t } = useTranslation()
 	const dim = dimensionStyle(player.dimension)
 	return (
@@ -267,11 +287,13 @@ function PlayerHeader({ player }: { player: PlayerDetails }) {
 			<div className="min-w-0 flex-1">
 				<h2 className="truncate font-bold text-foreground text-lg">{player.name}</h2>
 				<div className="mt-1 flex flex-wrap items-center gap-1.5 text-2xs">
-					<span className="rounded-full border border-input bg-muted/60 px-2 py-0.5 text-foreground/80">
-						{gamemodeLabel(t, player.gamemode)}
-					</span>
+					{core !== "bedrock" && (
+						<span className="rounded-full border border-input bg-muted/60 px-2 py-0.5 text-foreground/80">
+							{gamemodeLabel(t, player.gamemode)}
+						</span>
+					)}
 					<span className={cn("rounded-full border px-2 py-0.5", dim.badge)}>{dim.label}</span>
-					{player.onFire && (
+					{core !== "bedrock" && player.onFire && (
 						<span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-orange-300">
 							<Flame className="size-3" /> {t("playerSheet.onFire")}
 						</span>
@@ -460,7 +482,15 @@ function EffectsList({ player }: { player: PlayerDetails }) {
 	)
 }
 
-function PlayerActions({ serverId, player }: { serverId: string; player: PlayerDetails }) {
+function PlayerActions({
+	serverId,
+	player,
+	core,
+}: {
+	serverId: string
+	player: PlayerDetails
+	core?: ServerConfig["core"]
+}) {
 	const { t } = useTranslation()
 	const ops = useAccessList(serverId, "ops")
 	const whitelist = useAccessList(serverId, "whitelist")
@@ -506,14 +536,26 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 					label={t("playerSheet.heal")}
 					busy={busy === "heal"}
 					onClick={() =>
-						run("heal", `effect give ${player.name} minecraft:instant_health 1 10 true`)
+						run(
+							"heal",
+							core === "bedrock"
+								? `effect ${player.name} instant_health 1 10 true`
+								: `effect give ${player.name} minecraft:instant_health 1 10 true`,
+						)
 					}
 				/>
 				<ActionButton
 					icon={Apple}
 					label={t("playerSheet.feed")}
 					busy={busy === "feed"}
-					onClick={() => run("feed", `effect give ${player.name} minecraft:saturation 1 10 true`)}
+					onClick={() =>
+						run(
+							"feed",
+							core === "bedrock"
+								? `effect ${player.name} saturation 1 10 true`
+								: `effect give ${player.name} minecraft:saturation 1 10 true`,
+						)
+					}
 				/>
 				<ActionButton
 					icon={Crown}
@@ -560,19 +602,21 @@ function PlayerActions({ serverId, player }: { serverId: string; player: PlayerD
 					</AlertDescription>
 				</Alert>
 			) : (
-				<div className="grid grid-cols-2 gap-2">
+				<div className={cn("grid gap-2", core === "bedrock" ? "grid-cols-1" : "grid-cols-2")}>
 					<ActionButton
 						icon={LogOut}
 						label={t("playerSheet.kick")}
 						danger
 						onClick={() => setConfirm("kick")}
 					/>
-					<ActionButton
-						icon={Ban}
-						label={t("access.bans.add")}
-						danger
-						onClick={() => setConfirm("ban")}
-					/>
+					{core !== "bedrock" && (
+						<ActionButton
+							icon={Ban}
+							label={t("access.bans.add")}
+							danger
+							onClick={() => setConfirm("ban")}
+						/>
+					)}
 				</div>
 			)}
 		</div>

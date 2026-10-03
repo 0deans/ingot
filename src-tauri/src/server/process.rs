@@ -17,6 +17,7 @@ use tokio::sync::Mutex;
 
 struct ActiveServer {
     server_id: String,
+    core: ServerCoreType,
     pid: u32,
     port: u16,
     started_at: u64,
@@ -24,6 +25,7 @@ struct ActiveServer {
     stdin: Arc<Mutex<ChildStdin>>,
     log_history: Arc<Mutex<Vec<String>>>,
     online_players: Arc<Mutex<Vec<String>>>,
+    player_xuids: Arc<Mutex<HashMap<String, String>>>,
     /// Every cleaned stdout line, for capturing command replies
     line_tx: tokio::sync::broadcast::Sender<String>,
     /// Serializes console queries so replies can't be mixed up
@@ -126,6 +128,46 @@ impl ServerProcessManager {
             players.clone()
         } else {
             Vec::new()
+        }
+    }
+
+    pub async fn get_server_core(&self, server_id: &str) -> Option<ServerCoreType> {
+        let guard = self.servers.lock().await;
+        guard.get(server_id).map(|s| s.core.clone())
+    }
+
+    pub async fn is_bedrock(&self, server_id: &str) -> bool {
+        let guard = self.servers.lock().await;
+        guard
+            .get(server_id)
+            .map(|s| s.core == ServerCoreType::Bedrock)
+            .unwrap_or(false)
+    }
+
+    pub async fn get_bedrock_online_players(&self, server_id: &str) -> Vec<(String, Option<String>)> {
+        let guard = self.servers.lock().await;
+        if let Some(s) = guard.get(server_id) {
+            let names = s.online_players.lock().await.clone();
+            let xuids = s.player_xuids.lock().await.clone();
+            names
+                .into_iter()
+                .map(|name| {
+                    let xuid = xuids.get(&name).cloned();
+                    (name, xuid)
+                })
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub async fn get_player_xuid(&self, server_id: &str, name: &str) -> Option<String> {
+        let guard = self.servers.lock().await;
+        if let Some(s) = guard.get(server_id) {
+            let xuids = s.player_xuids.lock().await;
+            xuids.get(name).cloned()
+        } else {
+            None
         }
     }
 
@@ -708,6 +750,7 @@ where
     let ready = Arc::new(std::sync::atomic::AtomicBool::new(false));
     let ready_flag = ready.clone();
     let online_players: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let player_xuids: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
 
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -720,6 +763,7 @@ where
             server_id.clone(),
             ActiveServer {
                 server_id: server_id.clone(),
+                core: config.core.clone(),
                 pid,
                 port: config.port,
                 started_at: now,
@@ -727,6 +771,7 @@ where
                 stdin: stdin_arc.clone(),
                 log_history: log_history.clone(),
                 online_players: online_players.clone(),
+                player_xuids: player_xuids.clone(),
                 line_tx: line_tx.clone(),
                 query_lock: Arc::new(Mutex::new(())),
                 pending_queries: pending_queries.clone(),
@@ -747,6 +792,7 @@ where
     let server_dir_out = server_dir.clone();
     let logs_out = log_history.clone();
     let players_out = online_players.clone();
+    let xuids_out = player_xuids.clone();
     let on_log_arc = on_log;
     let on_log_out = on_log_arc.clone();
     tokio::spawn(async move {
@@ -803,14 +849,25 @@ where
                 } else if line.contains("Player connected: ") {
                     if let Some(rest) = line.split("Player connected: ").nth(1) {
                         let name = rest.split(',').next().unwrap_or(rest).trim().to_string();
-                        if !name.is_empty() && !guard.contains(&name) {
-                            guard.push(name);
+                        if !name.is_empty() {
+                            if !guard.contains(&name) {
+                                guard.push(name.clone());
+                            }
+                            if let Some(xuid_str) = rest.split("xuid:").nth(1) {
+                                let xuid = xuid_str.split(',').next().unwrap_or(xuid_str).trim().to_string();
+                                if !xuid.is_empty() {
+                                    let mut x_guard = xuids_out.lock().await;
+                                    x_guard.insert(name, xuid);
+                                }
+                            }
                         }
                     }
                 } else if line.contains("Player disconnected: ") {
                     if let Some(rest) = line.split("Player disconnected: ").nth(1) {
                         let name = rest.split(',').next().unwrap_or(rest).trim().to_string();
                         guard.retain(|p| p != &name);
+                        let mut x_guard = xuids_out.lock().await;
+                        x_guard.remove(&name);
                     }
                 }
             }
@@ -832,6 +889,8 @@ where
         // Clear player list when stdout closes (server stopped)
         let mut guard = players_out.lock().await;
         guard.clear();
+        let mut x_guard = xuids_out.lock().await;
+        x_guard.clear();
     });
 
 

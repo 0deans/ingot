@@ -487,6 +487,7 @@
 		"map": "Карта",
 		"plugins": "Плагины",
 		"mods": "Моды",
+		"packs": "Аддоны",
 		"settings": "Настройки",
 		"home": "Главная"
 	},
@@ -703,12 +704,15 @@
 		"noneHint": "Здесь будут все, кто заходил на сервер, с последним сохранённым инвентарём.",
 		"search": "Поиск игроков",
 		"onlineNow": "Сейчас в сети",
+		"connected": "В сети",
 		"lastSeen": "Был {{time}}"
 	},
 	"map": {
 		"upToDate": "Актуально",
 		"noWorld": "Мира пока нет",
 		"noWorldHint": "Запустите сервер один раз, чтобы он создал мир. Исследованные области появятся на карте.",
+		"bedrockUnsupported": "Карта недоступна для Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server хранит миры в формате LevelDB. Рендеринг чанков в реальном времени поддерживается только для Java-серверов.",
 		"liveTitle": "Ingot обновляет карту прямо из памяти сервера",
 		"live": "В реальном времени",
 		"restartToGoLive": "Перезапустите для живой карты",
@@ -1162,7 +1166,8 @@
 		"confirmKick": "Кикнуть {{name}}?",
 		"confirmBan": "Забанить {{name}}?",
 		"confirm": "Подтвердить",
-		"kick": "Кикнуть"
+		"kick": "Кикнуть",
+		"bedrockNote": "Bedrock Dedicated Server не передает инвентарь, экипировку и здоровье через консоль. Ниже доступны команды управления игроком."
 	},
 	"transfer": {
 		"zipArchive": "ZIP-архив",
@@ -1276,6 +1281,9 @@
 	"plugins": {
 		"unsupported": "Серверы {{core}} не поддерживают плагины",
 		"unsupportedHint": "Создайте сервер Paper или Purpur для плагинов или Fabric для модов.",
+		"bedrockPacksTitle": "Аддоны и наборы Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server использует наборы параметров (Behavior Packs) и наборы ресурсов (Resource Packs) вместо Java-плагинов. Поместите ваши наборы в папки behavior_packs и resource_packs сервера.",
+		"openServerFolder": "Открыть папку сервера",
 		"installed": "{{name}} установлен.",
 		"installedWith": "Установлены {{name}} и {{extras}}.",
 		"browse_plugin": "Каталог плагинов",

@@ -60,14 +60,16 @@ fn size_of(path: &Path) -> u64 {
 
 fn category_of(name: &str, path: &Path) -> &'static str {
     let lower = name.to_ascii_lowercase();
-    if path.join("level.dat").is_file() {
+    if lower == "worlds" || path.join("level.dat").is_file() || path.join("levelname.txt").is_file() {
         return "worlds";
     }
     match lower.as_str() {
-        "plugins" | "mods" | "config" | "datapacks" => "plugins",
+        "plugins" | "mods" | "config" | "datapacks" | "behavior_packs" | "resource_packs"
+        | "development_behavior_packs" | "development_resource_packs" => "plugins",
         "logs" | "crash-reports" | "debug" => "logs",
         "backups" | "world-backups" => "backups",
         "libraries" | "versions" | "cache" | "bundler" | ".fabric" | ".paper-remapped" => "server",
+        "bedrock_server.exe" | "bedrock_server" => "server",
         _ if lower.ends_with(".jar") => "server",
         _ => "other",
     }
@@ -100,7 +102,21 @@ pub fn storage(server_dir: &Path) -> ServerStorage {
             let bytes = size_of(&path);
             let category = category_of(&name, &path);
             if category == "worlds" {
-                worlds.push(WorldSize { name: name.clone(), bytes: bytes as f64 });
+                let lower = name.to_ascii_lowercase();
+                if lower == "worlds" && path.is_dir() {
+                    if let Ok(entries) = std::fs::read_dir(&path) {
+                        for entry in entries.flatten() {
+                            let p = entry.path();
+                            if p.is_dir() {
+                                let w_name = entry.file_name().to_string_lossy().into_owned();
+                                let w_bytes = size_of(&p);
+                                worlds.push(WorldSize { name: w_name, bytes: w_bytes as f64 });
+                            }
+                        }
+                    }
+                } else {
+                    worlds.push(WorldSize { name: name.clone(), bytes: bytes as f64 });
+                }
             }
             match sums.iter_mut().find(|(id, _)| *id == category) {
                 Some((_, sum)) => *sum += bytes,

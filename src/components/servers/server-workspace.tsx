@@ -32,10 +32,14 @@ export const WORKSPACE_TABS: { id: WorkspaceTab; label: string; icon: typeof Gau
 	{ id: "settings", label: "Settings", icon: Settings2 },
 ]
 
-/** Tab label for this server ("Mods" instead of "Plugins" on Fabric), in the user's language */
+/** Tab label for this server ("Mods" on Fabric, "Add-Ons" on Bedrock), in the user's language */
 export function tabLabel(id: WorkspaceTab, _label: string, core: ServerConfig["core"]): string {
-	const key = id === "plugins" && addonKind(core)?.kind === "mod" ? "mods" : id
-	return i18n.t(`serverTabs.${key}`)
+	if (id === "plugins") {
+		if (core === "bedrock") return i18n.t("serverTabs.packs")
+		if (addonKind(core)?.kind === "mod") return i18n.t("serverTabs.mods")
+		return i18n.t("serverTabs.plugins")
+	}
+	return i18n.t(`serverTabs.${id}`)
 }
 
 /** Content of one workspace tab; shared by the desktop page and the mobile app */
