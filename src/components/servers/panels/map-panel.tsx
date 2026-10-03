@@ -91,7 +91,7 @@ export function MapPanel({
 	// the server saved on its own schedule.
 	const live = isRunning && companionReady && installedAt !== server.id
 	useEffect(() => {
-		if (!isRunning) {
+		if (!isRunning || server.core === "bedrock") {
 			setInstalledAt(null)
 			return
 		}
@@ -100,7 +100,7 @@ export function MapPanel({
 			live ? LIVE_INTERVAL_MS : SAVED_INTERVAL_MS,
 		)
 		return () => clearInterval(timer)
-	}, [isRunning, live, server.id, queryClient])
+	}, [isRunning, live, server.id, server.core, queryClient])
 
 	// Re-reads what the server has written and says how much changed, so the button
 	// visibly does something even when the answer is "nothing new"
@@ -121,18 +121,6 @@ export function MapPanel({
 		const timer = setTimeout(() => setRefreshNote(null), 2500)
 		return () => clearTimeout(timer)
 	}, [refreshNote])
-
-	if (server.core === "bedrock") {
-		return (
-			<div className={cn("flex items-center justify-center", className)}>
-				<EmptyState
-					icon={MapIcon}
-					title={t("map.bedrockUnsupported")}
-					description={t("map.bedrockUnsupportedHint")}
-				/>
-			</div>
-		)
-	}
 
 	if (isLoading) {
 		return (
@@ -183,51 +171,67 @@ export function MapPanel({
 					))}
 				</ToggleGroup>
 				<div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
-					{live && (
+					{server.core === "bedrock" ? (
 						<Badge
 							variant="outline"
-							title={t("map.liveTitle")}
-							className="h-8 bg-background/80 text-primary backdrop-blur-md"
+							className={cn(
+								"h-8 backdrop-blur-md",
+								isRunning
+									? "border-warning/30 bg-background/80 text-warning"
+									: "border-info/30 bg-background/80 text-info",
+							)}
 						>
-							<span className="size-1.5 animate-pulse rounded-full bg-primary" />
-							{t("map.live")}
+							{t(isRunning ? "map.bedrockRunning" : "map.bedrockOffline")}
 						</Badge>
-					)}
-					{isRunning && installedAt === server.id && (
-						<Badge
-							variant="outline"
-							className="h-8 border-warning/30 bg-background/80 text-warning backdrop-blur-md"
-						>
-							{t("map.restartToGoLive")}
-						</Badge>
-					)}
-					{companion?.supported && companion.fileName === null && (
-						<Tooltip>
-							<TooltipTrigger
-								render={
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={async () => {
-											await installCompanion.mutateAsync().catch(() => {})
-											if (isRunning) setInstalledAt(server.id)
-										}}
-										disabled={installCompanion.isPending}
-										className="bg-background/80 backdrop-blur-md"
-									/>
-								}
-							>
-								{installCompanion.isPending ? (
-									<Spinner className="size-3.5" />
-								) : (
-									<Radio className="size-3.5 text-primary" />
-								)}
-								{t("map.makeLive")}
-							</TooltipTrigger>
-							<TooltipContent>
-								{t("map.makeLiveTitle", { context: addonKind(server.core)?.kind ?? "plugin" })}
-							</TooltipContent>
-						</Tooltip>
+					) : (
+						<>
+							{live && (
+								<Badge
+									variant="outline"
+									title={t("map.liveTitle")}
+									className="h-8 bg-background/80 text-primary backdrop-blur-md"
+								>
+									<span className="size-1.5 animate-pulse rounded-full bg-primary" />
+									{t("map.live")}
+								</Badge>
+							)}
+							{isRunning && installedAt === server.id && (
+								<Badge
+									variant="outline"
+									className="h-8 border-warning/30 bg-background/80 text-warning backdrop-blur-md"
+								>
+									{t("map.restartToGoLive")}
+								</Badge>
+							)}
+							{companion?.supported && companion.fileName === null && (
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={async () => {
+													await installCompanion.mutateAsync().catch(() => {})
+													if (isRunning) setInstalledAt(server.id)
+												}}
+												disabled={installCompanion.isPending}
+												className="bg-background/80 backdrop-blur-md"
+											/>
+										}
+									>
+										{installCompanion.isPending ? (
+											<Spinner className="size-3.5" />
+										) : (
+											<Radio className="size-3.5 text-primary" />
+										)}
+										{t("map.makeLive")}
+									</TooltipTrigger>
+									<TooltipContent>
+										{t("map.makeLiveTitle", { context: addonKind(server.core)?.kind ?? "plugin" })}
+									</TooltipContent>
+								</Tooltip>
+							)}
+						</>
 					)}
 					{/* Live maps update themselves; otherwise re-read what the server saved */}
 					{!live && (

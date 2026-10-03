@@ -699,6 +699,8 @@
 		"noWorldHint": "Start the server once so it generates a world. Explored areas will appear on the map.",
 		"bedrockUnsupported": "Map unavailable for Bedrock",
 		"bedrockUnsupportedHint": "Bedrock Dedicated Server stores worlds in LevelDB format. Live chunk map rendering is only available for Java servers.",
+		"bedrockRunning": "Saved world (Live paused)",
+		"bedrockOffline": "Saved world",
 		"liveTitle": "Ingot keeps the map current from server memory",
 		"live": "Live",
 		"restartToGoLive": "Restart to go live",
