@@ -19,7 +19,16 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { createFileRoute } from "@tanstack/react-router"
-import { AppWindow, Layers, Minimize2, Plus, Power, ShieldCheck, Users } from "lucide-react"
+import {
+	AppWindow,
+	Layers,
+	Minimize2,
+	Palette,
+	Plus,
+	Power,
+	ShieldCheck,
+	Users,
+} from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
@@ -321,6 +330,22 @@ const SettingsPage = () => {
 					<UpdateSettings />
 
 					<LicensesSettings />
+
+					{/* Design System & UI Components Test Page (Dev mode only) */}
+					{import.meta.env.DEV && (
+						<Card>
+							<SectionCardHeader
+								icon={Palette}
+								title="UI Components & Design System"
+								description="Interactive test page previewing all Base UI components, forms, dialogs, drawers, and Minecraft widgets"
+								action={
+									<Button size="sm" variant="outline" onClick={() => navigate({ to: "/ui-test" })}>
+										Open UI Showcase
+									</Button>
+								}
+							/>
+						</Card>
+					)}
 				</div>
 
 				<AddAccountDialog

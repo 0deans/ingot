@@ -514,7 +514,7 @@ const ModpacksPage = () => {
 					>
 						<TabsList
 							variant="line"
-							className="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+							className="scrollbar-none max-w-full overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
 						>
 							{CATEGORIES.map(({ id, icon: Icon }) => (
 								<TabsTrigger key={id} value={id}>

@@ -32,7 +32,7 @@ export const UpdateBanner = () => {
 	const isReady = status === "ready"
 
 	return (
-		<div className="relative z-50 w-full border-border/40 border-b bg-gradient-to-r from-primary/40 via-card/60 to-primary/30 px-4 py-2 text-foreground backdrop-blur-md transition-all">
+		<div className="relative z-50 w-full border-border/40 border-b bg-linear-to-r from-primary/40 via-card/60 to-primary/30 px-4 py-2 text-foreground backdrop-blur-md transition-all">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex items-center gap-2.5">
 					<div

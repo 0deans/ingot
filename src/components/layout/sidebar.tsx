@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router"
-import { Camera, Gamepad2, Server, Settings, Shirt, Sparkles } from "lucide-react"
+import { Camera, Gamepad2, Palette, Server, Settings, Shirt, Sparkles } from "lucide-react"
 import { type ComponentProps, memo, type ReactNode, useCallback } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -129,6 +129,12 @@ const Sidebar = () => {
 				<SidebarTab to="/servers" label={t("nav.servers")}>
 					<Server className="size-5" />
 				</SidebarTab>
+
+				{import.meta.env.DEV && (
+					<SidebarTab to="/ui-test" label="UI Showcase">
+						<Palette className="size-5" />
+					</SidebarTab>
+				)}
 			</div>
 
 			<div className="flex flex-col items-center gap-3">

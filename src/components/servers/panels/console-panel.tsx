@@ -149,7 +149,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 				) : (
 					logs.map((line, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: log lines are append-only
-						<div key={i} className={cn("whitespace-pre-wrap break-words", lineClass(line))}>
+						<div key={i} className={cn("wrap-break-word whitespace-pre-wrap", lineClass(line))}>
 							{line}
 						</div>
 					))

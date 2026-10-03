@@ -12,6 +12,8 @@
 		"build": "tsc && vite build",
 		"check": "biome check",
 		"check:write": "biome check --write",
+		"check:tailwind": "npx @tailwindcss/upgrade --dry-run --force",
+		"fix:tailwind": "npx @tailwindcss/upgrade --force",
 		"format": "biome format --write",
 		"lint": "biome lint",
 		"preview": "vite preview",

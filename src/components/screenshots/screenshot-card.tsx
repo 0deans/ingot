@@ -77,7 +77,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 				)}
 
 				{/* Top gradient for readability */}
-				<div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/60 to-transparent" />
+				<div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-linear-to-b from-black/60 to-transparent" />
 
 				{/* Top-left instance tag (clean opaque bg, no heavy backdrop-blur) */}
 				<div className="pointer-events-none absolute top-2 left-2 z-10">

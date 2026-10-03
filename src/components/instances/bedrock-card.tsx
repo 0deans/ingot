@@ -55,8 +55,8 @@ export function BedrockCard({ className }: { className?: string }) {
 			className={cn(
 				"relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-all duration-300 sm:p-5",
 				isInstalled
-					? "border-primary/30 bg-gradient-to-br from-card/80 via-card/50 to-primary/5 shadow-md hover:border-primary/50"
-					: "border-border/60 bg-gradient-to-br from-card/60 via-card/30 to-muted/10 hover:border-border/90",
+					? "border-primary/30 bg-linear-to-br from-card/80 via-card/50 to-primary/5 shadow-md hover:border-primary/50"
+					: "border-border/60 bg-linear-to-br from-card/60 via-card/30 to-muted/10 hover:border-border/90",
 				className,
 			)}
 		>

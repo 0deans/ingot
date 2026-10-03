@@ -63,7 +63,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="!p-0 sm:!p-0 !gap-0 sm:!max-w-md flex h-[580px] max-h-[calc(100vh-3.5rem)] flex-col justify-between overflow-hidden p-0">
+			<DialogContent className="flex h-[580px] max-h-[calc(100vh-3.5rem)] flex-col justify-between gap-0! overflow-hidden p-0 p-0! sm:max-w-md! sm:p-0!">
 				{/* Background Studio Lighting Glow */}
 				<div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" />
 

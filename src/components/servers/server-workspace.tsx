@@ -150,7 +150,7 @@ export function ServerWorkspace({
 				<Tabs value={tab} onValueChange={(value) => onTabChange(value as WorkspaceTab)}>
 					<TabsList
 						variant="line"
-						className="overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+						className="scrollbar-none overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
 					>
 						{WORKSPACE_TABS.map(({ id, label, icon: Icon }) => (
 							<TabsTrigger key={id} value={id}>

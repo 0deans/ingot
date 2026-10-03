@@ -69,7 +69,7 @@ export function parseMotd(motd: string): MotdSpan[][] {
 export function MotdText({ motd, className }: { motd: string; className?: string }) {
 	const lines = parseMotd(motd).slice(0, 2)
 	return (
-		<div className={cn("font-mono leading-snug [overflow-wrap:anywhere]", className)}>
+		<div className={cn("wrap-anywhere font-mono leading-snug", className)}>
 			{lines.map((line, i) => (
 				// biome-ignore lint/suspicious/noArrayIndexKey: lines have no identity besides order
 				<div key={i} className={cn("truncate", line.length === 0 && "h-[1.2em]")}>

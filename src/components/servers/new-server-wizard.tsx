@@ -650,7 +650,7 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 				</button>
 
 				{importSlot && (
-					<div className="w-full [&>*]:w-full [&>button]:h-12 [&>button]:rounded-2xl [&>button]:border-border">
+					<div className="w-full *:w-full [&>button]:h-12 [&>button]:rounded-2xl [&>button]:border-border">
 						{importSlot}
 					</div>
 				)}

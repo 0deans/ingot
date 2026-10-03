@@ -792,7 +792,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						{/* Left Showcase: Character Studio & Actions */}
 						<div
 							className={cn(
-								"relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]",
+								"relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-linear-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]",
 								mobileView === "preview" ? "flex w-full" : "hidden md:flex",
 							)}
 						>
@@ -816,7 +816,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							</div>
 
 							{/* Showcase Header (Floating Overlay) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-background/90 via-background/50 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-linear-to-b from-background/90 via-background/50 to-transparent p-4 lg:p-5">
 								<div className="pointer-events-auto flex items-center gap-1.5">
 									<Button
 										variant="ghost"
@@ -844,7 +844,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<div className="pointer-events-none min-h-0 flex-1" />
 
 							{/* Primary Apply Button & Secondary Actions (Floating Overlay) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-background/95 via-background/60 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-linear-to-t from-background/95 via-background/60 to-transparent p-4 lg:p-5">
 								<Button
 									size="default"
 									className="pointer-events-auto h-11 w-full gap-2 rounded-xl font-semibold text-sm transition-all active:scale-[0.99] disabled:opacity-50"
@@ -1131,7 +1131,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															{/* Active Selection Badge */}
 															{isSelected && (
 																<div className="absolute top-2 right-2 z-10 flex size-4 items-center justify-center rounded-full bg-primary text-background shadow-xs">
-																	<Check className="size-2.5 stroke-[3]" />
+																	<Check className="size-2.5 stroke-3" />
 																</div>
 															)}
 
@@ -1301,7 +1301,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				{activeTab === "upload" && (
 					<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
 						{/* Left Showcase: Live 3D Preview Stage */}
-						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-gradient-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
+						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-linear-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
 							{/* Background Studio Ambience */}
 							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" />
 							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-md" />
@@ -1322,7 +1322,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							</div>
 
 							{/* Top Showcase Header (Floating Overlay) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-gradient-to-b from-background/90 via-background/50 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between bg-linear-to-b from-background/90 via-background/50 to-transparent p-4 lg:p-5">
 								<span className="font-semibold text-foreground text-xs">
 									{t("skinsPage.livePreview")}
 								</span>
@@ -1337,7 +1337,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<div className="pointer-events-none min-h-0 flex-1" />
 
 							{/* Primary Apply Button (Floating Overlay at Bottom of 3D stage) */}
-							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-gradient-to-t from-background/95 via-background/60 to-transparent p-4 lg:p-5">
+							<div className="pointer-events-none relative z-10 flex shrink-0 flex-col gap-2 bg-linear-to-t from-background/95 via-background/60 to-transparent p-4 lg:p-5">
 								<Button
 									size="default"
 									className="pointer-events-auto h-11 w-full gap-2 rounded-xl font-semibold text-sm transition-all active:scale-[0.99] disabled:opacity-50"

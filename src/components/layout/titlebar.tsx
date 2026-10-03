@@ -202,7 +202,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 			onPointerMove={onTouchPointerMove}
 			onPointerUp={onTouchPointerUp}
 			onPointerCancel={onTouchPointerUp}
-			className="relative z-[100] flex h-10 w-full touch-none select-none items-center justify-between border-border/40 border-b bg-background/85 px-3 backdrop-blur-md"
+			className="relative z-100 flex h-10 w-full touch-none select-none items-center justify-between border-border/40 border-b bg-background/85 px-3 backdrop-blur-md"
 		>
 			{/* Left branding */}
 			<div data-tauri-drag-region className="pointer-events-none flex items-center gap-2">

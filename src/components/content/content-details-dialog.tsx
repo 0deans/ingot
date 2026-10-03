@@ -489,7 +489,7 @@ export const ContentDetailsDialog = memo(
 													</button>
 
 													{/* Bottom Caption Overlay */}
-													<div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white">
+													<div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-linear-to-t from-black/80 via-black/40 to-transparent p-3 text-white">
 														<span className="truncate font-medium text-xs">
 															{details.screenshots[
 																activePhotoIndex < details.screenshots.length ? activePhotoIndex : 0
@@ -517,7 +517,7 @@ export const ContentDetailsDialog = memo(
 
 														<div
 															ref={galleryScrollRef}
-															className="flex min-w-0 flex-1 gap-2.5 overflow-x-auto overflow-y-hidden overscroll-contain py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+															className="scrollbar-none flex min-w-0 flex-1 gap-2.5 overflow-x-auto overflow-y-hidden overscroll-contain py-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 														>
 															{details.screenshots.map((s, idx) => (
 																<button
@@ -537,7 +537,7 @@ export const ContentDetailsDialog = memo(
 																		className="size-full object-cover"
 																	/>
 																	{s.title && (
-																		<div className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent p-1 text-left text-3xs text-white">
+																		<div className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/80 to-transparent p-1 text-left text-3xs text-white">
 																			{s.title}
 																		</div>
 																	)}

@@ -356,7 +356,7 @@ const SkinViewer3D = ({
 						? "absolute inset-0 z-0 size-full bg-transparent"
 						: borderless
 							? "size-full bg-transparent"
-							: "rounded-xl border border-border/50 bg-gradient-to-b from-card/90 to-background shadow-inner",
+							: "rounded-xl border border-border/50 bg-linear-to-b from-card/90 to-background shadow-inner",
 					!floatingToolbar && autoResize ? "size-full min-h-0 flex-1" : "",
 				)}
 			>
@@ -364,7 +364,7 @@ const SkinViewer3D = ({
 					ref={canvasRef}
 					className={cn(
 						"cursor-grab active:cursor-grabbing",
-						autoResize && "!block !size-full !max-w-none !max-h-none",
+						autoResize && "block! size-full! max-h-none! max-w-none!",
 					)}
 					style={autoResize ? { width: "100%", height: "100%" } : { width, height }}
 				/>
@@ -460,7 +460,7 @@ const SkinViewer3D = ({
 					className={cn(
 						"flex w-full flex-col gap-2",
 						floatingToolbar &&
-							"pointer-events-auto relative z-10 bg-gradient-to-t from-popover/95 via-popover/70 to-transparent p-3 sm:p-4",
+							"pointer-events-auto relative z-10 bg-linear-to-t from-popover/95 via-popover/70 to-transparent p-3 sm:p-4",
 					)}
 				>
 					{/* Animations Selector */}
