@@ -648,6 +648,39 @@ pub trait AppApi {
         server_id: String,
     ) -> Result<Vec<PluginUpdate>, String>;
 
+    async fn list_bedrock_packs(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<server::bedrock_packs::BedrockPackInfo>, String>;
+
+    async fn set_bedrock_pack_enabled(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        pack_id: String,
+        pack_type: String,
+        enabled: bool,
+    ) -> Result<(), String>;
+
+    async fn install_bedrock_pack(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        download_url: String,
+        filename: String,
+    ) -> Result<String, String>;
+
+    async fn delete_bedrock_pack(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        folder_name: String,
+        pack_type: String,
+    ) -> Result<(), String>;
+
+    async fn open_bedrock_server_subfolder(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        subfolder: String,
+    ) -> Result<(), String>;
+
     /// CPU, memory and TPS of a running server
     /// CPU/RAM/TPS samples of the last two minutes (recorded in the background)
     async fn get_server_stats(
@@ -2244,6 +2277,73 @@ impl AppApi for AppApiImpl {
     ) -> Result<Vec<PluginUpdate>, String> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         Ok(server::plugins::check_updates(&dir, &config.core, &config.game_version).await)
+    }
+
+    async fn list_bedrock_packs(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<server::bedrock_packs::BedrockPackInfo>, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::bedrock_packs::list_installed_packs(&dir)
+    }
+
+    async fn set_bedrock_pack_enabled(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        pack_id: String,
+        pack_type: String,
+        enabled: bool,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::bedrock_packs::set_pack_enabled(&dir, &pack_id, &pack_type, enabled)
+    }
+
+    async fn install_bedrock_pack(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        download_url: String,
+        filename: String,
+    ) -> Result<String, String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::bedrock_packs::install_bedrock_pack(&dir, &download_url, &filename).await
+    }
+
+    async fn delete_bedrock_pack(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        folder_name: String,
+        pack_type: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?;
+        server::bedrock_packs::delete_pack(&dir, &folder_name, &pack_type)
+    }
+
+    async fn open_bedrock_server_subfolder(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        subfolder: String,
+    ) -> Result<(), String> {
+        let dir = server::get_server_dir(&app_handle, &server_id)?.join(&subfolder);
+        let _ = std::fs::create_dir_all(&dir);
+        let path_str = dir.to_string_lossy().to_string();
+        #[cfg(target_os = "windows")]
+        {
+            let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
+        }
+        #[cfg(target_os = "macos")]
+        {
+            let _ = std::process::Command::new("open").arg(&path_str).spawn();
+        }
+        #[cfg(target_os = "linux")]
+        {
+            let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
+        }
+        Ok(())
     }
 
     async fn get_server_stats(

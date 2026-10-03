@@ -17,6 +17,7 @@ pub mod supervisor;
 pub mod transfer;
 pub mod tunnel;
 pub mod bedrock;
+pub mod bedrock_packs;
 
 pub use config::{
     add_to_server_whitelist, create_server, delete_server, get_server_dir, get_server_icon_base64,

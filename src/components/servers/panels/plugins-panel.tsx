@@ -47,6 +47,7 @@ import {
 } from "@/services/server-data"
 import { rpc } from "@/services/server-service"
 import { Card, EmptyState, ErrorNote, Segmented, useSticky } from "../shared/primitives"
+import { BedrockPacksPanel } from "./bedrock-packs-panel"
 import { CompanionCard } from "./companion-card"
 import { PluginDetailsSheet, PluginIcon } from "./plugin-details-sheet"
 
@@ -79,23 +80,7 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 	}, [isRunning])
 
 	if (server.core === "bedrock") {
-		return (
-			<Card className="p-6">
-				<div className="mx-auto flex max-w-md flex-col items-center py-8 text-center">
-					<div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-						<Package className="size-6" />
-					</div>
-					<h3 className="mb-1 font-semibold text-foreground text-lg">
-						{t("plugins.bedrockPacksTitle")}
-					</h3>
-					<p className="mb-6 text-muted-foreground text-sm">{t("plugins.bedrockPacksDesc")}</p>
-					<Button variant="outline" onClick={() => rpc.open_server_folder(server.id)}>
-						<ExternalLink className="mr-2 size-4" />
-						{t("plugins.openServerFolder")}
-					</Button>
-				</div>
-			</Card>
-		)
+		return <BedrockPacksPanel server={server} />
 	}
 
 	if (!kind) {

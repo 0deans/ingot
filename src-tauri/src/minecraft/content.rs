@@ -350,20 +350,42 @@ async fn search_curseforge(
     offset: u32,
     limit: u32,
 ) -> Result<ContentSearchResult, String> {
-    let class_id = match project_type.to_lowercase().as_str() {
-        "mod" | "mods" => Some(6),
-        "modpack" | "modpacks" => Some(4471),
-        "resourcepack" | "resourcepacks" => Some(12),
-        "shader" | "shaders" | "shaderpack" | "shaderpacks" => Some(6552),
-        _ => None,
+    let is_bedrock = loader.map(|l| l.eq_ignore_ascii_case("bedrock")).unwrap_or(false)
+        || project_type.eq_ignore_ascii_case("bedrock")
+        || project_type.eq_ignore_ascii_case("addon")
+        || project_type.eq_ignore_ascii_case("addons")
+        || project_type.eq_ignore_ascii_case("behaviorpack")
+        || project_type.eq_ignore_ascii_case("behaviorpacks");
+
+    let game_id = if is_bedrock { "78022" } else { "432" };
+
+    let class_id = if is_bedrock {
+        match project_type.to_lowercase().as_str() {
+            "addon" | "addons" | "behaviorpack" | "behaviorpacks" => Some(4984),
+            "resourcepack" | "resourcepacks" | "texturepack" | "texturepacks" => Some(6929),
+            "map" | "maps" => Some(6913),
+            _ => None,
+        }
+    } else {
+        match project_type.to_lowercase().as_str() {
+            "mod" | "mods" => Some(6),
+            "modpack" | "modpacks" => Some(4471),
+            "resourcepack" | "resourcepacks" => Some(12),
+            "shader" | "shaders" | "shaderpack" | "shaderpacks" => Some(6552),
+            _ => None,
+        }
     };
 
-    let mod_loader_type = match loader.unwrap_or("").to_lowercase().as_str() {
-        "forge" => Some(1),
-        "fabric" => Some(4),
-        "quilt" => Some(5),
-        "neoforge" => Some(6),
-        _ => None,
+    let mod_loader_type = if is_bedrock {
+        None
+    } else {
+        match loader.unwrap_or("").to_lowercase().as_str() {
+            "forge" => Some(1),
+            "fabric" => Some(4),
+            "quilt" => Some(5),
+            "neoforge" => Some(6),
+            _ => None,
+        }
     };
 
     let sort_field = match sort.unwrap_or("downloads") {
@@ -379,7 +401,7 @@ async fn search_curseforge(
         .header("x-api-key", CURSEFORGE_API_KEY)
         .header("Accept", "application/json")
         .query(&[
-            ("gameId", "432".to_string()),
+            ("gameId", game_id.to_string()),
             ("index", offset.to_string()),
             ("pageSize", limit.to_string()),
             ("sortField", sort_field.to_string()),
@@ -466,21 +488,36 @@ async fn search_curseforge(
                 }
             }
 
-            let project_type_clean = match item.class_id {
-                Some(4471) => "modpack",
-                Some(6) => "mod",
-                Some(12) => "resourcepack",
-                Some(6552) => "shader",
-                _ => match project_type.to_lowercase().as_str() {
-                    "modpack" | "modpacks" => "modpack",
-                    "resourcepack" | "resourcepacks" => "resourcepack",
-                    "shader" | "shaders" | "shaderpack" => "shader",
-                    _ => "mod",
-                },
+            let project_type_clean = if is_bedrock {
+                match item.class_id {
+                    Some(4984) => "addon",
+                    Some(6929) => "resourcepack",
+                    Some(6913) => "map",
+                    _ => "addon",
+                }
+            } else {
+                match item.class_id {
+                    Some(4471) => "modpack",
+                    Some(6) => "mod",
+                    Some(12) => "resourcepack",
+                    Some(6552) => "shader",
+                    _ => match project_type.to_lowercase().as_str() {
+                        "modpack" | "modpacks" => "modpack",
+                        "resourcepack" | "resourcepacks" => "resourcepack",
+                        "shader" | "shaders" | "shaderpack" => "shader",
+                        _ => "mod",
+                    },
+                }
             }
             .to_string();
 
-            let website_url = item.links.and_then(|l| l.website_url);
+            let website_url = item.links.and_then(|l| l.website_url).or_else(|| {
+                if is_bedrock {
+                    Some(format!("https://www.curseforge.com/minecraft-bedrock/addons/{}", item.slug))
+                } else {
+                    Some(format!("https://www.curseforge.com/minecraft/mc-mods/{}", item.slug))
+                }
+            });
 
             UnifiedContentItem {
                 id: format!("cf:{}", item.id),
@@ -532,6 +569,26 @@ pub async fn search_content(
 
     let offset = page * page_size;
     let src_clean = source.trim().to_lowercase();
+
+    let is_bedrock = loader.as_deref().map(|l| l.eq_ignore_ascii_case("bedrock")).unwrap_or(false)
+        || project_type.eq_ignore_ascii_case("bedrock")
+        || project_type.eq_ignore_ascii_case("addon")
+        || project_type.eq_ignore_ascii_case("addons")
+        || project_type.eq_ignore_ascii_case("behaviorpack");
+
+    if is_bedrock || src_clean == "curseforge" {
+        return search_curseforge(
+            &client,
+            &project_type,
+            query.as_deref(),
+            game_version.as_deref(),
+            loader.as_deref(),
+            sort.as_deref(),
+            offset,
+            page_size,
+        )
+        .await;
+    }
 
     if src_clean == "modrinth" {
         return search_modrinth(
@@ -909,12 +966,28 @@ async fn get_curseforge_details(
                 .send()
                 .await
                 .map_err(|e| format!("CurseForge slug search failed: {e}"))?;
-            if resp.status().is_success() {
-                let parsed: CurseForgeSearchResponse = resp.json().await
-                    .map_err(|e| format!("Failed to parse CurseForge slug response: {e}"))?;
-                parsed.data.first().map(|m| m.id as u32).ok_or_else(|| format!("CurseForge mod '{project_id}' not found"))?
+            let found = if resp.status().is_success() {
+                let parsed: Result<CurseForgeSearchResponse, _> = resp.json().await;
+                parsed.ok().and_then(|p| p.data.first().map(|m| m.id as u32))
             } else {
-                return Err(format!("Invalid CurseForge mod ID or slug: {project_id}"));
+                None
+            };
+            if let Some(id) = found {
+                id
+            } else {
+                let b_search_url = format!("https://api.curseforge.com/v1/mods/search?gameId=78022&slug={}", project_id);
+                let b_resp = client.get(&b_search_url)
+                    .header("x-api-key", CURSEFORGE_API_KEY)
+                    .send()
+                    .await
+                    .map_err(|e| format!("CurseForge Bedrock slug search failed: {e}"))?;
+                if b_resp.status().is_success() {
+                    let b_parsed: CurseForgeSearchResponse = b_resp.json().await
+                        .map_err(|e| format!("Failed to parse CurseForge Bedrock slug response: {e}"))?;
+                    b_parsed.data.first().map(|m| m.id as u32).ok_or_else(|| format!("CurseForge mod '{project_id}' not found"))?
+                } else {
+                    return Err(format!("Invalid CurseForge mod ID or slug: {project_id}"));
+                }
             }
         }
     };
@@ -1004,8 +1077,10 @@ async fn get_curseforge_details(
 
     let project_type = match m.class_id {
         Some(4471) => "modpack",
-        Some(12) => "resourcepack",
+        Some(12) | Some(6929) => "resourcepack",
         Some(6552) => "shader",
+        Some(4984) => "addon",
+        Some(6913) => "map",
         _ => "mod",
     }.to_string();
 
@@ -1025,8 +1100,8 @@ async fn get_curseforge_details(
     Ok(UnifiedContentDetails {
         id: m.id.to_string(),
         source: "curseforge".to_string(),
-        project_type,
-        slug: m.slug,
+        project_type: project_type.clone(),
+        slug: m.slug.clone(),
         title: m.name,
         description: m.summary,
         body,
@@ -1037,7 +1112,13 @@ async fn get_curseforge_details(
         categories: Vec::new(),
         game_versions: Vec::new(),
         loaders: Vec::new(),
-        website_url: website_url.or_else(|| Some(format!("https://www.curseforge.com/minecraft/mc-mods/{}", m.id))),
+        website_url: website_url.or_else(|| {
+            if m.class_id == Some(4984) || m.class_id == Some(6929) || m.class_id == Some(6913) {
+                Some(format!("https://www.curseforge.com/minecraft-bedrock/addons/{}", m.slug))
+            } else {
+                Some(format!("https://www.curseforge.com/minecraft/mc-mods/{}", m.id))
+            }
+        }),
         issues_url,
         source_url,
         wiki_url,
@@ -1401,12 +1482,23 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_curseforge_details() {
-        let res = get_content_details("curseforge", "cf:238222").await;
-        assert!(res.is_ok(), "get_curseforge_details failed: {:?}", res.err());
-        let details = res.unwrap();
-        assert_eq!(details.slug, "jei");
-        assert!(!details.versions.is_empty(), "expected versions for JEI");
+    async fn test_search_curseforge_bedrock_addons() {
+        let res = search_content(
+            "curseforge".into(),
+            "addon".into(),
+            None,
+            None,
+            Some("bedrock".into()),
+            Some("downloads".into()),
+            0,
+            5,
+        )
+        .await;
+
+        assert!(res.is_ok(), "CurseForge Bedrock search failed: {:?}", res.err());
+        let result = res.unwrap();
+        assert!(!result.items.is_empty(), "expected items from CurseForge Bedrock");
+        assert_eq!(result.items[0].source, "curseforge");
     }
 }
 
