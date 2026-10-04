@@ -81,12 +81,24 @@ test("namespaced events deliver payloads, filter other routes, and unsubscribe",
 	assert.throws(() => rpc.on_memory_changed, /not found/)
 })
 
-test("unmigrated root commands retain their invocation path", async () => {
+test("application commands use their new namespace", async () => {
 	const calls = []
 	mockIPC((command, args) => {
 		calls.push({ command, args })
 		return "hello"
 	})
-	assert.equal(await createTauRPCProxy().greet("world"), "hello")
-	assert.deepEqual(calls, [{ command: "TauRPC__greet", args: { name: "world" } }])
+	assert.equal(await createTauRPCProxy().app.greet("world"), "hello")
+	assert.deepEqual(calls, [{ command: "TauRPC__app.greet", args: { name: "world" } }])
+})
+
+test("unmigrated commands keep their arguments while app handles stay backend-only", async () => {
+	const calls = []
+	mockIPC((command, args) => {
+		calls.push({ command, args })
+		return null
+	})
+	await createTauRPCProxy().kill_instance("instance-id")
+	assert.deepEqual(calls, [
+		{ command: "TauRPC__kill_instance", args: { instance_id: "instance-id" } },
+	])
 })

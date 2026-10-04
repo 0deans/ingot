@@ -6,7 +6,7 @@ use crate::system::MemorySettings;
 use crate::version_change::crash::VersionChangeCrash;
 
 #[taurpc::procedures(path = "events")]
-pub trait EventsApi {
+pub(crate) trait EventsApi {
     /// The first start after a version change crashed
     #[taurpc(event)]
     async fn on_version_change_crash(event: VersionChangeCrash);
@@ -36,7 +36,7 @@ pub trait EventsApi {
 }
 
 #[derive(Clone)]
-pub struct EventsApiImpl;
+pub(crate) struct EventsApiImpl;
 
 #[taurpc::resolvers]
 impl EventsApi for EventsApiImpl {}

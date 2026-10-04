@@ -194,7 +194,7 @@ async fn running_pid(pm: &ServerProcessManager, server_id: &str) -> Option<u32> 
 
 /// Starts recording stats for a server unless already recording. The task ends (and
 /// drops the history) once the server stops; a restart begins a fresh history.
-pub fn ensure_sampler(pm: &'static ServerProcessManager, server_id: &str, has_tps: bool) {
+pub fn ensure_sampler(pm: ServerProcessManager, server_id: &str, has_tps: bool) {
     {
         let Ok(mut sampling) = SAMPLING.lock() else {
             return;
@@ -209,7 +209,7 @@ pub fn ensure_sampler(pm: &'static ServerProcessManager, server_id: &str, has_tp
         let mut missing = 0;
         let mut last_pid = None;
         loop {
-            match running_pid(pm, &server_id).await {
+            match running_pid(&pm, &server_id).await {
                 Some(pid) => {
                     missing = 0;
                     if last_pid.is_some_and(|last| last != pid) {
@@ -219,7 +219,7 @@ pub fn ensure_sampler(pm: &'static ServerProcessManager, server_id: &str, has_tp
                         }
                     }
                     last_pid = Some(pid);
-                    let sample = stats(pm, &server_id, pid, has_tps).await;
+                    let sample = stats(&pm, &server_id, pid, has_tps).await;
                     if let Ok(mut h) = HISTORIES.lock() {
                         let history = h.entry(server_id.clone()).or_default();
                         if history.len() >= HISTORY_LEN {

@@ -944,7 +944,7 @@ where
                 folder.as_slice(),
                 started_at,
             ) {
-                crate::ipc::emit_version_change_crash(&app_exit, crash);
+                crate::app::events::version_change_crash(&app_exit, crash);
             }
         }
 

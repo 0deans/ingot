@@ -38,7 +38,7 @@ async fn settings_namespace_dispatches_and_preserves_errors_and_storage() {
         .invoke_handler(router.into_handler())
         .build(tauri::test::mock_context(tauri::test::noop_assets()))
         .unwrap();
-    app.manage(AppState::new(AppPaths::new(dir.path().to_owned())));
+    app.manage(AppState::new(AppPaths::new(dir.path().to_owned())).unwrap());
     let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
         .build()
         .unwrap();
@@ -102,4 +102,41 @@ fn event_trigger_uses_the_namespaced_route_and_listener_can_be_removed() {
         .on_memory_changed(MemorySettings::default())
         .unwrap();
     assert!(receiver.try_recv().is_err());
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn application_shutdown_uses_managed_state_and_existing_root_commands_share_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = super::router::<MockRuntime>();
+    let app = tauri::test::mock_builder()
+        .invoke_handler(router.into_handler())
+        .build(tauri::test::mock_context(tauri::test::noop_assets()))
+        .unwrap();
+    let state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
+    let servers = state.servers.clone();
+    servers
+        .set_server_status("sleeping", crate::server::ServerStatus::Sleeping)
+        .await;
+    app.manage(state);
+    let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
+        .build()
+        .unwrap();
+
+    assert_eq!(
+        invoke(&webview, "TauRPC__app.stop_all_servers", json!({})).unwrap(),
+        Value::Null
+    );
+    assert_eq!(
+        servers.get_server_status("sleeping").await,
+        crate::server::ServerStatus::Stopped
+    );
+    assert_eq!(
+        invoke(&webview, "TauRPC__get_running_servers", json!({})).unwrap(),
+        json!([])
+    );
+    assert_eq!(
+        invoke(&webview, "TauRPC__app.greet", json!({"name":"test"})).unwrap(),
+        "Hello, test! You've been greeted from Rust via TauRPC!"
+    );
+    assert!(invoke(&webview, "TauRPC__stop_all_servers", json!({})).is_err());
 }

@@ -1,4 +1,5 @@
 //! Root commands awaiting feature-by-feature migration. Remove this module after phase 3.
+use crate::app::lifecycle::{adopt_running_games, leftover_servers};
 use super::events::TauRpcEventsApiEventTrigger;
 use crate::minecraft::launcher::{InstanceStatusEvent, LaunchProgressEvent};
 use crate::server::{ServerLogEvent, ServerStatusEvent};
@@ -15,7 +16,7 @@ use crate::minecraft::loader;
 use crate::minecraft::screenshots::{self, ScreenshotInfo};
 use crate::minecraft::sync::{self, SharedSyncStatus, SyncConflictInfo, SyncReport};
 use crate::minecraft::version::{self, VersionManifestEntry};
-use crate::version_change::crash::VersionChangeCrash;
+
 use crate::version_change::targets::{self as change_targets, loader_id, parse_loader};
 use crate::version_change::{self, PlanRequest, TargetKind, VersionBackup, VersionPlan};
 use crate::server::files::{AccessEntry, AccessListKind, ConfigFile, PropertyEntry};
@@ -31,45 +32,28 @@ use crate::server::{
     ServerPingResponse, ServerProcessManager, ServerProperties, WhitelistEntry,
 };
 
-use crate::running::{BusyServer, LeftoverServer, QuitRequest};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::OnceLock;
 use tauri::{Manager, Runtime};
 
-static PROCESS_MANAGER: OnceLock<ProcessManager> = OnceLock::new();
-static SERVER_PROCESS_MANAGER: OnceLock<ServerProcessManager> = OnceLock::new();
-static SERVER_SUPERVISOR_MANAGER: OnceLock<server::ServerSupervisorManager> = OnceLock::new();
-static PLAYIT_MANAGER: OnceLock<server::PlayitManager> = OnceLock::new();
-static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
-
-fn get_process_manager() -> &'static ProcessManager {
-    PROCESS_MANAGER.get_or_init(ProcessManager::new)
+fn get_process_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &ProcessManager {
+    &crate::app::state(app).games
 }
-
-fn get_server_process_manager() -> &'static ServerProcessManager {
-    SERVER_PROCESS_MANAGER.get_or_init(ServerProcessManager::new)
+fn get_server_process_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &ServerProcessManager {
+    &crate::app::state(app).servers
 }
-
-fn get_server_supervisor_manager() -> &'static server::ServerSupervisorManager {
-    SERVER_SUPERVISOR_MANAGER.get_or_init(server::ServerSupervisorManager::new)
+fn get_server_supervisor_manager<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> &server::ServerSupervisorManager {
+    &crate::app::state(app).supervisor
 }
-
-fn get_playit_manager() -> &'static server::PlayitManager {
-    PLAYIT_MANAGER.get_or_init(server::PlayitManager::new)
+fn get_playit_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &server::PlayitManager {
+    &crate::app::state(app).playit
 }
-
-fn get_http_client() -> &'static reqwest::Client {
-    HTTP_CLIENT.get_or_init(|| {
-        reqwest::Client::builder()
-            .user_agent(crate::USER_AGENT)
-            .build()
-            .unwrap_or_default()
-    })
+fn get_http_client<R: Runtime>(app: &tauri::AppHandle<R>) -> &reqwest::Client {
+    &crate::app::state(app).http
 }
 
 #[taurpc::procedures]
 pub trait AppApi {
-    async fn greet(name: String) -> String;
     async fn ely_login(
         app_handle: tauri::AppHandle<impl Runtime>,
         username: String,
@@ -192,7 +176,10 @@ pub trait AppApi {
         instance_id: String,
     ) -> Result<Vec<instance::InstanceWorldSummary>, String>;
 
-    async fn kill_instance(instance_id: String) -> Result<(), String>;
+    async fn kill_instance(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String>;
 
     /// Works out what moving an instance to another Minecraft version (and optionally
     /// another loader) means for its mods, resource packs and shaders. Changes nothing.
@@ -248,13 +235,10 @@ pub trait AppApi {
     ) -> Result<Vec<VersionManifestEntry>, String>;
 
     async fn get_available_loader_versions(
+        app_handle: tauri::AppHandle<impl Runtime>,
         game_version: String,
         loader: ModLoaderType,
     ) -> Result<Vec<String>, String>;
-
-
-
-
 
     async fn push_instance_sync(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -425,26 +409,46 @@ pub trait AppApi {
         server_id: String,
     ) -> Result<(), String>;
 
-    async fn stop_server(server_id: String) -> Result<(), String>;
+    async fn stop_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
 
-    async fn kill_server(server_id: String) -> Result<(), String>;
+    async fn kill_server(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String>;
 
-    async fn send_server_command(server_id: String, command: String) -> Result<(), String>;
+    async fn send_server_command(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        command: String,
+    ) -> Result<(), String>;
 
     async fn start_playit_tunnel(
         app_handle: tauri::AppHandle<impl Runtime>,
         secret_key: Option<String>,
     ) -> Result<PlayitTunnelStatus, String>;
 
-    async fn stop_playit_tunnel() -> Result<(), String>;
+    async fn stop_playit_tunnel(app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), String>;
 
-    async fn get_playit_status() -> Result<PlayitTunnelStatus, String>;
+    async fn get_playit_status(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<PlayitTunnelStatus, String>;
 
-    async fn get_running_servers() -> Result<Vec<RunningServerSummary>, String>;
+    async fn get_running_servers(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<RunningServerSummary>, String>;
 
-    async fn get_server_logs(server_id: String) -> Result<Vec<String>, String>;
+    async fn get_server_logs(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<String>, String>;
 
-    async fn get_server_online_players(server_id: String) -> Result<Vec<String>, String>;
+    async fn get_server_online_players(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<String>, String>;
 
     async fn get_server_whitelist(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -477,11 +481,15 @@ pub trait AppApi {
     ) -> Result<(), String>;
 
     async fn get_available_server_core_versions(
+        app_handle: tauri::AppHandle<impl Runtime>,
         core: ServerCoreType,
     ) -> Result<Vec<String>, String>;
 
     /// Live details of all online players (console queries; server must be running)
-    async fn get_online_players(server_id: String) -> Result<Vec<PlayerDetails>, String>;
+    async fn get_online_players(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<PlayerDetails>, String>;
 
     /// Everyone with a save file, newest first
     async fn get_known_players(
@@ -513,7 +521,11 @@ pub trait AppApi {
     /// Flushes the world to disk (`save-all flush`) so the map shows the latest state
     /// Saves the world so the map shows the latest state. `flush` also waits for
     /// every chunk to reach the disk (slower; used for an explicit refresh).
-    async fn save_server_world(server_id: String, flush: bool) -> Result<(), String>;
+    async fn save_server_world(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        flush: bool,
+    ) -> Result<(), String>;
 
     async fn get_server_properties_all(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -750,33 +762,6 @@ pub trait AppApi {
         server_id: String,
     ) -> Result<(), String>;
 
-
-    /// What would stop Ingot from simply quitting now: running or sleeping servers
-    async fn get_quit_blockers(app_handle: tauri::AppHandle<impl Runtime>) -> Result<QuitRequest, String>;
-
-    /// Stops every running server (each saves its worlds) and waits until they've exited
-    async fn stop_all_servers() -> Result<(), String>;
-
-    /// Quits Ingot. Games keep running; servers should be stopped first
-    async fn quit_app(app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), String>;
-
-    /// Servers still running from before Ingot last closed, without their console
-    async fn get_leftover_servers(
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<Vec<LeftoverServer>, String>;
-
-    /// Ends a leftover server (there's no console to ask it to save first)
-    async fn stop_leftover_server(
-        app_handle: tauri::AppHandle<impl Runtime>,
-        server_id: String,
-    ) -> Result<(), String>;
-
-
-
-
-
-
-
 }
 
 #[derive(Clone)]
@@ -784,9 +769,6 @@ pub struct AppApiImpl;
 
 #[taurpc::resolvers]
 impl AppApi for AppApiImpl {
-    async fn greet(self, name: String) -> String {
-        format!("Hello, {}! You've been greeted from Rust via TauRPC!", name)
-    }
 
     async fn ely_login(
         self,
@@ -852,11 +834,6 @@ impl AppApi for AppApiImpl {
     ) -> Result<String, String> {
         account::get_active_account_token(app_handle).await
     }
-
-
-
-
-
 
     async fn get_skin_data_url(
         self,
@@ -972,7 +949,7 @@ impl AppApi for AppApiImpl {
         include_worlds: bool,
     ) -> Result<InstanceConfig, String> {
         // A running game keeps writing its world: copy it once it's saved and closed
-        if include_worlds && get_process_manager().is_running(&instance_id).await {
+        if include_worlds && get_process_manager(&app_handle).is_running(&instance_id).await {
             return Err("Close the game first, so the worlds are copied as they were saved.".to_string());
         }
         tauri::async_runtime::spawn_blocking(move || {
@@ -1030,8 +1007,8 @@ impl AppApi for AppApiImpl {
 
         // A game still running from before Ingot closed is this instance too
         adopt_running_games(&app_handle).await;
-        let pm = get_process_manager().clone();
-        let client = get_http_client().clone();
+        let pm = get_process_manager(&app_handle).clone();
+        let client = get_http_client(&app_handle).clone();
         let app = app_handle.clone();
 
         let app_prog = app_handle.clone();
@@ -1062,8 +1039,12 @@ impl AppApi for AppApiImpl {
         instance::get_instance_worlds(&instance_dir)
     }
 
-    async fn kill_instance(self, instance_id: String) -> Result<(), String> {
-        get_process_manager().kill_instance(&instance_id).await
+    async fn kill_instance(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+    ) -> Result<(), String> {
+        get_process_manager(&app_handle).kill_instance(&instance_id).await
     }
 
     async fn check_instance_version_change(
@@ -1094,7 +1075,7 @@ impl AppApi for AppApiImpl {
             to_loader_version: loader_version.filter(|_| loader != ModLoaderType::Vanilla),
             downgrade,
         };
-        version_change::check(get_http_client(), &target, request).await
+        version_change::check(get_http_client(&app_handle), &target, request).await
     }
 
     async fn apply_instance_version_change(
@@ -1103,7 +1084,7 @@ impl AppApi for AppApiImpl {
         plan: VersionPlan,
         backup_worlds: bool,
     ) -> Result<InstanceConfig, String> {
-        if get_process_manager().is_running(&plan.target_id).await {
+        if get_process_manager(&app_handle).is_running(&plan.target_id).await {
             return Err("Close the game first".into());
         }
         let instance = find_instance(&app_handle, &plan.target_id)?;
@@ -1120,7 +1101,7 @@ impl AppApi for AppApiImpl {
 
         let instance_dir = instance::get_instance_dir(&app_handle, &plan.target_id)?;
         let target = change_targets::instance(&instance_dir, &plan.from_loader, &plan.to_loader);
-        version_change::apply(get_http_client(), &target, &plan, backup_worlds, |_| {}).await?;
+        version_change::apply(get_http_client(&app_handle), &target, &plan, backup_worlds, |_| {}).await?;
         instance::update_instance(&app_handle, updated.clone())?;
         Ok(updated)
     }
@@ -1139,7 +1120,7 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, String> {
-        if get_process_manager().is_running(&instance_id).await {
+        if get_process_manager(&app_handle).is_running(&instance_id).await {
             return Err("Close the game first".into());
         }
         let instance = find_instance(&app_handle, &instance_id)?;
@@ -1172,13 +1153,13 @@ impl AppApi for AppApiImpl {
     ) -> Result<(), String> {
         let root = match target_kind {
             TargetKind::Instance => {
-                if get_process_manager().is_running(&target_id).await {
+                if get_process_manager(&app_handle).is_running(&target_id).await {
                     return Err("Close the game first".into());
                 }
                 instance::get_instance_dir(&app_handle, &target_id)?
             }
             TargetKind::Server => {
-                if get_server_process_manager().get_server_status(&target_id).await != server::ServerStatus::Stopped {
+                if get_server_process_manager(&app_handle).get_server_status(&target_id).await != server::ServerStatus::Stopped {
                     return Err("Stop the server first".into());
                 }
                 server_with_config(&app_handle, &target_id)?.0
@@ -1192,7 +1173,7 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<RunningInstanceSummary>, String> {
         adopt_running_games(&app_handle).await;
-        Ok(get_process_manager().get_running_instances().await)
+        Ok(get_process_manager(&app_handle).get_running_instances().await)
     }
 
     async fn get_available_game_versions(
@@ -1204,21 +1185,18 @@ impl AppApi for AppApiImpl {
             .app_data_dir()
             .map_err(|e| format!("Failed to get app data directory: {e}"))?;
         let cache_dir = data_dir.join("cache");
-        let manifest = version::fetch_version_manifest(get_http_client(), &cache_dir).await?;
+        let manifest = version::fetch_version_manifest(get_http_client(&app_handle), &cache_dir).await?;
         Ok(manifest.versions)
     }
 
     async fn get_available_loader_versions(
         self,
+        app_handle: tauri::AppHandle<impl Runtime>,
         game_version: String,
         loader: ModLoaderType,
     ) -> Result<Vec<String>, String> {
-        loader::fetch_loader_versions(get_http_client(), &loader, &game_version).await
+        loader::fetch_loader_versions(get_http_client(&app_handle), &loader, &game_version).await
     }
-
-
-
-
 
     async fn push_instance_sync(
         self,
@@ -1559,7 +1537,7 @@ impl AppApi for AppApiImpl {
         // Two servers can't listen on the same ports; say which one is in the way
         // instead of failing halfway through the start. Sleeping servers count too:
         // their proxy keeps the public port open to wake them.
-        let pm = get_server_process_manager();
+        let pm = get_server_process_manager(&app_handle);
         for other in server::load_servers(&app_handle)?
             .iter()
             .filter(|s| s.id != config.id)
@@ -1584,7 +1562,7 @@ impl AppApi for AppApiImpl {
             pm.get_server_status(&config.id).await,
             server::ServerStatus::Stopped | server::ServerStatus::Sleeping
         ) {
-            get_server_supervisor_manager().release(&config.id).await;
+            get_server_supervisor_manager(&app_handle).release(&config.id).await;
         }
         let port_free = || std::net::TcpListener::bind(("0.0.0.0", config.port)).is_ok();
         let mut free = port_free();
@@ -1602,8 +1580,8 @@ impl AppApi for AppApiImpl {
             ));
         }
 
-        let pm = get_server_process_manager().clone();
-        let client = get_http_client().clone();
+        let pm = get_server_process_manager(&app_handle).clone();
+        let client = get_http_client(&app_handle).clone();
         let app = app_handle.clone();
 
         let app_log = app_handle.clone();
@@ -1623,11 +1601,11 @@ impl AppApi for AppApiImpl {
         };
 
         let has_tps = core_has_tps(&config);
-        let pid = get_server_supervisor_manager()
+        let pid = get_server_supervisor_manager(&app_handle)
             .supervise_and_start(app, pm, client, config, on_log, on_status)
             .await?;
         // Record stats from the start, so the graphs have history whenever they're opened
-        server::stats::ensure_sampler(get_server_process_manager(), &server_id, has_tps);
+        server::stats::ensure_sampler(get_server_process_manager(&app_handle).clone(), &server_id, has_tps);
         Ok(pid)
     }
 
@@ -1643,19 +1621,27 @@ impl AppApi for AppApiImpl {
                 eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
             }
         };
-        get_server_supervisor_manager()
-            .put_to_sleep(get_server_process_manager(), &server_id, on_status)
+        get_server_supervisor_manager(&app_handle)
+            .put_to_sleep(get_server_process_manager(&app_handle), &server_id, on_status)
             .await
     }
 
-    async fn stop_server(self, server_id: String) -> Result<(), String> {
-        get_server_supervisor_manager()
-            .stop_supervised(get_server_process_manager(), &server_id)
+    async fn stop_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        get_server_supervisor_manager(&app_handle)
+            .stop_supervised(get_server_process_manager(&app_handle), &server_id)
             .await
     }
 
-    async fn kill_server(self, server_id: String) -> Result<(), String> {
-        get_server_process_manager().kill_server(&server_id).await
+    async fn kill_server(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<(), String> {
+        get_server_process_manager(&app_handle).kill_server(&server_id).await
     }
 
     async fn start_playit_tunnel(
@@ -1663,83 +1649,59 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         secret_key: Option<String>,
     ) -> Result<PlayitTunnelStatus, String> {
-        get_playit_manager()
-            .start_tunnel(&app_handle, get_http_client(), secret_key)
+        get_playit_manager(&app_handle)
+            .start_tunnel(&app_handle, get_http_client(&app_handle), secret_key)
             .await
     }
 
-    async fn stop_playit_tunnel(self) -> Result<(), String> {
-        get_playit_manager().stop_tunnel().await
+    async fn stop_playit_tunnel(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<(), String> {
+        get_playit_manager(&app_handle).stop_tunnel().await
     }
 
-    async fn get_playit_status(self) -> Result<PlayitTunnelStatus, String> {
-        Ok(get_playit_manager().get_status().await)
+    async fn get_playit_status(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<PlayitTunnelStatus, String> {
+        Ok(get_playit_manager(&app_handle).get_status().await)
     }
 
-    async fn send_server_command(self, server_id: String, command: String) -> Result<(), String> {
-        get_server_process_manager()
+    async fn send_server_command(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        command: String,
+    ) -> Result<(), String> {
+        get_server_process_manager(&app_handle)
             .send_command(&server_id, &command)
             .await
     }
 
-    async fn get_running_servers(self) -> Result<Vec<RunningServerSummary>, String> {
-        Ok(get_server_process_manager().get_running_servers().await)
-    }
-
-    async fn get_quit_blockers(
+    async fn get_running_servers(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<QuitRequest, String> {
-        Ok(quit_request(&app_handle).await)
+    ) -> Result<Vec<RunningServerSummary>, String> {
+        Ok(get_server_process_manager(&app_handle).get_running_servers().await)
     }
 
-    async fn stop_all_servers(self) -> Result<(), String> {
-        stop_all_servers().await;
-        Ok(())
-    }
-
-    async fn quit_app(self, app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), String> {
-        quit_now(&app_handle);
-        Ok(())
-    }
-
-    async fn get_leftover_servers(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<Vec<LeftoverServer>, String> {
-        Ok(leftover_servers(&app_handle).await)
-    }
-
-    async fn stop_leftover_server(
+    async fn get_server_logs(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
-    ) -> Result<(), String> {
-        let leftover = leftover_servers(&app_handle)
-            .await
-            .into_iter()
-            .find(|l| l.server_id == server_id)
-            .ok_or("That server isn't running any more")?;
-        crate::running::kill_tree(leftover.pid);
-        // Wait for it to be gone, so the port and the world are free for a start
-        for _ in 0..20 {
-            if crate::running::process_start(leftover.pid).is_none() {
-                break;
-            }
-            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
-        }
-        crate::running::remove(&app_handle, crate::running::Kind::Server, &server_id, leftover.pid);
-        Ok(())
-    }
-
-    async fn get_server_logs(self, server_id: String) -> Result<Vec<String>, String> {
-        Ok(get_server_process_manager()
+    ) -> Result<Vec<String>, String> {
+        Ok(get_server_process_manager(&app_handle)
             .get_server_logs(&server_id)
             .await)
     }
 
-    async fn get_server_online_players(self, server_id: String) -> Result<Vec<String>, String> {
-        Ok(get_server_process_manager()
+    async fn get_server_online_players(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<String>, String> {
+        Ok(get_server_process_manager(&app_handle)
             .get_server_online_players(&server_id)
             .await)
     }
@@ -1798,13 +1760,18 @@ impl AppApi for AppApiImpl {
 
     async fn get_available_server_core_versions(
         self,
+        app_handle: tauri::AppHandle<impl Runtime>,
         core: ServerCoreType,
     ) -> Result<Vec<String>, String> {
-        server::fetch_core_versions(get_http_client(), &core).await
+        server::fetch_core_versions(get_http_client(&app_handle), &core).await
     }
 
-    async fn get_online_players(self, server_id: String) -> Result<Vec<PlayerDetails>, String> {
-        server::live::online_players(get_server_process_manager(), &server_id).await
+    async fn get_online_players(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+    ) -> Result<Vec<PlayerDetails>, String> {
+        server::live::online_players(get_server_process_manager(&app_handle), &server_id).await
     }
 
     async fn get_known_players(
@@ -1823,9 +1790,9 @@ impl AppApi for AppApiImpl {
                 .await
                 .map_err(|e| e.to_string())?
         };
-        if is_server_running(&server_id).await {
+        if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             if let Ok(online) =
-                server::live::list_online(get_server_process_manager(), &server_id).await
+                server::live::list_online(get_server_process_manager(&app_handle), &server_id).await
             {
                 for (name, uuid) in online {
                     match known
@@ -1857,9 +1824,9 @@ impl AppApi for AppApiImpl {
     ) -> Result<PlayerDetails, String> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         if config.core == ServerCoreType::Bedrock {
-            if is_server_running(&server_id).await {
+            if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
                 if let Ok(details) =
-                    server::live::query_player(get_server_process_manager(), &server_id, &name).await
+                    server::live::query_player(get_server_process_manager(&app_handle), &server_id, &name).await
                 {
                     return Ok(details);
                 }
@@ -1867,9 +1834,9 @@ impl AppApi for AppApiImpl {
             return Ok(server::live::offline_bedrock_player(&dir, &name));
         }
 
-        if is_server_running(&server_id).await {
+        if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             if let Ok(details) =
-                server::live::query_player(get_server_process_manager(), &server_id, &name).await
+                server::live::query_player(get_server_process_manager(&app_handle), &server_id, &name).await
             {
                 return Ok(details);
             }
@@ -1907,8 +1874,13 @@ impl AppApi for AppApiImpl {
             .map_err(|e| e.to_string())?
     }
 
-    async fn save_server_world(self, server_id: String, flush: bool) -> Result<(), String> {
-        get_server_process_manager()
+    async fn save_server_world(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        server_id: String,
+        flush: bool,
+    ) -> Result<(), String> {
+        get_server_process_manager(&app_handle)
             .query(
                 &server_id,
                 if flush { "save-all flush" } else { "save-all" },
@@ -2022,19 +1994,19 @@ impl AppApi for AppApiImpl {
             return Err(format!("\"{name}\" is not a valid Minecraft username"));
         }
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        let running = is_server_running(&server_id).await;
+        let running = is_server_running(get_server_process_manager(&app_handle), &server_id).await;
         // The whitelist is edited directly (with the right UUID for the server's auth
         // mode) and reloaded; ops and bans go through commands while running.
         if kind == AccessListKind::Whitelist || !running {
-            let (name, uuid) = resolve_profile(&dir, &name).await;
+            let (name, uuid) = resolve_profile(get_http_client(&app_handle), &dir, &name).await;
             server::files::add_access_entry(&dir, kind, &name, &uuid)?;
             if running {
-                let _ = get_server_process_manager()
+                let _ = get_server_process_manager(&app_handle)
                     .send_command(&server_id, "whitelist reload")
                     .await;
             }
         } else {
-            get_server_process_manager()
+            get_server_process_manager(&app_handle)
                 .send_command(&server_id, &kind.add_command(&name))
                 .await?;
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -2050,11 +2022,11 @@ impl AppApi for AppApiImpl {
         name: String,
     ) -> Result<Vec<AccessEntry>, String> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        if is_server_running(&server_id).await {
+        if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             if !server::live::is_valid_player_name(&name) {
                 return Err(format!("\"{name}\" is not a valid Minecraft username"));
             }
-            get_server_process_manager()
+            get_server_process_manager(&app_handle)
                 .send_command(&server_id, &kind.remove_command(&name))
                 .await?;
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -2251,9 +2223,9 @@ impl AppApi for AppApiImpl {
         server_id: String,
     ) -> Result<Vec<ServerStats>, String> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
-        if is_server_running(&server_id).await {
+        if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             server::stats::ensure_sampler(
-                get_server_process_manager(),
+                get_server_process_manager(&app_handle).clone(),
                 &server_id,
                 core_has_tps(&config),
             );
@@ -2377,7 +2349,7 @@ impl AppApi for AppApiImpl {
         game_version: Option<String>,
         build_number: Option<String>,
     ) -> Result<ServerConfig, String> {
-        if is_server_running(&server_id).await {
+        if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             return Err("Stop the server before copying it".to_string());
         }
         let (_, config) = server_with_config(&app_handle, &server_id)?;
@@ -2413,7 +2385,7 @@ impl AppApi for AppApiImpl {
             to_loader_version: None,
             downgrade,
         };
-        version_change::check(get_http_client(), &target, request).await
+        version_change::check(get_http_client(&app_handle), &target, request).await
     }
 
     async fn apply_server_version_change(
@@ -2422,7 +2394,7 @@ impl AppApi for AppApiImpl {
         plan: VersionPlan,
         backup_worlds: bool,
     ) -> Result<ServerConfig, String> {
-        if get_server_process_manager().get_server_status(&plan.target_id).await != server::ServerStatus::Stopped {
+        if get_server_process_manager(&app_handle).get_server_status(&plan.target_id).await != server::ServerStatus::Stopped {
             return Err("Stop the server before changing its version".to_string());
         }
         let (dir, config) = server_with_config(&app_handle, &plan.target_id)?;
@@ -2435,7 +2407,7 @@ impl AppApi for AppApiImpl {
             return Err("The server changed since it was checked. Check again.".into());
         }
         let target = change_targets::server(&dir, &core);
-        version_change::apply(get_http_client(), &target, &plan, backup_worlds, |_| {}).await?;
+        version_change::apply(get_http_client(&app_handle), &target, &plan, backup_worlds, |_| {}).await?;
         server::plugins::track_version_change(&dir, &plan.items);
 
         // The newest build of the new version is downloaded on the next start
@@ -2461,7 +2433,7 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<ServerConfig, String> {
-        if get_server_process_manager().get_server_status(&server_id).await != server::ServerStatus::Stopped {
+        if get_server_process_manager(&app_handle).get_server_status(&server_id).await != server::ServerStatus::Stopped {
             return Err("Stop the server first".to_string());
         }
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
@@ -2523,151 +2495,9 @@ fn server_with_config<R: Runtime>(
 /// follow). Versions Mojang doesn't list (Pumpkin's) never count as older.
 async fn is_downgrade<R: Runtime>(app: &tauri::AppHandle<R>, from: &str, to: &str) -> Result<bool, String> {
     let cache_dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("cache");
-    let manifest = version::fetch_version_manifest(get_http_client(), &cache_dir).await?;
+    let manifest = version::fetch_version_manifest(get_http_client(app), &cache_dir).await?;
     let released = |id: &str| manifest.versions.iter().find(|v| v.id == id).map(|v| v.release_time.clone());
     Ok(matches!((released(from), released(to)), (Some(from), Some(to)) if to < from))
-}
-
-/// Tells the frontend the first start after a version change crashed
-pub fn emit_version_change_crash<R: Runtime>(app: &tauri::AppHandle<R>, event: VersionChangeCrash) {
-    if let Err(e) = TauRpcEventsApiEventTrigger::new(app.clone()).on_version_change_crash(event) {
-        eprintln!("[IPC] Failed to emit on_version_change_crash: {e}");
-    }
-}
-
-/// Set once quitting is decided, so the exit isn't stopped again
-static QUITTING: AtomicBool = AtomicBool::new(false);
-static GAMES_ADOPTED: tokio::sync::OnceCell<()> = tokio::sync::OnceCell::const_new();
-
-/// Re-attaches the games that were running when Ingot last closed (once per run)
-pub(crate) async fn adopt_running_games<R: Runtime>(app: &tauri::AppHandle<R>) {
-    GAMES_ADOPTED
-        .get_or_init(|| async {
-            let app_stat = app.clone();
-            let on_status = std::sync::Arc::new(move |ev: InstanceStatusEvent| {
-                if let Err(e) = TauRpcEventsApiEventTrigger::new(app_stat.clone()).on_instance_status_changed(ev) {
-                    eprintln!("[IPC] Failed to emit on_instance_status_changed: {e}");
-                }
-            });
-            launcher::adopt_running(app.clone(), get_process_manager().clone(), on_status).await;
-        })
-        .await;
-}
-
-/// Servers that are running, starting or sleeping
-pub(crate) async fn busy_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<BusyServer> {
-    let pm = get_server_process_manager();
-    let configs = server::load_servers(app).unwrap_or_default();
-    let mut busy = Vec::new();
-    for config in configs {
-        let status = pm.get_server_status(&config.id).await;
-        if status != server::ServerStatus::Stopped {
-            busy.push(BusyServer {
-                server_id: config.id,
-                name: config.name,
-                sleeping: status == server::ServerStatus::Sleeping,
-            });
-        }
-    }
-    busy
-}
-
-async fn quit_request<R: Runtime>(app: &tauri::AppHandle<R>) -> QuitRequest {
-    QuitRequest {
-        servers: busy_servers(app).await,
-        games: get_process_manager().get_running_instances().await.len() as u32,
-    }
-}
-
-/// Stops every server and waits for them: each gets 30 seconds to save its worlds
-/// before it's ended
-pub(crate) async fn stop_all_servers() {
-    let pm = get_server_process_manager();
-    let supervisor = get_server_supervisor_manager();
-    // Sleeping ones only have a proxy; stop those too so nothing wakes up meanwhile
-    for id in pm.sleeping_ids().await {
-        supervisor.release(&id).await;
-        pm.set_server_status(&id, server::ServerStatus::Stopped).await;
-    }
-    // A server still starting may get its process meanwhile: look again after each round
-    for _ in 0..3 {
-        let ids = pm.process_ids().await;
-        if ids.is_empty() {
-            break;
-        }
-        let mut waits = Vec::new();
-        for id in ids {
-            supervisor.release(&id).await;
-            let _ = pm.stop_server_within(&id, std::time::Duration::from_secs(30)).await;
-            waits.push(tokio::spawn(async move {
-                get_server_process_manager()
-                    .wait_stopped(&id, std::time::Duration::from_secs(35))
-                    .await
-            }));
-        }
-        for wait in waits {
-            let _ = wait.await;
-        }
-    }
-}
-
-/// Quits for real, past the checks
-pub(crate) fn quit_now<R: Runtime>(app: &tauri::AppHandle<R>) {
-    QUITTING.store(true, Ordering::SeqCst);
-    app.exit(0);
-}
-
-pub(crate) fn is_quitting() -> bool {
-    QUITTING.load(Ordering::SeqCst)
-}
-
-/// Closing the window, Quit in the tray, or any other exit: quits right away unless a
-/// server runs, then shows the window and asks what to do
-pub(crate) fn request_quit<R: Runtime>(app: &tauri::AppHandle<R>) {
-    let app = app.clone();
-    tauri::async_runtime::spawn(async move {
-        let request = quit_request(&app).await;
-        if request.servers.is_empty() {
-            quit_now(&app);
-            return;
-        }
-        #[cfg(desktop)]
-        crate::tray::restore_main_window(&app);
-        if let Err(e) = TauRpcEventsApiEventTrigger::new(app.clone()).on_quit_requested(request) {
-            eprintln!("[IPC] Failed to emit on_quit_requested: {e}");
-            // Nobody to ask: never leave a server behind without its console
-            stop_all_servers().await;
-            quit_now(&app);
-        }
-    });
-}
-
-/// Servers from the saved list that are still running but aren't Ingot's children now
-async fn leftover_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<LeftoverServer> {
-    let pm = get_server_process_manager();
-    let configs = server::load_servers(app).unwrap_or_default();
-    let mut leftovers = Vec::new();
-    for entry in crate::running::load(app, crate::running::Kind::Server) {
-        if pm.owns(&entry.id, entry.pid).await {
-            continue;
-        }
-        if !crate::running::is_alive(&entry) {
-            crate::running::remove(app, crate::running::Kind::Server, &entry.id, entry.pid);
-            continue;
-        }
-        let name = configs
-            .iter()
-            .find(|c| c.id == entry.id)
-            .map(|c| c.name.clone())
-            .unwrap_or_else(|| "A server".to_string());
-        leftovers.push(LeftoverServer {
-            server_id: entry.id,
-            name,
-            pid: entry.pid,
-            started_at: entry.started_at,
-        });
-    }
-    leftovers
 }
 
 fn find_instance<R: Runtime>(app: &tauri::AppHandle<R>, instance_id: &str) -> Result<InstanceConfig, String> {
@@ -2684,8 +2514,8 @@ fn core_has_tps(config: &server::ServerConfig) -> bool {
     )
 }
 
-async fn is_server_running(server_id: &str) -> bool {
-    get_server_process_manager()
+async fn is_server_running(pm: &ServerProcessManager, server_id: &str) -> bool {
+    pm
         .get_server_status(server_id)
         .await
         == server::ServerStatus::Running
@@ -2693,7 +2523,7 @@ async fn is_server_running(server_id: &str) -> bool {
 
 /// Canonical name and UUID for a player: Mojang's profile on online-mode servers,
 /// the offline UUID otherwise (or when Mojang can't be reached)
-async fn resolve_profile(server_dir: &std::path::Path, name: &str) -> (String, String) {
+async fn resolve_profile(client: &reqwest::Client, server_dir: &std::path::Path, name: &str) -> (String, String) {
     let online_mode = server::read_server_properties_from_dir(server_dir)
         .map(|p| p.online_mode)
         .unwrap_or(false);
@@ -2704,7 +2534,7 @@ async fn resolve_profile(server_dir: &std::path::Path, name: &str) -> (String, S
             name: String,
         }
         let url = format!("https://api.mojang.com/users/profiles/minecraft/{name}");
-        if let Ok(res) = get_http_client().get(url).send().await {
+        if let Ok(res) = client.get(url).send().await {
             if let Ok(profile) = res.json::<Profile>().await {
                 if profile.id.len() == 32 {
                     let id = &profile.id;

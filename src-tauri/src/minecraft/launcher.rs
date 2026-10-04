@@ -830,11 +830,11 @@ where
             let _ = update_last_played(&app, &instance_id, 0);
             // A running server needs Ingot (its console lives here): hide to the tray instead.
             // The game itself is fine, it's picked up again when Ingot opens.
-            if crate::ipc::busy_servers(&app).await.is_empty() {
+            if crate::app::lifecycle::busy_servers(&app).await.is_empty() {
                 let app_exit = app.clone();
                 tokio::spawn(async move {
                     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                    crate::ipc::quit_now(&app_exit);
+                    crate::app::lifecycle::quit_now(&app_exit);
                 });
             } else if let Some(window) = app.get_webview_window("main") {
                 let _ = window.hide();
@@ -916,7 +916,7 @@ async fn finish_game<R: Runtime>(
             &["mods"],
             since,
         ) {
-            crate::ipc::emit_version_change_crash(app, crash);
+            crate::app::events::version_change_crash(app, crash);
         }
     }
 

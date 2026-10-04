@@ -31,7 +31,7 @@ export default function LeftoverServersDialog() {
 			setStopped([])
 			setError(null)
 		}
-		rpc.get_leftover_servers().then(show).catch(console.error)
+		rpc.app.get_leftover_servers().then(show).catch(console.error)
 		let unlisten: (() => void) | undefined
 		let cancelled = false
 		rpc.events.on_leftover_servers
@@ -54,7 +54,7 @@ export default function LeftoverServersDialog() {
 		setBusy(server.serverId)
 		setError(null)
 		try {
-			await rpc.stop_leftover_server(server.serverId)
+			await rpc.app.stop_leftover_server(server.serverId)
 			setStopped((prev) => [...prev, server.serverId])
 			await serverService.refreshServers()
 		} catch (e) {

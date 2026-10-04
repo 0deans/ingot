@@ -49,9 +49,9 @@ export default function QuitDialog() {
 		setStopping(true)
 		setError(null)
 		try {
-			await rpc.stop_all_servers()
+			await rpc.app.stop_all_servers()
 			if (mode === "quit") {
-				await rpc.quit_app()
+				await rpc.app.quit_app()
 			} else {
 				quitService.dismiss()
 				await prompt.proceed?.()

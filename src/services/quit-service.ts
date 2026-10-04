@@ -32,7 +32,7 @@ export const quitService = {
 	async guard(mode: Exclude<QuitMode, "quit">, action: () => Promise<void>): Promise<void> {
 		let request: QuitRequest
 		try {
-			request = await rpc.get_quit_blockers()
+			request = await rpc.app.get_quit_blockers()
 		} catch {
 			return action()
 		}

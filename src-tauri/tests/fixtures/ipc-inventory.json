@@ -425,7 +425,7 @@
     },
     {
       "name": "get_leftover_servers",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [],
       "destination": "app"
@@ -486,7 +486,7 @@
     },
     {
       "name": "get_quit_blockers",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [],
       "destination": "app"
@@ -666,7 +666,7 @@
     },
     {
       "name": "greet",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [
         "name"
@@ -1015,7 +1015,7 @@
     },
     {
       "name": "quit_app",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [],
       "destination": "app"
@@ -1277,14 +1277,14 @@
     },
     {
       "name": "stop_all_servers",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [],
       "destination": "app"
     },
     {
       "name": "stop_leftover_server",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [
         "server_id"

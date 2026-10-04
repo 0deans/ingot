@@ -63,7 +63,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .setup(|_app| {
             let paths = app::AppPaths::new(_app.path().app_data_dir()?);
-            _app.manage(app::AppState::new(paths));
+            _app.manage(app::AppState::new(paths)?);
             #[cfg(desktop)]
             {
                 if let Err(e) = _app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {
@@ -75,16 +75,16 @@ pub fn run() {
             }
             // Games still running from last time show as running again
             let handle = _app.handle().clone();
-            tauri::async_runtime::spawn(async move { ipc::adopt_running_games(&handle).await });
+            tauri::async_runtime::spawn(async move { app::lifecycle::adopt_running_games(&handle).await });
             Ok(())
         })
         .on_window_event(|window, event| {
             // Closing the window quits, but a running server's console lives in Ingot:
             // ask first instead of leaving it running out of reach
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                if window.label() == "main" && !ipc::is_quitting() {
+                if window.label() == "main" && !app::lifecycle::is_quitting(window.app_handle()) {
                     api.prevent_close();
-                    ipc::request_quit(tauri::Manager::app_handle(window));
+                    app::lifecycle::request_quit(tauri::Manager::app_handle(window));
                 }
             }
         })
@@ -95,9 +95,9 @@ pub fn run() {
             // Any other way out (the tray, the launcher closing itself) goes through the same check
             #[cfg(desktop)]
             if let tauri::RunEvent::ExitRequested { api, code: Some(_), .. } = _event {
-                if !ipc::is_quitting() {
+                if !app::lifecycle::is_quitting(_app) {
                     api.prevent_exit();
-                    ipc::request_quit(_app);
+                    app::lifecycle::request_quit(_app);
                 }
             }
         });
