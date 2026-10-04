@@ -1,4 +1,15 @@
-import { Eye, Footprints, Hand, Pause, Play, RotateCcw, Sparkles, User, Zap } from "lucide-react"
+import {
+	Eye,
+	Footprints,
+	Hand,
+	Pause,
+	Play,
+	RotateCcw,
+	Shirt,
+	Sparkles,
+	User,
+	Zap,
+} from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -19,6 +30,7 @@ export const DEFAULT_STEVE_SKIN =
 
 export interface SkinViewer3DProps {
 	skinUrl?: string | null
+	capeUrl?: string | null
 	username: string
 	width?: number
 	height?: number
@@ -38,6 +50,7 @@ type AnimationType = "idle" | "walk" | "run" | "wave" | "none"
 
 const SkinViewer3D = ({
 	skinUrl,
+	capeUrl,
 	username: _username,
 	width = 240,
 	height = 300,
@@ -71,6 +84,11 @@ const SkinViewer3D = ({
 		Boolean(skinUrl && !accountService.getCachedSkinDataUrl(skinUrl)),
 	)
 	const loadedSkinRef = useRef<{ skin: string; model: string } | null>(null)
+	const [showCape, setShowCape] = useState(true)
+	const initialCape =
+		(capeUrl ? accountService.getCachedSkinDataUrl(capeUrl) : null) || capeUrl || null
+	const [resolvedCape, setResolvedCape] = useState<string | null>(initialCape)
+	const loadedCapeRef = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (model !== undefined) {
@@ -78,6 +96,35 @@ const SkinViewer3D = ({
 			setHasUserOverriddenModel(true)
 		}
 	}, [model])
+
+	useEffect(() => {
+		let isMounted = true
+		if (!capeUrl) {
+			setResolvedCape(null)
+			return
+		}
+
+		const cached = accountService.getCachedSkinDataUrl(capeUrl)
+		if (cached) {
+			setResolvedCape(cached)
+			return
+		}
+
+		accountService
+			.getSkinDataUrl(capeUrl)
+			.then((dataUrl) => {
+				if (!isMounted) return
+				setResolvedCape(dataUrl || capeUrl)
+			})
+			.catch(() => {
+				if (!isMounted) return
+				setResolvedCape(capeUrl)
+			})
+
+		return () => {
+			isMounted = false
+		}
+	}, [capeUrl])
 
 	useEffect(() => {
 		let isMounted = true
@@ -147,6 +194,7 @@ const SkinViewer3D = ({
 			viewer.dispose()
 			viewerRef.current = null
 			loadedSkinRef.current = null
+			loadedCapeRef.current = null
 		}
 	}, [enableControls, zoom, floatingToolbar])
 
@@ -322,6 +370,49 @@ const SkinViewer3D = ({
 			})
 	}, [isSlim, resolvedSkin, hasUserOverriddenModel])
 
+	// Update Cape and Cape Visibility
+	useEffect(() => {
+		const viewer = viewerRef.current
+		if (!viewer) return
+
+		if (!resolvedCape) {
+			viewer.resetCape()
+			loadedCapeRef.current = null
+			return
+		}
+
+		if (loadedCapeRef.current === resolvedCape) {
+			if (viewer.playerObject) {
+				viewer.playerObject.backEquipment = showCape ? "cape" : null
+			}
+			return
+		}
+
+		loadedCapeRef.current = resolvedCape
+		viewer
+			.loadCape(resolvedCape, {
+				backEquipment: "cape",
+				makeVisible: showCape,
+			})
+			?.then(() => {
+				if (viewer.playerObject) {
+					viewer.playerObject.backEquipment = showCape ? "cape" : null
+				}
+			})
+			?.catch((err: unknown) => {
+				console.warn("Failed to load cape in 3D viewer:", err)
+			})
+	}, [resolvedCape, showCape])
+
+	// Update Cape Visibility when showCape changes
+	useEffect(() => {
+		const viewer = viewerRef.current
+		if (!viewer?.playerObject) return
+		if (resolvedCape) {
+			viewer.playerObject.backEquipment = showCape ? "cape" : null
+		}
+	}, [showCape, resolvedCape])
+
 	const handleResetView = () => {
 		const viewer = viewerRef.current
 		if (!viewer) return
@@ -448,6 +539,31 @@ const SkinViewer3D = ({
 							{animation === "walk" ? t("skinViewer.idlePose") : t("skinViewer.playWalk")}
 						</TooltipContent>
 					</Tooltip>
+					{resolvedCape && (
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										variant={showCape ? "default" : "outline"}
+										size="icon-xs"
+										onClick={() => setShowCape(!showCape)}
+										className={cn(
+											"size-6 rounded-md backdrop-blur-xs transition-all active:scale-95",
+											showCape
+												? "border-primary bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
+												: "border-border/50 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground",
+										)}
+										aria-label={showCape ? t("skinViewer.capeHide") : t("skinViewer.capeShow")}
+									/>
+								}
+							>
+								<Shirt className="size-3" />
+							</TooltipTrigger>
+							<TooltipContent>
+								{showCape ? t("skinViewer.capeHide") : t("skinViewer.capeShow")}
+							</TooltipContent>
+						</Tooltip>
+					)}
 				</div>
 			</div>
 
@@ -572,6 +688,17 @@ const SkinViewer3D = ({
 									<User className="mr-1.5 size-3 text-muted-foreground" />
 									{isSlim ? t("skinViewer.modelSlim") : t("skinViewer.modelClassic")}
 								</Button>
+								{resolvedCape && (
+									<Button
+										variant={showCape ? "default" : "outline"}
+										size="xs"
+										onClick={() => setShowCape(!showCape)}
+										className={cn("flex-1 text-2xs", showCape && "font-medium")}
+									>
+										<Shirt className="mr-1.5 size-3" />
+										{showCape ? t("skinViewer.capeOn") : t("skinViewer.capeOff")}
+									</Button>
+								)}
 							</div>
 						</>
 					)}

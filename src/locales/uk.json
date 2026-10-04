@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Каталог скінів",
-		"subtitle": "Переглядайте скіни Ely.by, керуйте власною колекцією або завантажте свій скін.",
+		"subtitle": "Переглядайте скіни від різних провайдерів, керуйте особистою колекцією або завантажуйте власний скін.",
 		"tabs": {
 			"catalog": "Каталог",
 			"mySkins": "Мої скіни",
@@ -180,7 +180,13 @@
 			"steve": "Класична (Steve)",
 			"slim": "Тонка (Alex)"
 		},
-		"searchPlaceholder": "Пошук скінів за ніком або тегом..."
+		"searchPlaceholder": "Пошук скінів за ніком або тегом...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Скіни гравців"
+		},
+		"playerSearchPlaceholder": "Введіть нікнейм або UUID гравця (наприклад, Technoblade)...",
+		"featuredPlayers": "Популярні"
 	},
 	"screenshots": {
 		"title": "Знімки екрана",
@@ -1554,15 +1560,19 @@
 		"outerOn": "Зовнішній шар увімк.",
 		"outerOff": "Зовнішній шар вимк.",
 		"modelSlim": "Модель: тонка (Алекс)",
-		"modelClassic": "Модель: класична (Стів)"
+		"modelClassic": "Модель: класична (Стів)",
+		"capeShow": "Показати плащ",
+		"capeHide": "Сховати плащ",
+		"capeOn": "Плащ увімк.",
+		"capeOff": "Плащ вимк."
 	},
 	"skinsPage": {
 		"customSkin": "Свій скін",
 		"currentActiveSkin": "Поточний скін",
 		"activeAccountSkin": "Скін активного акаунта",
-		"loadFailed": "Не вдалося завантажити скіни з Ely.by",
+		"loadFailed": "Не вдалося завантажити скіни",
 		"defaultSteve": "Стандартний Стів",
-		"addAccountFirst": "Спершу додайте або виберіть акаунт Ely.by.",
+		"addAccountFirst": "Спочатку додайте або виберіть акаунт.",
 		"offlineNoSync": "Змінювати скіни можна лише в акаунтах Ely.by та Microsoft.",
 		"customApplied": "Свій скін встановлено для {{name}}!",
 		"skinApplied": "Скін №{{id}} встановлено для {{name}}!",
@@ -1635,7 +1645,9 @@
 		"count_one": "{{formatted}} скін",
 		"count_few": "{{formatted}} скіни",
 		"count_many": "{{formatted}} скінів",
-		"count_other": "{{formatted}} скіна"
+		"count_other": "{{formatted}} скіна",
+		"hasCape": "Плащ",
+		"playerNotFound": "Гравця з ніком або UUID «{{query}}» не знайдено"
 	},
 	"select": {
 		"placeholder": "Виберіть варіант",

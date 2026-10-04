@@ -19,6 +19,8 @@ export interface ElySkinItem {
 	isCustom?: boolean
 	name?: string
 	uploadedAt?: number
+	provider?: SkinCatalogProvider
+	capeUrl?: string | null
 }
 
 export interface ElySkinsCatalogResponse {
@@ -28,5 +30,6 @@ export interface ElySkinsCatalogResponse {
 	lastPage: number
 }
 
+export type SkinCatalogProvider = "ely" | "player"
 export type SkinSortOption = "wearers" | "views" | "cubes" | "latest"
 export type SkinModelFilter = "any" | "steve" | "slim"

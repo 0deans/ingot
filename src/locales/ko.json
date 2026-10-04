@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "스킨 카탈로그",
-		"subtitle": "Ely.by 스킨을 둘러보고, 개인 컬렉션을 관리하거나 나만의 커스텀 스킨을 업로드하세요.",
+		"subtitle": "여러 제공자의 스킨을 찾아보고, 개인 컬렉션을 관리하거나 커스텀 스킨을 업로드하세요.",
 		"tabs": {
 			"catalog": "카탈로그",
 			"mySkins": "내 스킨",
@@ -180,7 +180,13 @@
 			"steve": "클래식 (Steve)",
 			"slim": "슬림 (Alex)"
 		},
-		"searchPlaceholder": "사용자 이름이나 태그로 스킨 검색..."
+		"searchPlaceholder": "사용자 이름이나 태그로 스킨 검색...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "플레이어 스킨"
+		},
+		"playerSearchPlaceholder": "Minecraft 사용자 이름 또는 UUID 입력 (예: Technoblade)...",
+		"featuredPlayers": "추천"
 	},
 	"screenshots": {
 		"title": "스크린샷",
@@ -1476,15 +1482,19 @@
 		"outerOn": "외부 레이어 켜기",
 		"outerOff": "외부 레이어 끄기",
 		"modelSlim": "모델: 슬림(Alex)",
-		"modelClassic": "모델: 클래식(Steve)"
+		"modelClassic": "모델: 클래식(Steve)",
+		"capeShow": "망토 표시",
+		"capeHide": "망토 숨기기",
+		"capeOn": "망토 켜짐",
+		"capeOff": "망토 꺼짐"
 	},
 	"skinsPage": {
 		"customSkin": "커스텀 스킨",
 		"currentActiveSkin": "현재 활성 스킨",
 		"activeAccountSkin": "활성 계정 스킨",
-		"loadFailed": "Ely.by에서 스킨을 로드하지 못했습니다.",
+		"loadFailed": "스킨을 불러오지 못했습니다",
 		"defaultSteve": "기본 Steve",
-		"addAccountFirst": "먼저 Ely.by 계정을 추가하거나 선택하세요.",
+		"addAccountFirst": "먼저 계정을 추가하거나 선택해 주세요.",
 		"offlineNoSync": "스킨은 Ely.by 및 Microsoft 계정에서만 변경할 수 있습니다.",
 		"customApplied": "{{name}}에 커스텀 스킨이 적용되었습니다!",
 		"skinApplied": "스킨 #{{id}}가 {{name}}에 적용되었습니다!",
@@ -1554,7 +1564,9 @@
 		"passwordDescription": "수정하려면 <b>{{name}}</b>용 Ely.by 스킨은 계정 비밀번호를 입력하세요. 기본 OS 키링에 안전하게 암호화됩니다.",
 		"passwordPlaceholder": "Ely.by 비밀번호",
 		"authorize": "승인 및 적용",
-		"count_other": "{{formatted}} 스킨"
+		"count_other": "{{formatted}} 스킨",
+		"hasCape": "망토",
+		"playerNotFound": "사용자 이름 또는 UUID가 \"{{query}}\"인 플레이어를 찾을 수 없습니다"
 	},
 	"select": {
 		"placeholder": "옵션 선택",

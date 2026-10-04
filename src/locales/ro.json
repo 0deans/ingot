@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Catalog de skinuri",
-		"subtitle": "Răsfoiește skinuri Ely.by, gestionează-ți colecția personală sau încarcă un skin personalizat.",
+		"subtitle": "Răsfoiește skinuri de la mai mulți furnizori, gestionează colecția ta sau încarcă un skin personalizat.",
 		"tabs": {
 			"catalog": "Catalog",
 			"mySkins": "Skinurile mele",
@@ -180,7 +180,13 @@
 			"steve": "Clasic (Steve)",
 			"slim": "Subțire (Alex)"
 		},
-		"searchPlaceholder": "Caută skinuri după nume sau etichetă..."
+		"searchPlaceholder": "Caută skinuri după nume sau etichetă...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Skinuri jucători"
+		},
+		"playerSearchPlaceholder": "Introdu numele de utilizator Minecraft sau UUID-ul (ex. Technoblade)...",
+		"featuredPlayers": "Recomandate"
 	},
 	"screenshots": {
 		"title": "Capturi de ecran",
@@ -1528,15 +1534,19 @@
 		"outerOn": "Strat exterior activat",
 		"outerOff": "Strat exterior dezactivat",
 		"modelSlim": "Model: Subțire (Alex)",
-		"modelClassic": "Model: Clasic (Steve)"
+		"modelClassic": "Model: Clasic (Steve)",
+		"capeShow": "Arată pelerina",
+		"capeHide": "Ascunde pelerina",
+		"capeOn": "Pelerină activată",
+		"capeOff": "Pelerină dezactivată"
 	},
 	"skinsPage": {
 		"customSkin": "Skin personalizat",
 		"currentActiveSkin": "Skinul activ curent",
 		"activeAccountSkin": "Skinul contului activ",
-		"loadFailed": "Încărcarea skinurilor din Ely.by a eșuat",
+		"loadFailed": "Nu s-au putut încărca skinurile",
 		"defaultSteve": "Steve implicit",
-		"addAccountFirst": "Te rugăm să adaugi sau să selectezi mai întâi un cont Ely.by.",
+		"addAccountFirst": "Te rugăm să adaugi sau să selectezi mai întâi un cont.",
 		"offlineNoSync": "Skinurile pot fi schimbate doar pentru conturile Ely.by și Microsoft.",
 		"customApplied": "Skinul personalizat a fost aplicat pentru {{name}}!",
 		"skinApplied": "Skinul #{{id}} a fost aplicat pentru {{name}}!",
@@ -1608,7 +1618,9 @@
 		"authorize": "Autorizează și aplică",
 		"count_one": "{{formatted}} skin",
 		"count_few": "{{formatted}} skinuri",
-		"count_other": "{{formatted}} de skinuri"
+		"count_other": "{{formatted}} de skinuri",
+		"hasCape": "Pelerină",
+		"playerNotFound": "Niciun jucător găsit cu numele sau UUID-ul „{{query}}”"
 	},
 	"select": {
 		"placeholder": "Selectează o opțiune",

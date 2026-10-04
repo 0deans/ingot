@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "スキンカタログ",
-		"subtitle": "Ely.by のスキンを探したり、マイコレクションの管理やカスタムスキンのアップロードができます。",
+		"subtitle": "複数のプロバイダーのスキンを閲覧し、コレクションを管理、またはカスタムスキンをアップロードします。",
 		"tabs": {
 			"catalog": "カタログ",
 			"mySkins": "マイスキン",
@@ -180,7 +180,13 @@
 			"steve": "クラシック (Steve)",
 			"slim": "スリム (Alex)"
 		},
-		"searchPlaceholder": "ユーザー名やタグでスキンを検索..."
+		"searchPlaceholder": "ユーザー名やタグでスキンを検索...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "プレイヤースキン"
+		},
+		"playerSearchPlaceholder": "Minecraftのユーザー名またはUUIDを入力 (例: Technoblade)...",
+		"featuredPlayers": "おすすめ"
 	},
 	"screenshots": {
 		"title": "スクリーンショット",
@@ -1476,15 +1482,19 @@
 		"outerOn": "アウター レイヤー オン",
 		"outerOff": "アウター レイヤー オフ",
 		"modelSlim": "モデル: スリム (アレックス)",
-		"modelClassic": "モデル: クラシック (スティーブ)"
+		"modelClassic": "モデル: クラシック (スティーブ)",
+		"capeShow": "マントを表示",
+		"capeHide": "マントを非表示",
+		"capeOn": "マント表示中",
+		"capeOff": "マント非表示"
 	},
 	"skinsPage": {
 		"customSkin": "カスタム スキン",
 		"currentActiveSkin": "現在のアクティブなスキン",
 		"activeAccountSkin": "アクティブなアカウントのスキン",
-		"loadFailed": "Ely.by からのスキンのロードに失敗しました",
+		"loadFailed": "スキンの読み込みに失敗しました",
 		"defaultSteve": "デフォルトの Steve",
-		"addAccountFirst": "まず、Ely.by アカウントを追加または選択してください。",
+		"addAccountFirst": "最初にアカウントを追加または選択してください。",
 		"offlineNoSync": "スキンを変更できるのはEly.byとMicrosoftのアカウントのみです。",
 		"customApplied": "カスタム スキンが {{name}} に適用されました!",
 		"skinApplied": "スキン #{{id}} が {{name}} に適用されました!",
@@ -1554,7 +1564,9 @@
 		"passwordDescription": "<b>{{name}}</b> の Ely.by スキンを変更するには、アカウントのパスワードを入力してください。ネイティブ OS キーリングで安全に暗号化されます。",
 		"passwordPlaceholder": "Ely.by パスワード",
 		"authorize": "承認および適用",
-		"count_other": "{{formatted}} スキン"
+		"count_other": "{{formatted}} スキン",
+		"hasCape": "マント",
+		"playerNotFound": "ユーザー名またはUUID「{{query}}」のプレイヤーが見つかりません"
 	},
 	"select": {
 		"placeholder": "オプションを選択",

@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Skin katalógus",
-		"subtitle": "Böngéssz az Ely.by skinek között, kezeld saját gyűjteményedet, vagy tölts fel egyéni skint.",
+		"subtitle": "Böngéssz skineket több forrásból, kezeld saját gyűjteményedet, vagy tölts fel egyedi skint.",
 		"tabs": {
 			"catalog": "Katalógus",
 			"mySkins": "Saját skinek",
@@ -180,7 +180,13 @@
 			"steve": "Klasszikus (Steve)",
 			"slim": "Vékony (Alex)"
 		},
-		"searchPlaceholder": "Skinek keresése felhasználónév vagy címke alapján..."
+		"searchPlaceholder": "Skinek keresése felhasználónév vagy címke alapján...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Játékos skinek"
+		},
+		"playerSearchPlaceholder": "Add meg a Minecraft felhasználónevet vagy UUID-t (pl. Technoblade)...",
+		"featuredPlayers": "Kiemelt"
 	},
 	"screenshots": {
 		"title": "Képernyőképek",
@@ -1502,15 +1508,19 @@
 		"outerOn": "Külső réteg be",
 		"outerOff": "Külső réteg kikapcsolva",
 		"modelSlim": "Modell: Slim (Alex)",
-		"modelClassic": "Modell: Classic (Steve)"
+		"modelClassic": "Modell: Classic (Steve)",
+		"capeShow": "Köpeny megjelenítése",
+		"capeHide": "Köpeny elrejtése",
+		"capeOn": "Köpeny be",
+		"capeOff": "Köpeny ki"
 	},
 	"skinsPage": {
 		"customSkin": "Egyedi Skin",
 		"currentActiveSkin": "Jelenlegi aktív bőr",
 		"activeAccountSkin": "Aktív fiók felszíne",
-		"loadFailed": "Nem sikerült betölteni a skineket a Ely.by",
+		"loadFailed": "Nem sikerült betölteni a skineket",
 		"defaultSteve": "alapértelmezés szerint Steve",
-		"addAccountFirst": "Kérjük, először adjon hozzá vagy válasszon egy Ely.by fiókot.",
+		"addAccountFirst": "Kérjük, először adj hozzá vagy válassz ki egy fiókot.",
 		"offlineNoSync": "Skint csak Ely.by- és Microsoft-fiókoknál lehet módosítani.",
 		"customApplied": "Egyedi bőrre felvitt {{name}}!",
 		"skinApplied": "Skin #{{id}} {{name}}-ra alkalmazva!",
@@ -1581,7 +1591,9 @@
 		"passwordPlaceholder": "Ely.by Jelszó",
 		"authorize": "Engedélyezés és jelentkezés",
 		"count_one": "{{formatted}} skin",
-		"count_other": "{{formatted}} skinek"
+		"count_other": "{{formatted}} skinek",
+		"hasCape": "Köpeny",
+		"playerNotFound": "Nem található játékos a következő névvel vagy UUID-vel: „{{query}}”"
 	},
 	"select": {
 		"placeholder": "Válasszon egy lehetőséget",

@@ -11,11 +11,13 @@ import {
 	Copy,
 	Download,
 	Eye,
+	Globe,
 	Grid,
 	KeyRound,
 	Lock,
 	RefreshCw,
 	Search,
+	Shirt,
 	Sparkles,
 	Trash2,
 	Upload,
@@ -69,9 +71,14 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatBytes, formatCount, formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { accountService, skinStorageService, useAccounts } from "@/services/account-service"
+import {
+	accountService,
+	FEATURED_PLAYERS,
+	skinStorageService,
+	useAccounts,
+} from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
-import type { ElySkinItem, SkinSortOption } from "@/types/skin"
+import type { ElySkinItem, SkinCatalogProvider, SkinSortOption } from "@/types/skin"
 import SkinPreviewCanvas from "./skin-preview-canvas"
 
 const routeApi = getRouteApi("/skins")
@@ -142,6 +149,7 @@ function normalizeSkinItem(raw: ElySkinItem | Record<string, unknown>): ElySkinI
 
 export interface SkinsQueryParams {
 	tab: "catalog" | "my-skins" | "upload"
+	provider?: SkinCatalogProvider
 	page: number
 	searchQuery: string
 	sort: SkinSortOption
@@ -158,6 +166,7 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 			"skins",
 			params.tab,
 			{
+				provider: params.provider ?? "ely",
 				page: params.page,
 				q: params.searchQuery,
 				sort: params.sort,
@@ -251,7 +260,16 @@ export const skinsQueryOptions = (params: SkinsQueryParams) =>
 				}
 			}
 
-			// Public catalog
+			const provider = params.provider ?? "ely"
+
+			if (provider === "player") {
+				return await accountService.getPlayerSkinsCatalog(
+					params.searchQuery,
+					params.model === "any" ? undefined : params.model,
+				)
+			}
+
+			// Public Ely.by catalog
 			const res = await accountService.getElySkins(
 				params.page,
 				params.searchQuery || undefined,
@@ -282,6 +300,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	const navigate = routeApi.useNavigate()
 
 	const activeTab = search.tab ?? "catalog"
+	const provider = ((search as { provider?: SkinCatalogProvider }).provider ??
+		"ely") as SkinCatalogProvider
 	const sortOption = search.sort ?? "wearers"
 	const modelFilter = search.model ?? "any"
 	const page = search.page ?? 1
@@ -304,6 +324,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 	const { data, isLoading, isFetching, error, refetch } = useQuery(
 		skinsQueryOptions({
 			tab: activeTab,
+			provider,
 			page,
 			searchQuery,
 			sort: sortOption,
@@ -343,18 +364,33 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		return () => clearTimeout(timer)
 	}, [searchInput, searchQuery, navigate])
 
+	const [activeAccountCapeUrl, setActiveAccountCapeUrl] = useState<string | null>(null)
+	useEffect(() => {
+		if (targetAccount?.username) {
+			accountService
+				.getPlayerSkin(targetAccount.username)
+				.then((res) => {
+					setActiveAccountCapeUrl(res?.capeUrl || null)
+				})
+				.catch(() => setActiveAccountCapeUrl(null))
+		} else {
+			setActiveAccountCapeUrl(null)
+		}
+	}, [targetAccount?.username])
+
 	// Fallback skin (active account skin or Steve) to guarantee a skin is ALWAYS visible in 3D
 	const fallbackSkin: ElySkinItem = useMemo(
 		() => ({
 			id: 0,
 			skinUrl: targetAccount?.skinUrl || DEFAULT_STEVE_SKIN,
+			capeUrl: activeAccountCapeUrl,
 			isSlim: false,
 			countWearers: 0,
 			countCubes: 0,
 			countViews: 0,
 			tags: targetAccount ? [targetAccount.username] : [t("skinsPage.defaultSteve")],
 		}),
-		[targetAccount, t],
+		[targetAccount, activeAccountCapeUrl, t],
 	)
 
 	const activeSkin = useMemo(() => {
@@ -368,7 +404,8 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		if (selectedSkin) {
 			const match = skins.find(
 				(item) =>
-					item.skinUrl === selectedSkin.skinUrl || (item.id !== 0 && item.id === selectedSkin.id),
+					(selectedSkin.id !== 0 && item.id === selectedSkin.id) ||
+					(selectedSkin.id === 0 && item.skinUrl === selectedSkin.skinUrl),
 			)
 			if (match) {
 				lastKnownSkin = match
@@ -422,6 +459,23 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		[navigate],
 	)
 
+	const handleProviderChange = useCallback(
+		(nextProvider: SkinCatalogProvider) => {
+			navigate({
+				search: (prev) => ({
+					...prev,
+					provider: nextProvider,
+					page: 1,
+					q: "",
+					skinId: undefined,
+				}),
+			})
+			setSelectedSkin(null)
+			lastKnownSkin = null
+		},
+		[navigate],
+	)
+
 	// Microsoft accounts change skins through Minecraft services: no password prompt needed
 	const runMicrosoftSkinChange = async (change: () => Promise<void>, successText: string) => {
 		setIsApplying(true)
@@ -450,10 +504,21 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			await runMicrosoftSkinChange(
 				dataUrl
 					? () => accountService.uploadMicrosoftSkin(accountId, dataUrl, skin.isSlim)
-					: () => accountService.applyMicrosoftSkin(accountId, skin.skinUrl, skin.isSlim),
+					: async () => {
+							try {
+								await accountService.applyMicrosoftSkin(accountId, skin.skinUrl, skin.isSlim)
+							} catch (err) {
+								const downloaded = await accountService.getSkinDataUrl(skin.skinUrl)
+								if (downloaded) {
+									await accountService.uploadMicrosoftSkin(accountId, downloaded, skin.isSlim)
+								} else {
+									throw err
+								}
+							}
+						},
 				dataUrl
 					? t("skinsPage.customApplied", { name })
-					: t("skinsPage.skinApplied", { id: skin.id, name }),
+					: t("skinsPage.skinApplied", { id: skin.id, name: skin.name || name }),
 			)
 			return
 		}
@@ -467,6 +532,32 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 
 		try {
 			const hasCreds = await accountService.hasElyWebCredentials(targetAccount.id)
+			const isNativeEly =
+				(provider === "ely" || skin.provider === "ely") &&
+				!skin.isCustom &&
+				!skin.dataUrl &&
+				skin.id > 0
+
+			let effectiveDataUrl = skin.dataUrl
+			if (!isNativeEly && !effectiveDataUrl) {
+				effectiveDataUrl = (await accountService.getSkinDataUrl(skin.skinUrl)) ?? undefined
+			}
+
+			if (!isNativeEly && effectiveDataUrl) {
+				if (!hasCreds) {
+					setPendingAction({ type: "upload", dataUrl: effectiveDataUrl })
+					setPasswordError(null)
+					setPasswordInput("")
+					setShowPasswordDialog(true)
+					setIsApplying(false)
+					return
+				}
+				await accountService.uploadElySkin(targetAccount.id, effectiveDataUrl)
+				toast.success(t("skinsPage.customApplied", { name: targetAccount.username }))
+				await queryClient.invalidateQueries({ queryKey: ["skins"] })
+				return
+			}
+
 			if (!hasCreds) {
 				if (skin.dataUrl) {
 					setPendingAction({ type: "upload", dataUrl: skin.dataUrl })
@@ -729,7 +820,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								skinUrl={targetAccount.skinUrl}
 								size={20}
 							/>
-							<span className="max-w-[120px] truncate font-medium">{targetAccount.username}</span>
+							<span className="max-w-30 truncate font-medium">{targetAccount.username}</span>
 							<span
 								className="size-1.5 rounded-full bg-primary"
 								title={t("skinsPage.activeAccount")}
@@ -792,7 +883,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						{/* Left Showcase: Character Studio & Actions */}
 						<div
 							className={cn(
-								"relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-linear-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]",
+								"relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-linear-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-87.5",
 								mobileView === "preview" ? "flex w-full" : "hidden md:flex",
 							)}
 						>
@@ -804,6 +895,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 							<div className="absolute inset-0 z-0 size-full">
 								<SkinViewer3D
 									skinUrl={activeSkin.skinUrl}
+									capeUrl={
+										activeSkin.capeUrl || (activeSkin.id === 0 ? activeAccountCapeUrl : null)
+									}
 									username={`skin_${activeSkin.id}`}
 									showToolbar={false}
 									model={activeSkin.isSlim ? "slim" : "default"}
@@ -835,9 +929,20 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												: t("skinsPage.skinNumber", { id: activeSkin.id })}
 									</span>
 								</div>
-								<Badge variant="secondary" className="pointer-events-auto backdrop-blur-xs">
-									{activeSkin.isSlim ? t("skinsPage.alexSlim3") : t("skinsPage.steveClassic4")}
-								</Badge>
+								<div className="pointer-events-auto flex items-center gap-1.5">
+									{(activeSkin.capeUrl || (activeSkin.id === 0 && activeAccountCapeUrl)) && (
+										<Badge
+											variant="outline"
+											className="gap-1 border-primary/40 bg-primary/10 text-3xs text-primary backdrop-blur-xs"
+										>
+											<Shirt className="size-2.5" />
+											{t("skinsPage.hasCape")}
+										</Badge>
+									)}
+									<Badge variant="secondary" className="backdrop-blur-xs">
+										{activeSkin.isSlim ? t("skinsPage.alexSlim3") : t("skinsPage.steveClassic4")}
+									</Badge>
+								</div>
 							</div>
 
 							{/* Transparent Interaction Spacer - lets clicks fall through to 3D canvas */}
@@ -895,14 +1000,44 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						>
 							{/* Filter Toolbar - Clean Single Row Layout */}
 							<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/30 border-b bg-background/40 px-4 py-2.5">
+								{/* Provider Switcher (when on Catalog tab) */}
+								{activeTab === "catalog" && (
+									<ToggleGroup
+										variant="outline"
+										size="sm"
+										spacing={0}
+										value={[provider]}
+										onValueChange={(val) => {
+											const next = val[0] as SkinCatalogProvider
+											if (next) handleProviderChange(next)
+										}}
+										className="shrink-0"
+									>
+										<ToggleGroupItem value="ely" className="gap-1.5 px-2.5 text-2xs">
+											<Globe className="size-3 text-primary" />
+											<span>{t("skins.providers.ely")}</span>
+										</ToggleGroupItem>
+										<ToggleGroupItem value="player" className="gap-1.5 px-2.5 text-2xs">
+											<User className="size-3 text-emerald-400" />
+											<span>{t("skins.providers.player")}</span>
+										</ToggleGroupItem>
+									</ToggleGroup>
+								)}
+
 								{/* Search Bar */}
-								<InputGroup className="min-w-[180px] max-w-xs flex-1">
+								<InputGroup className="min-w-45 max-w-xs flex-1">
 									<InputGroupAddon>
 										<Search />
 									</InputGroupAddon>
 									<InputGroupInput
 										type="text"
-										placeholder={t("skins.searchPlaceholder")}
+										placeholder={
+											activeTab !== "catalog"
+												? t("skins.searchPlaceholder")
+												: provider === "player"
+													? t("skins.playerSearchPlaceholder")
+													: t("skins.searchPlaceholder")
+										}
 										value={searchInput}
 										onChange={(e) => setSearchInput(e.target.value)}
 										className="text-xs"
@@ -946,44 +1081,46 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 										))}
 									</ToggleGroup>
 
-									{/* Sort Dropdown */}
-									<DropdownMenu>
-										<DropdownMenuTrigger
-											render={
-												<Button
-													variant="outline"
-													size="xs"
-													className="h-8 gap-1.5 rounded-lg text-2xs"
-												>
-													<ArrowUpDown className="size-3 text-muted-foreground" />
-													<span>{t(`skins.sorts.${sortOption}`)}</span>
-													<ChevronDown className="size-3 opacity-60" />
-												</Button>
-											}
-										/>
-										<DropdownMenuContent
-											align="end"
-											className="border-border bg-background p-1 text-foreground"
-										>
-											{SORT_OPTIONS.map((s) => (
-												<DropdownMenuItem
-													key={s.id}
-													onClick={() => {
-														navigate({
-															search: (prev) => ({ ...prev, sort: s.id, page: 1 }),
-														})
-													}}
-													className={cn(
-														"flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-card",
-														sortOption === s.id && "bg-card font-medium text-primary",
-													)}
-												>
-													<span>{t(`skins.sorts.${s.id}`)}</span>
-													{sortOption === s.id && <Check className="size-3 text-primary" />}
-												</DropdownMenuItem>
-											))}
-										</DropdownMenuContent>
-									</DropdownMenu>
+									{/* Sort Dropdown (hidden on Player provider since search is direct) */}
+									{(!activeTab || activeTab !== "catalog" || provider !== "player") && (
+										<DropdownMenu>
+											<DropdownMenuTrigger
+												render={
+													<Button
+														variant="outline"
+														size="xs"
+														className="h-8 gap-1.5 rounded-lg text-2xs"
+													>
+														<ArrowUpDown className="size-3 text-muted-foreground" />
+														<span>{t(`skins.sorts.${sortOption}`)}</span>
+														<ChevronDown className="size-3 opacity-60" />
+													</Button>
+												}
+											/>
+											<DropdownMenuContent
+												align="end"
+												className="border-border bg-background p-1 text-foreground"
+											>
+												{SORT_OPTIONS.map((s) => (
+													<DropdownMenuItem
+														key={s.id}
+														onClick={() => {
+															navigate({
+																search: (prev) => ({ ...prev, sort: s.id, page: 1 }),
+															})
+														}}
+														className={cn(
+															"flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-card",
+															sortOption === s.id && "bg-card font-medium text-primary",
+														)}
+													>
+														<span>{t(`skins.sorts.${s.id}`)}</span>
+														{sortOption === s.id && <Check className="size-3 text-primary" />}
+													</DropdownMenuItem>
+												))}
+											</DropdownMenuContent>
+										</DropdownMenu>
+									)}
 
 									<Tooltip>
 										<TooltipTrigger
@@ -1019,6 +1156,33 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								</div>
 							</div>
 
+							{/* Featured Players Bar (when in Player provider) */}
+							{activeTab === "catalog" && provider === "player" && (
+								<div className="scrollbar-none flex shrink-0 items-center gap-1.5 overflow-x-auto border-border/20 border-b bg-card/20 px-4 py-1.5">
+									<span className="shrink-0 font-medium text-3xs text-muted-foreground uppercase tracking-wider">
+										{t("skins.featuredPlayers")}:
+									</span>
+									{FEATURED_PLAYERS.map((name) => (
+										<Button
+											key={name}
+											variant={
+												searchInput.toLowerCase() === name.toLowerCase() ? "secondary" : "ghost"
+											}
+											size="xs"
+											onClick={() => {
+												setSearchInput(name)
+												navigate({
+													search: (prev) => ({ ...prev, q: name, page: 1 }),
+												})
+											}}
+											className="h-6 px-2 text-2xs"
+										>
+											{name}
+										</Button>
+									))}
+								</div>
+							)}
+
 							{/* Skins Grid Area */}
 							<div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
 								{isFetching && skins.length > 0 && (
@@ -1031,7 +1195,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								<ScrollArea className="scroll-fade-y flex-1">
 									<div className="min-h-full p-4">
 										{isLoading && skins.length === 0 ? (
-											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-2 text-muted-foreground">
+											<div className="flex h-full min-h-75 flex-col items-center justify-center gap-2 text-muted-foreground">
 												<Spinner className="size-6 text-primary" />
 												<span className="text-xs">
 													{activeTab === "my-skins"
@@ -1040,7 +1204,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												</span>
 											</div>
 										) : catalogError ? (
-											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-3 p-4 text-center">
+											<div className="flex h-full min-h-75 flex-col items-center justify-center gap-3 p-4 text-center">
 												<AlertCircle className="size-8 text-destructive" />
 												<p className="max-w-sm text-destructive text-xs">{catalogError}</p>
 												<Button
@@ -1054,7 +1218,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 												</Button>
 											</div>
 										) : skins.length === 0 ? (
-											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+											<div className="flex h-full min-h-75 flex-col items-center justify-center gap-3 text-center text-muted-foreground">
 												{activeTab === "my-skins" ? (
 													<>
 														<div className="flex size-12 items-center justify-center rounded-full border border-border bg-card/80">
@@ -1086,6 +1250,18 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															</Button>
 														)}
 													</>
+												) : provider === "player" ? (
+													<>
+														<User className="size-8 text-muted-foreground opacity-40" />
+														<p className="font-medium text-muted-foreground text-xs">
+															{searchQuery
+																? t("skinsPage.playerNotFound", { query: searchQuery })
+																: t("skinsPage.noSkins")}
+														</p>
+														<p className="text-2xs text-muted-foreground">
+															{t("skins.playerSearchPlaceholder")}
+														</p>
+													</>
 												) : (
 													<>
 														<Search className="size-8 opacity-40" />
@@ -1102,8 +1278,9 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 											<div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
 												{skins.map((skin) => {
 													const isSelected =
-														activeSkin.skinUrl === skin.skinUrl ||
-														(activeSkin.id !== 0 && activeSkin.id === skin.id)
+														activeSkin.id !== 0 && skin.id !== 0
+															? activeSkin.id === skin.id
+															: activeSkin.skinUrl === skin.skinUrl
 													const title =
 														skin.name ||
 														(skin.tags.length > 0
@@ -1197,50 +1374,52 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 								</ScrollArea>
 
 								{/* Pagination Bar */}
-								<div className="flex shrink-0 flex-col gap-2 border-border/30 border-t bg-background/40 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
-									<span className="text-2xs text-muted-foreground">
-										<Trans
-											i18nKey="skinsPage.pageOf"
-											values={{ page, total: lastPage }}
-											components={{ b: <strong className="text-foreground" /> }}
-										/>
-										{totalItems > 0 && (
-											<span className="ml-1 text-muted-foreground">
-												{t("skinsPage.total", { count: formatNumber(totalItems) })}
-											</span>
-										)}
-									</span>
-									<div className="flex items-center gap-1.5">
-										<Button
-											size="sm"
-											variant="ghost"
-											disabled={page <= 1 || isLoadingCatalog}
-											onClick={() =>
-												navigate({
-													search: (prev) => ({ ...prev, page: Math.max(1, page - 1) }),
-												})
-											}
-											className="h-7 px-2 text-xs"
-										>
-											<ChevronLeft className="mr-0.5 size-3.5" />
-											{t("skinsPage.previous")}
-										</Button>
-										<Button
-											size="sm"
-											variant="ghost"
-											disabled={page >= lastPage || isLoadingCatalog}
-											onClick={() =>
-												navigate({
-													search: (prev) => ({ ...prev, page: Math.min(lastPage, page + 1) }),
-												})
-											}
-											className="h-7 px-2 text-xs"
-										>
-											{t("skinsPage.next")}
-											<ChevronRight className="ml-0.5 size-3.5" />
-										</Button>
+								{lastPage > 1 && provider !== "player" && (
+									<div className="flex shrink-0 flex-col gap-2 border-border/30 border-t bg-background/40 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
+										<span className="text-2xs text-muted-foreground">
+											<Trans
+												i18nKey="skinsPage.pageOf"
+												values={{ page, total: lastPage }}
+												components={{ b: <strong className="text-foreground" /> }}
+											/>
+											{totalItems > 0 && (
+												<span className="ml-1 text-muted-foreground">
+													{t("skinsPage.total", { count: formatNumber(totalItems) })}
+												</span>
+											)}
+										</span>
+										<div className="flex items-center gap-1.5">
+											<Button
+												size="sm"
+												variant="ghost"
+												disabled={page <= 1 || isLoadingCatalog}
+												onClick={() =>
+													navigate({
+														search: (prev) => ({ ...prev, page: Math.max(1, page - 1) }),
+													})
+												}
+												className="h-7 px-2 text-xs"
+											>
+												<ChevronLeft className="mr-0.5 size-3.5" />
+												{t("skinsPage.previous")}
+											</Button>
+											<Button
+												size="sm"
+												variant="ghost"
+												disabled={page >= lastPage || isLoadingCatalog}
+												onClick={() =>
+													navigate({
+														search: (prev) => ({ ...prev, page: Math.min(lastPage, page + 1) }),
+													})
+												}
+												className="h-7 px-2 text-xs"
+											>
+												{t("skinsPage.next")}
+												<ChevronRight className="ml-0.5 size-3.5" />
+											</Button>
+										</div>
 									</div>
-								</div>
+								)}
 
 								{/* Mobile Sticky Action Bar */}
 								<div className="flex shrink-0 items-center justify-between gap-3 border-border/30 border-t bg-background/95 px-3 py-2 backdrop-blur-md md:hidden">
@@ -1301,7 +1480,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				{activeTab === "upload" && (
 					<div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
 						{/* Left Showcase: Live 3D Preview Stage */}
-						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-linear-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-[350px]">
+						<div className="relative flex h-full shrink-0 flex-col justify-between overflow-hidden border-border/30 bg-linear-to-b from-background via-card/60 to-background md:w-[320px] md:border-r md:border-b-0 lg:w-87.5">
 							{/* Background Studio Ambience */}
 							<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" />
 							<div className="pointer-events-none absolute bottom-24 left-1/2 h-10 w-48 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-md" />

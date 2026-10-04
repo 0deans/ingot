@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Katalog Skin",
-		"subtitle": "Jelajahi skin Ely.by, kelola koleksi pribadi Anda, atau unggah skin kustom.",
+		"subtitle": "Jelajahi skin dari berbagai penyedia, kelola koleksi pribadi Anda, atau unggah skin khusus.",
 		"tabs": {
 			"catalog": "Katalog",
 			"mySkins": "Skin Saya",
@@ -180,7 +180,13 @@
 			"steve": "Klasik (Steve)",
 			"slim": "Ramping (Alex)"
 		},
-		"searchPlaceholder": "Cari skin berdasarkan nama pengguna atau tag..."
+		"searchPlaceholder": "Cari skin berdasarkan nama pengguna atau tag...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Skin Pemain"
+		},
+		"playerSearchPlaceholder": "Masukkan nama pengguna Minecraft atau UUID (mis. Technoblade)...",
+		"featuredPlayers": "Unggulan"
 	},
 	"screenshots": {
 		"title": "Tangkapan Layar",
@@ -1476,15 +1482,19 @@
 		"outerOn": "Lapisan Luar Aktif",
 		"outerOff": "Lapisan Luar Mati",
 		"modelSlim": "Model: Slim (Alex)",
-		"modelClassic": "Model: Klasik (Steve)"
+		"modelClassic": "Model: Klasik (Steve)",
+		"capeShow": "Tampilkan Jubah",
+		"capeHide": "Sembunyikan Jubah",
+		"capeOn": "Jubah Aktif",
+		"capeOff": "Jubah Nonaktif"
 	},
 	"skinsPage": {
 		"customSkin": "Kulit Khusus",
 		"currentActiveSkin": "Kulit Aktif Saat Ini",
 		"activeAccountSkin": "Kulit Akun Aktif",
-		"loadFailed": "Gagal memuat kulit dari Ely.by",
+		"loadFailed": "Gagal memuat skin",
 		"defaultSteve": "Default Steve",
-		"addAccountFirst": "Silakan tambahkan atau pilih akun Ely.by terlebih dahulu.",
+		"addAccountFirst": "Silakan tambahkan atau pilih akun terlebih dahulu.",
 		"offlineNoSync": "Skin hanya dapat diubah untuk akun Ely.by dan Microsoft.",
 		"customApplied": "Kulit khusus diterapkan pada {{name}}!",
 		"skinApplied": "Kulit #{{id}} diterapkan pada {{name}}!",
@@ -1554,7 +1564,9 @@
 		"passwordDescription": "Untuk memodifikasi skin Ely.by Anda <b>{{name}}</b>, silakan masukkan kata sandi akun Anda. Ini akan dienkripsi dengan aman di Keyring OS asli Anda.",
 		"passwordPlaceholder": "Ely.by Kata Sandi",
 		"authorize": "Otorisasi & Terapkan",
-		"count_other": "Kulit {{formatted}}"
+		"count_other": "Kulit {{formatted}}",
+		"hasCape": "Jubah",
+		"playerNotFound": "Tidak ada pemain ditemukan dengan nama pengguna atau UUID \"{{query}}\""
 	},
 	"select": {
 		"placeholder": "Pilih opsi",

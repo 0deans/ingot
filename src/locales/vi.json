@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Kho Skin",
-		"subtitle": "Duyệt skin từ Ely.by, quản lý bộ sưu tập cá nhân hoặc tải lên skin tùy chỉnh.",
+		"subtitle": "Duyệt qua skin từ nhiều nguồn, quản lý bộ sưu tập cá nhân hoặc tải lên skin tùy chỉnh.",
 		"tabs": {
 			"catalog": "Kho Skin",
 			"mySkins": "Skin của tôi",
@@ -180,7 +180,13 @@
 			"steve": "Cổ điển (Steve)",
 			"slim": "Thon gọn (Alex)"
 		},
-		"searchPlaceholder": "Tìm skin theo tên người dùng hoặc thẻ..."
+		"searchPlaceholder": "Tìm skin theo tên người dùng hoặc thẻ...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Skin người chơi"
+		},
+		"playerSearchPlaceholder": "Nhập tên người chơi Minecraft hoặc UUID (vd: Technoblade)...",
+		"featuredPlayers": "Nổi bật"
 	},
 	"screenshots": {
 		"title": "Ảnh chụp màn hình",
@@ -1476,15 +1482,19 @@
 		"outerOn": "Lớp ngoài Trên",
 		"outerOff": "Lớp ngoài tắt",
 		"modelSlim": "Model: Slim (Alex)",
-		"modelClassic": "Model: Classic (Steve)"
+		"modelClassic": "Model: Classic (Steve)",
+		"capeShow": "Hiện áo choàng",
+		"capeHide": "Ẩn áo choàng",
+		"capeOn": "Bật áo choàng",
+		"capeOff": "Tắt áo choàng"
 	},
 	"skinsPage": {
 		"customSkin": "Skin tùy chỉnh",
 		"currentActiveSkin": "Skin đang hoạt động hiện tại",
 		"activeAccountSkin": "Skin tài khoản đang hoạt động",
-		"loadFailed": "Không thể tải skin từ Ely.by",
+		"loadFailed": "Không thể tải skin",
 		"defaultSteve": "Mặc định Steve",
-		"addAccountFirst": "Vui lòng thêm hoặc chọn một tài khoản Ely.by trước.",
+		"addAccountFirst": "Vui lòng thêm hoặc chọn một tài khoản trước.",
 		"offlineNoSync": "Chỉ có thể đổi skin cho tài khoản Ely.by và Microsoft.",
 		"customApplied": "Giao diện tùy chỉnh được áp dụng cho {{name}}!",
 		"skinApplied": "Skin #{{id}} áp dụng cho {{name}}!",
@@ -1554,7 +1564,9 @@
 		"passwordDescription": "Để sửa đổi giao diện Ely.by của bạn cho <b>{{name}}</b>, vui lòng nhập mật khẩu tài khoản của bạn. Nó sẽ được mã hóa an toàn trong Khóa hệ điều hành gốc của bạn.",
 		"passwordPlaceholder": "Ely.by Mật khẩu",
 		"authorize": "Ủy quyền và áp dụng",
-		"count_other": "{{formatted}} giao diện"
+		"count_other": "{{formatted}} giao diện",
+		"hasCape": "Áo choàng",
+		"playerNotFound": "Không tìm thấy người chơi có tên hoặc UUID \"{{query}}\""
 	},
 	"select": {
 		"placeholder": "Chọn một tùy chọn",

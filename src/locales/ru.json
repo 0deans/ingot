@@ -184,11 +184,15 @@
 	},
 	"skins": {
 		"title": "Каталог скинов",
-		"subtitle": "Просматривайте каталог скинов Ely.by, управляйте своей коллекцией или загрузите собственный скин.",
+		"subtitle": "Просматривайте скины от разных провайдеров, управляйте своей коллекцией или загрузите собственный скин.",
 		"tabs": {
 			"catalog": "Каталог",
 			"mySkins": "Мои скины",
 			"upload": "Загрузить скин"
+		},
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Скины игроков"
 		},
 		"sorts": {
 			"wearers": "Популярные",
@@ -201,7 +205,9 @@
 			"steve": "Классическая (Steve)",
 			"slim": "Тонкие руки (Alex)"
 		},
-		"searchPlaceholder": "Поиск скинов по нику или тегу..."
+		"searchPlaceholder": "Поиск скинов по нику или тегу...",
+		"playerSearchPlaceholder": "Введите никнейм или UUID игрока (например, Technoblade)...",
+		"featuredPlayers": "Популярные"
 	},
 	"screenshots": {
 		"title": "Скриншоты",
@@ -1613,15 +1619,21 @@
 		"outerOn": "Внешний слой вкл.",
 		"outerOff": "Внешний слой выкл.",
 		"modelSlim": "Модель: тонкая (Алекс)",
-		"modelClassic": "Модель: классическая (Стив)"
+		"modelClassic": "Модель: классическая (Стив)",
+		"capeShow": "Показать плащ",
+		"capeHide": "Скрыть плащ",
+		"capeOn": "Плащ вкл.",
+		"capeOff": "Плащ выкл."
 	},
 	"skinsPage": {
+		"hasCape": "Плащ",
 		"customSkin": "Свой скин",
 		"currentActiveSkin": "Текущий скин",
 		"activeAccountSkin": "Скин активного аккаунта",
-		"loadFailed": "Не удалось загрузить скины с Ely.by",
+		"loadFailed": "Не удалось загрузить скины",
+		"playerNotFound": "Игрок с ником или UUID «{{query}}» не найден",
 		"defaultSteve": "Стандартный Стив",
-		"addAccountFirst": "Сначала добавьте или выберите аккаунт Ely.by.",
+		"addAccountFirst": "Сначала добавьте или выберите аккаунт.",
 		"offlineNoSync": "Менять скины можно только в аккаунтах Ely.by и Microsoft.",
 		"customApplied": "Свой скин установлен для {{name}}!",
 		"skinApplied": "Скин №{{id}} установлен для {{name}}!",

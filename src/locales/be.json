@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Каталог скінаў",
-		"subtitle": "Праглядайце скіны Ely.by, кіруйце ўласнай калекцыяй або запампуйце свой скін.",
+		"subtitle": "Праглядайце скіны ад розных правайдараў, кіруйце асабістай калекцыяй або загружайце свой скін.",
 		"tabs": {
 			"catalog": "Каталог",
 			"mySkins": "Мае скіны",
@@ -180,7 +180,13 @@
 			"steve": "Класічная (Steve)",
 			"slim": "Тонкая (Alex)"
 		},
-		"searchPlaceholder": "Пошук скінаў па ніку або тэгу..."
+		"searchPlaceholder": "Пошук скінаў па ніку або тэгу...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Скіны гульцоў"
+		},
+		"playerSearchPlaceholder": "Увядзіце нікнэйм або UUID гульца (напрыклад, Technoblade)...",
+		"featuredPlayers": "Папулярныя"
 	},
 	"screenshots": {
 		"title": "Здымкі экрана",
@@ -1554,15 +1560,19 @@
 		"outerOn": "Знешні слой укл.",
 		"outerOff": "Знешні слой выкл.",
 		"modelSlim": "Мадэль: тонкая (Алекс)",
-		"modelClassic": "Мадэль: класічная (Стыў)"
+		"modelClassic": "Мадэль: класічная (Стыў)",
+		"capeShow": "Паказаць плашч",
+		"capeHide": "Схаваць плашч",
+		"capeOn": "Плашч укл.",
+		"capeOff": "Плашч выкл."
 	},
 	"skinsPage": {
 		"customSkin": "Свой скін",
 		"currentActiveSkin": "Бягучы скін",
 		"activeAccountSkin": "Скін актыўнага акаўнта",
-		"loadFailed": "Не ўдалося загрузіць скіны з Ely.by",
+		"loadFailed": "Не ўдалося загрузіць скіны",
 		"defaultSteve": "Стандартны Стыў",
-		"addAccountFirst": "Спачатку дадайце або выберыце акаўнт Ely.by.",
+		"addAccountFirst": "Спачатку дадайце або выберыце акаўнт.",
 		"offlineNoSync": "Змяняць скіны можна толькі ў акаўнтах Ely.by і Microsoft.",
 		"customApplied": "Свой скін усталяваны для {{name}}!",
 		"skinApplied": "Скін №{{id}} усталяваны для {{name}}!",
@@ -1635,7 +1645,9 @@
 		"count_one": "{{formatted}} скін",
 		"count_few": "{{formatted}} скіны",
 		"count_many": "{{formatted}} скінаў",
-		"count_other": "{{formatted}} скіна"
+		"count_other": "{{formatted}} скіна",
+		"hasCape": "Плашч",
+		"playerNotFound": "Гулец з нікам або UUID «{{query}}» не знойдзены"
 	},
 	"select": {
 		"placeholder": "Выберыце варыянт",

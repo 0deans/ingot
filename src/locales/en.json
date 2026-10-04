@@ -184,11 +184,15 @@
 	},
 	"skins": {
 		"title": "Skins Catalog",
-		"subtitle": "Browse Ely.by skins, manage your personal collection, or upload a custom skin.",
+		"subtitle": "Browse skins from multiple providers, manage your personal collection, or upload a custom skin.",
 		"tabs": {
 			"catalog": "Catalog",
 			"mySkins": "My Skins",
 			"upload": "Upload Skin"
+		},
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Player Skins"
 		},
 		"sorts": {
 			"wearers": "Popular",
@@ -201,7 +205,9 @@
 			"steve": "Classic (Steve)",
 			"slim": "Slim (Alex)"
 		},
-		"searchPlaceholder": "Search skins by username or tag..."
+		"searchPlaceholder": "Search skins by username or tag...",
+		"playerSearchPlaceholder": "Enter Minecraft username or UUID (e.g. Technoblade)...",
+		"featuredPlayers": "Featured"
 	},
 	"screenshots": {
 		"title": "Screenshots",
@@ -1561,15 +1567,21 @@
 		"outerOn": "Outer Layer On",
 		"outerOff": "Outer Layer Off",
 		"modelSlim": "Model: Slim (Alex)",
-		"modelClassic": "Model: Classic (Steve)"
+		"modelClassic": "Model: Classic (Steve)",
+		"capeShow": "Show Cape",
+		"capeHide": "Hide Cape",
+		"capeOn": "Cape On",
+		"capeOff": "Cape Off"
 	},
 	"skinsPage": {
+		"hasCape": "Cape",
 		"customSkin": "Custom Skin",
 		"currentActiveSkin": "Current Active Skin",
 		"activeAccountSkin": "Active Account Skin",
-		"loadFailed": "Failed to load skins from Ely.by",
+		"loadFailed": "Failed to load skins from provider",
+		"playerNotFound": "No player found with username or UUID \"{{query}}\"",
 		"defaultSteve": "Default Steve",
-		"addAccountFirst": "Please add or select an Ely.by account first.",
+		"addAccountFirst": "Please add or select an account first.",
 		"offlineNoSync": "Skins can only be changed for Ely.by and Microsoft accounts.",
 		"customApplied": "Custom skin applied to {{name}}!",
 		"skinApplied": "Skin #{{id}} applied to {{name}}!",

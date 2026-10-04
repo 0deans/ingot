@@ -5,12 +5,14 @@ import SkinCatalogView, { skinsQueryOptions } from "@/components/skins/skin-cata
 import { accountService } from "@/services/account-service"
 
 export const skinTabSchema = v.picklist(["catalog", "my-skins", "upload"])
+export const skinProviderSchema = v.picklist(["ely", "player"])
 export const skinSortSchema = v.picklist(["wearers", "views", "cubes", "latest"])
 export const skinModelSchema = v.picklist(["any", "steve", "slim"])
 
 export const skinsSearchSchema = v.object({
 	q: v.optional(v.fallback(v.string(), ""), ""),
 	tab: v.optional(v.fallback(skinTabSchema, "catalog"), "catalog"),
+	provider: v.optional(v.fallback(skinProviderSchema, "ely"), "ely"),
 	sort: v.optional(v.fallback(skinSortSchema, "wearers"), "wearers"),
 	model: v.optional(v.fallback(skinModelSchema, "any"), "any"),
 	page: v.optional(v.fallback(v.number(), 1), 1),
@@ -32,11 +34,12 @@ export const Route = createFileRoute("/skins")({
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context: { queryClient }, deps: { search } }) => {
 		const activeAcc = accountService.getCachedAccounts().find((a) => a.isActive)
-		// Prefetch rather than ensure: a failed Ely.by request should show the view's
+		// Prefetch rather than ensure: a failed catalog request should show the view's
 		// inline error instead of crashing the whole route
 		await queryClient.prefetchQuery(
 			skinsQueryOptions({
 				tab: search.tab ?? "catalog",
+				provider: search.provider ?? "ely",
 				page: search.page ?? 1,
 				searchQuery: search.q ?? "",
 				sort: search.sort ?? "wearers",

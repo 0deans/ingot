@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "皮肤目录",
-		"subtitle": "浏览 Ely.by 社区皮肤、管理您的个人皮肤库或上传自定义皮肤。",
+		"subtitle": "浏览来自多个来源的皮肤，管理个人收藏，或上传自定义皮肤。",
 		"tabs": {
 			"catalog": "皮肤库",
 			"mySkins": "我的皮肤",
@@ -180,7 +180,13 @@
 			"steve": "经典粗臂 (Steve)",
 			"slim": "纤细细臂 (Alex)"
 		},
-		"searchPlaceholder": "按用户名或标签搜索皮肤..."
+		"searchPlaceholder": "按用户名或标签搜索皮肤...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "玩家皮肤"
+		},
+		"playerSearchPlaceholder": "输入 Minecraft 用户名或 UUID（例如 Technoblade）...",
+		"featuredPlayers": "精选"
 	},
 	"screenshots": {
 		"title": "游戏截图",
@@ -1476,15 +1482,19 @@
 		"outerOn": "显示外层",
 		"outerOff": "隐藏外层",
 		"modelSlim": "模型：纤细（Alex）",
-		"modelClassic": "模型：经典（Steve）"
+		"modelClassic": "模型：经典（Steve）",
+		"capeShow": "显示披风",
+		"capeHide": "隐藏披风",
+		"capeOn": "开启披风",
+		"capeOff": "关闭披风"
 	},
 	"skinsPage": {
 		"customSkin": "自定义皮肤",
 		"currentActiveSkin": "当前使用的皮肤",
 		"activeAccountSkin": "当前账号皮肤",
-		"loadFailed": "无法从 Ely.by 加载皮肤",
+		"loadFailed": "无法加载皮肤",
 		"defaultSteve": "默认 Steve 皮肤",
-		"addAccountFirst": "请先添加或选择 Ely.by 账号。",
+		"addAccountFirst": "请先添加或选择一个账户。",
 		"offlineNoSync": "只有 Ely.by 和 Microsoft 账户可以更换皮肤。",
 		"customApplied": "已将自定义皮肤应用到 {{name}}！",
 		"skinApplied": "已将皮肤 #{{id}} 应用到 {{name}}！",
@@ -1554,7 +1564,9 @@
 		"passwordDescription": "要修改 <b>{{name}}</b> 的 Ely.by 皮肤，请输入账号密码。密码会安全加密并保存在操作系统的密钥环中。",
 		"passwordPlaceholder": "Ely.by 密码",
 		"authorize": "验证并应用",
-		"count_other": "{{formatted}} 个皮肤"
+		"count_other": "{{formatted}} 个皮肤",
+		"hasCape": "披风",
+		"playerNotFound": "未找到用户名或 UUID 为 \"{{query}}\" 的玩家"
 	},
 	"select": {
 		"placeholder": "选择一项",

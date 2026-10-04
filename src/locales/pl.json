@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Katalog skórek",
-		"subtitle": "Przeglądaj skórki z Ely.by, zarządzaj własną kolekcją lub prześlij własną skórkę.",
+		"subtitle": "Przeglądaj skiny od różnych dostawców, zarządzaj własną kolekcją lub prześlij własny skin.",
 		"tabs": {
 			"catalog": "Katalog",
 			"mySkins": "Moje skórki",
@@ -180,7 +180,13 @@
 			"steve": "Klasyczny (Steve)",
 			"slim": "Smukły (Alex)"
 		},
-		"searchPlaceholder": "Szukaj skórek według nazwy gracza lub tagu..."
+		"searchPlaceholder": "Szukaj skórek według nazwy gracza lub tagu...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Skiny graczy"
+		},
+		"playerSearchPlaceholder": "Wprowadź nick Minecraft lub UUID (np. Technoblade)...",
+		"featuredPlayers": "Wyróżnione"
 	},
 	"screenshots": {
 		"title": "Zrzuty ekranu",
@@ -1554,15 +1560,19 @@
 		"outerOn": "Warstwa zewnętrzna wł.",
 		"outerOff": "Warstwa zewnętrzna wył.",
 		"modelSlim": "Model: smukły (Alex)",
-		"modelClassic": "Model: klasyczny (Steve)"
+		"modelClassic": "Model: klasyczny (Steve)",
+		"capeShow": "Pokaż pelerynę",
+		"capeHide": "Ukryj pelerynę",
+		"capeOn": "Peleryna wł.",
+		"capeOff": "Peleryna wył."
 	},
 	"skinsPage": {
 		"customSkin": "Własna skórka",
 		"currentActiveSkin": "Aktywna skórka",
 		"activeAccountSkin": "Skórka aktywnego konta",
-		"loadFailed": "Nie udało się wczytać skórek z Ely.by",
+		"loadFailed": "Nie udało się załadować skinów",
 		"defaultSteve": "Domyślny Steve",
-		"addAccountFirst": "Najpierw dodaj lub wybierz konto Ely.by.",
+		"addAccountFirst": "Najpierw dodaj lub wybierz konto.",
 		"offlineNoSync": "Skiny można zmieniać tylko na kontach Ely.by i Microsoft.",
 		"customApplied": "Własna skórka ustawiona dla {{name}}!",
 		"skinApplied": "Skórka nr {{id}} ustawiona dla {{name}}!",
@@ -1635,7 +1645,9 @@
 		"count_one": "{{formatted}} skórka",
 		"count_few": "{{formatted}} skórki",
 		"count_many": "{{formatted}} skórek",
-		"count_other": "{{formatted}} skórki"
+		"count_other": "{{formatted}} skórki",
+		"hasCape": "Peleryna",
+		"playerNotFound": "Nie znaleziono gracza o nicku lub UUID „{{query}}”"
 	},
 	"select": {
 		"placeholder": "Wybierz opcję",

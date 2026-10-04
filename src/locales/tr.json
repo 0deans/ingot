@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Skin Kataloğu",
-		"subtitle": "Ely.by skinlerine göz atın, kişisel koleksiyonunuzu yönetin veya özel bir skin yükleyin.",
+		"subtitle": "Farklı kaynaklardan dış görünüşlere göz atın, kişisel koleksiyonunuzu yönetin veya özel bir dış görünüş yükleyin.",
 		"tabs": {
 			"catalog": "Katalog",
 			"mySkins": "Skinlerim",
@@ -180,7 +180,13 @@
 			"steve": "Klasik (Steve)",
 			"slim": "İnce (Alex)"
 		},
-		"searchPlaceholder": "Kullanıcı adı veya etikete göre skin ara..."
+		"searchPlaceholder": "Kullanıcı adı veya etikete göre skin ara...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Oyuncu Görünüşleri"
+		},
+		"playerSearchPlaceholder": "Minecraft kullanıcı adını veya UUID'sini girin (örn. Technoblade)...",
+		"featuredPlayers": "Öne Çıkanlar"
 	},
 	"screenshots": {
 		"title": "Ekran Görüntüleri",
@@ -1502,15 +1508,19 @@
 		"outerOn": "Dış Katman Açık",
 		"outerOff": "Dış Katman Kapalı",
 		"modelSlim": "Model: Slim (Alex)",
-		"modelClassic": "Model: Classic (Steve)"
+		"modelClassic": "Model: Classic (Steve)",
+		"capeShow": "Pelerini Göster",
+		"capeHide": "Pelerini Gizle",
+		"capeOn": "Pelerin Açık",
+		"capeOff": "Pelerin Kapalı"
 	},
 	"skinsPage": {
 		"customSkin": "Özel Görünüm",
 		"currentActiveSkin": "Mevcut Aktif Görünüm",
 		"activeAccountSkin": "Aktif Hesap Görünümü",
-		"loadFailed": "Görünümler şuradan yüklenemedi: Ely.by",
+		"loadFailed": "Görünüşler yüklenemedi",
 		"defaultSteve": "Varsayılan Steve",
-		"addAccountFirst": "Lütfen önce bir Ely.by hesabı ekleyin veya seçin.",
+		"addAccountFirst": "Lütfen önce bir hesap ekleyin veya seçin.",
 		"offlineNoSync": "Skinler yalnızca Ely.by ve Microsoft hesaplarında değiştirilebilir.",
 		"customApplied": "{{name}}'ya özel görünüm uygulandı!",
 		"skinApplied": "{{name}}'ya #{{id}} görünümü uygulandı!",
@@ -1581,7 +1591,9 @@
 		"passwordPlaceholder": "Ely.by Şifre",
 		"authorize": "Yetkilendir ve Uygula",
 		"count_one": "{{formatted}} görünüm",
-		"count_other": "{{formatted}} görünümler"
+		"count_other": "{{formatted}} görünümler",
+		"hasCape": "Pelerin",
+		"playerNotFound": "\"{{query}}\" kullanıcı adına veya UUID'sine sahip oyuncu bulunamadı"
 	},
 	"select": {
 		"placeholder": "Bir seçenek seçin",

@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Skinkatalog",
-		"subtitle": "Bläddra bland Ely.by-skins, hantera din egen samling eller ladda upp ett eget skin.",
+		"subtitle": "Bläddra bland skins från flera leverantörer, hantera din personliga samling eller ladda upp ett eget skin.",
 		"tabs": {
 			"catalog": "Katalog",
 			"mySkins": "Mina skins",
@@ -180,7 +180,13 @@
 			"steve": "Klassisk (Steve)",
 			"slim": "Smal (Alex)"
 		},
-		"searchPlaceholder": "Sök skins efter användarnamn eller tagg..."
+		"searchPlaceholder": "Sök skins efter användarnamn eller tagg...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Spelarskins"
+		},
+		"playerSearchPlaceholder": "Ange Minecraft-användarnamn eller UUID (t.ex. Technoblade)...",
+		"featuredPlayers": "Utvalda"
 	},
 	"screenshots": {
 		"title": "Skärmbilder",
@@ -1502,15 +1508,19 @@
 		"outerOn": "Yttre lager på",
 		"outerOff": "Yttre lager av",
 		"modelSlim": "Modell: smal (Alex)",
-		"modelClassic": "Modell: klassisk (Steve)"
+		"modelClassic": "Modell: klassisk (Steve)",
+		"capeShow": "Visa mantel",
+		"capeHide": "Dölj mantel",
+		"capeOn": "Mantel på",
+		"capeOff": "Mantel av"
 	},
 	"skinsPage": {
 		"customSkin": "Eget skin",
 		"currentActiveSkin": "Aktivt skin",
 		"activeAccountSkin": "Det aktiva kontots skin",
-		"loadFailed": "Det gick inte att läsa in skins från Ely.by",
+		"loadFailed": "Kunde inte läsa in skins",
 		"defaultSteve": "Standard-Steve",
-		"addAccountFirst": "Lägg till eller välj ett Ely.by-konto först.",
+		"addAccountFirst": "Lägg till eller välj ett konto först.",
 		"offlineNoSync": "Skins kan bara ändras för Ely.by- och Microsoft-konton.",
 		"customApplied": "Eget skin tillämpat på {{name}}!",
 		"skinApplied": "Skin nr {{id}} tillämpat på {{name}}!",
@@ -1581,7 +1591,9 @@
 		"passwordPlaceholder": "Ely.by-lösenord",
 		"authorize": "Godkänn och tillämpa",
 		"count_one": "{{formatted}} skin",
-		"count_other": "{{formatted}} skins"
+		"count_other": "{{formatted}} skins",
+		"hasCape": "Mantel",
+		"playerNotFound": "Ingen spelare hittades med användarnamnet eller UUID \"{{query}}\""
 	},
 	"select": {
 		"placeholder": "Välj ett alternativ",

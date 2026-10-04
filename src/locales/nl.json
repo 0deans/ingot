@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Skincatalogus",
-		"subtitle": "Blader door Ely.by-skins, beheer je eigen collectie of upload een aangepaste skin.",
+		"subtitle": "Blader door skins van meerdere providers, beheer je eigen collectie of upload een aangepaste skin.",
 		"tabs": {
 			"catalog": "Catalogus",
 			"mySkins": "Mijn skins",
@@ -180,7 +180,13 @@
 			"steve": "Klassiek (Steve)",
 			"slim": "Slank (Alex)"
 		},
-		"searchPlaceholder": "Zoek skins op gebruikersnaam of tag..."
+		"searchPlaceholder": "Zoek skins op gebruikersnaam of tag...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Spelerskins"
+		},
+		"playerSearchPlaceholder": "Voer Minecraft-gebruikersnaam of UUID in (bijv. Technoblade)...",
+		"featuredPlayers": "Uitgelicht"
 	},
 	"screenshots": {
 		"title": "Screenshots",
@@ -1502,15 +1508,19 @@
 		"outerOn": "Buitenste laag aan",
 		"outerOff": "Buitenste laag uit",
 		"modelSlim": "Model: slank (Alex)",
-		"modelClassic": "Model: klassiek (Steve)"
+		"modelClassic": "Model: klassiek (Steve)",
+		"capeShow": "Kaap weergeven",
+		"capeHide": "Kaap verbergen",
+		"capeOn": "Kaap aan",
+		"capeOff": "Kaap uit"
 	},
 	"skinsPage": {
 		"customSkin": "Eigen skin",
 		"currentActiveSkin": "Huidige actieve skin",
 		"activeAccountSkin": "Skin van actief account",
-		"loadFailed": "Kan skins niet laden van Ely.by",
+		"loadFailed": "Laden van skins mislukt",
 		"defaultSteve": "Standaard-Steve",
-		"addAccountFirst": "Voeg eerst een Ely.by-account toe of kies er een.",
+		"addAccountFirst": "Voeg eerst een account toe of selecteer er een.",
 		"offlineNoSync": "Skins kunnen alleen worden gewijzigd voor Ely.by- en Microsoft-accounts.",
 		"customApplied": "Eigen skin toegepast op {{name}}!",
 		"skinApplied": "Skin #{{id}} toegepast op {{name}}!",
@@ -1581,7 +1591,9 @@
 		"passwordPlaceholder": "Ely.by-wachtwoord",
 		"authorize": "Toestaan en toepassen",
 		"count_one": "{{formatted}} skin",
-		"count_other": "{{formatted}} skins"
+		"count_other": "{{formatted}} skins",
+		"hasCape": "Kaap",
+		"playerNotFound": "Geen speler gevonden met gebruikersnaam of UUID \"{{query}}\""
 	},
 	"select": {
 		"placeholder": "Kies een optie",

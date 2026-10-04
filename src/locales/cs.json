@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Katalog skinů",
-		"subtitle": "Prohlížejte skiny z Ely.by, spravujte vlastní sbírku nebo nahrajte vlastní skin.",
+		"subtitle": "Procházejte skiny od různých poskytovatelů, spravujte vlastní sbírku nebo nahrajte vlastní skin.",
 		"tabs": {
 			"catalog": "Katalog",
 			"mySkins": "Moje skiny",
@@ -180,7 +180,13 @@
 			"steve": "Klasický (Steve)",
 			"slim": "Tenký (Alex)"
 		},
-		"searchPlaceholder": "Hledat skiny podle jména nebo štítku..."
+		"searchPlaceholder": "Hledat skiny podle jména nebo štítku...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Skiny hráčů"
+		},
+		"playerSearchPlaceholder": "Zadejte Minecraft jméno nebo UUID (např. Technoblade)...",
+		"featuredPlayers": "Doporučené"
 	},
 	"screenshots": {
 		"title": "Snímky obrazovky",
@@ -1554,15 +1560,19 @@
 		"outerOn": "Vnější vrstva zap.",
 		"outerOff": "Vnější vrstva vyp.",
 		"modelSlim": "Model: štíhlý (Alex)",
-		"modelClassic": "Model: klasický (Steve)"
+		"modelClassic": "Model: klasický (Steve)",
+		"capeShow": "Zobrazit plášť",
+		"capeHide": "Skrýt plášť",
+		"capeOn": "Plášť zap.",
+		"capeOff": "Plášť vyp."
 	},
 	"skinsPage": {
 		"customSkin": "Vlastní skin",
 		"currentActiveSkin": "Aktivní skin",
 		"activeAccountSkin": "Skin aktivního účtu",
-		"loadFailed": "Skiny z Ely.by se nepodařilo načíst",
+		"loadFailed": "Nepodařilo se načíst skiny",
 		"defaultSteve": "Výchozí Steve",
-		"addAccountFirst": "Nejdřív přidejte nebo vyberte účet Ely.by.",
+		"addAccountFirst": "Nejprve přidejte nebo vyberte účet.",
 		"offlineNoSync": "Skiny lze měnit pouze u účtů Ely.by a Microsoft.",
 		"customApplied": "Vlastní skin nastaven pro {{name}}!",
 		"skinApplied": "Skin č. {{id}} nastaven pro {{name}}!",
@@ -1635,7 +1645,9 @@
 		"count_one": "{{formatted}} skin",
 		"count_few": "{{formatted}} skiny",
 		"count_many": "{{formatted}} skinu",
-		"count_other": "{{formatted}} skinů"
+		"count_other": "{{formatted}} skinů",
+		"hasCape": "Plášť",
+		"playerNotFound": "Nebyl nalezen žádný hráč se jménem nebo UUID „{{query}}“"
 	},
 	"select": {
 		"placeholder": "Vyberte možnost",

@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router"
-import { Check, Copy, Download, Sparkles } from "lucide-react"
-import { memo, useState } from "react"
+import { Check, Copy, Download, Shirt, Sparkles } from "lucide-react"
+import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { AccountTypeBadge } from "@/components/accounts/account-type-badge"
@@ -31,6 +31,26 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 	const navigate = useNavigate()
 	const [copied, setCopied] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
+	const [accountCapeUrl, setAccountCapeUrl] = useState<string | null>(null)
+
+	useEffect(() => {
+		let isMounted = true
+		if (account?.username) {
+			accountService
+				.getPlayerSkin(account.username)
+				.then((res) => {
+					if (isMounted) setAccountCapeUrl(res?.capeUrl || null)
+				})
+				.catch(() => {
+					if (isMounted) setAccountCapeUrl(null)
+				})
+		} else {
+			setAccountCapeUrl(null)
+		}
+		return () => {
+			isMounted = false
+		}
+	}, [account?.username])
 
 	if (!account) return null
 
@@ -81,6 +101,15 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 									{account.username}
 								</DialogTitle>
 								<AccountTypeBadge type={account.accountType} />
+								{accountCapeUrl && (
+									<Badge
+										variant="outline"
+										className="gap-1 border-primary/40 bg-primary/10 text-3xs text-primary"
+									>
+										<Shirt className="size-2.5" />
+										{t("skinsPage.hasCape")}
+									</Badge>
+								)}
 								{account.isActive && (
 									<Badge>
 										<Check /> {t("common.active")}
@@ -98,6 +127,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 				<div className="absolute inset-0 z-0 size-full">
 					<SkinViewer3D
 						skinUrl={account.skinUrl}
+						capeUrl={accountCapeUrl}
 						username={account.username}
 						showToolbar={false}
 						autoResize={true}

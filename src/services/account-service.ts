@@ -176,6 +176,120 @@ export const accountService = {
 		)
 	},
 
+	async getPlayerSkin(usernameOrUuid: string): Promise<import("@/types/skin").ElySkinItem | null> {
+		const trimmed = usernameOrUuid.trim()
+		if (!trimmed) return null
+		try {
+			const res = await fetch(
+				`https://playerdb.co/api/player/minecraft/${encodeURIComponent(trimmed)}`,
+			)
+			if (!res.ok) return null
+			const json = (await res.json()) as {
+				success?: boolean
+				data?: {
+					player?: {
+						username?: string
+						id?: string
+						raw_id?: string
+						skin_texture?: string
+						cape_texture?: string
+						properties?: Array<{ name?: string; value?: string }>
+					}
+				}
+			}
+			const player = json.data?.player
+			const skinTexture = player?.skin_texture
+			if (!json.success || !player || !skinTexture) return null
+			let isSlim = false
+			let capeUrl = player.cape_texture || null
+			try {
+				const texturesProp = player.properties?.find((p) => p.name === "textures")
+				if (texturesProp?.value) {
+					const decoded = JSON.parse(atob(texturesProp.value))
+					if (decoded?.textures?.SKIN?.metadata?.model === "slim") {
+						isSlim = true
+					}
+					if (!capeUrl && decoded?.textures?.CAPE?.url) {
+						capeUrl = decoded.textures.CAPE.url
+					}
+				}
+			} catch {}
+
+			let id = 1
+			if (typeof player.raw_id === "string") {
+				id =
+					Math.abs(
+						player.raw_id
+							.slice(0, 8)
+							.split("")
+							.reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) | 0, 0),
+					) || 1
+			}
+
+			return {
+				id,
+				skinUrl: skinTexture,
+				capeUrl,
+				isSlim,
+				countWearers: 1,
+				countCubes: 0,
+				countViews: 0,
+				tags: [player.username || "Player", "Mojang", player.raw_id?.slice(0, 8) || ""].filter(
+					Boolean,
+				),
+				name: player.username || "Player",
+				provider: "player",
+			}
+		} catch (e) {
+			console.warn("Failed to fetch player skin from PlayerDB:", e)
+			return null
+		}
+	},
+
+	async getMultiplePlayerSkins(usernames: string[]): Promise<import("@/types/skin").ElySkinItem[]> {
+		const results = await Promise.allSettled(usernames.map((u) => this.getPlayerSkin(u)))
+		return results
+			.map((r) => {
+				if (r.status === "fulfilled" && r.value) {
+					return r.value
+				}
+				return null
+			})
+			.filter((s): s is import("@/types/skin").ElySkinItem => s !== null)
+	},
+
+	async getPlayerSkinsCatalog(
+		query?: string,
+		model?: string,
+	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
+		const clean = query?.trim()
+		if (clean) {
+			const single = await this.getPlayerSkin(clean)
+			const items = single ? [single] : []
+			return {
+				items,
+				currentPage: 1,
+				lastPage: 1,
+				totalItems: items.length,
+			}
+		}
+
+		const items = await this.getMultiplePlayerSkins(FEATURED_PLAYERS)
+		let filtered = items
+		if (model === "slim") {
+			filtered = filtered.filter((i) => i.isSlim)
+		} else if (model === "steve") {
+			filtered = filtered.filter((i) => !i.isSlim)
+		}
+
+		return {
+			items: filtered,
+			currentPage: 1,
+			lastPage: 1,
+			totalItems: filtered.length,
+		}
+	},
+
 	async applyElySkin(accountId: string, skinId: number, password?: string): Promise<void> {
 		await rpc.apply_ely_skin(accountId, skinId, password ?? null)
 		await this.refreshAccounts()
@@ -202,6 +316,23 @@ export const accountService = {
 		return await rpc.has_ely_web_credentials(accountId)
 	},
 }
+
+export const FEATURED_PLAYERS = [
+	"Steve",
+	"Alex",
+	"Technoblade",
+	"Notch",
+	"Jeb_",
+	"MumboJumbo",
+	"Grian",
+	"DanTDM",
+	"Dream",
+	"GeorgeNotFound",
+	"CaptainSparklez",
+	"Stampylongnose",
+	"TommyInnit",
+	"Philza",
+]
 
 const UPLOADED_SKINS_STORAGE_KEY_PREFIX = "ingot_uploaded_skins_"
 

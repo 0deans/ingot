@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Catalogo skin",
-		"subtitle": "Sfoglia le skin di Ely.by, gestisci la tua collezione personale o carica una skin personalizzata.",
+		"subtitle": "Sfoglia le skin da più fornitori, gestisci la tua raccolta personale o carica una skin personalizzata.",
 		"tabs": {
 			"catalog": "Catalogo",
 			"mySkins": "Le mie skin",
@@ -180,7 +180,13 @@
 			"steve": "Classico (Steve)",
 			"slim": "Sottile (Alex)"
 		},
-		"searchPlaceholder": "Cerca skin per nome utente o tag..."
+		"searchPlaceholder": "Cerca skin per nome utente o tag...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Skin dei giocatori"
+		},
+		"playerSearchPlaceholder": "Inserisci nome utente o UUID Minecraft (es. Technoblade)...",
+		"featuredPlayers": "In evidenza"
 	},
 	"screenshots": {
 		"title": "Screenshot",
@@ -1528,15 +1534,19 @@
 		"outerOn": "Strato esterno visibile",
 		"outerOff": "Strato esterno nascosto",
 		"modelSlim": "Modello: sottile (Alex)",
-		"modelClassic": "Modello: classico (Steve)"
+		"modelClassic": "Modello: classico (Steve)",
+		"capeShow": "Mostra mantello",
+		"capeHide": "Nascondi mantello",
+		"capeOn": "Mantello attivo",
+		"capeOff": "Mantello disattivo"
 	},
 	"skinsPage": {
 		"customSkin": "Skin personalizzata",
 		"currentActiveSkin": "Skin attiva",
 		"activeAccountSkin": "Skin dell'account attivo",
-		"loadFailed": "Impossibile caricare le skin da Ely.by",
+		"loadFailed": "Impossibile caricare le skin",
 		"defaultSteve": "Steve predefinito",
-		"addAccountFirst": "Aggiungi o scegli prima un account Ely.by.",
+		"addAccountFirst": "Aggiungi o seleziona prima un account.",
 		"offlineNoSync": "Le skin si possono cambiare solo per gli account Ely.by e Microsoft.",
 		"customApplied": "Skin personalizzata applicata a {{name}}!",
 		"skinApplied": "Skin n. {{id}} applicata a {{name}}!",
@@ -1608,7 +1618,9 @@
 		"authorize": "Autorizza e applica",
 		"count_one": "{{formatted}} skin",
 		"count_many": "{{formatted}} skin",
-		"count_other": "{{formatted}} skin"
+		"count_other": "{{formatted}} skin",
+		"hasCape": "Mantello",
+		"playerNotFound": "Nessun giocatore trovato con nome utente o UUID \"{{query}}\""
 	},
 	"select": {
 		"placeholder": "Scegli un'opzione",

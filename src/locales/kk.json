@@ -163,7 +163,7 @@
 	},
 	"skins": {
 		"title": "Скиндер каталогы",
-		"subtitle": "Ely.by скиндерін қараңыз, жеке топтамаңызды басқарыңыз немесе өз скиніңізді жүктеңіз.",
+		"subtitle": "Әр түрлі провайдерлерден скиндерді қараңыз, жеке топтамаңызды басқарыңыз немесе өз скиніңізді жүктеңіз.",
 		"tabs": {
 			"catalog": "Каталог",
 			"mySkins": "Менің скиндерім",
@@ -180,7 +180,13 @@
 			"steve": "Классикалық (Steve)",
 			"slim": "Жіңішке (Alex)"
 		},
-		"searchPlaceholder": "Скиндерді аты немесе тег бойынша іздеу..."
+		"searchPlaceholder": "Скиндерді аты немесе тег бойынша іздеу...",
+		"providers": {
+			"ely": "Ely.by",
+			"player": "Ойыншы скиндері"
+		},
+		"playerSearchPlaceholder": "Ойыншының лақап атын немесе UUID енгізіңіз (мысалы, Technoblade)...",
+		"featuredPlayers": "Танымал"
 	},
 	"screenshots": {
 		"title": "Скриншоттар",
@@ -1502,15 +1508,19 @@
 		"outerOn": "Сыртқы қабат қосулы",
 		"outerOff": "Сыртқы қабат өшірулі",
 		"modelSlim": "Модель: жіңішке (Alex)",
-		"modelClassic": "Модель: классикалық (Steve)"
+		"modelClassic": "Модель: классикалық (Steve)",
+		"capeShow": "Шапанды көрсету",
+		"capeHide": "Шапанды жасыру",
+		"capeOn": "Шапан қосулы",
+		"capeOff": "Шапан өшірулі"
 	},
 	"skinsPage": {
 		"customSkin": "Жеке скин",
 		"currentActiveSkin": "Белсенді скин",
 		"activeAccountSkin": "Белсенді аккаунт скині",
-		"loadFailed": "Ely.by скиндерін жүктеу мүмкін болмады",
+		"loadFailed": "Скиндерді жүктеу сәтсіз аяқталды",
 		"defaultSteve": "Әдепкі Steve",
-		"addAccountFirst": "Алдымен Ely.by аккаунтын қосыңыз не таңдаңыз.",
+		"addAccountFirst": "Алдымен тіркелгіні қосыңыз немесе таңдаңыз.",
 		"offlineNoSync": "Скиндерді тек Ely.by және Microsoft аккаунттарында өзгертуге болады.",
 		"customApplied": "{{name}} үшін жеке скин орнатылды!",
 		"skinApplied": "№{{id}} скин {{name}} үшін орнатылды!",
@@ -1581,7 +1591,9 @@
 		"passwordPlaceholder": "Ely.by құпиясөзі",
 		"authorize": "Растау және орнату",
 		"count_one": "{{formatted}} скин",
-		"count_other": "{{formatted}} скин"
+		"count_other": "{{formatted}} скин",
+		"hasCape": "Шапан",
+		"playerNotFound": "«{{query}}» лақап аты немесе UUID бар ойыншы табылмады"
 	},
 	"select": {
 		"placeholder": "Опцияны таңдаңыз",
