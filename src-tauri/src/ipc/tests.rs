@@ -10,6 +10,9 @@ use crate::{
     settings::MemorySettings,
 };
 
+#[path = "pending_login_tests.rs"]
+mod pending_login_tests;
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn corrupt_account_storage_is_rejected_and_cannot_be_overwritten() {
     let dir = tempfile::tempdir().unwrap();
@@ -239,7 +242,10 @@ async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
         .invoke_handler(super::router::<MockRuntime>().into_handler())
         .build(tauri::test::mock_context(tauri::test::noop_assets()))
         .unwrap();
-    app.manage(AppState::new(AppPaths::new(dir.path().to_owned())).unwrap());
+    let mut state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
+    let vault = crate::account::credentials::tests::FakeCredentialStore::default();
+    state.credentials = Box::new(vault.clone());
+    app.manage(state);
     let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
         .build()
         .unwrap();
@@ -293,6 +299,18 @@ async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
         .unwrap(),
         Value::Null
     );
+    assert!(crate::app::state(app.handle())
+        .account_login
+        .is_cancelled(attempt));
+    vault.fail_reads();
+    let attempt = crate::app::state(app.handle()).account_login.current();
+    assert!(invoke(
+        &webview,
+        "TauRPC__accounts.microsoft_login_cancel",
+        json!({})
+    )
+    .unwrap_err()
+    .is_string());
     assert!(crate::app::state(app.handle())
         .account_login
         .is_cancelled(attempt));

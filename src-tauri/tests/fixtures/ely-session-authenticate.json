@@ -1,0 +1,7 @@
+{
+  "accessToken": "fixture-access",
+  "clientToken": "fixture-client",
+  "availableProfiles": [{"id": "fixture-id", "name": "FixturePlayer"}],
+  "selectedProfile": {"id": "fixture-id", "name": "FixturePlayer"},
+  "user": {"id": "fixture-id", "properties": []}
+}

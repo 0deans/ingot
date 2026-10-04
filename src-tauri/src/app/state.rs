@@ -14,10 +14,12 @@ pub(crate) struct AppState {
     pub(crate) http: reqwest::Client,
     pub(crate) lifecycle: LifecycleState,
     pub(crate) account_login: crate::account::login::LoginAttempts,
+    pub(crate) pending_login: crate::account::pending_login::PendingLoginGrants,
     pub(crate) accounts: crate::account::repository::AccountRepository,
     pub(crate) account_operations: crate::account::operations::AccountOperations,
     pub(crate) account_recovery: crate::account::recovery::AccountRecovery,
     pub(crate) credentials: Box<dyn crate::account::credentials::CredentialStore>,
+    pub(crate) session_provider: Box<dyn crate::account::provider::SessionProvider>,
 }
 
 impl AppState {
@@ -31,9 +33,15 @@ impl AppState {
             servers: ServerProcessManager::new(),
             supervisor: ServerSupervisorManager::new(),
             playit: PlayitManager::new(),
+            session_provider: Box::new(crate::auth::session_provider::NativeSessionProvider::new(
+                http.clone(),
+            )),
             http,
             lifecycle: LifecycleState::default(),
             account_login: crate::account::login::LoginAttempts::default(),
+            pending_login: crate::account::pending_login::PendingLoginGrants::new(
+                &paths.accounts_file(),
+            ),
             accounts: crate::account::repository::AccountRepository::new(paths.accounts_file()),
             account_operations: crate::account::operations::AccountOperations::default(),
             account_recovery: crate::account::recovery::AccountRecovery::new(

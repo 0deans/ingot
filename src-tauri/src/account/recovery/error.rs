@@ -2,6 +2,8 @@ use crate::account::{credentials::CredentialError, AccountError};
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum RecoveryError {
+    #[error("Microsoft sign-in handoff is pending recovery: {0}")]
+    PendingGrant(#[from] crate::account::pending_login::PendingGrantError),
     #[error("Account recovery discovery failed")]
     Discovery(#[source] std::io::Error),
     #[error("Account recovery record is invalid; recovery data was preserved")]

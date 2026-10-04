@@ -5,8 +5,8 @@ use super::ProfileChange;
 use super::RecoveryError;
 
 use crate::account::{
-    credentials::CredentialStore, operations::AccountOperation, repository::AccountRepository,
-    AccountError, AccountSecrets,
+    credentials::CredentialStore, operations::AccountOperation, pending_login::PendingLoginGrants,
+    repository::AccountRepository, AccountError, AccountSecrets,
 };
 use std::{io::Write, path::PathBuf, sync::Mutex};
 
@@ -17,6 +17,7 @@ pub(crate) struct AccountRecovery {
     marker: PathBuf,
     key: String,
     lock: Mutex<()>,
+    pending_login_lock: Mutex<()>,
 }
 
 impl AccountRecovery {
@@ -30,6 +31,7 @@ impl AccountRecovery {
             marker,
             key: format!("ingot:account-recovery:v1:{scope}"),
             lock: Mutex::new(()),
+            pending_login_lock: Mutex::new(()),
         }
     }
 
@@ -64,6 +66,7 @@ impl AccountRecovery {
                 version: 1,
                 change,
                 secrets: Some(secrets.clone()),
+                grant: None,
             },
         )
     }
@@ -83,6 +86,7 @@ impl AccountRecovery {
                     id: operation.id().to_owned(),
                 },
                 secrets: None,
+                grant: None,
             },
         )
     }
@@ -93,10 +97,13 @@ impl AccountRecovery {
         repository: &AccountRepository,
         intent: Intent,
     ) -> Result<(), RecoveryError> {
+        if !intent.valid_for(repository) {
+            return Err(RecoveryError::Invalid);
+        }
         let _guard = self.lock.lock().map_err(|_| RecoveryError::LockPoisoned)?;
         // Another account's provider may already have rotated tokens while earlier
         // work became pending. Queue its secrets before requiring that work to finish.
-        let mut pending = self.read_pending(store)?;
+        let mut pending = self.read_pending(store, repository)?;
         // Removal can be rejected before touching either resource. Login/refresh
         // callers preflight before provider I/O; after a remote token rotation we
         // must preserve the new secrets even if the file has since become corrupt.
@@ -127,11 +134,15 @@ impl AccountRecovery {
         store: &dyn CredentialStore,
         repository: &AccountRepository,
     ) -> Result<(), RecoveryError> {
-        let pending = self.read_pending(store)?;
+        let pending = self.read_pending(store, repository)?;
         self.replay(store, repository, pending)
     }
 
-    fn read_pending(&self, store: &dyn CredentialStore) -> Result<Vec<Intent>, RecoveryError> {
+    fn read_pending(
+        &self,
+        store: &dyn CredentialStore,
+        repository: &AccountRepository,
+    ) -> Result<Vec<Intent>, RecoveryError> {
         match std::fs::read(&self.marker) {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
             Err(error) => return Err(RecoveryError::Discovery(error)),
@@ -148,15 +159,7 @@ impl AccountRecovery {
         // contain passwords/tokens in an unexpected field or enum discriminator.
         let pending: Vec<Intent> =
             serde_json::from_str(&value).map_err(|_| RecoveryError::Invalid)?;
-        if pending.is_empty()
-            || pending.iter().any(|intent| {
-                intent.version != 1
-                    || intent.change.removes() != intent.secrets.is_none()
-                    || !["microsoft:", "ely:", "offline:"]
-                        .iter()
-                        .any(|prefix| intent.change.id().starts_with(prefix))
-            })
-        {
+        if pending.is_empty() || pending.iter().any(|intent| !intent.valid_for(repository)) {
             return Err(RecoveryError::Invalid);
         }
         Ok(pending)
@@ -194,6 +197,12 @@ impl AccountRecovery {
         repository: &AccountRepository,
         intent: &Intent,
     ) -> Result<(), RecoveryError> {
+        if let Some(receipt) = intent.grant {
+            self.with_pending_login(|| {
+                PendingLoginGrants::acknowledge_transfer(store, receipt)
+                    .map_err(RecoveryError::from)
+            })?;
+        }
         if let Some(secrets) = &intent.secrets {
             let value = serde_json::to_string(secrets).map_err(|_| RecoveryError::Invalid)?;
             store
@@ -239,6 +248,9 @@ impl AccountRecovery {
         std::fs::remove_file(&self.marker).map_err(RecoveryError::Discovery)
     }
 }
+
+#[path = "handoff.rs"]
+mod handoff;
 
 #[cfg(test)]
 #[path = "tests.rs"]

@@ -1,9 +1,21 @@
 //! Thin native account procedure adapters; string rejections remain wire-compatible.
+use crate::account::pending_login::PendingMicrosoftLogin;
 use crate::account::AccountProfile;
 use crate::app::accounts as account;
 use tauri::Runtime;
 #[taurpc::procedures(path = "accounts")]
 pub(super) trait AccountsApi {
+    async fn get_pending_microsoft_login(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Option<PendingMicrosoftLogin>, String>;
+    async fn resume_microsoft_login(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        ticket: String,
+    ) -> Result<AccountProfile, String>;
+    async fn discard_pending_microsoft_login(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        ticket: String,
+    ) -> Result<(), String>;
     async fn ely_login(
         app_handle: tauri::AppHandle<impl Runtime>,
         username: String,
@@ -16,7 +28,9 @@ pub(super) trait AccountsApi {
         app_handle: tauri::AppHandle<impl Runtime>,
         code: crate::auth::microsoft::MicrosoftDeviceCode,
     ) -> Result<AccountProfile, String>;
-    async fn microsoft_login_cancel(app_handle: tauri::AppHandle<impl Runtime>);
+    async fn microsoft_login_cancel(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<(), String>;
     async fn add_offline_account(
         app_handle: tauri::AppHandle<impl Runtime>,
         username: String,
@@ -44,6 +58,26 @@ pub(super) trait AccountsApi {
 pub(super) struct AccountsApiImpl;
 #[taurpc::resolvers]
 impl AccountsApi for AccountsApiImpl {
+    async fn get_pending_microsoft_login(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Option<PendingMicrosoftLogin>, String> {
+        account::get_pending_microsoft_login(app_handle)
+    }
+    async fn resume_microsoft_login(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        ticket: String,
+    ) -> Result<AccountProfile, String> {
+        account::resume_microsoft_login(app_handle, ticket).await
+    }
+    async fn discard_pending_microsoft_login(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        ticket: String,
+    ) -> Result<(), String> {
+        account::discard_pending_microsoft_login(app_handle, ticket)
+    }
     async fn ely_login(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -68,7 +102,10 @@ impl AccountsApi for AccountsApiImpl {
         account::microsoft_login_finish(app_handle, code).await
     }
 
-    async fn microsoft_login_cancel(self, app_handle: tauri::AppHandle<impl Runtime>) {
+    async fn microsoft_login_cancel(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<(), String> {
         account::microsoft_login_cancel(app_handle)
     }
 

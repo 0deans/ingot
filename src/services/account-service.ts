@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { create } from "zustand"
-import type { AccountProfile, MicrosoftDeviceCode } from "@/bindings"
+import type { AccountProfile, MicrosoftDeviceCode, PendingMicrosoftLogin } from "@/bindings"
 import { rpc } from "@/lib/rpc"
 
 const useAccountStore = create<{ accounts: AccountProfile[]; fetched: boolean }>(() => ({
@@ -74,8 +74,25 @@ export const accountService = {
 		return account
 	},
 
-	cancelMicrosoftLogin(): Promise<void> {
-		return rpc.accounts.microsoft_login_cancel()
+	async cancelMicrosoftLogin(): Promise<void> {
+		await rpc.accounts.microsoft_login_cancel()
+	},
+
+	async getPendingMicrosoftLogin(): Promise<PendingMicrosoftLogin | null> {
+		const pending = await rpc.accounts.get_pending_microsoft_login()
+		// Inspection can finish a durable account handoff before reading the slot.
+		await this.refreshAccounts()
+		return pending
+	},
+
+	async resumeMicrosoftLogin(ticket: string): Promise<AccountProfile> {
+		const account = await rpc.accounts.resume_microsoft_login(ticket)
+		await this.refreshAccounts()
+		return account
+	},
+
+	async discardPendingMicrosoftLogin(ticket: string): Promise<void> {
+		await rpc.accounts.discard_pending_microsoft_login(ticket)
 	},
 
 	async addOfflineAccount(username: string): Promise<AccountProfile> {

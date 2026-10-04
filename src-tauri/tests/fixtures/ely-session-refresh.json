@@ -1,0 +1,5 @@
+{
+  "accessToken": "rotated-access",
+  "clientToken": "fixture-client",
+  "selectedProfile": {"id": "fixture-id", "name": "FixturePlayer"}
+}

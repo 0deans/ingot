@@ -15,6 +15,8 @@ enum Fault {
     Cleanup,
     Acknowledgement,
     DeleteAccount,
+    GrantAcknowledgement,
+    GrantCleanup,
 }
 
 struct Store {
@@ -29,14 +31,16 @@ impl CredentialStore for Store {
     fn write(&self, id: &str, value: &str) -> Result<(), CredentialError> {
         let fault = *self.fault.lock().unwrap();
         let journal = id.starts_with("ingot:account-recovery:");
+        let grant = id.starts_with("ingot:microsoft-pending:");
         if matches!(fault, Fault::Journal) && journal
-            || matches!(fault, Fault::Canonical) && !journal
+            || matches!(fault, Fault::Canonical) && !journal && !grant
             || matches!(fault, Fault::Acknowledgement) && value == COMPLETE
+            || matches!(fault, Fault::GrantAcknowledgement) && grant
         {
             return Err(failure("write"));
         }
         self.vault.write(id, value)?;
-        if matches!(fault, Fault::Profile) && !journal {
+        if matches!(fault, Fault::Profile) && !journal && !grant {
             std::fs::write(&self.profile_path, b"[corrupt").unwrap();
         }
         Ok(())
@@ -45,12 +49,19 @@ impl CredentialStore for Store {
         let fault = *self.fault.lock().unwrap();
         if matches!(fault, Fault::Cleanup) && id.starts_with("ingot:account-recovery:")
             || matches!(fault, Fault::DeleteAccount) && !id.starts_with("ingot:account-recovery:")
+            || matches!(fault, Fault::GrantCleanup) && id.starts_with("ingot:microsoft-pending:")
         {
             return Err(failure("delete"));
         }
         self.vault.delete(id)
     }
 }
+
+#[path = "handoff_tests.rs"]
+mod handoff_tests;
+
+#[path = "handoff_concurrency_tests.rs"]
+mod handoff_concurrency_tests;
 fn failure(operation: &'static str) -> CredentialError {
     CredentialError::Vault {
         operation,
@@ -293,6 +304,7 @@ fn interruption_at_each_publication_boundary_is_recoverable_and_secret_safe() {
                 profile: profile("microsoft:test"),
             },
             secrets: Some(secrets()),
+            grant: None,
         };
         recovery.create_marker().unwrap();
         store
@@ -423,6 +435,7 @@ fn interrupted_removal_at_each_boundary_finishes_without_resurrecting_profiles()
                 id: "microsoft:test".to_owned(),
             },
             secrets: None,
+            grant: None,
         };
         recovery.create_marker().unwrap();
         store
@@ -467,6 +480,7 @@ fn refresh_recovery_patches_metadata_preserving_selection_and_never_recreates_mi
             skin_url: Some("skin".to_owned()),
         },
         secrets: Some(secrets()),
+        grant: None,
     };
     recovery.create_marker().unwrap();
     store

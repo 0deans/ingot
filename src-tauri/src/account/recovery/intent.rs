@@ -1,3 +1,4 @@
+use crate::account::pending_login::GrantReceipt;
 use crate::account::{
     policy, repository::AccountRepository, AccountError, AccountProfile, AccountSecrets,
 };
@@ -10,6 +11,28 @@ pub(super) struct Intent {
     pub version: u8,
     pub change: ProfileChange,
     pub secrets: Option<AccountSecrets>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grant: Option<GrantReceipt>,
+}
+
+impl Intent {
+    pub(super) fn valid_for(&self, repository: &AccountRepository) -> bool {
+        let version_valid = match (self.version, self.grant) {
+            (1, None) => true,
+            (2, Some(receipt)) => {
+                receipt.belongs_to(repository.path())
+                    && matches!(&self.change, ProfileChange::Activate { profile }
+                        if profile.account_type == "microsoft"
+                            && profile.id == format!("microsoft:{}", profile.uuid))
+            }
+            _ => false,
+        };
+        version_valid
+            && self.change.removes() == self.secrets.is_none()
+            && ["microsoft:", "ely:", "offline:"]
+                .iter()
+                .any(|prefix| self.change.id().starts_with(prefix))
+    }
 }
 
 #[derive(Serialize, Deserialize)]

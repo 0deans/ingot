@@ -11,8 +11,9 @@ pub(crate) use profiles::{
     add_offline_account, get_accounts, remove_account, reorder_accounts, set_active_account,
 };
 pub(crate) use session::{
-    ely_login, get_active_account_token, microsoft_login_cancel, microsoft_login_finish,
-    microsoft_login_start,
+    discard_pending_microsoft_login, ely_login, get_active_account_token,
+    get_pending_microsoft_login, microsoft_login_cancel, microsoft_login_finish,
+    microsoft_login_start, resume_microsoft_login,
 };
 pub(crate) use skins::{
     apply_ely_skin, apply_microsoft_skin, get_ely_skins_catalog, has_ely_web_credentials,

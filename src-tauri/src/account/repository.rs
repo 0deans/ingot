@@ -16,6 +16,10 @@ pub(crate) struct AccountRepository {
 }
 
 impl AccountRepository {
+    pub(crate) fn path(&self) -> &Path {
+        &self.path
+    }
+
     pub(crate) fn new(path: PathBuf) -> Self {
         Self {
             path,

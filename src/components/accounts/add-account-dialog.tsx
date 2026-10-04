@@ -1,8 +1,6 @@
-import { openUrl } from "@tauri-apps/plugin-opener"
-import { AlertCircle, Check, ExternalLink, ShieldCheck, User } from "lucide-react"
-import { memo, useRef, useState } from "react"
+import { AlertCircle, Check, ShieldCheck, User } from "lucide-react"
+import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { MicrosoftDeviceCode } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -20,6 +18,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { accountService } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
+import { MicrosoftLoginPanel } from "./microsoft-login-panel"
 
 interface AddAccountDialogProps {
 	open: boolean
@@ -38,19 +37,8 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 	const [isLoading, setIsLoading] = useState(false)
 	const [errorMessage, setErrorMessage] = useState<string | null>(null)
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
-	const [deviceCode, setDeviceCode] = useState<MicrosoftDeviceCode | null>(null)
-	// Bumped on cancel, so a stopped Microsoft sign-in can no longer update the dialog
-	const microsoftAttempt = useRef(0)
-
-	const cancelMicrosoftLogin = () => {
-		if (!deviceCode) return
-		microsoftAttempt.current++
-		setDeviceCode(null)
-		accountService.cancelMicrosoftLogin().catch(console.error)
-	}
 
 	const resetForm = () => {
-		cancelMicrosoftLogin()
 		setUsername("")
 		setPassword("")
 		setOfflineName("")
@@ -87,42 +75,6 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 		} finally {
 			setIsLoading(false)
 		}
-	}
-
-	const handleMicrosoftLogin = async () => {
-		const attempt = ++microsoftAttempt.current
-		const isCurrent = () => attempt === microsoftAttempt.current
-		setIsLoading(true)
-		setErrorMessage(null)
-
-		try {
-			const code = await accountService.startMicrosoftLogin()
-			if (!isCurrent()) return
-			setDeviceCode(code)
-			setIsLoading(false)
-
-			const account = await accountService.finishMicrosoftLogin(code)
-			if (!isCurrent()) return
-			setDeviceCode(null)
-			setSuccessMessage(t("addAccount.welcomeBack", { name: account.username }))
-			onAccountAdded?.(account)
-			setTimeout(() => {
-				handleOpenChange(false)
-			}, 600)
-		} catch (error) {
-			if (!isCurrent()) return
-			setDeviceCode(null)
-			setErrorMessage(typeof error === "string" ? error : t("addAccount.microsoftFailed"))
-		} finally {
-			if (isCurrent()) setIsLoading(false)
-		}
-	}
-
-	const openMicrosoftPage = async () => {
-		if (!deviceCode) return
-		// Pre-copied so the user only has to paste it on the page
-		await navigator.clipboard.writeText(deviceCode.userCode).catch(() => {})
-		await openUrl(deviceCode.verificationUri).catch(console.error)
 	}
 
 	const handleOfflineLogin = async () => {
@@ -162,7 +114,6 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 						<Tabs
 							value={activeTab}
 							onValueChange={(tab) => {
-								if (tab !== "microsoft") cancelMicrosoftLogin()
 								setActiveTab(tab as TabType)
 								setErrorMessage(null)
 							}}
@@ -283,49 +234,15 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 							</div>
 						)}
 
-						{/* Microsoft: device code sign-in */}
-						{activeTab === "microsoft" && (
-							<div className="grid gap-3.5 py-1">
-								<Alert className={alertTone.success}>
-									<ShieldCheck />
-									<AlertDescription>{t("addAccount.microsoftNote")}</AlertDescription>
-								</Alert>
-
-								{deviceCode ? (
-									<div className="flex flex-col items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-4 text-center">
-										<p className="text-muted-foreground text-xs">
-											{t("addAccount.microsoftEnterCode")}
-										</p>
-										<p className="select-all font-bold font-mono text-2xl text-foreground tracking-[0.2em]">
-											{deviceCode.userCode}
-										</p>
-										<Button size="default" onClick={openMicrosoftPage} className="w-full gap-1.5">
-											<ExternalLink className="size-3.5" />
-											{t("addAccount.microsoftOpenPage")}
-										</Button>
-										<p className="flex items-center gap-1.5 text-muted-foreground text-xs">
-											<Spinner className="size-3.5" />
-											{t("addAccount.microsoftWaiting")}
-										</p>
-									</div>
-								) : (
-									<Button
-										size="default"
-										onClick={handleMicrosoftLogin}
-										disabled={isLoading}
-										className="w-full font-medium"
-									>
-										{isLoading ? (
-											<>
-												<Spinner className="mr-1.5 size-3.5" />
-												{t("addAccount.connecting")}
-											</>
-										) : (
-											t("addAccount.microsoftSignIn")
-										)}
-									</Button>
-								)}
-							</div>
+						{open && activeTab === "microsoft" && (
+							<MicrosoftLoginPanel
+								onBusyChange={setIsLoading}
+								onSuccess={(account) => {
+									setSuccessMessage(t("addAccount.welcomeBack", { name: account.username }))
+									onAccountAdded?.(account)
+									setTimeout(() => handleOpenChange(false), 600)
+								}}
+							/>
 						)}
 
 						{/* Error / Success Feedback */}

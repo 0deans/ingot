@@ -1,6 +1,7 @@
 use super::*;
+use crate::account::AccountSecrets;
 use crate::{
-    account::{credentials::tests::FakeCredentialStore, policy},
+    account::{credentials::tests::FakeCredentialStore, policy, recovery::ProfileChange},
     app::{AppPaths, AppState},
 };
 use std::{

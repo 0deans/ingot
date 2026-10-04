@@ -200,6 +200,15 @@
       "destination": "instances.version_change"
     },
     {
+      "name": "discard_pending_microsoft_login",
+      "currentPath": "accounts",
+      "kind": "command",
+      "arguments": [
+        "ticket"
+      ],
+      "destination": "accounts"
+    },
+    {
       "name": "discard_server_version_backup",
       "currentPath": "",
       "kind": "command",
@@ -466,6 +475,13 @@
         "server_id"
       ],
       "destination": "servers.players"
+    },
+    {
+      "name": "get_pending_microsoft_login",
+      "currentPath": "accounts",
+      "kind": "command",
+      "arguments": [],
+      "destination": "accounts"
     },
     {
       "name": "get_player_details",
@@ -1088,6 +1104,15 @@
         "resolution"
       ],
       "destination": "instances.sync"
+    },
+    {
+      "name": "resume_microsoft_login",
+      "currentPath": "accounts",
+      "kind": "command",
+      "arguments": [
+        "ticket"
+      ],
+      "destination": "accounts"
     },
     {
       "name": "reveal_screenshot_file",

@@ -139,3 +139,38 @@ test("unmigrated commands keep their arguments while app handles stay backend-on
 		{ command: "TauRPC__kill_instance", args: { instance_id: "instance-id" } },
 	])
 })
+
+test("Microsoft cancellation cleanup failures reject through the generated result contract", async () => {
+	mockIPC(() => Promise.reject("pending grant cleanup failed"))
+	await assert.rejects(
+		createTauRPCProxy().accounts.microsoft_login_cancel(),
+		(error) => error === "pending grant cleanup failed",
+	)
+})
+
+test("pending Microsoft sign-in metadata and explicit tickets use the accounts namespace", async () => {
+	const calls = []
+	const pending = { ticket: "opaque-ticket", createdAt: 1000, expiresAt: 87400, status: "Ready" }
+	mockIPC((command, args) => {
+		calls.push({ command, args })
+		if (command === "TauRPC__accounts.get_pending_microsoft_login") return pending
+		if (command === "TauRPC__accounts.resume_microsoft_login")
+			return Promise.reject("sign-in expired")
+		return null
+	})
+	const rpc = createTauRPCProxy()
+	assert.deepEqual(await rpc.accounts.get_pending_microsoft_login(), pending)
+	await assert.rejects(
+		rpc.accounts.resume_microsoft_login(pending.ticket),
+		(error) => error === "sign-in expired",
+	)
+	assert.equal(await rpc.accounts.discard_pending_microsoft_login(pending.ticket), null)
+	assert.deepEqual(calls, [
+		{ command: "TauRPC__accounts.get_pending_microsoft_login", args: {} },
+		{ command: "TauRPC__accounts.resume_microsoft_login", args: { ticket: pending.ticket } },
+		{
+			command: "TauRPC__accounts.discard_pending_microsoft_login",
+			args: { ticket: pending.ticket },
+		},
+	])
+})
