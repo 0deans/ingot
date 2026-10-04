@@ -29,7 +29,9 @@
 		"stop": "Stoppa",
 		"done": "Klar",
 		"update": "Uppdatera",
-		"enable": "Aktivera"
+		"enable": "Aktivera",
+		"previous": "Föregående",
+		"next": "Nästa"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Välj ditt språk",
@@ -471,7 +473,8 @@
 		"plugins": "Plugins",
 		"mods": "Moddar",
 		"settings": "Inställningar",
-		"home": "Start"
+		"home": "Start",
+		"packs": "Tillägg"
 	},
 	"serverWorkspace": {
 		"back": "Tillbaka till servrar"
@@ -674,7 +677,8 @@
 		"noneHint": "Alla som har gått med på servern listas här, med sitt senast sparade förråd.",
 		"search": "Sök spelare",
 		"onlineNow": "Online nu",
-		"lastSeen": "Sågs senast {{time}}"
+		"lastSeen": "Sågs senast {{time}}",
+		"connected": "Ansluten"
 	},
 	"map": {
 		"upToDate": "Aktuell",
@@ -692,7 +696,11 @@
 		"zoomIn": "Zooma in",
 		"zoomOut": "Zooma ut",
 		"updatedAreas_one": "{{count}} område uppdaterat",
-		"updatedAreas_other": "{{count}} områden uppdaterade"
+		"updatedAreas_other": "{{count}} områden uppdaterade",
+		"bedrockUnsupported": "Karta ej tillgänglig för Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server sparar världar i LevelDB-format. Live-rendering av chunk-kartor är endast tillgänglig för Java-servrar.",
+		"bedrockRunning": "Sparad värld (Live pausad)",
+		"bedrockOffline": "Sparad värld"
 	},
 	"pluginDetails": {
 		"byline": "av {{author}} · {{downloads}} nedladdningar",
@@ -1121,7 +1129,8 @@
 		"confirmKick": "Sparka {{name}}?",
 		"confirmBan": "Bannlys {{name}}?",
 		"confirm": "Bekräfta",
-		"kick": "Sparka"
+		"kick": "Sparka",
+		"bedrockNote": "Bedrock Dedicated Server visar inte live-inventarie, utrustning eller hälsa via konsolen. Hanteringskommandon är tillgängliga nedan."
 	},
 	"transfer": {
 		"zipArchive": "ZIP-arkiv",
@@ -1193,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Officiell omodifierad Minecraft-server direkt från Mojang",
 			"badge": "Original"
+		},
+		"bedrock": {
+			"tagline": "Officiell Minecraft Bedrock Dedicated Server (BDS) för crossplay mellan mobil och konsol",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1224,7 +1237,9 @@
 		"heroLine2": "på några sekunder.",
 		"heroText": "Ingot laddar ned, konfigurerar och kör en Minecraft-server direkt på den här enheten. Bjud in vänner var de än är.",
 		"createAServer": "Skapa en server",
-		"createAServerHint": "Paper, PumpkinMC, Fabric med flera"
+		"createAServerHint": "Paper, PumpkinMC, Fabric med flera",
+		"nativeMemoryTitle": "Inbyggd minneshantering",
+		"nativeMemoryDesc": "Den här servern körs inbyggt som en kompilerad binärfil. Den allokerar systemminne dynamiskt efter behov utan fasta JVM-gränser."
 	},
 	"plugins": {
 		"unsupported": "{{core}}-servrar kan inte använda plugins",
@@ -1259,7 +1274,8 @@
 		"sort": {
 			"downloads": "Populärast",
 			"updated": "Nyligen uppdaterade",
-			"newest": "Nyaste"
+			"newest": "Nyaste",
+			"relevance": "Relevans"
 		},
 		"searchPlaceholder_plugin": "Sök plugins, t.ex. LuckPerms",
 		"searchPlaceholder_mod": "Sök moddar, t.ex. Lithium",
@@ -1276,7 +1292,31 @@
 		"isInstalled": "{{name}} är installerad",
 		"install": "Installera {{name}}",
 		"results_one": "{{formatted}} resultat",
-		"results_other": "{{formatted}} resultat"
+		"results_other": "{{formatted}} resultat",
+		"bedrockPacksTitle": "Bedrock-tillägg och paket",
+		"bedrockPacksDesc": "Bedrock Dedicated Server använder beteende- och resurspaket istället för Java-plugins. Placera dina paket i serverns mappar behavior_packs och resource_packs.",
+		"openServerFolder": "Öppna servermapp",
+		"openBehaviorPacks": "Öppna behavior_packs",
+		"openResourcePacks": "Öppna resource_packs",
+		"browsePacks": "Bläddra bland tillägg",
+		"installedPacks": "Installerade paket",
+		"searchPacksPlaceholder": "Sök Bedrock-tillägg, beteende- och resurspaket...",
+		"allPacks": "Alla paket",
+		"behaviorPacks": "Beteendepaket",
+		"resourcePacks": "Resurspaket",
+		"installPack": "Installera",
+		"installingPack": "Installerar...",
+		"packInstalled": "{{name}} installerades och aktiverades för världen.",
+		"packInstallFailed": "Det gick inte att installera {{name}}: {{error}}",
+		"downloadFromCurseForgeHint": "Öppnade {{name}} på CurseForge. Ladda ner paketet och placera det i mappen behavior_packs eller resource_packs.",
+		"deletePack": "Ta bort paket",
+		"activeInWorld": "Aktiv i världen",
+		"inactiveInWorld": "Inaktiv i världen",
+		"builtInPack": "Inbyggt",
+		"noPacksFound": "Inga Bedrock-paket hittades",
+		"tryAnotherSearch": "Prova att söka med ett annat ord eller ändra filter",
+		"noInstalledPacks": "Inga anpassade paket har installerats än",
+		"noInstalledPacksDesc": "Bläddra bland offentliga Bedrock-tillägg och paket eller släpp dem i mapparna behavior_packs och resource_packs."
 	},
 	"join": {
 		"shareTitle": "Gå med på {{name}}",
@@ -1606,5 +1646,24 @@
 		"publicAddress": "Offentlig adress: {{address}}",
 		"connecting": "playit.gg-tunneln ansluter...",
 		"localOnly": "Bara lokalt nätverk"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Plattformsoberoende utgåva för Windows och konsoler",
+		"installed": "Installerad",
+		"notInstalled": "Inte installerad",
+		"editionPreview": "Preview-utgåva",
+		"editionRetail": "Retail-utgåva",
+		"description": "Minecraft Bedrock Edition är tillgänglig via Microsoft Store. Installera den direkt från Store eller starta den från Ingot.",
+		"readyToPlay": "Redo att starta",
+		"launching": "Startar...",
+		"play": "Spela Bedrock",
+		"msStoreEdition": "Microsoft Store-utgåva",
+		"installStore": "Installera via Microsoft Store",
+		"openWorlds": "Världsmapp",
+		"openResourcePacks": "Resurspaket",
+		"openBehaviorPacks": "Beteendepaket",
+		"openScreenshots": "Skärmdumpsmapp",
+		"store": "Microsoft Store-sida"
 	}
 }

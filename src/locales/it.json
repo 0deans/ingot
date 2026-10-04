@@ -29,7 +29,9 @@
 		"stop": "Ferma",
 		"done": "Fatto",
 		"update": "Aggiorna",
-		"enable": "Attiva"
+		"enable": "Attiva",
+		"previous": "Precedente",
+		"next": "Successivo"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Scegli la tua lingua",
@@ -473,7 +475,8 @@
 		"plugins": "Plugin",
 		"mods": "Mod",
 		"settings": "Impostazioni",
-		"home": "Home"
+		"home": "Home",
+		"packs": "Componenti aggiuntivi"
 	},
 	"serverWorkspace": {
 		"back": "Torna ai server"
@@ -682,7 +685,8 @@
 		"noneHint": "Chi è entrato in questo server comparirà qui, con l'ultimo inventario salvato.",
 		"search": "Cerca giocatori",
 		"onlineNow": "Online ora",
-		"lastSeen": "Visto {{time}}"
+		"lastSeen": "Visto {{time}}",
+		"connected": "Connesso"
 	},
 	"map": {
 		"upToDate": "Aggiornata",
@@ -701,7 +705,11 @@
 		"zoomOut": "Riduci",
 		"updatedAreas_one": "{{count}} area aggiornata",
 		"updatedAreas_many": "{{count}} aree aggiornate",
-		"updatedAreas_other": "{{count}} aree aggiornate"
+		"updatedAreas_other": "{{count}} aree aggiornate",
+		"bedrockUnsupported": "Mappa non disponibile per Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server memorizza i mondi in formato LevelDB. Il rendering della mappa in tempo reale è disponibile solo per i server Java.",
+		"bedrockRunning": "Mondo salvato (In diretta in pausa)",
+		"bedrockOffline": "Mondo salvato"
 	},
 	"pluginDetails": {
 		"byline": "di {{author}} · {{downloads}} download",
@@ -1135,7 +1143,8 @@
 		"confirmKick": "Espellere {{name}}?",
 		"confirmBan": "Bannare {{name}}?",
 		"confirm": "Conferma",
-		"kick": "Espelli"
+		"kick": "Espelli",
+		"bedrockNote": "Bedrock Dedicated Server non mostra inventario, equipaggiamento o salute in tempo reale tramite console. I comandi di gestione sono disponibili di seguito."
 	},
 	"transfer": {
 		"zipArchive": "Archivio ZIP",
@@ -1207,6 +1216,10 @@
 		"vanilla": {
 			"tagline": "Server Minecraft ufficiale non modificato, direttamente da Mojang",
 			"badge": "Originale"
+		},
+		"bedrock": {
+			"tagline": "Server dedicato ufficiale Minecraft Bedrock (BDS) per il crossplay su cellulari e console",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1238,7 +1251,9 @@
 		"heroLine2": "in pochi secondi.",
 		"heroText": "Ingot scarica, configura ed esegue un server Minecraft direttamente su questo dispositivo. Invita gli amici da ovunque.",
 		"createAServer": "Crea un server",
-		"createAServerHint": "Paper, PumpkinMC, Fabric e altri"
+		"createAServerHint": "Paper, PumpkinMC, Fabric e altri",
+		"nativeMemoryTitle": "Gestione nativa della memoria",
+		"nativeMemoryDesc": "Questo server viene eseguito in modo nativo come file binario compilato. Alloca dinamicamente la memoria di sistema in base alle esigenze, senza limiti fissi della JVM."
 	},
 	"plugins": {
 		"unsupported": "I server {{core}} non supportano i plugin",
@@ -1273,7 +1288,8 @@
 		"sort": {
 			"downloads": "Più popolari",
 			"updated": "Aggiornati di recente",
-			"newest": "Più recenti"
+			"newest": "Più recenti",
+			"relevance": "Rilevanza"
 		},
 		"searchPlaceholder_plugin": "Cerca plugin, es. LuckPerms",
 		"searchPlaceholder_mod": "Cerca mod, es. Lithium",
@@ -1291,7 +1307,31 @@
 		"install": "Installa {{name}}",
 		"results_one": "{{formatted}} risultato",
 		"results_many": "{{formatted}} risultati",
-		"results_other": "{{formatted}} risultati"
+		"results_other": "{{formatted}} risultati",
+		"bedrockPacksTitle": "Add-on e pacchetti Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server utilizza pacchetti di comportamenti e risorse anziché plugin Java. Inserisci i tuoi pacchetti nelle cartelle behavior_packs e resource_packs del server.",
+		"openServerFolder": "Apri cartella del server",
+		"openBehaviorPacks": "Apri behavior_packs",
+		"openResourcePacks": "Apri resource_packs",
+		"browsePacks": "Sfoglia componenti aggiuntivi",
+		"installedPacks": "Pacchetti installati",
+		"searchPacksPlaceholder": "Cerca add-on, pacchetti di comportamenti e risorse Bedrock...",
+		"allPacks": "Tutti i pacchetti",
+		"behaviorPacks": "Pacchetti di comportamenti",
+		"resourcePacks": "Pacchetti di risorse",
+		"installPack": "Installa",
+		"installingPack": "Installazione...",
+		"packInstalled": "{{name}} installato e abilitato per il mondo.",
+		"packInstallFailed": "Impossibile installare {{name}}: {{error}}",
+		"downloadFromCurseForgeHint": "Aperto {{name}} su CurseForge. Scarica il pacchetto e inseriscilo nella cartella behavior_packs o resource_packs.",
+		"deletePack": "Elimina pacchetto",
+		"activeInWorld": "Attivo nel mondo",
+		"inactiveInWorld": "Inattivo nel mondo",
+		"builtInPack": "Integrato",
+		"noPacksFound": "Nessun pacchetto Bedrock trovato",
+		"tryAnotherSearch": "Prova a cercare con un termine diverso o modifica i filtri",
+		"noInstalledPacks": "Nessun pacchetto personalizzato ancora installato",
+		"noInstalledPacksDesc": "Sfoglia add-on e pacchetti Bedrock pubblici o trascinali nelle cartelle behavior_packs e resource_packs."
 	},
 	"join": {
 		"shareTitle": "Entra in {{name}}",
@@ -1633,5 +1673,24 @@
 		"publicAddress": "Indirizzo pubblico: {{address}}",
 		"connecting": "Connessione del tunnel playit.gg...",
 		"localOnly": "Solo rete locale"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Edizione multipiattaforma per Windows e console",
+		"installed": "Installato",
+		"notInstalled": "Non installato",
+		"editionPreview": "Edizione Preview",
+		"editionRetail": "Edizione Retail",
+		"description": "Minecraft Bedrock Edition è disponibile tramite Microsoft Store. Installalo direttamente dallo Store o avvialo da Ingot.",
+		"readyToPlay": "Pronto per l'avvio",
+		"launching": "Avvio in corso...",
+		"play": "Gioca a Bedrock",
+		"msStoreEdition": "Edizione Microsoft Store",
+		"installStore": "Installa tramite Microsoft Store",
+		"openWorlds": "Cartella mondi",
+		"openResourcePacks": "Pacchetti di risorse",
+		"openBehaviorPacks": "Pacchetti di comportamenti",
+		"openScreenshots": "Cartella screenshot",
+		"store": "Pagina Microsoft Store"
 	}
 }

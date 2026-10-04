@@ -29,7 +29,9 @@
 		"stop": "Detener",
 		"done": "Listo",
 		"update": "Actualizar",
-		"enable": "Activar"
+		"enable": "Activar",
+		"previous": "Anterior",
+		"next": "Siguiente"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Elige tu idioma",
@@ -473,7 +475,8 @@
 		"plugins": "Plugins",
 		"mods": "Mods",
 		"settings": "Ajustes",
-		"home": "Inicio"
+		"home": "Inicio",
+		"packs": "Complementos"
 	},
 	"serverWorkspace": {
 		"back": "Volver a los servidores"
@@ -682,7 +685,8 @@
 		"noneHint": "Todos los que hayan entrado a este servidor aparecerán aquí, con su último inventario guardado.",
 		"search": "Buscar jugadores",
 		"onlineNow": "En línea ahora",
-		"lastSeen": "Visto {{time}}"
+		"lastSeen": "Visto {{time}}",
+		"connected": "Conectado"
 	},
 	"map": {
 		"upToDate": "Al día",
@@ -701,7 +705,11 @@
 		"zoomOut": "Alejar",
 		"updatedAreas_one": "{{count}} zona actualizada",
 		"updatedAreas_many": "{{count}} zonas actualizadas",
-		"updatedAreas_other": "{{count}} zonas actualizadas"
+		"updatedAreas_other": "{{count}} zonas actualizadas",
+		"bedrockUnsupported": "Mapa no disponible para Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server almacena los mundos en formato LevelDB. El renderizado de mapas de chunks en vivo solo está disponible para servidores Java.",
+		"bedrockRunning": "Mundo guardado (En vivo pausado)",
+		"bedrockOffline": "Mundo guardado"
 	},
 	"pluginDetails": {
 		"byline": "de {{author}} · {{downloads}} descargas",
@@ -1135,7 +1143,8 @@
 		"confirmKick": "¿Expulsar a {{name}}?",
 		"confirmBan": "¿Banear a {{name}}?",
 		"confirm": "Confirmar",
-		"kick": "Expulsar"
+		"kick": "Expulsar",
+		"bedrockNote": "Bedrock Dedicated Server no muestra inventario, equipamiento o salud en vivo a través de la consola. Los comandos de gestión están disponibles abajo."
 	},
 	"transfer": {
 		"zipArchive": "Archivo ZIP",
@@ -1207,6 +1216,10 @@
 		"vanilla": {
 			"tagline": "Servidor oficial de Minecraft sin modificar, directo de Mojang",
 			"badge": "Original"
+		},
+		"bedrock": {
+			"tagline": "Servidor dedicado oficial de Minecraft Bedrock (BDS) para juego cruzado en móviles y consolas",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1238,7 +1251,9 @@
 		"heroLine2": "en segundos.",
 		"heroText": "Ingot descarga, configura y ejecuta un servidor de Minecraft en este mismo dispositivo. Invita a tus amigos desde cualquier lugar.",
 		"createAServer": "Crear un servidor",
-		"createAServerHint": "Paper, PumpkinMC, Fabric y más"
+		"createAServerHint": "Paper, PumpkinMC, Fabric y más",
+		"nativeMemoryTitle": "Gestión de memoria nativa",
+		"nativeMemoryDesc": "Este servidor se ejecuta de forma nativa como un binario compilado. Asigna memoria del sistema dinámicamente según sea necesario sin límites fijos de JVM."
 	},
 	"plugins": {
 		"unsupported": "Los servidores {{core}} no admiten plugins",
@@ -1273,7 +1288,8 @@
 		"sort": {
 			"downloads": "Más populares",
 			"updated": "Actualizados hace poco",
-			"newest": "Más nuevos"
+			"newest": "Más nuevos",
+			"relevance": "Relevancia"
 		},
 		"searchPlaceholder_plugin": "Buscar plugins, p. ej. LuckPerms",
 		"searchPlaceholder_mod": "Buscar mods, p. ej. Lithium",
@@ -1291,7 +1307,31 @@
 		"install": "Instalar {{name}}",
 		"results_one": "{{formatted}} resultado",
 		"results_many": "{{formatted}} resultados",
-		"results_other": "{{formatted}} resultados"
+		"results_other": "{{formatted}} resultados",
+		"bedrockPacksTitle": "Complementos y paquetes de Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server usa paquetes de comportamiento y recursos en lugar de complementos de Java. Coloca tus paquetes en las carpetas behavior_packs y resource_packs del servidor.",
+		"openServerFolder": "Abrir carpeta del servidor",
+		"openBehaviorPacks": "Abrir behavior_packs",
+		"openResourcePacks": "Abrir resource_packs",
+		"browsePacks": "Explorar complementos",
+		"installedPacks": "Paquetes instalados",
+		"searchPacksPlaceholder": "Buscar complementos, paquetes de comportamiento y recursos...",
+		"allPacks": "Todos los paquetes",
+		"behaviorPacks": "Paquetes de comportamiento",
+		"resourcePacks": "Paquetes de recursos",
+		"installPack": "Instalar",
+		"installingPack": "Instalando...",
+		"packInstalled": "Se instaló {{name}} y se habilitó para el mundo.",
+		"packInstallFailed": "Error al instalar {{name}}: {{error}}",
+		"downloadFromCurseForgeHint": "Se abrió {{name}} en CurseForge. Descarga el paquete y colócalo en tu carpeta behavior_packs o resource_packs.",
+		"deletePack": "Eliminar paquete",
+		"activeInWorld": "Activo en el mundo",
+		"inactiveInWorld": "Inactivo en el mundo",
+		"builtInPack": "Integrado",
+		"noPacksFound": "No se encontraron paquetes de Bedrock",
+		"tryAnotherSearch": "Intenta buscar con otra consulta o cambia los filtros",
+		"noInstalledPacks": "Aún no hay paquetes personalizados instalados",
+		"noInstalledPacksDesc": "Explora complementos y paquetes públicos de Bedrock o colócalos en las carpetas behavior_packs y resource_packs."
 	},
 	"join": {
 		"shareTitle": "Entra a {{name}}",
@@ -1633,5 +1673,24 @@
 		"publicAddress": "Dirección pública: {{address}}",
 		"connecting": "Conectando el túnel de playit.gg...",
 		"localOnly": "Solo red local"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Edición multiplataforma para Windows y consolas",
+		"installed": "Instalado",
+		"notInstalled": "No instalado",
+		"editionPreview": "Edición Preview",
+		"editionRetail": "Edición Retail",
+		"description": "Minecraft Bedrock Edition está disponible a través de Microsoft Store. Instálalo directamente desde la tienda o inícialo desde Ingot.",
+		"readyToPlay": "Listo para iniciar",
+		"launching": "Iniciando...",
+		"play": "Jugar Bedrock",
+		"msStoreEdition": "Edición Microsoft Store",
+		"installStore": "Instalar mediante Microsoft Store",
+		"openWorlds": "Carpeta de mundos",
+		"openResourcePacks": "Paquetes de recursos",
+		"openBehaviorPacks": "Paquetes de comportamiento",
+		"openScreenshots": "Carpeta de capturas",
+		"store": "Página de Microsoft Store"
 	}
 }

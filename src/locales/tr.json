@@ -29,7 +29,9 @@
 		"stop": "Durdur",
 		"done": "Bitti",
 		"update": "Güncelle",
-		"enable": "Etkinleştir"
+		"enable": "Etkinleştir",
+		"previous": "Önceki",
+		"next": "Sonraki"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Dilinizi Seçin",
@@ -471,7 +473,8 @@
 		"plugins": "Eklentiler",
 		"mods": "Modlar",
 		"settings": "Ayarlar",
-		"home": "Ana Sayfa"
+		"home": "Ana Sayfa",
+		"packs": "Eklentiler"
 	},
 	"serverWorkspace": {
 		"back": "Sunuculara geri dön"
@@ -674,7 +677,8 @@
 		"noneHint": "Bu sunucuya katılan herkes, son kaydedilen envanteriyle birlikte burada listelenecektir.",
 		"search": "Oyuncu ara",
 		"onlineNow": "Şimdi çevrimiçi",
-		"lastSeen": "Son görülme {{time}}"
+		"lastSeen": "Son görülme {{time}}",
+		"connected": "Bağlandı"
 	},
 	"map": {
 		"upToDate": "Güncel",
@@ -692,7 +696,11 @@
 		"zoomIn": "Yakınlaştırın",
 		"zoomOut": "Uzaklaştırın",
 		"updatedAreas_one": "{{count}} alanı güncellendi",
-		"updatedAreas_other": "{{count}} alanları güncellendi"
+		"updatedAreas_other": "{{count}} alanları güncellendi",
+		"bedrockUnsupported": "Bedrock için harita kullanılamıyor",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server dünyaları LevelDB biçiminde saklar. Canlı chunk harita oluşturma yalnızca Java sunucuları için geçerlidir.",
+		"bedrockRunning": "Kaydedilen dünya (Canlı duraklatıldı)",
+		"bedrockOffline": "Kaydedilen dünya"
 	},
 	"pluginDetails": {
 		"byline": "- {{author}} · {{downloads}} indirmeler",
@@ -1121,7 +1129,8 @@
 		"confirmKick": "{{name}} başlatılsın mı?",
 		"confirmBan": "{{name}} yasaklansın mı?",
 		"confirm": "Onayla",
-		"kick": "Kick"
+		"kick": "Kick",
+		"bedrockNote": "Bedrock Dedicated Server, konsol üzerinden canlı envanter, ekipman veya can durumunu iletmez. Yönetim komutları aşağıda mevcuttur."
 	},
 	"transfer": {
 		"zipArchive": "Zip arşivi",
@@ -1193,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Doğrudan Mojang'dan resmi modlanmamış Minecraft sunucusu",
 			"badge": "Orijinal"
+		},
+		"bedrock": {
+			"tagline": "Mobil ve konsol çapraz oyunu için resmi Minecraft Bedrock Dedicated Server (BDS)",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1224,7 +1237,9 @@
 		"heroLine2": ".",
 		"heroText": "Ingot, Minecraft sunucusunu doğrudan bu cihaza indirir, yapılandırır ve çalıştırır. Her yerden arkadaşlarınızı davet edin.",
 		"createAServer": "Sunucu oluşturma",
-		"createAServerHint": "Paper, PumpkinMC, Fabric ve daha fazlası"
+		"createAServerHint": "Paper, PumpkinMC, Fabric ve daha fazlası",
+		"nativeMemoryTitle": "Yerel Bellek Yönetimi",
+		"nativeMemoryDesc": "Bu sunucu derlenmiş ikili dosya olarak yerel olarak çalışır. Sabit JVM sınırları olmadan sistem belleğini dinamik olarak tahsis eder."
 	},
 	"plugins": {
 		"unsupported": "{{core}} sunucular eklentileri kullanamaz",
@@ -1259,7 +1274,8 @@
 		"sort": {
 			"downloads": "En popüler",
 			"updated": "Yakın zamanda güncellenen",
-			"newest": "En yeni"
+			"newest": "En yeni",
+			"relevance": "Alaka düzeyi"
 		},
 		"searchPlaceholder_plugin": "Arama eklentileri, ör. LuckPerms",
 		"searchPlaceholder_mod": "Arama modları, ör. Lityum",
@@ -1276,7 +1292,31 @@
 		"isInstalled": "{{name}} kuruldu",
 		"install": "{{name}}'yu yükle",
 		"results_one": "{{formatted}} sonucu",
-		"results_other": "{{formatted}} sonuçları"
+		"results_other": "{{formatted}} sonuçları",
+		"bedrockPacksTitle": "Bedrock Eklentileri ve Paketleri",
+		"bedrockPacksDesc": "Bedrock Dedicated Server, Java eklentileri yerine Davranış ve Kaynak Paketleri kullanır. Paketlerinizi sunucunun behavior_packs ve resource_packs klasörlerine yerleştirin.",
+		"openServerFolder": "Sunucu Klasörünü Aç",
+		"openBehaviorPacks": "behavior_packs klasörünü aç",
+		"openResourcePacks": "resource_packs klasörünü aç",
+		"browsePacks": "Eklentilere Göz At",
+		"installedPacks": "Yüklü Paketler",
+		"searchPacksPlaceholder": "Bedrock eklentileri, davranış ve kaynak paketleri ara...",
+		"allPacks": "Tüm Paketler",
+		"behaviorPacks": "Davranış Paketleri",
+		"resourcePacks": "Kaynak Paketleri",
+		"installPack": "Yükle",
+		"installingPack": "Yükleniyor...",
+		"packInstalled": "{{name}} yüklendi ve dünya için etkinleştirildi.",
+		"packInstallFailed": "{{name}} yüklenemedi: {{error}}",
+		"downloadFromCurseForgeHint": "{{name}} CurseForge üzerinde açıldı. Paketi indirin ve behavior_packs veya resource_packs klasörünüze yerleştirin.",
+		"deletePack": "Paketi sil",
+		"activeInWorld": "Dünyada aktif",
+		"inactiveInWorld": "Dünyada devre dışı",
+		"builtInPack": "Dahili",
+		"noPacksFound": "Bedrock paketi bulunamadı",
+		"tryAnotherSearch": "Farklı bir sorgu ile aramayı deneyin veya filtreleri değiştirin",
+		"noInstalledPacks": "Henüz özel paket yüklenmedi",
+		"noInstalledPacksDesc": "Herkese açık Bedrock eklentilerine ve paketlerine göz atın veya bunları behavior_packs ve resource_packs klasörlerine bırakın."
 	},
 	"join": {
 		"shareTitle": "Katıl {{name}}",
@@ -1606,5 +1646,24 @@
 		"publicAddress": "Genel adres: {{address}}",
 		"connecting": "playit.gg tünel bağlantısı...",
 		"localOnly": "Yalnızca yerel ağ"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Windows ve konsollar için platformlar arası sürüm",
+		"installed": "Yüklendi",
+		"notInstalled": "Yüklü Değil",
+		"editionPreview": "Preview Sürümü",
+		"editionRetail": "Retail Sürümü",
+		"description": "Minecraft Bedrock Edition, Microsoft Store üzerinden edinilebilir. Doğrudan Mağazadan yükleyin veya Ingot üzerinden başlatın.",
+		"readyToPlay": "Başlatmaya hazır",
+		"launching": "Başlatılıyor...",
+		"play": "Bedrock Oyna",
+		"msStoreEdition": "Microsoft Store Sürümü",
+		"installStore": "Microsoft Store ile Yükle",
+		"openWorlds": "Dünyalar Klasörü",
+		"openResourcePacks": "Kaynak Paketleri",
+		"openBehaviorPacks": "Davranış Paketleri",
+		"openScreenshots": "Ekran Görüntüleri Klasörü",
+		"store": "Microsoft Store Sayfası"
 	}
 }

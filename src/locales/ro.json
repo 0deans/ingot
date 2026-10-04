@@ -29,7 +29,9 @@
 		"stop": "Oprește",
 		"done": "Gata",
 		"update": "Actualizează",
-		"enable": "Activează"
+		"enable": "Activează",
+		"previous": "Înapoi",
+		"next": "Înainte"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Alege limba",
@@ -473,7 +475,8 @@
 		"plugins": "Pluginuri",
 		"mods": "Moduri",
 		"settings": "Setări",
-		"home": "Acasă"
+		"home": "Acasă",
+		"packs": "Suplimente"
 	},
 	"serverWorkspace": {
 		"back": "Înapoi la servere"
@@ -682,7 +685,8 @@
 		"noneHint": "Toți cei care s-au conectat la acest server vor fi listați aici, împreună cu ultimul lor inventar salvat.",
 		"search": "Caută jucători",
 		"onlineNow": "Online acum",
-		"lastSeen": "Văzut ultima dată {{time}}"
+		"lastSeen": "Văzut ultima dată {{time}}",
+		"connected": "Conectat"
 	},
 	"map": {
 		"upToDate": "La zi",
@@ -701,7 +705,11 @@
 		"zoomOut": "Micșorează",
 		"updatedAreas_one": "S-a actualizat {{count}} zonă",
 		"updatedAreas_few": "S-au actualizat {{count}} zone",
-		"updatedAreas_other": "S-au actualizat {{count}} de zone"
+		"updatedAreas_other": "S-au actualizat {{count}} de zone",
+		"bedrockUnsupported": "Harta nu este disponibilă pentru Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server stochează lumile în format LevelDB. Randarea hărții chunk în timp real este disponibilă doar pentru serverele Java.",
+		"bedrockRunning": "Lume salvată (Live în pauză)",
+		"bedrockOffline": "Lume salvată"
 	},
 	"pluginDetails": {
 		"byline": "de {{author}} · {{downloads}} descărcări",
@@ -1135,7 +1143,8 @@
 		"confirmKick": "Dai kick lui {{name}}?",
 		"confirmBan": "Îl banezi pe {{name}}?",
 		"confirm": "Confirmă",
-		"kick": "Kick"
+		"kick": "Kick",
+		"bedrockNote": "Bedrock Dedicated Server nu transmite inventarul, echipamentul sau viața în timp real prin consolă. Comenzile de administrare sunt disponibile mai jos."
 	},
 	"transfer": {
 		"zipArchive": "Arhivă ZIP",
@@ -1207,6 +1216,10 @@
 		"vanilla": {
 			"tagline": "Serverul oficial Minecraft nemodat direct de la Mojang",
 			"badge": "Original"
+		},
+		"bedrock": {
+			"tagline": "Server dedicat oficial Minecraft Bedrock (BDS) pentru crossplay pe mobil și console",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1238,7 +1251,9 @@
 		"heroLine2": "în câteva secunde.",
 		"heroText": "Ingot descarcă, configurează și rulează un server Minecraft chiar pe acest dispozitiv. Invită prieteni de oriunde.",
 		"createAServer": "Creează un server",
-		"createAServerHint": "Paper, PumpkinMC, Fabric și altele"
+		"createAServerHint": "Paper, PumpkinMC, Fabric și altele",
+		"nativeMemoryTitle": "Gestionare nativă a memoriei",
+		"nativeMemoryDesc": "Acest server rulează nativ ca un fișier binar compilat. Alocă dinamic memoria sistemului după cum este necesar, fără limite fixe JVM."
 	},
 	"plugins": {
 		"unsupported": "Serverele {{core}} nu pot folosi pluginuri",
@@ -1273,7 +1288,8 @@
 		"sort": {
 			"downloads": "Cele mai populare",
 			"updated": "Actualizate recent",
-			"newest": "Cele mai noi"
+			"newest": "Cele mai noi",
+			"relevance": "Relevanță"
 		},
 		"searchPlaceholder_plugin": "Caută pluginuri, ex. LuckPerms",
 		"searchPlaceholder_mod": "Caută moduri, ex. Lithium",
@@ -1291,7 +1307,31 @@
 		"install": "Instalează {{name}}",
 		"results_one": "{{formatted}} rezultat",
 		"results_few": "{{formatted}} rezultate",
-		"results_other": "{{formatted}} de rezultate"
+		"results_other": "{{formatted}} de rezultate",
+		"bedrockPacksTitle": "Pachete și suplimente Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server folosește pachete de comportament și de resurse în loc de pluginuri Java. Puneți pachetele în folderele behavior_packs și resource_packs ale serverului.",
+		"openServerFolder": "Deschide dosarul serverului",
+		"openBehaviorPacks": "Deschide behavior_packs",
+		"openResourcePacks": "Deschide resource_packs",
+		"browsePacks": "Răsfoiește suplimente",
+		"installedPacks": "Pachete instalate",
+		"searchPacksPlaceholder": "Căutare suplimente, pachete de comportament și resurse Bedrock...",
+		"allPacks": "Toate pachetele",
+		"behaviorPacks": "Pachete de comportament",
+		"resourcePacks": "Pachete de resurse",
+		"installPack": "Instalează",
+		"installingPack": "Se instalează...",
+		"packInstalled": "{{name}} a fost instalat și activat pentru lume.",
+		"packInstallFailed": "Instalarea {{name}} a eșuat: {{error}}",
+		"downloadFromCurseForgeHint": "S-a deschis {{name}} pe CurseForge. Descărcați pachetul și puneți-l în folderul behavior_packs sau resource_packs.",
+		"deletePack": "Șterge pachetul",
+		"activeInWorld": "Activ în lume",
+		"inactiveInWorld": "Inactiv în lume",
+		"builtInPack": "Încorporat",
+		"noPacksFound": "Nu s-au găsit pachete Bedrock",
+		"tryAnotherSearch": "Încercați să căutați cu alt termen sau modificați filtrele",
+		"noInstalledPacks": "Nu este instalat încă niciun pachet personalizat",
+		"noInstalledPacksDesc": "Răsfoiți suplimentele și pachetele publice Bedrock sau plasați-le în folderele behavior_packs și resource_packs."
 	},
 	"join": {
 		"shareTitle": "Conectează-te la {{name}}",
@@ -1633,5 +1673,24 @@
 		"publicAddress": "Adresă publică: {{address}}",
 		"connecting": "Tunelul playit.gg se conectează...",
 		"localOnly": "Doar în rețeaua locală"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Ediție multiplatformă pentru Windows și console",
+		"installed": "Instalat",
+		"notInstalled": "Neinstalat",
+		"editionPreview": "Ediția Preview",
+		"editionRetail": "Ediția Retail",
+		"description": "Minecraft Bedrock Edition este disponibil prin Microsoft Store. Instalați-l direct din Store sau lansați-l din Ingot.",
+		"readyToPlay": "Gata de lansare",
+		"launching": "Pornire...",
+		"play": "Joacă Bedrock",
+		"msStoreEdition": "Ediția Microsoft Store",
+		"installStore": "Instalare prin Microsoft Store",
+		"openWorlds": "Dosar lumi",
+		"openResourcePacks": "Pachete de resurse",
+		"openBehaviorPacks": "Pachete de comportament",
+		"openScreenshots": "Dosar capturi de ecran",
+		"store": "Pagina Microsoft Store"
 	}
 }

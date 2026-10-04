@@ -29,7 +29,9 @@
 		"stop": "Zastavit",
 		"done": "Hotovo",
 		"update": "Aktualizovat",
-		"enable": "Zapnout"
+		"enable": "Zapnout",
+		"previous": "Předchozí",
+		"next": "Další"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Vyberte svůj jazyk",
@@ -475,7 +477,8 @@
 		"plugins": "Pluginy",
 		"mods": "Mody",
 		"settings": "Nastavení",
-		"home": "Domů"
+		"home": "Domů",
+		"packs": "Doplňky"
 	},
 	"serverWorkspace": {
 		"back": "Zpět na servery"
@@ -690,7 +693,8 @@
 		"noneHint": "Všichni, kdo byli na tomto serveru, se tu objeví s posledním uloženým inventářem.",
 		"search": "Hledat hráče",
 		"onlineNow": "Právě online",
-		"lastSeen": "Naposledy {{time}}"
+		"lastSeen": "Naposledy {{time}}",
+		"connected": "Připojeno"
 	},
 	"map": {
 		"upToDate": "Aktuální",
@@ -710,7 +714,11 @@
 		"updatedAreas_one": "Aktualizována {{count}} oblast",
 		"updatedAreas_few": "Aktualizovány {{count}} oblasti",
 		"updatedAreas_many": "Aktualizováno {{count}} oblasti",
-		"updatedAreas_other": "Aktualizováno {{count}} oblastí"
+		"updatedAreas_other": "Aktualizováno {{count}} oblastí",
+		"bedrockUnsupported": "Mapa není pro Bedrock k dispozici",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server ukládá světy ve formátu LevelDB. Vykreslování mapy chunků v reálném čase je k dispozici pouze pro servery Java.",
+		"bedrockRunning": "Uložený svět (Živý přenos pozastaven)",
+		"bedrockOffline": "Uložený svět"
 	},
 	"pluginDetails": {
 		"byline": "od {{author}} · {{downloads}} stažení",
@@ -1149,7 +1157,8 @@
 		"confirmKick": "Vyhodit {{name}}?",
 		"confirmBan": "Zabanovat {{name}}?",
 		"confirm": "Potvrdit",
-		"kick": "Vyhodit"
+		"kick": "Vyhodit",
+		"bedrockNote": "Bedrock Dedicated Server nepřenáší přes konzoli inventář, výbavu ani zdraví v reálném čase. Příkazy pro správu jsou k dispozici níže."
 	},
 	"transfer": {
 		"zipArchive": "Archiv ZIP",
@@ -1221,6 +1230,10 @@
 		"vanilla": {
 			"tagline": "Oficiální neupravený server Minecraft přímo od Mojangu",
 			"badge": "Originál"
+		},
+		"bedrock": {
+			"tagline": "Oficiální Minecraft Bedrock Dedicated Server (BDS) pro hraní na mobilu i konzolích",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1252,7 +1265,9 @@
 		"heroLine2": "během pár sekund.",
 		"heroText": "Ingot stáhne, nastaví a spustí server Minecraft přímo na tomto zařízení. Zvěte přátele odkudkoli.",
 		"createAServer": "Vytvořit server",
-		"createAServerHint": "Paper, PumpkinMC, Fabric a další"
+		"createAServerHint": "Paper, PumpkinMC, Fabric a další",
+		"nativeMemoryTitle": "Nativní správa paměti",
+		"nativeMemoryDesc": "Tento server běží nativně jako kompilovaný binární soubor. Dynamicky alokuje systémovou paměť podle potřeby bez pevných limitů JVM."
 	},
 	"plugins": {
 		"unsupported": "Servery {{core}} nepodporují pluginy",
@@ -1287,7 +1302,8 @@
 		"sort": {
 			"downloads": "Nejoblíbenější",
 			"updated": "Nedávno aktualizované",
-			"newest": "Nejnovější"
+			"newest": "Nejnovější",
+			"relevance": "Relevance"
 		},
 		"searchPlaceholder_plugin": "Hledat pluginy, např. LuckPerms",
 		"searchPlaceholder_mod": "Hledat mody, např. Lithium",
@@ -1306,7 +1322,31 @@
 		"results_one": "{{formatted}} výsledek",
 		"results_few": "{{formatted}} výsledky",
 		"results_many": "{{formatted}} výsledku",
-		"results_other": "{{formatted}} výsledků"
+		"results_other": "{{formatted}} výsledků",
+		"bedrockPacksTitle": "Doplňky a balíčky Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server používá balíčky chování a balíčky textur namísto pluginů pro Javu. Umístěte své balíčky do složek behavior_packs a resource_packs serveru.",
+		"openServerFolder": "Otevřít složku serveru",
+		"openBehaviorPacks": "Otevřít behavior_packs",
+		"openResourcePacks": "Otevřít resource_packs",
+		"browsePacks": "Procházet doplňky",
+		"installedPacks": "Nainstalované balíčky",
+		"searchPacksPlaceholder": "Hledat doplňky, balíčky chování a textur pro Bedrock...",
+		"allPacks": "Všechny balíčky",
+		"behaviorPacks": "Balíčky chování",
+		"resourcePacks": "Balíčky textur",
+		"installPack": "Instalovat",
+		"installingPack": "Instalace...",
+		"packInstalled": "Balíček {{name}} byl nainstalován a povolen pro svět.",
+		"packInstallFailed": "Instalace {{name}} se nezdařila: {{error}}",
+		"downloadFromCurseForgeHint": "Stránka {{name}} byla otevřena na CurseForge. Stáhněte balíček a vložte jej do složky behavior_packs nebo resource_packs.",
+		"deletePack": "Smazat balíček",
+		"activeInWorld": "Aktivní ve světě",
+		"inactiveInWorld": "Neaktivní ve světě",
+		"builtInPack": "Vestavěný",
+		"noPacksFound": "Nebyly nalezeny žádné balíčky pro Bedrock",
+		"tryAnotherSearch": "Zkuste vyhledat jiný výraz nebo změnit filtry",
+		"noInstalledPacks": "Zatím nejsou nainstalovány žádné vlastní balíčky",
+		"noInstalledPacksDesc": "Procházejte veřejné doplňky a balíčky pro Bedrock nebo je přetáhněte do složek behavior_packs a resource_packs."
 	},
 	"join": {
 		"shareTitle": "Připojte se k {{name}}",
@@ -1660,5 +1700,24 @@
 		"publicAddress": "Veřejná adresa: {{address}}",
 		"connecting": "Připojování tunelu playit.gg...",
 		"localOnly": "Jen místní síť"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Meziplatformní verze pro Windows a konzole",
+		"installed": "Nainstalováno",
+		"notInstalled": "Nenainstalováno",
+		"editionPreview": "Verze Preview",
+		"editionRetail": "Verze Retail",
+		"description": "Minecraft Bedrock Edition je k dispozici v Microsoft Store. Nainstalujte si ji přímo z obchodu nebo ji spusťte z Ingotu.",
+		"readyToPlay": "Připraveno ke spuštění",
+		"launching": "Spouštění...",
+		"play": "Hrát Bedrock",
+		"msStoreEdition": "Verze pro Microsoft Store",
+		"installStore": "Nainstalovat přes Microsoft Store",
+		"openWorlds": "Složka světů",
+		"openResourcePacks": "Balíčky textur",
+		"openBehaviorPacks": "Balíčky chování",
+		"openScreenshots": "Složka snímků obrazovky",
+		"store": "Stránka v Microsoft Store"
 	}
 }

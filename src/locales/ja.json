@@ -29,7 +29,9 @@
 		"stop": "停止",
 		"done": "完了",
 		"update": "更新",
-		"enable": "有効化"
+		"enable": "有効化",
+		"previous": "前へ",
+		"next": "次へ"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "言語を選択",
@@ -452,7 +454,9 @@
 		"stopNote": "停止すると直ちに終了します。前回のオートセーブ以降の内容（最大でも数分程度）は失われますが、ワールド自体には問題ありません。",
 		"leaveRunning": "実行したままにする",
 		"title_other": "サーバーは前回から実行中です",
-		"description_other": "Ingot は停止せずに閉じられたため、コンソールが消えています: Ingot はコマンドを送信したり、ワールドを保存したりできません。彼らは停止するまでポートと世界を忙しくし続けます。"
+		"description_other": "Ingot は停止せずに閉じられたため、コンソールが消えています: Ingot はコマンドを送信したり、ワールドを保存したりできません。彼らは停止するまでポートと世界を忙しくし続けます。",
+		"title_one": "前回のサーバーがまだ実行中です",
+		"description_one": "Ingotを停止せずに閉じたため、コンソールが失われました。Ingotからコマンドの送信やワールドの保存ができません。停止するまでポートとワールドを占有し続けます。"
 	},
 	"serverStatus": {
 		"running": "実行中",
@@ -469,7 +473,8 @@
 		"plugins": "プラグイン",
 		"mods": "Mod",
 		"settings": "設定",
-		"home": "ホーム"
+		"home": "ホーム",
+		"packs": "アドオン"
 	},
 	"serverWorkspace": {
 		"back": "サーバー一覧に戻る"
@@ -499,7 +504,11 @@
 		"asleep_other": "これらのサーバーはスリープ状態です。プレイヤーが参加すると起動しますが、それは Ingot が開いている間だけです。",
 		"consoles_other": "これらのサーバーのコンソールは、Ingot 内で実行されます。 Ingot が最初に閉じられると、それらを制御したり世界を保存したりする方法がなく、実行され続けます。",
 		"saving_other": "ワールドを保存して停止します。これには最大 30 秒かかる場合があります。",
-		"games_other": "どちらの方法でもゲームは実行され続けます。 Ingot を開くと、それらが再び取得されます。"
+		"games_other": "どちらの方法でもゲームは実行され続けます。 Ingot を開くと、それらが再び取得されます。",
+		"asleep_one": "このサーバーはスリープ状態です。プレイヤーが参加すると復帰しますが、Ingotが開いている間のみです。",
+		"consoles_one": "このサーバーのコンソールはIngot内で実行されています。Ingotを先に閉じると、制御やワールドの保存ができないまま実行が継続されます。",
+		"saving_one": "ワールドを保存して停止しています。最大30秒かかる場合があります。",
+		"games_one": "ゲームはそのまま続行されます。Ingotを再度開いたときに再接続されます。"
 	},
 	"crashDialog": {
 		"title": "{{name}} は {{version}} での初回起動時にクラッシュしました",
@@ -516,7 +525,9 @@
 		"undo": "バージョンの変更を元に戻す",
 		"undone": "以前と全く同じ {{version}} に戻しました。",
 		"tryAgain_server_other": "サーバーを再起動して、それらを使用せずに試してください。 「元に戻す」を実行しても、それらは再びオンになります。",
-		"tryAgain_game_other": "ゲームをもう一度開始して、それらなしで試してください。 「元に戻す」を実行しても、それらは再びオンになります。"
+		"tryAgain_game_other": "ゲームをもう一度開始して、それらなしで試してください。 「元に戻す」を実行しても、それらは再びオンになります。",
+		"tryAgain_server_one": "これを使用せずにサーバーを再起動します。元に戻すと再度有効化されます。",
+		"tryAgain_game_one": "これを使用せずにゲームを再起動します。元に戻すと再度有効化されます。"
 	},
 	"skinPreview": {
 		"saving": "保存中...",
@@ -666,7 +677,8 @@
 		"noneHint": "このサーバーに参加したすべてのプレイヤーが、最後に保存されたインベントリとともにここに表示されます。",
 		"search": "プレイヤーを検索",
 		"onlineNow": "現在オンライン",
-		"lastSeen": "最終ログイン: {{time}}"
+		"lastSeen": "最終ログイン: {{time}}",
+		"connected": "接続中"
 	},
 	"map": {
 		"upToDate": "最新",
@@ -683,7 +695,12 @@
 		"ariaLabel": "ワールドマップ。ドラッグで移動、スクロールまたはピンチでズーム。",
 		"zoomIn": "拡大",
 		"zoomOut": "縮小",
-		"updatedAreas_other": "{{count}} エリアを更新しました"
+		"updatedAreas_other": "{{count}} エリアを更新しました",
+		"bedrockUnsupported": "Bedrockではマップを利用できません",
+		"bedrockUnsupportedHint": "Bedrock Dedicated ServerはワールドをLevelDB形式で保存します。リアルタイムチャンクマップはJava版サーバーでのみ利用可能です。",
+		"bedrockRunning": "保存されたワールド (リアルタイム一時停止)",
+		"bedrockOffline": "保存されたワールド",
+		"updatedAreas_one": "{{count}} 個のエリアを更新しました"
 	},
 	"pluginDetails": {
 		"byline": "作者: {{author}} · {{downloads}} 回ダウンロード",
@@ -896,7 +913,8 @@
 		"configFilesDesc": "サーバーおよびプラグインの設定ファイル（YAML、JSON、TOML）。",
 		"saveFile": "ファイルを保存",
 		"manage": "管理",
-		"changed_other": "{{count}}"
+		"changed_other": "{{count}}",
+		"changed_one": "{{count}} 件変更"
 	},
 	"newInstance": {
 		"title": "新規インスタンスを作成",
@@ -1064,9 +1082,13 @@
 		"summary": {
 			"download_other": "{{count}} をダウンロードに変更しました ({{size}})",
 			"turnedOff_other": "{{count}} をオフにしました",
-			"conflictsKept_other": "{{count}} 競合を維持しました"
+			"conflictsKept_other": "{{count}} 競合を維持しました",
+			"download_one": "ダウンロード対象: {{count}} 個 ({{size}})",
+			"turnedOff_one": "{{count}} 個無効化",
+			"conflictsKept_one": "{{count}} 個の競合を維持"
 		},
-		"backupWorlds_other": "ワールドをバックアップしました ({{count}} ワールド、{{size}})"
+		"backupWorlds_other": "ワールドをバックアップしました ({{count}} ワールド、{{size}})",
+		"backupWorlds_one": "ワールドのバックアップ ({{count}} 個のワールド, {{size}})"
 	},
 	"errors": {
 		"launchInstance": "インスタンスの起動に失敗しました: {{error}}",
@@ -1107,7 +1129,8 @@
 		"confirmKick": "{{name}} をキックしますか？",
 		"confirmBan": "{{name}} をBANしますか？",
 		"confirm": "確定",
-		"kick": "キック"
+		"kick": "キック",
+		"bedrockNote": "Bedrock Dedicated Serverはコンソール経由でインベントリ、装備、体力をリアルタイムに公開しません。管理コマンドは以下から利用可能です。"
 	},
 	"transfer": {
 		"zipArchive": "Zip アーカイブ",
@@ -1179,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Mojang 公式のバニラ Minecraft サーバー",
 			"badge": "公式"
+		},
+		"bedrock": {
+			"tagline": "モバイル・コンソール間のクロスプレイに対応した公式Minecraft Bedrock Dedicated Server (BDS)",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1210,7 +1237,9 @@
 		"heroLine2": "ほんの数秒で。",
 		"heroText": "Ingot はこのデバイス上で Minecraft サーバーを直接ダウンロード、設定、実行します。どこからでも友達を招待できます。",
 		"createAServer": "サーバーを作成",
-		"createAServerHint": "Paper、PumpkinMC、Fabric など"
+		"createAServerHint": "Paper、PumpkinMC、Fabric など",
+		"nativeMemoryTitle": "ネイティブメモリ管理",
+		"nativeMemoryDesc": "このサーバーはコンパイルされたバイナリとしてネイティブに動作します。固定のJVM制限なしに、必要に応じてシステムメモリを動的に割り当てます。"
 	},
 	"plugins": {
 		"unsupported": "{{core}} サーバーではプラグインを使用できません",
@@ -1245,7 +1274,8 @@
 		"sort": {
 			"downloads": "人気順",
 			"updated": "最近更新された順",
-			"newest": "新着順"
+			"newest": "新着順",
+			"relevance": "関連度"
 		},
 		"searchPlaceholder_plugin": "プラグインを検索 (例: LuckPerms)",
 		"searchPlaceholder_mod": "Modを検索 (例: Lithium)",
@@ -1261,7 +1291,32 @@
 		"playersNeedIt": "プレイヤー側にも必要",
 		"isInstalled": "{{name}} はインストール済みです",
 		"install": "{{name}} をインストール",
-		"results_other": "{{formatted}} の結果"
+		"results_other": "{{formatted}} の結果",
+		"bedrockPacksTitle": "Bedrockアドオン＆パック",
+		"bedrockPacksDesc": "Bedrock Dedicated ServerはJavaプラグインの代わりにビヘイビアーパックとリソースパックを使用します。パックをサーバーのbehavior_packsおよびresource_packsフォルダーに配置してください。",
+		"openServerFolder": "サーバーフォルダーを開く",
+		"openBehaviorPacks": "behavior_packsを開く",
+		"openResourcePacks": "resource_packsを開く",
+		"browsePacks": "アドオンを探す",
+		"installedPacks": "インストール済みパック",
+		"searchPacksPlaceholder": "Bedrockアドオン、ビヘイビアー＆リソースパックを検索...",
+		"allPacks": "すべてのパック",
+		"behaviorPacks": "ビヘイビアーパック",
+		"resourcePacks": "リソースパック",
+		"installPack": "インストール",
+		"installingPack": "インストール中...",
+		"packInstalled": "{{name}} をインストールし、ワールドで有効化しました。",
+		"packInstallFailed": "{{name}} のインストールに失敗しました: {{error}}",
+		"downloadFromCurseForgeHint": "CurseForgeで {{name}} を開きました。パックをダウンロードして behavior_packs または resource_packs フォルダーに配置してください。",
+		"deletePack": "パックを削除",
+		"activeInWorld": "ワールドで有効",
+		"inactiveInWorld": "ワールドで無効",
+		"builtInPack": "組み込み",
+		"noPacksFound": "Bedrockパックが見つかりません",
+		"tryAnotherSearch": "別のキーワードで検索するか、フィルターを変更してください",
+		"noInstalledPacks": "カスタムパックはまだインストールされていません",
+		"noInstalledPacksDesc": "公開されているBedrockアドオンやパックを閲覧するか、behavior_packsおよびresource_packsフォルダーにドラッグ＆ドロップしてください。",
+		"results_one": "{{formatted}} 件の結果"
 	},
 	"join": {
 		"shareTitle": "{{name}} に参加",
@@ -1378,7 +1433,8 @@
 		"supports": "サポート:",
 		"createAndInstall": "作成およびインストール",
 		"installToInstance": "インスタンス にインストール",
-		"compatibleCount_other": "{{count}} 互換バージョン"
+		"compatibleCount_other": "{{count}} 互換バージョン",
+		"compatibleCount_one": "{{count}} 個の互換バージョン"
 	},
 	"contentTypes": {
 		"mod": "Mod",
@@ -1415,7 +1471,10 @@
 		"next": "次の画像",
 		"downloads_other": "{{formatted}} ダウンロード",
 		"followers_other": "{{formatted}} フォロワー",
-		"showing_other": "{{count}} バージョンの {{shown}} を表示中"
+		"showing_other": "{{count}} バージョンの {{shown}} を表示中",
+		"downloads_one": "{{formatted}} ダウンロード",
+		"followers_one": "{{formatted}} フォロワー",
+		"showing_one": "{{count}} バージョン中 {{shown}} を表示"
 	},
 	"importInstance": {
 		"selectLauncherDir": "{{launcher}} を選択 インスタンス ディレクトリ",
@@ -1462,7 +1521,14 @@
 		"worldsCount_other": "{{count}} ワールド",
 		"screenshotsCount_other": "{{count}} スクリーンショット",
 		"modFiles_other": "{{count}} mod ファイル",
-		"singleplayerWorlds_other": "{{count}} シングルプレイヤー ワールド"
+		"singleplayerWorlds_other": "{{count}} シングルプレイヤー ワールド",
+		"found_one": "{{launcher}} で {{count}} 個のインスタンスが見つかりました。インポートするインスタンスを選択してください。",
+		"instancesFound_one": "{{count}} 個のインスタンスが見つかりました",
+		"modsCount_one": "{{count}} 個のMOD",
+		"worldsCount_one": "{{count}} 個のワールド",
+		"screenshotsCount_one": "{{count}} 個のスクリーンショット",
+		"modFiles_one": "{{count}} 個のMODファイル",
+		"singleplayerWorlds_one": "{{count}} 個のシングルプレイワールド"
 	},
 	"skinViewer": {
 		"resetCamera": "3D カメラをリセット",
@@ -1566,7 +1632,8 @@
 		"authorize": "承認および適用",
 		"count_other": "{{formatted}} スキン",
 		"hasCape": "マント",
-		"playerNotFound": "ユーザー名またはUUID「{{query}}」のプレイヤーが見つかりません"
+		"playerNotFound": "ユーザー名またはUUID「{{query}}」のプレイヤーが見つかりません",
+		"count_one": "{{formatted}} スキン"
 	},
 	"select": {
 		"placeholder": "オプションを選択",
@@ -1579,5 +1646,24 @@
 		"publicAddress": "パブリック アドレス: {{address}}",
 		"connecting": "playit.gg トンネル接続中...",
 		"localOnly": "ローカル ネットワークのみ"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Windowsおよびコンソール対応のクロスプラットフォーム版",
+		"installed": "インストール済み",
+		"notInstalled": "未インストール",
+		"editionPreview": "プレビュー版 (Preview)",
+		"editionRetail": "正式版 (Retail)",
+		"description": "Minecraft Bedrock EditionはMicrosoft Storeから入手できます。ストアから直接インストールするか、Ingotから起動してください。",
+		"readyToPlay": "起動準備完了",
+		"launching": "起動中...",
+		"play": "Bedrockをプレイ",
+		"msStoreEdition": "Microsoft Store版",
+		"installStore": "Microsoft Storeからインストール",
+		"openWorlds": "ワールドフォルダー",
+		"openResourcePacks": "リソースパック",
+		"openBehaviorPacks": "ビヘイビアーパック",
+		"openScreenshots": "スクリーンショットフォルダー",
+		"store": "Microsoft Storeページ"
 	}
 }

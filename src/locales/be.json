@@ -29,7 +29,9 @@
 		"stop": "Спыніць",
 		"done": "Гатова",
 		"update": "Абнавіць",
-		"enable": "Уключыць"
+		"enable": "Уключыць",
+		"previous": "Назад",
+		"next": "Наперад"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Абярыце мову",
@@ -475,7 +477,8 @@
 		"plugins": "Плагіны",
 		"mods": "Моды",
 		"settings": "Налады",
-		"home": "Галоўная"
+		"home": "Галоўная",
+		"packs": "Адоны"
 	},
 	"serverWorkspace": {
 		"back": "Назад да сервераў"
@@ -690,7 +693,8 @@
 		"noneHint": "Тут будуць усе, хто заходзіў на сервер, з апошнім захаваным інвентаром.",
 		"search": "Пошук гульцоў",
 		"onlineNow": "Цяпер у сетцы",
-		"lastSeen": "Быў {{time}}"
+		"lastSeen": "Быў {{time}}",
+		"connected": "У сетцы"
 	},
 	"map": {
 		"upToDate": "Актуальна",
@@ -710,7 +714,11 @@
 		"updatedAreas_one": "Абноўлена {{count}} вобласць",
 		"updatedAreas_few": "Абноўлена {{count}} вобласці",
 		"updatedAreas_many": "Абноўлена {{count}} абласцей",
-		"updatedAreas_other": "Абноўлена {{count}} вобласці"
+		"updatedAreas_other": "Абноўлена {{count}} вобласці",
+		"bedrockUnsupported": "Карта недаступная для Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server захоўвае сусветы ў фармаце LevelDB. Рэндэрынг чанкаў у рэальным часе даступны толькі для Java-сервераў.",
+		"bedrockRunning": "Захаваны свет (Анлайн прыпынены)",
+		"bedrockOffline": "Захаваны свет"
 	},
 	"pluginDetails": {
 		"byline": "ад {{author}} · {{downloads}} спамповак",
@@ -1149,7 +1157,8 @@
 		"confirmKick": "Кікнуць {{name}}?",
 		"confirmBan": "Забаніць {{name}}?",
 		"confirm": "Пацвердзіць",
-		"kick": "Кікнуць"
+		"kick": "Кікнуць",
+		"bedrockNote": "Bedrock Dedicated Server не перадае інвентар, экіпіроўку ці здароўе праз кансоль. Каманды кіравання даступныя ніжэй."
 	},
 	"transfer": {
 		"zipArchive": "ZIP-архіў",
@@ -1221,6 +1230,10 @@
 		"vanilla": {
 			"tagline": "Афіцыйны сервер Minecraft без мадыфікацый проста ад Mojang",
 			"badge": "Арыгінал"
+		},
+		"bedrock": {
+			"tagline": "Афіцыйны сервер Minecraft Bedrock (BDS) для кросплею з тэлефонаў і кансоляў",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1252,7 +1265,9 @@
 		"heroLine2": "за секунды.",
 		"heroText": "Ingot спампоўвае, наладжвае і запускае сервер Minecraft проста на гэтай прыладзе. Запрашайце сяброў адкуль заўгодна.",
 		"createAServer": "Стварыць сервер",
-		"createAServerHint": "Paper, PumpkinMC, Fabric і іншыя"
+		"createAServerHint": "Paper, PumpkinMC, Fabric і іншыя",
+		"nativeMemoryTitle": "Натыўнае кіраванне памяццю",
+		"nativeMemoryDesc": "Гэты сервер працуе як скампіляваны бінарны файл. Ён дынамічна выдзяляе сістэмную памяць пры неабходнасці без фіксаваных абмежаванняў JVM."
 	},
 	"plugins": {
 		"unsupported": "Серверы {{core}} не падтрымліваюць плагіны",
@@ -1287,7 +1302,8 @@
 		"sort": {
 			"downloads": "Папулярныя",
 			"updated": "Нядаўна абноўленыя",
-			"newest": "Новыя"
+			"newest": "Новыя",
+			"relevance": "Па рэлевантнасці"
 		},
 		"searchPlaceholder_plugin": "Пошук плагінаў, напрыклад LuckPerms",
 		"searchPlaceholder_mod": "Пошук модаў, напрыклад Lithium",
@@ -1306,7 +1322,31 @@
 		"results_one": "{{formatted}} вынік",
 		"results_few": "{{formatted}} вынікі",
 		"results_many": "{{formatted}} вынікаў",
-		"results_other": "{{formatted}} выніку"
+		"results_other": "{{formatted}} выніку",
+		"bedrockPacksTitle": "Адоны і наборы Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server выкарыстоўвае наборы паводзін і рэсурспакі замест Java-плагінаў. Змяшчайце наборы ў тэчкі behavior_packs і resource_packs сервера.",
+		"openServerFolder": "Адкрыць папку сервера",
+		"openBehaviorPacks": "Адкрыць behavior_packs",
+		"openResourcePacks": "Адкрыць resource_packs",
+		"browsePacks": "Каталог адонаў",
+		"installedPacks": "Усталяваныя наборы",
+		"searchPacksPlaceholder": "Пошук адонаў, набораў паводзін і рэсурсаў...",
+		"allPacks": "Усе наборы",
+		"behaviorPacks": "Наборы паводзін",
+		"resourcePacks": "Рэсурспакі",
+		"installPack": "Усталяваць",
+		"installingPack": "Устаноўка...",
+		"packInstalled": "Набор {{name}} усталяваны і ўключаны для свету.",
+		"packInstallFailed": "Не ўдалося ўсталяваць {{name}}: {{error}}",
+		"downloadFromCurseForgeHint": "Старонка {{name}} адкрыта на CurseForge. Спампуйце архіў і змясціце яго ў behavior_packs або resource_packs.",
+		"deletePack": "Выдаліць набор",
+		"activeInWorld": "Актыўны ў свеце",
+		"inactiveInWorld": "Неактыўны ў свеце",
+		"builtInPack": "Убудаваны",
+		"noPacksFound": "Наборы Bedrock не знойдзены",
+		"tryAnotherSearch": "Паспрабуйце змяніць запыт або фільтры",
+		"noInstalledPacks": "Пакуль няма ўсталяваных набораў",
+		"noInstalledPacksDesc": "Знайдзіце прыдатныя адоны ў каталогу або перацягніце іх у тэчкі behavior_packs і resource_packs."
 	},
 	"join": {
 		"shareTitle": "Заходзь на {{name}}",
@@ -1660,5 +1700,24 @@
 		"publicAddress": "Публічны адрас: {{address}}",
 		"connecting": "Падключэнне тунэля playit.gg...",
 		"localOnly": "Толькі лакальная сетка"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Кросплатформенная версія для Windows і кансоляў",
+		"installed": "Усталявана",
+		"notInstalled": "Не ўсталявана",
+		"editionPreview": "Прэв'ю-версія (Preview)",
+		"editionRetail": "Рэлізная версія (Retail)",
+		"description": "Minecraft Bedrock Edition даступная ў Microsoft Store. Усталюйце яе з крамы або запусціце непасрэдна з Ingot.",
+		"readyToPlay": "Гатова да запуску",
+		"launching": "Запуск...",
+		"play": "Гуляць у Bedrock",
+		"msStoreEdition": "Версія Microsoft Store",
+		"installStore": "Усталяваць з Microsoft Store",
+		"openWorlds": "Папка светаў",
+		"openResourcePacks": "Рэсурспакі",
+		"openBehaviorPacks": "Наборы паводзін",
+		"openScreenshots": "Папка скрыншотаў",
+		"store": "Старонка ў Microsoft Store"
 	}
 }

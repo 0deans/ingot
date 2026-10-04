@@ -29,7 +29,9 @@
 		"stop": "停止",
 		"done": "完成",
 		"update": "更新",
-		"enable": "启用"
+		"enable": "启用",
+		"previous": "上一页",
+		"next": "下一页"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "选择您的语言",
@@ -452,7 +454,9 @@
 		"stopNote": "停止操作将立即结束运行。自上次自动保存以来的数据（最多几分钟）将会丢失，世界本身不会受到损坏。",
 		"leaveRunning": "保持运行",
 		"title_other": "上次的服务器仍在运行",
-		"description_other": "Ingot 关闭时没有停止这些服务器，因此控制台已关闭：Ingot 无法向它们发送命令或保存世界。停止服务器前，它们会继续占用端口和世界文件。"
+		"description_other": "Ingot 关闭时没有停止这些服务器，因此控制台已关闭：Ingot 无法向它们发送命令或保存世界。停止服务器前，它们会继续占用端口和世界文件。",
+		"title_one": "上次的服务器仍在运行",
+		"description_one": "Ingot 关闭时没有停止该服务器，因此控制台已关闭：Ingot 无法向其发送命令或保存世界。停止服务器前，它会继续占用端口和世界文件。"
 	},
 	"serverStatus": {
 		"running": "运行中",
@@ -469,7 +473,8 @@
 		"plugins": "插件",
 		"mods": "模组",
 		"settings": "设置",
-		"home": "主页"
+		"home": "主页",
+		"packs": "附加组件"
 	},
 	"serverWorkspace": {
 		"back": "返回服务器列表"
@@ -499,7 +504,11 @@
 		"asleep_other": "这些服务器处于休眠状态。玩家加入时会唤醒它们，但仅当 Ingot 正在运行时有效。",
 		"consoles_other": "这些服务器的控制台在 Ingot 中运行。如果 Ingot 先关闭，服务器会继续运行，但您将无法控制它们或保存世界。",
 		"saving_other": "正在保存世界并停止服务器。这最多需要 30 秒。",
-		"games_other": "无论您如何操作，游戏都会继续运行。重新打开 Ingot 后，它会重新接管这些游戏。"
+		"games_other": "无论您如何操作，游戏都会继续运行。重新打开 Ingot 后，它会重新接管这些游戏。",
+		"asleep_one": "此服务器处于休眠状态。玩家加入时会唤醒它，但仅当 Ingot 正在运行时有效。",
+		"consoles_one": "此服务器的控制台在 Ingot 中运行。如果 Ingot 先关闭，服务器会继续运行，但您将无法控制它或保存世界。",
+		"saving_one": "正在保存世界并停止服务器。这最多需要 30 秒。",
+		"games_one": "无论您如何操作，游戏都会继续运行。重新打开 Ingot 后，它会重新接管此游戏。"
 	},
 	"crashDialog": {
 		"title": "{{name}} 在版本 {{version}} 上首次启动时崩溃",
@@ -516,7 +525,9 @@
 		"undo": "撤销版本更改",
 		"undone": "已恢复为 {{version}}，与更改前完全一致。",
 		"tryAgain_server_other": "再次启动服务器，尝试不加载这些项目。撤销操作仍可重新启用它们。",
-		"tryAgain_game_other": "再次启动游戏，尝试不加载这些项目。撤销操作仍可重新启用它们。"
+		"tryAgain_game_other": "再次启动游戏，尝试不加载这些项目。撤销操作仍可重新启用它们。",
+		"tryAgain_server_one": "再次启动服务器，尝试不加载该项目。撤销操作仍可重新启用它。",
+		"tryAgain_game_one": "再次启动游戏，尝试不加载该项目。撤销操作仍可重新启用它。"
 	},
 	"skinPreview": {
 		"saving": "正在保存...",
@@ -666,7 +677,8 @@
 		"noneHint": "加入过此服务器的所有玩家都将列在此处，并显示其最后保存的物品栏。",
 		"search": "搜索玩家",
 		"onlineNow": "当前在线",
-		"lastSeen": "最后在线时间 {{time}}"
+		"lastSeen": "最后在线时间 {{time}}",
+		"connected": "已连接"
 	},
 	"map": {
 		"upToDate": "已是最新",
@@ -683,7 +695,12 @@
 		"ariaLabel": "世界地图。拖动以平移，滚动或捏合以缩放。",
 		"zoomIn": "放大",
 		"zoomOut": "缩小",
-		"updatedAreas_other": "已更新 {{count}} 个区域"
+		"updatedAreas_other": "已更新 {{count}} 个区域",
+		"bedrockUnsupported": "Bedrock 版不支持实时地图",
+		"bedrockUnsupportedHint": "Bedrock 专用服务器以 LevelDB 格式存储世界文件。区块实时地图渲染仅支持 Java 版服务器。",
+		"bedrockRunning": "已保存的世界（实时同步已暂停）",
+		"bedrockOffline": "已保存的世界",
+		"updatedAreas_one": "已更新 {{count}} 个区域"
 	},
 	"pluginDetails": {
 		"byline": "作者：{{author}} · {{downloads}} 次下载",
@@ -896,7 +913,8 @@
 		"configFilesDesc": "服务器及插件配置文件 (YAML, JSON, TOML)。",
 		"saveFile": "保存文件",
 		"manage": "管理",
-		"changed_other": "已更改 {{count}} 项"
+		"changed_other": "已更改 {{count}} 项",
+		"changed_one": "已更改 {{count}} 项"
 	},
 	"newInstance": {
 		"title": "新建实例",
@@ -1064,9 +1082,13 @@
 		"summary": {
 			"download_other": "需下载 {{count}} 项（{{size}}）",
 			"turnedOff_other": "已关闭 {{count}} 项",
-			"conflictsKept_other": "保留了 {{count}} 个冲突项"
+			"conflictsKept_other": "保留了 {{count}} 个冲突项",
+			"download_one": "需下载 {{count}} 项（{{size}}）",
+			"turnedOff_one": "已关闭 {{count}} 项",
+			"conflictsKept_one": "保留了 {{count}} 个冲突项"
 		},
-		"backupWorlds_other": "备份世界（{{count}} 个世界，{{size}}）"
+		"backupWorlds_other": "备份世界（{{count}} 个世界，{{size}}）",
+		"backupWorlds_one": "备份世界（{{count}} 个世界，{{size}}）"
 	},
 	"errors": {
 		"launchInstance": "无法启动 实例：{{error}}",
@@ -1107,7 +1129,8 @@
 		"confirmKick": "踢 {{name}}？",
 		"confirmBan": "禁止 {{name}}？",
 		"confirm": "确认",
-		"kick": "踢"
+		"kick": "踢",
+		"bedrockNote": "Bedrock 专用服务器不会通过控制台公开实时物品栏、装备或生命值。您可以在下方使用管理指令。"
 	},
 	"transfer": {
 		"zipArchive": "Zip 存档",
@@ -1179,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "直接来自 Mojang 的官方未修改 Minecraft 服务器",
 			"badge": "原始"
+		},
+		"bedrock": {
+			"tagline": "适用于手机与主机跨平台联机的官方 Minecraft Bedrock 专用服务器 (BDS)",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1210,7 +1237,9 @@
 		"heroLine2": "在几秒钟内。",
 		"heroText": "Ingot 直接在此设备上下载、配置和运行 Minecraft 服务器。邀请来自任何地方的朋友。",
 		"createAServer": "创建服务器",
-		"createAServerHint": "Paper、PumpkinMC、Fabric 等"
+		"createAServerHint": "Paper、PumpkinMC、Fabric 等",
+		"nativeMemoryTitle": "原生内存管理",
+		"nativeMemoryDesc": "此服务器作为编译后的二进制程序原生运行。它会根据需要动态分配系统内存，不受固定的 JVM 堆内存限制。"
 	},
 	"plugins": {
 		"unsupported": "{{core}} 服务器不能使用插件",
@@ -1245,7 +1274,8 @@
 		"sort": {
 			"downloads": "最受欢迎",
 			"updated": "最近更新",
-			"newest": "最新的"
+			"newest": "最新的",
+			"relevance": "相关度"
 		},
 		"searchPlaceholder_plugin": "搜索插件，例如LuckPerms",
 		"searchPlaceholder_mod": "搜索模组，例如锂",
@@ -1261,7 +1291,32 @@
 		"playersNeedIt": "玩家也需要",
 		"isInstalled": "{{name}} 安装了",
 		"install": "安装 {{name}}",
-		"results_other": "{{formatted}} 个结果"
+		"results_other": "{{formatted}} 个结果",
+		"bedrockPacksTitle": "Bedrock 附加组件与资源包",
+		"bedrockPacksDesc": "Bedrock 专用服务器使用行为包和资源包代替 Java 插件。请将您的数据包放入服务器的 behavior_packs 和 resource_packs 文件夹中。",
+		"openServerFolder": "打开服务器文件夹",
+		"openBehaviorPacks": "打开 behavior_packs",
+		"openResourcePacks": "打开 resource_packs",
+		"browsePacks": "浏览附加组件",
+		"installedPacks": "已安装的数据包",
+		"searchPacksPlaceholder": "搜索 Bedrock 附加组件、行为包和资源包...",
+		"allPacks": "全部数据包",
+		"behaviorPacks": "行为包",
+		"resourcePacks": "资源包",
+		"installPack": "安装",
+		"installingPack": "正在安装...",
+		"packInstalled": "已安装 {{name}} 并已在世界中启用。",
+		"packInstallFailed": "安装 {{name}} 失败：{{error}}",
+		"downloadFromCurseForgeHint": "已在 CurseForge 上打开 {{name}}。下载该数据包并将其放入 behavior_packs 或 resource_packs 文件夹中。",
+		"deletePack": "删除数据包",
+		"activeInWorld": "在世界中生效",
+		"inactiveInWorld": "在世界中未生效",
+		"builtInPack": "内置",
+		"noPacksFound": "未找到 Bedrock 数据包",
+		"tryAnotherSearch": "尝试使用其他关键词搜索或更改筛选条件",
+		"noInstalledPacks": "尚未安装自定义数据包",
+		"noInstalledPacksDesc": "浏览公开的 Bedrock 附加组件与数据包，或将其拖放到 behavior_packs 和 resource_packs 文件夹中。",
+		"results_one": "{{formatted}} 个结果"
 	},
 	"join": {
 		"shareTitle": "加入 {{name}}",
@@ -1378,7 +1433,8 @@
 		"supports": "支持：",
 		"createAndInstall": "创建和安装",
 		"installToInstance": "安装到 实例",
-		"compatibleCount_other": "{{count}} 个兼容版本"
+		"compatibleCount_other": "{{count}} 个兼容版本",
+		"compatibleCount_one": "{{count}} 个兼容版本"
 	},
 	"contentTypes": {
 		"mod": "Mod",
@@ -1415,7 +1471,10 @@
 		"next": "下一张图片",
 		"downloads_other": "{{formatted}} 次下载",
 		"followers_other": "{{formatted}} 位关注者",
-		"showing_other": "正在显示 {{shown}} / {{count}} 个版本"
+		"showing_other": "正在显示 {{shown}} / {{count}} 个版本",
+		"downloads_one": "{{formatted}} 次下载",
+		"followers_one": "{{formatted}} 位关注者",
+		"showing_one": "正在显示 {{shown}} / {{count}} 个版本"
 	},
 	"importInstance": {
 		"selectLauncherDir": "选择 {{launcher}} 实例目录",
@@ -1462,7 +1521,14 @@
 		"worldsCount_other": "{{count}} 个世界",
 		"screenshotsCount_other": "{{count}} 张截图",
 		"modFiles_other": "{{count}} 个模组文件",
-		"singleplayerWorlds_other": "{{count}} 个单人游戏世界"
+		"singleplayerWorlds_other": "{{count}} 个单人游戏世界",
+		"found_one": "在 {{launcher}} 中找到 {{count}} 个实例。请选择要导入的实例。",
+		"instancesFound_one": "找到 {{count}} 个实例",
+		"modsCount_one": "{{count}} 个模组",
+		"worldsCount_one": "{{count}} 个世界",
+		"screenshotsCount_one": "{{count}} 张截图",
+		"modFiles_one": "{{count}} 个模组文件",
+		"singleplayerWorlds_one": "{{count}} 个单人游戏世界"
 	},
 	"skinViewer": {
 		"resetCamera": "重置 3D 摄像机",
@@ -1566,7 +1632,8 @@
 		"authorize": "验证并应用",
 		"count_other": "{{formatted}} 个皮肤",
 		"hasCape": "披风",
-		"playerNotFound": "未找到用户名或 UUID 为 \"{{query}}\" 的玩家"
+		"playerNotFound": "未找到用户名或 UUID 为 \"{{query}}\" 的玩家",
+		"count_one": "{{formatted}} 个皮肤"
 	},
 	"select": {
 		"placeholder": "选择一项",
@@ -1579,5 +1646,24 @@
 		"publicAddress": "公网地址：{{address}}",
 		"connecting": "正在连接 playit.gg 隧道…",
 		"localOnly": "仅限本地网络"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "适用于 Windows 和主机平台的跨平台版本",
+		"installed": "已安装",
+		"notInstalled": "未安装",
+		"editionPreview": "预览版 (Preview)",
+		"editionRetail": "正式版 (Retail)",
+		"description": "Minecraft Bedrock 版可通过 Microsoft Store 获取。直接从商店安装或从 Ingot 启动。",
+		"readyToPlay": "准备启动",
+		"launching": "正在启动...",
+		"play": "运行 Bedrock",
+		"msStoreEdition": "Microsoft Store 版本",
+		"installStore": "通过 Microsoft Store 安装",
+		"openWorlds": "世界文件夹",
+		"openResourcePacks": "资源包",
+		"openBehaviorPacks": "行为包",
+		"openScreenshots": "屏幕截图文件夹",
+		"store": "Microsoft Store 页面"
 	}
 }

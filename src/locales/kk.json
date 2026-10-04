@@ -29,7 +29,9 @@
 		"stop": "Тоқтату",
 		"done": "Дайын",
 		"update": "Жаңарту",
-		"enable": "Қосу"
+		"enable": "Қосу",
+		"previous": "Артқа",
+		"next": "Алға"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Тілді таңдаңыз",
@@ -471,7 +473,8 @@
 		"plugins": "Плагиндер",
 		"mods": "Модтар",
 		"settings": "Баптаулар",
-		"home": "Басты"
+		"home": "Басты",
+		"packs": "Қосымшалар"
 	},
 	"serverWorkspace": {
 		"back": "Серверлерге оралу"
@@ -674,7 +677,8 @@
 		"noneHint": "Осы серверде болған барлық адам соңғы сақталған инвентарымен осында көрінеді.",
 		"search": "Ойыншыларды іздеу",
 		"onlineNow": "Қазір желіде",
-		"lastSeen": "Соңғы рет {{time}}"
+		"lastSeen": "Соңғы рет {{time}}",
+		"connected": "Қосылған"
 	},
 	"map": {
 		"upToDate": "Өзекті",
@@ -692,7 +696,11 @@
 		"zoomIn": "Үлкейту",
 		"zoomOut": "Кішірейту",
 		"updatedAreas_one": "{{count}} аймақ жаңартылды",
-		"updatedAreas_other": "{{count}} аймақ жаңартылды"
+		"updatedAreas_other": "{{count}} аймақ жаңартылды",
+		"bedrockUnsupported": "Bedrock үшін карта қолжетімсіз",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server әлемдерді LevelDB пішімінде сақтайды. Чанк картасын нақты уақытта көрсету тек Java серверлері үшін қолжетімді.",
+		"bedrockRunning": "Сақталған әлем (Тікелей кідіртілді)",
+		"bedrockOffline": "Сақталған әлем"
 	},
 	"pluginDetails": {
 		"byline": "авторы {{author}} · {{downloads}} жүктеу",
@@ -1121,7 +1129,8 @@
 		"confirmKick": "{{name}} шығару керек пе?",
 		"confirmBan": "{{name}} бұғаттау керек пе?",
 		"confirm": "Растау",
-		"kick": "Шығару"
+		"kick": "Шығару",
+		"bedrockNote": "Bedrock Dedicated Server консоль арқылы нақты уақыттағы түгендеуді, жабдықты немесе денсаулықты көрсетпейді. Басқару пәрмендері төменде қолжетімді."
 	},
 	"transfer": {
 		"zipArchive": "ZIP мұрағаты",
@@ -1193,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Mojang-нан тікелей келген ресми, өзгертілмеген Minecraft сервері",
 			"badge": "Түпнұсқа"
+		},
+		"bedrock": {
+			"tagline": "Мобильді құрылғылар және консольдер арасындағы кроссплейге арналған ресми Minecraft Bedrock (BDS) сервері",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1224,7 +1237,9 @@
 		"heroLine2": "бірнеше секундта.",
 		"heroText": "Ingot Minecraft серверін тікелей осы құрылғыда жүктеп, баптап, іске қосады. Достарыңызды кез келген жерден шақырыңыз.",
 		"createAServer": "Сервер жасау",
-		"createAServerHint": "Paper, PumpkinMC, Fabric және басқалар"
+		"createAServerHint": "Paper, PumpkinMC, Fabric және басқалар",
+		"nativeMemoryTitle": "Жүйелік жадты басқару",
+		"nativeMemoryDesc": "Бұл сервер құрастырылған бинарлық файл ретінде жергілікті орындалады. Ол тіркелген JVM шектеулерінсіз қажетіне қарай жүйелік жадты динамикалық түрде бөледі."
 	},
 	"plugins": {
 		"unsupported": "{{core}} серверлері плагиндерді қолдамайды",
@@ -1259,7 +1274,8 @@
 		"sort": {
 			"downloads": "Ең танымал",
 			"updated": "Жақында жаңартылған",
-			"newest": "Ең жаңа"
+			"newest": "Ең жаңа",
+			"relevance": "Өзектілігі бойынша"
 		},
 		"searchPlaceholder_plugin": "Плагиндерді іздеу, мыс. LuckPerms",
 		"searchPlaceholder_mod": "Модтарды іздеу, мыс. Lithium",
@@ -1276,7 +1292,31 @@
 		"isInstalled": "{{name}} орнатылған",
 		"install": "{{name}} орнату",
 		"results_one": "{{formatted}} нәтиже",
-		"results_other": "{{formatted}} нәтиже"
+		"results_other": "{{formatted}} нәтиже",
+		"bedrockPacksTitle": "Bedrock қосымшалары мен топтамалары",
+		"bedrockPacksDesc": "Bedrock Dedicated Server Java плагиндерінің орнына мінез-құлық пен ресурстар топтамаларын пайдаланады. Топтамаларды сервердің behavior_packs және resource_packs қалталарына салыңыз.",
+		"openServerFolder": "Сервер қалтасын ашу",
+		"openBehaviorPacks": "behavior_packs ашу",
+		"openResourcePacks": "resource_packs ашу",
+		"browsePacks": "Қосымшаларды шолу",
+		"installedPacks": "Орнатылған топтамалар",
+		"searchPacksPlaceholder": "Bedrock қосымшаларын, мінез-құлық және ресурс топтамаларын іздеу...",
+		"allPacks": "Барлық топтамалар",
+		"behaviorPacks": "Мінез-құлық топтамалары",
+		"resourcePacks": "Ресурстар топтамасы",
+		"installPack": "Орнату",
+		"installingPack": "Орнатылуда...",
+		"packInstalled": "{{name}} орнатылды және әлем үшін қосылды.",
+		"packInstallFailed": "{{name}} орнату сәтсіз аяқталды: {{error}}",
+		"downloadFromCurseForgeHint": "{{name}} CurseForge сайтында ашылды. Топтаманы жүктеп алып, оны behavior_packs немесе resource_packs қалтасына салыңыз.",
+		"deletePack": "Топтаманы жою",
+		"activeInWorld": "Әлемде белсенді",
+		"inactiveInWorld": "Әлемде белсенді емес",
+		"builtInPack": "Кірістірілген",
+		"noPacksFound": "Bedrock топтамалары табылмады",
+		"tryAnotherSearch": "Басқа сұраныспен іздеп көріңіз немесе сүзгілерді өзгертіңіз",
+		"noInstalledPacks": "Әзірше арнайы топтамалар орнатылмаған",
+		"noInstalledPacksDesc": "Жалпыға қолжетімді Bedrock қосымшалары мен топтамаларын шолыңыз немесе оларды behavior_packs және resource_packs қалталарына тастаңыз."
 	},
 	"join": {
 		"shareTitle": "{{name}} серверіне қосылыңыз",
@@ -1606,5 +1646,24 @@
 		"publicAddress": "Жария мекенжай: {{address}}",
 		"connecting": "playit.gg туннелі қосылуда...",
 		"localOnly": "Тек жергілікті желі"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Windows және консольдерге арналған кроссплатформалық нұсқасы",
+		"installed": "Орнатылған",
+		"notInstalled": "Орнатылмаған",
+		"editionPreview": "Preview нұсқасы",
+		"editionRetail": "Релиз нұсқасы (Retail)",
+		"description": "Minecraft Bedrock Edition бағдарламасы Microsoft Store дүкенінде қолжетімді. Оны тікелей дүкеннен орнатыңыз немесе Ingot арқылы іске қосыңыз.",
+		"readyToPlay": "Іске қосуға дайын",
+		"launching": "Іске қосылуда...",
+		"play": "Bedrock ойнау",
+		"msStoreEdition": "Microsoft Store нұсқасы",
+		"installStore": "Microsoft Store арқылы орнату",
+		"openWorlds": "Әлемдер қалтасы",
+		"openResourcePacks": "Ресурстар топтамасы",
+		"openBehaviorPacks": "Мінез-құлық топтамасы",
+		"openScreenshots": "Скриншоттар қалтасы",
+		"store": "Microsoft Store беті"
 	}
 }

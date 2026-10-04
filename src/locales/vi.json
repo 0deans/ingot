@@ -29,7 +29,9 @@
 		"stop": "Dừng",
 		"done": "Xong",
 		"update": "Cập nhật",
-		"enable": "Bật"
+		"enable": "Bật",
+		"previous": "Trước",
+		"next": "Tiếp theo"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Chọn ngôn ngữ của bạn",
@@ -452,7 +454,9 @@
 		"stopNote": "Dừng máy chủ sẽ kết thúc ngay lập tức. Mọi thay đổi kể từ lần tự động lưu gần nhất (nhiều nhất vài phút) sẽ bị mất, còn bản thân thế giới vẫn bình thường.",
 		"leaveRunning": "Tiếp tục chạy",
 		"title_other": "Các máy chủ vẫn đang chạy từ lần trước",
-		"description_other": "Ingot đã đóng mà không dừng chúng, vì vậy bảng điều khiển của chúng đã biến mất: Ingot không thể gửi lệnh hoặc cứu thế giới của chúng. Họ giữ cho các bến cảng và thế giới của mình luôn bận rộn cho đến khi dừng lại."
+		"description_other": "Ingot đã đóng mà không dừng chúng, vì vậy bảng điều khiển của chúng đã biến mất: Ingot không thể gửi lệnh hoặc cứu thế giới của chúng. Họ giữ cho các bến cảng và thế giới của mình luôn bận rộn cho đến khi dừng lại.",
+		"title_one": "Máy chủ vẫn đang chạy từ lần trước",
+		"description_one": "Ingot đã đóng mà không dừng máy chủ, vì vậy bảng điều khiển đã mất: Ingot không thể gửi lệnh hoặc lưu thế giới của nó. Máy chủ giữ cho cổng và thế giới bận rộn cho đến khi dừng lại."
 	},
 	"serverStatus": {
 		"running": "Đang chạy",
@@ -469,7 +473,8 @@
 		"plugins": "Plugin",
 		"mods": "Mod",
 		"settings": "Cài đặt",
-		"home": "Trang chủ"
+		"home": "Trang chủ",
+		"packs": "Tiện ích mở rộng"
 	},
 	"serverWorkspace": {
 		"back": "Quay lại danh sách máy chủ"
@@ -499,7 +504,11 @@
 		"asleep_other": "Các máy chủ này đang ngủ. Chúng thức dậy khi có người chơi tham gia, nhưng chỉ khi Ingot mở.",
 		"consoles_other": "Các bảng điều khiển của máy chủ này chạy bên trong Ingot. Nếu Ingot đóng trước, họ sẽ tiếp tục chạy mà không có cách nào kiểm soát hoặc cứu thế giới của mình.",
 		"saving_other": "Giải cứu thế giới và dừng lại. Việc này có thể mất tới 30 giây.",
-		"games_other": "Trò chơi của bạn vẫn tiếp tục chạy theo bất kỳ cách nào. Ingot sẽ chọn lại chúng khi bạn mở nó."
+		"games_other": "Trò chơi của bạn vẫn tiếp tục chạy theo bất kỳ cách nào. Ingot sẽ chọn lại chúng khi bạn mở nó.",
+		"asleep_one": "Máy chủ này đang ngủ. Nó thức dậy khi có người chơi tham gia, nhưng chỉ khi Ingot mở.",
+		"consoles_one": "Bảng điều khiển của máy chủ này chạy bên trong Ingot. Nếu Ingot đóng trước, máy chủ sẽ tiếp tục chạy mà không có cách nào kiểm soát hoặc lưu thế giới của nó.",
+		"saving_one": "Lưu thế giới và dừng lại. Việc này có thể mất tới 30 giây.",
+		"games_one": "Trò chơi của bạn vẫn tiếp tục chạy. Ingot sẽ kết nối lại khi bạn mở nó."
 	},
 	"crashDialog": {
 		"title": "{{name}} gặp sự cố trong lần khởi động đầu tiên trên {{version}}",
@@ -516,7 +525,9 @@
 		"undo": "Hoàn tác thay đổi phiên bản",
 		"undone": "Đã quay về {{version}}, chính xác như trước.",
 		"tryAgain_server_other": "Khởi động lại máy chủ để thử mà không có chúng. Hoàn tác vẫn bật lại chúng.",
-		"tryAgain_game_other": "Bắt đầu lại trò chơi để thử mà không có chúng. Hoàn tác vẫn bật lại chúng."
+		"tryAgain_game_other": "Bắt đầu lại trò chơi để thử mà không có chúng. Hoàn tác vẫn bật lại chúng.",
+		"tryAgain_server_one": "Khởi động lại máy chủ để thử mà không có nó. Hoàn tác vẫn bật lại nó.",
+		"tryAgain_game_one": "Bắt đầu lại trò chơi để thử mà không có nó. Hoàn tác vẫn bật lại nó."
 	},
 	"skinPreview": {
 		"saving": "Đang lưu...",
@@ -666,7 +677,8 @@
 		"noneHint": "Mọi người từng tham gia máy chủ này sẽ được liệt kê ở đây, cùng với túi đồ được lưu gần nhất của họ.",
 		"search": "Tìm kiếm người chơi",
 		"onlineNow": "Đang trực tuyến",
-		"lastSeen": "Nhìn thấy lần cuối {{time}}"
+		"lastSeen": "Nhìn thấy lần cuối {{time}}",
+		"connected": "Đã kết nối"
 	},
 	"map": {
 		"upToDate": "Đã cập nhật",
@@ -683,7 +695,12 @@
 		"ariaLabel": "Bản đồ thế giới. Kéo để di chuyển, cuộn chuột hoặc chụm ngón tay để thu phóng.",
 		"zoomIn": "Phóng to",
 		"zoomOut": "Thu nhỏ",
-		"updatedAreas_other": "Đã cập nhật các khu vực {{count}}"
+		"updatedAreas_other": "Đã cập nhật các khu vực {{count}}",
+		"bedrockUnsupported": "Bản đồ không khả dụng cho Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server lưu trữ thế giới ở định dạng LevelDB. Kết xuất bản đồ chunk trực tiếp chỉ khả dụng cho các máy chủ Java.",
+		"bedrockRunning": "Thế giới đã lưu (Tạm dừng trực tiếp)",
+		"bedrockOffline": "Thế giới đã lưu",
+		"updatedAreas_one": "Đã cập nhật {{count}} khu vực"
 	},
 	"pluginDetails": {
 		"byline": "bởi {{author}} · {{downloads}} lượt tải",
@@ -896,7 +913,8 @@
 		"configFilesDesc": "Cấu hình máy chủ và plugin (YAML, JSON, TOML).",
 		"saveFile": "Lưu tệp",
 		"manage": "Quản lý",
-		"changed_other": "{{count}} đã thay đổi"
+		"changed_other": "{{count}} đã thay đổi",
+		"changed_one": "{{count}} đã thay đổi"
 	},
 	"newInstance": {
 		"title": "Tạo phiên bản mới",
@@ -1064,9 +1082,13 @@
 		"summary": {
 			"download_other": "{{count}} để tải xuống ({{size}})",
 			"turnedOff_other": "{{count}} đã tắt",
-			"conflictsKept_other": "Xung đột {{count}} được giữ lại"
+			"conflictsKept_other": "Xung đột {{count}} được giữ lại",
+			"download_one": "{{count}} để tải xuống ({{size}})",
+			"turnedOff_one": "{{count}} đã tắt",
+			"conflictsKept_one": "{{count}} xung đột được giữ lại"
 		},
-		"backupWorlds_other": "Sao lưu thế giới (thế giới {{count}}, {{size}}) Kết quả"
+		"backupWorlds_other": "Sao lưu thế giới (thế giới {{count}}, {{size}}) Kết quả",
+		"backupWorlds_one": "Sao lưu thế giới ({{count}} thế giới, {{size}})"
 	},
 	"errors": {
 		"launchInstance": "Không khởi chạy được Phiên bản: {{error}}",
@@ -1107,7 +1129,8 @@
 		"confirmKick": "Đá {{name}}?",
 		"confirmBan": "Cấm {{name}}?",
 		"confirm": "Xác nhận",
-		"kick": "Kick"
+		"kick": "Kick",
+		"bedrockNote": "Bedrock Dedicated Server không hiển thị kho đồ, trang bị hoặc lượng máu trực tiếp qua bảng điều khiển. Các lệnh quản lý có sẵn bên dưới."
 	},
 	"transfer": {
 		"zipArchive": "Lưu trữ Zip",
@@ -1179,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Máy chủ Minecraft chính thức chưa được sửa đổi trực tiếp từ Mojang",
 			"badge": "Bản gốc"
+		},
+		"bedrock": {
+			"tagline": "Máy chủ chuyên dụng chính thức của Minecraft Bedrock (BDS) để chơi chéo trên thiết bị di động và console",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1210,7 +1237,9 @@
 		"heroLine2": "sau vài giây.",
 		"heroText": "Ingot tải xuống, định cấu hình và chạy máy chủ Minecraft ngay trên thiết bị này. Mời bạn bè từ mọi nơi.",
 		"createAServer": "Tạo máy chủ",
-		"createAServerHint": "Paper, PumpkinMC, Fabric và hơn thế nữa"
+		"createAServerHint": "Paper, PumpkinMC, Fabric và hơn thế nữa",
+		"nativeMemoryTitle": "Quản lý bộ nhớ gốc",
+		"nativeMemoryDesc": "Máy chủ này chạy nguyên bản dưới dạng tệp nhị phân đã biên dịch. Nó phân bổ bộ nhớ hệ thống linh hoạt khi cần mà không có giới hạn JVM cố định."
 	},
 	"plugins": {
 		"unsupported": "Máy chủ {{core}} không thể sử dụng plugin",
@@ -1245,7 +1274,8 @@
 		"sort": {
 			"downloads": "Phổ biến nhất",
 			"updated": "Cập nhật gần đây",
-			"newest": "Các plugin Tìm kiếm"
+			"newest": "Các plugin Tìm kiếm",
+			"relevance": "Độ liên quan"
 		},
 		"searchPlaceholder_plugin": "mới nhất, ví dụ: LuckPerms",
 		"searchPlaceholder_mod": "Tìm kiếm các mod, ví dụ: Lithium",
@@ -1261,7 +1291,32 @@
 		"playersNeedIt": "Người chơi cũng cần nó",
 		"isInstalled": "{{name}} đã được cài đặt",
 		"install": "Cài đặt {{name}}",
-		"results_other": "{{formatted}}"
+		"results_other": "{{formatted}}",
+		"bedrockPacksTitle": "Gói & Tiện ích mở rộng Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server sử dụng Gói hành vi và Gói tài nguyên thay vì các plugin Java. Đặt các gói của bạn vào thư mục behavior_packs và resource_packs của máy chủ.",
+		"openServerFolder": "Mở thư mục máy chủ",
+		"openBehaviorPacks": "Mở behavior_packs",
+		"openResourcePacks": "Mở resource_packs",
+		"browsePacks": "Duyệt tiện ích mở rộng",
+		"installedPacks": "Gói đã cài đặt",
+		"searchPacksPlaceholder": "Tìm kiếm tiện ích mở rộng, gói hành vi & tài nguyên Bedrock...",
+		"allPacks": "Tất cả các gói",
+		"behaviorPacks": "Gói hành vi",
+		"resourcePacks": "Gói tài nguyên",
+		"installPack": "Cài đặt",
+		"installingPack": "Đang cài đặt...",
+		"packInstalled": "Đã cài đặt {{name}} và kích hoạt cho thế giới.",
+		"packInstallFailed": "Không thể cài đặt {{name}}: {{error}}",
+		"downloadFromCurseForgeHint": "Đã mở {{name}} trên CurseForge. Tải gói xuống và đặt vào thư mục behavior_packs hoặc resource_packs của bạn.",
+		"deletePack": "Xóa gói",
+		"activeInWorld": "Đang hoạt động trong thế giới",
+		"inactiveInWorld": "Không hoạt động trong thế giới",
+		"builtInPack": "Tích hợp",
+		"noPacksFound": "Không tìm thấy gói Bedrock nào",
+		"tryAnotherSearch": "Thử tìm kiếm với cụm từ khác hoặc thay đổi bộ lọc",
+		"noInstalledPacks": "Chưa có gói tùy chỉnh nào được cài đặt",
+		"noInstalledPacksDesc": "Duyệt qua các tiện ích mở rộng và gói Bedrock công khai hoặc kéo thả chúng vào thư mục behavior_packs và resource_packs.",
+		"results_one": "{{formatted}} kết quả"
 	},
 	"join": {
 		"shareTitle": "Tham gia {{name}}",
@@ -1378,7 +1433,8 @@
 		"supports": "Hỗ trợ:",
 		"createAndInstall": "Tạo & Cài đặt",
 		"installToInstance": "Cài đặt vào Phiên bản",
-		"compatibleCount_other": "{{count}} phiên bản tương thích"
+		"compatibleCount_other": "{{count}} phiên bản tương thích",
+		"compatibleCount_one": "{{count}} phiên bản tương thích"
 	},
 	"contentTypes": {
 		"mod": "Mod",
@@ -1415,7 +1471,10 @@
 		"next": "Hình ảnh tiếp theo",
 		"downloads_other": "{{formatted}} tải xuống",
 		"followers_other": "{{formatted}} Người theo dõi",
-		"showing_other": "Đang hiển thị {{shown}} của các phiên bản {{count}}"
+		"showing_other": "Đang hiển thị {{shown}} của các phiên bản {{count}}",
+		"downloads_one": "{{formatted}} lượt tải xuống",
+		"followers_one": "{{formatted}} người theo dõi",
+		"showing_one": "Đang hiển thị {{shown}} trên {{count}} phiên bản"
 	},
 	"importInstance": {
 		"selectLauncherDir": "Chọn thư mục {{launcher}} Phiên bản",
@@ -1462,7 +1521,14 @@
 		"worldsCount_other": "{{count}} thế giới",
 		"screenshotsCount_other": "{{count}} ảnh chụp màn hình",
 		"modFiles_other": "Các tệp mod {{count}}",
-		"singleplayerWorlds_other": "{{count}} thế giới chơi đơn"
+		"singleplayerWorlds_other": "{{count}} thế giới chơi đơn",
+		"found_one": "Đã tìm thấy {{count}} phiên bản trong {{launcher}}. Chọn phiên bản để nhập.",
+		"instancesFound_one": "{{count}} phiên bản đã tìm thấy",
+		"modsCount_one": "{{count}} mod",
+		"worldsCount_one": "{{count}} thế giới",
+		"screenshotsCount_one": "{{count}} ảnh chụp màn hình",
+		"modFiles_one": "{{count}} tệp mod",
+		"singleplayerWorlds_one": "{{count}} thế giới chơi đơn"
 	},
 	"skinViewer": {
 		"resetCamera": "Đặt lại camera 3D",
@@ -1566,7 +1632,8 @@
 		"authorize": "Ủy quyền và áp dụng",
 		"count_other": "{{formatted}} giao diện",
 		"hasCape": "Áo choàng",
-		"playerNotFound": "Không tìm thấy người chơi có tên hoặc UUID \"{{query}}\""
+		"playerNotFound": "Không tìm thấy người chơi có tên hoặc UUID \"{{query}}\"",
+		"count_one": "{{formatted}} giao diện"
 	},
 	"select": {
 		"placeholder": "Chọn một tùy chọn",
@@ -1579,5 +1646,24 @@
 		"publicAddress": "Địa chỉ công cộng: {{address}}",
 		"connecting": "playit.gg đường hầm kết nối...",
 		"localOnly": "Chỉ mạng cục bộ"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Phiên bản đa nền tảng cho Windows & console",
+		"installed": "Đã cài đặt",
+		"notInstalled": "Chưa cài đặt",
+		"editionPreview": "Bản Preview",
+		"editionRetail": "Bản Retail",
+		"description": "Minecraft Bedrock Edition có sẵn trên Microsoft Store. Cài đặt trực tiếp từ Store hoặc khởi chạy từ Ingot.",
+		"readyToPlay": "Sẵn sàng khởi chạy",
+		"launching": "Đang khởi động...",
+		"play": "Chơi Bedrock",
+		"msStoreEdition": "Phiên bản Microsoft Store",
+		"installStore": "Cài đặt qua Microsoft Store",
+		"openWorlds": "Thư mục thế giới",
+		"openResourcePacks": "Gói tài nguyên",
+		"openBehaviorPacks": "Gói hành vi",
+		"openScreenshots": "Thư mục ảnh chụp màn hình",
+		"store": "Trang Microsoft Store"
 	}
 }

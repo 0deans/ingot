@@ -29,7 +29,9 @@
 		"stop": "Berhenti",
 		"done": "Selesai",
 		"update": "Perbarui",
-		"enable": "Aktifkan"
+		"enable": "Aktifkan",
+		"previous": "Sebelumnya",
+		"next": "Berikutnya"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Pilih Bahasa Anda",
@@ -452,7 +454,9 @@
 		"stopNote": "Menghentikan akan langsung mematikannya. Apa pun sejak penyimpanan otomatis terakhir (paling banyak beberapa menit) akan hilang, dan dunia itu sendiri tetap aman.",
 		"leaveRunning": "Biarkan berjalan",
 		"title_other": "Server masih berjalan dari terakhir kali",
-		"description_other": "Ingot ditutup tanpa menghentikannya, jadi konsolnya hilang: Ingot tidak dapat mengirim memerintahkan atau menyelamatkan dunia mereka. Mereka membuat pelabuhan dan dunianya sibuk sampai berhenti."
+		"description_other": "Ingot ditutup tanpa menghentikannya, jadi konsolnya hilang: Ingot tidak dapat mengirim memerintahkan atau menyelamatkan dunia mereka. Mereka membuat pelabuhan dan dunianya sibuk sampai berhenti.",
+		"title_one": "Server masih berjalan dari terakhir kali",
+		"description_one": "Ingot ditutup tanpa menghentikannya, jadi konsolnya hilang: Ingot tidak dapat mengirim perintah atau menyelamatkan dunianya. Port dan dunia tetap sibuk sampai dihentikan."
 	},
 	"serverStatus": {
 		"running": "Berjalan",
@@ -469,7 +473,8 @@
 		"plugins": "Plugin",
 		"mods": "Mod",
 		"settings": "Pengaturan",
-		"home": "Beranda"
+		"home": "Beranda",
+		"packs": "Add-On"
 	},
 	"serverWorkspace": {
 		"back": "Kembali ke server"
@@ -499,7 +504,11 @@
 		"asleep_other": "Server ini tertidur. Mereka bangun ketika ada pemain yang bergabung, tetapi hanya ketika Ingot terbuka.",
 		"consoles_other": "Konsol server ini berjalan di dalam Ingot. Jika Ingot ditutup lebih dulu, mereka akan terus berlari tanpa ada cara untuk mengendalikan atau menyelamatkan dunia mereka.",
 		"saving_other": "Menyelamatkan dunia dan menghentikan. Ini bisa memakan waktu hingga 30 detik.",
-		"games_other": "Game Anda tetap berjalan. Ingot mengambilnya lagi saat Anda membukanya."
+		"games_other": "Game Anda tetap berjalan. Ingot mengambilnya lagi saat Anda membukanya.",
+		"asleep_one": "Server ini tertidur. Server ini akan bangun ketika ada pemain yang bergabung, tetapi hanya saat Ingot terbuka.",
+		"consoles_one": "Konsol server ini berjalan di dalam Ingot. Jika Ingot ditutup lebih dulu, server akan terus berjalan tanpa ada cara untuk mengontrolnya atau menyimpan dunianya.",
+		"saving_one": "Menyimpan dunia dan menghentikan. Ini dapat memakan waktu hingga 30 detik.",
+		"games_one": "Game Anda akan terus berjalan dengan cara apa pun. Ingot akan mendeteksinya lagi saat Anda membukanya."
 	},
 	"crashDialog": {
 		"title": "{{name}} crash saat peluncuran pertama di {{version}}",
@@ -516,7 +525,9 @@
 		"undo": "Batalkan perubahan versi",
 		"undone": "Kembali ke {{version}}, persis seperti sebelumnya.",
 		"tryAgain_server_other": "Mulai server lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali.",
-		"tryAgain_game_other": "Mulai permainan lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali."
+		"tryAgain_game_other": "Mulai permainan lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali.",
+		"tryAgain_server_one": "Mulai ulang server untuk mencoba tanpa ini. Urungkan tetap mengaktifkannya kembali.",
+		"tryAgain_game_one": "Mulai lagi permainan untuk mencoba tanpa ini. Urungkan tetap mengaktifkannya kembali."
 	},
 	"skinPreview": {
 		"saving": "Menyimpan...",
@@ -666,7 +677,8 @@
 		"noneHint": "Semua orang yang pernah bergabung ke server ini akan terdaftar di sini, beserta inventaris terakhir yang tersimpan.",
 		"search": "Cari pemain",
 		"onlineNow": "Online sekarang",
-		"lastSeen": "Terakhir terlihat {{time}}"
+		"lastSeen": "Terakhir terlihat {{time}}",
+		"connected": "Terhubung"
 	},
 	"map": {
 		"upToDate": "Mutakhir",
@@ -683,7 +695,12 @@
 		"ariaLabel": "Peta dunia. Tarik untuk menggeser, gulir atau cubit untuk memperbesar.",
 		"zoomIn": "Perbesar",
 		"zoomOut": "Perkecil",
-		"updatedAreas_other": "Memperbarui area {{count}}"
+		"updatedAreas_other": "Memperbarui area {{count}}",
+		"bedrockUnsupported": "Peta tidak tersedia untuk Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server menyimpan dunia dalam format LevelDB. Rendering peta chunk langsung hanya tersedia untuk server Java.",
+		"bedrockRunning": "Dunia tersimpan (Siaran langsung dijeda)",
+		"bedrockOffline": "Dunia tersimpan",
+		"updatedAreas_one": "Memperbarui {{count}} area"
 	},
 	"pluginDetails": {
 		"byline": "oleh {{author}} · {{downloads}} unduhan",
@@ -896,7 +913,8 @@
 		"configFilesDesc": "Konfigurasi server dan plugin (YAML, JSON, TOML).",
 		"saveFile": "Simpan file",
 		"manage": "Kelola",
-		"changed_other": "{{count}} mengubah"
+		"changed_other": "{{count}} mengubah",
+		"changed_one": "{{count}} berubah"
 	},
 	"newInstance": {
 		"title": "Buat Instansi Baru",
@@ -1064,9 +1082,13 @@
 		"summary": {
 			"download_other": "{{count}} menjadi mengunduh ({{size}})",
 			"turnedOff_other": "{{count}} dimatikan",
-			"conflictsKept_other": "{{count}} konflik dipertahankan"
+			"conflictsKept_other": "{{count}} konflik dipertahankan",
+			"download_one": "{{count}} untuk diunduh ({{size}})",
+			"turnedOff_one": "{{count}} dinonaktifkan",
+			"conflictsKept_one": "{{count}} konflik dipertahankan"
 		},
-		"backupWorlds_other": "Dunia cadangan ({{count}} dunia, {{size}})"
+		"backupWorlds_other": "Dunia cadangan ({{count}} dunia, {{size}})",
+		"backupWorlds_one": "Cadangkan dunia ({{count}} dunia, {{size}})"
 	},
 	"errors": {
 		"launchInstance": "Gagal meluncurkan instansi: {{error}}",
@@ -1107,7 +1129,8 @@
 		"confirmKick": "Keluarkan {{name}}?",
 		"confirmBan": "Blokir {{name}}?",
 		"confirm": "Konfirmasi",
-		"kick": "Keluarkan"
+		"kick": "Keluarkan",
+		"bedrockNote": "Bedrock Dedicated Server tidak menampilkan inventaris, perlengkapan, atau kesehatan langsung melalui konsol. Perintah manajemen tersedia di bawah."
 	},
 	"transfer": {
 		"zipArchive": "Arsip zip",
@@ -1179,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Server Minecraft resmi tanpa mod langsung dari Mojang",
 			"badge": "Orisinal"
+		},
+		"bedrock": {
+			"tagline": "Bedrock Dedicated Server (BDS) Minecraft resmi untuk permainan lintas platform ponsel & konsol",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1210,7 +1237,9 @@
 		"heroLine2": "dalam hitungan detik.",
 		"heroText": "Ingot mengunduh, mengonfigurasi, dan menjalankan server Minecraft langsung di perangkat ini. Undang teman dari mana saja.",
 		"createAServer": "Buat server",
-		"createAServerHint": "Paper, PumpkinMC, Fabric, dan lainnya"
+		"createAServerHint": "Paper, PumpkinMC, Fabric, dan lainnya",
+		"nativeMemoryTitle": "Manajemen Memori Native",
+		"nativeMemoryDesc": "Server ini berjalan secara native sebagai biner terkompilasi. Mengalokasikan memori sistem secara dinamis sesuai kebutuhan tanpa batasan JVM tetap."
 	},
 	"plugins": {
 		"unsupported": "Server {{core}} tidak dapat menggunakan plugin",
@@ -1245,7 +1274,8 @@
 		"sort": {
 			"downloads": "Paling populer",
 			"updated": "Baru diperbarui",
-			"newest": "Terbaru"
+			"newest": "Terbaru",
+			"relevance": "Relevansi"
 		},
 		"searchPlaceholder_plugin": "Cari plugin, cth. LuckPerms",
 		"searchPlaceholder_mod": "Cari mod, cth. Lithium",
@@ -1261,7 +1291,32 @@
 		"playersNeedIt": "Pemain juga memerlukannya",
 		"isInstalled": "{{name}} sudah terpasang",
 		"install": "Pasang {{name}}",
-		"results_other": "{{formatted}} hasil"
+		"results_other": "{{formatted}} hasil",
+		"bedrockPacksTitle": "Add-On & Paket Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server menggunakan Paket Perilaku dan Paket Sumber Daya alih-alih plugin Java. Tempatkan paket Anda di folder behavior_packs dan resource_packs server.",
+		"openServerFolder": "Buka Folder Server",
+		"openBehaviorPacks": "Buka behavior_packs",
+		"openResourcePacks": "Buka resource_packs",
+		"browsePacks": "Jelajahi Add-On",
+		"installedPacks": "Paket Terinstal",
+		"searchPacksPlaceholder": "Cari add-on, paket perilaku & sumber daya Bedrock...",
+		"allPacks": "Semua Paket",
+		"behaviorPacks": "Paket Perilaku",
+		"resourcePacks": "Paket Sumber Daya",
+		"installPack": "Pasang",
+		"installingPack": "Memasang...",
+		"packInstalled": "Berhasil memasang {{name}} dan mengaktifkannya untuk dunia.",
+		"packInstallFailed": "Gagal memasang {{name}}: {{error}}",
+		"downloadFromCurseForgeHint": "Membuka {{name}} di CurseForge. Unduh paket dan letakkan di folder behavior_packs atau resource_packs Anda.",
+		"deletePack": "Hapus paket",
+		"activeInWorld": "Aktif di dunia",
+		"inactiveInWorld": "Tidak aktif di dunia",
+		"builtInPack": "Bawaan",
+		"noPacksFound": "Tidak ada paket Bedrock yang ditemukan",
+		"tryAnotherSearch": "Coba cari dengan kueri lain atau ubah filter",
+		"noInstalledPacks": "Belum ada paket kustom yang terinstal",
+		"noInstalledPacksDesc": "Jelajahi add-on dan paket Bedrock publik atau masukkan ke folder behavior_packs dan resource_packs.",
+		"results_one": "{{formatted}} hasil"
 	},
 	"join": {
 		"shareTitle": "Gabung ke {{name}}",
@@ -1378,7 +1433,8 @@
 		"supports": "Supports:",
 		"createAndInstall": "Create & Install",
 		"installToInstance": "Install to instansi",
-		"compatibleCount_other": "{{count}} versi yang kompatibel"
+		"compatibleCount_other": "{{count}} versi yang kompatibel",
+		"compatibleCount_one": "{{count}} versi yang kompatibel"
 	},
 	"contentTypes": {
 		"mod": "Mod",
@@ -1415,7 +1471,10 @@
 		"next": "Gambar berikutnya",
 		"downloads_other": "{{formatted}} unduhan",
 		"followers_other": "{{formatted}} pengikut",
-		"showing_other": "Menampilkan {{shown}} dari versi {{count}}"
+		"showing_other": "Menampilkan {{shown}} dari versi {{count}}",
+		"downloads_one": "{{formatted}} unduhan",
+		"followers_one": "{{formatted}} pengikut",
+		"showing_one": "Menampilkan {{shown}} dari {{count}} versi"
 	},
 	"importInstance": {
 		"selectLauncherDir": "Pilih {{launcher}} instansi Direktori",
@@ -1462,7 +1521,14 @@
 		"worldsCount_other": "{{count}} dunia",
 		"screenshotsCount_other": "{{count}} tangkapan layar",
 		"modFiles_other": "{{count}} file mod",
-		"singleplayerWorlds_other": "{{count}} dunia pemain tunggal"
+		"singleplayerWorlds_other": "{{count}} dunia pemain tunggal",
+		"found_one": "Menemukan {{count}} instans di {{launcher}}. Pilih yang akan diimpor.",
+		"instancesFound_one": "{{count}} instans ditemukan",
+		"modsCount_one": "{{count}} mod",
+		"worldsCount_one": "{{count}} dunia",
+		"screenshotsCount_one": "{{count}} tangkapan layar",
+		"modFiles_one": "{{count}} file mod",
+		"singleplayerWorlds_one": "{{count}} dunia pemain tunggal"
 	},
 	"skinViewer": {
 		"resetCamera": "Reset kamera 3D",
@@ -1566,7 +1632,8 @@
 		"authorize": "Otorisasi & Terapkan",
 		"count_other": "Kulit {{formatted}}",
 		"hasCape": "Jubah",
-		"playerNotFound": "Tidak ada pemain ditemukan dengan nama pengguna atau UUID \"{{query}}\""
+		"playerNotFound": "Tidak ada pemain ditemukan dengan nama pengguna atau UUID \"{{query}}\"",
+		"count_one": "{{formatted}} skin"
 	},
 	"select": {
 		"placeholder": "Pilih opsi",
@@ -1579,5 +1646,24 @@
 		"publicAddress": "Alamat publik: {{address}}",
 		"connecting": "playit.gg terowongan menghubungkan...",
 		"localOnly": "Hanya jaringan lokal"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Edisi lintas platform untuk Windows & konsol",
+		"installed": "Terinstal",
+		"notInstalled": "Belum terinstal",
+		"editionPreview": "Edisi Preview",
+		"editionRetail": "Edisi Retail",
+		"description": "Minecraft Bedrock Edition tersedia melalui Microsoft Store. Pasang langsung dari Store atau luncurkan dari Ingot.",
+		"readyToPlay": "Siap diluncurkan",
+		"launching": "Memulai...",
+		"play": "Mainkan Bedrock",
+		"msStoreEdition": "Edisi Microsoft Store",
+		"installStore": "Pasang via Microsoft Store",
+		"openWorlds": "Folder Dunia",
+		"openResourcePacks": "Paket Sumber Daya",
+		"openBehaviorPacks": "Paket Perilaku",
+		"openScreenshots": "Folder Tangkapan Layar",
+		"store": "Halaman Microsoft Store"
 	}
 }

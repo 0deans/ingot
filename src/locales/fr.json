@@ -29,7 +29,9 @@
 		"stop": "Arrêter",
 		"done": "Terminé",
 		"update": "Mettre à jour",
-		"enable": "Activer"
+		"enable": "Activer",
+		"previous": "Précédent",
+		"next": "Suivant"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Choisissez votre langue",
@@ -473,7 +475,8 @@
 		"plugins": "Plugins",
 		"mods": "Mods",
 		"settings": "Paramètres",
-		"home": "Accueil"
+		"home": "Accueil",
+		"packs": "Add-ons"
 	},
 	"serverWorkspace": {
 		"back": "Retour aux serveurs"
@@ -682,7 +685,8 @@
 		"noneHint": "Tous ceux qui ont rejoint ce serveur apparaîtront ici, avec leur dernier inventaire sauvegardé.",
 		"search": "Rechercher des joueurs",
 		"onlineNow": "En ligne",
-		"lastSeen": "Vu {{time}}"
+		"lastSeen": "Vu {{time}}",
+		"connected": "Connecté"
 	},
 	"map": {
 		"upToDate": "À jour",
@@ -701,7 +705,11 @@
 		"zoomOut": "Zoom arrière",
 		"updatedAreas_one": "{{count}} zone mise à jour",
 		"updatedAreas_many": "{{count}} zones mises à jour",
-		"updatedAreas_other": "{{count}} zones mises à jour"
+		"updatedAreas_other": "{{count}} zones mises à jour",
+		"bedrockUnsupported": "Carte non disponible pour Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server enregistre les mondes au format LevelDB. Le rendu de carte en temps réel n'est disponible que pour les serveurs Java.",
+		"bedrockRunning": "Monde sauvegardé (Direct en pause)",
+		"bedrockOffline": "Monde sauvegardé"
 	},
 	"pluginDetails": {
 		"byline": "par {{author}} · {{downloads}} téléchargements",
@@ -1135,7 +1143,8 @@
 		"confirmKick": "Expulser {{name}} ?",
 		"confirmBan": "Bannir {{name}} ?",
 		"confirm": "Confirmer",
-		"kick": "Expulser"
+		"kick": "Expulser",
+		"bedrockNote": "Bedrock Dedicated Server ne transmet pas l'inventaire, l'équipement ou la santé en direct via la console. Les commandes de gestion sont disponibles ci-dessous."
 	},
 	"transfer": {
 		"zipArchive": "Archive ZIP",
@@ -1207,6 +1216,10 @@
 		"vanilla": {
 			"tagline": "Serveur Minecraft officiel non modifié, directement de Mojang",
 			"badge": "Original"
+		},
+		"bedrock": {
+			"tagline": "Serveur dédié officiel Minecraft Bedrock (BDS) pour le crossplay sur mobile et console",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1238,7 +1251,9 @@
 		"heroLine2": "en quelques secondes.",
 		"heroText": "Ingot télécharge, configure et fait tourner un serveur Minecraft directement sur cet appareil. Invitez vos amis où qu'ils soient.",
 		"createAServer": "Créer un serveur",
-		"createAServerHint": "Paper, PumpkinMC, Fabric et plus"
+		"createAServerHint": "Paper, PumpkinMC, Fabric et plus",
+		"nativeMemoryTitle": "Gestion de mémoire native",
+		"nativeMemoryDesc": "Ce serveur s'exécute nativement sous forme de binaire compilé. Il alloue dynamiquement la mémoire système selon les besoins, sans limites fixes de la JVM."
 	},
 	"plugins": {
 		"unsupported": "Les serveurs {{core}} ne gèrent pas les plugins",
@@ -1273,7 +1288,8 @@
 		"sort": {
 			"downloads": "Plus populaires",
 			"updated": "Mis à jour récemment",
-			"newest": "Plus récents"
+			"newest": "Plus récents",
+			"relevance": "Pertinence"
 		},
 		"searchPlaceholder_plugin": "Rechercher des plugins, ex. LuckPerms",
 		"searchPlaceholder_mod": "Rechercher des mods, ex. Lithium",
@@ -1291,7 +1307,31 @@
 		"install": "Installer {{name}}",
 		"results_one": "{{formatted}} résultat",
 		"results_many": "{{formatted}} résultats",
-		"results_other": "{{formatted}} résultats"
+		"results_other": "{{formatted}} résultats",
+		"bedrockPacksTitle": "Add-ons et packs Bedrock",
+		"bedrockPacksDesc": "Bedrock Dedicated Server utilise des packs de comportement et de ressources au lieu de plugins Java. Placez vos packs dans les dossiers behavior_packs et resource_packs du serveur.",
+		"openServerFolder": "Ouvrir le dossier du serveur",
+		"openBehaviorPacks": "Ouvrir behavior_packs",
+		"openResourcePacks": "Ouvrir resource_packs",
+		"browsePacks": "Parcourir les add-ons",
+		"installedPacks": "Packs installés",
+		"searchPacksPlaceholder": "Rechercher des add-ons, packs de comportement et de ressources...",
+		"allPacks": "Tous les packs",
+		"behaviorPacks": "Packs de comportement",
+		"resourcePacks": "Packs de ressources",
+		"installPack": "Installer",
+		"installingPack": "Installation...",
+		"packInstalled": "{{name}} a été installé et activé pour le monde.",
+		"packInstallFailed": "Échec de l'installation de {{name}} : {{error}}",
+		"downloadFromCurseForgeHint": "{{name}} ouvert sur CurseForge. Téléchargez le pack et placez-le dans votre dossier behavior_packs ou resource_packs.",
+		"deletePack": "Supprimer le pack",
+		"activeInWorld": "Actif dans le monde",
+		"inactiveInWorld": "Inactif dans le monde",
+		"builtInPack": "Intégré",
+		"noPacksFound": "Aucun pack Bedrock trouvé",
+		"tryAnotherSearch": "Essayez avec une autre recherche ou modifiez les filtres",
+		"noInstalledPacks": "Aucun pack personnalisé installé pour le moment",
+		"noInstalledPacksDesc": "Parcourez les add-ons et packs Bedrock publics ou déposez-les dans les dossiers behavior_packs et resource_packs."
 	},
 	"join": {
 		"shareTitle": "Rejoindre {{name}}",
@@ -1633,5 +1673,24 @@
 		"publicAddress": "Adresse publique : {{address}}",
 		"connecting": "Connexion du tunnel playit.gg...",
 		"localOnly": "Réseau local uniquement"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Édition multiplateforme pour Windows et consoles",
+		"installed": "Installé",
+		"notInstalled": "Non installé",
+		"editionPreview": "Édition Preview",
+		"editionRetail": "Édition Retail",
+		"description": "Minecraft Bedrock Edition est disponible sur le Microsoft Store. Installez-la directement depuis le Store ou lancez-la depuis Ingot.",
+		"readyToPlay": "Prêt à lancer",
+		"launching": "Démarrage...",
+		"play": "Jouer à Bedrock",
+		"msStoreEdition": "Édition Microsoft Store",
+		"installStore": "Installer via le Microsoft Store",
+		"openWorlds": "Dossier des mondes",
+		"openResourcePacks": "Packs de ressources",
+		"openBehaviorPacks": "Packs de comportement",
+		"openScreenshots": "Dossier des captures d'écran",
+		"store": "Page Microsoft Store"
 	}
 }

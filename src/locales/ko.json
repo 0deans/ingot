@@ -29,7 +29,9 @@
 		"stop": "중지",
 		"done": "완료",
 		"update": "업데이트",
-		"enable": "활성화"
+		"enable": "활성화",
+		"previous": "이전",
+		"next": "다음"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "언어 선택",
@@ -452,7 +454,9 @@
 		"stopNote": "중지하면 즉시 종료됩니다. 마지막 자동 저장 이후의 변경 사항(최대 몇 분)은 유실될 수 있으나 월드 자체는 안전하게 유지됩니다.",
 		"leaveRunning": "실행 상태 유지",
 		"title_other": "서버가 지난번부터 계속 실행 중입니다.",
-		"description_other": "Ingot가 서버를 중지하지 않고 닫혀서 해당 콘솔이 사라졌습니다. Ingot는 명령을 보내거나 해당 세계를 저장할 수 없습니다. 그들은 중지될 때까지 포트와 세계를 바쁜 상태로 유지합니다."
+		"description_other": "Ingot가 서버를 중지하지 않고 닫혀서 해당 콘솔이 사라졌습니다. Ingot는 명령을 보내거나 해당 세계를 저장할 수 없습니다. 그들은 중지될 때까지 포트와 세계를 바쁜 상태로 유지합니다.",
+		"title_one": "서버가 지난번부터 계속 실행 중입니다.",
+		"description_one": "Ingot가 서버를 중지하지 않고 종료되어 콘솔이 사라졌습니다. Ingot는 명령을 보내거나 월드를 저장할 수 없습니다. 중지될 때까지 포트와 월드가 계속 사용 중으로 유지됩니다."
 	},
 	"serverStatus": {
 		"running": "실행 중",
@@ -469,7 +473,8 @@
 		"plugins": "플러그인",
 		"mods": "모드",
 		"settings": "설정",
-		"home": "홈"
+		"home": "홈",
+		"packs": "애드온"
 	},
 	"serverWorkspace": {
 		"back": "서버 목록으로 돌아가기"
@@ -499,7 +504,11 @@
 		"asleep_other": "이 서버는 대기 상태입니다. 플레이어가 참가하면 깨어나지만 Ingot가 열려 있는 동안에만 가능합니다.",
 		"consoles_other": "이 서버의 콘솔은 Ingot 내부에서 실행됩니다. Ingot가 먼저 닫히면 제어하거나 세계를 구할 방법 없이 계속 실행됩니다.",
 		"saving_other": "세계를 저장하고 중지합니다. 최대 30초 정도 걸릴 수 있습니다.",
-		"games_other": "게임은 어느 방향으로든 계속 실행됩니다. Ingot는 열 때 다시 집어듭니다."
+		"games_other": "게임은 어느 방향으로든 계속 실행됩니다. Ingot는 열 때 다시 집어듭니다.",
+		"asleep_one": "이 서버는 대기 상태입니다. 플레이어가 참가하면 깨어나지만 Ingot가 열려 있는 동안에만 가능합니다.",
+		"consoles_one": "이 서버의 콘솔은 Ingot 내부에서 실행됩니다. Ingot가 먼저 닫히면 제어하거나 월드를 저장할 방법 없이 계속 실행됩니다.",
+		"saving_one": "월드를 저장하고 중지합니다. 최대 30초 정도 걸릴 수 있습니다.",
+		"games_one": "게임은 어느 방향으로든 계속 실행됩니다. Ingot는 열 때 다시 감지합니다."
 	},
 	"crashDialog": {
 		"title": "{{name}}이(가) {{version}}에서 처음 시작하는 도중 충돌이 발생했습니다",
@@ -516,7 +525,9 @@
 		"undo": "버전 변경 되돌리기",
 		"undone": "이전과 동일하게 {{version}}(으)로 되돌아왔습니다.",
 		"tryAgain_server_other": "서버를 다시 시작하여 해당 파일 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
-		"tryAgain_game_other": "게임을 다시 시작하여 해당 항목 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다."
+		"tryAgain_game_other": "게임을 다시 시작하여 해당 항목 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
+		"tryAgain_server_one": "서버를 다시 시작하여 해당 파일 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
+		"tryAgain_game_one": "게임을 다시 시작하여 해당 항목 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다."
 	},
 	"skinPreview": {
 		"saving": "저장 중...",
@@ -666,7 +677,8 @@
 		"noneHint": "이 서버에 접속했던 모든 플레이어와 마지막으로 저장된 인벤토리가 여기에 표시됩니다.",
 		"search": "플레이어 검색",
 		"onlineNow": "현재 온라인",
-		"lastSeen": "마지막 접속: {{time}}"
+		"lastSeen": "마지막 접속: {{time}}",
+		"connected": "연결됨"
 	},
 	"map": {
 		"upToDate": "최신 상태",
@@ -683,7 +695,12 @@
 		"ariaLabel": "세계 지도를 확인하세요. 드래그하여 이동하고, 스크롤하거나 핀치하여 확대/축소할 수 있습니다.",
 		"zoomIn": "확대",
 		"zoomOut": "축소",
-		"updatedAreas_other": "{{count}} 영역을 업데이트했습니다."
+		"updatedAreas_other": "{{count}} 영역을 업데이트했습니다.",
+		"bedrockUnsupported": "Bedrock에서는 지도를 사용할 수 없습니다",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server는 월드를 LevelDB 형식으로 저장합니다. 실시간 청크 맵 렌더링은 Java 서버에서만 지원됩니다.",
+		"bedrockRunning": "저장된 월드 (실시간 일시정지)",
+		"bedrockOffline": "저장된 월드",
+		"updatedAreas_one": "{{count}}개 영역을 업데이트했습니다."
 	},
 	"pluginDetails": {
 		"byline": "작성자: {{author}} · {{downloads}} 다운로드",
@@ -896,7 +913,8 @@
 		"configFilesDesc": "서버 및 플러그인 구성(YAML, JSON, TOML).",
 		"saveFile": "저장 파일",
 		"manage": "관리",
-		"changed_other": "{{count}}가"
+		"changed_other": "{{count}}가",
+		"changed_one": "{{count}}개 변경됨"
 	},
 	"newInstance": {
 		"title": "새로운 인스턴스",
@@ -1064,9 +1082,13 @@
 		"summary": {
 			"download_other": "{{count}}를 다운로드하도록 변경했습니다. ({{size}})",
 			"turnedOff_other": "{{count}}가 꺼졌습니다.",
-			"conflictsKept_other": "{{count}} 충돌이 유지되었습니다."
+			"conflictsKept_other": "{{count}} 충돌이 유지되었습니다.",
+			"download_one": "{{count}}개 다운로드 예정 ({{size}})",
+			"turnedOff_one": "{{count}}개 꺼짐",
+			"conflictsKept_one": "{{count}}개 충돌 유지됨"
 		},
-		"backupWorlds_other": "백업 월드({{count}} 월드, {{size}})"
+		"backupWorlds_other": "백업 월드({{count}} 월드, {{size}})",
+		"backupWorlds_one": "월드 백업({{count}}개 월드, {{size}})"
 	},
 	"errors": {
 		"launchInstance": "인스턴스 실행 실패: {{error}}",
@@ -1107,7 +1129,8 @@
 		"confirmKick": "{{name}}를 킥하시겠습니까?",
 		"confirmBan": "금지 {{name}}?",
 		"confirm": "",
-		"kick": "킥 확인"
+		"kick": "킥 확인",
+		"bedrockNote": "Bedrock Dedicated Server는 콘솔을 통해 실시간 인벤토리, 장비, 체력을 표시하지 않습니다. 관리 명령은 아래에서 사용할 수 있습니다."
 	},
 	"transfer": {
 		"zipArchive": "Zip 아카이브",
@@ -1179,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Mojang에서 직접 수정되지 않은 공식 Minecraft 서버",
 			"badge": "원래의"
+		},
+		"bedrock": {
+			"tagline": "모바일 및 콘솔 크로스플레이를 지원하는 공식 Minecraft Bedrock Dedicated Server (BDS)",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1210,7 +1237,9 @@
 		"heroLine2": "를 몇 초 만에 만나보세요.",
 		"heroText": "Ingot는 이 장치에서 바로 Minecraft 서버를 다운로드, 구성 및 실행합니다. 어디서나 친구를 초대하세요.",
 		"createAServer": "서버 생성",
-		"createAServerHint": "Paper, PumpkinMC, Fabric 등"
+		"createAServerHint": "Paper, PumpkinMC, Fabric 등",
+		"nativeMemoryTitle": "네이티브 메모리 관리",
+		"nativeMemoryDesc": "이 서버는 컴파일된 바이너리로 기본 실행됩니다. 고정된 JVM 제한 없이 필요에 따라 시스템 메모리를 동적으로 할당합니다."
 	},
 	"plugins": {
 		"unsupported": "{{core}} 서버는 플러그인을 사용할 수 없습니다.",
@@ -1245,7 +1274,8 @@
 		"sort": {
 			"downloads": "가장 인기 있는",
 			"updated": "최근 업데이트된",
-			"newest": "최신"
+			"newest": "최신",
+			"relevance": "관련성"
 		},
 		"searchPlaceholder_plugin": "검색 플러그인, 예: LuckPerms",
 		"searchPlaceholder_mod": "검색 모드(예: 리튬",
@@ -1261,7 +1291,32 @@
 		"playersNeedIt": "플레이어도 이 모드가 필요합니다.",
 		"isInstalled": "{{name}}가 설치되었습니다.",
 		"install": "{{name}} 설치",
-		"results_other": "{{formatted}} 결과"
+		"results_other": "{{formatted}} 결과",
+		"bedrockPacksTitle": "Bedrock 애드온 및 팩",
+		"bedrockPacksDesc": "Bedrock Dedicated Server는 Java 플러그인 대신 동작 팩과 리소스 팩을 사용합니다. 팩을 서버의 behavior_packs 및 resource_packs 폴더에 넣으세요.",
+		"openServerFolder": "서버 폴더 열기",
+		"openBehaviorPacks": "behavior_packs 열기",
+		"openResourcePacks": "resource_packs 열기",
+		"browsePacks": "애드온 찾아보기",
+		"installedPacks": "설치된 팩",
+		"searchPacksPlaceholder": "Bedrock 애드온, 동작 및 리소스 팩 검색...",
+		"allPacks": "모든 팩",
+		"behaviorPacks": "동작 팩",
+		"resourcePacks": "리소스 팩",
+		"installPack": "설치",
+		"installingPack": "설치 중...",
+		"packInstalled": "{{name}}을(를) 설치하고 월드에 활성화했습니다.",
+		"packInstallFailed": "{{name}} 설치 실패: {{error}}",
+		"downloadFromCurseForgeHint": "CurseForge에서 {{name}}을(를) 열었습니다. 팩을 다운로드하여 behavior_packs 또는 resource_packs 폴더에 넣으세요.",
+		"deletePack": "팩 삭제",
+		"activeInWorld": "월드에서 활성화됨",
+		"inactiveInWorld": "월드에서 비활성화됨",
+		"builtInPack": "내장됨",
+		"noPacksFound": "Bedrock 팩을 찾을 수 없습니다",
+		"tryAnotherSearch": "다른 검색어를 입력하거나 필터를 변경해 보세요",
+		"noInstalledPacks": "아직 설치된 커스텀 팩이 없습니다",
+		"noInstalledPacksDesc": "공개된 Bedrock 애드온 및 팩을 찾아보거나 behavior_packs 및 resource_packs 폴더에 드래그하여 넣으세요.",
+		"results_one": "{{formatted}}개 결과"
 	},
 	"join": {
 		"shareTitle": "{{name}}",
@@ -1378,7 +1433,8 @@
 		"supports": "지원:",
 		"createAndInstall": "",
 		"installToInstance": "생성 및 설치 인스턴스",
-		"compatibleCount_other": "{{count}} 호환 버전"
+		"compatibleCount_other": "{{count}} 호환 버전",
+		"compatibleCount_one": "{{count}}개 호환 버전"
 	},
 	"contentTypes": {
 		"mod": "Mod",
@@ -1415,7 +1471,10 @@
 		"next": "다음 이미지",
 		"downloads_other": "{{formatted}} 다운로드",
 		"followers_other": "{{formatted}} 팔로워",
-		"showing_other": "{{count}} 버전 중 {{shown}} 표시"
+		"showing_other": "{{count}} 버전 중 {{shown}} 표시",
+		"downloads_one": "{{formatted}}회 다운로드",
+		"followers_one": "{{formatted}}명 팔로워",
+		"showing_one": "{{count}}개 버전 중 {{shown}}개 표시"
 	},
 	"importInstance": {
 		"selectLauncherDir": "{{launcher}} 선택 인스턴스 디렉터리",
@@ -1462,7 +1521,14 @@
 		"worldsCount_other": "{{count}} 세계",
 		"screenshotsCount_other": "{{count}} 스크린샷",
 		"modFiles_other": "{{count}} 모드 파일",
-		"singleplayerWorlds_other": "{{count}} 싱글 플레이어 월드"
+		"singleplayerWorlds_other": "{{count}} 싱글 플레이어 월드",
+		"found_one": "{{launcher}}에서 {{count}}개 인스턴스를 찾았습니다. 가져올 항목을 선택하세요.",
+		"instancesFound_one": "{{count}}개 인스턴스 발견",
+		"modsCount_one": "{{count}}개 모드",
+		"worldsCount_one": "{{count}}개 월드",
+		"screenshotsCount_one": "{{count}}개 스크린샷",
+		"modFiles_one": "{{count}}개 모드 파일",
+		"singleplayerWorlds_one": "{{count}}개 싱글 플레이어 월드"
 	},
 	"skinViewer": {
 		"resetCamera": "3D 카메라 재설정",
@@ -1566,7 +1632,8 @@
 		"authorize": "승인 및 적용",
 		"count_other": "{{formatted}} 스킨",
 		"hasCape": "망토",
-		"playerNotFound": "사용자 이름 또는 UUID가 \"{{query}}\"인 플레이어를 찾을 수 없습니다"
+		"playerNotFound": "사용자 이름 또는 UUID가 \"{{query}}\"인 플레이어를 찾을 수 없습니다",
+		"count_one": "{{formatted}}개 스킨"
 	},
 	"select": {
 		"placeholder": "옵션 선택",
@@ -1579,5 +1646,24 @@
 		"publicAddress": "공개 주소: {{address}}",
 		"connecting": "playit.gg 터널 연결 중...",
 		"localOnly": "로컬 네트워크만"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Windows 및 콘솔용 크로스 플랫폼 에디션",
+		"installed": "설치됨",
+		"notInstalled": "설치되지 않음",
+		"editionPreview": "미리 보기 에디션 (Preview)",
+		"editionRetail": "정식 에디션 (Retail)",
+		"description": "Minecraft Bedrock Edition은 Microsoft Store를 통해 이용할 수 있습니다. Store에서 직접 설치하거나 Ingot에서 실행하세요.",
+		"readyToPlay": "실행 준비 완료",
+		"launching": "시작 중...",
+		"play": "Bedrock 플레이",
+		"msStoreEdition": "Microsoft Store 에디션",
+		"installStore": "Microsoft Store를 통해 설치",
+		"openWorlds": "월드 폴더",
+		"openResourcePacks": "리소스 팩",
+		"openBehaviorPacks": "동작 팩",
+		"openScreenshots": "스크린샷 폴더",
+		"store": "Microsoft Store 페이지"
 	}
 }

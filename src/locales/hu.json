@@ -29,7 +29,9 @@
 		"stop": "Leállítás",
 		"done": "Kész",
 		"update": "Frissítés",
-		"enable": "Engedélyezés"
+		"enable": "Engedélyezés",
+		"previous": "Előző",
+		"next": "Következő"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Válassz nyelvet",
@@ -471,7 +473,8 @@
 		"plugins": "Pluginok",
 		"mods": "Modok",
 		"settings": "Beállítások",
-		"home": "Kezdőlap"
+		"home": "Kezdőlap",
+		"packs": "Bővítmények"
 	},
 	"serverWorkspace": {
 		"back": "Vissza a szerverekhez"
@@ -674,7 +677,8 @@
 		"noneHint": "Mindenki, aki már csatlakozott ehhez a szerverhez, itt lesz felsorolva az utoljára mentett eszköztárával.",
 		"search": "Játékosok keresése",
 		"onlineNow": "Most online",
-		"lastSeen": "Utoljára látva: {{time}}"
+		"lastSeen": "Utoljára látva: {{time}}",
+		"connected": "Csatlakozva"
 	},
 	"map": {
 		"upToDate": "Naprakész",
@@ -692,7 +696,11 @@
 		"zoomIn": "Nagyítás",
 		"zoomOut": "Kicsinyítés",
 		"updatedAreas_one": "Frissített {{count}} terület",
-		"updatedAreas_other": "Frissített {{count}} területek"
+		"updatedAreas_other": "Frissített {{count}} területek",
+		"bedrockUnsupported": "A térkép nem érhető el a Bedrockhoz",
+		"bedrockUnsupportedHint": "A Bedrock Dedicated Server LevelDB formátumban tárolja a világokat. Az élő chunk térkép megjelenítése csak a Java szervereknél érhető el.",
+		"bedrockRunning": "Mentett világ (Élő szüneteltetve)",
+		"bedrockOffline": "Mentett világ"
 	},
 	"pluginDetails": {
 		"byline": "Készítő: {{author}} · {{downloads}} letöltés",
@@ -1121,7 +1129,8 @@
 		"confirmKick": "Kirúgod a következőt: {{name}}?",
 		"confirmBan": "Kitiltod a következőt: {{name}}?",
 		"confirm": "Megerősítés",
-		"kick": "Kirúgás"
+		"kick": "Kirúgás",
+		"bedrockNote": "A Bedrock Dedicated Server nem jeleníti meg a konzolon keresztül a játékosok valós idejű leltárát, felszerelését vagy életerejét. A kezelési parancsok alább érhetők el."
 	},
 	"transfer": {
 		"zipArchive": "Zip archívum",
@@ -1193,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Hivatalos modolatlan Minecraft szerver közvetlenül a Mojangtól",
 			"badge": "Eredeti"
+		},
+		"bedrock": {
+			"tagline": "Hivatalos Minecraft Bedrock Dedicated Server (BDS) mobil és konzolos keresztjátékhoz",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1224,7 +1237,9 @@
 		"heroLine2": "másodpercek alatt.",
 		"heroText": "Az Ingot letölti, beállítja és futtatja a Minecraft szervert közvetlenül ezen az eszközön. Hívd meg a barátaidat bárhonnan.",
 		"createAServer": "Szerver létrehozása",
-		"createAServerHint": "Paper, PumpkinMC, Fabric és egyebek"
+		"createAServerHint": "Paper, PumpkinMC, Fabric és egyebek",
+		"nativeMemoryTitle": "Natív memóriakezelés",
+		"nativeMemoryDesc": "Ez a szerver natív módon, lefordított binárisként fut. Szükség szerint dinamikusan foglal le rendszermemóriát a rögzített JVM korlátok nélkül."
 	},
 	"plugins": {
 		"unsupported": "A(z) {{core}} szerverek nem használnak pluginokat",
@@ -1259,7 +1274,8 @@
 		"sort": {
 			"downloads": "Legnépszerűbb",
 			"updated": "Nemrég frissítve",
-			"newest": "Legújabb"
+			"newest": "Legújabb",
+			"relevance": "Relevancia"
 		},
 		"searchPlaceholder_plugin": "Pluginok keresése, pl. LuckPerms",
 		"searchPlaceholder_mod": "Modok keresése, pl. Lithium",
@@ -1276,7 +1292,31 @@
 		"isInstalled": "{{name}} telepítve van",
 		"install": "{{name}} telepítése",
 		"results_one": "{{formatted}} eredmény",
-		"results_other": "{{formatted}} eredmények"
+		"results_other": "{{formatted}} eredmények",
+		"bedrockPacksTitle": "Bedrock bővítmények és csomagok",
+		"bedrockPacksDesc": "A Bedrock Dedicated Server viselkedés- és erőforráscsomagokat használ Java bővítmények helyett. Helyezd a csomagjaidat a szerver behavior_packs és resource_packs mappáiba.",
+		"openServerFolder": "Szerver mappa megnyitása",
+		"openBehaviorPacks": "behavior_packs megnyitása",
+		"openResourcePacks": "resource_packs megnyitása",
+		"browsePacks": "Bővítmények böngészése",
+		"installedPacks": "Telepített csomagok",
+		"searchPacksPlaceholder": "Bedrock bővítmények, viselkedés- és erőforráscsomagok keresése...",
+		"allPacks": "Minden csomag",
+		"behaviorPacks": "Viselkedéscsomagok",
+		"resourcePacks": "Erőforráscsomagok",
+		"installPack": "Telepítés",
+		"installingPack": "Telepítés...",
+		"packInstalled": "A(z) {{name}} telepítve és engedélyezve a világban.",
+		"packInstallFailed": "Nem sikerült telepíteni a(z) {{name}} csomagot: {{error}}",
+		"downloadFromCurseForgeHint": "Megnyitva: {{name}} a CurseForge-on. Töltsd le a csomagot, és helyezd a behavior_packs vagy resource_packs mappába.",
+		"deletePack": "Csomag törlése",
+		"activeInWorld": "Aktív a világban",
+		"inactiveInWorld": "Inaktív a világban",
+		"builtInPack": "Beépített",
+		"noPacksFound": "Nem találhatók Bedrock csomagok",
+		"tryAnotherSearch": "Próbálj másik kifejezésre keresni, vagy módosítsd a szűrőket",
+		"noInstalledPacks": "Még nincsenek egyéni csomagok telepítve",
+		"noInstalledPacksDesc": "Böngéssz a nyilvános Bedrock bővítmények és csomagok között, vagy húzd őket a behavior_packs és resource_packs mappákba."
 	},
 	"join": {
 		"shareTitle": "Csatlakozás a következőhöz: {{name}}",
@@ -1606,5 +1646,24 @@
 		"publicAddress": "Nyilvános cím: {{address}}",
 		"connecting": "playit.gg alagút összekötő...",
 		"localOnly": "Csak helyi hálózat"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Keresztplatformos verzió Windowshoz és konzolokhoz",
+		"installed": "Telepítve",
+		"notInstalled": "Nincs telepítve",
+		"editionPreview": "Preview verzió",
+		"editionRetail": "Retail verzió",
+		"description": "A Minecraft Bedrock Edition a Microsoft Store-on keresztül érhető el. Telepítsd közvetlenül a Store-ból, vagy indítsd el az Ingotból.",
+		"readyToPlay": "Készen áll az indításra",
+		"launching": "Indítás...",
+		"play": "Bedrock indítása",
+		"msStoreEdition": "Microsoft Store verzió",
+		"installStore": "Telepítés a Microsoft Store-ból",
+		"openWorlds": "Világok mappa",
+		"openResourcePacks": "Erőforráscsomagok",
+		"openBehaviorPacks": "Viselkedéscsomagok",
+		"openScreenshots": "Képernyőképek mappa",
+		"store": "Microsoft Store oldal"
 	}
 }

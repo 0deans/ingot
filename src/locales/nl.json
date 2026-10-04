@@ -29,7 +29,9 @@
 		"stop": "Stoppen",
 		"done": "Klaar",
 		"update": "Bijwerken",
-		"enable": "Inschakelen"
+		"enable": "Inschakelen",
+		"previous": "Vorige",
+		"next": "Volgende"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Kies je taal",
@@ -471,7 +473,8 @@
 		"plugins": "Plugins",
 		"mods": "Mods",
 		"settings": "Instellingen",
-		"home": "Start"
+		"home": "Start",
+		"packs": "Add-ons"
 	},
 	"serverWorkspace": {
 		"back": "Terug naar servers"
@@ -674,7 +677,8 @@
 		"noneHint": "Iedereen die op deze server is geweest verschijnt hier, met zijn laatst opgeslagen inventaris.",
 		"search": "Spelers zoeken",
 		"onlineNow": "Nu online",
-		"lastSeen": "Laatst gezien {{time}}"
+		"lastSeen": "Laatst gezien {{time}}",
+		"connected": "Verbonden"
 	},
 	"map": {
 		"upToDate": "Actueel",
@@ -692,7 +696,11 @@
 		"zoomIn": "Inzoomen",
 		"zoomOut": "Uitzoomen",
 		"updatedAreas_one": "{{count}} gebied bijgewerkt",
-		"updatedAreas_other": "{{count}} gebieden bijgewerkt"
+		"updatedAreas_other": "{{count}} gebieden bijgewerkt",
+		"bedrockUnsupported": "Kaart niet beschikbaar voor Bedrock",
+		"bedrockUnsupportedHint": "Bedrock Dedicated Server slaat werelden op in LevelDB-formaat. Live chunk-kaartweergave is alleen beschikbaar voor Java-servers.",
+		"bedrockRunning": "Opgeslagen wereld (Live gepauzeerd)",
+		"bedrockOffline": "Opgeslagen wereld"
 	},
 	"pluginDetails": {
 		"byline": "door {{author}} · {{downloads}} downloads",
@@ -1121,7 +1129,8 @@
 		"confirmKick": "{{name}} kicken?",
 		"confirmBan": "{{name}} verbannen?",
 		"confirm": "Bevestigen",
-		"kick": "Kicken"
+		"kick": "Kicken",
+		"bedrockNote": "Bedrock Dedicated Server toont geen live inventaris, uitrusting of gezondheid via de console. Beheeropdrachten zijn hieronder beschikbaar."
 	},
 	"transfer": {
 		"zipArchive": "ZIP-archief",
@@ -1193,6 +1202,10 @@
 		"vanilla": {
 			"tagline": "Officiële, ongewijzigde Minecraft-server direct van Mojang",
 			"badge": "Origineel"
+		},
+		"bedrock": {
+			"tagline": "Officiële Minecraft Bedrock Dedicated Server (BDS) voor crossplay tussen mobiel en console",
+			"badge": "Bedrock / BDS"
 		}
 	},
 	"wizard": {
@@ -1224,7 +1237,9 @@
 		"heroLine2": "in een paar seconden.",
 		"heroText": "Ingot downloadt, configureert en draait een Minecraft-server op dit apparaat. Nodig vrienden uit, waar ze ook zijn.",
 		"createAServer": "Server maken",
-		"createAServerHint": "Paper, PumpkinMC, Fabric en meer"
+		"createAServerHint": "Paper, PumpkinMC, Fabric en meer",
+		"nativeMemoryTitle": "Eigen geheugenbeheer",
+		"nativeMemoryDesc": "Deze server draait native als een gecompileerd binair bestand. Het wijst dynamisch systeemgeheugen toe waar nodig, zonder vaste JVM-limieten."
 	},
 	"plugins": {
 		"unsupported": "{{core}}-servers kunnen geen plugins gebruiken",
@@ -1259,7 +1274,8 @@
 		"sort": {
 			"downloads": "Populairst",
 			"updated": "Recent bijgewerkt",
-			"newest": "Nieuwste"
+			"newest": "Nieuwste",
+			"relevance": "Relevantie"
 		},
 		"searchPlaceholder_plugin": "Plugins zoeken, bijv. LuckPerms",
 		"searchPlaceholder_mod": "Mods zoeken, bijv. Lithium",
@@ -1276,7 +1292,31 @@
 		"isInstalled": "{{name}} is geïnstalleerd",
 		"install": "{{name}} installeren",
 		"results_one": "{{formatted}} resultaat",
-		"results_other": "{{formatted}} resultaten"
+		"results_other": "{{formatted}} resultaten",
+		"bedrockPacksTitle": "Bedrock add-ons en pakketten",
+		"bedrockPacksDesc": "Bedrock Dedicated Server gebruikt gedrags- en bronpakketten in plaats van Java-plug-ins. Plaats je pakketten in de mappen behavior_packs en resource_packs van de server.",
+		"openServerFolder": "Servermap openen",
+		"openBehaviorPacks": "behavior_packs openen",
+		"openResourcePacks": "resource_packs openen",
+		"browsePacks": "Blader door add-ons",
+		"installedPacks": "Geïnstalleerde pakketten",
+		"searchPacksPlaceholder": "Zoek Bedrock-add-ons, gedrags- en bronpakketten...",
+		"allPacks": "Alle pakketten",
+		"behaviorPacks": "Gedragspakketten",
+		"resourcePacks": "Resource packs",
+		"installPack": "Installeren",
+		"installingPack": "Installeren...",
+		"packInstalled": "{{name}} geïnstalleerd en ingeschakeld voor de wereld.",
+		"packInstallFailed": "Kan {{name}} niet installeren: {{error}}",
+		"downloadFromCurseForgeHint": "{{name}} geopend op CurseForge. Download het pakket en plaats het in de map behavior_packs of resource_packs.",
+		"deletePack": "Pakket verwijderen",
+		"activeInWorld": "Actief in de wereld",
+		"inactiveInWorld": "Inactief in de wereld",
+		"builtInPack": "Ingebouwd",
+		"noPacksFound": "Geen Bedrock-pakketten gevonden",
+		"tryAnotherSearch": "Probeer te zoeken met een andere zoekopdracht of wijzig filters",
+		"noInstalledPacks": "Nog geen aangepaste pakketten geïnstalleerd",
+		"noInstalledPacksDesc": "Blader door openbare Bedrock-add-ons en pakketten of sleep ze naar de mappen behavior_packs en resource_packs."
 	},
 	"join": {
 		"shareTitle": "Join {{name}}",
@@ -1606,5 +1646,24 @@
 		"publicAddress": "Openbaar adres: {{address}}",
 		"connecting": "playit.gg-tunnel verbindt...",
 		"localOnly": "Alleen lokaal netwerk"
+	},
+	"bedrock": {
+		"title": "Minecraft: Bedrock Edition",
+		"subtitle": "Cross-platform versie voor Windows en consoles",
+		"installed": "Geïnstalleerd",
+		"notInstalled": "Niet geïnstalleerd",
+		"editionPreview": "Preview-editie",
+		"editionRetail": "Retail-editie",
+		"description": "Minecraft Bedrock Edition is beschikbaar via de Microsoft Store. Installeer het rechtstreeks vanuit de Store of start het vanuit Ingot.",
+		"readyToPlay": "Klaar om te starten",
+		"launching": "Bezig met starten...",
+		"play": "Speel Bedrock",
+		"msStoreEdition": "Microsoft Store-editie",
+		"installStore": "Installeren via Microsoft Store",
+		"openWorlds": "Wereldenmap",
+		"openResourcePacks": "Resource packs",
+		"openBehaviorPacks": "Gedragspakketten",
+		"openScreenshots": "Screenshotsmap",
+		"store": "Microsoft Store-pagina"
 	}
 }
