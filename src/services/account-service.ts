@@ -36,7 +36,7 @@ export const accountService = {
 
 		refreshAccountsPromise = (async () => {
 			try {
-				const list = await rpc.get_accounts()
+				const list = await rpc.accounts.get_accounts()
 				useAccountStore.setState({ accounts: list, fetched: true })
 				return list
 			} catch (error) {
@@ -51,7 +51,7 @@ export const accountService = {
 	},
 
 	async elyLogin(username: string, password: string): Promise<AccountProfile> {
-		const account = await rpc.ely_login(username, password)
+		const account = await rpc.accounts.ely_login(username, password)
 		const updated = [
 			...current()
 				.filter((a) => a.id !== account.id)
@@ -64,22 +64,22 @@ export const accountService = {
 
 	/** Gets the code the user enters on microsoft.com/link */
 	startMicrosoftLogin(): Promise<MicrosoftDeviceCode> {
-		return rpc.microsoft_login_start()
+		return rpc.accounts.microsoft_login_start()
 	},
 
 	/** Resolves once the user has entered the code and the account is saved */
 	async finishMicrosoftLogin(code: MicrosoftDeviceCode): Promise<AccountProfile> {
-		const account = await rpc.microsoft_login_finish(code)
+		const account = await rpc.accounts.microsoft_login_finish(code)
 		await this.refreshAccounts()
 		return account
 	},
 
 	cancelMicrosoftLogin(): Promise<void> {
-		return rpc.microsoft_login_cancel()
+		return rpc.accounts.microsoft_login_cancel()
 	},
 
 	async addOfflineAccount(username: string): Promise<AccountProfile> {
-		const account = await rpc.add_offline_account(username)
+		const account = await rpc.accounts.add_offline_account(username)
 		const updated = [
 			...current()
 				.filter((a) => a.id !== account.id)
@@ -91,7 +91,7 @@ export const accountService = {
 	},
 
 	async setActiveAccount(accountId: string): Promise<void> {
-		await rpc.set_active_account(accountId)
+		await rpc.accounts.set_active_account(accountId)
 		const updated = current().map((a) => ({
 			...a,
 			isActive: a.id === accountId,
@@ -100,7 +100,7 @@ export const accountService = {
 	},
 
 	async removeAccount(accountId: string): Promise<void> {
-		await rpc.remove_account(accountId)
+		await rpc.accounts.remove_account(accountId)
 		const remaining = current().filter((a) => a.id !== accountId)
 		if (remaining.length > 0 && !remaining.some((a) => a.isActive)) {
 			remaining[0] = { ...remaining[0], isActive: true }
@@ -109,7 +109,7 @@ export const accountService = {
 	},
 
 	async getActiveToken(): Promise<string> {
-		return await rpc.get_active_account_token()
+		return await rpc.accounts.get_active_account_token()
 	},
 
 	getCachedSkinDataUrl(skinUrl?: string | null): string | null {
@@ -125,7 +125,7 @@ export const accountService = {
 			return skinCache.get(skinUrl) ?? null
 		}
 		try {
-			const dataUrl = await rpc.get_skin_data_url(skinUrl)
+			const dataUrl = await rpc.skins.get_skin_data_url(skinUrl)
 			skinCache.set(skinUrl, dataUrl)
 			return dataUrl
 		} catch (error) {
@@ -135,7 +135,7 @@ export const accountService = {
 	},
 
 	async saveSkinToDownloads(username: string, skinUrl: string): Promise<string> {
-		return await rpc.save_skin_to_downloads(username, skinUrl)
+		return await rpc.skins.save_skin_to_downloads(username, skinUrl)
 	},
 
 	async reorderAccounts(accountIds: string[]): Promise<void> {
@@ -152,7 +152,7 @@ export const accountService = {
 		notify(reordered)
 
 		try {
-			await rpc.reorder_accounts(accountIds)
+			await rpc.accounts.reorder_accounts(accountIds)
 		} catch (error) {
 			console.error("Failed to persist account order:", error)
 			await accountService.refreshAccounts()
@@ -166,7 +166,7 @@ export const accountService = {
 		model?: string,
 		uploader?: string,
 	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
-		return await rpc.get_ely_skins(
+		return await rpc.skins.get_ely_skins(
 			page,
 			query ?? null,
 			sort ?? null,
@@ -290,29 +290,29 @@ export const accountService = {
 	},
 
 	async applyElySkin(accountId: string, skinId: number, password?: string): Promise<void> {
-		await rpc.apply_ely_skin(accountId, skinId, password ?? null)
+		await rpc.skins.apply_ely_skin(accountId, skinId, password ?? null)
 		await this.refreshAccounts()
 	},
 
 	async uploadElySkin(accountId: string, imageBase64: string, password?: string): Promise<void> {
-		await rpc.upload_ely_skin(accountId, imageBase64, password ?? null)
+		await rpc.skins.upload_ely_skin(accountId, imageBase64, password ?? null)
 		await this.refreshAccounts()
 	},
 
 	/** Sets a Microsoft account's skin to a public PNG, such as a catalog skin */
 	async applyMicrosoftSkin(accountId: string, skinUrl: string, isSlim: boolean): Promise<void> {
-		await rpc.apply_microsoft_skin(accountId, skinUrl, isSlim)
+		await rpc.skins.apply_microsoft_skin(accountId, skinUrl, isSlim)
 		await this.refreshAccounts()
 	},
 
 	/** Uploads a PNG data URL as a Microsoft account's skin */
 	async uploadMicrosoftSkin(accountId: string, dataUrl: string, isSlim: boolean): Promise<void> {
-		await rpc.upload_microsoft_skin(accountId, dataUrl, isSlim)
+		await rpc.skins.upload_microsoft_skin(accountId, dataUrl, isSlim)
 		await this.refreshAccounts()
 	},
 
 	async hasElyWebCredentials(accountId: string): Promise<boolean> {
-		return await rpc.has_ely_web_credentials(accountId)
+		return await rpc.skins.has_ely_web_credentials(accountId)
 	},
 }
 

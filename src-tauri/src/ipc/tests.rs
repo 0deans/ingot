@@ -140,3 +140,90 @@ async fn application_shutdown_uses_managed_state_and_existing_root_commands_shar
     );
     assert!(invoke(&webview, "TauRPC__stop_all_servers", json!({})).is_err());
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
+    let dir = tempfile::tempdir().unwrap();
+    let app = tauri::test::mock_builder()
+        .invoke_handler(super::router::<MockRuntime>().into_handler())
+        .build(tauri::test::mock_context(tauri::test::noop_assets()))
+        .unwrap();
+    app.manage(AppState::new(AppPaths::new(dir.path().to_owned())).unwrap());
+    let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
+        .build()
+        .unwrap();
+    assert_eq!(
+        invoke(&webview, "TauRPC__accounts.get_accounts", json!({})).unwrap(),
+        json!([])
+    );
+    let profile = invoke(
+        &webview,
+        "TauRPC__accounts.add_offline_account",
+        json!({"username":"  Player  "}),
+    )
+    .unwrap();
+    assert_eq!(profile["id"], "offline:player");
+    assert_eq!(profile["username"], "Player");
+    assert_eq!(profile["accountType"], "offline");
+    assert_eq!(profile["isActive"], true);
+    assert!(profile["createdAt"].is_u64());
+    assert_eq!(
+        invoke(
+            &webview,
+            "TauRPC__accounts.get_active_account_token",
+            json!({})
+        )
+        .unwrap(),
+        "offline"
+    );
+    let saved = std::fs::read(dir.path().join("accounts.json")).unwrap();
+    assert!(invoke(
+        &webview,
+        "TauRPC__accounts.set_active_account",
+        json!({"account_id":"missing"})
+    )
+    .unwrap_err()
+    .is_string());
+    assert_eq!(
+        std::fs::read(dir.path().join("accounts.json")).unwrap(),
+        saved
+    );
+    assert_eq!(
+        invoke(&webview, "TauRPC__accounts.get_accounts", json!({})).unwrap(),
+        json!([profile])
+    );
+    let attempt = crate::app::state(app.handle()).account_login.current();
+    assert_eq!(
+        invoke(
+            &webview,
+            "TauRPC__accounts.microsoft_login_cancel",
+            json!({})
+        )
+        .unwrap(),
+        Value::Null
+    );
+    assert!(crate::app::state(app.handle())
+        .account_login
+        .is_cancelled(attempt));
+    assert!(invoke(
+        &webview,
+        "TauRPC__skins.get_skin_data_url",
+        json!({"skin_url":""})
+    )
+    .unwrap_err()
+    .is_string());
+    assert!(invoke(
+        &webview,
+        "TauRPC__skins.upload_microsoft_skin",
+        json!({"account_id":"unused", "image_base64":"!invalid!", "is_slim":true})
+    )
+    .unwrap_err()
+    .is_string());
+    assert!(invoke(&webview, "TauRPC__get_accounts", json!({})).is_err());
+    assert!(invoke(
+        &webview,
+        "TauRPC__get_skin_data_url",
+        json!({"skin_url":""})
+    )
+    .is_err());
+}

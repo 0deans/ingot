@@ -91,6 +91,43 @@ test("application commands use their new namespace", async () => {
 	assert.deepEqual(calls, [{ command: "TauRPC__app.greet", args: { name: "world" } }])
 })
 
+test("account and skin namespaces preserve positional arguments and string errors", async () => {
+	const calls = []
+	mockIPC((command, args) => {
+		calls.push({ command, args })
+		if (command === "TauRPC__accounts.set_active_account")
+			return Promise.reject("Account not found")
+		return null
+	})
+	const rpc = createTauRPCProxy()
+	await rpc.accounts.reorder_accounts(["offline:b", "offline:a"])
+	await rpc.accounts.microsoft_login_cancel()
+	await rpc.skins.apply_ely_skin("ely:123", 42, null)
+	await rpc.skins.upload_microsoft_skin("microsoft:123", "image", true)
+	await assert.rejects(
+		rpc.accounts.set_active_account("missing"),
+		(error) => error === "Account not found",
+	)
+	assert.deepEqual(calls, [
+		{
+			command: "TauRPC__accounts.reorder_accounts",
+			args: { account_ids: ["offline:b", "offline:a"] },
+		},
+		{ command: "TauRPC__accounts.microsoft_login_cancel", args: {} },
+		{
+			command: "TauRPC__skins.apply_ely_skin",
+			args: { account_id: "ely:123", skin_id: 42, password: null },
+		},
+		{
+			command: "TauRPC__skins.upload_microsoft_skin",
+			args: { account_id: "microsoft:123", image_base64: "image", is_slim: true },
+		},
+		{ command: "TauRPC__accounts.set_active_account", args: { account_id: "missing" } },
+	])
+	assert.throws(() => rpc.get_accounts, /not found/)
+	assert.throws(() => rpc.apply_ely_skin, /not found/)
+})
+
 test("unmigrated commands keep their arguments while app handles stay backend-only", async () => {
 	const calls = []
 	mockIPC((command, args) => {

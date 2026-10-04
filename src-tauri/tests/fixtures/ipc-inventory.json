@@ -14,7 +14,7 @@
     },
     {
       "name": "add_offline_account",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [
         "username"
@@ -33,7 +33,7 @@
     },
     {
       "name": "apply_ely_skin",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "account_id",
@@ -54,7 +54,7 @@
     },
     {
       "name": "apply_microsoft_skin",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "account_id",
@@ -233,7 +233,7 @@
     },
     {
       "name": "ely_login",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [
         "username",
@@ -274,14 +274,14 @@
     },
     {
       "name": "get_accounts",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [],
       "destination": "accounts"
     },
     {
       "name": "get_active_account_token",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [],
       "destination": "accounts"
@@ -354,7 +354,7 @@
     },
     {
       "name": "get_ely_skins",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "page",
@@ -636,7 +636,7 @@
     },
     {
       "name": "get_skin_data_url",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "skin_url"
@@ -675,12 +675,12 @@
     },
     {
       "name": "has_ely_web_credentials",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "account_id"
       ],
-      "destination": "accounts"
+      "destination": "skins"
     },
     {
       "name": "import_instance",
@@ -838,14 +838,14 @@
     },
     {
       "name": "microsoft_login_cancel",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [],
       "destination": "accounts"
     },
     {
       "name": "microsoft_login_finish",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [
         "code"
@@ -854,7 +854,7 @@
     },
     {
       "name": "microsoft_login_start",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [],
       "destination": "accounts"
@@ -1043,7 +1043,7 @@
     },
     {
       "name": "remove_account",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [
         "account_id"
@@ -1072,7 +1072,7 @@
     },
     {
       "name": "reorder_accounts",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [
         "account_ids"
@@ -1110,7 +1110,7 @@
     },
     {
       "name": "save_skin_to_downloads",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "username",
@@ -1160,7 +1160,7 @@
     },
     {
       "name": "set_active_account",
-      "currentPath": "",
+      "currentPath": "accounts",
       "kind": "command",
       "arguments": [
         "account_id"
@@ -1357,7 +1357,7 @@
     },
     {
       "name": "upload_ely_skin",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "account_id",
@@ -1368,7 +1368,7 @@
     },
     {
       "name": "upload_microsoft_skin",
-      "currentPath": "",
+      "currentPath": "skins",
       "kind": "command",
       "arguments": [
         "account_id",

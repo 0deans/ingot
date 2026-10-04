@@ -12,4 +12,8 @@ impl AppPaths {
     pub(crate) fn settings_file(&self) -> PathBuf {
         self.data_dir.join("settings.json")
     }
+
+    pub(crate) fn accounts_file(&self) -> PathBuf {
+        self.data_dir.join("accounts.json")
+    }
 }

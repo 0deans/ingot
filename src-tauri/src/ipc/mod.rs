@@ -1,21 +1,27 @@
 //! Runtime routing and headless exports use the same API registration list.
+mod accounts;
 mod application;
 pub(crate) mod events;
 mod legacy;
 #[cfg(test)]
 mod metadata;
 mod settings;
+mod skins;
 
+use accounts::{AccountsApi, AccountsApiImpl};
 use application::{ApplicationApi, ApplicationApiImpl};
 use events::{EventsApi, EventsApiImpl};
 use legacy::{AppApi, AppApiImpl};
 use settings::{SettingsApi, SettingsApiImpl};
+use skins::{SkinsApi, SkinsApiImpl};
 
 // Keep registrations in one place so exports cannot silently omit a namespace.
 macro_rules! registered_apis {
     ($register:ident) => {
         $register!(AppApiImpl);
         $register!(ApplicationApiImpl);
+        $register!(AccountsApiImpl);
+        $register!(SkinsApiImpl);
         $register!(SettingsApiImpl);
         $register!(EventsApiImpl);
     };

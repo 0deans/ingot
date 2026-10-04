@@ -1,4 +1,4 @@
-use crate::account;
+use crate::app::accounts as account;
 use crate::minecraft::downloader::{
     download_file_chunked, download_files_concurrent, is_download_task_cached, DownloadTask,
 };
@@ -437,9 +437,9 @@ where
             let token = if is_microsoft {
                 // Without a valid token the game would start but every server would kick the
                 // player, so a failed refresh stops the launch with the reason
-                crate::account::get_active_account_token(app.clone()).await?
+                account::get_active_account_token(app.clone()).await?
             } else if is_ely {
-                crate::account::get_active_account_token(app.clone())
+                account::get_active_account_token(app.clone())
                     .await
                     .unwrap_or_else(|_| "0".to_string())
             } else {

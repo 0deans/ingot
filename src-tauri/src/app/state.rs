@@ -13,6 +13,8 @@ pub(crate) struct AppState {
     pub(crate) playit: PlayitManager,
     pub(crate) http: reqwest::Client,
     pub(crate) lifecycle: LifecycleState,
+    pub(crate) account_login: crate::account::login::LoginAttempts,
+    pub(crate) accounts_file: std::path::PathBuf,
 }
 
 impl AppState {
@@ -28,6 +30,8 @@ impl AppState {
             playit: PlayitManager::new(),
             http,
             lifecycle: LifecycleState::default(),
+            account_login: crate::account::login::LoginAttempts::default(),
+            accounts_file: paths.accounts_file(),
         })
     }
 }
