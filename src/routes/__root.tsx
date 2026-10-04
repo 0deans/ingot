@@ -6,6 +6,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router"
 import { memo, useEffect } from "react"
+import { PageTransition } from "@/components/layout/page-transition"
 import QuitDialog from "@/components/layout/quit-dialog"
 import Sidebar from "@/components/layout/sidebar"
 import UpdateBanner from "@/components/layout/update-banner"
@@ -17,6 +18,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import VersionChangeCrashDialog from "@/components/version-change/crash-dialog"
 import { isMobileEnvironment } from "@/lib/platform"
 import { useScrollRestoration } from "@/lib/scroll-restoration"
+import { getTopLevelSection } from "@/lib/tab-history"
 import { useTheme } from "@/lib/theme"
 
 export interface RouterContext {
@@ -36,6 +38,8 @@ const RootLayout = () => {
 		}
 	}, [isMobile, currentPath, navigate])
 
+	const currentSection = getTopLevelSection(currentPath)
+
 	if (isMobile) {
 		return (
 			<TooltipProvider>
@@ -43,7 +47,9 @@ const RootLayout = () => {
 					ref={mainRef}
 					className="flex h-dvh min-h-0 w-full flex-1 flex-col overflow-hidden bg-background"
 				>
-					<Outlet />
+					<PageTransition transitionKey={currentSection}>
+						<Outlet />
+					</PageTransition>
 				</main>
 				<FirstLaunchLanguageDialog />
 				<VersionChangeCrashDialog />
@@ -59,7 +65,9 @@ const RootLayout = () => {
 				<Sidebar />
 				<main ref={mainRef} className="flex size-full min-h-0 flex-1 flex-col overflow-hidden">
 					<UpdateBanner />
-					<Outlet />
+					<PageTransition transitionKey={currentSection}>
+						<Outlet />
+					</PageTransition>
 				</main>
 			</WindowFrame>
 			<FirstLaunchLanguageDialog />

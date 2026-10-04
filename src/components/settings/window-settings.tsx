@@ -1,4 +1,4 @@
-import { Maximize2, Monitor, RotateCcw } from "lucide-react"
+import { Maximize2, Monitor, RotateCcw, Sparkles } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SectionCardHeader } from "@/components/common/section-card"
@@ -8,6 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+	type PageTransitionStyle,
+	setPageTransitionStyle,
+	usePageTransitionStyle,
+} from "@/lib/motion"
 import { useWindowSettings } from "@/services/settings-service"
 
 const RESOLUTION_PRESETS = [
@@ -21,6 +26,7 @@ const RESOLUTION_PRESETS = [
 export const WindowSettings = () => {
 	const { t } = useTranslation()
 	const { windowSettings, setWindowSettings } = useWindowSettings()
+	const transitionStyle = usePageTransitionStyle()
 	const [width, setWidth] = useState(windowSettings.width)
 	const [height, setHeight] = useState(windowSettings.height)
 
@@ -85,6 +91,38 @@ export const WindowSettings = () => {
 					</div>
 
 					<Switch checked={windowSettings.fullscreen} onCheckedChange={handleToggleFullscreen} />
+				</div>
+
+				{/* Page Navigation Animation Style */}
+				<div className="flex flex-col gap-2.5 rounded-lg border border-border/30 bg-background/60 p-3.5">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="flex size-8 items-center justify-center rounded-md bg-card text-primary">
+								<Sparkles className="size-4" />
+							</div>
+							<div>
+								<div className="font-medium text-foreground text-xs sm:text-sm">
+									Page Navigation Animation
+								</div>
+								<div className="text-2xs text-muted-foreground">
+									Choose between Apple-style depth dissolve, cross-fade, or instant switching
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<ToggleGroup
+						size="sm"
+						value={[transitionStyle]}
+						onValueChange={(value) => {
+							if (value[0]) setPageTransitionStyle(value[0] as PageTransitionStyle)
+						}}
+						className="mt-1 justify-start"
+					>
+						<ToggleGroupItem value="apple">Apple Depth Dissolve</ToggleGroupItem>
+						<ToggleGroupItem value="fade">Pure Cross-Fade</ToggleGroupItem>
+						<ToggleGroupItem value="instant">Instant (Disabled)</ToggleGroupItem>
+					</ToggleGroup>
 				</div>
 
 				{/* Resolution Option (when not in fullscreen) */}

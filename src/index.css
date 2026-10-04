@@ -625,3 +625,40 @@
 	background: oklch(0 0 0 / 0.5);
 	pointer-events: none;
 }
+
+/*
+ * Hardware-accelerated Apple page entrance animation (runs on GPU Compositor Thread).
+ * Using cubic-bezier(0.16, 1, 0.3, 1) to match Apple's fluid deceleration curve.
+ * This runs completely off the JavaScript main thread, so React component mounting
+ * never drops frames or stutters.
+ */
+@keyframes apple-page-enter {
+	0% {
+		opacity: 0;
+		transform: scale(0.995);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes fade-page-enter {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+.animate-apple-page-enter {
+	animation: apple-page-enter 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	will-change: opacity, transform;
+	transform-origin: center top;
+}
+
+.animate-fade-page-enter {
+	animation: fade-page-enter 160ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+	will-change: opacity;
+}

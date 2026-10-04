@@ -8,6 +8,7 @@ import {
 	RefreshCw,
 	Sparkles,
 } from "lucide-react"
+import { motion } from "motion/react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import LoaderIcon from "@/components/instances/loader-icon"
@@ -51,9 +52,10 @@ export function BedrockCard({ className }: { className?: string }) {
 	const edition = status?.edition
 
 	return (
-		<div
+		<motion.div
+			whileHover={{ y: -2, transition: { duration: 0.15 } }}
 			className={cn(
-				"relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-all duration-300 sm:p-5",
+				"relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-[border-color,background-color,box-shadow] duration-200 sm:p-5",
 				isInstalled
 					? "border-primary/30 bg-linear-to-br from-card/80 via-card/50 to-primary/5 shadow-md hover:border-primary/50"
 					: "border-border/60 bg-linear-to-br from-card/60 via-card/30 to-muted/10 hover:border-border/90",
@@ -228,7 +230,7 @@ export function BedrockCard({ className }: { className?: string }) {
 					</>
 				)}
 			</div>
-		</div>
+		</motion.div>
 	)
 }
 

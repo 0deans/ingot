@@ -11,6 +11,7 @@ import {
 	Square,
 	Trash2,
 } from "lucide-react"
+import { motion } from "motion/react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
@@ -147,8 +148,9 @@ export const InstanceCard = ({
 	const effectiveRamMb = instance.memoryMaxMb ?? globalMaxRamMb
 
 	return (
-		<div
-			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-all duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${
+		<motion.div
+			whileHover={{ y: -2, transition: { duration: 0.15 } }}
+			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${
 				isRunning
 					? "border-primary/40 ring-1 ring-primary/20"
 					: isDownloading
@@ -485,7 +487,7 @@ export const InstanceCard = ({
 				instanceName={instance.name}
 				onConnect={(addr) => onPlay({ server: addr, world: null })}
 			/>
-		</div>
+		</motion.div>
 	)
 }
 

@@ -31,7 +31,9 @@ import {
 	Trash2,
 	Underline,
 	X,
+	Zap,
 } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 import { memo, useId, useState } from "react"
 import { toast } from "sonner"
 import { alertTone } from "@/components/common/alert-tones"
@@ -154,6 +156,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Toggle } from "@/components/ui/toggle"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { springSnappy } from "@/lib/motion"
 import { useTheme } from "@/lib/theme"
 
 const COMBOBOX_ITEMS = [
@@ -194,6 +197,8 @@ function UiTestPage() {
 	const [dropdownChecked, setDropdownChecked] = useState(true)
 	const [dropdownRadio, setDropdownRadio] = useState("high")
 	const [filterTab, setFilterTab] = useState("all")
+	const [motionTab, setMotionTab] = useState("springs")
+	const [motionBox, setMotionBox] = useState(true)
 
 	const fieldInputId = useId()
 
@@ -266,6 +271,7 @@ function UiTestPage() {
 							<TabsTrigger value="display">Data & Feedback</TabsTrigger>
 							<TabsTrigger value="overlays">Modals & Overlays</TabsTrigger>
 							<TabsTrigger value="minecraft">Ingot & Minecraft</TabsTrigger>
+							<TabsTrigger value="motion">Motion & Physics</TabsTrigger>
 						</TabsList>
 					</Tabs>
 				</div>
@@ -1312,6 +1318,131 @@ function UiTestPage() {
 											<span className="text-3xs text-muted-foreground">
 												Double-layered Minecraft skin texture renderer with 3D accessory layer
 											</span>
+										</div>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</section>
+				)}
+
+				{/* SECTION 7: MOTION & PHYSICS ANIMATIONS */}
+				{(filterTab === "all" || filterTab === "motion") && (
+					<section className="flex flex-col gap-4">
+						<div className="flex items-center gap-2">
+							<div className="size-2 rounded-full bg-primary" />
+							<h2 className="font-semibold text-base text-foreground">
+								Motion & Physics (motion/react)
+							</h2>
+						</div>
+
+						<Card>
+							<SectionCardHeader
+								icon={Zap}
+								title="Motion & Physics Animations (motion/react)"
+								description="Declarative gesture feedback, shared layout animations (layoutId), and AnimatePresence unmount lifecycles"
+							/>
+							<CardContent className="flex flex-col gap-6">
+								{/* Shared Layout Pill Selector */}
+								<div className="flex flex-col gap-2">
+									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										Shared Layout Pill (`layoutId`)
+									</span>
+									<div className="inline-flex w-fit items-center gap-1 rounded-xl border border-border/50 bg-background/60 p-1">
+										{[
+											{ id: "springs", label: "Spring Physics" },
+											{ id: "layout", label: "Shared Layout" },
+											{ id: "presence", label: "AnimatePresence" },
+										].map((tab) => (
+											<button
+												key={tab.id}
+												type="button"
+												onClick={() => setMotionTab(tab.id)}
+												className={`relative rounded-lg px-3 py-1.5 font-medium text-xs transition-colors ${
+													motionTab === tab.id
+														? "text-primary"
+														: "text-muted-foreground hover:text-foreground"
+												}`}
+											>
+												{motionTab === tab.id && (
+													<motion.div
+														layoutId="uiTestMotionPill"
+														className="absolute inset-0 rounded-lg bg-primary/15"
+														transition={springSnappy}
+													/>
+												)}
+												<span className="relative z-10">{tab.label}</span>
+											</button>
+										))}
+									</div>
+								</div>
+
+								<Separator />
+
+								{/* Interactive Spring Controls */}
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+									{/* Tap scaling button */}
+									<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4">
+										<span className="font-medium text-foreground text-xs">
+											Tactile Press (`whileTap`)
+										</span>
+										<p className="text-3xs text-muted-foreground">
+											Subtle scale-down response on click for natural feel.
+										</p>
+										<motion.button
+											type="button"
+											whileTap={{ scale: 0.92 }}
+											whileHover={{ scale: 1.02 }}
+											className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-primary font-medium text-primary-foreground text-xs shadow-sm transition-colors"
+										>
+											Click or Press Me
+										</motion.button>
+									</div>
+
+									{/* Hover Lift Card */}
+									<motion.div
+										whileHover={{ y: -4, transition: { duration: 0.15 } }}
+										className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4 shadow-sm"
+									>
+										<span className="font-medium text-foreground text-xs">
+											Hover Lift (`whileHover`)
+										</span>
+										<p className="text-3xs text-muted-foreground">
+											Card elevates by 4px on mouse hover with spring ease.
+										</p>
+										<div className="mt-2 rounded-lg border border-primary/20 bg-primary/10 p-2 text-center font-mono text-primary text-xs">
+											Hover this Card
+										</div>
+									</motion.div>
+
+									{/* AnimatePresence Toggle */}
+									<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4">
+										<div className="flex items-center justify-between">
+											<span className="font-medium text-foreground text-xs">
+												Exit Animation (`AnimatePresence`)
+											</span>
+											<Button size="xs" variant="outline" onClick={() => setMotionBox(!motionBox)}>
+												{motionBox ? "Hide" : "Show"}
+											</Button>
+										</div>
+										<p className="text-3xs text-muted-foreground">
+											Smoothly animates in AND out upon mount/unmount.
+										</p>
+										<div className="mt-2 flex h-10 items-center justify-center">
+											<AnimatePresence mode="wait">
+												{motionBox && (
+													<motion.div
+														key="motion-box"
+														initial={{ opacity: 0, scale: 0.85 }}
+														animate={{ opacity: 1, scale: 1 }}
+														exit={{ opacity: 0, scale: 0.85 }}
+														transition={{ duration: 0.15 }}
+														className="w-full rounded-lg bg-emerald-500/20 p-2 text-center font-medium text-emerald-400 text-xs"
+													>
+														Visible Component
+													</motion.div>
+												)}
+											</AnimatePresence>
 										</div>
 									</div>
 								</div>

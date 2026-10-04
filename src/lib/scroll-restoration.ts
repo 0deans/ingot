@@ -119,9 +119,10 @@ export function useScrollRestoration() {
 		const attemptRestore = () => {
 			if (cancelled) return
 
-			const found =
-				main.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]') ??
-				main.querySelector<HTMLElement>(".overflow-y-auto")
+			const allViewports = main.querySelectorAll<HTMLElement>(
+				'[data-slot="scroll-area-viewport"], .overflow-y-auto',
+			)
+			const found = allViewports.length > 0 ? allViewports[allViewports.length - 1] : null
 
 			if (!found) {
 				attempts++

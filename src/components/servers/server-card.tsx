@@ -14,6 +14,7 @@ import {
 	Trash2,
 	Users,
 } from "lucide-react"
+import { motion } from "motion/react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
@@ -155,9 +156,10 @@ export default function ServerCard({
 	}
 
 	return (
-		<div
+		<motion.div
+			whileHover={{ y: -2, transition: { duration: 0.15 } }}
 			className={cn(
-				"group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-all duration-200",
+				"group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-[border-color,background-color,box-shadow] duration-200",
 				isRunning
 					? "border-primary/40 bg-card/70 shadow-lg ring-1 ring-primary/20"
 					: "border-border/50 bg-card/40 hover:border-border/80 hover:bg-card/70",
@@ -419,6 +421,6 @@ export default function ServerCard({
 					</Tooltip>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	)
 }

@@ -16,6 +16,7 @@ import {
 	SunMedium,
 	X,
 } from "lucide-react"
+import { motion } from "motion/react"
 import { memo, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -142,7 +143,10 @@ const ContentCard = memo(function ContentCard({
 	const { t } = useTranslation()
 
 	return (
-		<div className="group relative flex flex-col justify-between rounded-xl border border-border/40 bg-card p-4 transition-colors duration-150 [contain-intrinsic-size:320px_220px] [content-visibility:auto] hover:border-primary/40">
+		<motion.div
+			whileHover={{ y: -2, transition: { duration: 0.15 } }}
+			className="group relative flex flex-col justify-between rounded-xl border border-border/40 bg-card p-4 transition-colors duration-150 [contain-intrinsic-size:320px_220px] [content-visibility:auto] hover:border-primary/40"
+		>
 			{/* Accessible full card click-to-open button */}
 			<button
 				type="button"
@@ -255,7 +259,7 @@ const ContentCard = memo(function ContentCard({
 					</Button>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	)
 })
 
