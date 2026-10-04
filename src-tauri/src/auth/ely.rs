@@ -695,6 +695,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires the public Ely.by API; run explicitly as a live smoke test"]
     async fn test_fetch_catalog_with_uploader() {
         let service = ElyAuthService::new();
         let res = service

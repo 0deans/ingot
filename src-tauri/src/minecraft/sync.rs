@@ -67,15 +67,15 @@ struct EffectiveSync {
     creative_hotbars: bool,
 }
 
-fn get_effective_sync<R: Runtime>(app: &tauri::AppHandle<R>, instance: &InstanceConfig) -> EffectiveSync {
-    let global = load_settings(app).sync;
-    EffectiveSync {
+fn get_effective_sync<R: Runtime>(app: &tauri::AppHandle<R>, instance: &InstanceConfig) -> Result<EffectiveSync, String> {
+    let global = load_settings(app).map_err(|error| error.to_string())?.sync;
+    Ok(EffectiveSync {
         options: instance.sync_options.unwrap_or(global.sync_options),
         servers: instance.sync_servers.unwrap_or(global.sync_servers),
         resource_packs: instance.sync_resource_packs.unwrap_or(global.sync_resource_packs),
         command_history: instance.sync_command_history.unwrap_or(global.sync_command_history),
         creative_hotbars: instance.sync_creative_hotbars.unwrap_or(global.sync_creative_hotbars),
-    }
+    })
 }
 
 pub fn backup_file_if_exists(file_path: &Path) {
@@ -162,7 +162,7 @@ pub fn sync_before_launch<R: Runtime>(
     instance_dir: &Path,
 ) -> Result<(), String> {
     let shared = get_shared_dir(app)?;
-    let eff = get_effective_sync(app, instance);
+    let eff = get_effective_sync(app, instance)?;
 
     if eff.options {
         sync_file_bidirectional(&shared.join("options.txt"), &instance_dir.join("options.txt"));
@@ -193,7 +193,7 @@ pub fn sync_after_exit<R: Runtime>(
     instance_dir: &Path,
 ) -> Result<(), String> {
     let shared = get_shared_dir(app)?;
-    let eff = get_effective_sync(app, instance);
+    let eff = get_effective_sync(app, instance)?;
 
     if eff.options {
         let src = instance_dir.join("options.txt");
@@ -426,7 +426,7 @@ pub fn check_sync_conflict<R: Runtime>(
         .find(|i| i.id == instance_id)
         .ok_or_else(|| format!("Instance not found: {instance_id}"))?;
 
-    let eff = get_effective_sync(app, instance);
+    let eff = get_effective_sync(app, instance)?;
     if !eff.options && !eff.servers && !eff.resource_packs && !eff.command_history && !eff.creative_hotbars {
         return Ok(None);
     }

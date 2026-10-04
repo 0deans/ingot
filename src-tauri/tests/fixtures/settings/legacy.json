@@ -1,0 +1,6 @@
+{
+  "memory": {
+    "minRamMb": 1024,
+    "maxRamMb": 3072
+  }
+}

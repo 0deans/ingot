@@ -477,7 +477,8 @@ where
         .collect::<Vec<String>>()
         .join(cp_separator);
 
-    let mem_settings = system::get_memory_settings(&app);
+    let global_settings = system::load_settings(&app).map_err(|error| error.to_string())?;
+    let mem_settings = &global_settings.memory;
     let min_ram = instance.memory_min_mb.unwrap_or(mem_settings.min_ram_mb);
     let max_ram = instance.memory_max_mb.unwrap_or(mem_settings.max_ram_mb);
 
@@ -684,7 +685,6 @@ where
     }
 
     // Apply Window / Display Settings
-    let global_settings = crate::system::load_settings(&app);
     let is_fullscreen = instance.fullscreen.unwrap_or(global_settings.window.fullscreen);
     if is_fullscreen {
         if !cmd_args.iter().any(|a| a == "--fullscreen") {
@@ -938,9 +938,15 @@ async fn finish_game<R: Runtime>(
     });
 
     // If launcher behavior is hide to tray (or window was hidden), restore window on game exit
-    let current_settings = crate::system::load_settings(app);
+    let hide_to_tray = match crate::system::load_settings(app) {
+        Ok(settings) => settings.launcher_behavior.as_str() == crate::system::BEHAVIOR_HIDE_TO_TRAY,
+        Err(error) => {
+            eprintln!("[Settings] Cannot read launcher behavior on game exit: {error}");
+            false
+        }
+    };
     if no_more_running {
-        let should_restore = current_settings.launcher_behavior == crate::system::BEHAVIOR_HIDE_TO_TRAY
+        let should_restore = hide_to_tray
             || app
                 .get_webview_window("main")
                 .map(|w| w.is_visible().unwrap_or(true) == false)

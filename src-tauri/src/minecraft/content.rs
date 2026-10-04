@@ -1433,6 +1433,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "requires the public Modrinth API; run explicitly as a live smoke test"]
     async fn test_search_modrinth_mods() {
         let res = search_content(
             "modrinth".into(),
@@ -1453,6 +1454,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires the public CurseForge API and API key; run explicitly as a live smoke test"]
     async fn test_search_curseforge_mods() {
         let res = search_content(
             "curseforge".into(),
@@ -1473,6 +1475,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires the public Modrinth API; run explicitly as a live smoke test"]
     async fn test_get_modrinth_details() {
         let res = get_content_details("modrinth", "mr:sodium").await;
         assert!(res.is_ok(), "get_modrinth_details failed: {:?}", res.err());
@@ -1482,6 +1485,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires the public CurseForge API and API key; run explicitly as a live smoke test"]
     async fn test_search_curseforge_bedrock_addons() {
         let res = search_content(
             "curseforge".into(),

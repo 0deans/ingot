@@ -83,13 +83,7 @@ jobs:
 
       - name: Run tests
         working-directory: src-tauri
-        if: runner.os == 'Linux'
-        run: cargo test --lib --locked
-
-      - name: Run keyring regression tests
-        working-directory: src-tauri
-        if: runner.os != 'Linux'
-        run: cargo test --lib --locked keyring_store::tests
+        run: cargo test --all-targets --locked
 
       - name: Test native desktop vault
         working-directory: src-tauri

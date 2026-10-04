@@ -1,3 +1,7 @@
+mod app;
+mod settings;
+#[cfg(test)]
+mod ipc_contract;
 pub mod account;
 pub mod auth;
 /// User agent for all HTTP requests; the version comes from Cargo.toml at build time
@@ -17,8 +21,6 @@ pub mod version_change;
 #[cfg(desktop)]
 pub mod tray;
 
-use ipc::{AppApi, AppApiImpl};
-#[cfg(desktop)]
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -34,10 +36,12 @@ pub fn run() {
     };
     let _guard = _rt.as_ref().map(|rt| rt.enter());
 
-    let router = taurpc::Router::<tauri::Wry>::new().merge(AppApiImpl.into_handler());
+    let router = ipc::router::<tauri::Wry>();
 
     #[cfg(debug_assertions)]
-    let _ = taurpc::Exporter::new().export(&router, "../src/bindings.ts");
+    if let Err(error) = taurpc::Exporter::new().export(&router, "../src/bindings.ts") {
+        eprintln!("[IPC] Failed to export TypeScript bindings: {error}");
+    }
 
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default();
@@ -58,6 +62,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .setup(|_app| {
+            let paths = app::AppPaths::new(_app.path().app_data_dir()?);
+            _app.manage(app::AppState::new(paths));
             #[cfg(desktop)]
             {
                 if let Err(e) = _app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {

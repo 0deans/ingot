@@ -1,0 +1,13 @@
+{
+  "memory": { "minRamMb": 2048, "maxRamMb": 8192 },
+  "launcherBehavior": "hideToTray",
+  "window": { "fullscreen": false, "width": 1280, "height": 720 },
+  "sync": {
+    "syncOptions": true,
+    "syncServers": false,
+    "syncResourcePacks": true,
+    "syncCommandHistory": false,
+    "syncCreativeHotbars": false,
+    "initializedCategories": ["options", "resourcepacks"]
+  }
+}

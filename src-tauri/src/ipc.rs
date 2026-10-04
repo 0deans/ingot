@@ -906,7 +906,7 @@ impl AppApi for AppApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<MemorySettings, String> {
-        Ok(system::get_memory_settings(&app_handle))
+        system::get_memory_settings(&app_handle).map_err(|error| error.to_string())
     }
 
     async fn set_memory_settings(
@@ -915,14 +915,14 @@ impl AppApi for AppApiImpl {
         min_ram_mb: u32,
         max_ram_mb: u32,
     ) -> Result<MemorySettings, String> {
-        system::set_memory_settings(&app_handle, min_ram_mb, max_ram_mb)
+        system::set_memory_settings(&app_handle, min_ram_mb, max_ram_mb).map_err(|error| error.to_string())
     }
 
     async fn get_launcher_behavior(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<String, String> {
-        Ok(system::get_launcher_behavior(&app_handle))
+        system::get_launcher_behavior(&app_handle).map_err(|error| error.to_string())
     }
 
     async fn set_launcher_behavior(
@@ -930,7 +930,7 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         behavior: String,
     ) -> Result<String, String> {
-        system::set_launcher_behavior(&app_handle, behavior)
+        system::set_launcher_behavior(&app_handle, behavior).map_err(|error| error.to_string())
     }
 
     async fn get_skin_data_url(
@@ -1295,7 +1295,7 @@ impl AppApi for AppApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<WindowSettings, String> {
-        Ok(system::get_window_settings(&app_handle))
+        system::get_window_settings(&app_handle).map_err(|error| error.to_string())
     }
 
     async fn set_window_settings(
@@ -1303,14 +1303,14 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         settings: WindowSettings,
     ) -> Result<WindowSettings, String> {
-        system::set_window_settings(&app_handle, settings)
+        system::set_window_settings(&app_handle, settings).map_err(|error| error.to_string())
     }
 
     async fn get_sync_settings(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<SyncSettings, String> {
-        Ok(system::get_sync_settings(&app_handle))
+        system::get_sync_settings(&app_handle).map_err(|error| error.to_string())
     }
 
     async fn set_sync_settings(
@@ -1318,7 +1318,7 @@ impl AppApi for AppApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         settings: SyncSettings,
     ) -> Result<SyncSettings, String> {
-        system::set_sync_settings(&app_handle, settings)
+        system::set_sync_settings(&app_handle, settings).map_err(|error| error.to_string())
     }
 
     async fn push_instance_sync(
@@ -2823,4 +2823,9 @@ async fn resolve_profile(server_dir: &std::path::Path, name: &str) -> (String, S
         }
     }
     (name.to_string(), server::config::offline_uuid_for(name))
+}
+
+/// Compose the application router in one place.
+pub fn router<R: Runtime>() -> taurpc::Router<R> {
+    taurpc::Router::<R>::new().merge(AppApiImpl.into_handler())
 }
