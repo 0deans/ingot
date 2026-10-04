@@ -35,12 +35,9 @@ function lineClass(line: string): string {
 	return "text-foreground/80"
 }
 
-/** Edge fades only where there's more to scroll (same vars as .scroll-fade elsewhere); returns whether at the bottom */
-function updateFades(el: HTMLDivElement): boolean {
-	const below = Math.max(0, el.scrollHeight - el.scrollTop - el.clientHeight)
-	el.style.setProperty("--scroll-area-overflow-y-start", `${el.scrollTop}px`)
-	el.style.setProperty("--scroll-area-overflow-y-end", `${below}px`)
-	return below < 40
+/** Returns whether within 40px of bottom */
+function isAtBottom(el: HTMLDivElement): boolean {
+	return el.scrollHeight - el.scrollTop - el.clientHeight < 40
 }
 
 export function ConsolePanel({ server, className }: { server: ServerConfig; className?: string }) {
@@ -62,7 +59,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 		if (!el || logs.length < 0) return
 		if (autoScroll) el.scrollTop = el.scrollHeight
 		lastScroll.current = { top: el.scrollTop, height: el.scrollHeight }
-		setAtBottom(updateFades(el))
+		setAtBottom(isAtBottom(el))
 	}, [logs, autoScroll])
 
 	useEffect(() => {
@@ -74,7 +71,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 			// (clearing or trimming logs also lowers scrollTop, but shrinks the content)
 			if (el.scrollTop < prev.top - 2 && el.scrollHeight >= prev.height) setAutoScroll(false)
 			lastScroll.current = { top: el.scrollTop, height: el.scrollHeight }
-			setAtBottom(updateFades(el))
+			setAtBottom(isAtBottom(el))
 		}
 		el.addEventListener("scroll", onScroll, { passive: true })
 		return () => el.removeEventListener("scroll", onScroll)
@@ -136,7 +133,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 
 			<div
 				ref={scrollRef}
-				className="scroll-fade min-h-0 flex-1 overflow-y-auto px-3 py-2 font-mono text-2xs leading-relaxed"
+				className="scroll-fade-y min-h-0 flex-1 overflow-y-auto px-3 py-2 font-mono text-2xs leading-relaxed"
 			>
 				{logs.length === 0 ? (
 					<div className="flex h-full items-center justify-center font-sans">

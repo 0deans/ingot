@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useServers } from "@/services/server-service"
 
@@ -127,39 +128,41 @@ export function DirectConnectDialog({
 							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
 								{t("directConnect.localServers")}
 							</span>
-							<div className="grid max-h-32 grid-cols-1 gap-1.5 overflow-y-auto">
-								{servers.map((srv) => (
-									<Item
-										key={srv.id}
-										variant="outline"
-										size="xs"
-										render={
-											<button
-												type="button"
-												onClick={() => {
-													const addr = `127.0.0.1:${srv.port}`
-													setAddress(addr)
-													handleLaunch(addr)
-												}}
-											/>
-										}
-										className="text-left hover:bg-muted/50"
-									>
-										<ItemMedia variant="icon" className="text-primary">
-											<Server />
-										</ItemMedia>
-										<ItemContent className="min-w-0">
-											<ItemTitle className="truncate">
-												{srv.name}
-												<span className="font-mono font-normal text-2xs text-muted-foreground">
-													:{srv.port}
-												</span>
-											</ItemTitle>
-										</ItemContent>
-										<ArrowRight className="size-3 text-muted-foreground" />
-									</Item>
-								))}
-							</div>
+							<ScrollArea className="scroll-fade-y max-h-32 pr-1">
+								<div className="grid grid-cols-1 gap-1.5">
+									{servers.map((srv) => (
+										<Item
+											key={srv.id}
+											variant="outline"
+											size="xs"
+											render={
+												<button
+													type="button"
+													onClick={() => {
+														const addr = `127.0.0.1:${srv.port}`
+														setAddress(addr)
+														handleLaunch(addr)
+													}}
+												/>
+											}
+											className="text-left hover:bg-muted/50"
+										>
+											<ItemMedia variant="icon" className="text-primary">
+												<Server />
+											</ItemMedia>
+											<ItemContent className="min-w-0">
+												<ItemTitle className="truncate">
+													{srv.name}
+													<span className="font-mono font-normal text-2xs text-muted-foreground">
+														:{srv.port}
+													</span>
+												</ItemTitle>
+											</ItemContent>
+											<ArrowRight className="size-3 text-muted-foreground" />
+										</Item>
+									))}
+								</div>
+							</ScrollArea>
 						</div>
 					)}
 

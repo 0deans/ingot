@@ -4,7 +4,6 @@ import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import * as v from "valibot"
 import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
-import { ScrollArea } from "@/components/common/scroll-area"
 import BedrockCard from "@/components/instances/bedrock-card"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-dialog"
@@ -15,6 +14,7 @@ import InstanceSettingsDialog from "@/components/instances/instance-settings-dia
 import NewInstanceDialog from "@/components/instances/new-instance-dialog"
 import SyncConflictDialog from "@/components/instances/sync-conflict-dialog"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	instanceService,
@@ -171,7 +171,7 @@ const InstancesPage = () => {
 	}, [instances, searchQuery])
 
 	return (
-		<ScrollArea className="size-full flex-1" scrollFade>
+		<ScrollArea className="scroll-fade-y size-full flex-1">
 			<div className="flex flex-1 flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Top Header */}
 				<InstanceSearchHeader

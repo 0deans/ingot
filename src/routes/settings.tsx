@@ -40,7 +40,6 @@ import {
 	SortableAccountItem,
 } from "@/components/accounts/sortable-account-item"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { SectionCardHeader } from "@/components/common/section-card"
 import LanguageSettings from "@/components/settings/language-settings"
 import { LicensesSettings } from "@/components/settings/licenses"
@@ -60,6 +59,7 @@ import {
 	FieldTitle,
 } from "@/components/ui/field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { accountService, useAccounts } from "@/services/account-service"
 import {
@@ -182,7 +182,7 @@ const SettingsPage = () => {
 	}
 
 	return (
-		<ScrollArea className="size-full flex-1" scrollFade>
+		<ScrollArea className="scroll-fade-y size-full flex-1">
 			<div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 p-4 pb-12 sm:p-5 lg:p-6">
 				<div>
 					<h1 className="font-bold text-2xl text-foreground tracking-tight">

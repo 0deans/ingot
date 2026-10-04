@@ -37,7 +37,6 @@ import { AnimatePresence, motion } from "motion/react"
 import { memo, useId, useState } from "react"
 import { toast } from "sonner"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import {
 	SearchableSelect,
 	type SearchableSelectOption,
@@ -126,6 +125,7 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { Label } from "@/components/ui/label"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -203,7 +203,7 @@ function UiTestPage() {
 	const fieldInputId = useId()
 
 	return (
-		<ScrollArea className="size-full flex-1" scrollFade>
+		<ScrollArea className="scroll-fade-y size-full flex-1">
 			<div className="mx-auto flex max-w-7xl flex-col gap-8 p-4 pb-24 sm:p-6 lg:p-8">
 				{/* Top Hero Header */}
 				<div className="flex flex-col justify-between gap-4 rounded-2xl border border-border/60 bg-linear-to-r from-card/80 via-card/50 to-primary/5 p-6 shadow-sm backdrop-blur-md sm:flex-row sm:items-center">

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
 import type { ServerConfig } from "@/bindings"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
 import {
 	InputGroup,
@@ -12,6 +11,7 @@ import {
 	InputGroupButton,
 	InputGroupInput,
 } from "@/components/ui/input-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -192,7 +192,7 @@ export default function ServerListView() {
 	}
 
 	return (
-		<ScrollArea className="size-full flex-1" scrollFade>
+		<ScrollArea className="scroll-fade-y size-full flex-1">
 			<div className="flex flex-1 flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Top Header */}
 				<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

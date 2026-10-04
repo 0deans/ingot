@@ -2,7 +2,6 @@ import { Check, CheckCircle2, Database, FolderX, UploadCloud } from "lucide-reac
 import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -13,6 +12,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { useInstances } from "@/services/instance-service"
 import { settingsService } from "@/services/settings-service"
@@ -152,7 +152,7 @@ export const SyncMasterDialog = ({
 							{category?.hasSharedData ? t("syncMaster.orCopyFrom") : t("syncMaster.copyFrom")}
 						</span>
 
-						<ScrollArea className="max-h-[36vh] pr-2">
+						<ScrollArea className="scroll-fade-y max-h-[36vh] pr-2">
 							<div className="flex flex-col gap-2 py-1">
 								{instances.length === 0 ? (
 									<div className="py-4 text-center text-muted-foreground text-xs">

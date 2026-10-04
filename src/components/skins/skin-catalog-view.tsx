@@ -28,7 +28,6 @@ import { Trans, useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import SkinViewer3D, { DEFAULT_STEVE_SKIN } from "@/components/accounts/skin-viewer-3d"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import SkinAvatar from "@/components/common/skin-avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -63,6 +62,7 @@ import {
 } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -1028,7 +1028,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 									</div>
 								)}
 
-								<ScrollArea className="flex-1">
+								<ScrollArea className="scroll-fade-y flex-1">
 									<div className="min-h-full p-4">
 										{isLoading && skins.length === 0 ? (
 											<div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-2 text-muted-foreground">
@@ -1360,7 +1360,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 						</div>
 
 						{/* Right Content Panel: Upload & Configuration */}
-						<ScrollArea scrollFade className="flex-1">
+						<ScrollArea className="scroll-fade-y flex-1">
 							<div className="p-5 lg:p-8">
 								<div className="mx-auto flex w-full max-w-xl flex-col gap-5">
 									<div>

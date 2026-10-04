@@ -144,44 +144,46 @@ export function LicensesDialog({
 						{t("settings.licenses.dialogSubtitle")}
 					</p>
 				</div>
-				<FadeScroll className="flex min-h-0 flex-col gap-5 px-5 pb-5">
-					{GROUPS.map((group) => (
-						<section key={group.title} className="flex flex-col gap-2">
-							<div>
-								<h3 className="font-semibold text-foreground text-sm">{t(group.title)}</h3>
-								<p className="text-2xs text-muted-foreground">{t(group.note)}</p>
-							</div>
-							<ul className="flex flex-col divide-y divide-border/70 border border-border/70">
-								{group.items.map((item) => (
-									<li key={item.name}>
-										<Item
-											render={
-												<button
-													type="button"
-													onClick={() => openUrl(item.source).catch(console.error)}
-												/>
-											}
-											className="rounded-none text-left hover:bg-muted/50"
-										>
-											<ItemContent>
-												<ItemTitle>{text(t, item.name)}</ItemTitle>
-												<ItemDescription>{t(item.role)}</ItemDescription>
-											</ItemContent>
-											<ItemActions>
-												<Badge variant="secondary" className="font-mono">
-													{text(t, item.license)}
-												</Badge>
-												<ExternalLink className="size-3.5 text-muted-foreground" />
-											</ItemActions>
-										</Item>
-									</li>
-								))}
-							</ul>
-						</section>
-					))}
-					<p className="text-2xs text-muted-foreground/60 leading-relaxed">
-						{t("settings.licenses.trademark")}
-					</p>
+				<FadeScroll className="min-h-0 flex-1">
+					<div className="flex flex-col gap-5 px-5 pb-5">
+						{GROUPS.map((group) => (
+							<section key={group.title} className="flex flex-col gap-2">
+								<div>
+									<h3 className="font-semibold text-foreground text-sm">{t(group.title)}</h3>
+									<p className="text-2xs text-muted-foreground">{t(group.note)}</p>
+								</div>
+								<ul className="flex flex-col divide-y divide-border/70 border border-border/70">
+									{group.items.map((item) => (
+										<li key={item.name}>
+											<Item
+												render={
+													<button
+														type="button"
+														onClick={() => openUrl(item.source).catch(console.error)}
+													/>
+												}
+												className="rounded-none text-left hover:bg-muted/50"
+											>
+												<ItemContent>
+													<ItemTitle>{text(t, item.name)}</ItemTitle>
+													<ItemDescription>{t(item.role)}</ItemDescription>
+												</ItemContent>
+												<ItemActions>
+													<Badge variant="secondary" className="font-mono">
+														{text(t, item.license)}
+													</Badge>
+													<ExternalLink className="size-3.5 text-muted-foreground" />
+												</ItemActions>
+											</Item>
+										</li>
+									))}
+								</ul>
+							</section>
+						))}
+						<p className="text-2xs text-muted-foreground/60 leading-relaxed">
+							{t("settings.licenses.trademark")}
+						</p>
+					</div>
 				</FadeScroll>
 			</DialogContent>
 		</Dialog>

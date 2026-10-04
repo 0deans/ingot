@@ -9,7 +9,6 @@ import type {
 	VersionPlan,
 } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import SearchableSelect from "@/components/common/searchable-select"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -23,6 +22,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
@@ -282,7 +282,7 @@ export default function ChangeVersionDialog({
 				)}
 
 				{stage === "review" && plan && (
-					<ScrollArea scrollFade className="-mr-2 max-h-[60vh] pr-2">
+					<ScrollArea className="scroll-fade-y -mr-2 max-h-[60vh] pr-2">
 						<div className="pr-1 pb-1">
 							<PlanReview
 								plan={plan}

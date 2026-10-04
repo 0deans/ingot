@@ -1,6 +1,5 @@
 import { Globe, Monitor, Moon, Sun } from "lucide-react"
 import { memo } from "react"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -18,6 +17,7 @@ import {
 	FieldTitle,
 } from "@/components/ui/field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLanguage } from "@/i18n/use-language"
@@ -74,7 +74,7 @@ export const FirstLaunchLanguageDialog = () => {
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea scrollFade className="-mx-1 min-h-0 flex-1">
+				<ScrollArea className="scroll-fade-y -mx-1 min-h-0 flex-1">
 					<RadioGroup
 						value={language}
 						onValueChange={(code) => previewLanguage(code as string)}

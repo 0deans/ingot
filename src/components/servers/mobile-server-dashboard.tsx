@@ -191,7 +191,7 @@ export const MobileServerDashboard = memo(() => {
 								tab === id && "bg-primary/15",
 							)}
 						>
-							<Icon className="size-[18px]" />
+							<Icon className="size-4.5" />
 						</span>
 						<span className="max-w-full truncate">
 							{id === "overview" ? t("serverTabs.home") : tabLabel(id, label, server.core)}
@@ -203,15 +203,17 @@ export const MobileServerDashboard = memo(() => {
 			<Dialog open={switcherOpen} onOpenChange={setSwitcherOpen}>
 				<DialogContent className="gap-3 p-4">
 					<DialogTitle className="px-1 text-base">{t("mobileServers.yourServers")}</DialogTitle>
-					<FadeScroll className="-mx-1 flex max-h-[55dvh] flex-col gap-1">
-						{servers.map((s) => (
-							<ServerRow
-								key={s.id}
-								server={s}
-								selected={s.id === server.id}
-								onClick={() => select(s.id)}
-							/>
-						))}
+					<FadeScroll className="-mx-1 max-h-[55dvh] px-1">
+						<div className="flex flex-col gap-1">
+							{servers.map((s) => (
+								<ServerRow
+									key={s.id}
+									server={s}
+									selected={s.id === server.id}
+									onClick={() => select(s.id)}
+								/>
+							))}
+						</div>
 					</FadeScroll>
 					<Button
 						size="lg"

@@ -3,7 +3,6 @@ import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { SyncConflictInfo } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -21,6 +20,7 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface SyncConflictDialogProps {
 	conflict: SyncConflictInfo | null
@@ -93,7 +93,7 @@ export const SyncConflictDialog = ({
 						{t("syncConflict.choose")}
 					</div>
 
-					<ScrollArea scrollFade className="-mr-2 max-h-[min(380px,50vh)] p-0.5 pr-2">
+					<ScrollArea className="scroll-fade-y -mr-2 max-h-[min(380px,50vh)] p-0.5 pr-2">
 						<div className="flex flex-col gap-2">
 							{/* Option 1: Use Shared Data */}
 							<Item

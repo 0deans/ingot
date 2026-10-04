@@ -15,7 +15,6 @@ import {
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type * as v from "valibot"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
 import {
 	Dialog,
@@ -38,6 +37,7 @@ import {
 	InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { screenshotSortSchema } from "@/routes/screenshots"
 import { useCachedInstances } from "@/services/instance-service"
@@ -382,7 +382,7 @@ const ScreenshotsView = () => {
 			</div>
 
 			{/* Main Gallery Area */}
-			<ScrollArea className="min-h-0 flex-1">
+			<ScrollArea className="scroll-fade-y min-h-0 flex-1">
 				{filteredScreenshots.length > 0 ? (
 					<div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
 						{filteredScreenshots.map((item) => (

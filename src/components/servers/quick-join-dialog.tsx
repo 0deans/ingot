@@ -21,6 +21,7 @@ import {
 	FieldTitle,
 } from "@/components/ui/field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { useInstances } from "@/services/instance-service"
 
@@ -171,31 +172,29 @@ export function QuickJoinDialog({
 								)}
 							</div>
 						) : (
-							<RadioGroup
-								value={selectedId}
-								onValueChange={(id) => setSelectedId(id as string)}
-								className="max-h-56 overflow-y-auto pr-1"
-							>
-								{instances.map((inst) => (
-									<FieldLabel key={inst.id} htmlFor={`quick-join-${inst.id}`}>
-										<Field orientation="horizontal" className="items-center">
-											<LoaderIcon loader={inst.loader} size={16} />
-											<FieldContent className="min-w-0">
-												<FieldTitle className="truncate">{inst.name}</FieldTitle>
-												<FieldDescription className="flex items-center gap-1.5 font-mono">
-													{inst.gameVersion}
-													{inst.gameVersion === server.gameVersion && (
-														<Badge variant="outline" className="border-primary/30 text-primary">
-															{t("quickJoin.matches")}
-														</Badge>
-													)}
-												</FieldDescription>
-											</FieldContent>
-											<RadioGroupItem value={inst.id} id={`quick-join-${inst.id}`} />
-										</Field>
-									</FieldLabel>
-								))}
-							</RadioGroup>
+							<ScrollArea className="scroll-fade-y max-h-56 pr-1">
+								<RadioGroup value={selectedId} onValueChange={(id) => setSelectedId(id as string)}>
+									{instances.map((inst) => (
+										<FieldLabel key={inst.id} htmlFor={`quick-join-${inst.id}`}>
+											<Field orientation="horizontal" className="items-center">
+												<LoaderIcon loader={inst.loader} size={16} />
+												<FieldContent className="min-w-0">
+													<FieldTitle className="truncate">{inst.name}</FieldTitle>
+													<FieldDescription className="flex items-center gap-1.5 font-mono">
+														{inst.gameVersion}
+														{inst.gameVersion === server.gameVersion && (
+															<Badge variant="outline" className="border-primary/30 text-primary">
+																{t("quickJoin.matches")}
+															</Badge>
+														)}
+													</FieldDescription>
+												</FieldContent>
+												<RadioGroupItem value={inst.id} id={`quick-join-${inst.id}`} />
+											</Field>
+										</FieldLabel>
+									))}
+								</RadioGroup>
+							</ScrollArea>
 						)}
 					</div>
 

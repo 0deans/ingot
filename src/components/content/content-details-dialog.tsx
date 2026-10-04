@@ -15,10 +15,10 @@ import { marked } from "marked"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -439,7 +439,7 @@ export const ContentDetailsDialog = memo(
 									</Button>
 								</div>
 							) : activeTab === "overview" ? (
-								<ScrollArea className="flex-1">
+								<ScrollArea className="scroll-fade-y flex-1">
 									<div className="flex flex-col gap-6 p-6">
 										{/* Gallery: Featured Large Preview + Scrollable Thumbnail Strip */}
 										{details?.screenshots && details.screenshots.length > 0 && (
@@ -705,7 +705,7 @@ export const ContentDetailsDialog = memo(
 										</span>
 									</div>
 
-									<ScrollArea className="flex-1">
+									<ScrollArea className="scroll-fade-y flex-1">
 										<div className="flex flex-col gap-3 p-6">
 											{filteredVersions.length === 0 ? (
 												<div className="py-12 text-center text-muted-foreground text-xs">

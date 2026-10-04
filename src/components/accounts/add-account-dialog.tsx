@@ -4,7 +4,6 @@ import { memo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MicrosoftDeviceCode } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { accountService } from "@/services/account-service"
@@ -156,7 +156,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 					<DialogDescription>{t("addAccount.description")}</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea scrollFade className="min-h-0 w-full flex-1 pr-1">
+				<ScrollArea className="scroll-fade-y min-h-0 w-full flex-1 pr-1">
 					<div className="flex flex-col gap-4 py-1">
 						{/* Account Type Selector */}
 						<Tabs

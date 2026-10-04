@@ -12,8 +12,8 @@ import {
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useServerIcon, useServerStatus } from "@/services/server-data"
 import { ConsolePanel } from "./panels/console-panel"
@@ -165,7 +165,7 @@ export function ServerWorkspace({
 			{fill ? (
 				<div className="min-h-0 flex-1">{content}</div>
 			) : (
-				<ScrollArea className="min-h-0 flex-1" scrollFade>
+				<ScrollArea className="scroll-fade-y min-h-0 flex-1">
 					<div className="mx-auto w-full max-w-5xl p-5 pb-12 lg:p-6">{content}</div>
 				</ScrollArea>
 			)}

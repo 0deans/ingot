@@ -154,7 +154,7 @@ export default function VersionChangeCrashDialog() {
 						<summary className="cursor-pointer px-3 py-2 text-muted-foreground">
 							{t("crashDialog.details")}
 						</summary>
-						<pre className="max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-2xs text-muted-foreground">
+						<pre className="scroll-fade-y max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-2xs text-muted-foreground">
 							{crash.excerpt}
 						</pre>
 					</details>

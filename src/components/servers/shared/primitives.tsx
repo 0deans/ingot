@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { type ReactNode, useEffect, useRef, useState } from "react"
+import { type ReactNode, useRef, useState } from "react"
 import type { ItemStack } from "@/bindings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,6 +11,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { avatarUrl, itemIconUrls, prettyId } from "@/lib/minecraft"
 import { cn } from "@/lib/utils"
@@ -257,48 +258,15 @@ export function useSticky<T>(value: T | null | undefined): T | null {
 	return ref.current
 }
 
-/** Scrollable div whose top/bottom edges fade only while there's more content that way */
+/** Scrollable container whose top/bottom edges fade only while there's more content that way */
 export function FadeScroll({
 	className,
 	children,
 	...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-	const ref = useRef<HTMLDivElement>(null)
-	useEffect(() => {
-		const el = ref.current
-		if (!el) return
-		const update = () => {
-			el.style.setProperty("--scroll-area-overflow-y-start", `${el.scrollTop}px`)
-			el.style.setProperty(
-				"--scroll-area-overflow-y-end",
-				`${Math.max(0, el.scrollHeight - el.scrollTop - el.clientHeight)}px`,
-			)
-		}
-		update()
-		el.addEventListener("scroll", update, { passive: true })
-		// Content can grow or shrink (lazy data, images, collapsing rows) without the
-		// container resizing, so watch the children's sizes too
-		const resize = new ResizeObserver(update)
-		const observeChildren = () => {
-			resize.disconnect()
-			resize.observe(el)
-			for (const child of el.children) resize.observe(child)
-		}
-		observeChildren()
-		const mutations = new MutationObserver(() => {
-			observeChildren()
-			update()
-		})
-		mutations.observe(el, { childList: true, subtree: true, characterData: true })
-		return () => {
-			el.removeEventListener("scroll", update)
-			resize.disconnect()
-			mutations.disconnect()
-		}
-	}, [])
+}: React.ComponentProps<typeof ScrollArea>) {
 	return (
-		<div ref={ref} className={cn("scroll-fade overflow-y-auto", className)} {...props}>
+		<ScrollArea className={cn("scroll-fade-y min-h-0 flex-1", className)} {...props}>
 			{children}
-		</div>
+		</ScrollArea>
 	)
 }

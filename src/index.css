@@ -490,6 +490,84 @@
 		height: 0;
 	}
 
+	/* ScrollArea: flex layout so it fills flex parents and viewport shrinks inside max-height */
+	[data-slot="scroll-area"] {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		overflow: hidden;
+	}
+	[data-slot="scroll-area"] > [data-slot="scroll-area-viewport"] {
+		min-height: 0;
+		flex: 1 1 0%;
+	}
+
+	/*
+	 * Rock-solid 120 FPS GPU-accelerated edge fades for ScrollArea.
+	 * Bypasses expensive offscreen alpha masking (mask-image) in favor of hardware-composited
+	 * static gradient overlays toggled purely via Base UI's native boolean attributes.
+	 */
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y) {
+		position: relative;
+		mask-image: none;
+		-webkit-mask-image: none;
+		animation: none;
+	}
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y) > [data-slot="scroll-area-viewport"] {
+		mask-image: none;
+		-webkit-mask-image: none;
+		animation: none;
+	}
+
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y)::before,
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y)::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		pointer-events: none;
+		z-index: 10;
+		opacity: 0;
+		transition: opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
+		will-change: opacity;
+	}
+
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y)::before {
+		top: 0;
+		height: 1.5rem;
+		background: linear-gradient(
+			to bottom,
+			var(--scroll-fade-color, var(--background)),
+			transparent
+		);
+	}
+
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y)::after {
+		bottom: 0;
+		height: 1.75rem;
+		background: linear-gradient(to top, var(--scroll-fade-color, var(--background)), transparent);
+	}
+
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y)[data-overflow-y-start]::before {
+		opacity: 1;
+	}
+
+	[data-slot="scroll-area"]:is(.scroll-fade, .scroll-fade-y)[data-overflow-y-end]::after {
+		opacity: 1;
+	}
+
+	[data-slot="scroll-area-scrollbar"] {
+		z-index: 20;
+	}
+
+	/* Dialogs & Cards adapt the fade color to match their surface */
+	[data-slot="dialog-content"] {
+		--scroll-fade-color: var(--popover);
+	}
+	[data-slot="card"] {
+		--scroll-fade-color: var(--card);
+	}
+
 	/* Default styled scrollbars for native overflow containers outside of ScrollArea */
 	*:not([data-slot="scroll-area-viewport"]) {
 		scrollbar-width: thin;
@@ -512,29 +590,6 @@
 
 	::-webkit-scrollbar-thumb:hover {
 		background: color-mix(in oklab, var(--foreground) 35%, transparent);
-	}
-
-	/* Fades an edge only while there is more content in that direction. The variables are
-	   set by Base UI ScrollArea viewports, and by FadeScroll for plain scroll containers.
-	   The ScrollArea in components/common opts in with data-scroll-fade. */
-	.scroll-fade,
-	[data-scroll-fade] > [data-slot="scroll-area-viewport"] {
-		--fade-top: min(var(--scroll-area-overflow-y-start, 0px), 24px);
-		--fade-bottom: min(var(--scroll-area-overflow-y-end, 28px), 28px);
-		mask-image: linear-gradient(
-			to bottom,
-			transparent 0,
-			black var(--fade-top),
-			black calc(100% - var(--fade-bottom)),
-			transparent 100%
-		);
-		-webkit-mask-image: linear-gradient(
-			to bottom,
-			transparent 0,
-			black var(--fade-top),
-			black calc(100% - var(--fade-bottom)),
-			transparent 100%
-		);
 	}
 }
 

@@ -21,7 +21,6 @@ import { memo, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import * as v from "valibot"
-import { ScrollArea } from "@/components/common/scroll-area"
 import { ContentDetailsDialog } from "@/components/content/content-details-dialog"
 import { InstallDialog } from "@/components/content/install-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -39,6 +38,7 @@ import {
 	InputGroupButton,
 	InputGroupInput,
 } from "@/components/ui/input-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -440,7 +440,7 @@ const ModpacksPage = () => {
 	const isBusy = isLoading || isFetching
 
 	return (
-		<ScrollArea className="size-full flex-1">
+		<ScrollArea className="scroll-fade-y size-full flex-1">
 			<div className="flex flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Notification Banner */}
 

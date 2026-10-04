@@ -1,7 +1,6 @@
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ModLoaderType, VersionManifestEntry } from "@/bindings"
-import { ScrollArea } from "@/components/common/scroll-area"
 import SearchableSelect from "@/components/common/searchable-select"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { instanceService } from "@/services/instance-service"
@@ -165,7 +165,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="-mx-1 max-h-[65vh] px-1">
+				<ScrollArea className="scroll-fade-y -mx-1 max-h-[65vh] px-1">
 					<div className="grid gap-4 p-1">
 						{/* Mod Loader Selector */}
 						<div className="grid gap-1.5">

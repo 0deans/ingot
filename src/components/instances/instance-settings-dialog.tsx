@@ -15,7 +15,6 @@ import {
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { InstanceConfig, VersionBackup } from "@/bindings"
-import { ScrollArea } from "@/components/common/scroll-area"
 import ChangeVersionDialog from "@/components/instances/change-version-dialog"
 import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Slider } from "@/components/ui/slider"
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
@@ -315,7 +315,7 @@ export const InstanceSettingsDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea scrollFade className="-mr-2 max-h-[68vh] pr-2">
+				<ScrollArea className="scroll-fade-y -mr-2 max-h-[68vh] pr-2">
 					<div className="flex flex-col gap-4 py-1 pr-1">
 						{/* Instance Name */}
 						<div className="flex flex-col gap-2">

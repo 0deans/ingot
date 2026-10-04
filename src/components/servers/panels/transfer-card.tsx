@@ -25,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
 	Select,
 	SelectContent,
@@ -421,7 +422,7 @@ function ChangeVersionDialog({
 				)}
 
 				{stage === "review" && plan && (
-					<div className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2">
+					<ScrollArea className="scroll-fade-y -mr-2 min-h-0 flex-1 pr-2">
 						<PlanReview
 							plan={plan}
 							choices={choices}
@@ -435,7 +436,7 @@ function ChangeVersionDialog({
 							emptyText={t("transfer.empty")}
 							rounded
 						/>
-					</div>
+					</ScrollArea>
 				)}
 
 				{stage === "applying" && (

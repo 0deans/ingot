@@ -23,7 +23,6 @@ import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { DetectedLauncher, ImportableInstance } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
-import { ScrollArea } from "@/components/common/scroll-area"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -48,6 +47,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { importerService } from "@/services/importer-service"
 
@@ -281,7 +281,7 @@ export const ImportInstanceDialog = ({
 
 				{/* STEP 1: Launcher Selection */}
 				{step === "launchers" && (
-					<ScrollArea scrollFade className="-mr-2 max-h-[min(520px,70vh)] py-1 pr-2">
+					<ScrollArea className="scroll-fade-y -mr-2 max-h-[min(520px,70vh)] py-1 pr-2">
 						{isLoadingLaunchers ? (
 							<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
 								<Spinner className="size-6 text-primary" />
@@ -413,7 +413,7 @@ export const ImportInstanceDialog = ({
 							)}
 						</div>
 
-						<ScrollArea scrollFade className="max-h-[50vh] pr-2">
+						<ScrollArea className="scroll-fade-y max-h-[50vh] pr-2">
 							<div className="flex flex-col gap-2 py-1">
 								{isLoadingInstances ? (
 									<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
@@ -481,7 +481,7 @@ export const ImportInstanceDialog = ({
 
 				{/* STEP 3: Options & Confirmation */}
 				{step === "options" && selectedInstance && (
-					<ScrollArea scrollFade className="-mr-2 max-h-[min(540px,65vh)] py-1 pr-2">
+					<ScrollArea className="scroll-fade-y -mr-2 max-h-[min(540px,65vh)] py-1 pr-2">
 						<div className="flex flex-col gap-4 py-1">
 							<div className="flex items-center justify-between">
 								<Button
