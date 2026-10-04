@@ -1,6 +1,6 @@
 //! Native profile commands; pure list decisions live in account::policy.
-use super::storage::{current_timestamp, load_accounts_file, save_accounts_file};
-use crate::account::AccountProfile;
+use super::storage::{current_timestamp, load_accounts_file, repository};
+use crate::account::{repository::AccountRepository, AccountError, AccountProfile};
 use crate::keyring_store;
 pub(crate) fn add_offline_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
@@ -20,12 +20,6 @@ pub(crate) fn add_offline_account<R: tauri::Runtime>(
     .to_string();
 
     let account_id = format!("offline:{}", clean_name.to_lowercase());
-    let mut accounts = load_accounts_file(&app)?;
-
-    for acc in &mut accounts {
-        acc.is_active = false;
-    }
-
     let new_profile = AccountProfile {
         id: account_id.clone(),
         account_type: "offline".to_string(),
@@ -36,15 +30,9 @@ pub(crate) fn add_offline_account<R: tauri::Runtime>(
         created_at: current_timestamp(),
     };
 
-    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
-        accounts[pos] = new_profile.clone();
-    } else {
-        accounts.push(new_profile.clone());
-    }
-
-    save_accounts_file(&app, &accounts)?;
-
-    Ok(new_profile)
+    repository(&app)
+        .activate(new_profile)
+        .map_err(|error| error.to_string())
 }
 
 pub(super) fn save_skin_url<R: tauri::Runtime>(
@@ -52,14 +40,10 @@ pub(super) fn save_skin_url<R: tauri::Runtime>(
     account_id: &str,
     skin_url: Option<String>,
 ) -> Result<(), String> {
-    let mut accounts = load_accounts_file(app)?;
-    if let Some(acc) = accounts.iter_mut().find(|a| a.id == account_id) {
-        acc.skin_url = skin_url;
-        save_accounts_file(app, &accounts)?;
-    }
-    Ok(())
+    repository(app)
+        .update_profile(account_id, |account| account.skin_url = skin_url)
+        .map_err(|error| error.to_string())
 }
-
 pub(crate) fn get_accounts<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<AccountProfile>, String> {
@@ -70,35 +54,48 @@ pub(crate) fn set_active_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_id: String,
 ) -> Result<(), String> {
-    let mut accounts = load_accounts_file(&app)?;
-    crate::account::policy::select(&mut accounts, &account_id)
-        .map_err(|error| error.to_string())?;
-
-    save_accounts_file(&app, &accounts)?;
-    Ok(())
+    repository(&app)
+        .update(|accounts| {
+            crate::account::policy::select(accounts, &account_id)?;
+            Ok(())
+        })
+        .map_err(|error| error.to_string())
 }
-
 pub(crate) fn remove_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_id: String,
 ) -> Result<(), String> {
-    let mut accounts = load_accounts_file(&app)?;
-    crate::account::policy::remove(&mut accounts, &account_id)
-        .map_err(|error| error.to_string())?;
+    remove_with_cleanup(repository(&app), &account_id, keyring_store::delete_secret)
+        .map_err(|error| error.to_string())
+}
 
-    // Existing best-effort vault deletion policy; file/vault consistency is a later transaction slice.
-    let _ = keyring_store::delete_secret(&account_id);
-    save_accounts_file(&app, &accounts)?;
+fn remove_with_cleanup(
+    repository: &AccountRepository,
+    account_id: &str,
+    cleanup: impl FnOnce(&str) -> Result<(), String>,
+) -> Result<(), AccountError> {
+    repository.update(|accounts| {
+        crate::account::policy::remove(accounts, account_id)?;
+        Ok(())
+    })?;
+
+    // Commit the profile removal first. Vault cleanup is best effort, outside the store lock.
+    if let Err(error) = cleanup(account_id) {
+        eprintln!("Account removed, but credential cleanup failed: {error}");
+    }
     Ok(())
 }
 
+#[cfg(test)]
+mod tests;
 pub(crate) fn reorder_accounts<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_ids: Vec<String>,
 ) -> Result<(), String> {
-    let accounts = load_accounts_file(&app)?;
-    let reordered = crate::account::policy::reorder(&accounts, &account_ids);
-
-    save_accounts_file(&app, &reordered)?;
-    Ok(())
+    repository(&app)
+        .update(|accounts| {
+            *accounts = crate::account::policy::reorder(accounts, &account_ids);
+            Ok(())
+        })
+        .map_err(|error| error.to_string())
 }

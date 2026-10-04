@@ -1,0 +1,5 @@
+[
+  {"id":"ely:123","accountType":"ely","username":"Player","uuid":"123","skinUrl":"https://example.test/skin.png","isActive":true,"createdAt":42},
+  {"id":"microsoft:456","accountType":"microsoft","username":"Other","uuid":"456","skinUrl":null,"isActive":false,"createdAt":43},
+  {"id":"offline:local","accountType":"offline","username":"Local","uuid":"789","skinUrl":null,"isActive":false,"createdAt":44}
+]

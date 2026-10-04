@@ -10,6 +10,41 @@ use crate::{
     settings::MemorySettings,
 };
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn corrupt_account_storage_is_rejected_and_cannot_be_overwritten() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let corrupt = b"[{broken-account-data";
+    std::fs::write(&path, corrupt).unwrap();
+    let app = tauri::test::mock_builder()
+        .invoke_handler(super::router::<MockRuntime>().into_handler())
+        .build(tauri::test::mock_context(tauri::test::noop_assets()))
+        .unwrap();
+    app.manage(AppState::new(AppPaths::new(dir.path().to_owned())).unwrap());
+    let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
+        .build()
+        .unwrap();
+    for (command, arguments) in [
+        ("TauRPC__accounts.get_accounts", json!({})),
+        (
+            "TauRPC__accounts.add_offline_account",
+            json!({"username":"Player"}),
+        ),
+        (
+            "TauRPC__accounts.reorder_accounts",
+            json!({"account_ids":[]}),
+        ),
+        (
+            "TauRPC__accounts.remove_account",
+            json!({"account_id":"offline:player"}),
+        ),
+    ] {
+        let error = invoke(&webview, command, arguments).unwrap_err();
+        assert!(error.is_string());
+        assert_eq!(std::fs::read(&path).unwrap(), corrupt);
+    }
+}
+
 fn invoke(
     webview: &tauri::WebviewWindow<MockRuntime>,
     command: &str,

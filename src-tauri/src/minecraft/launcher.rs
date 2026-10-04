@@ -427,7 +427,7 @@ where
     report_prog("Verifying Files", 7, 10, "All game files verified");
 
     // Step 7: Resolve active account and auth
-    let accounts = account::load_accounts_file(&app).unwrap_or_default();
+    let accounts = account::load_accounts_file(&app)?;
     let active_account = accounts.into_iter().find(|a| a.is_active);
 
     let (player_name, uuid_str, access_token, user_type, xuid, is_ely) = match active_account {

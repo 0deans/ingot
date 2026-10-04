@@ -14,7 +14,7 @@ pub(crate) struct AppState {
     pub(crate) http: reqwest::Client,
     pub(crate) lifecycle: LifecycleState,
     pub(crate) account_login: crate::account::login::LoginAttempts,
-    pub(crate) accounts_file: std::path::PathBuf,
+    pub(crate) accounts: crate::account::repository::AccountRepository,
 }
 
 impl AppState {
@@ -31,7 +31,7 @@ impl AppState {
             http,
             lifecycle: LifecycleState::default(),
             account_login: crate::account::login::LoginAttempts::default(),
-            accounts_file: paths.accounts_file(),
+            accounts: crate::account::repository::AccountRepository::new(paths.accounts_file()),
         })
     }
 }

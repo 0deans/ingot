@@ -1,7 +1,7 @@
 //! Native provider skin operations and account metadata updates.
 use super::profiles::save_skin_url;
 use super::session::microsoft_token_for;
-use super::storage::{current_timestamp, load_accounts_file, save_accounts_file};
+use super::storage::{current_timestamp, load_accounts_file, repository};
 use crate::account::AccountSecrets;
 use crate::auth::ely::{ElyAuthService, ElySkinsCatalogResponse};
 use crate::auth::microsoft;
@@ -69,7 +69,7 @@ pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
     skin_id: u64,
     password: Option<String>,
 ) -> Result<(), String> {
-    let mut accounts = load_accounts_file(app)?;
+    let accounts = load_accounts_file(app)?;
     let acc = accounts
         .iter()
         .find(|a| a.id == account_id)
@@ -115,9 +115,11 @@ pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
         "https://skinsystem.ely.by/skins/{username}.png?t={}",
         current_timestamp()
     );
-    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
-        accounts[pos].skin_url = Some(updated_skin_url);
-        let _ = save_accounts_file(app, &accounts);
+    // The provider already committed the skin. Report metadata-cache failure diagnostically.
+    if let Err(error) = repository(app).update_profile(account_id, |stored| {
+        stored.skin_url = Some(updated_skin_url);
+    }) {
+        eprintln!("Skin changed, but account metadata could not be saved: {error}");
     }
 
     Ok(())
@@ -129,7 +131,7 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
     image_base64: &str,
     password: Option<String>,
 ) -> Result<(), String> {
-    let mut accounts = load_accounts_file(app)?;
+    let accounts = load_accounts_file(app)?;
     let acc = accounts
         .iter()
         .find(|a| a.id == account_id)
@@ -186,9 +188,11 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
         "https://skinsystem.ely.by/skins/{username}.png?t={}",
         current_timestamp()
     );
-    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
-        accounts[pos].skin_url = Some(updated_skin_url);
-        let _ = save_accounts_file(app, &accounts);
+    // The provider already committed the skin. Report metadata-cache failure diagnostically.
+    if let Err(error) = repository(app).update_profile(account_id, |stored| {
+        stored.skin_url = Some(updated_skin_url);
+    }) {
+        eprintln!("Skin changed, but account metadata could not be saved: {error}");
     }
 
     Ok(())

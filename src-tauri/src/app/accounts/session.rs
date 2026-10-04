@@ -1,5 +1,5 @@
 //! Native login/token orchestration over provider and credential adapters.
-use super::storage::{current_timestamp, load_accounts_file, save_accounts_file};
+use super::storage::{current_timestamp, load_accounts_file, repository};
 use crate::account::{AccountProfile, AccountSecrets};
 use crate::auth::ely::ElyAuthService;
 use crate::auth::microsoft::{self, MicrosoftDeviceCode, MinecraftSession};
@@ -14,6 +14,7 @@ pub(crate) async fn ely_login<R: tauri::Runtime>(
         return Err("Username and password are required".to_string());
     }
 
+    repository(&app).load().map_err(|error| error.to_string())?;
     let client_token = uuid::Uuid::new_v4().to_string();
     let auth_service = ElyAuthService::new();
 
@@ -41,13 +42,6 @@ pub(crate) async fn ely_login<R: tauri::Runtime>(
     keyring_store::save_secret(&account_id, &secrets_json)?;
 
     // 2. Save non-sensitive metadata in accounts.json
-    let mut accounts = load_accounts_file(&app)?;
-
-    // Deactivate all existing accounts
-    for acc in &mut accounts {
-        acc.is_active = false;
-    }
-
     let new_profile = AccountProfile {
         id: account_id.clone(),
         account_type: "ely".to_string(),
@@ -58,15 +52,9 @@ pub(crate) async fn ely_login<R: tauri::Runtime>(
         created_at: current_timestamp(),
     };
 
-    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
-        accounts[pos] = new_profile.clone();
-    } else {
-        accounts.push(new_profile.clone());
-    }
-
-    save_accounts_file(&app, &accounts)?;
-
-    Ok(new_profile)
+    repository(&app)
+        .activate(new_profile)
+        .map_err(|error| error.to_string())
 }
 
 pub(crate) async fn microsoft_login_start<R: tauri::Runtime>(
@@ -85,6 +73,7 @@ pub(crate) async fn microsoft_login_finish<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     code: MicrosoftDeviceCode,
 ) -> Result<AccountProfile, String> {
+    repository(&app).load().map_err(|error| error.to_string())?;
     let login = &crate::app::state(&app).account_login;
     let attempt = login.current();
     let is_cancelled = || login.is_cancelled(attempt);
@@ -92,11 +81,6 @@ pub(crate) async fn microsoft_login_finish<R: tauri::Runtime>(
     let session = microsoft::finish_device_login(&code, is_cancelled).await?;
     let account_id = format!("microsoft:{}", session.uuid);
     save_microsoft_secrets(&account_id, &session)?;
-
-    let mut accounts = load_accounts_file(&app)?;
-    for acc in &mut accounts {
-        acc.is_active = false;
-    }
 
     let new_profile = AccountProfile {
         id: account_id.clone(),
@@ -108,14 +92,9 @@ pub(crate) async fn microsoft_login_finish<R: tauri::Runtime>(
         created_at: current_timestamp(),
     };
 
-    if let Some(pos) = accounts.iter().position(|a| a.id == account_id) {
-        accounts[pos] = new_profile.clone();
-    } else {
-        accounts.push(new_profile.clone());
-    }
-
-    save_accounts_file(&app, &accounts)?;
-    Ok(new_profile)
+    repository(&app)
+        .activate(new_profile)
+        .map_err(|error| error.to_string())
 }
 
 fn save_microsoft_secrets(account_id: &str, session: &MinecraftSession) -> Result<(), String> {
@@ -149,13 +128,12 @@ async fn microsoft_access_token<R: tauri::Runtime>(
     let session = microsoft::refresh(&refresh_token).await?;
     save_microsoft_secrets(&account.id, &session)?;
 
-    let mut accounts = load_accounts_file(app)?;
-    if let Some(acc) = accounts.iter_mut().find(|a| a.id == account.id) {
-        acc.username = session.username.clone();
-        acc.skin_url = session.skin_url.clone();
-        save_accounts_file(app, &accounts)?;
-    }
-
+    repository(app)
+        .update_profile(&account.id, |stored| {
+            stored.username = session.username.clone();
+            stored.skin_url = session.skin_url.clone();
+        })
+        .map_err(|error| error.to_string())?;
     Ok(session.access_token)
 }
 
