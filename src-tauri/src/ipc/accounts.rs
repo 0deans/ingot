@@ -77,7 +77,7 @@ impl AccountsApi for AccountsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         username: String,
     ) -> Result<AccountProfile, String> {
-        account::add_offline_account(app_handle, username)
+        account::add_offline_account(app_handle, username).await
     }
 
     async fn get_accounts(
@@ -100,7 +100,7 @@ impl AccountsApi for AccountsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         account_id: String,
     ) -> Result<(), String> {
-        account::remove_account(app_handle, account_id)
+        account::remove_account(app_handle, account_id).await
     }
 
     async fn get_active_account_token(

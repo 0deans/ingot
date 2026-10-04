@@ -4,6 +4,7 @@ mod profiles;
 mod session;
 mod skins;
 mod storage;
+pub(crate) mod vault;
 
 pub(crate) use downloads::{get_skin_data_url, save_skin_to_downloads};
 pub(crate) use profiles::{

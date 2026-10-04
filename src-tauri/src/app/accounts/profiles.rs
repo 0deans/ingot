@@ -1,8 +1,8 @@
 //! Native profile commands; pure list decisions live in account::policy.
 use super::storage::{current_timestamp, load_accounts_file, repository};
+use crate::account::credentials::CredentialError;
 use crate::account::{repository::AccountRepository, AccountError, AccountProfile};
-use crate::keyring_store;
-pub(crate) fn add_offline_account<R: tauri::Runtime>(
+pub(crate) async fn add_offline_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     username: String,
 ) -> Result<AccountProfile, String> {
@@ -30,6 +30,11 @@ pub(crate) fn add_offline_account<R: tauri::Runtime>(
         created_at: current_timestamp(),
     };
 
+    let _operation = crate::app::state(&app)
+        .account_operations
+        .acquire(&account_id)
+        .await
+        .map_err(|error| error.to_string())?;
     repository(&app)
         .activate(new_profile)
         .map_err(|error| error.to_string())
@@ -61,18 +66,26 @@ pub(crate) fn set_active_account<R: tauri::Runtime>(
         })
         .map_err(|error| error.to_string())
 }
-pub(crate) fn remove_account<R: tauri::Runtime>(
+pub(crate) async fn remove_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_id: String,
 ) -> Result<(), String> {
-    remove_with_cleanup(repository(&app), &account_id, keyring_store::delete_secret)
-        .map_err(|error| error.to_string())
+    let state = crate::app::state(&app);
+    let _operation = state
+        .account_operations
+        .acquire(&account_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    remove_with_cleanup(repository(&app), &account_id, |id| {
+        state.credentials.delete(id)
+    })
+    .map_err(|error| error.to_string())
 }
 
 fn remove_with_cleanup(
     repository: &AccountRepository,
     account_id: &str,
-    cleanup: impl FnOnce(&str) -> Result<(), String>,
+    cleanup: impl FnOnce(&str) -> Result<(), CredentialError>,
 ) -> Result<(), AccountError> {
     repository.update(|accounts| {
         crate::account::policy::remove(accounts, account_id)?;

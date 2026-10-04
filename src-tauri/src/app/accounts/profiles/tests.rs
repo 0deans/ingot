@@ -41,7 +41,10 @@ fn cleanup_failure_keeps_committed_removal_and_promoted_selection() {
         assert_eq!(accounts.len(), 1);
         assert_eq!(accounts[0].id, "a");
         assert!(accounts[0].is_active);
-        Err("injected vault failure".to_owned())
+        Err(CredentialError::Vault {
+            operation: "delete",
+            source: crate::account::credentials::VaultFailure("injected vault failure".to_owned()),
+        })
     })
     .unwrap();
     assert_eq!(repository.load().unwrap().len(), 1);

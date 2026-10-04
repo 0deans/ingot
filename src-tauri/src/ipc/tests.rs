@@ -66,6 +66,62 @@ fn invoke(
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn credential_status_route_distinguishes_missing_corrupt_and_unavailable_vault_data() {
+    use crate::account::credentials::tests::FakeCredentialStore;
+    let dir = tempfile::tempdir().unwrap();
+    let app = tauri::test::mock_builder()
+        .invoke_handler(super::router::<MockRuntime>().into_handler())
+        .build(tauri::test::mock_context(tauri::test::noop_assets()))
+        .unwrap();
+    let mut state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
+    let vault = FakeCredentialStore::default();
+    state.credentials = Box::new(vault.clone());
+    app.manage(state);
+    let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
+        .build()
+        .unwrap();
+    let arguments = json!({"account_id":"ely:test"});
+    assert_eq!(
+        invoke(
+            &webview,
+            "TauRPC__skins.has_ely_web_credentials",
+            arguments.clone()
+        )
+        .unwrap(),
+        false
+    );
+    vault.put(
+        "ely:test",
+        r#"{"accessToken":"fixture-access","clientToken":"c","password":"fixture-password"}"#,
+    );
+    assert_eq!(
+        invoke(
+            &webview,
+            "TauRPC__skins.has_ely_web_credentials",
+            arguments.clone()
+        )
+        .unwrap(),
+        true
+    );
+    vault.put("ely:test", "corrupt-credential-secret");
+    let error = invoke(
+        &webview,
+        "TauRPC__skins.has_ely_web_credentials",
+        arguments.clone(),
+    )
+    .unwrap_err();
+    assert!(error.is_string());
+    assert!(!error
+        .as_str()
+        .unwrap()
+        .contains("corrupt-credential-secret"));
+    vault.fail_reads();
+    let error = invoke(&webview, "TauRPC__skins.has_ely_web_credentials", arguments).unwrap_err();
+    assert!(error.is_string());
+    assert!(!error.as_str().unwrap().contains("private vault diagnostic"));
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn settings_namespace_dispatches_and_preserves_errors_and_storage() {
     let dir = tempfile::tempdir().unwrap();
     let router = taurpc::Router::<MockRuntime>::new().merge(SettingsApiImpl.into_handler());

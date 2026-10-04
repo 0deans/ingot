@@ -1,11 +1,10 @@
 //! Native provider skin operations and account metadata updates.
 use super::profiles::save_skin_url;
-use super::session::microsoft_token_for;
+use super::session::microsoft_token_for_locked;
 use super::storage::{current_timestamp, load_accounts_file, repository};
-use crate::account::AccountSecrets;
+use crate::account::credentials::{self, CredentialError};
 use crate::auth::ely::{ElyAuthService, ElySkinsCatalogResponse};
 use crate::auth::microsoft;
-use crate::keyring_store;
 use base64::Engine;
 pub(crate) async fn apply_microsoft_skin<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
@@ -13,7 +12,12 @@ pub(crate) async fn apply_microsoft_skin<R: tauri::Runtime>(
     skin_url: &str,
     is_slim: bool,
 ) -> Result<(), String> {
-    let token = microsoft_token_for(app, account_id).await?;
+    let _operation = crate::app::state(app)
+        .account_operations
+        .acquire(account_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    let token = microsoft_token_for_locked(app, &_operation).await?;
     let new_url = microsoft::set_skin_from_url(&token, skin_url, is_slim).await?;
     save_skin_url(app, account_id, new_url)
 }
@@ -32,7 +36,12 @@ pub(crate) async fn upload_microsoft_skin<R: tauri::Runtime>(
         .decode(base64_data.trim())
         .map_err(|e| format!("Invalid base64 skin image data: {e}"))?;
 
-    let token = microsoft_token_for(app, account_id).await?;
+    let _operation = crate::app::state(app)
+        .account_operations
+        .acquire(account_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    let token = microsoft_token_for_locked(app, &_operation).await?;
     let new_url = microsoft::upload_skin(&token, png, is_slim).await?;
     save_skin_url(app, account_id, new_url)
 }
@@ -50,25 +59,31 @@ pub(crate) async fn get_ely_skins_catalog(
         .await
 }
 
-pub(crate) fn has_ely_web_credentials(account_id: &str) -> bool {
-    if let Ok(Some(secret_str)) = keyring_store::get_secret(account_id) {
-        if let Ok(secrets) = serde_json::from_str::<AccountSecrets>(&secret_str) {
-            return secrets
-                .password
-                .as_deref()
-                .map(|p| !p.trim().is_empty())
-                .unwrap_or(false);
-        }
+pub(crate) fn has_ely_web_credentials<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+) -> Result<bool, String> {
+    match credentials::load(crate::app::state(app).credentials.as_ref(), account_id) {
+        Ok(secrets) => Ok(secrets
+            .password
+            .as_deref()
+            .is_some_and(|password| !password.trim().is_empty())),
+        Err(CredentialError::Missing) => Ok(false),
+        Err(error) => Err(error.to_string()),
     }
-    false
 }
-
 pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     account_id: &str,
     skin_id: u64,
     password: Option<String>,
 ) -> Result<(), String> {
+    let state = crate::app::state(app);
+    let _operation = state
+        .account_operations
+        .acquire(account_id)
+        .await
+        .map_err(|error| error.to_string())?;
     let accounts = load_accounts_file(app)?;
     let acc = accounts
         .iter()
@@ -82,10 +97,11 @@ pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
     let username = acc.username.clone();
 
     // Determine password
-    let mut secrets: Option<AccountSecrets> = None;
-    if let Ok(Some(secret_str)) = keyring_store::get_secret(account_id) {
-        secrets = serde_json::from_str::<AccountSecrets>(&secret_str).ok();
-    }
+    let secrets = match credentials::load(state.credentials.as_ref(), account_id) {
+        Ok(secrets) => Some(secrets),
+        Err(CredentialError::Missing) => None,
+        Err(error) => return Err(error.to_string()),
+    };
 
     let effective_password = match password {
         Some(p) if !p.trim().is_empty() => {
@@ -93,9 +109,8 @@ pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
             // Update saved password in keyring
             if let Some(mut s) = secrets {
                 s.password = Some(p_trimmed.clone());
-                if let Ok(serialized) = serde_json::to_string(&s) {
-                    let _ = keyring_store::save_secret(account_id, &serialized);
-                }
+                credentials::save(state.credentials.as_ref(), &_operation, &s)
+                    .map_err(|error| error.to_string())?;
             }
             p_trimmed
         }
@@ -131,6 +146,12 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
     image_base64: &str,
     password: Option<String>,
 ) -> Result<(), String> {
+    let state = crate::app::state(app);
+    let _operation = state
+        .account_operations
+        .acquire(account_id)
+        .await
+        .map_err(|error| error.to_string())?;
     let accounts = load_accounts_file(app)?;
     let acc = accounts
         .iter()
@@ -155,10 +176,11 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
         .map_err(|e| format!("Invalid base64 skin image data: {e}"))?;
 
     // Determine password
-    let mut secrets: Option<AccountSecrets> = None;
-    if let Ok(Some(secret_str)) = keyring_store::get_secret(account_id) {
-        secrets = serde_json::from_str::<AccountSecrets>(&secret_str).ok();
-    }
+    let secrets = match credentials::load(state.credentials.as_ref(), account_id) {
+        Ok(secrets) => Some(secrets),
+        Err(CredentialError::Missing) => None,
+        Err(error) => return Err(error.to_string()),
+    };
 
     let effective_password = match password {
         Some(p) if !p.trim().is_empty() => {
@@ -166,9 +188,8 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
             // Update saved password in keyring
             if let Some(mut s) = secrets {
                 s.password = Some(p_trimmed.clone());
-                if let Ok(serialized) = serde_json::to_string(&s) {
-                    let _ = keyring_store::save_secret(account_id, &serialized);
-                }
+                credentials::save(state.credentials.as_ref(), &_operation, &s)
+                    .map_err(|error| error.to_string())?;
             }
             p_trimmed
         }

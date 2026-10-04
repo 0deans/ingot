@@ -31,7 +31,10 @@ pub(super) trait SkinsApi {
         image_base64: String,
         password: Option<String>,
     ) -> Result<(), String>;
-    async fn has_ely_web_credentials(account_id: String) -> Result<bool, String>;
+    async fn has_ely_web_credentials(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+    ) -> Result<bool, String>;
     async fn apply_microsoft_skin(
         app_handle: tauri::AppHandle<impl Runtime>,
         account_id: String,
@@ -117,7 +120,11 @@ impl SkinsApi for SkinsApiImpl {
         account::upload_microsoft_skin(&app_handle, &account_id, &image_base64, is_slim).await
     }
 
-    async fn has_ely_web_credentials(self, account_id: String) -> Result<bool, String> {
-        Ok(account::has_ely_web_credentials(&account_id))
+    async fn has_ely_web_credentials(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        account_id: String,
+    ) -> Result<bool, String> {
+        account::has_ely_web_credentials(&app_handle, &account_id)
     }
 }

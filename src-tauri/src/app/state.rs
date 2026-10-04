@@ -15,6 +15,8 @@ pub(crate) struct AppState {
     pub(crate) lifecycle: LifecycleState,
     pub(crate) account_login: crate::account::login::LoginAttempts,
     pub(crate) accounts: crate::account::repository::AccountRepository,
+    pub(crate) account_operations: crate::account::operations::AccountOperations,
+    pub(crate) credentials: Box<dyn crate::account::credentials::CredentialStore>,
 }
 
 impl AppState {
@@ -32,6 +34,8 @@ impl AppState {
             lifecycle: LifecycleState::default(),
             account_login: crate::account::login::LoginAttempts::default(),
             accounts: crate::account::repository::AccountRepository::new(paths.accounts_file()),
+            account_operations: crate::account::operations::AccountOperations::default(),
+            credentials: Box::new(super::accounts::vault::OsCredentialStore),
         })
     }
 }
