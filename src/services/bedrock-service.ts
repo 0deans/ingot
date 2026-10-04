@@ -1,8 +1,7 @@
 import { useEffect } from "react"
 import { create } from "zustand"
-import { type BedrockClientStatus, createTauRPCProxy } from "@/bindings"
-
-export const rpc = createTauRPCProxy()
+import type { BedrockClientStatus } from "@/bindings"
+import { rpc } from "@/lib/rpc"
 
 interface BedrockStore {
 	status: BedrockClientStatus | null
@@ -97,3 +96,5 @@ export function useBedrockStatus() {
 			bedrockService.openFolder(kind),
 	}
 }
+
+export { rpc }

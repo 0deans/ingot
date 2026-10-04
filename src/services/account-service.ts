@@ -1,8 +1,7 @@
 import { useEffect } from "react"
 import { create } from "zustand"
-import { type AccountProfile, createTauRPCProxy, type MicrosoftDeviceCode } from "@/bindings"
-
-export const rpc = createTauRPCProxy()
+import type { AccountProfile, MicrosoftDeviceCode } from "@/bindings"
+import { rpc } from "@/lib/rpc"
 
 const useAccountStore = create<{ accounts: AccountProfile[]; fetched: boolean }>(() => ({
 	accounts: [],
@@ -396,3 +395,5 @@ export function useAccounts() {
 		reorderAccounts: accountService.reorderAccounts.bind(accountService),
 	}
 }
+
+export { rpc }

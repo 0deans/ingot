@@ -1,9 +1,8 @@
 import { convertFileSrc } from "@tauri-apps/api/core"
 import { useEffect } from "react"
 import { create } from "zustand"
-import { createTauRPCProxy, type ScreenshotInfo } from "@/bindings"
-
-export const rpc = createTauRPCProxy()
+import type { ScreenshotInfo } from "@/bindings"
+import { rpc } from "@/lib/rpc"
 
 const useScreenshotStore = create<{
 	screenshots: ScreenshotInfo[]
@@ -136,3 +135,4 @@ export function useScreenshots() {
 }
 
 export type { ScreenshotInfo }
+export { rpc }

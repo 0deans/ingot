@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react"
 import { create } from "zustand"
-import {
-	createTauRPCProxy,
-	type MemorySettings,
-	type SharedSyncStatus,
-	type SyncConflictInfo,
-	type SyncReport,
-	type SyncSettings,
-	type SystemMemoryInfo,
-	type WindowSettings,
+import type {
+	MemorySettings,
+	SharedSyncStatus,
+	SyncConflictInfo,
+	SyncReport,
+	SyncSettings,
+	SystemMemoryInfo,
+	WindowSettings,
 } from "@/bindings"
-
-const rpc = createTauRPCProxy()
+import { rpc } from "@/lib/rpc"
 
 export type LauncherBehavior = "keepOpen" | "hideToTray" | "close"
 
@@ -62,7 +60,7 @@ export const settingsService = {
 		if (launcherBehaviorPromise) return launcherBehaviorPromise
 		launcherBehaviorPromise = (async () => {
 			try {
-				const b = (await rpc.get_launcher_behavior()) as LauncherBehavior
+				const b = (await rpc.settings.get_launcher_behavior()) as LauncherBehavior
 				set({ behavior: b })
 				return b
 			} catch (error) {
@@ -77,7 +75,7 @@ export const settingsService = {
 
 	async setLauncherBehavior(behavior: LauncherBehavior): Promise<LauncherBehavior> {
 		try {
-			const b = (await rpc.set_launcher_behavior(behavior)) as LauncherBehavior
+			const b = (await rpc.settings.set_launcher_behavior(behavior)) as LauncherBehavior
 			set({ behavior: b })
 			return b
 		} catch (error) {
@@ -90,7 +88,7 @@ export const settingsService = {
 		if (systemMemoryPromise) return systemMemoryPromise
 		systemMemoryPromise = (async () => {
 			try {
-				const info = await rpc.get_system_memory()
+				const info = await rpc.settings.get_system_memory()
 				set({ systemMemory: info })
 				return info
 			} catch (error) {
@@ -116,7 +114,7 @@ export const settingsService = {
 		if (memorySettingsPromise) return memorySettingsPromise
 		memorySettingsPromise = (async () => {
 			try {
-				const mem = await rpc.get_memory_settings()
+				const mem = await rpc.settings.get_memory_settings()
 				set({ memory: mem })
 				return mem
 			} catch (error) {
@@ -131,7 +129,7 @@ export const settingsService = {
 
 	async setMemorySettings(minRamMb: number, maxRamMb: number): Promise<MemorySettings> {
 		try {
-			const mem = await rpc.set_memory_settings(minRamMb, maxRamMb)
+			const mem = await rpc.settings.set_memory_settings(minRamMb, maxRamMb)
 			set({ memory: mem })
 			return mem
 		} catch (error) {
@@ -144,7 +142,7 @@ export const settingsService = {
 		if (windowSettingsPromise) return windowSettingsPromise
 		windowSettingsPromise = (async () => {
 			try {
-				const ws = await rpc.get_window_settings()
+				const ws = await rpc.settings.get_window_settings()
 				set({ windowSettings: ws })
 				return ws
 			} catch (error) {
@@ -159,7 +157,7 @@ export const settingsService = {
 
 	async setWindowSettings(settings: WindowSettings): Promise<WindowSettings> {
 		try {
-			const ws = await rpc.set_window_settings(settings)
+			const ws = await rpc.settings.set_window_settings(settings)
 			set({ windowSettings: ws })
 			return ws
 		} catch (error) {
@@ -172,7 +170,7 @@ export const settingsService = {
 		if (syncSettingsPromise) return syncSettingsPromise
 		syncSettingsPromise = (async () => {
 			try {
-				const ss = await rpc.get_sync_settings()
+				const ss = await rpc.settings.get_sync_settings()
 				set({ syncSettings: ss })
 				return ss
 			} catch (error) {
@@ -187,7 +185,7 @@ export const settingsService = {
 
 	async setSyncSettings(settings: SyncSettings): Promise<SyncSettings> {
 		try {
-			const ss = await rpc.set_sync_settings(settings)
+			const ss = await rpc.settings.set_sync_settings(settings)
 			set({ syncSettings: ss })
 			return ss
 		} catch (error) {

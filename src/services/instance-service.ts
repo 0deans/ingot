@@ -1,19 +1,17 @@
 import i18n from "i18next"
 import { useEffect, useState } from "react"
 import { create } from "zustand"
-import {
-	createTauRPCProxy,
-	type InstanceConfig,
-	type InstanceStatusEvent,
-	type InstanceWorldSummary,
-	type LaunchProgressEvent,
-	type ModLoaderType,
-	type QuickPlayOptions,
-	type RunningInstanceSummary,
-	type VersionManifestEntry,
+import type {
+	InstanceConfig,
+	InstanceStatusEvent,
+	InstanceWorldSummary,
+	LaunchProgressEvent,
+	ModLoaderType,
+	QuickPlayOptions,
+	RunningInstanceSummary,
+	VersionManifestEntry,
 } from "@/bindings"
-
-export const rpc = createTauRPCProxy()
+import { rpc } from "@/lib/rpc"
 
 interface InstanceState {
 	instances: InstanceConfig[]
@@ -54,7 +52,7 @@ async function initListeners() {
 	}
 
 	try {
-		await rpc.on_instance_status_changed.on((event: InstanceStatusEvent) => {
+		await rpc.events.on_instance_status_changed.on((event: InstanceStatusEvent) => {
 			if (!event?.instanceId) return
 			setRunning((running) => {
 				if (event.isRunning) {
@@ -75,7 +73,7 @@ async function initListeners() {
 	}
 
 	try {
-		await rpc.on_launch_progress.on((event: LaunchProgressEvent) => {
+		await rpc.events.on_launch_progress.on((event: LaunchProgressEvent) => {
 			if (!event?.instanceId) return
 			setProgress((progress) => progress.set(event.instanceId, event))
 		})
@@ -260,3 +258,5 @@ export function getRequiredJavaVersion(gameVersion: string): number {
 	}
 	return 21
 }
+
+export { rpc }

@@ -1,14 +1,12 @@
-import {
-	type ContentScreenshot,
-	type ContentSearchResult,
-	createTauRPCProxy,
-	type InstanceConfig,
-	type UnifiedContentDetails,
-	type UnifiedContentItem,
-	type UnifiedContentVersion,
+import type {
+	ContentScreenshot,
+	ContentSearchResult,
+	InstanceConfig,
+	UnifiedContentDetails,
+	UnifiedContentItem,
+	UnifiedContentVersion,
 } from "@/bindings"
-
-const rpc = createTauRPCProxy()
+import { rpc } from "@/lib/rpc"
 
 export type ContentSource = "all" | "modrinth" | "curseforge"
 export type ContentType = "all" | "modpack" | "mod" | "resourcepack" | "shader"

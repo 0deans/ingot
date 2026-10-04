@@ -8,6 +8,7 @@
 	"license": "GPL-3.0-only",
 	"type": "module",
 	"scripts": {
+		"test:ipc": "node --test tests/ipc-routing.test.mjs",
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"check": "biome check",

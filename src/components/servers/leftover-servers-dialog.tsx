@@ -34,7 +34,7 @@ export default function LeftoverServersDialog() {
 		rpc.get_leftover_servers().then(show).catch(console.error)
 		let unlisten: (() => void) | undefined
 		let cancelled = false
-		rpc.on_leftover_servers
+		rpc.events.on_leftover_servers
 			.on(show)
 			.then((stop) => {
 				if (cancelled) stop()

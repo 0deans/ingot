@@ -1,3 +1,7 @@
+//! Root commands awaiting feature-by-feature migration. Remove this module after phase 3.
+use super::events::TauRpcEventsApiEventTrigger;
+use crate::minecraft::launcher::{InstanceStatusEvent, LaunchProgressEvent};
+use crate::server::{ServerLogEvent, ServerStatusEvent};
 use crate::account::{self, AccountProfile};
 use crate::minecraft::content::{self, ContentSearchResult, UnifiedContentDetails};
 use crate::minecraft::importer::{
@@ -5,7 +9,7 @@ use crate::minecraft::importer::{
 };
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use crate::minecraft::launcher::{
-    self, InstanceStatusEvent, LaunchProgressEvent, ProcessManager, RunningInstanceSummary,
+    self, ProcessManager, RunningInstanceSummary,
 };
 use crate::minecraft::loader;
 use crate::minecraft::screenshots::{self, ScreenshotInfo};
@@ -23,10 +27,10 @@ use crate::server::plugins::{
 use crate::server::stats::ServerStats;
 use crate::server::transfer::{ExportMode, ImportedServer};
 use crate::server::{
-    self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType, ServerLogEvent,
-    ServerPingResponse, ServerProcessManager, ServerProperties, ServerStatusEvent, WhitelistEntry,
+    self, PlayitTunnelStatus, RunningServerSummary, ServerConfig, ServerCoreType,
+    ServerPingResponse, ServerProcessManager, ServerProperties, WhitelistEntry,
 };
-use crate::system::{self, MemorySettings, SyncSettings, SystemMemoryInfo, WindowSettings};
+
 use crate::running::{BusyServer, LeftoverServer, QuitRequest};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::OnceLock;
@@ -94,22 +98,6 @@ pub trait AppApi {
     ) -> Result<(), String>;
     async fn get_active_account_token(
         app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<String, String>;
-    async fn get_system_memory() -> Result<SystemMemoryInfo, String>;
-    async fn get_memory_settings(
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<MemorySettings, String>;
-    async fn set_memory_settings(
-        app_handle: tauri::AppHandle<impl Runtime>,
-        min_ram_mb: u32,
-        max_ram_mb: u32,
-    ) -> Result<MemorySettings, String>;
-    async fn get_launcher_behavior(
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<String, String>;
-    async fn set_launcher_behavior(
-        app_handle: tauri::AppHandle<impl Runtime>,
-        behavior: String,
     ) -> Result<String, String>;
     async fn get_skin_data_url(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -264,23 +252,9 @@ pub trait AppApi {
         loader: ModLoaderType,
     ) -> Result<Vec<String>, String>;
 
-    async fn get_window_settings(
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<WindowSettings, String>;
 
-    async fn set_window_settings(
-        app_handle: tauri::AppHandle<impl Runtime>,
-        settings: WindowSettings,
-    ) -> Result<WindowSettings, String>;
 
-    async fn get_sync_settings(
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<SyncSettings, String>;
 
-    async fn set_sync_settings(
-        app_handle: tauri::AppHandle<impl Runtime>,
-        settings: SyncSettings,
-    ) -> Result<SyncSettings, String>;
 
     async fn push_instance_sync(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -776,9 +750,6 @@ pub trait AppApi {
         server_id: String,
     ) -> Result<(), String>;
 
-    /// The first start after a version change crashed
-    #[taurpc(event)]
-    async fn on_version_change_crash(event: VersionChangeCrash);
 
     /// What would stop Ingot from simply quitting now: running or sleeping servers
     async fn get_quit_blockers(app_handle: tauri::AppHandle<impl Runtime>) -> Result<QuitRequest, String>;
@@ -800,28 +771,12 @@ pub trait AppApi {
         server_id: String,
     ) -> Result<(), String>;
 
-    /// Closing Ingot was asked for while servers run: the user picks what happens
-    #[taurpc(event)]
-    async fn on_quit_requested(event: QuitRequest);
 
-    /// A start ran into servers left running from before Ingot closed
-    #[taurpc(event)]
-    async fn on_leftover_servers(servers: Vec<LeftoverServer>);
 
-    #[taurpc(event)]
-    async fn on_memory_changed(settings: MemorySettings);
 
-    #[taurpc(event)]
-    async fn on_instance_status_changed(event: InstanceStatusEvent);
 
-    #[taurpc(event)]
-    async fn on_launch_progress(event: LaunchProgressEvent);
 
-    #[taurpc(event)]
-    async fn on_server_log(event: ServerLogEvent);
 
-    #[taurpc(event)]
-    async fn on_server_status_changed(event: ServerStatusEvent);
 }
 
 #[derive(Clone)]
@@ -898,40 +853,10 @@ impl AppApi for AppApiImpl {
         account::get_active_account_token(app_handle).await
     }
 
-    async fn get_system_memory(self) -> Result<SystemMemoryInfo, String> {
-        Ok(system::get_memory_info())
-    }
 
-    async fn get_memory_settings(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<MemorySettings, String> {
-        system::get_memory_settings(&app_handle).map_err(|error| error.to_string())
-    }
 
-    async fn set_memory_settings(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-        min_ram_mb: u32,
-        max_ram_mb: u32,
-    ) -> Result<MemorySettings, String> {
-        system::set_memory_settings(&app_handle, min_ram_mb, max_ram_mb).map_err(|error| error.to_string())
-    }
 
-    async fn get_launcher_behavior(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<String, String> {
-        system::get_launcher_behavior(&app_handle).map_err(|error| error.to_string())
-    }
 
-    async fn set_launcher_behavior(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-        behavior: String,
-    ) -> Result<String, String> {
-        system::set_launcher_behavior(&app_handle, behavior).map_err(|error| error.to_string())
-    }
 
     async fn get_skin_data_url(
         self,
@@ -1111,7 +1036,7 @@ impl AppApi for AppApiImpl {
 
         let app_prog = app_handle.clone();
         let on_prog = move |ev: LaunchProgressEvent| {
-            let trigger = TauRpcAppApiEventTrigger::new(app_prog.clone());
+            let trigger = TauRpcEventsApiEventTrigger::new(app_prog.clone());
             if let Err(e) = trigger.on_launch_progress(ev) {
                 eprintln!("[IPC] Failed to emit on_launch_progress: {e}");
             }
@@ -1119,7 +1044,7 @@ impl AppApi for AppApiImpl {
 
         let app_stat = app_handle.clone();
         let on_status = move |ev: InstanceStatusEvent| {
-            let trigger = TauRpcAppApiEventTrigger::new(app_stat.clone());
+            let trigger = TauRpcEventsApiEventTrigger::new(app_stat.clone());
             if let Err(e) = trigger.on_instance_status_changed(ev) {
                 eprintln!("[IPC] Failed to emit on_instance_status_changed: {e}");
             }
@@ -1291,35 +1216,9 @@ impl AppApi for AppApiImpl {
         loader::fetch_loader_versions(get_http_client(), &loader, &game_version).await
     }
 
-    async fn get_window_settings(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<WindowSettings, String> {
-        system::get_window_settings(&app_handle).map_err(|error| error.to_string())
-    }
 
-    async fn set_window_settings(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-        settings: WindowSettings,
-    ) -> Result<WindowSettings, String> {
-        system::set_window_settings(&app_handle, settings).map_err(|error| error.to_string())
-    }
 
-    async fn get_sync_settings(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<SyncSettings, String> {
-        system::get_sync_settings(&app_handle).map_err(|error| error.to_string())
-    }
 
-    async fn set_sync_settings(
-        self,
-        app_handle: tauri::AppHandle<impl Runtime>,
-        settings: SyncSettings,
-    ) -> Result<SyncSettings, String> {
-        system::set_sync_settings(&app_handle, settings).map_err(|error| error.to_string())
-    }
 
     async fn push_instance_sync(
         self,
@@ -1648,7 +1547,7 @@ impl AppApi for AppApiImpl {
         // Still running from before Ingot closed: it holds the port and the world
         let leftovers = leftover_servers(&app_handle).await;
         if leftovers.iter().any(|l| l.server_id == config.id) {
-            if let Err(e) = TauRpcAppApiEventTrigger::new(app_handle.clone()).on_leftover_servers(leftovers) {
+            if let Err(e) = TauRpcEventsApiEventTrigger::new(app_handle.clone()).on_leftover_servers(leftovers) {
                 eprintln!("[IPC] Failed to emit on_leftover_servers: {e}");
             }
             return Err(format!(
@@ -1709,7 +1608,7 @@ impl AppApi for AppApiImpl {
 
         let app_log = app_handle.clone();
         let on_log = move |ev: ServerLogEvent| {
-            let trigger = TauRpcAppApiEventTrigger::new(app_log.clone());
+            let trigger = TauRpcEventsApiEventTrigger::new(app_log.clone());
             if let Err(e) = trigger.on_server_log(ev) {
                 eprintln!("[IPC] Failed to emit on_server_log: {e}");
             }
@@ -1717,7 +1616,7 @@ impl AppApi for AppApiImpl {
 
         let app_status = app_handle.clone();
         let on_status = move |ev: ServerStatusEvent| {
-            let trigger = TauRpcAppApiEventTrigger::new(app_status.clone());
+            let trigger = TauRpcEventsApiEventTrigger::new(app_status.clone());
             if let Err(e) = trigger.on_server_status_changed(ev) {
                 eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
             }
@@ -1739,7 +1638,7 @@ impl AppApi for AppApiImpl {
     ) -> Result<(), String> {
         let app_status = app_handle.clone();
         let on_status = move |ev: ServerStatusEvent| {
-            let trigger = TauRpcAppApiEventTrigger::new(app_status.clone());
+            let trigger = TauRpcEventsApiEventTrigger::new(app_status.clone());
             if let Err(e) = trigger.on_server_status_changed(ev) {
                 eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
             }
@@ -2631,7 +2530,7 @@ async fn is_downgrade<R: Runtime>(app: &tauri::AppHandle<R>, from: &str, to: &st
 
 /// Tells the frontend the first start after a version change crashed
 pub fn emit_version_change_crash<R: Runtime>(app: &tauri::AppHandle<R>, event: VersionChangeCrash) {
-    if let Err(e) = TauRpcAppApiEventTrigger::new(app.clone()).on_version_change_crash(event) {
+    if let Err(e) = TauRpcEventsApiEventTrigger::new(app.clone()).on_version_change_crash(event) {
         eprintln!("[IPC] Failed to emit on_version_change_crash: {e}");
     }
 }
@@ -2646,7 +2545,7 @@ pub(crate) async fn adopt_running_games<R: Runtime>(app: &tauri::AppHandle<R>) {
         .get_or_init(|| async {
             let app_stat = app.clone();
             let on_status = std::sync::Arc::new(move |ev: InstanceStatusEvent| {
-                if let Err(e) = TauRpcAppApiEventTrigger::new(app_stat.clone()).on_instance_status_changed(ev) {
+                if let Err(e) = TauRpcEventsApiEventTrigger::new(app_stat.clone()).on_instance_status_changed(ev) {
                     eprintln!("[IPC] Failed to emit on_instance_status_changed: {e}");
                 }
             });
@@ -2734,7 +2633,7 @@ pub(crate) fn request_quit<R: Runtime>(app: &tauri::AppHandle<R>) {
         }
         #[cfg(desktop)]
         crate::tray::restore_main_window(&app);
-        if let Err(e) = TauRpcAppApiEventTrigger::new(app.clone()).on_quit_requested(request) {
+        if let Err(e) = TauRpcEventsApiEventTrigger::new(app.clone()).on_quit_requested(request) {
             eprintln!("[IPC] Failed to emit on_quit_requested: {e}");
             // Nobody to ask: never leave a server behind without its console
             stop_all_servers().await;
@@ -2823,9 +2722,4 @@ async fn resolve_profile(server_dir: &std::path::Path, name: &str) -> (String, S
         }
     }
     (name.to_string(), server::config::offline_uuid_for(name))
-}
-
-/// Compose the application router in one place.
-pub fn router<R: Runtime>() -> taurpc::Router<R> {
-    taurpc::Router::<R>::new().merge(AppApiImpl.into_handler())
 }

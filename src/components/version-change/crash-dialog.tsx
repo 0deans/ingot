@@ -25,7 +25,7 @@ export default function VersionChangeCrashDialog() {
 	useEffect(() => {
 		let unlisten: (() => void) | undefined
 		let cancelled = false
-		rpc.on_version_change_crash
+		rpc.events.on_version_change_crash
 			.on((event: VersionChangeCrash) => {
 				setCrash(event)
 				setTurnedOff([])

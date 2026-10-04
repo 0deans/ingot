@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react"
 import { create } from "zustand"
-import {
-	createTauRPCProxy,
-	type PlayitTunnelStatus,
-	type RunningServerSummary,
-	type ServerConfig,
-	type ServerCoreType,
-	type ServerLogEvent,
-	type ServerPingResponse,
-	type ServerProperties,
-	type ServerStatusEvent,
+import type {
+	PlayitTunnelStatus,
+	RunningServerSummary,
+	ServerConfig,
+	ServerCoreType,
+	ServerLogEvent,
+	ServerPingResponse,
+	ServerProperties,
+	ServerStatusEvent,
 } from "@/bindings"
-
-export const rpc = createTauRPCProxy()
+import { rpc } from "@/lib/rpc"
 
 const useServerStore = create<{
 	servers: ServerConfig[]
@@ -35,7 +33,7 @@ async function initListeners() {
 	}
 
 	try {
-		await rpc.on_server_status_changed.on((event: ServerStatusEvent) => {
+		await rpc.events.on_server_status_changed.on((event: ServerStatusEvent) => {
 			if (!event?.serverId) return
 			// Replaced, never mutated in place, so selectors see the change
 			const cachedRunning = new Map(useServerStore.getState().running)
@@ -76,7 +74,7 @@ async function initListeners() {
 	}
 
 	try {
-		await rpc.on_server_log.on((event: ServerLogEvent) => {
+		await rpc.events.on_server_log.on((event: ServerLogEvent) => {
 			if (!event?.serverId) return
 			const subs = logSubscribers.get(event.serverId)
 			if (subs) {
@@ -350,3 +348,5 @@ export function useServerLogs(serverId: string | null) {
 		clearLogs,
 	}
 }
+
+export { rpc }

@@ -1,12 +1,10 @@
-import {
-	createTauRPCProxy,
-	type DetectedLauncher,
-	type ImportableInstance,
-	type ImportInstanceOptions,
-	type ImportReport,
+import type {
+	DetectedLauncher,
+	ImportableInstance,
+	ImportInstanceOptions,
+	ImportReport,
 } from "@/bindings"
-
-const rpc = createTauRPCProxy()
+import { rpc } from "@/lib/rpc"
 
 export const importerService = {
 	async getDetectedLaunchers(): Promise<DetectedLauncher[]> {

@@ -14,12 +14,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import {
-	type BedrockPackInfo,
-	createTauRPCProxy,
-	type ServerConfig,
-	type UnifiedContentItem,
-} from "@/bindings"
+import type { BedrockPackInfo, ServerConfig, UnifiedContentItem } from "@/bindings"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -42,10 +37,9 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { formatCount } from "@/lib/minecraft"
+import { rpc } from "@/lib/rpc"
 import { contentService } from "@/services/content-service"
 import { Card, EmptyState, Segmented } from "../shared/primitives"
-
-const rpc = createTauRPCProxy()
 
 export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 	const { t } = useTranslation()

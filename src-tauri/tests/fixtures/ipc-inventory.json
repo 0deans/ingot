@@ -408,7 +408,7 @@
     },
     {
       "name": "get_launcher_behavior",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [],
       "destination": "settings"
@@ -453,7 +453,7 @@
     },
     {
       "name": "get_memory_settings",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [],
       "destination": "settings"
@@ -645,21 +645,21 @@
     },
     {
       "name": "get_sync_settings",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [],
       "destination": "settings"
     },
     {
       "name": "get_system_memory",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [],
       "destination": "settings"
     },
     {
       "name": "get_window_settings",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [],
       "destination": "settings"
@@ -861,7 +861,7 @@
     },
     {
       "name": "on_instance_status_changed",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "event"
@@ -870,7 +870,7 @@
     },
     {
       "name": "on_launch_progress",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "event"
@@ -879,7 +879,7 @@
     },
     {
       "name": "on_leftover_servers",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "servers"
@@ -888,7 +888,7 @@
     },
     {
       "name": "on_memory_changed",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "settings"
@@ -897,7 +897,7 @@
     },
     {
       "name": "on_quit_requested",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "event"
@@ -906,7 +906,7 @@
     },
     {
       "name": "on_server_log",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "event"
@@ -915,7 +915,7 @@
     },
     {
       "name": "on_server_status_changed",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "event"
@@ -924,7 +924,7 @@
     },
     {
       "name": "on_version_change_crash",
-      "currentPath": "",
+      "currentPath": "events",
       "kind": "event",
       "arguments": [
         "event"
@@ -1181,7 +1181,7 @@
     },
     {
       "name": "set_launcher_behavior",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [
         "behavior"
@@ -1190,7 +1190,7 @@
     },
     {
       "name": "set_memory_settings",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [
         "min_ram_mb",
@@ -1241,7 +1241,7 @@
     },
     {
       "name": "set_sync_settings",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [
         "settings"
@@ -1250,7 +1250,7 @@
     },
     {
       "name": "set_window_settings",
-      "currentPath": "",
+      "currentPath": "settings",
       "kind": "command",
       "arguments": [
         "settings"

@@ -27,7 +27,7 @@ export default function QuitDialog() {
 	useEffect(() => {
 		let unlisten: (() => void) | undefined
 		let cancelled = false
-		rpc.on_quit_requested
+		rpc.events.on_quit_requested
 			.on((request: QuitRequest) => quitService.ask({ mode: "quit", request }))
 			.then((stop) => {
 				if (cancelled) stop()

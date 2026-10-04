@@ -36,6 +36,9 @@ jobs:
       - name: Type check
         run: pnpm exec tsc --noEmit -p .
 
+      - name: Test generated IPC routing
+        run: pnpm test:ipc
+
       # `biome ci` checks formatting and lint without changing files
       - name: Lint and format check
         run: pnpm exec biome ci
