@@ -1,9 +1,6 @@
 use super::*;
 use crate::{
-    account::{
-        credentials::{self, tests::FakeCredentialStore},
-        policy,
-    },
+    account::{credentials::tests::FakeCredentialStore, policy},
     app::{AppPaths, AppState},
 };
 use std::{
@@ -52,10 +49,16 @@ async fn waiting_token_request_reads_current_credentials_after_relogin() {
         expires_at: Some(u64::MAX),
         ..Default::default()
     };
-    credentials::publish(state.credentials.as_ref(), &operation, &next, || {
-        state.accounts.activate(profile())
-    })
-    .unwrap();
+    state
+        .account_recovery
+        .publish(
+            state.credentials.as_ref(),
+            &state.accounts,
+            &operation,
+            &next,
+            ProfileChange::Activate { profile: profile() },
+        )
+        .unwrap();
     drop(operation);
     assert_eq!(request.await.unwrap(), "new");
 }

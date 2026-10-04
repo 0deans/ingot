@@ -16,6 +16,7 @@ pub(crate) struct AppState {
     pub(crate) account_login: crate::account::login::LoginAttempts,
     pub(crate) accounts: crate::account::repository::AccountRepository,
     pub(crate) account_operations: crate::account::operations::AccountOperations,
+    pub(crate) account_recovery: crate::account::recovery::AccountRecovery,
     pub(crate) credentials: Box<dyn crate::account::credentials::CredentialStore>,
 }
 
@@ -35,6 +36,9 @@ impl AppState {
             account_login: crate::account::login::LoginAttempts::default(),
             accounts: crate::account::repository::AccountRepository::new(paths.accounts_file()),
             account_operations: crate::account::operations::AccountOperations::default(),
+            account_recovery: crate::account::recovery::AccountRecovery::new(
+                paths.accounts_file().with_extension("recovery"),
+            ),
             credentials: Box::new(super::accounts::vault::OsCredentialStore),
         })
     }

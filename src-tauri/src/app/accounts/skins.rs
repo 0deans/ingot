@@ -1,7 +1,7 @@
 //! Native provider skin operations and account metadata updates.
 use super::profiles::save_skin_url;
 use super::session::microsoft_token_for_locked;
-use super::storage::{current_timestamp, load_accounts_file, repository};
+use super::storage::{current_timestamp, load_accounts_file, with_recovered};
 use crate::account::credentials::{self, CredentialError};
 use crate::auth::ely::{ElyAuthService, ElySkinsCatalogResponse};
 use crate::auth::microsoft;
@@ -63,6 +63,7 @@ pub(crate) fn has_ely_web_credentials<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     account_id: &str,
 ) -> Result<bool, String> {
+    with_recovered(app, |_| Ok(()))?;
     match credentials::load(crate::app::state(app).credentials.as_ref(), account_id) {
         Ok(secrets) => Ok(secrets
             .password
@@ -131,8 +132,10 @@ pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
         current_timestamp()
     );
     // The provider already committed the skin. Report metadata-cache failure diagnostically.
-    if let Err(error) = repository(app).update_profile(account_id, |stored| {
-        stored.skin_url = Some(updated_skin_url);
+    if let Err(error) = with_recovered(app, |repository| {
+        repository.update_profile(account_id, |stored| {
+            stored.skin_url = Some(updated_skin_url);
+        })
     }) {
         eprintln!("Skin changed, but account metadata could not be saved: {error}");
     }
@@ -210,8 +213,10 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
         current_timestamp()
     );
     // The provider already committed the skin. Report metadata-cache failure diagnostically.
-    if let Err(error) = repository(app).update_profile(account_id, |stored| {
-        stored.skin_url = Some(updated_skin_url);
+    if let Err(error) = with_recovered(app, |repository| {
+        repository.update_profile(account_id, |stored| {
+            stored.skin_url = Some(updated_skin_url);
+        })
     }) {
         eprintln!("Skin changed, but account metadata could not be saved: {error}");
     }

@@ -1,6 +1,7 @@
 //! Native login/token orchestration over provider and credential adapters.
-use super::storage::{current_timestamp, load_accounts_file, repository};
+use super::storage::{current_timestamp, load_accounts_file};
 use crate::account::credentials;
+use crate::account::recovery::ProfileChange;
 use crate::account::{AccountProfile, AccountSecrets};
 use crate::auth::ely::ElyAuthService;
 use crate::auth::microsoft::{self, MicrosoftDeviceCode, MinecraftSession};
@@ -17,7 +18,7 @@ pub(crate) async fn ely_login<R: tauri::Runtime>(
         return Err("Username and password are required".to_string());
     }
 
-    repository(&app).load().map_err(|error| error.to_string())?;
+    load_accounts_file(&app)?;
     let client_token = uuid::Uuid::new_v4().to_string();
     let auth_service = ElyAuthService::new();
 
@@ -55,10 +56,19 @@ pub(crate) async fn ely_login<R: tauri::Runtime>(
         .acquire(&account_id)
         .await
         .map_err(|error| error.to_string())?;
-    credentials::publish(state.credentials.as_ref(), &_operation, &secrets, || {
-        repository(&app).activate(new_profile)
-    })
-    .map_err(|error| error.to_string())
+    state
+        .account_recovery
+        .publish(
+            state.credentials.as_ref(),
+            &state.accounts,
+            &_operation,
+            &secrets,
+            ProfileChange::Activate {
+                profile: new_profile.clone(),
+            },
+        )
+        .map_err(|error| error.to_string())?;
+    Ok(new_profile)
 }
 
 pub(crate) async fn microsoft_login_start<R: tauri::Runtime>(
@@ -77,7 +87,7 @@ pub(crate) async fn microsoft_login_finish<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     code: MicrosoftDeviceCode,
 ) -> Result<AccountProfile, String> {
-    repository(&app).load().map_err(|error| error.to_string())?;
+    load_accounts_file(&app)?;
     let login = &crate::app::state(&app).account_login;
     let attempt = login.current();
     let is_cancelled = || login.is_cancelled(attempt);
@@ -105,10 +115,19 @@ pub(crate) async fn microsoft_login_finish<R: tauri::Runtime>(
     if login.is_cancelled(attempt) {
         return Err("Microsoft sign-in cancelled".to_string());
     }
-    credentials::publish(state.credentials.as_ref(), &_operation, &secrets, || {
-        repository(&app).activate(new_profile)
-    })
-    .map_err(|error| error.to_string())
+    state
+        .account_recovery
+        .publish(
+            state.credentials.as_ref(),
+            &state.accounts,
+            &_operation,
+            &secrets,
+            ProfileChange::Activate {
+                profile: new_profile.clone(),
+            },
+        )
+        .map_err(|error| error.to_string())?;
+    Ok(new_profile)
 }
 
 fn microsoft_secrets(session: &MinecraftSession) -> AccountSecrets {
@@ -139,18 +158,21 @@ async fn microsoft_access_token<R: tauri::Runtime>(
     let session = microsoft::refresh(&refresh_token).await?;
     let next = microsoft_secrets(&session);
 
-    credentials::publish(
-        crate::app::state(app).credentials.as_ref(),
-        operation,
-        &next,
-        || {
-            repository(app).update_profile(&account.id, |stored| {
-                stored.username = session.username.clone();
-                stored.skin_url = session.skin_url.clone();
-            })
-        },
-    )
-    .map_err(|error| error.to_string())?;
+    let state = crate::app::state(app);
+    state
+        .account_recovery
+        .publish(
+            state.credentials.as_ref(),
+            &state.accounts,
+            operation,
+            &next,
+            ProfileChange::MicrosoftMetadata {
+                id: account.id.clone(),
+                username: session.username.clone(),
+                skin_url: session.skin_url.clone(),
+            },
+        )
+        .map_err(|error| error.to_string())?;
     Ok(session.access_token)
 }
 
@@ -223,16 +245,18 @@ pub(crate) async fn get_active_account_token<R: tauri::Runtime>(
         password: secrets.password,
         ..Default::default()
     };
-    credentials::publish(
-        state.credentials.as_ref(),
-        &_operation,
-        &updated_secrets,
-        || {
-            // The operation guard prevents removal/re-login while validation and refresh run.
-            repository(&app).update_profile(&active.id, |_| {})
-        },
-    )
-    .map_err(|error| error.to_string())?;
+    state
+        .account_recovery
+        .publish(
+            state.credentials.as_ref(),
+            &state.accounts,
+            &_operation,
+            &updated_secrets,
+            ProfileChange::Keep {
+                id: active.id.clone(),
+            },
+        )
+        .map_err(|error| error.to_string())?;
 
     Ok(refresh_res.access_token)
 }

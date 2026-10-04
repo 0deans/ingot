@@ -1,6 +1,6 @@
-//! Credential publication precedes profile publication. Partial success is explicit.
+//! Credential effects and serialization; coordinated publication lives in recovery.
 use super::operations::AccountOperation;
-use super::{AccountError, AccountSecrets};
+use super::AccountSecrets;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
@@ -28,15 +28,6 @@ pub(crate) trait CredentialStore: Send + Sync {
     fn delete(&self, id: &str) -> Result<(), CredentialError>;
 }
 
-#[derive(Debug, thiserror::Error)]
-pub(crate) enum CredentialCommitError {
-    #[error(transparent)]
-    Credentials(#[from] CredentialError),
-    // Keep rotated refresh tokens: reverting them could destroy the usable session.
-    #[error("Credentials were saved, but the account profile could not be saved: {0}")]
-    ProfileAfterCredentials(#[source] AccountError),
-}
-
 pub(crate) fn load(
     store: &dyn CredentialStore,
     id: &str,
@@ -52,17 +43,6 @@ pub(crate) fn save(
 ) -> Result<(), CredentialError> {
     let value = serde_json::to_string(secrets).map_err(CredentialError::Encode)?;
     store.write(operation.id(), &value)
-}
-
-/// Ownership identifies the account. No await occurs between the writes.
-pub(crate) fn publish<T>(
-    store: &dyn CredentialStore,
-    operation: &AccountOperation,
-    secrets: &AccountSecrets,
-    commit_profile: impl FnOnce() -> Result<T, AccountError>,
-) -> Result<T, CredentialCommitError> {
-    save(store, operation, secrets)?;
-    commit_profile().map_err(CredentialCommitError::ProfileAfterCredentials)
 }
 
 #[cfg(test)]

@@ -1,7 +1,6 @@
 //! Native profile commands; pure list decisions live in account::policy.
-use super::storage::{current_timestamp, load_accounts_file, repository};
-use crate::account::credentials::CredentialError;
-use crate::account::{repository::AccountRepository, AccountError, AccountProfile};
+use super::storage::{current_timestamp, load_accounts_file, with_recovered};
+use crate::account::AccountProfile;
 pub(crate) async fn add_offline_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     username: String,
@@ -35,9 +34,7 @@ pub(crate) async fn add_offline_account<R: tauri::Runtime>(
         .acquire(&account_id)
         .await
         .map_err(|error| error.to_string())?;
-    repository(&app)
-        .activate(new_profile)
-        .map_err(|error| error.to_string())
+    with_recovered(&app, |repository| repository.activate(new_profile))
 }
 
 pub(super) fn save_skin_url<R: tauri::Runtime>(
@@ -45,9 +42,9 @@ pub(super) fn save_skin_url<R: tauri::Runtime>(
     account_id: &str,
     skin_url: Option<String>,
 ) -> Result<(), String> {
-    repository(app)
-        .update_profile(account_id, |account| account.skin_url = skin_url)
-        .map_err(|error| error.to_string())
+    with_recovered(app, |repository| {
+        repository.update_profile(account_id, |account| account.skin_url = skin_url)
+    })
 }
 pub(crate) fn get_accounts<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
@@ -59,12 +56,12 @@ pub(crate) fn set_active_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_id: String,
 ) -> Result<(), String> {
-    repository(&app)
-        .update(|accounts| {
+    with_recovered(&app, |repository| {
+        repository.update(|accounts| {
             crate::account::policy::select(accounts, &account_id)?;
             Ok(())
         })
-        .map_err(|error| error.to_string())
+    })
 }
 pub(crate) async fn remove_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
@@ -76,27 +73,22 @@ pub(crate) async fn remove_account<R: tauri::Runtime>(
         .acquire(&account_id)
         .await
         .map_err(|error| error.to_string())?;
-    remove_with_cleanup(repository(&app), &account_id, |id| {
-        state.credentials.delete(id)
-    })
-    .map_err(|error| error.to_string())
-}
-
-fn remove_with_cleanup(
-    repository: &AccountRepository,
-    account_id: &str,
-    cleanup: impl FnOnce(&str) -> Result<(), CredentialError>,
-) -> Result<(), AccountError> {
-    repository.update(|accounts| {
-        crate::account::policy::remove(accounts, account_id)?;
-        Ok(())
-    })?;
-
-    // Commit the profile removal first. Vault cleanup is best effort, outside the store lock.
-    if let Err(error) = cleanup(account_id) {
-        eprintln!("Account removed, but credential cleanup failed: {error}");
+    let accounts = load_accounts_file(&app)?;
+    if accounts
+        .iter()
+        .any(|account| account.id == account_id && account.account_type == "offline")
+    {
+        return with_recovered(&app, |repository| {
+            repository.update(|accounts| {
+                crate::account::policy::remove(accounts, &account_id)?;
+                Ok(())
+            })
+        });
     }
-    Ok(())
+    state
+        .account_recovery
+        .remove(state.credentials.as_ref(), &state.accounts, &_operation)
+        .map_err(|error| error.to_string())
 }
 
 #[cfg(test)]
@@ -105,10 +97,10 @@ pub(crate) fn reorder_accounts<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_ids: Vec<String>,
 ) -> Result<(), String> {
-    repository(&app)
-        .update(|accounts| {
+    with_recovered(&app, |repository| {
+        repository.update(|accounts| {
             *accounts = crate::account::policy::reorder(accounts, &account_ids);
             Ok(())
         })
-        .map_err(|error| error.to_string())
+    })
 }

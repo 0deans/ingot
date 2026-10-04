@@ -6,6 +6,7 @@ mod models;
 pub(crate) mod operations;
 mod persistence;
 pub(crate) mod policy;
+pub(crate) mod recovery;
 pub(crate) mod repository;
 pub(crate) use error::AccountError;
 pub use models::{AccountProfile, AccountSecrets};
