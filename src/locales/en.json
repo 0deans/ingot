@@ -546,7 +546,9 @@
 		"details": "Crash details",
 		"keepTrying": "Keep trying",
 		"undo": "Undo the version change",
-		"undone": "Back on {{version}}, exactly as before."
+		"undone": "Back on {{version}}, exactly as before.",
+		"recover": "Recover interrupted change",
+		"recovered": "Back on {{version}}, exactly as before."
 	},
 	"skinPreview": {
 		"saving": "Saving...",
@@ -1175,6 +1177,7 @@
 		"backupWithWorlds": "Changed from {{version}}. Backup {{size}}, worlds included.",
 		"deleteBackup": "Delete backup",
 		"undo": "Undo, back to {{version}}",
+		"recover": "Recover",
 		"willStartOn": "{{name}} will start on {{version}}. You can undo it here if something doesn't work.",
 		"currentVersion": "{{version}} (current)",
 		"changeTitle": "Change Minecraft version",
@@ -1188,7 +1191,8 @@
 		"importing": "Importing {{percent}}",
 		"settingUp": "Setting up server...",
 		"partial": "Imported \"{{name}}\", but some plugins or mods couldn't be downloaded:",
-		"openServer": "Open server"
+		"openServer": "Open server",
+		"recoveryRequired": "Incomplete or failed version change detected"
 	},
 	"serverCores": {
 		"paper": {
@@ -1425,7 +1429,8 @@
 		"syncPacks": "Sync Resource Packs (resourcepacks/)",
 		"syncHistory": "Sync Command History (command_history.txt)",
 		"syncHotbars": "Sync Creative Hotbars (hotbar.nbt)",
-		"inheritSync": "Inheriting global sync preferences. Will sync before launch and after exit."
+		"inheritSync": "Inheriting global sync preferences. Will sync before launch and after exit.",
+		"recoveryRequired": "Incomplete or failed version change detected"
 	},
 	"install": {
 		"loadFailed": "Failed to load installation options",

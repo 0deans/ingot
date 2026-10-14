@@ -543,7 +543,9 @@
 		"tryAgain_game_one": "Spusťte hru znovu a vyzkoušejte to bez něj. Vrácení změny ho znovu zapne.",
 		"tryAgain_game_few": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
 		"tryAgain_game_many": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
-		"tryAgain_game_other": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne."
+		"tryAgain_game_other": "Spusťte hru znovu a vyzkoušejte to bez nich. Vrácení změny je znovu zapne.",
+		"recover": "Obnovit přerušenou změnu",
+		"recovered": "Opět {{version}}, přesně jako předtím."
 	},
 	"skinPreview": {
 		"saving": "Ukládání...",
@@ -1192,7 +1194,9 @@
 		"importing": "Import {{percent}}",
 		"settingUp": "Nastavování serveru...",
 		"partial": "„{{name}}“ importován, ale některé pluginy nebo mody se nepodařilo stáhnout:",
-		"openServer": "Otevřít server"
+		"openServer": "Otevřít server",
+		"recover": "Obnovit",
+		"recoveryRequired": "Byla zjištěna neúplná nebo neúspěšná změna verze"
 	},
 	"serverCores": {
 		"paper": {
@@ -1431,7 +1435,8 @@
 		"syncPacks": "Synchronizovat balíčky zdrojů (resourcepacks/)",
 		"syncHistory": "Synchronizovat historii příkazů (command_history.txt)",
 		"syncHotbars": "Synchronizovat lišty tvořivého režimu (hotbar.nbt)",
-		"inheritSync": "Používá se globální nastavení synchronizace. Synchronizuje před spuštěním a po ukončení."
+		"inheritSync": "Používá se globální nastavení synchronizace. Synchronizuje před spuštěním a po ukončení.",
+		"recoveryRequired": "Byla zjištěna neúplná nebo neúspěšná změna verze"
 	},
 	"install": {
 		"loadFailed": "Možnosti instalace se nepodařilo načíst",

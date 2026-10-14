@@ -23,6 +23,9 @@ export type AccountProfile = {
 	createdAt: number,
 };
 
+/**  Standardized, typed error envelope returned across all TauRPC APIs. */
+export type ApiError = { kind: "invalidInput"; message: string } | { kind: "notFound"; message: string } | { kind: "conflict"; message: string } | { kind: "unauthorized"; message: string } | { kind: "cancelled"; message: string } | { kind: "providerUnavailable"; message: string } | { kind: "storageFailure"; message: string } | { kind: "incompleteRecovery"; message: string } | { kind: "internal"; message: string };
+
 export type BedrockClientStatus = {
 	isInstalled: boolean,
 	version: string | null,
@@ -669,6 +672,9 @@ export type TargetFile = {
 
 export type TargetKind = "instance" | "server";
 
+/**  Phase of an active or completed version change transaction */
+export type TransactionPhase = "prepared" | "swapping" | "committed" | "rollbackFailed";
+
 export type UnifiedContentDetails = {
 	id: string,
 	source: string,
@@ -775,6 +781,15 @@ export type VersionPlan = {
 	worlds: WorldInfo[],
 };
 
+/**  Transaction and recovery status for an instance or server */
+export type VersionTransactionStatus = {
+	phase: TransactionPhase | null,
+	isIncomplete: boolean,
+	canRecover: boolean,
+	backup: VersionBackup | null,
+	error: string | null,
+};
+
 export type WhitelistEntry = {
 	uuid: string,
 	name: string,
@@ -796,228 +811,52 @@ export type WorldSize = {
 	name: string,
 	bytes: number,
 };
-const ARGS_MAP = {"":{"add_access_entry":["server_id","kind","name"],"add_to_server_whitelist":["server_id","username"],"apply_instance_version_change":["plan","backup_worlds"],"apply_server_version_change":["plan","backup_worlds"],"check_instance_version_change":["instance_id","game_version","loader","loader_version"],"check_server_plugin_updates":["server_id"],"check_server_version_change":["server_id","game_version","core"],"check_sync_conflict":["instance_id"],"create_instance":["name","game_version","loader","loader_version"],"create_server":["name","core","game_version","build_number","port","memory_min_mb","memory_max_mb"],"delete_bedrock_pack":["server_id","folder_name","pack_type"],"delete_instance":["instance_id"],"delete_screenshot":["instance_id","file_name"],"delete_server":["server_id","delete_files"],"detect_custom_instance":["path"],"discard_instance_version_backup":["instance_id"],"discard_server_version_backup":["server_id"],"duplicate_instance":["instance_id","name","include_worlds"],"duplicate_server":["server_id","name","game_version","build_number"],"export_instance_category_to_shared":["instance_id","category"],"export_server":["server_id","mode","dest"],"get_access_list":["server_id","kind"],"get_all_screenshots":[],"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_available_server_core_versions":["core"],"get_bedrock_client_status":[],"get_companion_status":["server_id"],"get_content_details":["source","project_id"],"get_detected_launchers":[],"get_instance_version_backup":["instance_id"],"get_instance_worlds":["instance_id"],"get_instances":[],"get_known_players":["server_id"],"get_lan_address":[],"get_launcher_instances":["launcher_id","custom_path"],"get_map_dimensions":["server_id"],"get_map_tile":["server_id","dimension","x","z"],"get_online_players":["server_id"],"get_player_details":["server_id","name"],"get_playit_status":[],"get_running_instances":[],"get_running_servers":[],"get_screenshot_thumbnail":["instance_id","file_name","file_path","modified_at"],"get_server_icon":["server_id"],"get_server_logs":["server_id"],"get_server_online_players":["server_id"],"get_server_plugin_page":["source","project_id"],"get_server_plugin_versions":["server_id","source","project_id","compatible_only"],"get_server_properties":["server_id"],"get_server_properties_all":["server_id"],"get_server_stats":["server_id"],"get_server_storage":["server_id"],"get_server_version_backup":["server_id"],"get_server_whitelist":["server_id"],"get_servers":[],"get_shared_sync_status":[],"import_instance":["options"],"import_server":["upload_id"],"import_upload_chunk":["upload_id","data_base64","first"],"install_bedrock_client":[],"install_bedrock_pack":["server_id","download_url","filename"],"install_companion":["server_id"],"install_content_file":["instance_id","project_type","download_url","filename"],"install_modpack_instance":["name","source","download_url","filename"],"install_server_plugin":["server_id","source","project_id","version_id"],"kill_instance":["instance_id"],"kill_server":["server_id"],"launch_bedrock_client":[],"launch_instance":["instance_id","quick_play"],"list_bedrock_packs":["server_id"],"list_server_config_files":["server_id"],"list_server_plugins":["server_id"],"open_bedrock_folder":["kind"],"open_bedrock_server_subfolder":["server_id","subfolder"],"open_instance_folder":["instance_id"],"open_screenshots_folder":["instance_id"],"open_server_folder":["server_id"],"ping_server":["port"],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"put_server_to_sleep":["server_id"],"read_server_config_file":["server_id","path"],"remove_access_entry":["server_id","kind","name"],"remove_from_server_whitelist":["server_id","username"],"remove_server_plugin":["server_id","file_name"],"resolve_sync_conflict":["instance_id","resolution"],"reveal_screenshot_file":["file_path"],"save_server_world":["server_id","flush"],"search_content":["source","project_type","query","game_version","loader","sort","page","page_size"],"search_server_plugins":["server_id","source","query","sort","compatible_only","page"],"send_server_command":["server_id","command"],"set_bedrock_pack_enabled":["server_id","pack_id","pack_type","enabled"],"set_server_icon":["server_id","base64_data"],"set_server_plugin_enabled":["server_id","file_name","enabled"],"set_server_properties":["server_id","properties"],"set_server_properties_all":["server_id","entries"],"start_playit_tunnel":["secret_key"],"start_server":["server_id"],"stop_playit_tunnel":[],"stop_server":["server_id"],"turn_off_after_version_change":["target_kind","target_id","folder","file_name"],"undo_instance_version_change":["instance_id"],"undo_server_version_change":["server_id"],"update_instance":["instance"],"update_server":["server"],"write_server_config_file":["server_id","path","content"]},"accounts":{"add_offline_account":["username"],"discard_pending_microsoft_login":["ticket"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_pending_microsoft_login":[],"microsoft_login_cancel":[],"microsoft_login_finish":["code"],"microsoft_login_start":[],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"resume_microsoft_login":["ticket"],"set_active_account":["account_id"]},"app":{"get_leftover_servers":[],"get_quit_blockers":[],"greet":["name"],"quit_app":[],"stop_all_servers":[],"stop_leftover_server":["server_id"]},"events":{"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_leftover_servers":["servers"],"on_memory_changed":["settings"],"on_quit_requested":["event"],"on_server_log":["event"],"on_server_status_changed":["event"],"on_version_change_crash":["event"]},"settings":{"get_launcher_behavior":[],"get_memory_settings":[],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_sync_settings":["settings"],"set_window_settings":["settings"]},"skins":{"apply_ely_skin":["account_id","skin_id","password"],"apply_microsoft_skin":["account_id","skin_url","is_slim"],"get_ely_skins":["page","query","sort","model","uploader"],"get_skin_data_url":["skin_url"],"has_ely_web_credentials":["account_id"],"save_skin_to_downloads":["username","skin_url"],"upload_ely_skin":["account_id","image_base64","password"],"upload_microsoft_skin":["account_id","image_base64","is_slim"]}};
+const ARGS_MAP = {"accounts":{"add_offline_account":["username"],"discard_pending_microsoft_login":["ticket"],"ely_login":["username","password"],"get_accounts":[],"get_active_account_token":[],"get_pending_microsoft_login":[],"microsoft_login_cancel":[],"microsoft_login_finish":["code"],"microsoft_login_start":[],"remove_account":["account_id"],"reorder_accounts":["account_ids"],"resume_microsoft_login":["ticket"],"set_active_account":["account_id"]},"app":{"get_leftover_servers":[],"get_quit_blockers":[],"greet":["name"],"quit_app":[],"stop_all_servers":[],"stop_leftover_server":["server_id"],"turn_off_after_version_change":["target_kind","target_id","folder","file_name"]},"bedrock":{"get_bedrock_client_status":[],"install_bedrock_client":[],"launch_bedrock_client":[],"open_bedrock_folder":["kind"]},"content":{"get_content_details":["source","project_id"],"install_content_file":["instance_id","project_type","download_url","filename"],"install_modpack_instance":["name","source","download_url","filename"],"search_content":["source","project_type","query","game_version","loader","sort","page","page_size"]},"events":{"on_instance_status_changed":["event"],"on_launch_progress":["event"],"on_leftover_servers":["servers"],"on_memory_changed":["settings"],"on_quit_requested":["event"],"on_server_log":["event"],"on_server_status_changed":["event"],"on_version_change_crash":["event"]},"instances":{"create_instance":["name","game_version","loader","loader_version"],"delete_instance":["instance_id"],"duplicate_instance":["instance_id","name","include_worlds"],"get_instance_worlds":["instance_id"],"get_instances":[],"get_running_instances":[],"kill_instance":["instance_id"],"launch_instance":["instance_id","quick_play"],"open_instance_folder":["instance_id"],"update_instance":["instance"]},"instances.imports":{"detect_custom_instance":["path"],"get_detected_launchers":[],"get_launcher_instances":["launcher_id","custom_path"],"import_instance":["options"]},"instances.screenshots":{"delete_screenshot":["instance_id","file_name"],"get_all_screenshots":[],"get_screenshot_thumbnail":["instance_id","file_name","file_path","modified_at"],"open_screenshots_folder":["instance_id"],"reveal_screenshot_file":["file_path"]},"instances.sync":{"check_sync_conflict":["instance_id"],"export_instance_category_to_shared":["instance_id","category"],"get_shared_sync_status":[],"pull_instance_sync":["instance_id"],"push_instance_sync":["instance_id"],"resolve_sync_conflict":["instance_id","resolution"]},"instances.version_change":{"apply_instance_version_change":["plan","backup_worlds"],"check_instance_version_change":["instance_id","game_version","loader","loader_version"],"discard_instance_version_backup":["instance_id"],"get_instance_version_backup":["instance_id"],"get_instance_version_transaction_status":["instance_id"],"recover_instance_version_change":["instance_id"],"undo_instance_version_change":["instance_id"]},"servers":{"create_server":["name","core","game_version","build_number","port","memory_min_mb","memory_max_mb"],"delete_server":["server_id","delete_files"],"get_companion_status":["server_id"],"get_running_servers":[],"get_server_icon":["server_id"],"get_server_logs":["server_id"],"get_servers":[],"install_companion":["server_id"],"kill_server":["server_id"],"open_server_folder":["server_id"],"ping_server":["port"],"put_server_to_sleep":["server_id"],"save_server_world":["server_id","flush"],"send_server_command":["server_id","command"],"set_server_icon":["server_id","base64_data"],"start_server":["server_id"],"stop_server":["server_id"],"update_server":["server"]},"servers.config":{"add_access_entry":["server_id","kind","name"],"add_to_server_whitelist":["server_id","username"],"get_access_list":["server_id","kind"],"get_server_properties":["server_id"],"get_server_properties_all":["server_id"],"get_server_whitelist":["server_id"],"list_server_config_files":["server_id"],"read_server_config_file":["server_id","path"],"remove_access_entry":["server_id","kind","name"],"remove_from_server_whitelist":["server_id","username"],"set_server_properties":["server_id","properties"],"set_server_properties_all":["server_id","entries"],"write_server_config_file":["server_id","path","content"]},"servers.map":{"get_map_dimensions":["server_id"],"get_map_tile":["server_id","dimension","x","z"]},"servers.metrics":{"get_lan_address":[],"get_server_stats":["server_id"],"get_server_storage":["server_id"]},"servers.packs":{"delete_bedrock_pack":["server_id","folder_name","pack_type"],"install_bedrock_pack":["server_id","download_url","filename"],"list_bedrock_packs":["server_id"],"open_bedrock_server_subfolder":["server_id","subfolder"],"set_bedrock_pack_enabled":["server_id","pack_id","pack_type","enabled"]},"servers.players":{"get_known_players":["server_id"],"get_online_players":["server_id"],"get_player_details":["server_id","name"],"get_server_online_players":["server_id"]},"servers.plugins":{"check_server_plugin_updates":["server_id"],"get_server_plugin_page":["source","project_id"],"get_server_plugin_versions":["server_id","source","project_id","compatible_only"],"install_server_plugin":["server_id","source","project_id","version_id"],"list_server_plugins":["server_id"],"remove_server_plugin":["server_id","file_name"],"search_server_plugins":["server_id","source","query","sort","compatible_only","page"],"set_server_plugin_enabled":["server_id","file_name","enabled"]},"servers.transfer":{"duplicate_server":["server_id","name","game_version","build_number"],"export_server":["server_id","mode","dest"],"import_server":["upload_id"],"import_upload_chunk":["upload_id","data_base64","first"]},"servers.tunnel":{"get_playit_status":[],"start_playit_tunnel":["secret_key"],"stop_playit_tunnel":[]},"servers.version_change":{"apply_server_version_change":["plan","backup_worlds"],"check_server_version_change":["server_id","game_version","core"],"discard_server_version_backup":["server_id"],"get_server_version_backup":["server_id"],"get_server_version_transaction_status":["server_id"],"recover_server_version_change":["server_id"],"undo_server_version_change":["server_id"]},"settings":{"get_launcher_behavior":[],"get_memory_settings":[],"get_sync_settings":[],"get_system_memory":[],"get_window_settings":[],"set_launcher_behavior":["behavior"],"set_memory_settings":["min_ram_mb","max_ram_mb"],"set_sync_settings":["settings"],"set_window_settings":["settings"]},"skins":{"apply_ely_skin":["account_id","skin_id","password"],"apply_microsoft_skin":["account_id","skin_url","is_slim"],"get_ely_skins":["page","query","sort","model","uploader"],"get_skin_data_url":["skin_url"],"has_ely_web_credentials":["account_id"],"save_skin_to_downloads":["username","skin_url"],"upload_ely_skin":["account_id","image_base64","password"],"upload_microsoft_skin":["account_id","image_base64","is_slim"]},"versions":{"get_available_game_versions":[],"get_available_loader_versions":["game_version","loader"],"get_available_server_core_versions":["core"]}};
 
-const RESULT_MAP = {"":{"add_access_entry":true,"add_to_server_whitelist":true,"apply_instance_version_change":true,"apply_server_version_change":true,"check_instance_version_change":true,"check_server_plugin_updates":true,"check_server_version_change":true,"check_sync_conflict":true,"create_instance":true,"create_server":true,"delete_bedrock_pack":true,"delete_instance":true,"delete_screenshot":true,"delete_server":true,"detect_custom_instance":true,"discard_instance_version_backup":true,"discard_server_version_backup":true,"duplicate_instance":true,"duplicate_server":true,"export_instance_category_to_shared":true,"export_server":true,"get_access_list":true,"get_all_screenshots":true,"get_available_game_versions":true,"get_available_loader_versions":true,"get_available_server_core_versions":true,"get_bedrock_client_status":true,"get_companion_status":true,"get_content_details":true,"get_detected_launchers":true,"get_instance_version_backup":true,"get_instance_worlds":true,"get_instances":true,"get_known_players":true,"get_lan_address":true,"get_launcher_instances":true,"get_map_dimensions":true,"get_map_tile":true,"get_online_players":true,"get_player_details":true,"get_playit_status":true,"get_running_instances":true,"get_running_servers":true,"get_screenshot_thumbnail":true,"get_server_icon":true,"get_server_logs":true,"get_server_online_players":true,"get_server_plugin_page":true,"get_server_plugin_versions":true,"get_server_properties":true,"get_server_properties_all":true,"get_server_stats":true,"get_server_storage":true,"get_server_version_backup":true,"get_server_whitelist":true,"get_servers":true,"get_shared_sync_status":true,"import_instance":true,"import_server":true,"import_upload_chunk":true,"install_bedrock_client":true,"install_bedrock_pack":true,"install_companion":true,"install_content_file":true,"install_modpack_instance":true,"install_server_plugin":true,"kill_instance":true,"kill_server":true,"launch_bedrock_client":true,"launch_instance":true,"list_bedrock_packs":true,"list_server_config_files":true,"list_server_plugins":true,"open_bedrock_folder":true,"open_bedrock_server_subfolder":true,"open_instance_folder":true,"open_screenshots_folder":true,"open_server_folder":true,"ping_server":true,"pull_instance_sync":true,"push_instance_sync":true,"put_server_to_sleep":true,"read_server_config_file":true,"remove_access_entry":true,"remove_from_server_whitelist":true,"remove_server_plugin":true,"resolve_sync_conflict":true,"reveal_screenshot_file":true,"save_server_world":true,"search_content":true,"search_server_plugins":true,"send_server_command":true,"set_bedrock_pack_enabled":true,"set_server_icon":true,"set_server_plugin_enabled":true,"set_server_properties":true,"set_server_properties_all":true,"start_playit_tunnel":true,"start_server":true,"stop_playit_tunnel":true,"stop_server":true,"turn_off_after_version_change":true,"undo_instance_version_change":true,"undo_server_version_change":true,"update_instance":true,"update_server":true,"write_server_config_file":true},"accounts":{"add_offline_account":true,"discard_pending_microsoft_login":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_pending_microsoft_login":true,"microsoft_login_cancel":true,"microsoft_login_finish":true,"microsoft_login_start":true,"remove_account":true,"reorder_accounts":true,"resume_microsoft_login":true,"set_active_account":true},"app":{"get_leftover_servers":true,"get_quit_blockers":true,"greet":false,"quit_app":true,"stop_all_servers":true,"stop_leftover_server":true},"events":{"on_instance_status_changed":false,"on_launch_progress":false,"on_leftover_servers":false,"on_memory_changed":false,"on_quit_requested":false,"on_server_log":false,"on_server_status_changed":false,"on_version_change_crash":false},"settings":{"get_launcher_behavior":true,"get_memory_settings":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_sync_settings":true,"set_window_settings":true},"skins":{"apply_ely_skin":true,"apply_microsoft_skin":true,"get_ely_skins":true,"get_skin_data_url":true,"has_ely_web_credentials":true,"save_skin_to_downloads":true,"upload_ely_skin":true,"upload_microsoft_skin":true}};
+const RESULT_MAP = {"accounts":{"add_offline_account":true,"discard_pending_microsoft_login":true,"ely_login":true,"get_accounts":true,"get_active_account_token":true,"get_pending_microsoft_login":true,"microsoft_login_cancel":true,"microsoft_login_finish":true,"microsoft_login_start":true,"remove_account":true,"reorder_accounts":true,"resume_microsoft_login":true,"set_active_account":true},"app":{"get_leftover_servers":true,"get_quit_blockers":true,"greet":false,"quit_app":true,"stop_all_servers":true,"stop_leftover_server":true,"turn_off_after_version_change":true},"bedrock":{"get_bedrock_client_status":true,"install_bedrock_client":true,"launch_bedrock_client":true,"open_bedrock_folder":true},"content":{"get_content_details":true,"install_content_file":true,"install_modpack_instance":true,"search_content":true},"events":{"on_instance_status_changed":false,"on_launch_progress":false,"on_leftover_servers":false,"on_memory_changed":false,"on_quit_requested":false,"on_server_log":false,"on_server_status_changed":false,"on_version_change_crash":false},"instances":{"create_instance":true,"delete_instance":true,"duplicate_instance":true,"get_instance_worlds":true,"get_instances":true,"get_running_instances":true,"kill_instance":true,"launch_instance":true,"open_instance_folder":true,"update_instance":true},"instances.imports":{"detect_custom_instance":true,"get_detected_launchers":true,"get_launcher_instances":true,"import_instance":true},"instances.screenshots":{"delete_screenshot":true,"get_all_screenshots":true,"get_screenshot_thumbnail":true,"open_screenshots_folder":true,"reveal_screenshot_file":true},"instances.sync":{"check_sync_conflict":true,"export_instance_category_to_shared":true,"get_shared_sync_status":true,"pull_instance_sync":true,"push_instance_sync":true,"resolve_sync_conflict":true},"instances.version_change":{"apply_instance_version_change":true,"check_instance_version_change":true,"discard_instance_version_backup":true,"get_instance_version_backup":true,"get_instance_version_transaction_status":true,"recover_instance_version_change":true,"undo_instance_version_change":true},"servers":{"create_server":true,"delete_server":true,"get_companion_status":true,"get_running_servers":true,"get_server_icon":true,"get_server_logs":true,"get_servers":true,"install_companion":true,"kill_server":true,"open_server_folder":true,"ping_server":true,"put_server_to_sleep":true,"save_server_world":true,"send_server_command":true,"set_server_icon":true,"start_server":true,"stop_server":true,"update_server":true},"servers.config":{"add_access_entry":true,"add_to_server_whitelist":true,"get_access_list":true,"get_server_properties":true,"get_server_properties_all":true,"get_server_whitelist":true,"list_server_config_files":true,"read_server_config_file":true,"remove_access_entry":true,"remove_from_server_whitelist":true,"set_server_properties":true,"set_server_properties_all":true,"write_server_config_file":true},"servers.map":{"get_map_dimensions":true,"get_map_tile":true},"servers.metrics":{"get_lan_address":true,"get_server_stats":true,"get_server_storage":true},"servers.packs":{"delete_bedrock_pack":true,"install_bedrock_pack":true,"list_bedrock_packs":true,"open_bedrock_server_subfolder":true,"set_bedrock_pack_enabled":true},"servers.players":{"get_known_players":true,"get_online_players":true,"get_player_details":true,"get_server_online_players":true},"servers.plugins":{"check_server_plugin_updates":true,"get_server_plugin_page":true,"get_server_plugin_versions":true,"install_server_plugin":true,"list_server_plugins":true,"remove_server_plugin":true,"search_server_plugins":true,"set_server_plugin_enabled":true},"servers.transfer":{"duplicate_server":true,"export_server":true,"import_server":true,"import_upload_chunk":true},"servers.tunnel":{"get_playit_status":true,"start_playit_tunnel":true,"stop_playit_tunnel":true},"servers.version_change":{"apply_server_version_change":true,"check_server_version_change":true,"discard_server_version_backup":true,"get_server_version_backup":true,"get_server_version_transaction_status":true,"recover_server_version_change":true,"undo_server_version_change":true},"settings":{"get_launcher_behavior":true,"get_memory_settings":true,"get_sync_settings":true,"get_system_memory":true,"get_window_settings":true,"set_launcher_behavior":true,"set_memory_settings":true,"set_sync_settings":true,"set_window_settings":true},"skins":{"apply_ely_skin":true,"apply_microsoft_skin":true,"get_ely_skins":true,"get_skin_data_url":true,"has_ely_web_credentials":true,"save_skin_to_downloads":true,"upload_ely_skin":true,"upload_microsoft_skin":true},"versions":{"get_available_game_versions":true,"get_available_loader_versions":true,"get_available_server_core_versions":true}};
 
 export type Router = {
-	"": {
-		add_access_entry: (serverId: string, kind: AccessListKind, name: string) => Promise<AccessEntry[]>,
-		add_to_server_whitelist: (serverId: string, username: string) => Promise<null>,
-		/**  Carries out a reviewed plan, all or nothing, keeping a backup for undo */
-		apply_instance_version_change: (plan: VersionPlan, backupWorlds: boolean) => Promise<InstanceConfig>,
-		/**  Carries out a reviewed plan, all or nothing, keeping a backup for undo */
-		apply_server_version_change: (plan: VersionPlan, backupWorlds: boolean) => Promise<ServerConfig>,
-		/**
-		 *  Works out what moving an instance to another Minecraft version (and optionally
-		 *  another loader) means for its mods, resource packs and shaders. Changes nothing.
-		 */
-		check_instance_version_change: (instanceId: string, gameVersion: string, loader: ModLoaderType, loaderVersion: string | null) => Promise<VersionPlan>,
-		check_server_plugin_updates: (serverId: string) => Promise<PluginUpdate[]>,
-		/**
-		 *  Works out what moving a server to another Minecraft version (and optionally a
-		 *  related core, e.g. Paper to Purpur) means for its plugins or mods. Changes nothing.
-		 */
-		check_server_version_change: (serverId: string, gameVersion: string, core: ServerCoreType) => Promise<VersionPlan>,
-		check_sync_conflict: (instanceId: string) => Promise<{
-	instanceId: string,
-	instanceName: string,
-	hasInstanceOptions: boolean,
-	hasInstanceServers: boolean,
-	hasSharedOptions: boolean,
-	hasSharedServers: boolean,
-	sharedModified: number | null,
-} | null>,
-		create_instance: (name: string, gameVersion: string, loader: ModLoaderType, loaderVersion: string | null) => Promise<InstanceConfig>,
-		create_server: (name: string, core: ServerCoreType, gameVersion: string, buildNumber: string | null, port: number | null, memoryMinMb: number | null, memoryMaxMb: number | null) => Promise<ServerConfig>,
-		delete_bedrock_pack: (serverId: string, folderName: string, packType: string) => Promise<null>,
-		delete_instance: (instanceId: string) => Promise<null>,
-		delete_screenshot: (instanceId: string, fileName: string) => Promise<null>,
-		delete_server: (serverId: string, deleteFiles: boolean) => Promise<null>,
-		detect_custom_instance: (path: string) => Promise<ImportableInstance>,
-		/**  Deletes the backup of the last version change (it can't be undone after) */
-		discard_instance_version_backup: (instanceId: string) => Promise<null>,
-		/**  Deletes the backup of the server's last version change */
-		discard_server_version_backup: (serverId: string) => Promise<null>,
-		/**  Copies an instance into a new, independent one (worlds optional) */
-		duplicate_instance: (instanceId: string, name: string, includeWorlds: boolean) => Promise<InstanceConfig>,
-		/**  Copies a server, optionally switching the copy to another version */
-		duplicate_server: (serverId: string, name: string, gameVersion: string | null, buildNumber: string | null) => Promise<ServerConfig>,
-		export_instance_category_to_shared: (instanceId: string, category: string) => Promise<SyncReport>,
-		/**
-		 *  Zips the server; saved to `dest`, or to the app cache (for sharing) when None.
-		 *  Returns the archive path.
-		 */
-		export_server: (serverId: string, mode: ExportMode, dest: string | null) => Promise<string>,
-		get_access_list: (serverId: string, kind: AccessListKind) => Promise<AccessEntry[]>,
-		get_all_screenshots: () => Promise<ScreenshotInfo[]>,
-		get_available_game_versions: () => Promise<VersionManifestEntry[]>,
-		get_available_loader_versions: (gameVersion: string, loader: ModLoaderType) => Promise<string[]>,
-		get_available_server_core_versions: (core: ServerCoreType) => Promise<string[]>,
-		get_bedrock_client_status: () => Promise<BedrockClientStatus>,
-		/**  Whether Ingot's companion plugin (live map) fits this server and is installed */
-		get_companion_status: (serverId: string) => Promise<CompanionStatus>,
-		get_content_details: (source: string, projectId: string) => Promise<UnifiedContentDetails>,
-		get_detected_launchers: () => Promise<DetectedLauncher[]>,
-		/**  The last version change of an instance, if it can be undone */
-		get_instance_version_backup: (instanceId: string) => Promise<{
-	fromGameVersion: string,
-	fromLoader: string,
-	toGameVersion: string,
-	toLoader: string,
-	createdAt: number,
-	worldsBackedUp: boolean,
-	bytes: number,
-} | null>,
-		get_instance_worlds: (instanceId: string) => Promise<InstanceWorldSummary[]>,
-		get_instances: () => Promise<InstanceConfig[]>,
-		/**  Everyone with a save file, newest first */
-		get_known_players: (serverId: string) => Promise<KnownPlayer[]>,
-		/**  This device's LAN IP, for inviting players on the same network */
-		get_lan_address: () => Promise<string | null>,
-		get_launcher_instances: (launcherId: string, customPath: string | null) => Promise<ImportableInstance[]>,
-		get_map_dimensions: (serverId: string) => Promise<MapDimension[]>,
-		/**  A region tile as a PNG data URL (None if the region doesn't exist) */
-		get_map_tile: (serverId: string, dimension: string, x: number, z: number) => Promise<string | null>,
-		/**  Live details of all online players (console queries; server must be running) */
-		get_online_players: (serverId: string) => Promise<PlayerDetails[]>,
-		/**  Live data for online players, last saved state otherwise */
-		get_player_details: (serverId: string, name: string) => Promise<PlayerDetails>,
-		get_playit_status: () => Promise<PlayitTunnelStatus>,
-		get_running_instances: () => Promise<RunningInstanceSummary[]>,
-		get_running_servers: () => Promise<RunningServerSummary[]>,
-		get_screenshot_thumbnail: (instanceId: string, fileName: string, filePath: string, modifiedAt: number) => Promise<string>,
-		get_server_icon: (serverId: string) => Promise<string | null>,
-		get_server_logs: (serverId: string) => Promise<string[]>,
-		get_server_online_players: (serverId: string) => Promise<string[]>,
-		/**  Project description as Markdown */
-		get_server_plugin_page: (source: PluginSource, projectId: string) => Promise<string>,
-		get_server_plugin_versions: (serverId: string, source: PluginSource, projectId: string, compatibleOnly: boolean) => Promise<PluginVersion[]>,
-		get_server_properties: (serverId: string) => Promise<ServerProperties>,
-		get_server_properties_all: (serverId: string) => Promise<PropertyEntry[]>,
-		/**
-		 *  CPU, memory and TPS of a running server
-		 *  CPU/RAM/TPS samples of the last two minutes (recorded in the background)
-		 */
-		get_server_stats: (serverId: string) => Promise<ServerStats[]>,
-		/**  Disk space used by the server folder, by category, and space left on the device */
-		get_server_storage: (serverId: string) => Promise<ServerStorage>,
-		/**  The last version change of a server, if it can be undone */
-		get_server_version_backup: (serverId: string) => Promise<{
-	fromGameVersion: string,
-	fromLoader: string,
-	toGameVersion: string,
-	toLoader: string,
-	createdAt: number,
-	worldsBackedUp: boolean,
-	bytes: number,
-} | null>,
-		get_server_whitelist: (serverId: string) => Promise<WhitelistEntry[]>,
-		get_servers: () => Promise<ServerConfig[]>,
-		get_shared_sync_status: () => Promise<SharedSyncStatus>,
-		import_instance: (options: ImportInstanceOptions) => Promise<ImportReport>,
-		/**
-		 *  Creates a new server from an uploaded archive, downloading the plugins/mods a
-		 *  configs-only export lists but doesn't carry
-		 */
-		import_server: (uploadId: string) => Promise<ImportedServer>,
-		/**  Appends a base64 chunk of an archive being imported (first chunk truncates) */
-		import_upload_chunk: (uploadId: string, dataBase64: string, first: boolean) => Promise<null>,
-		install_bedrock_client: () => Promise<null>,
-		install_bedrock_pack: (serverId: string, downloadUrl: string, filename: string) => Promise<string>,
-		/**  Installs or updates Ingot's companion plugin; applies on the next start */
-		install_companion: (serverId: string) => Promise<null>,
-		install_content_file: (instanceId: string, projectType: string, downloadUrl: string, filename: string) => Promise<string>,
-		install_modpack_instance: (name: string, source: string, downloadUrl: string, filename: string) => Promise<InstanceConfig>,
-		/**
-		 *  Installs a plugin (latest compatible version unless `version_id` is given)
-		 *  together with its required dependencies
-		 */
-		install_server_plugin: (serverId: string, source: PluginSource, projectId: string, versionId: string | null) => Promise<InstallReport>,
-		kill_instance: (instanceId: string) => Promise<null>,
-		kill_server: (serverId: string) => Promise<null>,
-		launch_bedrock_client: () => Promise<null>,
-		launch_instance: (instanceId: string, quickPlay: {
-	server: string | null,
-	world: string | null,
-} | null) => Promise<number>,
-		list_bedrock_packs: (serverId: string) => Promise<BedrockPackInfo[]>,
-		list_server_config_files: (serverId: string) => Promise<ConfigFile[]>,
-		list_server_plugins: (serverId: string) => Promise<InstalledPlugin[]>,
-		open_bedrock_folder: (kind: string) => Promise<null>,
-		open_bedrock_server_subfolder: (serverId: string, subfolder: string) => Promise<null>,
-		open_instance_folder: (instanceId: string) => Promise<null>,
-		open_screenshots_folder: (instanceId: string | null) => Promise<null>,
-		open_server_folder: (serverId: string) => Promise<null>,
-		ping_server: (port: number) => Promise<ServerPingResponse>,
-		pull_instance_sync: (instanceId: string) => Promise<SyncReport>,
-		push_instance_sync: (instanceId: string) => Promise<SyncReport>,
-		put_server_to_sleep: (serverId: string) => Promise<null>,
-		read_server_config_file: (serverId: string, path: string) => Promise<string>,
-		remove_access_entry: (serverId: string, kind: AccessListKind, name: string) => Promise<AccessEntry[]>,
-		remove_from_server_whitelist: (serverId: string, username: string) => Promise<null>,
-		remove_server_plugin: (serverId: string, fileName: string) => Promise<null>,
-		resolve_sync_conflict: (instanceId: string, resolution: string) => Promise<SyncReport>,
-		reveal_screenshot_file: (filePath: string) => Promise<null>,
-		/**
-		 *  Flushes the world to disk (`save-all flush`) so the map shows the latest state
-		 *  Saves the world so the map shows the latest state. `flush` also waits for
-		 *  every chunk to reach the disk (slower; used for an explicit refresh).
-		 */
-		save_server_world: (serverId: string, flush: boolean) => Promise<null>,
-		search_content: (source: string, projectType: string, query: string | null, gameVersion: string | null, loader: string | null, sort: string | null, page: number, pageSize: number) => Promise<ContentSearchResult>,
-		/**  Search plugins (Paper/Purpur/Folia) or server-side mods (Fabric/NeoForge/Forge/Quilt) for this server */
-		search_server_plugins: (serverId: string, source: PluginSource, query: string, sort: string, compatibleOnly: boolean, page: number) => Promise<PluginSearchResult>,
-		send_server_command: (serverId: string, command: string) => Promise<null>,
-		set_bedrock_pack_enabled: (serverId: string, packId: string, packType: string, enabled: boolean) => Promise<null>,
-		set_server_icon: (serverId: string, base64Data: string) => Promise<null>,
-		set_server_plugin_enabled: (serverId: string, fileName: string, enabled: boolean) => Promise<null>,
-		set_server_properties: (serverId: string, properties: ServerProperties) => Promise<null>,
-		set_server_properties_all: (serverId: string, entries: PropertyEntry[]) => Promise<null>,
-		start_playit_tunnel: (secretKey: string | null) => Promise<PlayitTunnelStatus>,
-		start_server: (serverId: string) => Promise<number>,
-		stop_playit_tunnel: () => Promise<null>,
-		stop_server: (serverId: string) => Promise<null>,
-		/**
-		 *  Turns off a mod or plugin the crash after a version change blamed (undo turns it
-		 *  back on)
-		 */
-		turn_off_after_version_change: (targetKind: TargetKind, targetId: string, folder: string, fileName: string) => Promise<null>,
-		/**  Restores the instance exactly as it was before its last version change */
-		undo_instance_version_change: (instanceId: string) => Promise<InstanceConfig>,
-		/**  Restores the server exactly as it was before its last version change */
-		undo_server_version_change: (serverId: string) => Promise<ServerConfig>,
-		update_instance: (instance: InstanceConfig) => Promise<null>,
-		update_server: (server: ServerConfig) => Promise<null>,
-		write_server_config_file: (serverId: string, path: string, content: string) => Promise<null>,
-	},
 	accounts: {
-		add_offline_account: (username: string) => Promise<AccountProfile>,
-		discard_pending_microsoft_login: (ticket: string) => Promise<null>,
-		ely_login: (username: string, password: string) => Promise<AccountProfile>,
-		get_accounts: () => Promise<AccountProfile[]>,
-		get_active_account_token: () => Promise<string>,
-		get_pending_microsoft_login: () => Promise<{
+		add_offline_account: (username: string) => Promise<TauRpcResult<AccountProfile, ApiError>>,
+		discard_pending_microsoft_login: (ticket: string) => Promise<TauRpcResult<null, ApiError>>,
+		ely_login: (username: string, password: string) => Promise<TauRpcResult<AccountProfile, ApiError>>,
+		get_accounts: () => Promise<TauRpcResult<AccountProfile[], ApiError>>,
+		get_active_account_token: () => Promise<TauRpcResult<string, ApiError>>,
+		get_pending_microsoft_login: () => Promise<TauRpcResult<{
 	ticket: string,
 	createdAt: number,
 	expiresAt: number,
 	status: PendingLoginStatus,
-} | null>,
-		microsoft_login_cancel: () => Promise<null>,
-		microsoft_login_finish: (code: MicrosoftDeviceCode) => Promise<AccountProfile>,
-		microsoft_login_start: () => Promise<MicrosoftDeviceCode>,
-		remove_account: (accountId: string) => Promise<null>,
-		reorder_accounts: (accountIds: string[]) => Promise<null>,
-		resume_microsoft_login: (ticket: string) => Promise<AccountProfile>,
-		set_active_account: (accountId: string) => Promise<null>,
+} | null, ApiError>>,
+		microsoft_login_cancel: () => Promise<TauRpcResult<null, ApiError>>,
+		microsoft_login_finish: (code: MicrosoftDeviceCode) => Promise<TauRpcResult<AccountProfile, ApiError>>,
+		microsoft_login_start: () => Promise<TauRpcResult<MicrosoftDeviceCode, ApiError>>,
+		remove_account: (accountId: string) => Promise<TauRpcResult<null, ApiError>>,
+		reorder_accounts: (accountIds: string[]) => Promise<TauRpcResult<null, ApiError>>,
+		resume_microsoft_login: (ticket: string) => Promise<TauRpcResult<AccountProfile, ApiError>>,
+		set_active_account: (accountId: string) => Promise<TauRpcResult<null, ApiError>>,
 	},
 	app: {
-		get_leftover_servers: () => Promise<LeftoverServer[]>,
-		get_quit_blockers: () => Promise<QuitRequest>,
+		get_leftover_servers: () => Promise<TauRpcResult<LeftoverServer[], ApiError>>,
+		get_quit_blockers: () => Promise<TauRpcResult<QuitRequest, ApiError>>,
 		greet: (name: string) => Promise<string>,
-		quit_app: () => Promise<null>,
-		stop_all_servers: () => Promise<null>,
-		stop_leftover_server: (serverId: string) => Promise<null>,
+		quit_app: () => Promise<TauRpcResult<null, ApiError>>,
+		stop_all_servers: () => Promise<TauRpcResult<null, ApiError>>,
+		stop_leftover_server: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		/**  Turns off a mod or plugin blamed for crashing after a version change. */
+		turn_off_after_version_change: (targetKind: TargetKind, targetId: string, folder: string, fileName: string) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	bedrock: {
+		get_bedrock_client_status: () => Promise<TauRpcResult<BedrockClientStatus, ApiError>>,
+		install_bedrock_client: () => Promise<TauRpcResult<null, ApiError>>,
+		launch_bedrock_client: () => Promise<TauRpcResult<null, ApiError>>,
+		open_bedrock_folder: (kind: string) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	content: {
+		get_content_details: (source: string, projectId: string) => Promise<TauRpcResult<UnifiedContentDetails, ApiError>>,
+		install_content_file: (instanceId: string, projectType: string, downloadUrl: string, filename: string) => Promise<TauRpcResult<string, ApiError>>,
+		install_modpack_instance: (name: string, source: string, downloadUrl: string, filename: string) => Promise<TauRpcResult<InstanceConfig, ApiError>>,
+		search_content: (source: string, projectType: string, query: string | null, gameVersion: string | null, loader: string | null, sort: string | null, page: number, pageSize: number) => Promise<TauRpcResult<ContentSearchResult, ApiError>>,
 	},
 	events: {
 		on_instance_status_changed: { on: (listener: (event: InstanceStatusEvent) => void) => Promise<UnlistenFn> },
@@ -1032,32 +871,222 @@ export type Router = {
 		/**  The first start after a version change crashed */
 		on_version_change_crash: { on: (listener: (event: VersionChangeCrash) => void) => Promise<UnlistenFn> },
 	},
+	instances: {
+		create_instance: (name: string, gameVersion: string, loader: ModLoaderType, loaderVersion: string | null) => Promise<TauRpcResult<InstanceConfig, ApiError>>,
+		delete_instance: (instanceId: string) => Promise<TauRpcResult<null, ApiError>>,
+		/**  Copies an instance into a new, independent one (worlds optional) */
+		duplicate_instance: (instanceId: string, name: string, includeWorlds: boolean) => Promise<TauRpcResult<InstanceConfig, ApiError>>,
+		get_instance_worlds: (instanceId: string) => Promise<TauRpcResult<InstanceWorldSummary[], ApiError>>,
+		get_instances: () => Promise<TauRpcResult<InstanceConfig[], ApiError>>,
+		get_running_instances: () => Promise<TauRpcResult<RunningInstanceSummary[], ApiError>>,
+		kill_instance: (instanceId: string) => Promise<TauRpcResult<null, ApiError>>,
+		launch_instance: (instanceId: string, quickPlay: {
+	server: string | null,
+	world: string | null,
+} | null) => Promise<TauRpcResult<number, ApiError>>,
+		open_instance_folder: (instanceId: string) => Promise<TauRpcResult<null, ApiError>>,
+		update_instance: (instance: InstanceConfig) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"instances.imports": {
+		detect_custom_instance: (path: string) => Promise<TauRpcResult<ImportableInstance, ApiError>>,
+		get_detected_launchers: () => Promise<TauRpcResult<DetectedLauncher[], ApiError>>,
+		get_launcher_instances: (launcherId: string, customPath: string | null) => Promise<TauRpcResult<ImportableInstance[], ApiError>>,
+		import_instance: (options: ImportInstanceOptions) => Promise<TauRpcResult<ImportReport, ApiError>>,
+	},
+	"instances.screenshots": {
+		delete_screenshot: (instanceId: string, fileName: string) => Promise<TauRpcResult<null, ApiError>>,
+		get_all_screenshots: () => Promise<TauRpcResult<ScreenshotInfo[], ApiError>>,
+		get_screenshot_thumbnail: (instanceId: string, fileName: string, filePath: string, modifiedAt: number) => Promise<TauRpcResult<string, ApiError>>,
+		open_screenshots_folder: (instanceId: string | null) => Promise<TauRpcResult<null, ApiError>>,
+		reveal_screenshot_file: (filePath: string) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"instances.sync": {
+		check_sync_conflict: (instanceId: string) => Promise<TauRpcResult<{
+	instanceId: string,
+	instanceName: string,
+	hasInstanceOptions: boolean,
+	hasInstanceServers: boolean,
+	hasSharedOptions: boolean,
+	hasSharedServers: boolean,
+	sharedModified: number | null,
+} | null, ApiError>>,
+		export_instance_category_to_shared: (instanceId: string, category: string) => Promise<TauRpcResult<SyncReport, ApiError>>,
+		get_shared_sync_status: () => Promise<TauRpcResult<SharedSyncStatus, ApiError>>,
+		pull_instance_sync: (instanceId: string) => Promise<TauRpcResult<SyncReport, ApiError>>,
+		push_instance_sync: (instanceId: string) => Promise<TauRpcResult<SyncReport, ApiError>>,
+		resolve_sync_conflict: (instanceId: string, resolution: string) => Promise<TauRpcResult<SyncReport, ApiError>>,
+	},
+	"instances.version_change": {
+		/**  Carries out a reviewed plan, all or nothing, keeping a backup for undo. */
+		apply_instance_version_change: (plan: VersionPlan, backupWorlds: boolean) => Promise<TauRpcResult<InstanceConfig, ApiError>>,
+		/**  Works out what moving an instance to another Minecraft version means. */
+		check_instance_version_change: (instanceId: string, gameVersion: string, loader: ModLoaderType, loaderVersion: string | null) => Promise<TauRpcResult<VersionPlan, ApiError>>,
+		/**  Deletes the backup of the last version change. */
+		discard_instance_version_backup: (instanceId: string) => Promise<TauRpcResult<null, ApiError>>,
+		/**  The last version change of an instance, if it can be undone. */
+		get_instance_version_backup: (instanceId: string) => Promise<TauRpcResult<{
+	fromGameVersion: string,
+	fromLoader: string,
+	toGameVersion: string,
+	toLoader: string,
+	createdAt: number,
+	worldsBackedUp: boolean,
+	bytes: number,
+} | null, ApiError>>,
+		/**  Gets the current version change transaction status, exposing incomplete and rollback-failed states. */
+		get_instance_version_transaction_status: (instanceId: string) => Promise<TauRpcResult<VersionTransactionStatus, ApiError>>,
+		/**  Recovers the instance from an interrupted or rollback-failed version change transaction. */
+		recover_instance_version_change: (instanceId: string) => Promise<TauRpcResult<InstanceConfig, ApiError>>,
+		/**  Restores the instance exactly as it was before its last version change. */
+		undo_instance_version_change: (instanceId: string) => Promise<TauRpcResult<InstanceConfig, ApiError>>,
+	},
+	servers: {
+		create_server: (name: string, core: ServerCoreType, gameVersion: string, buildNumber: string | null, port: number | null, memoryMinMb: number | null, memoryMaxMb: number | null) => Promise<TauRpcResult<ServerConfig, ApiError>>,
+		delete_server: (serverId: string, deleteFiles: boolean) => Promise<TauRpcResult<null, ApiError>>,
+		get_companion_status: (serverId: string) => Promise<TauRpcResult<CompanionStatus, ApiError>>,
+		get_running_servers: () => Promise<TauRpcResult<RunningServerSummary[], ApiError>>,
+		get_server_icon: (serverId: string) => Promise<TauRpcResult<string | null, ApiError>>,
+		get_server_logs: (serverId: string) => Promise<TauRpcResult<string[], ApiError>>,
+		get_servers: () => Promise<TauRpcResult<ServerConfig[], ApiError>>,
+		install_companion: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		kill_server: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		open_server_folder: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		ping_server: (port: number) => Promise<TauRpcResult<ServerPingResponse, ApiError>>,
+		put_server_to_sleep: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		save_server_world: (serverId: string, flush: boolean) => Promise<TauRpcResult<null, ApiError>>,
+		send_server_command: (serverId: string, command: string) => Promise<TauRpcResult<null, ApiError>>,
+		set_server_icon: (serverId: string, base64Data: string) => Promise<TauRpcResult<null, ApiError>>,
+		start_server: (serverId: string) => Promise<TauRpcResult<number, ApiError>>,
+		stop_server: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		update_server: (server: ServerConfig) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"servers.config": {
+		add_access_entry: (serverId: string, kind: AccessListKind, name: string) => Promise<TauRpcResult<AccessEntry[], ApiError>>,
+		add_to_server_whitelist: (serverId: string, username: string) => Promise<TauRpcResult<null, ApiError>>,
+		get_access_list: (serverId: string, kind: AccessListKind) => Promise<TauRpcResult<AccessEntry[], ApiError>>,
+		get_server_properties: (serverId: string) => Promise<TauRpcResult<ServerProperties, ApiError>>,
+		get_server_properties_all: (serverId: string) => Promise<TauRpcResult<PropertyEntry[], ApiError>>,
+		get_server_whitelist: (serverId: string) => Promise<TauRpcResult<WhitelistEntry[], ApiError>>,
+		list_server_config_files: (serverId: string) => Promise<TauRpcResult<ConfigFile[], ApiError>>,
+		read_server_config_file: (serverId: string, path: string) => Promise<TauRpcResult<string, ApiError>>,
+		remove_access_entry: (serverId: string, kind: AccessListKind, name: string) => Promise<TauRpcResult<AccessEntry[], ApiError>>,
+		remove_from_server_whitelist: (serverId: string, username: string) => Promise<TauRpcResult<null, ApiError>>,
+		set_server_properties: (serverId: string, properties: ServerProperties) => Promise<TauRpcResult<null, ApiError>>,
+		set_server_properties_all: (serverId: string, entries: PropertyEntry[]) => Promise<TauRpcResult<null, ApiError>>,
+		write_server_config_file: (serverId: string, path: string, content: string) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"servers.map": {
+		get_map_dimensions: (serverId: string) => Promise<TauRpcResult<MapDimension[], ApiError>>,
+		/**  A region tile as a PNG data URL (None if the region doesn't exist). */
+		get_map_tile: (serverId: string, dimension: string, x: number, z: number) => Promise<TauRpcResult<string | null, ApiError>>,
+	},
+	"servers.metrics": {
+		/**  This device's LAN IP, for inviting players on the same network. */
+		get_lan_address: () => Promise<TauRpcResult<string | null, ApiError>>,
+		/**  CPU/RAM/TPS samples of the last two minutes. */
+		get_server_stats: (serverId: string) => Promise<TauRpcResult<ServerStats[], ApiError>>,
+		/**  Disk space used by the server folder, by category, and space left on the device. */
+		get_server_storage: (serverId: string) => Promise<TauRpcResult<ServerStorage, ApiError>>,
+	},
+	"servers.packs": {
+		delete_bedrock_pack: (serverId: string, folderName: string, packType: string) => Promise<TauRpcResult<null, ApiError>>,
+		install_bedrock_pack: (serverId: string, downloadUrl: string, filename: string) => Promise<TauRpcResult<string, ApiError>>,
+		list_bedrock_packs: (serverId: string) => Promise<TauRpcResult<BedrockPackInfo[], ApiError>>,
+		open_bedrock_server_subfolder: (serverId: string, subfolder: string) => Promise<TauRpcResult<null, ApiError>>,
+		set_bedrock_pack_enabled: (serverId: string, packId: string, packType: string, enabled: boolean) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"servers.players": {
+		/**  Everyone with a save file, newest first. */
+		get_known_players: (serverId: string) => Promise<TauRpcResult<KnownPlayer[], ApiError>>,
+		/**  Live details of all online players (console queries; server must be running). */
+		get_online_players: (serverId: string) => Promise<TauRpcResult<PlayerDetails[], ApiError>>,
+		/**  Live data for online players, last saved state otherwise. */
+		get_player_details: (serverId: string, name: string) => Promise<TauRpcResult<PlayerDetails, ApiError>>,
+		get_server_online_players: (serverId: string) => Promise<TauRpcResult<string[], ApiError>>,
+	},
+	"servers.plugins": {
+		check_server_plugin_updates: (serverId: string) => Promise<TauRpcResult<PluginUpdate[], ApiError>>,
+		/**  Project description as Markdown. */
+		get_server_plugin_page: (source: PluginSource, projectId: string) => Promise<TauRpcResult<string, ApiError>>,
+		get_server_plugin_versions: (serverId: string, source: PluginSource, projectId: string, compatibleOnly: boolean) => Promise<TauRpcResult<PluginVersion[], ApiError>>,
+		/**  Installs a plugin together with its required dependencies. */
+		install_server_plugin: (serverId: string, source: PluginSource, projectId: string, versionId: string | null) => Promise<TauRpcResult<InstallReport, ApiError>>,
+		list_server_plugins: (serverId: string) => Promise<TauRpcResult<InstalledPlugin[], ApiError>>,
+		remove_server_plugin: (serverId: string, fileName: string) => Promise<TauRpcResult<null, ApiError>>,
+		/**  Search plugins or server-side mods for this server. */
+		search_server_plugins: (serverId: string, source: PluginSource, query: string, sort: string, compatibleOnly: boolean, page: number) => Promise<TauRpcResult<PluginSearchResult, ApiError>>,
+		set_server_plugin_enabled: (serverId: string, fileName: string, enabled: boolean) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"servers.transfer": {
+		/**  Copies a server, optionally switching the copy to another version. */
+		duplicate_server: (serverId: string, name: string, gameVersion: string | null, buildNumber: string | null) => Promise<TauRpcResult<ServerConfig, ApiError>>,
+		/**  Zips the server; saved to `dest`, or to the app cache when None. */
+		export_server: (serverId: string, mode: ExportMode, dest: string | null) => Promise<TauRpcResult<string, ApiError>>,
+		/**  Creates a new server from an uploaded archive. */
+		import_server: (uploadId: string) => Promise<TauRpcResult<ImportedServer, ApiError>>,
+		/**  Appends a base64 chunk of an archive being imported. */
+		import_upload_chunk: (uploadId: string, dataBase64: string, first: boolean) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"servers.tunnel": {
+		get_playit_status: () => Promise<TauRpcResult<PlayitTunnelStatus, ApiError>>,
+		start_playit_tunnel: (secretKey: string | null) => Promise<TauRpcResult<PlayitTunnelStatus, ApiError>>,
+		stop_playit_tunnel: () => Promise<TauRpcResult<null, ApiError>>,
+	},
+	"servers.version_change": {
+		/**  Carries out a reviewed plan, all or nothing, keeping a backup for undo. */
+		apply_server_version_change: (plan: VersionPlan, backupWorlds: boolean) => Promise<TauRpcResult<ServerConfig, ApiError>>,
+		/**  Works out what moving a server to another Minecraft version means. */
+		check_server_version_change: (serverId: string, gameVersion: string, core: ServerCoreType) => Promise<TauRpcResult<VersionPlan, ApiError>>,
+		/**  Deletes the backup of the server's last version change. */
+		discard_server_version_backup: (serverId: string) => Promise<TauRpcResult<null, ApiError>>,
+		/**  The last version change of a server, if it can be undone. */
+		get_server_version_backup: (serverId: string) => Promise<TauRpcResult<{
+	fromGameVersion: string,
+	fromLoader: string,
+	toGameVersion: string,
+	toLoader: string,
+	createdAt: number,
+	worldsBackedUp: boolean,
+	bytes: number,
+} | null, ApiError>>,
+		/**  Gets the current version change transaction status, exposing incomplete and rollback-failed states. */
+		get_server_version_transaction_status: (serverId: string) => Promise<TauRpcResult<VersionTransactionStatus, ApiError>>,
+		/**  Recovers a server from an interrupted or rollback-failed version change transaction. */
+		recover_server_version_change: (serverId: string) => Promise<TauRpcResult<ServerConfig, ApiError>>,
+		/**  Restores the server exactly as it was before its last version change. */
+		undo_server_version_change: (serverId: string) => Promise<TauRpcResult<ServerConfig, ApiError>>,
+	},
 	settings: {
-		get_launcher_behavior: () => Promise<string>,
-		get_memory_settings: () => Promise<MemorySettings>,
-		get_sync_settings: () => Promise<SyncSettings>,
-		get_system_memory: () => Promise<SystemMemoryInfo>,
-		get_window_settings: () => Promise<WindowSettings>,
-		set_launcher_behavior: (behavior: string) => Promise<string>,
-		set_memory_settings: (minRamMb: number, maxRamMb: number) => Promise<MemorySettings>,
-		set_sync_settings: (settings: SyncSettings) => Promise<SyncSettings>,
-		set_window_settings: (settings: WindowSettings) => Promise<WindowSettings>,
+		get_launcher_behavior: () => Promise<TauRpcResult<string, ApiError>>,
+		get_memory_settings: () => Promise<TauRpcResult<MemorySettings, ApiError>>,
+		get_sync_settings: () => Promise<TauRpcResult<SyncSettings, ApiError>>,
+		get_system_memory: () => Promise<TauRpcResult<SystemMemoryInfo, ApiError>>,
+		get_window_settings: () => Promise<TauRpcResult<WindowSettings, ApiError>>,
+		set_launcher_behavior: (behavior: string) => Promise<TauRpcResult<string, ApiError>>,
+		set_memory_settings: (minRamMb: number, maxRamMb: number) => Promise<TauRpcResult<MemorySettings, ApiError>>,
+		set_sync_settings: (settings: SyncSettings) => Promise<TauRpcResult<SyncSettings, ApiError>>,
+		set_window_settings: (settings: WindowSettings) => Promise<TauRpcResult<WindowSettings, ApiError>>,
 	},
 	skins: {
-		apply_ely_skin: (accountId: string, skinId: number, password: string | null) => Promise<null>,
-		apply_microsoft_skin: (accountId: string, skinUrl: string, isSlim: boolean) => Promise<null>,
-		get_ely_skins: (page: number, query: string | null, sort: string | null, model: string | null, uploader: string | null) => Promise<ElySkinsCatalogResponse>,
-		get_skin_data_url: (skinUrl: string) => Promise<string>,
-		has_ely_web_credentials: (accountId: string) => Promise<boolean>,
-		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<string>,
-		upload_ely_skin: (accountId: string, imageBase64: string, password: string | null) => Promise<null>,
-		upload_microsoft_skin: (accountId: string, imageBase64: string, isSlim: boolean) => Promise<null>,
+		apply_ely_skin: (accountId: string, skinId: number, password: string | null) => Promise<TauRpcResult<null, ApiError>>,
+		apply_microsoft_skin: (accountId: string, skinUrl: string, isSlim: boolean) => Promise<TauRpcResult<null, ApiError>>,
+		get_ely_skins: (page: number, query: string | null, sort: string | null, model: string | null, uploader: string | null) => Promise<TauRpcResult<ElySkinsCatalogResponse, ApiError>>,
+		get_skin_data_url: (skinUrl: string) => Promise<TauRpcResult<string, ApiError>>,
+		has_ely_web_credentials: (accountId: string) => Promise<TauRpcResult<boolean, ApiError>>,
+		save_skin_to_downloads: (username: string, skinUrl: string) => Promise<TauRpcResult<string, ApiError>>,
+		upload_ely_skin: (accountId: string, imageBase64: string, password: string | null) => Promise<TauRpcResult<null, ApiError>>,
+		upload_microsoft_skin: (accountId: string, imageBase64: string, isSlim: boolean) => Promise<TauRpcResult<null, ApiError>>,
+	},
+	versions: {
+		get_available_game_versions: () => Promise<TauRpcResult<VersionManifestEntry[], ApiError>>,
+		get_available_loader_versions: (gameVersion: string, loader: ModLoaderType) => Promise<TauRpcResult<string[], ApiError>>,
+		get_available_server_core_versions: (core: ServerCoreType) => Promise<TauRpcResult<string[], ApiError>>,
 	},
 };
 export const createTauRPCProxy = () => createProxy<Router>({
   argsMap: ARGS_MAP,
   resultMap: RESULT_MAP,
-  errorHandling: "throw",
+  errorHandling: "result",
 })
 
 // export const createTauRPCProxy = () => createProxy<Router>(ARGS_MAP)

@@ -418,7 +418,9 @@ fn extract_single_pack<R: Read + std::io::Seek>(
             continue;
         }
 
-        let dest = out_dir.join(rel_name);
+        let Some(dest) = crate::app::safe_enclosed_path(&out_dir, rel_name) else {
+            continue;
+        };
         if file.is_dir() {
             let _ = fs::create_dir_all(&dest);
         } else {

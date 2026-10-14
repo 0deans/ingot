@@ -37,6 +37,8 @@ struct Provider {
     fail: Option<ProviderOperation>,
     validity: TokenValidity,
     missing_profile: bool,
+    malformed_ely_profile: Option<crate::account::provider::ProfileInfo>,
+    malformed_minecraft_session: Option<MinecraftSession>,
     gate: Mutex<Option<oneshot::Receiver<()>>>,
     calls: Mutex<Vec<ProviderOperation>>,
     finish_lifetimes: Mutex<Vec<u32>>,
@@ -49,6 +51,8 @@ impl Default for Provider {
             fail: None,
             validity: TokenValidity::Valid,
             missing_profile: false,
+            malformed_ely_profile: None,
+            malformed_minecraft_session: None,
             gate: Mutex::new(None),
             calls: Mutex::new(Vec::new()),
             finish_lifetimes: Mutex::new(Vec::new()),
@@ -119,6 +123,8 @@ impl SessionProvider for Provider {
             let mut response: AuthenticateResponse = serde_json::from_str(AUTH).unwrap();
             if self.missing_profile {
                 response.selected_profile = None;
+            } else if let Some(profile) = &self.malformed_ely_profile {
+                response.selected_profile = Some(profile.clone());
             }
             Ok(response)
         })
@@ -190,6 +196,9 @@ impl SessionProvider for Provider {
             if let Some(gate) = gate {
                 gate.await.unwrap();
             }
+            if let Some(session) = &self.malformed_minecraft_session {
+                return Ok(session.clone());
+            }
             Ok(session())
         })
     }
@@ -243,7 +252,11 @@ impl Context {
             .activate(AccountProfile {
                 id: id.clone(),
                 account_type: kind.to_owned(),
-                username: "Player".to_owned(),
+                username: if kind == "offline" {
+                    "fixture-id".to_owned()
+                } else {
+                    "Player".to_owned()
+                },
                 uuid: "fixture-id".to_owned(),
                 skin_url: None,
                 is_active: true,
@@ -518,6 +531,54 @@ async fn login_fixture_is_published_and_missing_profile_is_rejected_without_writ
         .read("ely:fixture-id")
         .unwrap()
         .is_none());
+}
+
+#[tokio::test]
+async fn malformed_ely_response_is_rejected_before_publication_without_recovery_or_credential_effects(
+) {
+    let malformed_profiles = vec![
+        crate::account::provider::ProfileInfo {
+            id: "".to_owned(),
+            name: "FixturePlayer".to_owned(),
+        },
+        crate::account::provider::ProfileInfo {
+            id: "   ".to_owned(),
+            name: "FixturePlayer".to_owned(),
+        },
+        crate::account::provider::ProfileInfo {
+            id: "fixture-id".to_owned(),
+            name: "".to_owned(),
+        },
+        crate::account::provider::ProfileInfo {
+            id: "fixture-id".to_owned(),
+            name: "   ".to_owned(),
+        },
+    ];
+
+    for malformed_profile in malformed_profiles {
+        let mut context = Context::new();
+        context.provider.malformed_ely_profile = Some(malformed_profile);
+        let result = context
+            .service()
+            .ely_login("FixturePlayer", "password".to_owned())
+            .await;
+        assert!(matches!(result, Err(SessionError::Validation(_))));
+        assert!(context.repository.load().unwrap().is_empty());
+        assert!(!context.directory.path().join("accounts.recovery").exists());
+        let scope = context.directory.path().join("accounts.json");
+        let scope_id = uuid::Uuid::new_v3(
+            &uuid::Uuid::NAMESPACE_URL,
+            scope.to_string_lossy().as_bytes(),
+        );
+        let recovery_key = format!("ingot:account-recovery:v1:{scope_id}");
+        assert!(context.credentials.read(&recovery_key).unwrap().is_none());
+        assert!(context
+            .credentials
+            .read("ely:fixture-id")
+            .unwrap()
+            .is_none());
+        assert!(context.credentials.read("ely:").unwrap().is_none());
+    }
 }
 
 #[tokio::test]

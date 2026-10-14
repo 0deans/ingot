@@ -188,3 +188,124 @@ async fn a_code_already_expired_on_receipt_is_not_registered() {
     ));
     no_publication(&context);
 }
+
+#[tokio::test]
+async fn malformed_microsoft_response_is_rejected_before_publication_and_preserves_pending_grant() {
+    let malformed_sessions = vec![
+        MinecraftSession {
+            access_token: "rotated-access".to_owned(),
+            refresh_token: "rotated-refresh".to_owned(),
+            expires_at: 9999,
+            uuid: "".to_owned(),
+            username: "UpdatedPlayer".to_owned(),
+            skin_url: None,
+        },
+        MinecraftSession {
+            access_token: "rotated-access".to_owned(),
+            refresh_token: "rotated-refresh".to_owned(),
+            expires_at: 9999,
+            uuid: "   ".to_owned(),
+            username: "UpdatedPlayer".to_owned(),
+            skin_url: None,
+        },
+        MinecraftSession {
+            access_token: "rotated-access".to_owned(),
+            refresh_token: "rotated-refresh".to_owned(),
+            expires_at: 9999,
+            uuid: "fixture-id".to_owned(),
+            username: "".to_owned(),
+            skin_url: None,
+        },
+        MinecraftSession {
+            access_token: "rotated-access".to_owned(),
+            refresh_token: "rotated-refresh".to_owned(),
+            expires_at: 9999,
+            uuid: "fixture-id".to_owned(),
+            username: "   ".to_owned(),
+            skin_url: None,
+        },
+    ];
+
+    for bad_session in malformed_sessions {
+        let mut context = Context::new();
+        context.provider.malformed_minecraft_session = Some(bad_session);
+        let service = context.service();
+        let code = service.microsoft_start().await.unwrap();
+        let result = service.microsoft_finish(&code).await;
+
+        assert!(matches!(result, Err(SessionError::Validation(_))));
+        assert!(context.repository.load().unwrap().is_empty());
+        assert!(!context.directory.path().join("accounts.recovery").exists());
+        let scope = context.directory.path().join("accounts.json");
+        let scope_id = uuid::Uuid::new_v3(
+            &uuid::Uuid::NAMESPACE_URL,
+            scope.to_string_lossy().as_bytes(),
+        );
+        let recovery_key = format!("ingot:account-recovery:v1:{scope_id}");
+        assert!(context.credentials.read(&recovery_key).unwrap().is_none());
+        assert!(context.credentials.read("microsoft:").unwrap().is_none());
+        assert!(context
+            .credentials
+            .read("microsoft:fixture-id")
+            .unwrap()
+            .is_none());
+
+        let pending = context.service().pending_microsoft_login().unwrap();
+        assert!(pending.is_some());
+        let pending = pending.unwrap();
+        assert_eq!(
+            pending.status,
+            crate::account::pending_login::PendingLoginStatus::Ready
+        );
+        let grant_key = format!("ingot:microsoft-pending:v1:{scope_id}");
+        let raw = context.credentials.read(&grant_key).unwrap().unwrap();
+        assert!(raw.contains("rotated-refresh"));
+        assert!(raw.contains(&code.user_code));
+    }
+}
+
+#[tokio::test]
+async fn malformed_microsoft_response_on_resume_is_rejected_and_preserves_rotated_grant() {
+    let mut context = Context::new();
+    let code = context.service().microsoft_start().await.unwrap();
+    context.provider.malformed_minecraft_session = Some(MinecraftSession {
+        access_token: "rotated-access".to_owned(),
+        refresh_token: "rotated-refresh".to_owned(),
+        expires_at: 9999,
+        uuid: "".to_owned(),
+        username: "UpdatedPlayer".to_owned(),
+        skin_url: None,
+    });
+    let result = context.service().microsoft_finish(&code).await;
+    assert!(matches!(result, Err(SessionError::Validation(_))));
+
+    let pending = context
+        .service()
+        .pending_microsoft_login()
+        .unwrap()
+        .unwrap();
+    let ticket = pending.ticket.clone();
+
+    let resume_result = context.service().resume_microsoft_login(&ticket).await;
+    assert!(matches!(resume_result, Err(SessionError::Validation(_))));
+
+    assert!(context.repository.load().unwrap().is_empty());
+    assert!(!context.directory.path().join("accounts.recovery").exists());
+    let scope = context.directory.path().join("accounts.json");
+    let scope_id = uuid::Uuid::new_v3(
+        &uuid::Uuid::NAMESPACE_URL,
+        scope.to_string_lossy().as_bytes(),
+    );
+    let recovery_key = format!("ingot:account-recovery:v1:{scope_id}");
+    assert!(context.credentials.read(&recovery_key).unwrap().is_none());
+
+    let pending_after = context
+        .service()
+        .pending_microsoft_login()
+        .unwrap()
+        .unwrap();
+    assert_eq!(pending_after.ticket, ticket);
+    let grant_key = format!("ingot:microsoft-pending:v1:{scope_id}");
+    let raw = context.credentials.read(&grant_key).unwrap().unwrap();
+    assert!(raw.contains("rotated-refresh"));
+}

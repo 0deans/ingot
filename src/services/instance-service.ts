@@ -11,7 +11,7 @@ import type {
 	RunningInstanceSummary,
 	VersionManifestEntry,
 } from "@/bindings"
-import { rpc } from "@/lib/rpc"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 
 interface InstanceState {
 	instances: InstanceConfig[]
@@ -19,11 +19,13 @@ interface InstanceState {
 	progress: Map<string, LaunchProgressEvent>
 }
 
-const useInstanceStore = create<InstanceState>(() => ({
-	instances: [],
-	running: new Map(),
-	progress: new Map(),
-}))
+const useInstanceStore = create<InstanceState>(() => {
+	return {
+		instances: [],
+		running: new Map(),
+		progress: new Map(),
+	}
+})
 
 // Maps are replaced (never mutated) so selectors see a new reference on every change.
 function setRunning(update: (running: Map<string, RunningInstanceSummary>) => void) {
@@ -45,8 +47,14 @@ async function initListeners() {
 	isInitialized = true
 
 	try {
-		const running = await rpc.get_running_instances()
-		useInstanceStore.setState({ running: new Map(running.map((r) => [r.instanceId, r])) })
+		const running = await unwrapRpc(rpc.instances.get_running_instances())
+		useInstanceStore.setState({
+			running: new Map(
+				running.map((r) => {
+					return [r.instanceId, r]
+				}),
+			),
+		})
 	} catch (e) {
 		console.error("Failed to load initial running instances:", e)
 	}
@@ -65,7 +73,9 @@ async function initListeners() {
 					running.delete(event.instanceId)
 				}
 			})
-			setProgress((progress) => progress.delete(event.instanceId))
+			setProgress((progress) => {
+				progress.delete(event.instanceId)
+			})
 			instanceService.refreshInstances()
 		})
 	} catch (e) {
@@ -75,7 +85,9 @@ async function initListeners() {
 	try {
 		await rpc.events.on_launch_progress.on((event: LaunchProgressEvent) => {
 			if (!event?.instanceId) return
-			setProgress((progress) => progress.set(event.instanceId, event))
+			setProgress((progress) => {
+				progress.set(event.instanceId, event)
+			})
 		})
 	} catch (e) {
 		console.error("Failed to setup on_launch_progress listener:", e)
@@ -95,7 +107,7 @@ export const instanceService = {
 		refreshInstancesPromise = (async () => {
 			try {
 				await initListeners()
-				const instances = await rpc.get_instances()
+				const instances = await unwrapRpc(rpc.instances.get_instances())
 				useInstanceStore.setState({ instances })
 				return instances
 			} catch (e) {
@@ -115,7 +127,9 @@ export const instanceService = {
 		loader: ModLoaderType,
 		loaderVersion: string | null = null,
 	): Promise<InstanceConfig> {
-		const created = await rpc.create_instance(name, gameVersion, loader, loaderVersion)
+		const created = await unwrapRpc(
+			rpc.instances.create_instance(name, gameVersion, loader, loaderVersion),
+		)
 		await this.refreshInstances()
 		return created
 	},
@@ -125,33 +139,37 @@ export const instanceService = {
 		name: string,
 		includeWorlds: boolean,
 	): Promise<InstanceConfig> {
-		const copy = await rpc.duplicate_instance(instanceId, name, includeWorlds)
+		const copy = await unwrapRpc(rpc.instances.duplicate_instance(instanceId, name, includeWorlds))
 		await this.refreshInstances()
 		return copy
 	},
 
 	async deleteInstance(instanceId: string): Promise<void> {
-		useInstanceStore.setState((state) => ({
-			instances: state.instances.filter((i) => i.id !== instanceId),
-		}))
+		useInstanceStore.setState((state) => {
+			return {
+				instances: state.instances.filter((i) => {
+					return i.id !== instanceId
+				}),
+			}
+		})
 		try {
-			await rpc.delete_instance(instanceId)
+			await unwrapRpc(rpc.instances.delete_instance(instanceId))
 		} finally {
 			await this.refreshInstances()
 		}
 	},
 
 	async updateInstance(instance: InstanceConfig): Promise<void> {
-		await rpc.update_instance(instance)
+		await unwrapRpc(rpc.instances.update_instance(instance))
 		await this.refreshInstances()
 	},
 
 	async openInstanceFolder(instanceId: string): Promise<void> {
-		await rpc.open_instance_folder(instanceId)
+		await unwrapRpc(rpc.instances.open_instance_folder(instanceId))
 	},
 
 	async launchInstance(instanceId: string, quickPlay?: QuickPlayOptions | null): Promise<number> {
-		setProgress((progress) =>
+		setProgress((progress) => {
 			progress.set(instanceId, {
 				instanceId,
 				phase: "Preparing launch",
@@ -163,57 +181,73 @@ export const instanceService = {
 					: quickPlay?.world
 						? i18n.t("backend.launch.loadingWorld", { world: quickPlay.world })
 						: i18n.t("backend.launch.initializing"),
-			}),
-		)
+			})
+		})
 		try {
-			const pid = await rpc.launch_instance(instanceId, quickPlay || null)
+			const pid = await unwrapRpc(rpc.instances.launch_instance(instanceId, quickPlay || null))
 			return pid
 		} catch (e) {
-			setProgress((progress) => progress.delete(instanceId))
+			setProgress((progress) => {
+				progress.delete(instanceId)
+			})
 			throw e
 		}
 	},
 
 	async getInstanceWorlds(instanceId: string): Promise<InstanceWorldSummary[]> {
-		return rpc.get_instance_worlds(instanceId)
+		return unwrapRpc(rpc.instances.get_instance_worlds(instanceId))
 	},
 
 	async killInstance(instanceId: string): Promise<void> {
-		await rpc.kill_instance(instanceId)
-		setRunning((running) => running.delete(instanceId))
-		setProgress((progress) => progress.delete(instanceId))
+		await unwrapRpc(rpc.instances.kill_instance(instanceId))
+		setRunning((running) => {
+			running.delete(instanceId)
+		})
+		setProgress((progress) => {
+			progress.delete(instanceId)
+		})
 	},
 
 	async getAvailableGameVersions(): Promise<VersionManifestEntry[]> {
-		return rpc.get_available_game_versions()
+		return unwrapRpc(rpc.versions.get_available_game_versions())
 	},
 
 	async getAvailableLoaderVersions(gameVersion: string, loader: ModLoaderType): Promise<string[]> {
-		return rpc.get_available_loader_versions(gameVersion, loader)
+		return unwrapRpc(rpc.versions.get_available_loader_versions(gameVersion, loader))
 	},
 }
 
 export function useInstances() {
-	const instances = useInstanceStore((s) => s.instances)
+	const instances = useInstanceStore((s) => {
+		return s.instances
+	})
 	const [isLoading, setIsLoading] = useState(instances.length === 0)
 
 	useEffect(() => {
-		instanceService.refreshInstances().finally(() => setIsLoading(false))
+		instanceService.refreshInstances().finally(() => {
+			setIsLoading(false)
+		})
 	}, [])
 
 	return {
 		instances,
 		isLoading,
-		refresh: () => instanceService.refreshInstances(),
+		refresh: () => {
+			return instanceService.refreshInstances()
+		},
 	}
 }
 
 export function useCachedInstances(): InstanceConfig[] {
-	return useInstanceStore((s) => s.instances)
+	return useInstanceStore((s) => {
+		return s.instances
+	})
 }
 
 export function useRunningInstances() {
-	const running = useInstanceStore((s) => s.running)
+	const running = useInstanceStore((s) => {
+		return s.running
+	})
 
 	useEffect(() => {
 		initListeners()
@@ -222,17 +256,25 @@ export function useRunningInstances() {
 	return {
 		runningMap: running,
 		runningList: Array.from(running.values()),
-		isRunning: (instanceId: string) => running.has(instanceId),
-		getRunningInfo: (instanceId: string) => running.get(instanceId),
+		isRunning: (instanceId: string) => {
+			return running.has(instanceId)
+		},
+		getRunningInfo: (instanceId: string) => {
+			return running.get(instanceId)
+		},
 	}
 }
 
 export function useAllInstancesProgress(): Map<string, LaunchProgressEvent> {
-	return useInstanceStore((s) => s.progress)
+	return useInstanceStore((s) => {
+		return s.progress
+	})
 }
 
 export function useInstanceProgress(instanceId: string | undefined) {
-	return useInstanceStore((s) => (instanceId ? s.progress.get(instanceId) : undefined))
+	return useInstanceStore((s) => {
+		return instanceId ? s.progress.get(instanceId) : undefined
+	})
 }
 
 export function getRequiredJavaVersion(gameVersion: string): number {

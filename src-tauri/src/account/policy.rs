@@ -1,10 +1,12 @@
 //! Profile list decisions. Storage and credential effects belong to application adapters.
 use super::AccountProfile;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub(crate) enum AccountPolicyError {
     #[error("Account not found")]
     NotFound,
+    #[error("Duplicate account ID in reorder list: {0}")]
+    DuplicateReorderId(String),
 }
 
 pub(crate) fn microsoft_token_is_fresh(expires_at: Option<u64>, now_seconds: u64) -> bool {
@@ -39,8 +41,17 @@ pub(crate) fn remove(
     Ok(removed)
 }
 
-pub(crate) fn reorder(accounts: &[AccountProfile], ids: &[String]) -> Vec<AccountProfile> {
-    let mut reordered = Vec::new();
+pub(crate) fn reorder(
+    accounts: &[AccountProfile],
+    ids: &[String],
+) -> Result<Vec<AccountProfile>, AccountPolicyError> {
+    let mut seen = std::collections::HashSet::with_capacity(ids.len());
+    for id in ids {
+        if !seen.insert(id) {
+            return Err(AccountPolicyError::DuplicateReorderId(id.clone()));
+        }
+    }
+    let mut reordered = Vec::with_capacity(accounts.len());
     for id in ids {
         if let Some(account) = accounts.iter().find(|account| &account.id == id) {
             reordered.push(account.clone());
@@ -54,7 +65,7 @@ pub(crate) fn reorder(accounts: &[AccountProfile], ids: &[String]) -> Vec<Accoun
             reordered.push(account.clone());
         }
     }
-    reordered
+    Ok(reordered)
 }
 
 #[cfg(test)]

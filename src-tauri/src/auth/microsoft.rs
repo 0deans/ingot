@@ -13,7 +13,10 @@ pub(crate) use client::MicrosoftSession;
 pub(crate) use error::MicrosoftError;
 pub(crate) use grant::MicrosoftGrant;
 pub use models::{MicrosoftDeviceCode, MinecraftSession};
-pub use skins::{set_skin_from_url, upload_skin};
+pub use skins::{
+    set_skin_from_url, upload_skin, MicrosoftSkinClient, MicrosoftSkinError,
+    DEFAULT_MINECRAFT_SERVICES_BASE,
+};
 
 #[cfg(test)]
 mod tests;

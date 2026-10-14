@@ -535,7 +535,9 @@
 		"tryAgain_server_other": "Relancez le serveur pour essayer sans eux. Annuler les réactivera.",
 		"tryAgain_game_one": "Relancez le jeu pour essayer sans lui. Annuler le réactivera.",
 		"tryAgain_game_many": "Relancez le jeu pour essayer sans eux. Annuler les réactivera.",
-		"tryAgain_game_other": "Relancez le jeu pour essayer sans eux. Annuler les réactivera."
+		"tryAgain_game_other": "Relancez le jeu pour essayer sans eux. Annuler les réactivera.",
+		"recover": "Récupérer le changement interrompu",
+		"recovered": "De retour en {{version}}, exactement comme avant."
 	},
 	"skinPreview": {
 		"saving": "Enregistrement...",
@@ -1178,7 +1180,9 @@
 		"importing": "Importation {{percent}}",
 		"settingUp": "Installation du serveur...",
 		"partial": "« {{name}} » importé, mais certains plugins ou mods n'ont pas pu être téléchargés :",
-		"openServer": "Ouvrir le serveur"
+		"openServer": "Ouvrir le serveur",
+		"recover": "Récupérer",
+		"recoveryRequired": "Changement de version incomplet ou échoué détecté"
 	},
 	"serverCores": {
 		"paper": {
@@ -1416,7 +1420,8 @@
 		"syncPacks": "Synchroniser les packs de ressources (resourcepacks/)",
 		"syncHistory": "Synchroniser l'historique des commandes (command_history.txt)",
 		"syncHotbars": "Synchroniser les barres créatives (hotbar.nbt)",
-		"inheritSync": "Hérite des préférences de synchronisation globales. Synchronise avant le lancement et après la fermeture."
+		"inheritSync": "Hérite des préférences de synchronisation globales. Synchronise avant le lancement et après la fermeture.",
+		"recoveryRequired": "Changement de version incomplet ou échoué détecté"
 	},
 	"install": {
 		"loadFailed": "Impossible de charger les options d'installation",

@@ -9,13 +9,16 @@ import type {
 	ServerPingResponse,
 	ServerProperties,
 	ServerStatusEvent,
+	WhitelistEntry,
 } from "@/bindings"
-import { rpc } from "@/lib/rpc"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 
 const useServerStore = create<{
 	servers: ServerConfig[]
 	running: Map<string, RunningServerSummary>
-}>(() => ({ servers: [], running: new Map() }))
+}>(() => {
+	return { servers: [], running: new Map() }
+})
 
 const logSubscribers = new Map<string, Set<(event: ServerLogEvent) => void>>()
 
@@ -26,8 +29,14 @@ async function initListeners() {
 	isInitialized = true
 
 	try {
-		const running = await rpc.get_running_servers()
-		useServerStore.setState({ running: new Map(running.map((r) => [r.serverId, r])) })
+		const running = await unwrapRpc(rpc.servers.get_running_servers())
+		useServerStore.setState({
+			running: new Map(
+				running.map((r) => {
+					return [r.serverId, r]
+				}),
+			),
+		})
 	} catch (e) {
 		console.error("Failed to load initial running servers:", e)
 	}
@@ -103,7 +112,7 @@ export const serverService = {
 		refreshServersPromise = (async () => {
 			try {
 				await initListeners()
-				const servers = await rpc.get_servers()
+				const servers = await unwrapRpc(rpc.servers.get_servers())
 				useServerStore.setState({ servers })
 				return servers
 			} catch (e) {
@@ -126,107 +135,109 @@ export const serverService = {
 		memoryMinMb: number | null = null,
 		memoryMaxMb: number | null = null,
 	): Promise<ServerConfig> {
-		const created = await rpc.create_server(
-			name,
-			core,
-			gameVersion,
-			buildNumber,
-			port,
-			memoryMinMb,
-			memoryMaxMb,
+		const created = await unwrapRpc(
+			rpc.servers.create_server(
+				name,
+				core,
+				gameVersion,
+				buildNumber,
+				port,
+				memoryMinMb,
+				memoryMaxMb,
+			),
 		)
 		await this.refreshServers()
 		return created
 	},
 
 	async deleteServer(serverId: string, deleteFiles = true): Promise<void> {
-		await rpc.delete_server(serverId, deleteFiles)
+		await unwrapRpc(rpc.servers.delete_server(serverId, deleteFiles))
 		await this.refreshServers()
 	},
 
 	async updateServer(server: ServerConfig): Promise<void> {
-		await rpc.update_server(server)
+		await unwrapRpc(rpc.servers.update_server(server))
 		await this.refreshServers()
 	},
 
 	async getServerProperties(serverId: string): Promise<ServerProperties> {
-		return rpc.get_server_properties(serverId)
+		return unwrapRpc(rpc.servers.config.get_server_properties(serverId))
 	},
 
 	async setServerProperties(serverId: string, properties: ServerProperties): Promise<void> {
-		await rpc.set_server_properties(serverId, properties)
+		await unwrapRpc(rpc.servers.config.set_server_properties(serverId, properties))
 	},
 
 	async openServerFolder(serverId: string): Promise<void> {
-		await rpc.open_server_folder(serverId)
+		await unwrapRpc(rpc.servers.open_server_folder(serverId))
 	},
 
 	async startServer(serverId: string): Promise<number> {
-		return rpc.start_server(serverId)
+		return unwrapRpc(rpc.servers.start_server(serverId))
 	},
 
 	async putServerToSleep(serverId: string): Promise<void> {
-		await rpc.put_server_to_sleep(serverId)
+		await unwrapRpc(rpc.servers.put_server_to_sleep(serverId))
 	},
 
 	async stopServer(serverId: string): Promise<void> {
-		await rpc.stop_server(serverId)
+		await unwrapRpc(rpc.servers.stop_server(serverId))
 	},
 
 	async startPlayitTunnel(secretKey?: string | null): Promise<PlayitTunnelStatus> {
-		return rpc.start_playit_tunnel(secretKey ?? null)
+		return unwrapRpc(rpc.servers.tunnel.start_playit_tunnel(secretKey ?? null))
 	},
 
 	async stopPlayitTunnel(): Promise<void> {
-		await rpc.stop_playit_tunnel()
+		await unwrapRpc(rpc.servers.tunnel.stop_playit_tunnel())
 	},
 
 	async getPlayitStatus(): Promise<PlayitTunnelStatus> {
-		return rpc.get_playit_status()
+		return unwrapRpc(rpc.servers.tunnel.get_playit_status())
 	},
 
 	async killServer(serverId: string): Promise<void> {
-		await rpc.kill_server(serverId)
+		await unwrapRpc(rpc.servers.kill_server(serverId))
 	},
 
 	async sendCommand(serverId: string, command: string): Promise<void> {
-		await rpc.send_server_command(serverId, command)
+		await unwrapRpc(rpc.servers.send_server_command(serverId, command))
 	},
 
 	async getServerLogs(serverId: string): Promise<string[]> {
-		return rpc.get_server_logs(serverId)
+		return unwrapRpc(rpc.servers.get_server_logs(serverId))
 	},
 
 	async getAvailableServerCoreVersions(core: ServerCoreType): Promise<string[]> {
-		return rpc.get_available_server_core_versions(core)
+		return unwrapRpc(rpc.versions.get_available_server_core_versions(core))
 	},
 
 	async getServerOnlinePlayers(serverId: string): Promise<string[]> {
-		return rpc.get_server_online_players(serverId)
+		return unwrapRpc(rpc.servers.players.get_server_online_players(serverId))
 	},
 
 	async pingServer(port: number): Promise<ServerPingResponse> {
-		return rpc.ping_server(port)
+		return unwrapRpc(rpc.servers.ping_server(port))
 	},
 
 	async getServerIcon(serverId: string): Promise<string | null> {
-		return rpc.get_server_icon(serverId)
+		return unwrapRpc(rpc.servers.get_server_icon(serverId))
 	},
 
 	async setServerIcon(serverId: string, base64Data: string): Promise<void> {
-		await rpc.set_server_icon(serverId, base64Data)
+		await unwrapRpc(rpc.servers.set_server_icon(serverId, base64Data))
 	},
 
-	async getServerWhitelist(serverId: string) {
-		return rpc.get_server_whitelist(serverId)
+	async getServerWhitelist(serverId: string): Promise<WhitelistEntry[]> {
+		return unwrapRpc(rpc.servers.config.get_server_whitelist(serverId))
 	},
 
 	async addToServerWhitelist(serverId: string, username: string): Promise<void> {
-		await rpc.add_to_server_whitelist(serverId, username)
+		await unwrapRpc(rpc.servers.config.add_to_server_whitelist(serverId, username))
 	},
 
 	async removeFromServerWhitelist(serverId: string, username: string): Promise<void> {
-		await rpc.remove_from_server_whitelist(serverId, username)
+		await unwrapRpc(rpc.servers.config.remove_from_server_whitelist(serverId, username))
 	},
 
 	/**
@@ -235,15 +246,18 @@ export const serverService = {
 	 * Mirrors check_port in the backend.
 	 */
 	isPortInUse(port: number, excludeServerId?: string): boolean {
-		const internalPort = (p: number) => (p <= 55535 ? p + 10000 : p - 10000)
+		const internalPort = (p: number) => {
+			return p <= 55535 ? p + 10000 : p - 10000
+		}
 		const wanted = [port, internalPort(port)]
-		return useServerStore
-			.getState()
-			.servers.some(
-				(s) =>
-					s.id !== excludeServerId &&
-					[s.port, internalPort(s.port)].some((p) => wanted.includes(p)),
+		return useServerStore.getState().servers.some((s) => {
+			return (
+				s.id !== excludeServerId &&
+				[s.port, internalPort(s.port)].some((p) => {
+					return wanted.includes(p)
+				})
 			)
+		})
 	},
 
 	getNextAvailablePort(startPort = 25565): number {
@@ -256,22 +270,30 @@ export const serverService = {
 }
 
 export function useServers() {
-	const servers = useServerStore((s) => s.servers)
+	const servers = useServerStore((s) => {
+		return s.servers
+	})
 	const [isLoading, setIsLoading] = useState(servers.length === 0)
 
 	useEffect(() => {
-		serverService.refreshServers().finally(() => setIsLoading(false))
+		serverService.refreshServers().finally(() => {
+			setIsLoading(false)
+		})
 	}, [])
 
 	return {
 		servers,
 		isLoading,
-		refresh: () => serverService.refreshServers(),
+		refresh: () => {
+			return serverService.refreshServers()
+		},
 	}
 }
 
 export function useRunningServers() {
-	const runningMap = useServerStore((s) => s.running)
+	const runningMap = useServerStore((s) => {
+		return s.running
+	})
 
 	useEffect(() => {
 		initListeners()
@@ -311,7 +333,9 @@ export function useServerLogs(serverId: string | null) {
 
 		const listener = (event: ServerLogEvent) => {
 			if (event.serverId === serverId) {
-				setLogs((prev) => [...prev, event.line])
+				setLogs((prev) => {
+					return [...prev, event.line]
+				})
 			}
 		}
 

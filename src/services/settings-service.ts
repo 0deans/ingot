@@ -9,9 +9,13 @@ import type {
 	SystemMemoryInfo,
 	WindowSettings,
 } from "@/bindings"
-import { rpc } from "@/lib/rpc"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 
 export type LauncherBehavior = "keepOpen" | "hideToTray" | "close"
+
+const isLauncherBehavior = (v: string): v is LauncherBehavior => {
+	return v === "keepOpen" || v === "hideToTray" || v === "close"
+}
 
 interface SettingsState {
 	memory: MemorySettings
@@ -60,7 +64,8 @@ export const settingsService = {
 		if (launcherBehaviorPromise) return launcherBehaviorPromise
 		launcherBehaviorPromise = (async () => {
 			try {
-				const b = (await rpc.settings.get_launcher_behavior()) as LauncherBehavior
+				const raw = await unwrapRpc(rpc.settings.get_launcher_behavior())
+				const b: LauncherBehavior = isLauncherBehavior(raw) ? raw : "keepOpen"
 				set({ behavior: b })
 				return b
 			} catch (error) {
@@ -75,7 +80,8 @@ export const settingsService = {
 
 	async setLauncherBehavior(behavior: LauncherBehavior): Promise<LauncherBehavior> {
 		try {
-			const b = (await rpc.settings.set_launcher_behavior(behavior)) as LauncherBehavior
+			const raw = await unwrapRpc(rpc.settings.set_launcher_behavior(behavior))
+			const b: LauncherBehavior = isLauncherBehavior(raw) ? raw : "keepOpen"
 			set({ behavior: b })
 			return b
 		} catch (error) {
@@ -88,7 +94,7 @@ export const settingsService = {
 		if (systemMemoryPromise) return systemMemoryPromise
 		systemMemoryPromise = (async () => {
 			try {
-				const info = await rpc.settings.get_system_memory()
+				const info = await unwrapRpc(rpc.settings.get_system_memory())
 				set({ systemMemory: info })
 				return info
 			} catch (error) {
@@ -114,7 +120,7 @@ export const settingsService = {
 		if (memorySettingsPromise) return memorySettingsPromise
 		memorySettingsPromise = (async () => {
 			try {
-				const mem = await rpc.settings.get_memory_settings()
+				const mem = await unwrapRpc(rpc.settings.get_memory_settings())
 				set({ memory: mem })
 				return mem
 			} catch (error) {
@@ -129,7 +135,7 @@ export const settingsService = {
 
 	async setMemorySettings(minRamMb: number, maxRamMb: number): Promise<MemorySettings> {
 		try {
-			const mem = await rpc.settings.set_memory_settings(minRamMb, maxRamMb)
+			const mem = await unwrapRpc(rpc.settings.set_memory_settings(minRamMb, maxRamMb))
 			set({ memory: mem })
 			return mem
 		} catch (error) {
@@ -142,7 +148,7 @@ export const settingsService = {
 		if (windowSettingsPromise) return windowSettingsPromise
 		windowSettingsPromise = (async () => {
 			try {
-				const ws = await rpc.settings.get_window_settings()
+				const ws = await unwrapRpc(rpc.settings.get_window_settings())
 				set({ windowSettings: ws })
 				return ws
 			} catch (error) {
@@ -157,7 +163,7 @@ export const settingsService = {
 
 	async setWindowSettings(settings: WindowSettings): Promise<WindowSettings> {
 		try {
-			const ws = await rpc.settings.set_window_settings(settings)
+			const ws = await unwrapRpc(rpc.settings.set_window_settings(settings))
 			set({ windowSettings: ws })
 			return ws
 		} catch (error) {
@@ -170,7 +176,7 @@ export const settingsService = {
 		if (syncSettingsPromise) return syncSettingsPromise
 		syncSettingsPromise = (async () => {
 			try {
-				const ss = await rpc.settings.get_sync_settings()
+				const ss = await unwrapRpc(rpc.settings.get_sync_settings())
 				set({ syncSettings: ss })
 				return ss
 			} catch (error) {
@@ -185,7 +191,7 @@ export const settingsService = {
 
 	async setSyncSettings(settings: SyncSettings): Promise<SyncSettings> {
 		try {
-			const ss = await rpc.settings.set_sync_settings(settings)
+			const ss = await unwrapRpc(rpc.settings.set_sync_settings(settings))
 			set({ syncSettings: ss })
 			return ss
 		} catch (error) {
@@ -196,7 +202,7 @@ export const settingsService = {
 
 	async pushInstanceSync(instanceId: string): Promise<SyncReport> {
 		try {
-			return await rpc.push_instance_sync(instanceId)
+			return await unwrapRpc(rpc.instances.sync.push_instance_sync(instanceId))
 		} catch (error) {
 			console.error("Failed to push instance sync:", error)
 			throw error
@@ -205,7 +211,9 @@ export const settingsService = {
 
 	async exportInstanceCategory(instanceId: string, category: string): Promise<SyncReport> {
 		try {
-			return await rpc.export_instance_category_to_shared(instanceId, category)
+			return await unwrapRpc(
+				rpc.instances.sync.export_instance_category_to_shared(instanceId, category),
+			)
 		} catch (error) {
 			console.error("Failed to export instance category:", error)
 			throw error
@@ -214,7 +222,7 @@ export const settingsService = {
 
 	async pullInstanceSync(instanceId: string): Promise<SyncReport> {
 		try {
-			return await rpc.pull_instance_sync(instanceId)
+			return await unwrapRpc(rpc.instances.sync.pull_instance_sync(instanceId))
 		} catch (error) {
 			console.error("Failed to pull instance sync:", error)
 			throw error
@@ -223,7 +231,7 @@ export const settingsService = {
 
 	async getSharedSyncStatus(): Promise<SharedSyncStatus> {
 		try {
-			return await rpc.get_shared_sync_status()
+			return await unwrapRpc(rpc.instances.sync.get_shared_sync_status())
 		} catch (error) {
 			console.error("Failed to get shared sync status:", error)
 			throw error
@@ -232,7 +240,7 @@ export const settingsService = {
 
 	async checkSyncConflict(instanceId: string): Promise<SyncConflictInfo | null> {
 		try {
-			return await rpc.check_sync_conflict(instanceId)
+			return await unwrapRpc(rpc.instances.sync.check_sync_conflict(instanceId))
 		} catch (error) {
 			console.error("Failed to check sync conflict:", error)
 			return null
@@ -244,7 +252,7 @@ export const settingsService = {
 		resolution: "use_shared" | "use_instance" | "disable_sync",
 	): Promise<SyncReport> {
 		try {
-			return await rpc.resolve_sync_conflict(instanceId, resolution)
+			return await unwrapRpc(rpc.instances.sync.resolve_sync_conflict(instanceId, resolution))
 		} catch (error) {
 			console.error("Failed to resolve sync conflict:", error)
 			throw error

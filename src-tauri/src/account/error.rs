@@ -1,6 +1,6 @@
 use std::{io, path::PathBuf};
 
-use super::policy::AccountPolicyError;
+use super::{policy::AccountPolicyError, validation::AccountValidationError};
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum AccountError {
@@ -21,6 +21,12 @@ pub(crate) enum AccountError {
     Encode(#[from] serde_json::Error),
     #[error(transparent)]
     Policy(#[from] AccountPolicyError),
+    #[error("Invalid accounts data at {}: {source}", path.display())]
+    Validation {
+        path: PathBuf,
+        #[source]
+        source: AccountValidationError,
+    },
     #[error("Accounts store lock poisoned")]
     LockPoisoned,
 }

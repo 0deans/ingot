@@ -38,6 +38,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatBytes, formatMegabytes } from "@/lib/format"
 import { isMobileEnvironment } from "@/lib/platform"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 import { toServerIcon } from "@/lib/server-icon"
 import { cn } from "@/lib/utils"
 import {
@@ -48,7 +49,7 @@ import {
 	useServerPropertiesAll,
 	useServerStatus,
 } from "@/services/server-data"
-import { rpc, serverService } from "@/services/server-service"
+import { serverService } from "@/services/server-service"
 import { useMemorySettings } from "@/services/settings-service"
 import DeleteServerDialog from "../delete-server-dialog"
 import { MC_COLORS, ServerListPreview } from "../shared/motd"
@@ -658,11 +659,13 @@ function ConfigFileEditor({
 		setStatus("saving")
 		setError(null)
 		try {
-			await rpc.write_server_config_file(serverId, path, text)
+			await unwrapRpc(rpc.servers.config.write_server_config_file(serverId, path, text))
 			queryClient.setQueryData(serverKeys.configFile(serverId, path), text)
 			setText(null)
 			setStatus("saved")
-			setTimeout(() => setStatus("idle"), 1800)
+			setTimeout(() => {
+				setStatus("idle")
+			}, 1800)
 		} catch (e) {
 			setError(String(e))
 			setStatus("idle")

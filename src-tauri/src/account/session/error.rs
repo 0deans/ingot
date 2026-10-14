@@ -25,6 +25,8 @@ pub(crate) enum SessionError {
     Provider(#[from] ProviderError),
     #[error(transparent)]
     Login(#[from] LoginError),
+    #[error(transparent)]
+    Validation(#[from] crate::account::validation::AccountValidationError),
     #[error("Username and password are required")]
     InvalidLogin,
     #[error("No Minecraft profile found for this Ely.by account")]

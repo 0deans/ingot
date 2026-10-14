@@ -43,7 +43,7 @@ async fn corrupt_account_storage_is_rejected_and_cannot_be_overwritten() {
         ),
     ] {
         let error = invoke(&webview, command, arguments).unwrap_err();
-        assert!(error.is_string());
+        assert_eq!(error["kind"], "storageFailure");
         assert_eq!(std::fs::read(&path).unwrap(), corrupt);
     }
 }
@@ -113,15 +113,15 @@ async fn credential_status_route_distinguishes_missing_corrupt_and_unavailable_v
         arguments.clone(),
     )
     .unwrap_err();
-    assert!(error.is_string());
-    assert!(!error
+    assert_eq!(error["kind"], "storageFailure");
+    assert!(!error["message"]
         .as_str()
         .unwrap()
         .contains("corrupt-credential-secret"));
     vault.fail_reads();
     let error = invoke(&webview, "TauRPC__skins.has_ely_web_credentials", arguments).unwrap_err();
-    assert!(error.is_string());
-    assert!(!error.as_str().unwrap().contains("private vault diagnostic"));
+    assert_eq!(error["kind"], "providerUnavailable");
+    assert!(!error["message"].as_str().unwrap().contains("private vault diagnostic"));
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -156,9 +156,10 @@ async fn settings_namespace_dispatches_and_preserves_errors_and_storage() {
         json!({"min_ram_mb":0,"max_ram_mb":4096}),
     )
     .unwrap_err();
-    assert!(
-        error.is_string(),
-        "The transitional wire error must remain a string"
+    assert_eq!(
+        error["kind"],
+        "invalidInput",
+        "The typed API error envelope must represent invalid input"
     );
     assert_eq!(
         std::fs::read(dir.path().join("settings.json")).unwrap(),
@@ -225,9 +226,10 @@ async fn application_shutdown_uses_managed_state_and_existing_root_commands_shar
         crate::server::ServerStatus::Stopped
     );
     assert_eq!(
-        invoke(&webview, "TauRPC__get_running_servers", json!({})).unwrap(),
+        invoke(&webview, "TauRPC__servers.get_running_servers", json!({})).unwrap(),
         json!([])
     );
+    assert!(invoke(&webview, "TauRPC__get_running_servers", json!({})).is_err());
     assert_eq!(
         invoke(&webview, "TauRPC__app.greet", json!({"name":"test"})).unwrap(),
         "Hello, test! You've been greeted from Rust via TauRPC!"
@@ -274,13 +276,13 @@ async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
         "offline"
     );
     let saved = std::fs::read(dir.path().join("accounts.json")).unwrap();
-    assert!(invoke(
+    let error = invoke(
         &webview,
         "TauRPC__accounts.set_active_account",
-        json!({"account_id":"missing"})
+        json!({"account_id":"missing"}),
     )
-    .unwrap_err()
-    .is_string());
+    .unwrap_err();
+    assert_eq!(error["kind"], "notFound");
     assert_eq!(
         std::fs::read(dir.path().join("accounts.json")).unwrap(),
         saved
@@ -304,30 +306,30 @@ async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
         .is_cancelled(attempt));
     vault.fail_reads();
     let attempt = crate::app::state(app.handle()).account_login.current();
-    assert!(invoke(
+    let cancel_error = invoke(
         &webview,
         "TauRPC__accounts.microsoft_login_cancel",
-        json!({})
+        json!({}),
     )
-    .unwrap_err()
-    .is_string());
+    .unwrap_err();
+    assert_eq!(cancel_error["kind"], "providerUnavailable");
     assert!(crate::app::state(app.handle())
         .account_login
         .is_cancelled(attempt));
-    assert!(invoke(
+    let skin_error = invoke(
         &webview,
         "TauRPC__skins.get_skin_data_url",
-        json!({"skin_url":""})
+        json!({"skin_url":""}),
     )
-    .unwrap_err()
-    .is_string());
-    assert!(invoke(
+    .unwrap_err();
+    assert_eq!(skin_error["kind"], "invalidInput");
+    let upload_error = invoke(
         &webview,
         "TauRPC__skins.upload_microsoft_skin",
-        json!({"account_id":"unused", "image_base64":"!invalid!", "is_slim":true})
+        json!({"account_id":"unused", "image_base64":"!invalid!", "is_slim":true}),
     )
-    .unwrap_err()
-    .is_string());
+    .unwrap_err();
+    assert_eq!(upload_error["kind"], "invalidInput");
     assert!(invoke(&webview, "TauRPC__get_accounts", json!({})).is_err());
     assert!(invoke(
         &webview,

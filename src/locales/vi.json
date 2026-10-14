@@ -527,7 +527,9 @@
 		"tryAgain_server_other": "Khởi động lại máy chủ để thử mà không có chúng. Hoàn tác vẫn bật lại chúng.",
 		"tryAgain_game_other": "Bắt đầu lại trò chơi để thử mà không có chúng. Hoàn tác vẫn bật lại chúng.",
 		"tryAgain_server_one": "Khởi động lại máy chủ để thử mà không có nó. Hoàn tác vẫn bật lại nó.",
-		"tryAgain_game_one": "Bắt đầu lại trò chơi để thử mà không có nó. Hoàn tác vẫn bật lại nó."
+		"tryAgain_game_one": "Bắt đầu lại trò chơi để thử mà không có nó. Hoàn tác vẫn bật lại nó.",
+		"recover": "Khôi phục thay đổi bị gián đoạn",
+		"recovered": "Đã quay về {{version}}, chính xác như trước."
 	},
 	"skinPreview": {
 		"saving": "Đang lưu...",
@@ -1164,7 +1166,9 @@
 		"importing": "Đang nhập {{percent}}",
 		"settingUp": "Đang thiết lập máy chủ...",
 		"partial": "Đã nhập \"{{name}}\", nhưng không thể tải xuống một số plugin hoặc mod:",
-		"openServer": "Máy chủ mở"
+		"openServer": "Máy chủ mở",
+		"recover": "Khôi phục",
+		"recoveryRequired": "Phát hiện thay đổi phiên bản chưa hoàn tất hoặc thất bại"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "(resourcepacks/) Lịch sử lệnh đồng bộ hóa",
 		"syncHistory": "(command_history.txt)",
 		"syncHotbars": "Thanh nóng sáng tạo đồng bộ hóa (hotbar.nbt)",
-		"inheritSync": "Kế thừa các tùy chọn đồng bộ hóa toàn cầu. Sẽ đồng bộ hóa trước khi khởi chạy và sau khi thoát."
+		"inheritSync": "Kế thừa các tùy chọn đồng bộ hóa toàn cầu. Sẽ đồng bộ hóa trước khi khởi chạy và sau khi thoát.",
+		"recoveryRequired": "Phát hiện thay đổi phiên bản chưa hoàn tất hoặc thất bại"
 	},
 	"install": {
 		"loadFailed": "Không tải được các tùy chọn cài đặt",

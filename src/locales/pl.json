@@ -543,7 +543,9 @@
 		"tryAgain_game_one": "Uruchom grę ponownie, aby sprawdzić bez niego. Cofnięcie zmiany włączy go z powrotem.",
 		"tryAgain_game_few": "Uruchom grę ponownie, aby sprawdzić bez nich. Cofnięcie zmiany włączy je z powrotem.",
 		"tryAgain_game_many": "Uruchom grę ponownie, aby sprawdzić bez nich. Cofnięcie zmiany włączy je z powrotem.",
-		"tryAgain_game_other": "Uruchom grę ponownie, aby sprawdzić bez nich. Cofnięcie zmiany włączy je z powrotem."
+		"tryAgain_game_other": "Uruchom grę ponownie, aby sprawdzić bez nich. Cofnięcie zmiany włączy je z powrotem.",
+		"recover": "Przywróć przerwaną zmianę",
+		"recovered": "Znów {{version}}, dokładnie jak wcześniej."
 	},
 	"skinPreview": {
 		"saving": "Zapisywanie...",
@@ -1192,7 +1194,9 @@
 		"importing": "Importowanie {{percent}}",
 		"settingUp": "Konfigurowanie serwera...",
 		"partial": "Zaimportowano „{{name}}”, ale nie udało się pobrać niektórych pluginów lub modów:",
-		"openServer": "Otwórz serwer"
+		"openServer": "Otwórz serwer",
+		"recover": "Przywróć",
+		"recoveryRequired": "Wykryto niekompletną lub nieudaną zmianę wersji"
 	},
 	"serverCores": {
 		"paper": {
@@ -1431,7 +1435,8 @@
 		"syncPacks": "Synchronizuj paczki zasobów (resourcepacks/)",
 		"syncHistory": "Synchronizuj historię komend (command_history.txt)",
 		"syncHotbars": "Synchronizuj paski trybu kreatywnego (hotbar.nbt)",
-		"inheritSync": "Używane są globalne ustawienia synchronizacji. Synchronizuje przed uruchomieniem i po wyjściu."
+		"inheritSync": "Używane są globalne ustawienia synchronizacji. Synchronizuje przed uruchomieniem i po wyjściu.",
+		"recoveryRequired": "Wykryto niekompletną lub nieudaną zmianę wersji"
 	},
 	"install": {
 		"loadFailed": "Nie udało się wczytać opcji instalacji",

@@ -3,7 +3,7 @@
   "procedures": [
     {
       "name": "add_access_entry",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -23,7 +23,7 @@
     },
     {
       "name": "add_to_server_whitelist",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -44,7 +44,7 @@
     },
     {
       "name": "apply_instance_version_change",
-      "currentPath": "",
+      "currentPath": "instances.version_change",
       "kind": "command",
       "arguments": [
         "plan",
@@ -65,7 +65,7 @@
     },
     {
       "name": "apply_server_version_change",
-      "currentPath": "",
+      "currentPath": "servers.version_change",
       "kind": "command",
       "arguments": [
         "plan",
@@ -75,7 +75,7 @@
     },
     {
       "name": "check_instance_version_change",
-      "currentPath": "",
+      "currentPath": "instances.version_change",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -87,7 +87,7 @@
     },
     {
       "name": "check_server_plugin_updates",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -96,7 +96,7 @@
     },
     {
       "name": "check_server_version_change",
-      "currentPath": "",
+      "currentPath": "servers.version_change",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -107,7 +107,7 @@
     },
     {
       "name": "check_sync_conflict",
-      "currentPath": "",
+      "currentPath": "instances.sync",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -116,7 +116,7 @@
     },
     {
       "name": "create_instance",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "name",
@@ -128,7 +128,7 @@
     },
     {
       "name": "create_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "name",
@@ -143,7 +143,7 @@
     },
     {
       "name": "delete_bedrock_pack",
-      "currentPath": "",
+      "currentPath": "servers.packs",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -154,7 +154,7 @@
     },
     {
       "name": "delete_instance",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -163,7 +163,7 @@
     },
     {
       "name": "delete_screenshot",
-      "currentPath": "",
+      "currentPath": "instances.screenshots",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -173,7 +173,7 @@
     },
     {
       "name": "delete_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -183,7 +183,7 @@
     },
     {
       "name": "detect_custom_instance",
-      "currentPath": "",
+      "currentPath": "instances.imports",
       "kind": "command",
       "arguments": [
         "path"
@@ -192,7 +192,7 @@
     },
     {
       "name": "discard_instance_version_backup",
-      "currentPath": "",
+      "currentPath": "instances.version_change",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -210,7 +210,7 @@
     },
     {
       "name": "discard_server_version_backup",
-      "currentPath": "",
+      "currentPath": "servers.version_change",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -219,7 +219,7 @@
     },
     {
       "name": "duplicate_instance",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -230,7 +230,7 @@
     },
     {
       "name": "duplicate_server",
-      "currentPath": "",
+      "currentPath": "servers.transfer",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -252,7 +252,7 @@
     },
     {
       "name": "export_instance_category_to_shared",
-      "currentPath": "",
+      "currentPath": "instances.sync",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -262,7 +262,7 @@
     },
     {
       "name": "export_server",
-      "currentPath": "",
+      "currentPath": "servers.transfer",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -273,7 +273,7 @@
     },
     {
       "name": "get_access_list",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -297,21 +297,21 @@
     },
     {
       "name": "get_all_screenshots",
-      "currentPath": "",
+      "currentPath": "instances.screenshots",
       "kind": "command",
       "arguments": [],
       "destination": "instances.screenshots"
     },
     {
       "name": "get_available_game_versions",
-      "currentPath": "",
+      "currentPath": "versions",
       "kind": "command",
       "arguments": [],
       "destination": "versions"
     },
     {
       "name": "get_available_loader_versions",
-      "currentPath": "",
+      "currentPath": "versions",
       "kind": "command",
       "arguments": [
         "game_version",
@@ -321,7 +321,7 @@
     },
     {
       "name": "get_available_server_core_versions",
-      "currentPath": "",
+      "currentPath": "versions",
       "kind": "command",
       "arguments": [
         "core"
@@ -330,14 +330,14 @@
     },
     {
       "name": "get_bedrock_client_status",
-      "currentPath": "",
+      "currentPath": "bedrock",
       "kind": "command",
       "arguments": [],
       "destination": "bedrock"
     },
     {
       "name": "get_companion_status",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -346,7 +346,7 @@
     },
     {
       "name": "get_content_details",
-      "currentPath": "",
+      "currentPath": "content",
       "kind": "command",
       "arguments": [
         "source",
@@ -356,7 +356,7 @@
     },
     {
       "name": "get_detected_launchers",
-      "currentPath": "",
+      "currentPath": "instances.imports",
       "kind": "command",
       "arguments": [],
       "destination": "instances.imports"
@@ -376,7 +376,16 @@
     },
     {
       "name": "get_instance_version_backup",
-      "currentPath": "",
+      "currentPath": "instances.version_change",
+      "kind": "command",
+      "arguments": [
+        "instance_id"
+      ],
+      "destination": "instances.version_change"
+    },
+    {
+      "name": "get_instance_version_transaction_status",
+      "currentPath": "instances.version_change",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -385,7 +394,7 @@
     },
     {
       "name": "get_instance_worlds",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -394,14 +403,14 @@
     },
     {
       "name": "get_instances",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [],
       "destination": "instances"
     },
     {
       "name": "get_known_players",
-      "currentPath": "",
+      "currentPath": "servers.players",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -410,7 +419,7 @@
     },
     {
       "name": "get_lan_address",
-      "currentPath": "",
+      "currentPath": "servers.metrics",
       "kind": "command",
       "arguments": [],
       "destination": "servers.metrics"
@@ -424,7 +433,7 @@
     },
     {
       "name": "get_launcher_instances",
-      "currentPath": "",
+      "currentPath": "instances.imports",
       "kind": "command",
       "arguments": [
         "launcher_id",
@@ -441,7 +450,7 @@
     },
     {
       "name": "get_map_dimensions",
-      "currentPath": "",
+      "currentPath": "servers.map",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -450,7 +459,7 @@
     },
     {
       "name": "get_map_tile",
-      "currentPath": "",
+      "currentPath": "servers.map",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -469,7 +478,7 @@
     },
     {
       "name": "get_online_players",
-      "currentPath": "",
+      "currentPath": "servers.players",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -485,7 +494,7 @@
     },
     {
       "name": "get_player_details",
-      "currentPath": "",
+      "currentPath": "servers.players",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -495,7 +504,7 @@
     },
     {
       "name": "get_playit_status",
-      "currentPath": "",
+      "currentPath": "servers.tunnel",
       "kind": "command",
       "arguments": [],
       "destination": "servers.tunnel"
@@ -509,21 +518,21 @@
     },
     {
       "name": "get_running_instances",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [],
       "destination": "instances"
     },
     {
       "name": "get_running_servers",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [],
       "destination": "servers"
     },
     {
       "name": "get_screenshot_thumbnail",
-      "currentPath": "",
+      "currentPath": "instances.screenshots",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -535,7 +544,7 @@
     },
     {
       "name": "get_server_icon",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -544,7 +553,7 @@
     },
     {
       "name": "get_server_logs",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -553,7 +562,7 @@
     },
     {
       "name": "get_server_online_players",
-      "currentPath": "",
+      "currentPath": "servers.players",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -562,7 +571,7 @@
     },
     {
       "name": "get_server_plugin_page",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "source",
@@ -572,7 +581,7 @@
     },
     {
       "name": "get_server_plugin_versions",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -584,7 +593,7 @@
     },
     {
       "name": "get_server_properties",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -593,7 +602,7 @@
     },
     {
       "name": "get_server_properties_all",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -602,7 +611,7 @@
     },
     {
       "name": "get_server_stats",
-      "currentPath": "",
+      "currentPath": "servers.metrics",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -611,7 +620,7 @@
     },
     {
       "name": "get_server_storage",
-      "currentPath": "",
+      "currentPath": "servers.metrics",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -620,7 +629,16 @@
     },
     {
       "name": "get_server_version_backup",
-      "currentPath": "",
+      "currentPath": "servers.version_change",
+      "kind": "command",
+      "arguments": [
+        "server_id"
+      ],
+      "destination": "servers.version_change"
+    },
+    {
+      "name": "get_server_version_transaction_status",
+      "currentPath": "servers.version_change",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -629,7 +647,7 @@
     },
     {
       "name": "get_server_whitelist",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -638,14 +656,14 @@
     },
     {
       "name": "get_servers",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [],
       "destination": "servers"
     },
     {
       "name": "get_shared_sync_status",
-      "currentPath": "",
+      "currentPath": "instances.sync",
       "kind": "command",
       "arguments": [],
       "destination": "instances.sync"
@@ -700,7 +718,7 @@
     },
     {
       "name": "import_instance",
-      "currentPath": "",
+      "currentPath": "instances.imports",
       "kind": "command",
       "arguments": [
         "options"
@@ -709,7 +727,7 @@
     },
     {
       "name": "import_server",
-      "currentPath": "",
+      "currentPath": "servers.transfer",
       "kind": "command",
       "arguments": [
         "upload_id"
@@ -718,7 +736,7 @@
     },
     {
       "name": "import_upload_chunk",
-      "currentPath": "",
+      "currentPath": "servers.transfer",
       "kind": "command",
       "arguments": [
         "upload_id",
@@ -729,14 +747,14 @@
     },
     {
       "name": "install_bedrock_client",
-      "currentPath": "",
+      "currentPath": "bedrock",
       "kind": "command",
       "arguments": [],
       "destination": "bedrock"
     },
     {
       "name": "install_bedrock_pack",
-      "currentPath": "",
+      "currentPath": "servers.packs",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -747,7 +765,7 @@
     },
     {
       "name": "install_companion",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -756,7 +774,7 @@
     },
     {
       "name": "install_content_file",
-      "currentPath": "",
+      "currentPath": "content",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -768,7 +786,7 @@
     },
     {
       "name": "install_modpack_instance",
-      "currentPath": "",
+      "currentPath": "content",
       "kind": "command",
       "arguments": [
         "name",
@@ -780,7 +798,7 @@
     },
     {
       "name": "install_server_plugin",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -792,7 +810,7 @@
     },
     {
       "name": "kill_instance",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -801,7 +819,7 @@
     },
     {
       "name": "kill_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -810,14 +828,14 @@
     },
     {
       "name": "launch_bedrock_client",
-      "currentPath": "",
+      "currentPath": "bedrock",
       "kind": "command",
       "arguments": [],
       "destination": "bedrock"
     },
     {
       "name": "launch_instance",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -827,7 +845,7 @@
     },
     {
       "name": "list_bedrock_packs",
-      "currentPath": "",
+      "currentPath": "servers.packs",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -836,7 +854,7 @@
     },
     {
       "name": "list_server_config_files",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -845,7 +863,7 @@
     },
     {
       "name": "list_server_plugins",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -949,7 +967,7 @@
     },
     {
       "name": "open_bedrock_folder",
-      "currentPath": "",
+      "currentPath": "bedrock",
       "kind": "command",
       "arguments": [
         "kind"
@@ -958,7 +976,7 @@
     },
     {
       "name": "open_bedrock_server_subfolder",
-      "currentPath": "",
+      "currentPath": "servers.packs",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -968,7 +986,7 @@
     },
     {
       "name": "open_instance_folder",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -977,7 +995,7 @@
     },
     {
       "name": "open_screenshots_folder",
-      "currentPath": "",
+      "currentPath": "instances.screenshots",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -986,7 +1004,7 @@
     },
     {
       "name": "open_server_folder",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -995,7 +1013,7 @@
     },
     {
       "name": "ping_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "port"
@@ -1004,7 +1022,7 @@
     },
     {
       "name": "pull_instance_sync",
-      "currentPath": "",
+      "currentPath": "instances.sync",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -1013,7 +1031,7 @@
     },
     {
       "name": "push_instance_sync",
-      "currentPath": "",
+      "currentPath": "instances.sync",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -1022,7 +1040,7 @@
     },
     {
       "name": "put_server_to_sleep",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -1038,7 +1056,7 @@
     },
     {
       "name": "read_server_config_file",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1047,8 +1065,26 @@
       "destination": "servers.config"
     },
     {
+      "name": "recover_instance_version_change",
+      "currentPath": "instances.version_change",
+      "kind": "command",
+      "arguments": [
+        "instance_id"
+      ],
+      "destination": "instances.version_change"
+    },
+    {
+      "name": "recover_server_version_change",
+      "currentPath": "servers.version_change",
+      "kind": "command",
+      "arguments": [
+        "server_id"
+      ],
+      "destination": "servers.version_change"
+    },
+    {
       "name": "remove_access_entry",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1068,7 +1104,7 @@
     },
     {
       "name": "remove_from_server_whitelist",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1078,7 +1114,7 @@
     },
     {
       "name": "remove_server_plugin",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1097,7 +1133,7 @@
     },
     {
       "name": "resolve_sync_conflict",
-      "currentPath": "",
+      "currentPath": "instances.sync",
       "kind": "command",
       "arguments": [
         "instance_id",
@@ -1116,7 +1152,7 @@
     },
     {
       "name": "reveal_screenshot_file",
-      "currentPath": "",
+      "currentPath": "instances.screenshots",
       "kind": "command",
       "arguments": [
         "file_path"
@@ -1125,7 +1161,7 @@
     },
     {
       "name": "save_server_world",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1145,7 +1181,7 @@
     },
     {
       "name": "search_content",
-      "currentPath": "",
+      "currentPath": "content",
       "kind": "command",
       "arguments": [
         "source",
@@ -1161,7 +1197,7 @@
     },
     {
       "name": "search_server_plugins",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1175,7 +1211,7 @@
     },
     {
       "name": "send_server_command",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1194,7 +1230,7 @@
     },
     {
       "name": "set_bedrock_pack_enabled",
-      "currentPath": "",
+      "currentPath": "servers.packs",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1225,7 +1261,7 @@
     },
     {
       "name": "set_server_icon",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1235,7 +1271,7 @@
     },
     {
       "name": "set_server_plugin_enabled",
-      "currentPath": "",
+      "currentPath": "servers.plugins",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1246,7 +1282,7 @@
     },
     {
       "name": "set_server_properties",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1256,7 +1292,7 @@
     },
     {
       "name": "set_server_properties_all",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",
@@ -1284,7 +1320,7 @@
     },
     {
       "name": "start_playit_tunnel",
-      "currentPath": "",
+      "currentPath": "servers.tunnel",
       "kind": "command",
       "arguments": [
         "secret_key"
@@ -1293,7 +1329,7 @@
     },
     {
       "name": "start_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -1318,14 +1354,14 @@
     },
     {
       "name": "stop_playit_tunnel",
-      "currentPath": "",
+      "currentPath": "servers.tunnel",
       "kind": "command",
       "arguments": [],
       "destination": "servers.tunnel"
     },
     {
       "name": "stop_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -1334,7 +1370,7 @@
     },
     {
       "name": "turn_off_after_version_change",
-      "currentPath": "",
+      "currentPath": "app",
       "kind": "command",
       "arguments": [
         "target_kind",
@@ -1346,7 +1382,7 @@
     },
     {
       "name": "undo_instance_version_change",
-      "currentPath": "",
+      "currentPath": "instances.version_change",
       "kind": "command",
       "arguments": [
         "instance_id"
@@ -1355,7 +1391,7 @@
     },
     {
       "name": "undo_server_version_change",
-      "currentPath": "",
+      "currentPath": "servers.version_change",
       "kind": "command",
       "arguments": [
         "server_id"
@@ -1364,7 +1400,7 @@
     },
     {
       "name": "update_instance",
-      "currentPath": "",
+      "currentPath": "instances",
       "kind": "command",
       "arguments": [
         "instance"
@@ -1373,7 +1409,7 @@
     },
     {
       "name": "update_server",
-      "currentPath": "",
+      "currentPath": "servers",
       "kind": "command",
       "arguments": [
         "server"
@@ -1404,7 +1440,7 @@
     },
     {
       "name": "write_server_config_file",
-      "currentPath": "",
+      "currentPath": "servers.config",
       "kind": "command",
       "arguments": [
         "server_id",

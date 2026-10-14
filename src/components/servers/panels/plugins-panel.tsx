@@ -36,6 +36,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { formatBytes, formatCount } from "@/lib/minecraft"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 import { cn } from "@/lib/utils"
 import { useServerControls } from "@/services/hosting"
 import {
@@ -45,7 +46,6 @@ import {
 	usePluginUpdates,
 	useServerStatus,
 } from "@/services/server-data"
-import { rpc } from "@/services/server-service"
 import { Card, EmptyState, ErrorNote, Segmented, useSticky } from "../shared/primitives"
 import { BedrockPacksPanel } from "./bedrock-packs-panel"
 import { CompanionCard } from "./companion-card"
@@ -173,9 +173,17 @@ function RestartBanner({ serverId, onDone }: { serverId: string; onDone: () => v
 		await controls.stop()
 		// Wait for the process to exit before starting again
 		for (let i = 0; i < 60; i++) {
-			const running = await rpc.get_running_servers()
-			if (!running.some((s) => s.serverId === serverId)) break
-			await new Promise((r) => setTimeout(r, 500))
+			const running = await unwrapRpc(rpc.servers.get_running_servers())
+			if (
+				!running.some((s) => {
+					return s.serverId === serverId
+				})
+			) {
+				break
+			}
+			await new Promise((r) => {
+				setTimeout(r, 500)
+			})
 		}
 		await controls.start()
 		setRestarting(false)

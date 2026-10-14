@@ -8,11 +8,23 @@ use super::*;
 use tempfile::NamedTempFile;
 
 fn profile(id: &str) -> AccountProfile {
+    let raw = id
+        .strip_prefix("microsoft:")
+        .or_else(|| id.strip_prefix("offline:"))
+        .or_else(|| id.strip_prefix("ely:"))
+        .unwrap_or(id);
+    let (prefix, kind) = if id.starts_with("offline:") {
+        ("offline", "offline")
+    } else if id.starts_with("ely:") {
+        ("ely", "ely")
+    } else {
+        ("microsoft", "microsoft")
+    };
     AccountProfile {
-        id: id.to_owned(),
-        account_type: "offline".to_owned(),
-        username: id.to_owned(),
-        uuid: format!("uuid-{id}"),
+        id: format!("{prefix}:{raw}"),
+        account_type: kind.to_owned(),
+        username: raw.to_owned(),
+        uuid: raw.to_owned(),
         skin_url: None,
         is_active: false,
         created_at: 42,
@@ -149,7 +161,9 @@ fn failed_publication_preserves_previous_bytes_cleans_staging_and_allows_retry()
         assert_eq!(repository.load().unwrap()[0].username, "a");
         assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
         repository
-            .update_profile("a", |account| account.username = "retry".to_owned())
+            .update_profile("microsoft:a", |account| {
+                account.username = "retry".to_owned()
+            })
             .unwrap();
         assert_eq!(repository.load().unwrap()[0].username, "retry");
     }
@@ -222,13 +236,14 @@ fn delayed_metadata_patch_keeps_new_selection_and_does_not_resurrect_removed_acc
     assert!(accounts[1].is_active);
     repository
         .update(|accounts| {
-            policy::remove(accounts, "a")?;
+            policy::remove(accounts, &before_provider_io[0].id)?;
             Ok(())
         })
         .unwrap();
     let previous = fs::read(&path).unwrap();
     assert!(matches!(
-        repository.update_profile("a", |account| account.username = "late".to_owned()),
+        repository.update_profile(&before_provider_io[0].id, |account| account.username =
+            "late".to_owned()),
         Err(AccountError::Policy(policy::AccountPolicyError::NotFound))
     ));
     assert_eq!(fs::read(&path).unwrap(), previous);
@@ -276,4 +291,121 @@ fn poisoned_lock_returns_a_typed_failure_instead_of_panicking() {
         repository.activate(profile("a")),
         Err(AccountError::LockPoisoned)
     ));
+}
+
+#[test]
+fn semantically_invalid_storage_blocks_reads_and_updates_and_preserves_input_bytes() {
+    let invalid_fixtures: [&[u8]; 4] = [
+        // Duplicate account IDs
+        b"[{\"id\":\"microsoft:1\",\"accountType\":\"microsoft\",\"username\":\"P\",\"uuid\":\"1\",\"skinUrl\":null,\"isActive\":true,\"createdAt\":1},{\"id\":\"microsoft:1\",\"accountType\":\"microsoft\",\"username\":\"P\",\"uuid\":\"1\",\"skinUrl\":null,\"isActive\":false,\"createdAt\":2}]",
+        // Multiple active accounts
+        b"[{\"id\":\"microsoft:1\",\"accountType\":\"microsoft\",\"username\":\"P1\",\"uuid\":\"1\",\"skinUrl\":null,\"isActive\":true,\"createdAt\":1},{\"id\":\"microsoft:2\",\"accountType\":\"microsoft\",\"username\":\"P2\",\"uuid\":\"2\",\"skinUrl\":null,\"isActive\":true,\"createdAt\":2}]",
+        // Unsupported kind
+        b"[{\"id\":\"custom:1\",\"accountType\":\"custom\",\"username\":\"P\",\"uuid\":\"1\",\"skinUrl\":null,\"isActive\":true,\"createdAt\":1}]",
+        // Inconsistent identity
+        b"[{\"id\":\"microsoft:1\",\"accountType\":\"microsoft\",\"username\":\"P\",\"uuid\":\"mismatched\",\"skinUrl\":null,\"isActive\":true,\"createdAt\":1}]",
+    ];
+
+    for invalid in invalid_fixtures {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("accounts.json");
+        fs::write(&path, invalid).unwrap();
+        let repository = AccountRepository::new(path.clone());
+
+        let load_error = repository.load().unwrap_err();
+        assert!(matches!(load_error, AccountError::Validation { .. }));
+
+        let mut update_called = false;
+        let update_error = repository
+            .update(|_| {
+                update_called = true;
+                Ok(())
+            })
+            .unwrap_err();
+        assert!(!update_called);
+        assert!(matches!(update_error, AccountError::Validation { .. }));
+
+        let activate_error = repository.activate(profile("new")).unwrap_err();
+        assert!(matches!(activate_error, AccountError::Validation { .. }));
+
+        assert_eq!(fs::read(&path).unwrap(), invalid);
+    }
+}
+
+#[test]
+fn invalid_updates_leave_valid_persisted_state_unchanged() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let repository = AccountRepository::new(path.clone());
+    repository.activate(profile("a")).unwrap();
+    let previous = fs::read(&path).unwrap();
+
+    // Unsupported kind
+    let err = repository
+        .update(|accounts| {
+            accounts[0].account_type = "unsupported".to_owned();
+            Ok(())
+        })
+        .unwrap_err();
+    assert!(matches!(err, AccountError::Validation { .. }));
+    assert_eq!(fs::read(&path).unwrap(), previous);
+
+    // Duplicate account IDs
+    let err = repository
+        .update(|accounts| {
+            accounts.push(profile("a"));
+            Ok(())
+        })
+        .unwrap_err();
+    assert!(matches!(err, AccountError::Validation { .. }));
+    assert_eq!(fs::read(&path).unwrap(), previous);
+
+    // Multiple active accounts
+    let err = repository
+        .update(|accounts| {
+            let mut second = profile("b");
+            second.is_active = true;
+            accounts.push(second);
+            Ok(())
+        })
+        .unwrap_err();
+    assert!(matches!(err, AccountError::Validation { .. }));
+    assert_eq!(fs::read(&path).unwrap(), previous);
+}
+
+#[test]
+fn duplicate_reorder_request_leaves_order_and_selection_unchanged() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let repository = AccountRepository::new(path.clone());
+    repository.activate(profile("a")).unwrap();
+    repository.activate(profile("b")).unwrap();
+
+    let before = repository.load().unwrap();
+    assert_eq!(before[0].id, "microsoft:a");
+    assert!(!before[0].is_active);
+    assert_eq!(before[1].id, "microsoft:b");
+    assert!(before[1].is_active);
+    let previous = fs::read(&path).unwrap();
+
+    let err = repository
+        .update(|accounts| {
+            *accounts = policy::reorder(
+                accounts,
+                &["microsoft:a".to_owned(), "microsoft:a".to_owned()],
+            )?;
+            Ok(())
+        })
+        .unwrap_err();
+    assert!(matches!(
+        err,
+        AccountError::Policy(policy::AccountPolicyError::DuplicateReorderId(_))
+    ));
+
+    assert_eq!(fs::read(&path).unwrap(), previous);
+    let after = repository.load().unwrap();
+    assert_eq!(after[0].id, "microsoft:a");
+    assert!(!after[0].is_active);
+    assert_eq!(after[1].id, "microsoft:b");
+    assert!(after[1].is_active);
 }

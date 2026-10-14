@@ -47,18 +47,18 @@ async fn pending_sign_in_routes_preserve_metadata_named_tickets_and_string_rejec
         json!({"ticket":"private-invalid"}),
     )
     .unwrap_err();
-    assert!(invalid.is_string());
+    assert_eq!(invalid["kind"], "notFound");
     assert!(!invalid.to_string().contains("private-invalid"));
     assert!(!crate::app::state(app.handle())
         .account_login
         .is_cancelled(generation));
-    assert!(invoke(
+    let resume_err = invoke(
         &webview,
         "TauRPC__accounts.resume_microsoft_login",
-        json!({"ticket":pending["ticket"]})
+        json!({"ticket":pending["ticket"]}),
     )
-    .unwrap_err()
-    .is_string());
+    .unwrap_err();
+    assert_eq!(resume_err["kind"], "invalidInput");
     assert_eq!(
         invoke(
             &webview,

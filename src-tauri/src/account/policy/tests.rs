@@ -52,9 +52,26 @@ fn removal_promotes_first_only_when_the_active_account_was_removed() {
 }
 
 #[test]
+fn reorder_rejects_duplicate_ids_with_typed_error() {
+    let accounts = vec![profile("a", false), profile("b", true), profile("c", false)];
+    let error = reorder(&accounts, &["b".to_owned(), "b".to_owned()]).unwrap_err();
+    assert_eq!(
+        error,
+        AccountPolicyError::DuplicateReorderId("b".to_owned())
+    );
+
+    // Duplicate unknown IDs are also rejected
+    let error = reorder(&accounts, &["unknown".to_owned(), "unknown".to_owned()]).unwrap_err();
+    assert_eq!(
+        error,
+        AccountPolicyError::DuplicateReorderId("unknown".to_owned())
+    );
+}
+
+#[test]
 fn partial_reorder_preserves_omitted_accounts_metadata_and_selection() {
     let accounts = vec![profile("a", false), profile("b", true), profile("c", false)];
-    let reordered = reorder(&accounts, &["c".to_owned(), "unknown".to_owned()]);
+    let reordered = reorder(&accounts, &["c".to_owned(), "unknown".to_owned()]).unwrap();
     assert_eq!(
         reordered.iter().map(|a| a.id.as_str()).collect::<Vec<_>>(),
         ["c", "a", "b"]

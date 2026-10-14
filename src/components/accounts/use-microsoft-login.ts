@@ -2,6 +2,7 @@ import { openUrl } from "@tauri-apps/plugin-opener"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AccountProfile, MicrosoftDeviceCode, PendingMicrosoftLogin } from "@/bindings"
+import { getRpcErrorMessage, isRpcErrorKind } from "@/lib/rpc"
 import { accountService } from "@/services/account-service"
 
 export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) {
@@ -26,7 +27,7 @@ export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) 
 			},
 			(failure: unknown) => {
 				if (attempt === generation.current)
-					setError(typeof failure === "string" ? failure : fallback.current)
+					setError(getRpcErrorMessage(failure) || fallback.current)
 			},
 		)
 		return () => {
@@ -56,7 +57,11 @@ export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) 
 			if (attempt !== generation.current) return
 			active.current = false
 			setDeviceCode(null)
-			setError(typeof failure === "string" ? failure : t("addAccount.microsoftFailed"))
+			if (isRpcErrorKind(failure, "cancelled")) {
+				setError(null)
+			} else {
+				setError(getRpcErrorMessage(failure) || t("addAccount.microsoftFailed"))
+			}
 			// Keep interrupted grants available after closing this dialog. A failed
 			// inspection must not turn a storage error into "no pending sign-in".
 			try {
@@ -64,11 +69,7 @@ export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) 
 				if (attempt === generation.current) setPending(value)
 			} catch (inspectionFailure) {
 				if (attempt === generation.current)
-					setError(
-						typeof inspectionFailure === "string"
-							? inspectionFailure
-							: t("addAccount.microsoftFailed"),
-					)
+					setError(getRpcErrorMessage(inspectionFailure) || t("addAccount.microsoftFailed"))
 			}
 		} finally {
 			if (attempt === generation.current)
@@ -102,7 +103,7 @@ export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) 
 			if (attempt === generation.current) setPending(null)
 		} catch (failure) {
 			if (attempt === generation.current)
-				setError(typeof failure === "string" ? failure : t("addAccount.microsoftFailed"))
+				setError(getRpcErrorMessage(failure) || t("addAccount.microsoftFailed"))
 		} finally {
 			if (attempt === generation.current) setPhase("idle")
 		}

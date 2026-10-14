@@ -527,7 +527,9 @@
 		"tryAgain_server_one": "Starte den Server erneut, um es ohne sie zu versuchen. Rückgängig machen schaltet sie wieder ein.",
 		"tryAgain_server_other": "Starte den Server erneut, um es ohne sie zu versuchen. Rückgängig machen schaltet sie wieder ein.",
 		"tryAgain_game_one": "Starte das Spiel erneut, um es ohne sie zu versuchen. Rückgängig machen schaltet sie wieder ein.",
-		"tryAgain_game_other": "Starte das Spiel erneut, um es ohne sie zu versuchen. Rückgängig machen schaltet sie wieder ein."
+		"tryAgain_game_other": "Starte das Spiel erneut, um es ohne sie zu versuchen. Rückgängig machen schaltet sie wieder ein.",
+		"recover": "Unterbrochenen Wechsel wiederherstellen",
+		"recovered": "Wieder auf {{version}}, genau wie vorher."
 	},
 	"skinPreview": {
 		"saving": "Wird gespeichert...",
@@ -1164,7 +1166,9 @@
 		"importing": "Importiere {{percent}}",
 		"settingUp": "Server wird eingerichtet...",
 		"partial": "\"{{name}}\" importiert, aber einige Plugins oder Mods konnten nicht heruntergeladen werden:",
-		"openServer": "Server öffnen"
+		"openServer": "Server öffnen",
+		"recover": "Wiederherstellen",
+		"recoveryRequired": "Unvollständiger oder fehlgeschlagener Versionswechsel erkannt"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "Ressourcenpakete synchronisieren (resourcepacks/)",
 		"syncHistory": "Befehlsverlauf synchronisieren (command_history.txt)",
 		"syncHotbars": "Kreativ-Schnellleisten synchronisieren (hotbar.nbt)",
-		"inheritSync": "Übernimmt globale Sync-Einstellungen. Synchronisiert vor dem Start und nach dem Beenden."
+		"inheritSync": "Übernimmt globale Sync-Einstellungen. Synchronisiert vor dem Start und nach dem Beenden.",
+		"recoveryRequired": "Unvollständiger oder fehlgeschlagener Versionswechsel erkannt"
 	},
 	"install": {
 		"loadFailed": "Installationsoptionen konnten nicht geladen werden",

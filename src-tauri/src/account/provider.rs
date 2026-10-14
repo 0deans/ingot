@@ -3,7 +3,7 @@ use crate::auth::microsoft::{MicrosoftDeviceCode, MicrosoftGrant, MinecraftSessi
 use serde::Deserialize;
 use std::{future::Future, pin::Pin};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub(crate) struct ProfileInfo {
     pub id: String,
     pub name: String,

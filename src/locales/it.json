@@ -535,7 +535,9 @@
 		"tryAgain_server_other": "Riavvia il server per provare senza. Annulla li riattiva.",
 		"tryAgain_game_one": "Riavvia il gioco per provare senza. Annulla lo riattiva.",
 		"tryAgain_game_many": "Riavvia il gioco per provare senza. Annulla li riattiva.",
-		"tryAgain_game_other": "Riavvia il gioco per provare senza. Annulla li riattiva."
+		"tryAgain_game_other": "Riavvia il gioco per provare senza. Annulla li riattiva.",
+		"recover": "Ripristina modifica interrotta",
+		"recovered": "Di nuovo su {{version}}, esattamente come prima."
 	},
 	"skinPreview": {
 		"saving": "Salvataggio...",
@@ -1178,7 +1180,9 @@
 		"importing": "Importazione {{percent}}",
 		"settingUp": "Configurazione del server...",
 		"partial": "\"{{name}}\" importato, ma alcuni plugin o mod non si sono potuti scaricare:",
-		"openServer": "Apri server"
+		"openServer": "Apri server",
+		"recover": "Ripristina",
+		"recoveryRequired": "Rilevato cambio di versione incompleto o non riuscito"
 	},
 	"serverCores": {
 		"paper": {
@@ -1416,7 +1420,8 @@
 		"syncPacks": "Sincronizza i pacchetti di risorse (resourcepacks/)",
 		"syncHistory": "Sincronizza la cronologia dei comandi (command_history.txt)",
 		"syncHotbars": "Sincronizza le barre della creativa (hotbar.nbt)",
-		"inheritSync": "Usa le preferenze di sincronizzazione globali. Sincronizza prima dell'avvio e dopo l'uscita."
+		"inheritSync": "Usa le preferenze di sincronizzazione globali. Sincronizza prima dell'avvio e dopo l'uscita.",
+		"recoveryRequired": "Rilevato cambio di versione incompleto o non riuscito"
 	},
 	"install": {
 		"loadFailed": "Impossibile caricare le opzioni di installazione",

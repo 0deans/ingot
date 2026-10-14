@@ -1,13 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle, Check, Package, Undo2 } from "lucide-react"
+import { AlertTriangle, Check, Package, RefreshCw, Undo2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { CrashSuspect, VersionChangeCrash } from "@/bindings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 import { instanceService } from "@/services/instance-service"
-import { rpc, serverService } from "@/services/server-service"
+import { serverService } from "@/services/server-service"
 
 /**
  * Shown when the first start after a version change crashes: names the mods or plugins
@@ -57,13 +58,17 @@ export default function VersionChangeCrashDialog() {
 		setBusy(suspect.fileName)
 		setMessage(null)
 		try {
-			await rpc.turn_off_after_version_change(
-				crash.targetKind,
-				crash.targetId,
-				suspect.folder,
-				suspect.fileName,
+			await unwrapRpc(
+				rpc.app.turn_off_after_version_change(
+					crash.targetKind,
+					crash.targetId,
+					suspect.folder,
+					suspect.fileName,
+				),
 			)
-			setTurnedOff((prev) => [...prev, suspect.fileName])
+			setTurnedOff((prev) => {
+				return [...prev, suspect.fileName]
+			})
 		} catch (e) {
 			setMessage({ ok: false, text: String(e) })
 		} finally {
@@ -76,14 +81,45 @@ export default function VersionChangeCrashDialog() {
 		setMessage(null)
 		try {
 			if (isServer) {
-				await rpc.undo_server_version_change(crash.targetId)
+				await unwrapRpc(rpc.servers.version_change.undo_server_version_change(crash.targetId))
 				await serverService.refreshServers()
 				await queryClient.invalidateQueries({ queryKey: ["server-version-backup", crash.targetId] })
 			} else {
-				await rpc.undo_instance_version_change(crash.targetId)
+				await unwrapRpc(rpc.instances.version_change.undo_instance_version_change(crash.targetId))
 				await instanceService.refreshInstances()
 			}
 			setMessage({ ok: true, text: t("crashDialog.undone", { version: crash.fromGameVersion }) })
+		} catch (e) {
+			setMessage({ ok: false, text: String(e) })
+		} finally {
+			setBusy(null)
+		}
+	}
+
+	const recover = async () => {
+		setBusy("recover")
+		setMessage(null)
+		try {
+			if (isServer) {
+				const restored = await unwrapRpc(
+					rpc.servers.version_change.recover_server_version_change(crash.targetId),
+				)
+				await serverService.refreshServers()
+				await queryClient.invalidateQueries({ queryKey: ["server-version-backup", crash.targetId] })
+				setMessage({
+					ok: true,
+					text: t("crashDialog.recovered", { version: restored.gameVersion }),
+				})
+			} else {
+				const restored = await unwrapRpc(
+					rpc.instances.version_change.recover_instance_version_change(crash.targetId),
+				)
+				await instanceService.refreshInstances()
+				setMessage({
+					ok: true,
+					text: t("crashDialog.recovered", { version: restored.gameVersion }),
+				})
+			}
 		} catch (e) {
 			setMessage({ ok: false, text: String(e) })
 		} finally {
@@ -181,6 +217,21 @@ export default function VersionChangeCrashDialog() {
 					>
 						{undone ? t("common.close") : t("crashDialog.keepTrying")}
 					</Button>
+					{!undone && message && !message.ok && (
+						<Button
+							variant="outline"
+							disabled={busy !== null}
+							onClick={recover}
+							className="gap-1.5 rounded-xl"
+						>
+							{busy === "recover" ? (
+								<Spinner className="size-4" />
+							) : (
+								<RefreshCw className="size-4" />
+							)}
+							{t("crashDialog.recover")}
+						</Button>
+					)}
 					{!undone && (
 						<Button disabled={busy !== null} onClick={undo} className="gap-1.5 rounded-xl">
 							{busy === "undo" ? <Spinner className="size-4" /> : <Undo2 className="size-4" />}

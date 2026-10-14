@@ -11,5 +11,6 @@ pub(crate) mod provider;
 pub(crate) mod recovery;
 pub(crate) mod repository;
 pub(crate) mod session;
+pub(crate) mod validation;
 pub(crate) use error::AccountError;
 pub use models::{AccountProfile, AccountSecrets};

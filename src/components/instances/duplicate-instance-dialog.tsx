@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
-import { instanceService, rpc } from "@/services/instance-service"
+import { instanceService } from "@/services/instance-service"
 
 interface DuplicateInstanceDialogProps {
 	instance: InstanceConfig | null
@@ -56,10 +56,14 @@ export const DuplicateInstanceDialog = ({
 		setIncludeWorlds(true)
 		setError(null)
 		setWorldCount(null)
-		rpc
-			.get_instance_worlds(instanceId)
-			.then((worlds) => setWorldCount(worlds.length))
-			.catch(() => setWorldCount(null))
+		instanceService
+			.getInstanceWorlds(instanceId)
+			.then((worlds) => {
+				setWorldCount(worlds.length)
+			})
+			.catch(() => {
+				setWorldCount(null)
+			})
 	}, [open, instanceId, instanceName, t])
 
 	if (!instance) return null

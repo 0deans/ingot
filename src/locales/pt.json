@@ -535,7 +535,9 @@
 		"tryAgain_server_other": "Inicie o servidor de novo para testar sem eles. Desfazer os reativa.",
 		"tryAgain_game_one": "Inicie o jogo de novo para testar sem ele. Desfazer o reativa.",
 		"tryAgain_game_many": "Inicie o jogo de novo para testar sem eles. Desfazer os reativa.",
-		"tryAgain_game_other": "Inicie o jogo de novo para testar sem eles. Desfazer os reativa."
+		"tryAgain_game_other": "Inicie o jogo de novo para testar sem eles. Desfazer os reativa.",
+		"recover": "Recuperar alteração interrompida",
+		"recovered": "De volta à {{version}}, exatamente como antes."
 	},
 	"skinPreview": {
 		"saving": "Salvando...",
@@ -1178,7 +1180,9 @@
 		"importing": "Importando {{percent}}",
 		"settingUp": "Configurando o servidor...",
 		"partial": "\"{{name}}\" importado, mas alguns plugins ou mods não puderam ser baixados:",
-		"openServer": "Abrir servidor"
+		"openServer": "Abrir servidor",
+		"recover": "Recuperar",
+		"recoveryRequired": "Mudança de versão incompleta ou com falha detectada"
 	},
 	"serverCores": {
 		"paper": {
@@ -1416,7 +1420,8 @@
 		"syncPacks": "Sincronizar pacotes de recursos (resourcepacks/)",
 		"syncHistory": "Sincronizar histórico de comandos (command_history.txt)",
 		"syncHotbars": "Sincronizar barras do criativo (hotbar.nbt)",
-		"inheritSync": "Usando as preferências globais de sincronização. Sincroniza antes de iniciar e depois de sair."
+		"inheritSync": "Usando as preferências globais de sincronização. Sincroniza antes de iniciar e depois de sair.",
+		"recoveryRequired": "Mudança de versão incompleta ou com falha detectada"
 	},
 	"install": {
 		"loadFailed": "Não foi possível carregar as opções de instalação",

@@ -527,7 +527,9 @@
 		"tryAgain_server_other": "再次启动服务器，尝试不加载这些项目。撤销操作仍可重新启用它们。",
 		"tryAgain_game_other": "再次启动游戏，尝试不加载这些项目。撤销操作仍可重新启用它们。",
 		"tryAgain_server_one": "再次启动服务器，尝试不加载该项目。撤销操作仍可重新启用它。",
-		"tryAgain_game_one": "再次启动游戏，尝试不加载该项目。撤销操作仍可重新启用它。"
+		"tryAgain_game_one": "再次启动游戏，尝试不加载该项目。撤销操作仍可重新启用它。",
+		"recover": "恢复中断的更改",
+		"recovered": "已恢复为 {{version}}，与更改前完全一致。"
 	},
 	"skinPreview": {
 		"saving": "正在保存...",
@@ -1164,7 +1166,9 @@
 		"importing": "导入 {{percent}}",
 		"settingUp": "设置服务器...",
 		"partial": "导入“{{name}}”，但某些插件或 mod 无法下载：",
-		"openServer": "打开服务器"
+		"openServer": "打开服务器",
+		"recover": "恢复",
+		"recoveryRequired": "检测到未完成或失败的版本更改"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "同步资源包 (resourcepacks/)",
 		"syncHistory": "同步命令历史记录(command_history.txt)",
 		"syncHotbars": "同步创意热栏 (hotbar.nbt)",
-		"inheritSync": "继承全局同步首选项。将在启动前和退出后同步。"
+		"inheritSync": "继承全局同步首选项。将在启动前和退出后同步。",
+		"recoveryRequired": "检测到未完成或失败的版本更改"
 	},
 	"install": {
 		"loadFailed": "无法加载安装选项",

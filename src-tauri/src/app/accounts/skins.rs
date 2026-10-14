@@ -17,7 +17,9 @@ pub(crate) async fn apply_microsoft_skin<R: tauri::Runtime>(
         .acquire(account_id)
         .await
         .map_err(|error| error.to_string())?;
-    let token = microsoft_token_for_locked(app, &_operation).await?;
+    let token = microsoft_token_for_locked(app, &_operation)
+        .await
+        .map_err(|e| e.to_string())?;
     let new_url = microsoft::set_skin_from_url(&token, skin_url, is_slim).await?;
     save_skin_url(app, account_id, new_url)
 }
@@ -41,7 +43,9 @@ pub(crate) async fn upload_microsoft_skin<R: tauri::Runtime>(
         .acquire(account_id)
         .await
         .map_err(|error| error.to_string())?;
-    let token = microsoft_token_for_locked(app, &_operation).await?;
+    let token = microsoft_token_for_locked(app, &_operation)
+        .await
+        .map_err(|e| e.to_string())?;
     let new_url = microsoft::upload_skin(&token, png, is_slim).await?;
     save_skin_url(app, account_id, new_url)
 }
@@ -57,6 +61,7 @@ pub(crate) async fn get_ely_skins_catalog(
     service
         .fetch_catalog(page, query, sort, model, uploader)
         .await
+        .map_err(|e| e.to_string())
 }
 
 pub(crate) fn has_ely_web_credentials<R: tauri::Runtime>(

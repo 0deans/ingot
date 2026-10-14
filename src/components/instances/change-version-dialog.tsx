@@ -31,7 +31,8 @@ import {
 	planSide,
 	planSummary,
 } from "@/components/version-change/plan-review"
-import { instanceService, rpc } from "@/services/instance-service"
+import { rpc, unwrapRpc } from "@/lib/rpc"
+import { instanceService } from "@/services/instance-service"
 
 interface ChangeVersionDialogProps {
 	instance: InstanceConfig
@@ -110,14 +111,20 @@ export default function ChangeVersionDialog({
 		setError(null)
 		setStage("checking")
 		try {
-			const result = await rpc.check_instance_version_change(
-				instance.id,
-				target,
-				loader,
-				modded ? loaderVersion : null,
+			const result = await unwrapRpc(
+				rpc.instances.version_change.check_instance_version_change(
+					instance.id,
+					target,
+					loader,
+					modded ? loaderVersion : null,
+				),
 			)
 			setPlan(result)
-			setChoices(result.items.map((i) => i.action))
+			setChoices(
+				result.items.map((i) => {
+					return i.action
+				}),
+			)
 			setBackupWorlds(true)
 			setDowngradeOk(false)
 			setStage("review")
@@ -132,9 +139,16 @@ export default function ChangeVersionDialog({
 		setError(null)
 		setStage("applying")
 		try {
-			const updated = await rpc.apply_instance_version_change(
-				{ ...plan, items: plan.items.map((item, i) => ({ ...item, action: choices[i] })) },
-				backupWorlds,
+			const updated = await unwrapRpc(
+				rpc.instances.version_change.apply_instance_version_change(
+					{
+						...plan,
+						items: plan.items.map((item, i) => {
+							return { ...item, action: choices[i] }
+						}),
+					},
+					backupWorlds,
+				),
 			)
 			setStage("done")
 			onChanged(updated)

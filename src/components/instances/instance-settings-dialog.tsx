@@ -1,5 +1,6 @@
 import {
 	AlertCircle,
+	AlertTriangle,
 	ArrowUpDown,
 	CheckCircle2,
 	Cpu,
@@ -14,7 +15,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
-import type { InstanceConfig, VersionBackup } from "@/bindings"
+import type { InstanceConfig, VersionBackup, VersionTransactionStatus } from "@/bindings"
 import ChangeVersionDialog from "@/components/instances/change-version-dialog"
 import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
@@ -36,7 +37,8 @@ import { Switch } from "@/components/ui/switch"
 import { loaderName } from "@/components/version-change/plan-review"
 import { formatMegabytes } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
-import { instanceService, rpc } from "@/services/instance-service"
+import { rpc, unwrapRpc } from "@/lib/rpc"
+import { instanceService } from "@/services/instance-service"
 import {
 	settingsService,
 	useMemorySettings,
@@ -100,6 +102,8 @@ export const InstanceSettingsDialog = ({
 	// Version change
 	const [versionOpen, setVersionOpen] = useState(false)
 	const [versionBackup, setVersionBackup] = useState<VersionBackup | null>(null)
+	const [versionTransactionStatus, setVersionTransactionStatus] =
+		useState<VersionTransactionStatus | null>(null)
 	const [versionBusy, setVersionBusy] = useState(false)
 	const [versionMsg, setVersionMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
@@ -149,11 +153,15 @@ export const InstanceSettingsDialog = ({
 	const instanceId = instance?.id
 	useEffect(() => {
 		if (!open || !instanceId) return
-		setVersionMsg(null)
-		rpc
-			.get_instance_version_backup(instanceId)
-			.then(setVersionBackup)
-			.catch(() => setVersionBackup(null))
+		unwrapRpc(rpc.instances.version_change.get_instance_version_transaction_status(instanceId))
+			.then((status) => {
+				setVersionTransactionStatus(status)
+				setVersionBackup(status.backup)
+			})
+			.catch(() => {
+				setVersionTransactionStatus(null)
+				setVersionBackup(null)
+			})
 	}, [open, instanceId])
 
 	const handleUndoVersion = async () => {
@@ -161,9 +169,34 @@ export const InstanceSettingsDialog = ({
 		setVersionBusy(true)
 		setVersionMsg(null)
 		try {
-			const restored = await rpc.undo_instance_version_change(instance.id)
+			const restored = await unwrapRpc(
+				rpc.instances.version_change.undo_instance_version_change(instance.id),
+			)
 			setVersionBackup(null)
+			setVersionTransactionStatus(null)
 			setVersionMsg({ ok: true, text: t("crashDialog.undone", { version: restored.gameVersion }) })
+			await onSave?.(restored)
+		} catch (e) {
+			setVersionMsg({ ok: false, text: String(e) })
+		} finally {
+			setVersionBusy(false)
+		}
+	}
+
+	const handleRecoverVersion = async () => {
+		if (!instance) return
+		setVersionBusy(true)
+		setVersionMsg(null)
+		try {
+			const restored = await unwrapRpc(
+				rpc.instances.version_change.recover_instance_version_change(instance.id),
+			)
+			setVersionBackup(null)
+			setVersionTransactionStatus(null)
+			setVersionMsg({
+				ok: true,
+				text: t("crashDialog.recovered", { version: restored.gameVersion }),
+			})
 			await onSave?.(restored)
 		} catch (e) {
 			setVersionMsg({ ok: false, text: String(e) })
@@ -176,8 +209,9 @@ export const InstanceSettingsDialog = ({
 		if (!instance) return
 		setVersionBusy(true)
 		try {
-			await rpc.discard_instance_version_backup(instance.id)
+			await unwrapRpc(rpc.instances.version_change.discard_instance_version_backup(instance.id))
 			setVersionBackup(null)
+			setVersionTransactionStatus(null)
 		} catch (e) {
 			setVersionMsg({ ok: false, text: String(e) })
 		} finally {
@@ -257,7 +291,10 @@ export const InstanceSettingsDialog = ({
 			const parsedArgs = jvmArgsStr.trim().split(/\s+/).filter(Boolean)
 
 			// The version may have changed (or been undone) while this dialog was open
-			const latest = (await rpc.get_instances()).find((i) => i.id === instance.id) ?? instance
+			const latest =
+				(await instanceService.getInstances()).find((i) => {
+					return i.id === instance.id
+				}) ?? instance
 			const updated: InstanceConfig = {
 				...latest,
 				name: name.trim() || instance.name,
@@ -358,7 +395,33 @@ export const InstanceSettingsDialog = ({
 									{t("versionChange.title")}
 								</Button>
 							</div>
-							{versionBackup && (
+							{versionTransactionStatus?.canRecover && (
+								<div className="flex flex-col gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+									<div className="flex items-center gap-2 text-destructive">
+										<AlertTriangle className="size-4 shrink-0" />
+										<p className="font-medium text-xs">
+											{versionTransactionStatus.error || t("instanceSettings.recoveryRequired")}
+										</p>
+									</div>
+									<div className="flex justify-end gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={handleRecoverVersion}
+											disabled={versionBusy}
+											className="h-7 gap-1.5 text-2xs"
+										>
+											{versionBusy ? (
+												<Spinner className="size-3" />
+											) : (
+												<RefreshCw className="size-3" />
+											)}
+											{t("transfer.recover")}
+										</Button>
+									</div>
+								</div>
+							)}
+							{versionBackup && !versionTransactionStatus?.canRecover && (
 								<div className="flex flex-wrap items-center justify-between gap-2 border-border/80 border-t pt-3">
 									<p className="text-2xs text-muted-foreground">
 										{t(
@@ -383,6 +446,20 @@ export const InstanceSettingsDialog = ({
 											{t("transfer.deleteBackup")}
 										</Button>
 										<Button
+											variant="outline"
+											size="sm"
+											onClick={handleRecoverVersion}
+											disabled={versionBusy}
+											className="h-7 gap-1.5 text-2xs"
+										>
+											{versionBusy ? (
+												<Spinner className="size-3" />
+											) : (
+												<RefreshCw className="size-3" />
+											)}
+											{t("transfer.recover")}
+										</Button>
+										<Button
 											size="sm"
 											onClick={handleUndoVersion}
 											disabled={versionBusy}
@@ -395,11 +472,33 @@ export const InstanceSettingsDialog = ({
 								</div>
 							)}
 							{versionMsg && (
-								<p
-									className={versionMsg.ok ? "text-2xs text-primary" : "text-2xs text-destructive"}
-								>
-									{versionMsg.text}
-								</p>
+								<div className="flex flex-col gap-1.5">
+									<p
+										className={
+											versionMsg.ok ? "text-2xs text-primary" : "text-2xs text-destructive"
+										}
+									>
+										{versionMsg.text}
+									</p>
+									{!versionMsg.ok && (
+										<div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={handleRecoverVersion}
+												disabled={versionBusy}
+												className="h-7 gap-1.5 text-2xs"
+											>
+												{versionBusy ? (
+													<Spinner className="size-3" />
+												) : (
+													<RefreshCw className="size-3" />
+												)}
+												{t("transfer.recover")}
+											</Button>
+										</div>
+									)}
+								</div>
 							)}
 						</div>
 
@@ -806,7 +905,14 @@ export const InstanceSettingsDialog = ({
 					open={versionOpen}
 					onOpenChange={setVersionOpen}
 					onChanged={async (updated) => {
-						setVersionBackup(await rpc.get_instance_version_backup(updated.id).catch(() => null))
+						try {
+							const backup = await unwrapRpc(
+								rpc.instances.version_change.get_instance_version_backup(updated.id),
+							)
+							setVersionBackup(backup)
+						} catch {
+							setVersionBackup(null)
+						}
 						setVersionMsg(null)
 						await onSave?.(updated)
 					}}

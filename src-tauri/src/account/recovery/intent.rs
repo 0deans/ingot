@@ -17,21 +17,32 @@ pub(super) struct Intent {
 
 impl Intent {
     pub(super) fn valid_for(&self, repository: &AccountRepository) -> bool {
+        let change_valid = match &self.change {
+            ProfileChange::Activate { profile } => {
+                crate::account::validation::validate_profile(profile).is_ok()
+            }
+            ProfileChange::MicrosoftMetadata { id, username, .. } => {
+                crate::account::validation::is_valid_microsoft_id(id) && !username.trim().is_empty()
+            }
+            ProfileChange::Keep { id } => crate::account::validation::is_valid_account_id(id),
+            ProfileChange::Remove { id } => crate::account::validation::is_valid_account_id(id),
+        };
+
         let version_valid = match (self.version, self.grant) {
             (1, None) => true,
             (2, Some(receipt)) => {
                 receipt.belongs_to(repository.path())
                     && matches!(&self.change, ProfileChange::Activate { profile }
                         if profile.account_type == "microsoft"
-                            && profile.id == format!("microsoft:{}", profile.uuid))
+                            && profile.id == format!("microsoft:{}", profile.uuid)
+                            && !profile.uuid.trim().is_empty())
             }
             _ => false,
         };
-        version_valid
+        change_valid
+            && version_valid
             && self.change.removes() == self.secrets.is_none()
-            && ["microsoft:", "ely:", "offline:"]
-                .iter()
-                .any(|prefix| self.change.id().starts_with(prefix))
+            && crate::account::validation::is_valid_account_id(self.change.id())
     }
 }
 

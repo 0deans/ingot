@@ -90,5 +90,5 @@ async fn waiting_token_request_rejects_removed_profile_without_touching_vault() 
         })
         .unwrap();
     drop(operation);
-    assert_eq!(request.await.unwrap_err(), "Account not found");
+    assert!(matches!(request.await.unwrap_err(), SessionError::AccountNotFound));
 }

@@ -527,7 +527,9 @@
 		"tryAgain_server_one": "Starta servern igen för att prova utan den. Ångra slår på den igen.",
 		"tryAgain_server_other": "Starta servern igen för att prova utan dem. Ångra slår på dem igen.",
 		"tryAgain_game_one": "Starta spelet igen för att prova utan den. Ångra slår på den igen.",
-		"tryAgain_game_other": "Starta spelet igen för att prova utan dem. Ångra slår på dem igen."
+		"tryAgain_game_other": "Starta spelet igen för att prova utan dem. Ångra slår på dem igen.",
+		"recover": "Återställ avbrutet byte",
+		"recovered": "Tillbaka på {{version}}, precis som förut."
 	},
 	"skinPreview": {
 		"saving": "Sparar...",
@@ -1164,7 +1166,9 @@
 		"importing": "Importerar {{percent}}",
 		"settingUp": "Konfigurerar servern...",
 		"partial": "\"{{name}}\" importerades, men vissa plugins eller moddar kunde inte laddas ned:",
-		"openServer": "Öppna servern"
+		"openServer": "Öppna servern",
+		"recover": "Återställ",
+		"recoveryRequired": "Ofullständigt eller misslyckat versionsbyte upptäcktes"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "Synka resurspaket (resourcepacks/)",
 		"syncHistory": "Synka kommandohistorik (command_history.txt)",
 		"syncHotbars": "Synka kreativa snabbfält (hotbar.nbt)",
-		"inheritSync": "Följer de globala synkinställningarna. Synkar före start och efter avslut."
+		"inheritSync": "Följer de globala synkinställningarna. Synkar före start och efter avslut.",
+		"recoveryRequired": "Ofullständigt eller misslyckat versionsbyte upptäcktes"
 	},
 	"install": {
 		"loadFailed": "Det gick inte att läsa in installationsalternativen",

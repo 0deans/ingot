@@ -535,7 +535,9 @@
 		"tryAgain_server_other": "Inicia el servidor otra vez para probar sin ellos. Deshacer los vuelve a activar.",
 		"tryAgain_game_one": "Inicia el juego otra vez para probar sin él. Deshacer lo vuelve a activar.",
 		"tryAgain_game_many": "Inicia el juego otra vez para probar sin ellos. Deshacer los vuelve a activar.",
-		"tryAgain_game_other": "Inicia el juego otra vez para probar sin ellos. Deshacer los vuelve a activar."
+		"tryAgain_game_other": "Inicia el juego otra vez para probar sin ellos. Deshacer los vuelve a activar.",
+		"recover": "Recuperar cambio interrumpido",
+		"recovered": "De vuelta en {{version}}, exactamente como antes."
 	},
 	"skinPreview": {
 		"saving": "Guardando...",
@@ -1178,7 +1180,9 @@
 		"importing": "Importando {{percent}}",
 		"settingUp": "Preparando el servidor...",
 		"partial": "«{{name}}» importado, pero algunos plugins o mods no se pudieron descargar:",
-		"openServer": "Abrir servidor"
+		"openServer": "Abrir servidor",
+		"recover": "Recuperar",
+		"recoveryRequired": "Se detectó un cambio de versión incompleto o fallido"
 	},
 	"serverCores": {
 		"paper": {
@@ -1416,7 +1420,8 @@
 		"syncPacks": "Sincronizar paquetes de recursos (resourcepacks/)",
 		"syncHistory": "Sincronizar historial de comandos (command_history.txt)",
 		"syncHotbars": "Sincronizar barras de creativo (hotbar.nbt)",
-		"inheritSync": "Usa las preferencias globales de sincronización. Sincroniza antes de iniciar y al salir."
+		"inheritSync": "Usa las preferencias globales de sincronización. Sincroniza antes de iniciar y al salir.",
+		"recoveryRequired": "Se detectó un cambio de versión incompleto o fallido"
 	},
 	"install": {
 		"loadFailed": "No se pudieron cargar las opciones de instalación",

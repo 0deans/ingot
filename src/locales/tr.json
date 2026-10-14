@@ -527,7 +527,9 @@
 		"tryAgain_server_one": "Onsuz denemek için sunucuyu yeniden başlatın. Geri al seçeneği yine de tekrar açar.",
 		"tryAgain_server_other": "Bunlar olmadan denemek için sunucuyu yeniden başlatın. Geri al seçeneği yine de bunları tekrar açar.",
 		"tryAgain_game_one": "Onsuz denemek için oyunu tekrar başlatın. Geri al seçeneği yine de tekrar açar.",
-		"tryAgain_game_other": "Onlar olmadan denemek için oyunu tekrar başlatın. Geri al seçeneği yine de bunları tekrar açar."
+		"tryAgain_game_other": "Onlar olmadan denemek için oyunu tekrar başlatın. Geri al seçeneği yine de bunları tekrar açar.",
+		"recover": "Yarıda kalan değişikliği kurtar",
+		"recovered": "Tekrar {{version}} sürümüne dönüldü, tamamen eskisi gibi."
 	},
 	"skinPreview": {
 		"saving": "Kaydediliyor...",
@@ -1164,7 +1166,9 @@
 		"importing": "{{percent}} içe aktarılıyor",
 		"settingUp": "Sunucu kuruluyor...",
 		"partial": "\"{{name}}\" içe aktarıldı, ancak bazı eklentiler veya modlar indirilemedi:",
-		"openServer": "Sunucuyu açın"
+		"openServer": "Sunucuyu açın",
+		"recover": "Kurtar",
+		"recoveryRequired": "Tamamlanmamış veya başarısız sürüm değişikliği algılandı"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "Senkronizasyon Kaynak Paketleri (resourcepacks/)",
 		"syncHistory": "Senkronizasyon Komut Geçmişi (command_history.txt)",
 		"syncHotbars": "Senkronizasyon Yaratıcı Erişim Çubukları (hotbar.nbt)",
-		"inheritSync": "Genel senkronizasyon tercihlerini devralma. Başlatmadan önce ve çıkıştan sonra senkronize edilecek."
+		"inheritSync": "Genel senkronizasyon tercihlerini devralma. Başlatmadan önce ve çıkıştan sonra senkronize edilecek.",
+		"recoveryRequired": "Tamamlanmamış veya başarısız sürüm değişikliği algılandı"
 	},
 	"install": {
 		"loadFailed": "Kurulum seçenekleri yüklenemedi",

@@ -527,7 +527,9 @@
 		"tryAgain_server_other": "Mulai server lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali.",
 		"tryAgain_game_other": "Mulai permainan lagi untuk mencoba tanpa mereka. Urungkan tetap mengaktifkannya kembali.",
 		"tryAgain_server_one": "Mulai ulang server untuk mencoba tanpa ini. Urungkan tetap mengaktifkannya kembali.",
-		"tryAgain_game_one": "Mulai lagi permainan untuk mencoba tanpa ini. Urungkan tetap mengaktifkannya kembali."
+		"tryAgain_game_one": "Mulai lagi permainan untuk mencoba tanpa ini. Urungkan tetap mengaktifkannya kembali.",
+		"recover": "Pulihkan perubahan yang terputus",
+		"recovered": "Kembali ke {{version}}, persis seperti sebelumnya."
 	},
 	"skinPreview": {
 		"saving": "Menyimpan...",
@@ -1164,7 +1166,9 @@
 		"importing": "Mengimpor {{percent}}",
 		"settingUp": "Menyiapkan server...",
 		"partial": "Berhasil mengimpor \"{{name}}\", tetapi beberapa plugin atau mod tidak dapat diunduh:",
-		"openServer": "Buka server"
+		"openServer": "Buka server",
+		"recover": "Pulihkan",
+		"recoveryRequired": "Perubahan versi yang tidak lengkap atau gagal terdeteksi"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "Paket Sumber Daya Sinkronisasi (resourcepacks/)",
 		"syncHistory": "Riwayat Perintah Sinkronisasi (command_history.txt)",
 		"syncHotbars": "Sinkronisasi Hotbar Kreatif (hotbar.nbt)",
-		"inheritSync": "Mewarisi preferensi sinkronisasi global. Akan disinkronkan sebelum peluncuran dan setelah keluar."
+		"inheritSync": "Mewarisi preferensi sinkronisasi global. Akan disinkronkan sebelum peluncuran dan setelah keluar.",
+		"recoveryRequired": "Perubahan versi yang tidak lengkap atau gagal terdeteksi"
 	},
 	"install": {
 		"loadFailed": "Gagal memuat opsi instalasi",

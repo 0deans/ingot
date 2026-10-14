@@ -527,7 +527,9 @@
 		"tryAgain_server_other": "サーバーを再起動して、それらを使用せずに試してください。 「元に戻す」を実行しても、それらは再びオンになります。",
 		"tryAgain_game_other": "ゲームをもう一度開始して、それらなしで試してください。 「元に戻す」を実行しても、それらは再びオンになります。",
 		"tryAgain_server_one": "これを使用せずにサーバーを再起動します。元に戻すと再度有効化されます。",
-		"tryAgain_game_one": "これを使用せずにゲームを再起動します。元に戻すと再度有効化されます。"
+		"tryAgain_game_one": "これを使用せずにゲームを再起動します。元に戻すと再度有効化されます。",
+		"recover": "中断された変更を復旧",
+		"recovered": "以前と全く同じ {{version}} に戻しました。"
 	},
 	"skinPreview": {
 		"saving": "保存中...",
@@ -1164,7 +1166,9 @@
 		"importing": "インポート中 {{percent}}",
 		"settingUp": "サーバーをセットアップ中...",
 		"partial": "\"{{name}}\" をインポートしましたが、一部のプラグインまたはModをダウンロードできませんでした:",
-		"openServer": "サーバーを開く"
+		"openServer": "サーバーを開く",
+		"recover": "復旧",
+		"recoveryRequired": "不完全または失敗したバージョンの変更が検出されました"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "リソース パックの同期 (resourcepacks/)",
 		"syncHistory": "同期コマンド履歴(command_history.txt)",
 		"syncHotbars": "クリエイティブ ホットバーの同期 (hotbar.nbt)",
-		"inheritSync": "グローバル同期設定を継承しています。起動前と終了後に同期されます。"
+		"inheritSync": "グローバル同期設定を継承しています。起動前と終了後に同期されます。",
+		"recoveryRequired": "不完全または失敗したバージョンの変更が検出されました"
 	},
 	"install": {
 		"loadFailed": "インストール オプションのロードに失敗しました",

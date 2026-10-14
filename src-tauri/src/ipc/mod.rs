@@ -1,29 +1,74 @@
 //! Runtime routing and headless exports use the same API registration list.
+pub mod error;
+pub use error::ApiError;
+
 mod accounts;
 mod application;
+mod bedrock;
+mod content;
 pub(crate) mod events;
-mod legacy;
+mod instances;
 #[cfg(test)]
 mod metadata;
+mod servers;
 mod settings;
 mod skins;
+mod versions;
 
 use accounts::{AccountsApi, AccountsApiImpl};
 use application::{ApplicationApi, ApplicationApiImpl};
+use bedrock::{BedrockApi, BedrockApiImpl};
+use content::{ContentApi, ContentApiImpl};
 use events::{EventsApi, EventsApiImpl};
-use legacy::{AppApi, AppApiImpl};
+use instances::{
+    imports::{InstanceImportsApi, InstanceImportsApiImpl},
+    screenshots::{InstanceScreenshotsApi, InstanceScreenshotsApiImpl},
+    sync::{InstanceSyncApi, InstanceSyncApiImpl},
+    version_change::{InstanceVersionChangeApi, InstanceVersionChangeApiImpl},
+    InstancesApi, InstancesApiImpl,
+};
+use servers::{
+    config::{ServerConfigApi, ServerConfigApiImpl},
+    map::{ServerMapApi, ServerMapApiImpl},
+    metrics::{ServerMetricsApi, ServerMetricsApiImpl},
+    packs::{ServerPacksApi, ServerPacksApiImpl},
+    players::{ServerPlayersApi, ServerPlayersApiImpl},
+    plugins::{ServerPluginsApi, ServerPluginsApiImpl},
+    transfer::{ServerTransferApi, ServerTransferApiImpl},
+    tunnel::{ServerTunnelApi, ServerTunnelApiImpl},
+    version_change::{ServerVersionChangeApi, ServerVersionChangeApiImpl},
+    ServersApi, ServersApiImpl,
+};
 use settings::{SettingsApi, SettingsApiImpl};
 use skins::{SkinsApi, SkinsApiImpl};
+use versions::{VersionsApi, VersionsApiImpl};
 
 // Keep registrations in one place so exports cannot silently omit a namespace.
 macro_rules! registered_apis {
     ($register:ident) => {
-        $register!(AppApiImpl);
         $register!(ApplicationApiImpl);
         $register!(AccountsApiImpl);
         $register!(SkinsApiImpl);
         $register!(SettingsApiImpl);
         $register!(EventsApiImpl);
+        $register!(InstancesApiImpl);
+        $register!(InstanceImportsApiImpl);
+        $register!(InstanceScreenshotsApiImpl);
+        $register!(InstanceSyncApiImpl);
+        $register!(InstanceVersionChangeApiImpl);
+        $register!(ServersApiImpl);
+        $register!(ServerConfigApiImpl);
+        $register!(ServerPlayersApiImpl);
+        $register!(ServerPluginsApiImpl);
+        $register!(ServerPacksApiImpl);
+        $register!(ServerMapApiImpl);
+        $register!(ServerMetricsApiImpl);
+        $register!(ServerTransferApiImpl);
+        $register!(ServerTunnelApiImpl);
+        $register!(ServerVersionChangeApiImpl);
+        $register!(VersionsApiImpl);
+        $register!(ContentApiImpl);
+        $register!(BedrockApiImpl);
     };
 }
 

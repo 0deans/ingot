@@ -69,11 +69,12 @@ fn failure(operation: &'static str) -> CredentialError {
     }
 }
 fn profile(id: &str) -> AccountProfile {
+    let uuid = id.strip_prefix("microsoft:").unwrap_or(id).to_owned();
     AccountProfile {
         id: id.to_owned(),
         account_type: "microsoft".to_owned(),
         username: "Player".to_owned(),
-        uuid: "test".to_owned(),
+        uuid,
         skin_url: None,
         is_active: true,
         created_at: 42,
@@ -643,4 +644,153 @@ async fn another_accounts_completed_rotation_is_queued_behind_failed_recovery() 
         profiles.iter().find(|p| p.is_active).unwrap().id,
         second.id()
     );
+}
+
+#[tokio::test]
+async fn invalid_profile_publication_is_rejected_without_vault_or_marker_effects() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let repository = AccountRepository::new(path);
+    let store = store(dir.path().join("other.json"));
+    let marker_path = dir.path().join("accounts.recovery");
+    let recovery = AccountRecovery::new(marker_path.clone());
+    let operations = AccountOperations::default();
+    let operation = operations.acquire("microsoft:bad").await.unwrap();
+
+    let mut invalid_profile = profile("microsoft:bad");
+    invalid_profile.account_type = "unsupported".to_owned();
+
+    let result = recovery.publish(
+        &store,
+        &repository,
+        &operation,
+        &secrets(),
+        ProfileChange::Activate {
+            profile: invalid_profile,
+        },
+    );
+    assert!(matches!(result, Err(RecoveryError::Invalid)));
+    assert!(!marker_path.exists());
+    assert!(store.read(&recovery.key).unwrap().is_none());
+}
+
+#[tokio::test]
+async fn invalid_recovery_records_in_vault_preserve_journal_and_marker() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let repository = AccountRepository::new(path);
+    let store = store(dir.path().join("other.json"));
+    let marker_path = dir.path().join("accounts.recovery");
+    let recovery = AccountRecovery::new(marker_path.clone());
+
+    recovery.create_marker().unwrap();
+    let mut invalid_profile = profile("microsoft:bad");
+    invalid_profile.uuid = "mismatched-uuid".to_owned();
+    let invalid_intent = Intent {
+        version: 1,
+        change: ProfileChange::Activate {
+            profile: invalid_profile,
+        },
+        secrets: Some(secrets()),
+        grant: None,
+    };
+    let value = serde_json::to_string(&vec![invalid_intent]).unwrap();
+    store.write(&recovery.key, &value).unwrap();
+
+    let result = recovery.with_recovered(&store, &repository, || Ok(()));
+    assert!(matches!(result, Err(RecoveryError::Invalid)));
+    assert!(marker_path.exists());
+    assert_eq!(
+        store.read(&recovery.key).unwrap().as_deref(),
+        Some(value.as_str())
+    );
+}
+
+#[tokio::test]
+async fn malformed_intent_incomplete_ids_preserve_journal_and_perform_no_canonical_writes() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let repository = AccountRepository::new(path);
+    let store = store(dir.path().join("other.json"));
+    let marker_path = dir.path().join("accounts.recovery");
+    let recovery = AccountRecovery::new(marker_path.clone());
+
+    let test_changes = vec![
+        ProfileChange::Keep {
+            id: "microsoft:".to_owned(),
+        },
+        ProfileChange::Keep {
+            id: "microsoft:   ".to_owned(),
+        },
+        ProfileChange::Keep {
+            id: "ely:".to_owned(),
+        },
+        ProfileChange::Keep {
+            id: "ely:\t".to_owned(),
+        },
+        ProfileChange::MicrosoftMetadata {
+            id: "microsoft:".to_owned(),
+            username: "Player".to_owned(),
+            skin_url: None,
+        },
+        ProfileChange::MicrosoftMetadata {
+            id: "microsoft:   ".to_owned(),
+            username: "Player".to_owned(),
+            skin_url: None,
+        },
+    ];
+
+    for change in test_changes {
+        let malformed_id = change.id().to_owned();
+        recovery.create_marker().unwrap();
+        let intent = Intent {
+            version: 1,
+            change,
+            secrets: Some(secrets()),
+            grant: None,
+        };
+        let value = serde_json::to_string(&vec![intent]).unwrap();
+        store.write(&recovery.key, &value).unwrap();
+
+        let result = recovery.with_recovered(&store, &repository, || Ok(()));
+        assert!(matches!(result, Err(RecoveryError::Invalid)));
+        assert!(marker_path.exists());
+        assert_eq!(
+            store.read(&recovery.key).unwrap().as_deref(),
+            Some(value.as_str())
+        );
+        assert!(store.read(&malformed_id).unwrap().is_none());
+
+        std::fs::remove_file(&marker_path).unwrap();
+        store.delete(&recovery.key).unwrap();
+    }
+}
+
+#[tokio::test]
+async fn malformed_intent_incomplete_id_commit_is_rejected_without_effects() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("accounts.json");
+    let repository = AccountRepository::new(path);
+    let store = store(dir.path().join("other.json"));
+    let marker_path = dir.path().join("accounts.recovery");
+    let recovery = AccountRecovery::new(marker_path.clone());
+    let operations = AccountOperations::default();
+
+    let malformed_ids = ["microsoft:", "microsoft:   ", "ely:"];
+    for bad_id in malformed_ids {
+        let op = operations.acquire(bad_id).await.unwrap();
+        let result = recovery.publish(
+            &store,
+            &repository,
+            &op,
+            &secrets(),
+            ProfileChange::Keep {
+                id: bad_id.to_owned(),
+            },
+        );
+        assert!(matches!(result, Err(RecoveryError::Invalid)));
+        assert!(!marker_path.exists());
+        assert!(store.read(&recovery.key).unwrap().is_none());
+        assert!(store.read(bad_id).unwrap().is_none());
+    }
 }

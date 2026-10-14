@@ -1,5 +1,6 @@
 mod exchange;
 mod oauth;
+mod skins;
 mod support;
 
 // Protocol tests compose both steps. Production callers checkpoint the grant

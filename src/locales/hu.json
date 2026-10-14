@@ -527,7 +527,9 @@
 		"tryAgain_server_one": "Indítsa újra a szervert, és próbálkozzon nélküle. A visszavonás továbbra is visszakapcsolja.",
 		"tryAgain_server_other": "Indítsa újra a kiszolgálót, és próbálkozzon nélkülük. A visszavonás továbbra is visszakapcsolja őket.",
 		"tryAgain_game_one": "Indítsa újra a játékot, és próbálkozzon nélküle. A visszavonás továbbra is visszakapcsolja.",
-		"tryAgain_game_other": "Indítsa újra a játékot, és próbálkozzon nélkülük. A visszavonás továbbra is visszakapcsolja őket."
+		"tryAgain_game_other": "Indítsa újra a játékot, és próbálkozzon nélkülük. A visszavonás továbbra is visszakapcsolja őket.",
+		"recover": "Megszakított váltás helyreállítása",
+		"recovered": "Visszaállítva a(z) {{version}} verzióra, pontosan úgy, mint korábban."
 	},
 	"skinPreview": {
 		"saving": "Mentés...",
@@ -1164,7 +1166,9 @@
 		"importing": "Importálás: {{percent}}",
 		"settingUp": "Szerver beállítása...",
 		"partial": "A(z) „{{name}}” importálva, de néhány plugint vagy modot nem sikerült letölteni:",
-		"openServer": "Szerver megnyitása"
+		"openServer": "Szerver megnyitása",
+		"recover": "Helyreállítás",
+		"recoveryRequired": "Befejezetlen vagy sikertelen verzióváltás észlelhető"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "Erőforráscsomagok szinkronizálása (resourcepacks/)",
 		"syncHistory": "Parancselőzmények szinkronizálása (command_history.txt)",
 		"syncHotbars": "Creative Hotbars szinkronizálása (hotbar.nbt)",
-		"inheritSync": "Globális szinkronizálási beállítások öröklése. Indítás előtt és kilépés után szinkronizálódik."
+		"inheritSync": "Globális szinkronizálási beállítások öröklése. Indítás előtt és kilépés után szinkronizálódik.",
+		"recoveryRequired": "Befejezetlen vagy sikertelen verzióváltás észlelhető"
 	},
 	"install": {
 		"loadFailed": "Nem sikerült betölteni a telepítési opciókat",

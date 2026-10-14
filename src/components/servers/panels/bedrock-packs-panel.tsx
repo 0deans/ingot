@@ -37,7 +37,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { formatCount } from "@/lib/minecraft"
-import { rpc } from "@/lib/rpc"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 import { contentService } from "@/services/content-service"
 import { Card, EmptyState, Segmented } from "../shared/primitives"
 
@@ -65,26 +65,35 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 	// Installed packs query
 	const installedQuery = useQuery({
 		queryKey: ["bedrock-packs", server.id],
-		queryFn: () => rpc.list_bedrock_packs(server.id),
+		queryFn: () => {
+			return unwrapRpc(rpc.servers.packs.list_bedrock_packs(server.id))
+		},
 	})
 
 	const installed = installedQuery.data ?? []
-	const userPacks = useMemo(() => installed.filter((p) => !p.system), [installed])
+	const userPacks = useMemo(() => {
+		return installed.filter((p) => {
+			return !p.system
+		})
+	}, [installed])
 
 	// Public packs search query (CurseForge Bedrock gameId 78022)
 	const searchQuery = useQuery({
 		queryKey: ["bedrock-search", query, category, sort, page],
-		queryFn: () =>
-			rpc.search_content(
-				"curseforge",
-				category === "all" ? "bedrock" : category,
-				query || null,
-				null,
-				"bedrock",
-				sort,
-				page,
-				20,
-			),
+		queryFn: () => {
+			return unwrapRpc(
+				rpc.content.search_content(
+					"curseforge",
+					category === "all" ? "bedrock" : category,
+					query || null,
+					null,
+					"bedrock",
+					sort,
+					page,
+					20,
+				),
+			)
+		},
 		enabled: view === "browse",
 	})
 
@@ -94,9 +103,9 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 	const openFolder = async (subfolder?: string) => {
 		try {
 			if (subfolder) {
-				await rpc.open_bedrock_server_subfolder(server.id, subfolder)
+				await unwrapRpc(rpc.servers.packs.open_bedrock_server_subfolder(server.id, subfolder))
 			} else {
-				await rpc.open_server_folder(server.id)
+				await unwrapRpc(rpc.servers.open_server_folder(server.id))
 			}
 		} catch (e) {
 			toast.error(String(e))
@@ -105,7 +114,14 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 
 	const togglePack = async (pack: BedrockPackInfo) => {
 		try {
-			await rpc.set_bedrock_pack_enabled(server.id, pack.id, pack.packType, !pack.enabled)
+			await unwrapRpc(
+				rpc.servers.packs.set_bedrock_pack_enabled(
+					server.id,
+					pack.id,
+					pack.packType,
+					!pack.enabled,
+				),
+			)
 			await queryClient.invalidateQueries({ queryKey: ["bedrock-packs", server.id] })
 			toast.success(pack.enabled ? t("plugins.inactiveInWorld") : t("plugins.activeInWorld"))
 		} catch (e) {
@@ -115,7 +131,9 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 
 	const deletePack = async (pack: BedrockPackInfo) => {
 		try {
-			await rpc.delete_bedrock_pack(server.id, pack.folderName, pack.packType)
+			await unwrapRpc(
+				rpc.servers.packs.delete_bedrock_pack(server.id, pack.folderName, pack.packType),
+			)
 			await queryClient.invalidateQueries({ queryKey: ["bedrock-packs", server.id] })
 			toast.success(t("plugins.removed", { name: pack.name }))
 		} catch (e) {
@@ -129,7 +147,9 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 			const details = await contentService.getContentDetails("curseforge", item.id)
 			const version = details.versions?.[0]
 			if (version?.downloadUrl && version?.filename) {
-				await rpc.install_bedrock_pack(server.id, version.downloadUrl, version.filename)
+				await unwrapRpc(
+					rpc.servers.packs.install_bedrock_pack(server.id, version.downloadUrl, version.filename),
+				)
 				await queryClient.invalidateQueries({ queryKey: ["bedrock-packs", server.id] })
 				toast.success(t("plugins.packInstalled", { name: item.title }))
 			} else if (item.websiteUrl || details.websiteUrl) {

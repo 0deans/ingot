@@ -1,0 +1,87 @@
+//! Data models and DTOs for launcher detection, instance import, and reporting.
+use crate::minecraft::instance::ModLoaderType;
+
+#[taurpc::ipc_type]
+#[derive(Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DetectedLauncher {
+    pub id: String,
+    pub name: String,
+    pub icon: String,
+    pub path: String,
+    pub instances_count: u32,
+    pub available: bool,
+}
+
+#[taurpc::ipc_type]
+#[derive(Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportableInstance {
+    pub id: String,
+    pub launcher_id: String,
+    pub name: String,
+    pub game_version: String,
+    pub loader: ModLoaderType,
+    pub loader_version: Option<String>,
+    pub icon: Option<String>,
+    pub source_path: String,
+    pub mods_count: u32,
+    pub saves_count: u32,
+    pub screenshots_count: u32,
+}
+
+#[taurpc::ipc_type]
+#[derive(Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportInstanceOptions {
+    pub source_path: String,
+    pub launcher_id: String,
+    pub name: String,
+    pub game_version: String,
+    pub loader: ModLoaderType,
+    pub loader_version: Option<String>,
+    pub copy_mods: bool,
+    pub copy_configs: bool,
+    pub copy_saves: bool,
+    pub copy_resource_packs: bool,
+    pub copy_options: bool,
+    pub copy_servers: bool,
+    pub copy_screenshots: bool,
+    pub copy_extra_data: bool,
+}
+
+#[taurpc::ipc_type]
+#[derive(Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportReport {
+    pub success: bool,
+    pub instance_id: String,
+    pub name: String,
+    pub mods_copied: u32,
+    pub saves_copied: u32,
+    pub message: String,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ImportError {
+    #[error("Source directory does not exist: {0}")]
+    SourceNotFound(String),
+
+    #[error("Instance creation failed: {0}")]
+    InstanceCreate(String),
+
+    #[error("Failed to resolve instance directory: {0}")]
+    InstanceDir(String),
+
+    #[error("I/O error during import: {0}")]
+    Io(#[source] std::io::Error),
+
+    #[error("Unknown launcher ID: '{0}'")]
+    UnknownLauncher(String),
+}
+
+impl From<ImportError> for String {
+    fn from(err: ImportError) -> Self {
+        err.to_string()
+    }
+}

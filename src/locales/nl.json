@@ -527,7 +527,9 @@
 		"tryAgain_server_one": "Start de server opnieuw om het zonder te proberen. Terugdraaien schakelt hem weer in.",
 		"tryAgain_server_other": "Start de server opnieuw om het zonder te proberen. Terugdraaien schakelt ze weer in.",
 		"tryAgain_game_one": "Start het spel opnieuw om het zonder te proberen. Terugdraaien schakelt hem weer in.",
-		"tryAgain_game_other": "Start het spel opnieuw om het zonder te proberen. Terugdraaien schakelt ze weer in."
+		"tryAgain_game_other": "Start het spel opnieuw om het zonder te proberen. Terugdraaien schakelt ze weer in.",
+		"recover": "Onderbroken wijziging herstellen",
+		"recovered": "Terug op {{version}}, precies zoals eerst."
 	},
 	"skinPreview": {
 		"saving": "Opslaan...",
@@ -1164,7 +1166,9 @@
 		"importing": "Importeren {{percent}}",
 		"settingUp": "Server instellen...",
 		"partial": "\"{{name}}\" geïmporteerd, maar sommige plugins of mods konden niet worden gedownload:",
-		"openServer": "Server openen"
+		"openServer": "Server openen",
+		"recover": "Herstellen",
+		"recoveryRequired": "Onvolledige of mislukte versiewijziging gedetecteerd"
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "Resourcepacks synchroniseren (resourcepacks/)",
 		"syncHistory": "Commandogeschiedenis synchroniseren (command_history.txt)",
 		"syncHotbars": "Creatieve balken synchroniseren (hotbar.nbt)",
-		"inheritSync": "Neemt de algemene sync-voorkeuren over. Synchroniseert voor het starten en na het afsluiten."
+		"inheritSync": "Neemt de algemene sync-voorkeuren over. Synchroniseert voor het starten en na het afsluiten.",
+		"recoveryRequired": "Onvolledige of mislukte versiewijziging gedetecteerd"
 	},
 	"install": {
 		"loadFailed": "Kan installatieopties niet laden",

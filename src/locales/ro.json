@@ -535,7 +535,9 @@
 		"tryAgain_server_other": "Pornește serverul din nou pentru a încerca fără ele. Anularea le va reactiva.",
 		"tryAgain_game_one": "Pornește jocul din nou pentru a încerca fără el. Anularea îl va reactiva.",
 		"tryAgain_game_few": "Pornește jocul din nou pentru a încerca fără ele. Anularea le va reactiva.",
-		"tryAgain_game_other": "Pornește jocul din nou pentru a încerca fără ele. Anularea le va reactiva."
+		"tryAgain_game_other": "Pornește jocul din nou pentru a încerca fără ele. Anularea le va reactiva.",
+		"recover": "Recuperează modificarea întreruptă",
+		"recovered": "Înapoi pe {{version}}, exact ca înainte."
 	},
 	"skinPreview": {
 		"saving": "Se salvează...",
@@ -1178,7 +1180,9 @@
 		"importing": "Se importă {{percent}}",
 		"settingUp": "Se configurează serverul...",
 		"partial": "S-a importat „{{name}}”, dar unele pluginuri sau moduri nu au putut fi descărcate:",
-		"openServer": "Deschide serverul"
+		"openServer": "Deschide serverul",
+		"recover": "Recuperează",
+		"recoveryRequired": "A fost detectată o schimbare de versiune incompletă sau eșuată"
 	},
 	"serverCores": {
 		"paper": {
@@ -1416,7 +1420,8 @@
 		"syncPacks": "Sincronizează pachetele de resurse (resourcepacks/)",
 		"syncHistory": "Sincronizează istoricul comenzilor (command_history.txt)",
 		"syncHotbars": "Sincronizează barele rapide din creativ (hotbar.nbt)",
-		"inheritSync": "Moștenește preferințele globale de sincronizare. Se va sincroniza înainte de lansare și după ieșire."
+		"inheritSync": "Moștenește preferințele globale de sincronizare. Se va sincroniza înainte de lansare și după ieșire.",
+		"recoveryRequired": "A fost detectată o schimbare de versiune incompletă sau eșuată"
 	},
 	"install": {
 		"loadFailed": "Încărcarea opțiunilor de instalare a eșuat",

@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { QuitRequest } from "@/bindings"
-import { rpc } from "@/services/server-service"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 
 /** What leaving Ingot is for: quitting, installing an update, or restarting after one */
 export type QuitMode = "quit" | "update" | "restart"
@@ -13,7 +13,9 @@ export interface QuitPrompt {
 }
 
 /** The prompt the quit dialog is showing, if any */
-export const useQuitPrompt = create<QuitPrompt | null>(() => null)
+export const useQuitPrompt = create<QuitPrompt | null>(() => {
+	return null
+})
 
 export const quitService = {
 	ask(prompt: QuitPrompt) {
@@ -32,11 +34,13 @@ export const quitService = {
 	async guard(mode: Exclude<QuitMode, "quit">, action: () => Promise<void>): Promise<void> {
 		let request: QuitRequest
 		try {
-			request = await rpc.app.get_quit_blockers()
+			request = await unwrapRpc(rpc.app.get_quit_blockers())
 		} catch {
 			return action()
 		}
-		if (request.servers.length === 0) return action()
+		if (request.servers.length === 0) {
+			return action()
+		}
 		quitService.ask({ mode, request, proceed: action })
 	},
 }

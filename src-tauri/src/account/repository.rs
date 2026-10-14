@@ -45,6 +45,12 @@ impl AccountRepository {
         mut profile: AccountProfile,
     ) -> Result<AccountProfile, AccountError> {
         profile.is_active = true;
+        super::validation::validate_profile(&profile).map_err(|source| {
+            AccountError::Validation {
+                path: self.path.clone(),
+                source,
+            }
+        })?;
         self.update(|accounts| {
             for account in accounts.iter_mut() {
                 account.is_active = false;
@@ -82,6 +88,12 @@ impl AccountRepository {
         let _guard = self.lock.lock().map_err(|_| AccountError::LockPoisoned)?;
         let mut accounts = self.load_unlocked()?;
         let result = change(&mut accounts)?;
+        super::validation::validate_accounts(&accounts).map_err(|source| {
+            AccountError::Validation {
+                path: self.path.clone(),
+                source,
+            }
+        })?;
         let bytes = serde_json::to_vec_pretty(&accounts)?;
         let parent = self
             .path
@@ -111,10 +123,18 @@ impl AccountRepository {
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
             Err(source) => return Err(self.io_error("read", source)),
         };
-        serde_json::from_slice(&bytes).map_err(|source| AccountError::Decode {
-            path: self.path.clone(),
-            source,
-        })
+        let profiles: Vec<AccountProfile> =
+            serde_json::from_slice(&bytes).map_err(|source| AccountError::Decode {
+                path: self.path.clone(),
+                source,
+            })?;
+        super::validation::validate_accounts(&profiles).map_err(|source| {
+            AccountError::Validation {
+                path: self.path.clone(),
+                source,
+            }
+        })?;
+        Ok(profiles)
     }
 
     fn io_error(&self, operation: &'static str, source: io::Error) -> AccountError {

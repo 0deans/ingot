@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { formatDateTime } from "@/lib/format"
-import { rpc, serverService } from "@/services/server-service"
+import { rpc, unwrapRpc } from "@/lib/rpc"
+import { serverService } from "@/services/server-service"
 
-const since = (startedAt: number) =>
-	formatDateTime(startedAt, { weekday: "short", hour: "2-digit", minute: "2-digit" })
+const since = (startedAt: number) => {
+	return formatDateTime(startedAt, { weekday: "short", hour: "2-digit", minute: "2-digit" })
+}
 
 /**
  * Servers still running from before Ingot last closed (a crash, or Task Manager): their
@@ -31,7 +33,7 @@ export default function LeftoverServersDialog() {
 			setStopped([])
 			setError(null)
 		}
-		rpc.app.get_leftover_servers().then(show).catch(console.error)
+		unwrapRpc(rpc.app.get_leftover_servers()).then(show).catch(console.error)
 		let unlisten: (() => void) | undefined
 		let cancelled = false
 		rpc.events.on_leftover_servers
@@ -48,14 +50,18 @@ export default function LeftoverServersDialog() {
 	}, [])
 
 	if (servers.length === 0) return null
-	const allStopped = servers.every((s) => stopped.includes(s.serverId))
+	const allStopped = servers.every((s) => {
+		return stopped.includes(s.serverId)
+	})
 
 	const stop = async (server: LeftoverServer) => {
 		setBusy(server.serverId)
 		setError(null)
 		try {
-			await rpc.app.stop_leftover_server(server.serverId)
-			setStopped((prev) => [...prev, server.serverId])
+			await unwrapRpc(rpc.app.stop_leftover_server(server.serverId))
+			setStopped((prev) => {
+				return [...prev, server.serverId]
+			})
 			await serverService.refreshServers()
 		} catch (e) {
 			setError(String(e))

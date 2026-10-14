@@ -1,13 +1,17 @@
 import { useEffect } from "react"
 import { create } from "zustand"
 import type { AccountProfile, MicrosoftDeviceCode, PendingMicrosoftLogin } from "@/bindings"
-import { rpc } from "@/lib/rpc"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 
-const useAccountStore = create<{ accounts: AccountProfile[]; fetched: boolean }>(() => ({
-	accounts: [],
-	fetched: false,
-}))
-const current = () => useAccountStore.getState().accounts
+const useAccountStore = create<{ accounts: AccountProfile[]; fetched: boolean }>(() => {
+	return {
+		accounts: [],
+		fetched: false,
+	}
+})
+const current = () => {
+	return useAccountStore.getState().accounts
+}
 const skinCache = new Map<string, string>()
 
 function notify(accounts: AccountProfile[]) {
@@ -36,7 +40,7 @@ export const accountService = {
 
 		refreshAccountsPromise = (async () => {
 			try {
-				const list = await rpc.accounts.get_accounts()
+				const list = await unwrapRpc(rpc.accounts.get_accounts())
 				useAccountStore.setState({ accounts: list, fetched: true })
 				return list
 			} catch (error) {
@@ -51,11 +55,15 @@ export const accountService = {
 	},
 
 	async elyLogin(username: string, password: string): Promise<AccountProfile> {
-		const account = await rpc.accounts.ely_login(username, password)
+		const account = await unwrapRpc(rpc.accounts.ely_login(username, password))
 		const updated = [
 			...current()
-				.filter((a) => a.id !== account.id)
-				.map((a) => ({ ...a, isActive: false })),
+				.filter((a) => {
+					return a.id !== account.id
+				})
+				.map((a) => {
+					return { ...a, isActive: false }
+				}),
 			account,
 		]
 		notify(updated)
@@ -64,43 +72,47 @@ export const accountService = {
 
 	/** Gets the code the user enters on microsoft.com/link */
 	startMicrosoftLogin(): Promise<MicrosoftDeviceCode> {
-		return rpc.accounts.microsoft_login_start()
+		return unwrapRpc(rpc.accounts.microsoft_login_start())
 	},
 
 	/** Resolves once the user has entered the code and the account is saved */
 	async finishMicrosoftLogin(code: MicrosoftDeviceCode): Promise<AccountProfile> {
-		const account = await rpc.accounts.microsoft_login_finish(code)
+		const account = await unwrapRpc(rpc.accounts.microsoft_login_finish(code))
 		await this.refreshAccounts()
 		return account
 	},
 
 	async cancelMicrosoftLogin(): Promise<void> {
-		await rpc.accounts.microsoft_login_cancel()
+		await unwrapRpc(rpc.accounts.microsoft_login_cancel())
 	},
 
 	async getPendingMicrosoftLogin(): Promise<PendingMicrosoftLogin | null> {
-		const pending = await rpc.accounts.get_pending_microsoft_login()
+		const pending = await unwrapRpc(rpc.accounts.get_pending_microsoft_login())
 		// Inspection can finish a durable account handoff before reading the slot.
 		await this.refreshAccounts()
 		return pending
 	},
 
 	async resumeMicrosoftLogin(ticket: string): Promise<AccountProfile> {
-		const account = await rpc.accounts.resume_microsoft_login(ticket)
+		const account = await unwrapRpc(rpc.accounts.resume_microsoft_login(ticket))
 		await this.refreshAccounts()
 		return account
 	},
 
 	async discardPendingMicrosoftLogin(ticket: string): Promise<void> {
-		await rpc.accounts.discard_pending_microsoft_login(ticket)
+		await unwrapRpc(rpc.accounts.discard_pending_microsoft_login(ticket))
 	},
 
 	async addOfflineAccount(username: string): Promise<AccountProfile> {
-		const account = await rpc.accounts.add_offline_account(username)
+		const account = await unwrapRpc(rpc.accounts.add_offline_account(username))
 		const updated = [
 			...current()
-				.filter((a) => a.id !== account.id)
-				.map((a) => ({ ...a, isActive: false })),
+				.filter((a) => {
+					return a.id !== account.id
+				})
+				.map((a) => {
+					return { ...a, isActive: false }
+				}),
 			account,
 		]
 		notify(updated)
@@ -108,25 +120,34 @@ export const accountService = {
 	},
 
 	async setActiveAccount(accountId: string): Promise<void> {
-		await rpc.accounts.set_active_account(accountId)
-		const updated = current().map((a) => ({
-			...a,
-			isActive: a.id === accountId,
-		}))
+		await unwrapRpc(rpc.accounts.set_active_account(accountId))
+		const updated = current().map((a) => {
+			return {
+				...a,
+				isActive: a.id === accountId,
+			}
+		})
 		notify(updated)
 	},
 
 	async removeAccount(accountId: string): Promise<void> {
-		await rpc.accounts.remove_account(accountId)
-		const remaining = current().filter((a) => a.id !== accountId)
-		if (remaining.length > 0 && !remaining.some((a) => a.isActive)) {
+		await unwrapRpc(rpc.accounts.remove_account(accountId))
+		const remaining = current().filter((a) => {
+			return a.id !== accountId
+		})
+		if (
+			remaining.length > 0 &&
+			!remaining.some((a) => {
+				return a.isActive
+			})
+		) {
 			remaining[0] = { ...remaining[0], isActive: true }
 		}
 		notify(remaining)
 	},
 
 	async getActiveToken(): Promise<string> {
-		return await rpc.accounts.get_active_account_token()
+		return await unwrapRpc(rpc.accounts.get_active_account_token())
 	},
 
 	getCachedSkinDataUrl(skinUrl?: string | null): string | null {
@@ -142,7 +163,7 @@ export const accountService = {
 			return skinCache.get(skinUrl) ?? null
 		}
 		try {
-			const dataUrl = await rpc.skins.get_skin_data_url(skinUrl)
+			const dataUrl = await unwrapRpc(rpc.skins.get_skin_data_url(skinUrl))
 			skinCache.set(skinUrl, dataUrl)
 			return dataUrl
 		} catch (error) {
@@ -152,24 +173,30 @@ export const accountService = {
 	},
 
 	async saveSkinToDownloads(username: string, skinUrl: string): Promise<string> {
-		return await rpc.skins.save_skin_to_downloads(username, skinUrl)
+		return await unwrapRpc(rpc.skins.save_skin_to_downloads(username, skinUrl))
 	},
 
 	async reorderAccounts(accountIds: string[]): Promise<void> {
 		const reordered: AccountProfile[] = []
 		for (const id of accountIds) {
-			const found = current().find((a) => a.id === id)
+			const found = current().find((a) => {
+				return a.id === id
+			})
 			if (found) reordered.push(found)
 		}
 		for (const acc of current()) {
-			if (!reordered.some((a) => a.id === acc.id)) {
+			if (
+				!reordered.some((a) => {
+					return a.id === acc.id
+				})
+			) {
 				reordered.push(acc)
 			}
 		}
 		notify(reordered)
 
 		try {
-			await rpc.accounts.reorder_accounts(accountIds)
+			await unwrapRpc(rpc.accounts.reorder_accounts(accountIds))
 		} catch (error) {
 			console.error("Failed to persist account order:", error)
 			await accountService.refreshAccounts()
@@ -183,12 +210,8 @@ export const accountService = {
 		model?: string,
 		uploader?: string,
 	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
-		return await rpc.skins.get_ely_skins(
-			page,
-			query ?? null,
-			sort ?? null,
-			model ?? null,
-			uploader ?? null,
+		return await unwrapRpc(
+			rpc.skins.get_ely_skins(page, query ?? null, sort ?? null, model ?? null, uploader ?? null),
 		)
 	},
 
@@ -219,7 +242,9 @@ export const accountService = {
 			let isSlim = false
 			let capeUrl = player.cape_texture || null
 			try {
-				const texturesProp = player.properties?.find((p) => p.name === "textures")
+				const texturesProp = player.properties?.find((p) => {
+					return p.name === "textures"
+				})
 				if (texturesProp?.value) {
 					const decoded = JSON.parse(atob(texturesProp.value))
 					if (decoded?.textures?.SKIN?.metadata?.model === "slim") {
@@ -238,7 +263,9 @@ export const accountService = {
 						player.raw_id
 							.slice(0, 8)
 							.split("")
-							.reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) | 0, 0),
+							.reduce((acc, char) => {
+								return (acc * 31 + char.charCodeAt(0)) | 0
+							}, 0),
 					) || 1
 			}
 
@@ -263,7 +290,11 @@ export const accountService = {
 	},
 
 	async getMultiplePlayerSkins(usernames: string[]): Promise<import("@/types/skin").ElySkinItem[]> {
-		const results = await Promise.allSettled(usernames.map((u) => this.getPlayerSkin(u)))
+		const results = await Promise.allSettled(
+			usernames.map((u) => {
+				return this.getPlayerSkin(u)
+			}),
+		)
 		return results
 			.map((r) => {
 				if (r.status === "fulfilled" && r.value) {
@@ -271,7 +302,9 @@ export const accountService = {
 				}
 				return null
 			})
-			.filter((s): s is import("@/types/skin").ElySkinItem => s !== null)
+			.filter((s): s is import("@/types/skin").ElySkinItem => {
+				return s !== null
+			})
 	},
 
 	async getPlayerSkinsCatalog(
@@ -293,9 +326,13 @@ export const accountService = {
 		const items = await this.getMultiplePlayerSkins(FEATURED_PLAYERS)
 		let filtered = items
 		if (model === "slim") {
-			filtered = filtered.filter((i) => i.isSlim)
+			filtered = filtered.filter((i) => {
+				return i.isSlim
+			})
 		} else if (model === "steve") {
-			filtered = filtered.filter((i) => !i.isSlim)
+			filtered = filtered.filter((i) => {
+				return !i.isSlim
+			})
 		}
 
 		return {
@@ -307,29 +344,29 @@ export const accountService = {
 	},
 
 	async applyElySkin(accountId: string, skinId: number, password?: string): Promise<void> {
-		await rpc.skins.apply_ely_skin(accountId, skinId, password ?? null)
+		await unwrapRpc(rpc.skins.apply_ely_skin(accountId, skinId, password ?? null))
 		await this.refreshAccounts()
 	},
 
 	async uploadElySkin(accountId: string, imageBase64: string, password?: string): Promise<void> {
-		await rpc.skins.upload_ely_skin(accountId, imageBase64, password ?? null)
+		await unwrapRpc(rpc.skins.upload_ely_skin(accountId, imageBase64, password ?? null))
 		await this.refreshAccounts()
 	},
 
 	/** Sets a Microsoft account's skin to a public PNG, such as a catalog skin */
 	async applyMicrosoftSkin(accountId: string, skinUrl: string, isSlim: boolean): Promise<void> {
-		await rpc.skins.apply_microsoft_skin(accountId, skinUrl, isSlim)
+		await unwrapRpc(rpc.skins.apply_microsoft_skin(accountId, skinUrl, isSlim))
 		await this.refreshAccounts()
 	},
 
 	/** Uploads a PNG data URL as a Microsoft account's skin */
 	async uploadMicrosoftSkin(accountId: string, dataUrl: string, isSlim: boolean): Promise<void> {
-		await rpc.skins.upload_microsoft_skin(accountId, dataUrl, isSlim)
+		await unwrapRpc(rpc.skins.upload_microsoft_skin(accountId, dataUrl, isSlim))
 		await this.refreshAccounts()
 	},
 
 	async hasElyWebCredentials(accountId: string): Promise<boolean> {
-		return await rpc.skins.has_ely_web_credentials(accountId)
+		return await unwrapRpc(rpc.skins.has_ely_web_credentials(accountId))
 	},
 }
 
@@ -368,7 +405,9 @@ export const skinStorageService = {
 		if (!accountId) return
 		try {
 			const existing = this.getUploadedSkins(accountId)
-			const filtered = existing.filter((s) => s.id !== skin.id && s.dataUrl !== skin.dataUrl)
+			const filtered = existing.filter((s) => {
+				return s.id !== skin.id && s.dataUrl !== skin.dataUrl
+			})
 			const updated = [skin, ...filtered]
 			localStorage.setItem(
 				`${UPLOADED_SKINS_STORAGE_KEY_PREFIX}${accountId}`,
@@ -383,7 +422,9 @@ export const skinStorageService = {
 		if (!accountId) return
 		try {
 			const existing = this.getUploadedSkins(accountId)
-			const updated = existing.filter((s) => s.id !== skinId)
+			const updated = existing.filter((s) => {
+				return s.id !== skinId
+			})
 			localStorage.setItem(
 				`${UPLOADED_SKINS_STORAGE_KEY_PREFIX}${accountId}`,
 				JSON.stringify(updated),
@@ -395,13 +436,20 @@ export const skinStorageService = {
 }
 
 export function useAccounts() {
-	const accounts = useAccountStore((s) => s.accounts)
+	const accounts = useAccountStore((s) => {
+		return s.accounts
+	})
 
 	useEffect(() => {
-		if (!accountService.isFetched()) accountService.refreshAccounts()
+		if (!accountService.isFetched()) {
+			accountService.refreshAccounts()
+		}
 	}, [])
 
-	const activeAccount = accounts.find((a) => a.isActive) || accounts[0]
+	const activeAccount =
+		accounts.find((a) => {
+			return a.isActive
+		}) || accounts[0]
 
 	return {
 		accounts,

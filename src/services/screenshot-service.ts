@@ -2,15 +2,19 @@ import { convertFileSrc } from "@tauri-apps/api/core"
 import { useEffect } from "react"
 import { create } from "zustand"
 import type { ScreenshotInfo } from "@/bindings"
-import { rpc } from "@/lib/rpc"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 
 const useScreenshotStore = create<{
 	screenshots: ScreenshotInfo[]
 	fetched: boolean
 	loading: boolean
-}>(() => ({ screenshots: [], fetched: false, loading: false }))
+}>(() => {
+	return { screenshots: [], fetched: false, loading: false }
+})
 
-const state = () => useScreenshotStore.getState()
+const state = () => {
+	return useScreenshotStore.getState()
+}
 
 let refreshScreenshotsPromise: Promise<ScreenshotInfo[]> | null = null
 
@@ -31,7 +35,7 @@ export const screenshotService = {
 		refreshScreenshotsPromise = (async () => {
 			try {
 				useScreenshotStore.setState({ loading: true })
-				const list = await rpc.get_all_screenshots()
+				const list = await unwrapRpc(rpc.instances.screenshots.get_all_screenshots())
 				useScreenshotStore.setState({ screenshots: list, fetched: true })
 				return list
 			} catch (error) {
@@ -47,20 +51,22 @@ export const screenshotService = {
 	},
 
 	async deleteScreenshot(instanceId: string, fileName: string): Promise<void> {
-		await rpc.delete_screenshot(instanceId, fileName)
-		useScreenshotStore.setState(({ screenshots }) => ({
-			screenshots: screenshots.filter(
-				(s) => !(s.instanceId === instanceId && s.fileName === fileName),
-			),
-		}))
+		await unwrapRpc(rpc.instances.screenshots.delete_screenshot(instanceId, fileName))
+		useScreenshotStore.setState(({ screenshots }) => {
+			return {
+				screenshots: screenshots.filter((s) => {
+					return !(s.instanceId === instanceId && s.fileName === fileName)
+				}),
+			}
+		})
 	},
 
 	async openScreenshotsFolder(instanceId?: string | null): Promise<void> {
-		await rpc.open_screenshots_folder(instanceId ?? null)
+		await unwrapRpc(rpc.instances.screenshots.open_screenshots_folder(instanceId ?? null))
 	},
 
 	async revealScreenshotFile(filePath: string): Promise<void> {
-		await rpc.reveal_screenshot_file(filePath)
+		await unwrapRpc(rpc.instances.screenshots.reveal_screenshot_file(filePath))
 	},
 
 	getImageUrl(filePath: string): string {
@@ -87,11 +93,13 @@ export const screenshotService = {
 			return this.getImageUrl(screenshot.thumbnailPath)
 		}
 		try {
-			const thumbPath = await rpc.get_screenshot_thumbnail(
-				screenshot.instanceId,
-				screenshot.fileName,
-				screenshot.filePath,
-				screenshot.modifiedAt,
+			const thumbPath = await unwrapRpc(
+				rpc.instances.screenshots.get_screenshot_thumbnail(
+					screenshot.instanceId,
+					screenshot.fileName,
+					screenshot.filePath,
+					screenshot.modifiedAt,
+				),
 			)
 			screenshot.thumbnailPath = thumbPath
 			return this.getImageUrl(thumbPath)
@@ -107,29 +115,43 @@ export const screenshotService = {
 			const url = this.getThumbnailUrl(s)
 			if (loadedScreenshotImageCache.has(url)) continue
 			const img = new Image()
-			img.onload = () => loadedScreenshotImageCache.add(url)
+			img.onload = () => {
+				loadedScreenshotImageCache.add(url)
+			}
 			img.src = url
 		}
 	},
 }
 
 export function useScreenshots() {
-	const screenshots = useScreenshotStore((s) => s.screenshots)
-	const loading = useScreenshotStore((s) => s.loading)
+	const screenshots = useScreenshotStore((s) => {
+		return s.screenshots
+	})
+	const loading = useScreenshotStore((s) => {
+		return s.loading
+	})
 
 	useEffect(() => {
-		if (!state().fetched) screenshotService.refreshScreenshots()
+		if (!state().fetched) {
+			screenshotService.refreshScreenshots()
+		}
 	}, [])
 
 	return {
 		screenshots,
 		isLoading: loading,
-		refresh: () => screenshotService.refreshScreenshots(),
-		deleteScreenshot: (instanceId: string, fileName: string) =>
-			screenshotService.deleteScreenshot(instanceId, fileName),
-		openScreenshotsFolder: (instanceId?: string | null) =>
-			screenshotService.openScreenshotsFolder(instanceId),
-		revealScreenshotFile: (filePath: string) => screenshotService.revealScreenshotFile(filePath),
+		refresh: () => {
+			return screenshotService.refreshScreenshots()
+		},
+		deleteScreenshot: (instanceId: string, fileName: string) => {
+			return screenshotService.deleteScreenshot(instanceId, fileName)
+		},
+		openScreenshotsFolder: (instanceId?: string | null) => {
+			return screenshotService.openScreenshotsFolder(instanceId)
+		},
+		revealScreenshotFile: (filePath: string) => {
+			return screenshotService.revealScreenshotFile(filePath)
+		},
 		getImageUrl: screenshotService.getImageUrl,
 	}
 }

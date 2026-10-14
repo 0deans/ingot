@@ -527,7 +527,9 @@
 		"tryAgain_server_other": "서버를 다시 시작하여 해당 파일 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
 		"tryAgain_game_other": "게임을 다시 시작하여 해당 항목 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
 		"tryAgain_server_one": "서버를 다시 시작하여 해당 파일 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
-		"tryAgain_game_one": "게임을 다시 시작하여 해당 항목 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다."
+		"tryAgain_game_one": "게임을 다시 시작하여 해당 항목 없이 시도해 보세요. 실행 취소는 여전히 다시 활성화됩니다.",
+		"recover": "중단된 변경 복구",
+		"recovered": "이전과 동일하게 {{version}}(으)로 되돌아왔습니다."
 	},
 	"skinPreview": {
 		"saving": "저장 중...",
@@ -1164,7 +1166,9 @@
 		"importing": "{{percent}} 가져오기",
 		"settingUp": "서버 설정 중...",
 		"partial": "\"{{name}}\"를 가져왔지만 일부 플러그인이나 모드를 다운로드할 수 없습니다.",
-		"openServer": "오픈 서버"
+		"openServer": "오픈 서버",
+		"recover": "복구",
+		"recoveryRequired": "완료되지 않았거나 실패한 버전 변경이 감지되었습니다."
 	},
 	"serverCores": {
 		"paper": {
@@ -1401,7 +1405,8 @@
 		"syncPacks": "리소스 팩 동기화(resourcepacks/)",
 		"syncHistory": "동기화 명령 기록(command_history.txt)",
 		"syncHotbars": "크리에이티브 Hotbars 동기화(hotbar.nbt)",
-		"inheritSync": "글로벌 동기화 기본 설정을 상속합니다. 시작 전과 종료 후에 동기화됩니다."
+		"inheritSync": "글로벌 동기화 기본 설정을 상속합니다. 시작 전과 종료 후에 동기화됩니다.",
+		"recoveryRequired": "완료되지 않았거나 실패한 버전 변경이 감지되었습니다."
 	},
 	"install": {
 		"loadFailed": "설치 옵션을 로드하지 못했습니다.",

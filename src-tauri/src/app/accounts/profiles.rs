@@ -28,6 +28,8 @@ pub(crate) async fn add_offline_account<R: tauri::Runtime>(
         is_active: true,
         created_at: current_timestamp(),
     };
+    crate::account::validation::validate_profile(&new_profile)
+        .map_err(|error| error.to_string())?;
 
     let _operation = crate::app::state(&app)
         .account_operations
@@ -99,7 +101,7 @@ pub(crate) fn reorder_accounts<R: tauri::Runtime>(
 ) -> Result<(), String> {
     with_recovered(&app, |repository| {
         repository.update(|accounts| {
-            *accounts = crate::account::policy::reorder(accounts, &account_ids);
+            *accounts = crate::account::policy::reorder(accounts, &account_ids)?;
             Ok(())
         })
     })

@@ -45,6 +45,7 @@ impl SessionService<'_> {
             is_active: true,
             created_at: (self.now)(),
         };
+        crate::account::validation::validate_profile(&profile)?;
         let operation = self.operations.acquire(&profile.id).await?;
         self.recovery.publish(
             self.credentials,
@@ -139,6 +140,7 @@ impl SessionService<'_> {
             is_active: true,
             created_at: (self.now)(),
         };
+        crate::account::validation::validate_profile(&profile)?;
         let operation = self.operations.acquire(&profile.id).await?;
         // Serialize the local publication boundary with cancellation and new starts.
         let _publication = self.login.publication(attempt).map_err(login_error)?;

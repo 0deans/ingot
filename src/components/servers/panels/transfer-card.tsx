@@ -1,11 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { save as saveDialog } from "@tauri-apps/plugin-dialog"
 import {
+	AlertTriangle,
 	ArrowUpDown,
 	CheckCircle2,
 	Copy,
 	FileArchive,
 	Package,
+	RefreshCw,
 	Share2,
 	Undo2,
 	Upload,
@@ -42,19 +44,32 @@ import {
 } from "@/components/version-change/plan-review"
 import { formatPercent } from "@/lib/format"
 import { formatBytes } from "@/lib/minecraft"
+import { rpc, unwrapRpc } from "@/lib/rpc"
 import { canShareFiles, shareFile } from "@/lib/share"
 import { cn } from "@/lib/utils"
 import { useServerStatus } from "@/services/server-data"
-import { rpc, serverService } from "@/services/server-service"
+import { serverService } from "@/services/server-service"
 import { Card, CardContent, CardHeader, ErrorNote } from "../shared/primitives"
 
-type Busy = "export-configs" | "export-full" | "copy" | "version" | "undo" | null
+type Busy = "export-configs" | "export-full" | "copy" | "version" | "undo" | "recover" | null
 
 /** The last version change, while it can still be undone */
 function useVersionBackup(serverId: string) {
 	return useQuery({
 		queryKey: ["server-version-backup", serverId],
-		queryFn: () => rpc.get_server_version_backup(serverId),
+		queryFn: () => {
+			return unwrapRpc(rpc.servers.version_change.get_server_version_backup(serverId))
+		},
+	})
+}
+
+/** The version transaction and recovery status */
+function useVersionTransactionStatus(serverId: string) {
+	return useQuery({
+		queryKey: ["server-version-transaction-status", serverId],
+		queryFn: () => {
+			return unwrapRpc(rpc.servers.version_change.get_server_version_transaction_status(serverId))
+		},
 	})
 }
 
@@ -68,8 +83,15 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 	const [versionOpen, setVersionOpen] = useState(false)
 	const queryClient = useQueryClient()
 	const { data: versionBackup } = useVersionBackup(server.id)
-	const refreshBackup = () =>
-		queryClient.invalidateQueries({ queryKey: ["server-version-backup", server.id] })
+	const { data: transactionStatus } = useVersionTransactionStatus(server.id)
+	const refreshBackup = () => {
+		return Promise.all([
+			queryClient.invalidateQueries({ queryKey: ["server-version-backup", server.id] }),
+			queryClient.invalidateQueries({
+				queryKey: ["server-version-transaction-status", server.id],
+			}),
+		])
+	}
 
 	const run = async (kind: Busy, task: () => Promise<string | null>) => {
 		setBusy(kind)
@@ -84,12 +106,14 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 		}
 	}
 
-	const exportServer = (mode: ExportMode) =>
-		run(mode === "full" ? "export-full" : "export-configs", async () => {
+	const exportServer = (mode: ExportMode) => {
+		return run(mode === "full" ? "export-full" : "export-configs", async () => {
 			// Make sure the world on disk is current before copying it
-			if (mode === "full" && isRunning) await rpc.save_server_world(server.id, true).catch(() => {})
+			if (mode === "full" && isRunning) {
+				await unwrapRpc(rpc.servers.save_server_world(server.id, true)).catch(() => {})
+			}
 			if (canShareFiles()) {
-				const path = await rpc.export_server(server.id, mode, null)
+				const path = await unwrapRpc(rpc.servers.transfer.export_server(server.id, mode, null))
 				shareFile(path, "application/zip", server.name)
 				return null
 			}
@@ -99,36 +123,55 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 				filters: [{ name: t("transfer.zipArchive"), extensions: ["zip"] }],
 			})
 			if (!dest) return null
-			const path = await rpc.export_server(server.id, mode, dest)
+			const path = await unwrapRpc(rpc.servers.transfer.export_server(server.id, mode, dest))
 			return t("transfer.savedTo", { path })
 		})
+	}
 
-	const undoVersion = () =>
-		run("undo", async () => {
-			const restored = await rpc.undo_server_version_change(server.id)
+	const undoVersion = () => {
+		return run("undo", async () => {
+			const restored = await unwrapRpc(
+				rpc.servers.version_change.undo_server_version_change(server.id),
+			)
 			await serverService.refreshServers()
 			await refreshBackup()
 			return t("crashDialog.undone", { version: restored.gameVersion })
 		})
+	}
 
-	const discardBackup = () =>
-		run("undo", async () => {
-			await rpc.discard_server_version_backup(server.id)
+	const recoverVersion = () => {
+		return run("recover", async () => {
+			const restored = await unwrapRpc(
+				rpc.servers.version_change.recover_server_version_change(server.id),
+			)
+			await serverService.refreshServers()
+			await refreshBackup()
+			return t("crashDialog.recovered", { version: restored.gameVersion })
+		})
+	}
+
+	const discardBackup = () => {
+		return run("undo", async () => {
+			await unwrapRpc(rpc.servers.version_change.discard_server_version_backup(server.id))
 			await refreshBackup()
 			return null
 		})
+	}
 
-	const copy = () =>
-		run("copy", async () => {
-			const created = await rpc.duplicate_server(
-				server.id,
-				t("transfer.copyName", { name: server.name }),
-				null,
-				null,
+	const copy = () => {
+		return run("copy", async () => {
+			const created = await unwrapRpc(
+				rpc.servers.transfer.duplicate_server(
+					server.id,
+					t("transfer.copyName", { name: server.name }),
+					null,
+					null,
+				),
 			)
 			await serverService.refreshServers()
 			return t("transfer.created", { name: created.name })
 		})
+	}
 
 	return (
 		<Card>
@@ -173,10 +216,39 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 						}
 						busy={busy === "version"}
 						disabled={busy !== null || !stopped}
-						onClick={() => setVersionOpen(true)}
+						onClick={() => {
+							setVersionOpen(true)
+						}}
 					/>
 				</div>
-				{versionBackup && (
+				{transactionStatus?.canRecover && (
+					<div className="flex flex-col gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3">
+						<div className="flex items-center gap-2 text-destructive">
+							<AlertTriangle className="size-4 shrink-0" />
+							<p className="font-medium text-xs">
+								{transactionStatus.error || t("transfer.recoveryRequired")}
+							</p>
+						</div>
+						<div className="flex justify-end gap-1.5">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={recoverVersion}
+								disabled={busy !== null || !stopped}
+								title={stopped ? undefined : t("transfer.stopFirst")}
+								className="h-8 gap-1.5 rounded-lg text-xs"
+							>
+								{busy === "recover" ? (
+									<Spinner className="size-3.5" />
+								) : (
+									<RefreshCw className="size-3.5" />
+								)}
+								{t("transfer.recover")}
+							</Button>
+						</div>
+					</div>
+				)}
+				{versionBackup && !transactionStatus?.canRecover && (
 					<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-background/60 p-3">
 						<p className="min-w-0 flex-1 text-muted-foreground text-xs">
 							{t(versionBackup.worldsBackedUp ? "transfer.backupWithWorlds" : "transfer.backup", {
@@ -196,6 +268,21 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								className="h-8 rounded-lg text-muted-foreground text-xs"
 							>
 								{t("transfer.deleteBackup")}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={recoverVersion}
+								disabled={busy !== null || !stopped}
+								title={stopped ? undefined : t("transfer.stopFirst")}
+								className="h-8 gap-1.5 rounded-lg text-xs"
+							>
+								{busy === "recover" ? (
+									<Spinner className="size-3.5" />
+								) : (
+									<RefreshCw className="size-3.5" />
+								)}
+								{t("transfer.recover")}
 							</Button>
 							<Button
 								size="sm"
@@ -220,7 +307,25 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 							<AlertDescription>{notice.text}</AlertDescription>
 						</Alert>
 					) : (
-						<ErrorNote>{notice.text}</ErrorNote>
+						<div className="flex flex-col gap-1.5">
+							<ErrorNote>{notice.text}</ErrorNote>
+							<div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={recoverVersion}
+									disabled={busy !== null || !stopped}
+									className="h-7 gap-1.5 rounded-lg text-xs"
+								>
+									{busy === "recover" ? (
+										<Spinner className="size-3" />
+									) : (
+										<RefreshCw className="size-3" />
+									)}
+									{t("transfer.recover")}
+								</Button>
+							</div>
+						</div>
 					))}
 			</CardContent>
 			{/* Mounted only while open, so every opening starts from the version picker */}
@@ -318,9 +423,15 @@ function ChangeVersionDialog({
 		setError(null)
 		setStage("checking")
 		try {
-			const result = await rpc.check_server_version_change(server.id, target, core)
+			const result = await unwrapRpc(
+				rpc.servers.version_change.check_server_version_change(server.id, target, core),
+			)
 			setPlan(result)
-			setChoices(result.items.map((i) => i.action))
+			setChoices(
+				result.items.map((i) => {
+					return i.action
+				}),
+			)
 			setBackupWorlds(true)
 			setDowngradeOk(false)
 			setStage("review")
@@ -335,9 +446,16 @@ function ChangeVersionDialog({
 		setError(null)
 		setStage("applying")
 		try {
-			await rpc.apply_server_version_change(
-				{ ...plan, items: plan.items.map((item, i) => ({ ...item, action: choices[i] })) },
-				backupWorlds,
+			await unwrapRpc(
+				rpc.servers.version_change.apply_server_version_change(
+					{
+						...plan,
+						items: plan.items.map((item, i) => {
+							return { ...item, action: choices[i] }
+						}),
+					},
+					backupWorlds,
+				),
 			)
 			await serverService.refreshServers()
 			setStage("done")
@@ -532,11 +650,13 @@ export function ImportServerButton({
 				for (let i = 0; i < bytes.length; i += 0x8000) {
 					binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
 				}
-				await rpc.import_upload_chunk(uploadId, btoa(binary), offset === 0)
+				await unwrapRpc(
+					rpc.servers.transfer.import_upload_chunk(uploadId, btoa(binary), offset === 0),
+				)
 				setProgress(Math.min(1, (offset + chunkSize) / Math.max(1, file.size)))
 				if (file.size === 0) break
 			}
-			const imported = await rpc.import_server(uploadId)
+			const imported = await unwrapRpc(rpc.servers.transfer.import_server(uploadId))
 			await serverService.refreshServers()
 			if (imported.warnings.length > 0) setPartial(imported)
 			else onImported?.(imported.server)

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getRpcErrorMessage } from "@/lib/rpc"
 import { accountService } from "@/services/account-service"
 import type { AccountProfile } from "@/types/account"
 import { MicrosoftLoginPanel } from "./microsoft-login-panel"
@@ -71,7 +72,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 				handleOpenChange(false)
 			}, 600)
 		} catch (error) {
-			setErrorMessage(typeof error === "string" ? error : t("addAccount.elyFailed"))
+			setErrorMessage(getRpcErrorMessage(error) || t("addAccount.elyFailed"))
 		} finally {
 			setIsLoading(false)
 		}
@@ -94,7 +95,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 				handleOpenChange(false)
 			}, 500)
 		} catch (error) {
-			setErrorMessage(typeof error === "string" ? error : t("addAccount.offlineFailed"))
+			setErrorMessage(getRpcErrorMessage(error) || t("addAccount.offlineFailed"))
 		} finally {
 			setIsLoading(false)
 		}
