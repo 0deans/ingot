@@ -118,10 +118,12 @@ fn test_player_log_event_parsing() {
 async fn test_query_fails_when_not_running() {
     let pm = ServerProcessManager::new();
     let res = pm
-        .query("unknown", "list", |_| true, Duration::from_millis(100))
+        .query_typed("unknown", "list", |_| true, Duration::from_millis(100))
         .await;
-    assert!(res.is_err());
-    assert_eq!(res.unwrap_err(), "Server is not running");
+    assert!(matches!(
+        res,
+        Err(super::models::ProcessError::NotRunning(ref id)) if id == "unknown"
+    ));
 }
 
 #[tokio::test]

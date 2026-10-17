@@ -217,13 +217,13 @@ impl ServerConfigApi for ServerConfigApiImpl {
                 .with_serialized(|| server::files::add_access_entry(&dir, kind, &name, &uuid))??;
             if running {
                 get_server_process_manager(&app_handle)
-                    .send_command(&server_id, "whitelist reload")
+                    .send_command_typed(&server_id, "whitelist reload")
                     .await
                     .map_err(ApiError::from)?;
             }
         } else {
             get_server_process_manager(&app_handle)
-                .send_command(&server_id, &kind.add_command(&name))
+                .send_command_typed(&server_id, &kind.add_command(&name))
                 .await
                 .map_err(ApiError::from)?;
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -246,7 +246,7 @@ impl ServerConfigApi for ServerConfigApiImpl {
                 )));
             }
             get_server_process_manager(&app_handle)
-                .send_command(&server_id, &kind.remove_command(&name))
+                .send_command_typed(&server_id, &kind.remove_command(&name))
                 .await
                 .map_err(ApiError::from)?;
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;

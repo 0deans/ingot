@@ -36,6 +36,18 @@ pub struct ServerPingResponse {
     pub ping_ms: u64,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum PingError {
+    #[error("Network I/O error during server ping: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Server ping timed out")]
+    Timeout,
+    #[error("Invalid server ping response: {0}")]
+    InvalidResponse(String),
+    #[error("Failed to parse server ping response: {0}")]
+    Json(#[from] serde_json::Error),
+}
+
 fn write_varint(buf: &mut Vec<u8>, mut val: i32) {
     loop {
         if (val & !0x7F) == 0 {
@@ -47,25 +59,15 @@ fn write_varint(buf: &mut Vec<u8>, mut val: i32) {
     }
 }
 
-async fn read_varint<R: AsyncReadExt + Unpin>(reader: &mut R) -> Result<i32, String> {
-    let mut num_read = 0;
-    let mut result = 0i32;
-    loop {
-        let byte = reader
-            .read_u8()
-            .await
-            .map_err(|e| format!("Failed to read varint byte: {e}"))?;
-        let value = (byte & 0x7F) as i32;
-        result |= value << (7 * num_read);
-        num_read += 1;
-        if num_read > 5 {
-            return Err("VarInt is too big".to_string());
-        }
-        if (byte & 0x80) == 0 {
-            break;
-        }
-    }
-    Ok(result)
+async fn read_varint<R: AsyncReadExt + Unpin>(reader: &mut R) -> Result<i32, PingError> {
+    crate::server::proxy::read_varint(reader)
+        .await
+        .map_err(|error| {
+            if error.kind() == std::io::ErrorKind::InvalidData {
+                return PingError::InvalidResponse("VarInt is too big".to_string());
+            }
+            PingError::Io(error)
+        })
 }
 
 fn extract_motd_text(desc_val: &serde_json::Value) -> String {
@@ -88,7 +90,7 @@ fn extract_motd_text(desc_val: &serde_json::Value) -> String {
     desc_val.to_string()
 }
 
-pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, String> {
+pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, PingError> {
     let addr = format!("{}:{}", host, port);
 
     // Connect with a 1.5-second timeout
@@ -130,36 +132,30 @@ pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, St
     write_varint(&mut request_packet, 0x00); // packet ID = 0x00
 
     // Send Handshake + Request together
-    stream
-        .write_all(&handshake_packet)
-        .await
-        .map_err(|e| format!("Failed to send handshake: {e}"))?;
-    stream
-        .write_all(&request_packet)
-        .await
-        .map_err(|e| format!("Failed to send status request: {e}"))?;
+    stream.write_all(&handshake_packet).await?;
+    stream.write_all(&request_packet).await?;
 
     // 3. Read Response Packet
     let _packet_len = read_varint(&mut stream).await?;
     let packet_id = read_varint(&mut stream).await?;
     if packet_id != 0x00 {
-        return Err(format!("Unexpected packet ID from server: {}", packet_id));
+        return Err(PingError::InvalidResponse(format!(
+            "Unexpected packet ID from server: {}",
+            packet_id
+        )));
     }
 
     let json_len = read_varint(&mut stream).await? as usize;
     let mut json_bytes = vec![0u8; json_len];
-    stream
-        .read_exact(&mut json_bytes)
-        .await
-        .map_err(|e| format!("Failed to read response JSON: {e}"))?;
+    stream.read_exact(&mut json_bytes).await?;
 
     let ping_ms = start.elapsed().as_millis() as u64;
 
-    let raw_str = String::from_utf8(json_bytes)
-        .map_err(|e| format!("Invalid UTF-8 in status response: {e}"))?;
+    let raw_str = String::from_utf8(json_bytes).map_err(|e| {
+        PingError::InvalidResponse(format!("Invalid UTF-8 in status response: {e}"))
+    })?;
 
-    let json_val: serde_json::Value =
-        serde_json::from_str(&raw_str).map_err(|e| format!("Failed to parse status JSON: {e}"))?;
+    let json_val: serde_json::Value = serde_json::from_str(&raw_str)?;
 
     let version_name = json_val
         .get("version")
@@ -225,17 +221,12 @@ pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, St
 }
 
 /// Pings a Minecraft Bedrock Dedicated Server using RakNet Unconnected Ping over UDP
-pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, String> {
+pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, PingError> {
     use tokio::net::UdpSocket;
-    let socket = UdpSocket::bind("0.0.0.0:0")
-        .await
-        .map_err(|e| format!("Failed to bind UDP socket: {e}"))?;
+    let socket = UdpSocket::bind("0.0.0.0:0").await?;
 
     let target_addr = format!("{host}:{port}");
-    socket
-        .connect(&target_addr)
-        .await
-        .map_err(|e| format!("Failed to connect UDP to {target_addr}: {e}"))?;
+    socket.connect(&target_addr).await?;
 
     let start = Instant::now();
     let time_ms = std::time::SystemTime::now()
@@ -252,22 +243,20 @@ pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, S
     ]); // RakNet offline magic
     packet.extend_from_slice(&0x0123456789abcdefu64.to_be_bytes()); // Client GUID
 
-    socket
-        .send(&packet)
-        .await
-        .map_err(|e| format!("Failed to send Bedrock ping: {e}"))?;
+    socket.send(&packet).await?;
 
     let mut buf = [0u8; 2048];
     let len = timeout(Duration::from_millis(1500), socket.recv(&mut buf))
         .await
-        .map_err(|_| "Bedrock ping timed out".to_string())?
-        .map_err(|e| format!("Failed to receive Bedrock pong: {e}"))?;
+        .map_err(|_| PingError::Timeout)??;
 
     let ping_ms = start.elapsed().as_millis() as u64;
 
     // ID_UNCONNECTED_PONG is 0x1c
     if len < 35 || buf[0] != 0x1c {
-        return Err("Invalid Bedrock pong packet".to_string());
+        return Err(PingError::InvalidResponse(
+            "Invalid Bedrock pong packet".to_string(),
+        ));
     }
 
     // Packet structure: [1: id][8: time][8: guid][16: magic][2: str_len][str_data]

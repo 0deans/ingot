@@ -1,3 +1,4 @@
+use super::InstanceError;
 use serde::{Deserialize, Serialize};
 use std::{fs, time::UNIX_EPOCH};
 
@@ -12,14 +13,14 @@ pub struct InstanceWorldSummary {
 
 pub fn get_instance_worlds(
     instance_dir: &std::path::Path,
-) -> Result<Vec<InstanceWorldSummary>, String> {
+) -> Result<Vec<InstanceWorldSummary>, InstanceError> {
     use std::io::Read;
     let saves_dir = instance_dir.join("saves");
     if !saves_dir.exists() {
         return Ok(Vec::new());
     }
 
-    let entries = fs::read_dir(&saves_dir).map_err(|e| format!("Failed to read saves dir: {e}"))?;
+    let entries = fs::read_dir(&saves_dir).map_err(InstanceError::Io)?;
     let mut worlds = Vec::new();
 
     for entry in entries.flatten() {

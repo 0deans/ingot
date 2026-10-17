@@ -17,9 +17,9 @@ pub fn loader_id<T: Serialize>(value: &T) -> String {
         .unwrap_or_default()
 }
 
-pub fn parse_loader<T: DeserializeOwned>(id: &str) -> Result<T, String> {
+pub fn parse_loader<T: DeserializeOwned>(id: &str) -> Result<T, super::models::VersionChangeError> {
     serde_json::from_value(serde_json::Value::String(id.to_string()))
-        .map_err(|_| format!("Unknown loader: {id}"))
+        .map_err(|_| super::models::VersionChangeError::InvalidTarget(id.to_string()))
 }
 
 /// Mods for this loader on Modrinth and CurseForge (Quilt also runs Fabric mods)

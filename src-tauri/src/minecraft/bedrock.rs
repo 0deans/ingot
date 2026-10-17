@@ -293,27 +293,38 @@ fn find_storage_paths() -> (Option<String>, Option<String>, Option<String>) {
     (None, None, None)
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum BedrockError {
+    #[error("Minecraft Bedrock operations are only supported on Windows")]
+    UnsupportedPlatform,
+
+    #[error("Failed to execute Bedrock process: {0}")]
+    ProcessSpawn(#[source] std::io::Error),
+
+    #[error("Could not determine Bedrock folder location")]
+    FolderNotFound,
+}
+
 /// Launches Minecraft Bedrock Edition
-pub fn launch_bedrock() -> Result<(), String> {
+pub fn launch_bedrock() -> Result<(), BedrockError> {
     #[cfg(target_os = "windows")]
     {
         let mut cmd = Command::new("cmd");
         cmd.args(["/c", "start", "minecraft:"]);
         use std::os::windows::process::CommandExt;
         cmd.creation_flags(0x08000000);
-        cmd.spawn()
-            .map_err(|e| format!("Failed to launch Minecraft Bedrock: {e}"))?;
+        cmd.spawn().map_err(BedrockError::ProcessSpawn)?;
         Ok(())
     }
 
     #[cfg(not(target_os = "windows"))]
     {
-        Err("Minecraft Bedrock launch is only supported on Windows".to_string())
+        Err(BedrockError::UnsupportedPlatform)
     }
 }
 
 /// Opens the Microsoft Store page for Minecraft Bedrock Edition
-pub fn install_bedrock() -> Result<(), String> {
+pub fn install_bedrock() -> Result<(), BedrockError> {
     #[cfg(target_os = "windows")]
     {
         let mut cmd = Command::new("cmd");
@@ -324,19 +335,18 @@ pub fn install_bedrock() -> Result<(), String> {
         ]);
         use std::os::windows::process::CommandExt;
         cmd.creation_flags(0x08000000);
-        cmd.spawn()
-            .map_err(|e| format!("Failed to open Microsoft Store: {e}"))?;
+        cmd.spawn().map_err(BedrockError::ProcessSpawn)?;
         Ok(())
     }
 
     #[cfg(not(target_os = "windows"))]
     {
-        Err("Microsoft Store is only available on Windows".to_string())
+        Err(BedrockError::UnsupportedPlatform)
     }
 }
 
 /// Opens a specific Bedrock directory in File Explorer
-pub fn open_bedrock_folder(_kind: &str) -> Result<(), String> {
+pub fn open_bedrock_folder(_kind: &str) -> Result<(), BedrockError> {
     #[cfg(target_os = "windows")]
     {
         let status = detect_bedrock_status();
@@ -381,16 +391,15 @@ pub fn open_bedrock_folder(_kind: &str) -> Result<(), String> {
             }
             let mut cmd = Command::new("explorer");
             cmd.arg(&path_str);
-            cmd.spawn()
-                .map_err(|e| format!("Failed to open folder: {e}"))?;
+            cmd.spawn().map_err(BedrockError::ProcessSpawn)?;
             Ok(())
         } else {
-            Err("Could not determine Bedrock folder location".to_string())
+            Err(BedrockError::FolderNotFound)
         }
     }
 
     #[cfg(not(target_os = "windows"))]
     {
-        Err("Opening Bedrock folder is only supported on Windows".to_string())
+        Err(BedrockError::UnsupportedPlatform)
     }
 }

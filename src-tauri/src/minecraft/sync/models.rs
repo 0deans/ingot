@@ -106,7 +106,7 @@ pub enum SyncError {
     Settings(String),
 
     #[error("Instances error: {0}")]
-    Instances(String),
+    Instances(#[source] crate::minecraft::instance::InstanceError),
 
     #[error("Unknown sync category: {0}")]
     InvalidCategory(String),
@@ -116,10 +116,4 @@ pub enum SyncError {
 
     #[error("I/O error during sync: {0}")]
     Io(#[from] std::io::Error),
-}
-
-impl From<SyncError> for String {
-    fn from(err: SyncError) -> Self {
-        err.to_string()
-    }
 }

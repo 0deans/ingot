@@ -62,9 +62,3 @@ impl std::fmt::Debug for ElyError {
             .finish()
     }
 }
-
-impl From<ElyError> for String {
-    fn from(error: ElyError) -> Self {
-        error.to_string()
-    }
-}

@@ -4,7 +4,7 @@ use super::models::{
     VersionChangeError, VersionPlan, FABRIC_ONLY,
 };
 use super::scan::{list_worlds, scan};
-use super::sources::{self, ProjectInfo, Release, Source};
+use super::sources::{self, ProjectInfo, Release, Source, SourceClient};
 use std::collections::{HashMap, HashSet};
 
 pub fn site(source: Source) -> &'static str {
@@ -21,6 +21,14 @@ pub async fn check_typed(
     target: &Target,
     request: PlanRequest,
 ) -> Result<VersionPlan, VersionChangeError> {
+    check_with_sources(&SourceClient::new(client), target, request).await
+}
+
+pub(super) async fn check_with_sources(
+    sources: &SourceClient<'_>,
+    target: &Target,
+    request: PlanRequest,
+) -> Result<VersionPlan, VersionChangeError> {
     let game = request.to_game_version.as_str();
     let loader_changes = request.from_loader != request.to_loader;
     let local = scan(target);
@@ -34,9 +42,9 @@ pub async fn check_typed(
             .map(|f| f.sha1.clone())
             .collect();
         on_modrinth.extend(
-            sources::modrinth_identify(client, &hashes, game, &folder.scope.modrinth)
-                .await
-                .map_err(VersionChangeError::Custom)?,
+            sources
+                .modrinth_identify(&hashes, game, &folder.scope.modrinth)
+                .await?,
         );
     }
     let mut on_curseforge: HashMap<u32, (Release, bool)> = HashMap::new();
@@ -46,10 +54,7 @@ pub async fn check_typed(
             .filter(|f| f.folder == index && !target.hangar.contains_key(&f.file_name))
             .filter_map(|f| f.fingerprint)
             .collect();
-        // CurseForge being down only means fewer files can be checked
-        if let Ok(found) = sources::cf_identify(client, &prints, game, &folder.scope).await {
-            on_curseforge.extend(found);
-        }
+        on_curseforge.extend(sources.cf_identify(&prints, game, &folder.scope).await?);
     }
 
     // One entry per file, plus the release it would end up on
@@ -93,7 +98,7 @@ pub async fn check_typed(
                     )),
                 },
             );
-            let versions = sources::hangar_versions(client, &tracked.project_id, game).await;
+            let versions = sources.hangar_versions(&tracked.project_id, game).await?;
             let now = Release {
                 source: Source::Hangar,
                 project: tracked.project_id.clone(),
@@ -142,7 +147,7 @@ pub async fn check_typed(
                     Some(now)
                 } else {
                     let mut found =
-                        find_target(client, now.source, &now.project, &folder.scope, game).await;
+                        find_target(sources, now.source, &now.project, &folder.scope, game).await?;
                     // A newer file of the same version already installed
                     if found
                         .as_ref()
@@ -158,13 +163,13 @@ pub async fn check_typed(
                             file.fingerprint.and_then(|p| on_curseforge.get(&p))
                         {
                             let cf_found = find_target(
-                                client,
+                                sources,
                                 Source::Curseforge,
                                 &cf_now.project,
                                 &folder.scope,
                                 game,
                             )
-                            .await;
+                            .await?;
                             if cf_found.as_ref().is_some_and(|f| {
                                 f.file.is_some() && f.version_id != cf_now.version_id
                             }) {
@@ -253,7 +258,8 @@ pub async fn check_typed(
         .iter()
         .map(|f| (f.dir.to_string(), f))
         .collect();
-    let mentioned = resolve_dependencies(client, game, &folders, &mut items, &mut resulting).await;
+    let mentioned =
+        resolve_dependencies(sources, game, &folders, &mut items, &mut resulting).await?;
 
     // Titles, icons and pages (notes mention projects until now)
     let mut ids: HashMap<Source, HashSet<String>> = HashMap::new();
@@ -272,14 +278,16 @@ pub async fn check_typed(
     };
     let mut info: HashMap<(Source, String), ProjectInfo> = HashMap::new();
     info.extend(
-        sources::modrinth_projects(client, &list(Source::Modrinth))
-            .await
+        sources
+            .modrinth_projects(&list(Source::Modrinth))
+            .await?
             .into_iter()
             .map(|(k, v)| ((Source::Modrinth, k), v)),
     );
     info.extend(
-        sources::cf_projects(client, &list(Source::Curseforge))
-            .await
+        sources
+            .cf_projects(&list(Source::Curseforge))
+            .await?
             .into_iter()
             .map(|(k, v)| ((Source::Curseforge, k), v)),
     );
@@ -342,8 +350,6 @@ pub async fn check(
     client: &reqwest::Client,
     target: &Target,
     request: PlanRequest,
-) -> Result<VersionPlan, String> {
-    check_typed(client, target, request)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<VersionPlan, VersionChangeError> {
+    check_typed(client, target, request).await
 }

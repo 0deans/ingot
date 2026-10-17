@@ -31,12 +31,6 @@ impl std::fmt::Debug for MicrosoftSkinError {
     }
 }
 
-impl From<MicrosoftSkinError> for String {
-    fn from(error: MicrosoftSkinError) -> Self {
-        error.to_string()
-    }
-}
-
 pub struct MicrosoftSkinClient {
     client: Client,
     base_url: String,

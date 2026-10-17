@@ -196,10 +196,8 @@ impl ServerProcessManager {
         }
     }
 
-    pub async fn send_command(&self, server_id: &str, command: &str) -> Result<(), String> {
-        self.send_command_typed(server_id, command)
-            .await
-            .map_err(|e| e.to_string())
+    pub async fn send_command(&self, server_id: &str, command: &str) -> Result<(), ProcessError> {
+        self.send_command_typed(server_id, command).await
     }
 
     pub async fn send_command_typed(
@@ -228,21 +226,21 @@ impl ServerProcessManager {
 
     /// Sends a console command and returns the first stdout line accepted by `is_reply`.
     /// Used for live data (`data get entity`, `list`) without any server plugin.
-    pub async fn query(
+    pub async fn query_typed(
         &self,
         server_id: &str,
         command: &str,
         is_reply: impl Fn(&str) -> bool,
         timeout: Duration,
-    ) -> Result<String, String> {
+    ) -> Result<String, ProcessError> {
         let (query_lock, pending, line_tx) = {
             let guard = self.servers.lock().await;
             let s = guard
                 .get(server_id)
                 .filter(|s| s.status == ServerStatus::Running)
-                .ok_or_else(|| "Server is not running".to_string())?;
+                .ok_or_else(|| ProcessError::NotRunning(server_id.to_string()))?;
             if !s.ready.load(std::sync::atomic::Ordering::SeqCst) {
-                return Err("Server is still starting".to_string());
+                return Err(ProcessError::StillStarting);
             }
             (
                 s.query_lock.clone(),
@@ -255,18 +253,18 @@ impl ServerProcessManager {
         let mut rx = line_tx.subscribe();
         let query_guard = PendingQueryGuard::new(pending);
         let result = async {
-            self.send_command(server_id, command).await?;
+            self.send_command_typed(server_id, command).await?;
             tokio::time::timeout(timeout, async {
                 loop {
                     match rx.recv().await {
                         Ok(line) if is_reply(&line) => return Ok(line),
                         Ok(_) | Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {}
-                        Err(_) => return Err("Server stopped".to_string()),
+                        Err(_) => return Err(ProcessError::ServerStopped),
                     }
                 }
             })
             .await
-            .map_err(|_| format!("No reply to `{command}`"))?
+            .map_err(|_| ProcessError::NoReply(command.to_string()))?
         }
         .await;
         // Keep hiding briefly so a late reply doesn't leak into the user's console
@@ -274,7 +272,18 @@ impl ServerProcessManager {
         result
     }
 
-    pub async fn stop_server(&self, server_id: &str) -> Result<(), String> {
+    pub async fn query(
+        &self,
+        server_id: &str,
+        command: &str,
+        is_reply: impl Fn(&str) -> bool,
+        timeout: Duration,
+    ) -> Result<String, ProcessError> {
+        self.query_typed(server_id, command, is_reply, timeout)
+            .await
+    }
+
+    pub async fn stop_server(&self, server_id: &str) -> Result<(), ProcessError> {
         self.stop_server_within(server_id, Duration::from_secs(10))
             .await
     }
@@ -285,14 +294,22 @@ impl ServerProcessManager {
         &self,
         server_id: &str,
         timeout: Duration,
-    ) -> Result<(), String> {
+    ) -> Result<(), ProcessError> {
+        self.stop_server_within_typed(server_id, timeout).await
+    }
+
+    pub async fn stop_server_within_typed(
+        &self,
+        server_id: &str,
+        timeout: Duration,
+    ) -> Result<(), ProcessError> {
         let (stdin_arc, pid) = {
             let mut guard = self.servers.lock().await;
             if let Some(s) = guard.get_mut(server_id) {
                 s.status = ServerStatus::Stopping;
                 (s.stdin.clone(), s.pid)
             } else {
-                return Err(format!("Server is not running: {server_id}"));
+                return Err(ProcessError::NotRunning(server_id.to_string()));
             }
         };
 
@@ -345,12 +362,16 @@ impl ServerProcessManager {
         has_process(&self.servers, server_id, pid).await
     }
 
-    pub async fn kill_server(&self, server_id: &str) -> Result<(), String> {
+    pub async fn kill_server(&self, server_id: &str) -> Result<(), ProcessError> {
+        self.kill_server_typed(server_id).await
+    }
+
+    pub async fn kill_server_typed(&self, server_id: &str) -> Result<(), ProcessError> {
         let pid = {
             let guard = self.servers.lock().await;
             match guard.get(server_id) {
                 Some(s) => s.pid,
-                None => return Err(format!("Server is not running: {server_id}")),
+                None => return Err(ProcessError::NotRunning(server_id.to_string())),
             }
         };
         // By pid: the exit task holds the child while it waits, and cleans up after it

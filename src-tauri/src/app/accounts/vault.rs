@@ -6,10 +6,10 @@ use crate::{
 
 pub(crate) struct OsCredentialStore;
 
-fn failure(operation: &'static str, source: String) -> CredentialError {
+fn failure(operation: &'static str, source: keyring_store::KeyringError) -> CredentialError {
     CredentialError::Vault {
         operation,
-        source: VaultFailure(source),
+        source: VaultFailure(source.to_string()),
     }
 }
 

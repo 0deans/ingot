@@ -15,6 +15,58 @@ pub struct BedrockPackInfo {
     pub system: bool,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum BedrockPackError {
+    #[error("I/O error during Bedrock pack operation: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("JSON error during Bedrock pack operation: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Failed to persist pack file: {0}")]
+    Persist(#[from] tempfile::PersistError),
+
+    #[error("Network request failed: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("Cannot delete built-in BDS system packs")]
+    SystemPack,
+
+    #[error("Invalid pack folder name or linked destination")]
+    InvalidFolderName,
+
+    #[error("Pack folder not found: {0}")]
+    NotFound(String),
+
+    #[error("Download failed with status: {0}")]
+    HttpStatus(reqwest::StatusCode),
+
+    #[error("Task join error: {0}")]
+    Task(#[from] tokio::task::JoinError),
+
+    #[error("Archive error: {0}")]
+    Zip(#[from] zip::result::ZipError),
+
+    #[error("Archive extraction error: {0}")]
+    Archive(#[from] crate::app::ArchiveError),
+
+    #[error("No manifest.json found in pack archive")]
+    MissingManifest,
+
+    #[error("Failed to parse pack manifest.json")]
+    InvalidManifest,
+
+    #[error("Pack folder '{0}' already exists; remove it explicitly before installing")]
+    AlreadyExists(String),
+
+    #[error("{primary}; removing unpublished pack failed: {cleanup}; retained at {}", path.display())]
+    CleanupFailed {
+        primary: String,
+        cleanup: String,
+        path: std::path::PathBuf,
+    },
+}
+
 #[derive(Debug, Deserialize)]
 struct PackManifest {
     header: Option<PackHeader>,
@@ -82,30 +134,31 @@ fn world_dir(server_dir: &Path) -> PathBuf {
     server_dir.join("worlds").join(level)
 }
 
-fn read_world_pack_refs(world: &Path, file_name: &str) -> Result<Vec<WorldPackRef>, String> {
+fn read_world_pack_refs(
+    world: &Path,
+    file_name: &str,
+) -> Result<Vec<WorldPackRef>, BedrockPackError> {
     let path = world.join(file_name);
     let content = match fs::read_to_string(&path) {
         Ok(content) => content,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(error) => return Err(format!("Failed to read world pack references: {error}")),
+        Err(error) => return Err(BedrockPackError::Io(error)),
     };
-    serde_json::from_str(&content)
-        .map_err(|error| format!("Invalid world pack references: {error}"))
+    Ok(serde_json::from_str(&content)?)
 }
+
 fn write_world_pack_refs(
     world: &Path,
     file_name: &str,
     refs: &[WorldPackRef],
-) -> Result<(), String> {
+) -> Result<(), BedrockPackError> {
     let path = world.join(file_name);
-    fs::create_dir_all(world).map_err(|e| format!("Failed to create world directory: {e}"))?;
-    let json = serde_json::to_string_pretty(refs).map_err(|e| e.to_string())?;
-    let mut staged = tempfile::NamedTempFile::new_in(world).map_err(|e| e.to_string())?;
-    std::io::Write::write_all(&mut staged, json.as_bytes()).map_err(|e| e.to_string())?;
-    staged.as_file().sync_all().map_err(|e| e.to_string())?;
-    staged
-        .persist(&path)
-        .map_err(|e| format!("Failed to write {}: {}", path.display(), e.error))?;
+    fs::create_dir_all(world)?;
+    let json = serde_json::to_string_pretty(refs)?;
+    let mut staged = tempfile::NamedTempFile::new_in(world)?;
+    std::io::Write::write_all(&mut staged, json.as_bytes())?;
+    staged.as_file().sync_all()?;
+    staged.persist(&path)?;
     Ok(())
 }
 
@@ -178,7 +231,7 @@ fn is_system_pack(folder_name: &str, name: &str, description: Option<&str>) -> b
     false
 }
 
-pub fn list_installed_packs(server_dir: &Path) -> Result<Vec<BedrockPackInfo>, String> {
+pub fn list_installed_packs(server_dir: &Path) -> Result<Vec<BedrockPackInfo>, BedrockPackError> {
     let world = world_dir(server_dir);
     let active_behavior = read_world_pack_refs(&world, "world_behavior_packs.json")?;
     let active_resource = read_world_pack_refs(&world, "world_resource_packs.json")?;
@@ -243,7 +296,7 @@ pub fn set_pack_enabled(
     pack_id: &str,
     pack_type: &str,
     enabled: bool,
-) -> Result<(), String> {
+) -> Result<(), BedrockPackError> {
     let world = world_dir(server_dir);
     let file_name = if pack_type == "resource" {
         "world_resource_packs.json"
@@ -299,9 +352,13 @@ pub fn set_pack_enabled(
     write_world_pack_refs(&world, file_name, &active)
 }
 
-pub fn delete_pack(server_dir: &Path, folder_name: &str, pack_type: &str) -> Result<(), String> {
+pub fn delete_pack(
+    server_dir: &Path,
+    folder_name: &str,
+    pack_type: &str,
+) -> Result<(), BedrockPackError> {
     if is_system_pack(folder_name, "", None) || folder_name.contains("..") {
-        return Err("Cannot delete built-in BDS system packs".to_string());
+        return Err(BedrockPackError::SystemPack);
     }
 
     let sub = if pack_type == "resource" {
@@ -310,9 +367,9 @@ pub fn delete_pack(server_dir: &Path, folder_name: &str, pack_type: &str) -> Res
         "behavior_packs"
     };
     let target = crate::app::safe_enclosed_filename(&server_dir.join(sub), folder_name)
-        .ok_or_else(|| "Invalid pack folder name or linked destination".to_string())?;
+        .ok_or(BedrockPackError::InvalidFolderName)?;
     if !target.exists() {
-        return Err(format!("Pack folder not found: {folder_name}"));
+        return Err(BedrockPackError::NotFound(folder_name.to_string()));
     }
 
     // Read manifest to unregister from world
@@ -322,7 +379,8 @@ pub fn delete_pack(server_dir: &Path, folder_name: &str, pack_type: &str) -> Res
         }
     }
 
-    fs::remove_dir_all(&target).map_err(|e| format!("Failed to delete pack: {e}"))
+    fs::remove_dir_all(&target)?;
+    Ok(())
 }
 
 mod install;

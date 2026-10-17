@@ -71,8 +71,7 @@ pub fn set_enabled(
     enabled: bool,
 ) -> Result<(), PluginError> {
     let dir = folder(server_dir, core)?;
-    let file_name =
-        safe_jar_name(file_name).map_err(|_| PluginError::InvalidJarName(file_name.into()))?;
+    let file_name = safe_jar_name(file_name)?;
     let jar = file_name.trim_end_matches(".disabled");
     let (from, to) = if enabled {
         (format!("{jar}.disabled"), jar.to_string())
@@ -95,8 +94,7 @@ pub fn remove(
     file_name: &str,
 ) -> Result<(), PluginError> {
     let dir = folder(server_dir, core)?;
-    let file_name =
-        safe_jar_name(file_name).map_err(|_| PluginError::InvalidJarName(file_name.into()))?;
+    let file_name = safe_jar_name(file_name)?;
     let mut tracked = read_tracking(server_dir)?;
     let path = crate::app::safe_enclosed_filename(&dir, file_name)
         .ok_or_else(|| PluginError::InvalidJarName(file_name.into()))?;

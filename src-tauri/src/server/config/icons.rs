@@ -1,7 +1,8 @@
+use crate::server::files::ServerFileError;
 use std::fs;
 use std::path::Path;
 
-pub fn save_server_icon(server_dir: &Path, base64_data: &str) -> Result<(), String> {
+pub fn save_server_icon(server_dir: &Path, base64_data: &str) -> Result<(), ServerFileError> {
     use base64::Engine;
     let clean_b64 = if let Some(idx) = base64_data.find(',') {
         &base64_data[idx + 1..]
@@ -10,9 +11,9 @@ pub fn save_server_icon(server_dir: &Path, base64_data: &str) -> Result<(), Stri
     };
     let bytes = base64::engine::general_purpose::STANDARD
         .decode(clean_b64)
-        .map_err(|e| format!("Invalid base64 icon data: {e}"))?;
+        .map_err(|e| ServerFileError::InvalidProperty(format!("Invalid base64 icon data: {e}")))?;
     let icon_path = server_dir.join("server-icon.png");
-    fs::write(icon_path, bytes).map_err(|e| format!("Failed to write server-icon.png: {e}"))
+    fs::write(icon_path, bytes).map_err(ServerFileError::Io)
 }
 
 pub fn get_server_icon_base64(server_dir: &Path) -> Option<String> {

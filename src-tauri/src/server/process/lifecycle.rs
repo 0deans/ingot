@@ -1,22 +1,20 @@
 use super::command::build_server_command;
-use super::console::{
-    clean_console_line, extract_player_keyword, parse_bedrock_connected, parse_bedrock_disconnected,
-};
 use super::manager::ServerProcessManager;
-use super::models::{ActiveServer, StartingGuard};
+use super::models::{ActiveServer, ProcessError, StartingGuard};
+use super::monitoring::{
+    spawn_exit_monitor, spawn_stderr_reader, spawn_stdout_reader, ExitMonitorContext,
+    StdoutReaderContext,
+};
 use crate::server::config::{
     get_server_dir, read_server_properties_from_dir, write_server_properties_to_dir, ServerConfig,
     ServerCoreType, ServerLogEvent, ServerStatus, ServerStatusEvent,
 };
 use crate::server::downloader::ensure_server_jar;
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Runtime;
-use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::process::{Child, ChildStderr, ChildStdout};
 use tokio::sync::Mutex;
 
 /// Launches the Minecraft server process
@@ -27,7 +25,7 @@ pub async fn launch_server<R: Runtime, FLog, FStatus>(
     server_id: String,
     on_log: FLog,
     on_status: FStatus,
-) -> Result<u32, String>
+) -> Result<u32, ProcessError>
 where
     FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
     FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
@@ -50,7 +48,7 @@ pub(crate) async fn claim_server_launch<R: Runtime>(
     app: &tauri::AppHandle<R>,
     processes: &ServerProcessManager,
     server_id: &str,
-) -> Result<ClaimedServerLaunch, String> {
+) -> Result<ClaimedServerLaunch, ProcessError> {
     claim_server_from_repository(&crate::app::state(app).server_configs, processes, server_id).await
 }
 
@@ -58,17 +56,13 @@ pub(super) async fn claim_server_from_repository(
     repository: &crate::minecraft::metadata::MetadataRepository<ServerConfig>,
     processes: &ServerProcessManager,
     server_id: &str,
-) -> Result<ClaimedServerLaunch, String> {
-    let ownership = processes
-        .claim_launch(server_id)
-        .await
-        .map_err(|error| error.to_string())?;
+) -> Result<ClaimedServerLaunch, ProcessError> {
+    let ownership = processes.claim_launch(server_id).await?;
     let config = repository
-        .load()
-        .map_err(|error| error.to_string())?
+        .load()?
         .into_iter()
         .find(|config| config.id == server_id)
-        .ok_or_else(|| format!("Server not found: {server_id}"))?;
+        .ok_or_else(|| ProcessError::ServerNotFound(format!("Server not found: {server_id}")))?;
     Ok(ClaimedServerLaunch { config, ownership })
 }
 
@@ -79,7 +73,7 @@ pub(crate) async fn launch_claimed_server<R: Runtime, FLog, FStatus>(
     claimed: ClaimedServerLaunch,
     on_log: FLog,
     on_status: FStatus,
-) -> Result<u32, String>
+) -> Result<u32, ProcessError>
 where
     FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
     FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
@@ -128,7 +122,7 @@ async fn launch_server_inner<R: Runtime, FLog, FStatus>(
     config: ServerConfig,
     on_log: FLog,
     on_status: FStatus,
-) -> Result<u32, String>
+) -> Result<u32, ProcessError>
 where
     FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
     FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
@@ -179,13 +173,12 @@ where
             status: ServerStatus::Stopped,
             pid: None,
         });
-        return Err(format!("Failed to download server jar: {e}"));
+        return Err(ProcessError::Core(e));
     }
 
     crate::app::state(&app)
         .server_configs
-        .with_serialized(|| crate::server::config::repair_offline_uuids(&server_dir))
-        .map_err(|error| error.to_string())??;
+        .with_serialized(|| crate::server::config::repair_offline_uuids(&server_dir))??;
 
     // 2. Ensure eula.txt is accepted
     let eula_path = server_dir.join("eula.txt");
@@ -210,8 +203,7 @@ where
             key: "server-ip".to_string(),
             value: bind_ip.to_string(),
         }],
-    )
-    .map_err(|error| error.to_string())?;
+    )?;
 
     // 4. Build execution command
     let mut cmd = build_server_command(&app, &client, &config, &server_dir, step.clone()).await?;
@@ -229,24 +221,13 @@ where
 
     let mut child = cmd
         .spawn()
-        .map_err(|e| format!("Failed to spawn server process: {e}"))?;
+        .map_err(|e| ProcessError::SpawnFailed(e.to_string()))?;
 
-    let pid = child
-        .id()
-        .ok_or_else(|| "Failed to get server PID".to_string())?;
+    let pid = child.id().ok_or(ProcessError::MissingPid)?;
 
-    let stdin = child
-        .stdin
-        .take()
-        .ok_or_else(|| "Failed to attach stdin".to_string())?;
-    let stdout = child
-        .stdout
-        .take()
-        .ok_or_else(|| "Failed to attach stdout".to_string())?;
-    let stderr = child
-        .stderr
-        .take()
-        .ok_or_else(|| "Failed to attach stderr".to_string())?;
+    let stdin = child.stdin.take().ok_or(ProcessError::MissingStdin)?;
+    let stdout = child.stdout.take().ok_or(ProcessError::MissingStdout)?;
+    let stderr = child.stderr.take().ok_or(ProcessError::MissingStderr)?;
 
     let stdin_arc = Arc::new(Mutex::new(stdin));
     let child_arc = Arc::new(Mutex::new(child));
@@ -319,211 +300,4 @@ where
     });
 
     Ok(pid)
-}
-
-struct StdoutReaderContext {
-    stdout: ChildStdout,
-    server_id: String,
-    server_dir: PathBuf,
-    ready: Arc<std::sync::atomic::AtomicBool>,
-    line_tx: tokio::sync::broadcast::Sender<String>,
-    pending_queries: Arc<std::sync::atomic::AtomicUsize>,
-    log_history: Arc<Mutex<Vec<String>>>,
-    online_players: Arc<Mutex<Vec<String>>>,
-    player_xuids: Arc<Mutex<HashMap<String, String>>>,
-    on_log: Arc<dyn Fn(ServerLogEvent) + Send + Sync + 'static>,
-}
-
-fn spawn_stdout_reader(ctx: StdoutReaderContext) {
-    let StdoutReaderContext {
-        stdout,
-        server_id,
-        server_dir,
-        ready,
-        line_tx,
-        pending_queries,
-        log_history,
-        online_players,
-        player_xuids,
-        on_log,
-    } = ctx;
-    tokio::spawn(async move {
-        let mut lines = BufReader::new(stdout).lines();
-        while let Ok(Some(raw)) = lines.next_line().await {
-            let line = clean_console_line(&raw);
-            if (line.contains("Done (") && line.contains("For help"))
-                || line.contains("Server started")
-            {
-                ready.store(true, std::sync::atomic::Ordering::SeqCst);
-                crate::version_change::crash::first_start_ok(&server_dir);
-            }
-            let _ = line_tx.send(line.clone());
-            if pending_queries.load(std::sync::atomic::Ordering::SeqCst) > 0
-                && crate::server::live::is_query_reply(&line)
-            {
-                continue;
-            }
-
-            let level = if line.contains("WARN]") || line.contains("WARN:") {
-                "warn".to_string()
-            } else if line.contains("ERROR]")
-                || line.contains("ERROR:")
-                || line.contains("Exception:")
-            {
-                "error".to_string()
-            } else {
-                "info".to_string()
-            };
-
-            process_player_events(&line, &online_players, &player_xuids).await;
-
-            {
-                let mut guard = log_history.lock().await;
-                guard.push(line.clone());
-                if guard.len() > 1000 {
-                    guard.remove(0);
-                }
-            }
-
-            on_log(ServerLogEvent {
-                server_id: server_id.clone(),
-                line,
-                level,
-            });
-        }
-
-        let mut guard = online_players.lock().await;
-        guard.clear();
-        let mut x_guard = player_xuids.lock().await;
-        x_guard.clear();
-    });
-}
-
-async fn process_player_events(
-    line: &str,
-    online_players: &Mutex<Vec<String>>,
-    player_xuids: &Mutex<HashMap<String, String>>,
-) {
-    if line.contains("joined the game") {
-        if let Some(name) = extract_player_keyword(line, " joined the game") {
-            let mut guard = online_players.lock().await;
-            if !guard.contains(&name) {
-                guard.push(name);
-            }
-        }
-    } else if line.contains("left the game") {
-        if let Some(name) = extract_player_keyword(line, " left the game") {
-            let mut guard = online_players.lock().await;
-            guard.retain(|p| p != &name);
-        }
-    } else if line.contains("Player connected: ") {
-        if let Some((name, xuid_opt)) = parse_bedrock_connected(line) {
-            let mut guard = online_players.lock().await;
-            if !guard.contains(&name) {
-                guard.push(name.clone());
-            }
-            if let Some(xuid) = xuid_opt {
-                let mut x_guard = player_xuids.lock().await;
-                x_guard.insert(name, xuid);
-            }
-        }
-    } else if line.contains("Player disconnected: ") {
-        if let Some(name) = parse_bedrock_disconnected(line) {
-            let mut guard = online_players.lock().await;
-            guard.retain(|p| p != &name);
-            let mut x_guard = player_xuids.lock().await;
-            x_guard.remove(&name);
-        }
-    }
-}
-
-fn spawn_stderr_reader(
-    stderr: ChildStderr,
-    server_id: String,
-    log_history: Arc<Mutex<Vec<String>>>,
-    on_log: Arc<dyn Fn(ServerLogEvent) + Send + Sync + 'static>,
-) {
-    tokio::spawn(async move {
-        let mut lines = BufReader::new(stderr).lines();
-        while let Ok(Some(raw)) = lines.next_line().await {
-            let line = clean_console_line(&raw);
-            {
-                let mut guard = log_history.lock().await;
-                guard.push(line.clone());
-                if guard.len() > 1000 {
-                    guard.remove(0);
-                }
-            }
-
-            on_log(ServerLogEvent {
-                server_id: server_id.clone(),
-                line,
-                level: "error".to_string(),
-            });
-        }
-    });
-}
-
-struct ExitMonitorContext<R: Runtime> {
-    app: tauri::AppHandle<R>,
-    pm: ServerProcessManager,
-    child_arc: Arc<Mutex<Child>>,
-    server_id: String,
-    server_dir: PathBuf,
-    server_name: String,
-    core: ServerCoreType,
-    pid: u32,
-    ready_flag: Arc<std::sync::atomic::AtomicBool>,
-    on_status: Arc<dyn Fn(ServerStatusEvent) + Send + Sync + 'static>,
-}
-
-fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
-    let ExitMonitorContext {
-        app,
-        pm,
-        child_arc,
-        server_id,
-        server_dir,
-        server_name,
-        core,
-        pid,
-        ready_flag,
-        on_status,
-    } = ctx;
-    let started_at = SystemTime::now() - Duration::from_secs(2);
-    tokio::spawn(async move {
-        let mut child = child_arc.lock().await;
-        let exited = child.wait().await;
-        if !pm.owns(&server_id, pid).await {
-            return;
-        }
-        let stopping = pm.get_server_status(&server_id).await == ServerStatus::Stopping;
-        let started = ready_flag.load(std::sync::atomic::Ordering::SeqCst);
-        if !started && !stopping {
-            let clean = exited.is_ok_and(|s| s.success());
-            let folder = crate::server::plugins::platform(&core).map(|p| p.folder);
-            if let Some(crash) = crate::version_change::crash::after_exit(
-                &server_dir,
-                clean,
-                crate::version_change::TargetKind::Server,
-                &server_id,
-                &server_name,
-                folder.as_slice(),
-                started_at,
-            ) {
-                crate::app::events::version_change_crash(&app, crash);
-            }
-        }
-
-        crate::running::remove(&app, crate::running::Kind::Server, &server_id, pid);
-        if !pm.remove_if_pid_matches(&server_id, pid).await {
-            return;
-        }
-
-        on_status(ServerStatusEvent {
-            server_id,
-            status: ServerStatus::Stopped,
-            pid: None,
-        });
-    });
 }

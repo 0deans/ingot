@@ -97,7 +97,6 @@ impl ApiError {
 
 mod accounts;
 mod instances;
-mod legacy;
 mod servers;
 mod settings;
 

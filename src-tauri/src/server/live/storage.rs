@@ -1,4 +1,4 @@
-use super::models::{bedrock_player_details, KnownPlayer, PlayerDetails};
+use super::models::{bedrock_player_details, KnownPlayer, LiveError, PlayerDetails};
 use super::nbt::Nbt;
 use super::players::player_from_nbt;
 use serde::Deserialize;
@@ -105,12 +105,12 @@ pub fn offline_player(
     server_dir: &Path,
     world_dir: &Path,
     name: &str,
-) -> Result<PlayerDetails, String> {
+) -> Result<PlayerDetails, LiveError> {
     let known = known_players(server_dir, world_dir);
     let player = known
         .iter()
         .find(|p| p.name.eq_ignore_ascii_case(name))
-        .ok_or_else(|| format!("No saved data for {name}"))?;
+        .ok_or_else(|| LiveError::NoSavedData(name.to_string()))?;
     for dir in player_data_dirs(world_dir) {
         if let Some(data) = read_player_file(&dir.join(format!("{}.dat", player.uuid))) {
             let mut details = player_from_nbt(&player.name, &data, false);
@@ -118,7 +118,7 @@ pub fn offline_player(
             return Ok(details);
         }
     }
-    Err(format!("No saved data for {name}"))
+    Err(LiveError::NoSavedData(name.to_string()))
 }
 
 /// Reads known Bedrock players from allowlist.json / whitelist.json

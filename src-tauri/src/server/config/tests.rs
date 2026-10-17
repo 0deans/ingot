@@ -274,3 +274,101 @@ fn property_port_update_publishes_metadata_and_preserves_unrelated_fields() {
         25566
     );
 }
+
+fn creation_request(core: ServerCoreType) -> super::creation::ServerCreation {
+    super::creation::ServerCreation {
+        name: "New server".into(),
+        core,
+        game_version: "1.21.1".into(),
+        build_number: None,
+        port: None,
+        memory_min_mb: None,
+        memory_max_mb: None,
+    }
+}
+
+#[test]
+fn creation_preserves_java_and_bedrock_defaults_and_avoids_occupied_ports() {
+    use super::creation::prepare_server_config;
+    let existing = [make_server("existing", 25565, Some(35565))];
+    let java = prepare_server_config(
+        &existing,
+        creation_request(ServerCoreType::Paper),
+        "new-java".into(),
+        123,
+    )
+    .unwrap();
+    assert_eq!(java.port, 25566);
+    assert_eq!(java.internal_port, Some(35566));
+    assert_eq!((java.memory_min_mb, java.memory_max_mb), (2048, 4096));
+    assert_eq!(java.sleep_enabled, Some(true));
+    assert_eq!(java.created_at, 123);
+    let bedrock = prepare_server_config(
+        &existing,
+        creation_request(ServerCoreType::Bedrock),
+        "new-bedrock".into(),
+        456,
+    )
+    .unwrap();
+    assert_eq!(bedrock.port, 19132);
+    assert_eq!((bedrock.memory_min_mb, bedrock.memory_max_mb), (1024, 2048));
+    assert_eq!(bedrock.sleep_enabled, Some(false));
+}
+
+#[test]
+fn creation_rejects_empty_names_invalid_memory_and_occupied_explicit_ports() {
+    use super::{creation::prepare_server_config, error::ConfigError, models::PortError};
+    let mut request = creation_request(ServerCoreType::Paper);
+    request.name = " \t".into();
+    assert!(matches!(
+        prepare_server_config(&[], request, "new".into(), 0),
+        Err(ConfigError::EmptyName)
+    ));
+    for (minimum, maximum) in [(0, 1024), (2048, 1024)] {
+        let mut request = creation_request(ServerCoreType::Paper);
+        request.memory_min_mb = Some(minimum);
+        request.memory_max_mb = Some(maximum);
+        assert!(matches!(
+            prepare_server_config(&[], request, "new".into(), 0),
+            Err(ConfigError::InvalidMemory { .. })
+        ));
+    }
+    let mut request = creation_request(ServerCoreType::Paper);
+    request.port = Some(25565);
+    let existing = [make_server("existing", 25565, Some(35565))];
+    assert!(matches!(
+        prepare_server_config(&existing, request, "new".into(), 0),
+        Err(ConfigError::Port(PortError::PortInUse { .. }))
+    ));
+}
+
+#[test]
+fn invalid_server_update_preserves_metadata_and_properties() {
+    use crate::minecraft::metadata::MetadataRepository;
+    let root = tempfile::tempdir().unwrap();
+    let metadata_path = root.path().join("servers.json");
+    let repository = MetadataRepository::new(metadata_path.clone());
+    let server = make_server("a", 25565, Some(35565));
+    repository
+        .update(|records| {
+            records.push(server.clone());
+            Ok(())
+        })
+        .unwrap();
+    let original_metadata = std::fs::read(&metadata_path).unwrap();
+    let properties_path = root.path().join("server.properties");
+    std::fs::write(&properties_path, "server-port=25565\ncustom=keep\n").unwrap();
+    let mut invalid = server;
+    invalid.memory_max_mb = 1;
+    invalid.port = 25566;
+    let result = super::service::update_server_record(&repository, invalid, root.path());
+    assert!(matches!(
+        result,
+        Err(super::error::ConfigError::InvalidMemory { .. })
+    ));
+    assert_eq!(std::fs::read(&metadata_path).unwrap(), original_metadata);
+    assert_eq!(
+        std::fs::read_to_string(properties_path).unwrap(),
+        "server-port=25565\ncustom=keep\n"
+    );
+}

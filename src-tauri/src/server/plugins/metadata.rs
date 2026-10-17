@@ -1,14 +1,14 @@
-use super::models::RawJarMetadata;
+use super::models::{PluginError, RawJarMetadata};
 use serde_json::Value;
 use std::io::Read;
 use std::path::Path;
 
 /// Only plain jar names inside the plugins/mods folder
-pub fn safe_jar_name(name: &str) -> Result<&str, String> {
+pub fn safe_jar_name(name: &str) -> Result<&str, PluginError> {
     let base = name.strip_suffix(".disabled").unwrap_or(name);
     let plain = Path::new(name).file_name().and_then(|f| f.to_str()) == Some(name);
     if !plain || !base.to_ascii_lowercase().ends_with(".jar") || name.starts_with('.') {
-        return Err(format!("Not a plugin file: {name}"));
+        return Err(PluginError::InvalidJarName(name.to_string()));
     }
     Ok(name)
 }

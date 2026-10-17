@@ -227,14 +227,27 @@ pub enum TransactionPhase {
 
 #[derive(Debug, Error)]
 pub enum VersionChangeError {
+    #[error(transparent)]
+    Source(#[from] super::sources::SourceError),
     #[error("Unexpected file name: {0}")]
     InvalidFileName(String),
     #[error("Unexpected path: {0}")]
     InvalidPath(String),
-    #[error("Failed to prepare downloads: {0}")]
-    DownloadPrep(String),
-    #[error("Download error for {0}: {1}")]
-    DownloadFailed(String, String),
+    #[error("Failed to {operation} at {path}: {source}")]
+    DownloadPrep {
+        operation: &'static str,
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Download error for {title}: {source}")]
+    DownloadFailed {
+        title: String,
+        #[source]
+        source: crate::minecraft::downloader::DownloadError,
+    },
+    #[error("Version change download task failed: {0}")]
+    Task(#[from] tokio::task::JoinError),
     #[error("{0} downloaded incorrectly (checksum mismatch)")]
     ChecksumMismatch(String),
     #[error("{0} doesn't come from a known download server")]
@@ -243,6 +256,8 @@ pub enum VersionChangeError {
     NoChecksum(String),
     #[error("Plan item error: {0}")]
     PlanError(String),
+    #[error("Invalid version target: {0}")]
+    InvalidTarget(String),
     #[error("Failed to create backup: {0}")]
     BackupError(String),
     #[error("File operation error: {0}")]
@@ -333,8 +348,8 @@ pub fn safe_file_name_typed(name: &str, kind: ContentKind) -> Result<&str, Versi
     }
 }
 
-pub fn safe_file_name(name: &str, kind: ContentKind) -> Result<&str, String> {
-    safe_file_name_typed(name, kind).map_err(|e| e.to_string())
+pub fn safe_file_name(name: &str, kind: ContentKind) -> Result<&str, VersionChangeError> {
+    safe_file_name_typed(name, kind)
 }
 
 /// A path inside the target given by the frontend or the journal: relative, no ".."
@@ -356,8 +371,8 @@ pub fn safe_rel_typed(rel: &str) -> Result<&str, VersionChangeError> {
     }
 }
 
-pub fn safe_rel(rel: &str) -> Result<&str, String> {
-    safe_rel_typed(rel).map_err(|e| e.to_string())
+pub fn safe_rel(rel: &str) -> Result<&str, VersionChangeError> {
+    safe_rel_typed(rel)
 }
 
 pub fn now_secs() -> u64 {

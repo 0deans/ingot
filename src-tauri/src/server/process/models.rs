@@ -80,6 +80,8 @@ impl Drop for PendingQueryGuard {
 pub enum ProcessError {
     #[error("Server is not running: {0}")]
     NotRunning(String),
+    #[error("Server not found: {0}")]
+    ServerNotFound(String),
     #[error("Server is already running")]
     AlreadyRunning,
     #[error("Server is already starting")]
@@ -88,6 +90,8 @@ pub enum ProcessError {
     StillStarting,
     #[error("Server stopped")]
     ServerStopped,
+    #[error("Server must be running to put it into sleep mode")]
+    MustBeRunningToSleep,
     #[error("No reply to `{0}`")]
     NoReply(String),
     #[error("Failed to write command to server stdin: {0}")]
@@ -106,14 +110,28 @@ pub enum ProcessError {
     MissingStdout,
     #[error("Failed to attach stderr")]
     MissingStderr,
+    #[error("Port {port} is already in use ({details}). Close whatever uses it, or give this server another port in Settings.")]
+    PortInUse { port: u16, details: String },
     #[error("Server configuration or directory error: {0}")]
-    Config(String),
+    Config(#[from] crate::server::config::ConfigError),
+    #[error("Server metadata failed: {0}")]
+    Metadata(#[from] crate::minecraft::metadata::MetadataError),
+    #[error("Server file operation failed: {0}")]
+    File(#[from] crate::server::files::ServerFileError),
+    #[error("Java runtime failed: {0}")]
+    Java(#[from] crate::minecraft::java::JavaError),
+    #[error("Server core error: {0}")]
+    Core(#[from] crate::server::downloader::ServerCoreError),
+    #[error("Installer error: {0}")]
+    Installer(#[from] crate::server::installer::InstallerError),
+    #[error("Pumpkin server error: {0}")]
+    Pumpkin(#[from] crate::server::pumpkin::PumpkinError),
+    #[error("Bedrock server error: {0}")]
+    Bedrock(#[from] crate::server::bedrock::BedrockServerError),
+    #[error("Sandbox error: {0}")]
+    Sandbox(#[from] crate::server::sandbox::SandboxError),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
     #[error("{0}")]
     Other(String),
-}
-
-impl From<ProcessError> for String {
-    fn from(e: ProcessError) -> Self {
-        e.to_string()
-    }
 }

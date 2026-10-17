@@ -161,7 +161,11 @@ pub fn tile_typed(
     )))
 }
 
-/// Backward compatible String error signature for legacy callers
-pub fn tile(server_dir: &Path, dimension: &str, x: i32, z: i32) -> Result<Option<String>, String> {
-    tile_typed(server_dir, dimension, x, z).map_err(|e| e.to_string())
+pub fn tile(
+    server_dir: &Path,
+    dimension: &str,
+    x: i32,
+    z: i32,
+) -> Result<Option<String>, MapError> {
+    tile_typed(server_dir, dimension, x, z)
 }

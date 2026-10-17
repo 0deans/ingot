@@ -1,5 +1,7 @@
 use super::console::{find_java_console_bin, sandbox_progress};
-use crate::minecraft::java::{ensure_java_runtime, get_required_java_version};
+use super::models::ProcessError;
+use crate::app::java::ensure_java_runtime;
+use crate::minecraft::java::get_required_java_version;
 use crate::server::config::{ServerConfig, ServerCoreType};
 use std::path::{Path, PathBuf};
 use tauri::Runtime;
@@ -50,7 +52,7 @@ pub async fn build_server_command<R: Runtime, FStep>(
     config: &ServerConfig,
     server_dir: &Path,
     step: FStep,
-) -> Result<tokio::process::Command, String>
+) -> Result<tokio::process::Command, ProcessError>
 where
     FStep: Fn(&str) + Clone + Send + Sync + 'static,
 {
@@ -87,6 +89,7 @@ where
                 .as_ref()
                 .map(|(dir, rootfs)| (dir.as_path(), rootfs.as_path())),
         )
+        .map_err(ProcessError::Pumpkin)
     } else if config.core == ServerCoreType::Bedrock {
         step("Preparing Bedrock Dedicated Server...");
         step("Downloading Bedrock files (first start only)...");
@@ -126,12 +129,14 @@ where
             let p = PathBuf::from(path);
             (None, find_java_console_bin(&p).unwrap_or(p))
         } else {
-            let resolved = ensure_java_runtime(app, client, required_java, None, None).await?;
+            let resolved = ensure_java_runtime(app, client, required_java, None, None)
+                .await
+                .map_err(ProcessError::Java)?;
             let bin = find_java_console_bin(&resolved).ok_or_else(|| {
-                format!(
+                ProcessError::Other(format!(
                     "Could not find java console binary in {}",
                     resolved.display()
-                )
+                ))
             })?;
             (None, bin)
         };
@@ -169,6 +174,6 @@ where
             args.push("server.jar".into());
         }
         args.push("nogui".into());
-        java(&args)
+        java(&args).map_err(ProcessError::from)
     }
 }

@@ -70,16 +70,16 @@ pub fn undo_with_commit<F, E>(
     game_version: &str,
     loader: &str,
     commit_metadata: F,
-) -> Result<Restored, String>
+) -> Result<Restored, VersionChangeError>
 where
     F: FnOnce(&Restored) -> Result<(), E>,
     E: std::fmt::Display,
 {
-    undo_typed_with_commit(root, game_version, loader, commit_metadata).map_err(|e| e.to_string())
+    undo_typed_with_commit(root, game_version, loader, commit_metadata)
 }
 
-pub fn undo(root: &Path, game_version: &str, loader: &str) -> Result<Restored, String> {
-    undo_typed(root, game_version, loader).map_err(|e| e.to_string())
+pub fn undo(root: &Path, game_version: &str, loader: &str) -> Result<Restored, VersionChangeError> {
+    undo_typed(root, game_version, loader)
 }
 
 /// Recovers an interrupted version change transaction left in Swapping or RollbackFailed state,

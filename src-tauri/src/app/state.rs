@@ -32,9 +32,15 @@ impl AppState {
             .user_agent(crate::USER_AGENT)
             .build()?;
         Ok(Self {
-            instances: crate::minecraft::metadata::MetadataRepository::new(paths.instances_file()),
-            server_configs: crate::minecraft::metadata::MetadataRepository::new(
+            instances: crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+                paths.instances_file(),
+                paths.instances_dir(),
+                |instance| &instance.id,
+            ),
+            server_configs: crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
                 paths.servers_file(),
+                paths.servers_dir(),
+                |server| &server.id,
             ),
             settings: SettingsRepository::new(paths.settings_file()),
             games: ProcessManager::new(),

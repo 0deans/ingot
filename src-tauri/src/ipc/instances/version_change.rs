@@ -90,7 +90,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
             to_loader_version: loader_version.filter(|_| loader != ModLoaderType::Vanilla),
             downgrade,
         };
-        version_change::check(get_http_client(&app_handle), &target, request)
+        version_change::check_typed(get_http_client(&app_handle), &target, request)
             .await
             .map_err(ApiError::from)
     }
@@ -157,7 +157,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         find_instance(&app_handle, &instance_id)?;
         let directory =
             instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        version_change::discard_backup(&directory).map_err(ApiError::from)
+        version_change::discard_backup_typed(&directory).map_err(ApiError::from)
     }
 
     async fn recover_instance_version_change(

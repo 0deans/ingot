@@ -1,5 +1,5 @@
 use super::models::{mention, ContentKind, Folder, ItemAction, ItemStatus, PlanItem};
-use super::sources::{self, Release, Scope, Source};
+use super::sources::{self, Release, Scope, Source, SourceClient, SourceError};
 use std::collections::{HashMap, HashSet};
 
 pub fn is_active(action: ItemAction) -> bool {
@@ -11,24 +11,26 @@ pub fn is_active(action: ItemAction) -> bool {
 
 /// The version of a project for the target on its source
 pub async fn find_target(
-    client: &reqwest::Client,
+    sources: &SourceClient<'_>,
     source: Source,
     project: &str,
     scope: &Scope,
     game_version: &str,
-) -> Option<Release> {
+) -> Result<Option<Release>, SourceError> {
     match source {
         Source::Modrinth => {
-            sources::modrinth_target(client, project, game_version, &scope.modrinth).await
+            sources
+                .modrinth_target(project, game_version, &scope.modrinth)
+                .await
         }
-        Source::Curseforge => sources::cf_target(client, project, game_version, scope).await,
+        Source::Curseforge => sources.cf_target(project, game_version, scope).await,
         Source::Hangar => {
-            let versions = sources::hangar_versions(client, project, game_version).await;
+            let versions = sources.hangar_versions(project, game_version).await?;
             let pick = versions
                 .iter()
                 .find(|v| v.channel == sources::Channel::Release)
                 .or_else(|| versions.first());
-            pick.cloned()
+            Ok(pick.cloned())
         }
     }
 }
@@ -36,12 +38,12 @@ pub async fn find_target(
 /// Adds missing required dependencies and flags incompatible mods, until nothing changes.
 /// Returns the projects mentioned in notes that aren't items.
 pub async fn resolve_dependencies(
-    client: &reqwest::Client,
+    sources: &SourceClient<'_>,
     game: &str,
     folders: &HashMap<String, &Folder>,
     items: &mut Vec<PlanItem>,
     resulting: &mut Vec<Option<Release>>,
-) -> Vec<(Source, String)> {
+) -> Result<Vec<(Source, String)>, SourceError> {
     let mut unavailable: HashSet<(Source, String)> = HashSet::new();
     let mut project_of_version: HashMap<String, Option<String>> = HashMap::new();
     for _ in 0..10 {
@@ -60,7 +62,7 @@ pub async fn resolve_dependencies(
                     (Some(p), _) => Some(p.clone()),
                     (None, Some(version)) if release.source == Source::Modrinth => {
                         if !project_of_version.contains_key(version) {
-                            let p = sources::modrinth_project_of(client, version).await;
+                            let p = sources.modrinth_project_of(version).await?;
                             project_of_version.insert(version.clone(), p);
                         }
                         project_of_version[version].clone()
@@ -99,7 +101,7 @@ pub async fn resolve_dependencies(
                 let found = if turned_off || unavailable.contains(&key) {
                     None
                 } else {
-                    find_target(client, release.source, &project, &folder.scope, game).await
+                    find_target(sources, release.source, &project, &folder.scope, game).await?
                 };
                 match found.filter(|r| r.file.is_some()) {
                     Some(dep_release) => {
@@ -153,5 +155,5 @@ pub async fn resolve_dependencies(
             break;
         }
     }
-    unavailable.into_iter().collect()
+    Ok(unavailable.into_iter().collect())
 }

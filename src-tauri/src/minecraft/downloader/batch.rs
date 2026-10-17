@@ -1,3 +1,4 @@
+use super::error::DownloadError;
 use super::{is_download_task_cached, DownloadTask};
 use sha1::{Digest, Sha1};
 use std::collections::HashSet;
@@ -5,20 +6,6 @@ use std::io::Write;
 use std::sync::Arc;
 
 pub type BatchProgressCallback = Arc<dyn Fn(usize, usize, &str) + Send + Sync>;
-
-#[derive(Debug, thiserror::Error)]
-enum BatchError {
-    #[error("Duplicate download destination: {0}")]
-    Duplicate(std::path::PathBuf),
-    #[error("Download transport failed")]
-    Transport(#[from] reqwest::Error),
-    #[error("Downloaded content does not match its declared {0}")]
-    Integrity(&'static str),
-    #[error("Download filesystem operation failed")]
-    Io(#[from] std::io::Error),
-    #[error("Download task failed")]
-    Join(#[from] tokio::task::JoinError),
-}
 
 fn sha1_hex(bytes: &[u8]) -> String {
     Sha1::digest(bytes)
@@ -30,7 +17,7 @@ fn sha1_hex(bytes: &[u8]) -> String {
 async fn download_one(
     client: reqwest::Client,
     task: DownloadTask,
-) -> Result<DownloadTask, BatchError> {
+) -> Result<DownloadTask, DownloadError> {
     download_one_with_preparer(client, task, prepare_download).await
 }
 
@@ -57,7 +44,7 @@ async fn download_one_with_preparer(
     prepare: impl FnOnce(&[u8], &std::path::Path) -> std::io::Result<tempfile::NamedTempFile>
         + Send
         + 'static,
-) -> Result<DownloadTask, BatchError> {
+) -> Result<DownloadTask, DownloadError> {
     let bytes = client
         .get(&task.url)
         .send()
@@ -66,12 +53,12 @@ async fn download_one_with_preparer(
         .bytes()
         .await?;
     if task.size.is_some_and(|size| size != bytes.len() as u64) {
-        return Err(BatchError::Integrity("size"));
+        return Err(DownloadError::Integrity("size"));
     }
     if let Some(expected) = &task.sha1 {
         let hash = sha1_hex(&bytes);
         if !hash.eq_ignore_ascii_case(expected) {
-            return Err(BatchError::Integrity("SHA-1"));
+            return Err(DownloadError::Integrity("SHA-1"));
         }
     }
     let destination = task.dest.clone();
@@ -81,7 +68,7 @@ async fn download_one_with_preparer(
     // No await separates ownership of verified bytes and atomic publication.
     prepared
         .persist(&task.dest)
-        .map_err(|error| BatchError::Io(error.error))?;
+        .map_err(|error| DownloadError::Io(error.error))?;
     Ok(task)
 }
 
@@ -92,10 +79,8 @@ pub async fn download_files_concurrent(
     tasks: Vec<DownloadTask>,
     max_concurrency: usize,
     progress: Option<BatchProgressCallback>,
-) -> Result<(), String> {
-    run_batch(client, tasks, max_concurrency, progress)
-        .await
-        .map_err(|error| error.to_string())
+) -> Result<(), DownloadError> {
+    run_batch(client, tasks, max_concurrency, progress).await
 }
 
 async fn run_batch(
@@ -103,11 +88,11 @@ async fn run_batch(
     tasks: Vec<DownloadTask>,
     max_concurrency: usize,
     progress: Option<BatchProgressCallback>,
-) -> Result<(), BatchError> {
+) -> Result<(), DownloadError> {
     let mut destinations = HashSet::new();
     for task in &tasks {
         if !destinations.insert(task.dest.clone()) {
-            return Err(BatchError::Duplicate(task.dest.clone()));
+            return Err(DownloadError::Duplicate(task.dest.clone()));
         }
     }
     let mut needed = tasks
@@ -132,7 +117,7 @@ async fn run_batch(
             }
             Err(error) => {
                 workers.shutdown().await;
-                return Err(BatchError::Join(error));
+                return Err(DownloadError::Task(error));
             }
         };
         completed += 1;
@@ -254,7 +239,7 @@ mod tests {
             sha1: None,
         };
         let result = run_batch(&reqwest::Client::new(), vec![task], 2, None).await;
-        assert!(matches!(result, Err(BatchError::Integrity("size"))));
+        assert!(matches!(result, Err(DownloadError::Integrity("size"))));
         server.await.unwrap();
         assert_eq!(std::fs::read(&dest).unwrap(), b"previous");
         assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 1);
@@ -290,7 +275,7 @@ mod tests {
             sha1: None,
         };
         let result = run_batch(&reqwest::Client::new(), vec![task.clone(), task], 2, None).await;
-        assert!(matches!(result, Err(BatchError::Duplicate(_))));
+        assert!(matches!(result, Err(DownloadError::Duplicate(_))));
         assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 0);
     }
 

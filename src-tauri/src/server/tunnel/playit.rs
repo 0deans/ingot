@@ -1,5 +1,12 @@
 pub use crate::server::config::PlayitTunnelStatus;
-use serde_json::{json, Value};
+
+pub(crate) mod api;
+pub(crate) mod binary;
+#[cfg(test)]
+mod tests;
+
+use api::{api_call, apply_rundata, claim_agent, AgentContext};
+use serde_json::json;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::Arc;
@@ -10,7 +17,7 @@ use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
-const PLAYIT_API: &str = "https://api.playit.gg";
+pub(crate) const PLAYIT_API: &str = "https://api.playit.gg";
 const SECRET_FILE: &str = "secret.key";
 
 /// Manages the playit.gg agent.
@@ -24,10 +31,10 @@ pub struct PlayitManager {
     inner: Arc<Mutex<PlayitInner>>,
 }
 
-struct PlayitInner {
-    status: PlayitTunnelStatus,
-    child: Option<Arc<Mutex<Child>>>,
-    task: Option<JoinHandle<()>>,
+pub(crate) struct PlayitInner {
+    pub(crate) status: PlayitTunnelStatus,
+    pub(crate) child: Option<Arc<Mutex<Child>>>,
+    pub(crate) task: Option<JoinHandle<()>>,
 }
 
 fn stopped_status() -> PlayitTunnelStatus {
@@ -51,6 +58,46 @@ impl Default for PlayitInner {
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum PlayitError {
+    #[error("Playit network request failed")]
+    Network(#[source] reqwest::Error),
+    #[error("Playit provider returned HTTP {0}")]
+    HttpStatus(reqwest::StatusCode),
+    #[error("Playit provider returned an invalid response")]
+    InvalidResponse,
+    #[error("Playit provider rejected the request: {0}")]
+    Rejected(ClaimRejection),
+    #[error("I/O error during playit tunnel operation: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Sandbox error: {0}")]
+    Sandbox(#[from] crate::server::sandbox::SandboxError),
+    #[error("Playit claim was rejected")]
+    ClaimRejected,
+    #[error("Playit claim expired; connect again to request a new claim")]
+    ClaimExpired,
+    #[error("Timed out completing the Playit claim")]
+    ClaimTimeout,
+    #[error("The saved Playit credential is invalid; connect again to link this device")]
+    InvalidCredential,
+    #[error("Playit agent exited ({0})")]
+    AgentExited(std::process::ExitStatus),
+    #[error("Playit application directory is unavailable")]
+    AppData(#[source] tauri::Error),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ClaimRejection {
+    #[error("claim expired")]
+    Expired,
+    #[error("claim is invalid")]
+    InvalidCode,
+    #[error("claim has not yet been accepted")]
+    NotAccepted,
+    #[error("provider rejection")]
+    Other,
+}
+
 impl PlayitManager {
     pub fn new() -> Self {
         Self {
@@ -70,95 +117,8 @@ impl PlayitManager {
         &self,
         app: &tauri::AppHandle<R>,
         client: &reqwest::Client,
-    ) -> Result<PathBuf, String> {
-        // 1. Desktop: an agent the user installed themselves
-        #[cfg(not(target_os = "android"))]
-        if let Ok(path) = std::env::var("PATH") {
-            for dir in std::env::split_paths(&path) {
-                let p = dir.join(if cfg!(windows) {
-                    "playit.exe"
-                } else {
-                    "playit"
-                });
-                if p.exists() {
-                    return Ok(p);
-                }
-            }
-        }
-
-        // 2. Previously downloaded, else download it
-        let data_dir = app
-            .path()
-            .app_data_dir()
-            .map_err(|e| format!("Failed to get app data directory: {e}"))?;
-        let tools_dir = data_dir.join("tools");
-        let _ = std::fs::create_dir_all(&tools_dir);
-
-        let bin_name = if cfg!(target_os = "windows") {
-            "playit.exe"
-        } else {
-            "playit"
-        };
-        let target_path = tools_dir.join(bin_name);
-
-        if target_path.exists() {
-            // Sanity-check: must be > 1 MB (reject corrupt/partial downloads)
-            if std::fs::metadata(&target_path)
-                .map(|m| m.len() > 1_000_000)
-                .unwrap_or(false)
-            {
-                return Ok(target_path);
-            }
-            let _ = std::fs::remove_file(&target_path);
-        }
-
-        // Download official playit-agent binary from GitHub
-        let download_url = if cfg!(target_os = "windows") {
-            "https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-windows-x86_64.exe"
-        } else if cfg!(target_arch = "aarch64") {
-            "https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-aarch64"
-        } else {
-            "https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64"
-        };
-
-        eprintln!("[Playit] Downloading agent binary from {download_url}...");
-        let res = client
-            .get(download_url)
-            .header("User-Agent", crate::USER_AGENT)
-            .send()
-            .await
-            .map_err(|e| format!("Failed to download playit binary: {e}"))?;
-
-        if !res.status().is_success() {
-            return Err(format!(
-                "Failed to download playit binary from {download_url}: HTTP {}",
-                res.status()
-            ));
-        }
-
-        let bytes = res
-            .bytes()
-            .await
-            .map_err(|e| format!("Failed to read playit binary bytes: {e}"))?;
-
-        // Write beside the target, then rename: an interrupted download never looks complete
-        let part = target_path.with_extension("part");
-        std::fs::write(&part, &bytes)
-            .and_then(|()| std::fs::rename(&part, &target_path))
-            .map_err(|e| {
-                format!(
-                    "Failed to write playit binary to {}: {e}",
-                    target_path.display()
-                )
-            })?;
-
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let _ = std::fs::set_permissions(&target_path, std::fs::Permissions::from_mode(0o755));
-        }
-
-        Ok(target_path)
+    ) -> Result<PathBuf, PlayitError> {
+        binary::ensure_playit_binary(app, client).await
     }
 
     /// Starts the playit tunnel agent. Claiming and connecting continue in the
@@ -168,19 +128,15 @@ impl PlayitManager {
         app: &tauri::AppHandle<R>,
         client: &reqwest::Client,
         secret_key: Option<String>,
-    ) -> Result<PlayitTunnelStatus, String> {
+    ) -> Result<PlayitTunnelStatus, PlayitError> {
         // Stop existing instance if running
-        self.stop_tunnel().await?;
+        let _ = self.stop_tunnel().await;
 
         let binary_path = self.ensure_playit_binary(app, client).await?;
 
-        let data_dir = app
-            .path()
-            .app_data_dir()
-            .map_err(|e| format!("Failed to get app data directory: {e}"))?;
+        let data_dir = app.path().app_data_dir().map_err(PlayitError::AppData)?;
         let playit_dir = data_dir.join("playit");
-        std::fs::create_dir_all(&playit_dir)
-            .map_err(|e| format!("Failed to create playit directory: {e}"))?;
+        std::fs::create_dir_all(&playit_dir)?;
 
         let sandbox_dir = if cfg!(target_os = "android") {
             Some(crate::server::sandbox::get_sandbox_dir(app)?)
@@ -216,7 +172,7 @@ impl PlayitManager {
     }
 
     /// Stops the running playit tunnel
-    pub async fn stop_tunnel(&self) -> Result<(), String> {
+    pub async fn stop_tunnel(&self) -> Result<(), PlayitError> {
         let (task, child) = {
             let mut guard = self.inner.lock().await;
             guard.status = stopped_status();
@@ -235,21 +191,6 @@ impl PlayitManager {
     }
 }
 
-struct AgentContext {
-    inner: Arc<Mutex<PlayitInner>>,
-    client: reqwest::Client,
-    binary_path: PathBuf,
-    playit_dir: PathBuf,
-    sandbox_dir: Option<PathBuf>,
-}
-
-impl AgentContext {
-    async fn update(&self, f: impl FnOnce(&mut PlayitTunnelStatus)) {
-        let mut guard = self.inner.lock().await;
-        f(&mut guard.status);
-    }
-}
-
 fn read_saved_secret(playit_dir: &Path) -> Option<String> {
     std::fs::read_to_string(playit_dir.join(SECRET_FILE))
         .ok()
@@ -259,7 +200,8 @@ fn read_saved_secret(playit_dir: &Path) -> Option<String> {
 
 /// Background task: claim (if needed), launch the daemon, and track the tunnel address
 async fn run_agent(ctx: AgentContext, secret: Option<String>) {
-    if let Err(message) = run_agent_inner(&ctx, secret).await {
+    if let Err(err) = run_agent_inner(&ctx, secret).await {
+        let message = err.to_string();
         eprintln!("[Playit] {message}");
         let child = {
             let mut guard = ctx.inner.lock().await;
@@ -276,7 +218,7 @@ async fn run_agent(ctx: AgentContext, secret: Option<String>) {
     }
 }
 
-async fn run_agent_inner(ctx: &AgentContext, secret: Option<String>) -> Result<(), String> {
+async fn run_agent_inner(ctx: &AgentContext, secret: Option<String>) -> Result<(), PlayitError> {
     let secret = match secret {
         Some(s) => s,
         None => {
@@ -304,9 +246,7 @@ async fn run_agent_inner(ctx: &AgentContext, secret: Option<String>) -> Result<(
         cmd.creation_flags(0x08000000);
     }
 
-    let mut child = cmd
-        .spawn()
-        .map_err(|e| format!("Failed to spawn playit agent: {e}"))?;
+    let mut child = cmd.spawn()?;
 
     let last_log = Arc::new(Mutex::new(String::new()));
     if let Some(stdout) = child.stdout.take() {
@@ -324,9 +264,9 @@ async fn run_agent_inner(ctx: &AgentContext, secret: Option<String>) -> Result<(
             let last = last_log.lock().await.clone();
             if last.contains("InvalidAgentKey") || last.contains("no longer valid") {
                 let _ = std::fs::remove_file(ctx.playit_dir.join(SECRET_FILE));
-                return Err("The saved playit secret is no longer valid. Tap Connect again to link this device to playit.gg.".to_string());
+                return Err(PlayitError::InvalidCredential);
             }
-            return Err(format!("playit agent exited ({exit}): {last}"));
+            return Err(PlayitError::AgentExited(exit));
         }
 
         match api_call(&ctx.client, "/v1/agents/rundata", json!({}), Some(&secret)).await {
@@ -342,11 +282,10 @@ async fn run_agent_inner(ctx: &AgentContext, secret: Option<String>) -> Result<(
 /// via `/etc/resolv.conf`, which Android doesn't have, so it runs under PRoot with
 /// a resolv.conf bound in. PRoot also runs it from app storage, where Android won't
 /// execute downloaded programs directly.
-fn build_agent_command(ctx: &AgentContext, secret: &str) -> Result<Command, String> {
+fn build_agent_command(ctx: &AgentContext, secret: &str) -> Result<Command, PlayitError> {
     let mut cmd = if let Some(ref sandbox_dir) = ctx.sandbox_dir {
         let resolv = ctx.playit_dir.join("resolv.conf");
-        std::fs::write(&resolv, "nameserver 1.1.1.1\nnameserver 8.8.8.8\n")
-            .map_err(|e| format!("Failed to write playit resolv.conf: {e}"))?;
+        std::fs::write(&resolv, "nameserver 1.1.1.1\nnameserver 8.8.8.8\n")?;
         let mut cmd = crate::server::sandbox::proot_command(
             sandbox_dir,
             None,
@@ -379,153 +318,8 @@ fn build_agent_command(ctx: &AgentContext, secret: &str) -> Result<Command, Stri
 async fn forward_logs<T: AsyncRead + Unpin>(stream: T, last_log: Arc<Mutex<String>>) {
     let mut reader = BufReader::new(stream).lines();
     while let Ok(Some(line)) = reader.next_line().await {
-        eprintln!("[PlayitAgent] {line}");
         if !line.trim().is_empty() {
             *last_log.lock().await = line;
         }
     }
-}
-
-/// Calls the playit API, which wraps responses as `{"status": "success", "data": ...}`
-async fn api_call(
-    client: &reqwest::Client,
-    path: &str,
-    body: Value,
-    secret: Option<&str>,
-) -> Result<Value, String> {
-    let mut req = client.post(format!("{PLAYIT_API}{path}")).json(&body);
-    if let Some(secret) = secret {
-        req = req.header("Authorization", format!("Agent-Key {secret}"));
-    }
-    let res: Value = req
-        .send()
-        .await
-        .map_err(|e| format!("playit API request failed: {}", error_chain(&e)))?
-        .json()
-        .await
-        .map_err(|e| format!("Invalid playit API response: {e}"))?;
-
-    if res["status"] == "success" {
-        Ok(res["data"].clone())
-    } else {
-        Err(res["data"].to_string())
-    }
-}
-
-/// reqwest's Display hides the root cause (DNS, TLS, connect); include every source
-fn error_chain(e: &dyn std::error::Error) -> String {
-    let mut out = e.to_string();
-    let mut source = e.source();
-    while let Some(s) = source {
-        out.push_str(&format!(": {s}"));
-        source = s.source();
-    }
-    out
-}
-
-/// Links this agent to the user's playit.gg account and returns its secret key
-async fn claim_agent(ctx: &AgentContext) -> Result<String, String> {
-    let code: String = uuid::Uuid::new_v4().simple().to_string()[..10].to_string();
-    let claim_url = format!("https://playit.gg/claim/{code}");
-
-    ctx.update(|s| {
-        s.status = "claiming".to_string();
-        s.claim_url = Some(claim_url);
-    })
-    .await;
-
-    let version = format!("ingot {}", env!("CARGO_PKG_VERSION"));
-    loop {
-        let setup = api_call(
-            &ctx.client,
-            "/claim/setup",
-            json!({ "code": code, "agent_type": "self-managed", "version": version }),
-            None,
-        )
-        .await;
-
-        match setup.as_ref().ok().and_then(|v| v.as_str()) {
-            Some("UserAccepted") => break,
-            Some("UserRejected") => return Err("The playit.gg claim was rejected.".to_string()),
-            Some(_) => {}
-            None => {
-                let err = setup.err().unwrap_or_default();
-                if err.contains("CodeExpired") || err.contains("InvalidCode") {
-                    return Err(
-                        "The playit.gg claim link expired. Tap Connect to get a new one."
-                            .to_string(),
-                    );
-                }
-                eprintln!("[Playit] Claim status check failed: {err}");
-            }
-        }
-        tokio::time::sleep(Duration::from_secs(2)).await;
-    }
-
-    for _ in 0..10 {
-        match api_call(
-            &ctx.client,
-            "/claim/exchange",
-            json!({ "code": code }),
-            None,
-        )
-        .await
-        {
-            Ok(data) => {
-                if let Some(secret) = data["secret_key"].as_str() {
-                    return Ok(secret.to_string());
-                }
-                return Err(format!("Unexpected claim exchange response: {data}"));
-            }
-            Err(e) if e.contains("NotAccepted") || e.contains("request failed") => {
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-            Err(e) => return Err(format!("Failed to finish playit.gg claim: {e}")),
-        }
-    }
-    Err("Timed out finishing the playit.gg claim.".to_string())
-}
-
-/// Picks the tunnel to show from `/v1/agents/rundata`, preferring Minecraft Java ones
-async fn apply_rundata(ctx: &AgentContext, data: &Value) {
-    let tunnels: Vec<&Value> = data["tunnels"]
-        .as_array()
-        .map(|t| {
-            t.iter()
-                .filter(|t| t["disabled_reason"].is_null())
-                .collect()
-        })
-        .unwrap_or_default();
-
-    let tunnel = tunnels
-        .iter()
-        .find(|t| t["tunnel_type"] == "minecraft-java")
-        .or_else(|| tunnels.first());
-
-    let address = tunnel
-        .and_then(|t| t["display_address"].as_str())
-        .map(str::to_string);
-    let has_pending = data["pending"].as_array().is_some_and(|p| !p.is_empty());
-    let notice = data["notices"]
-        .as_array()
-        .and_then(|n| n.first())
-        .and_then(|n| n["message"].as_str())
-        .map(str::to_string);
-
-    ctx.update(|s| {
-        s.public_address = address.clone();
-        if address.is_some() {
-            s.status = "connected".to_string();
-            s.message = notice;
-        } else if has_pending {
-            s.status = "connecting".to_string();
-            s.message = Some("playit.gg is allocating your tunnel...".to_string());
-        } else {
-            s.status = "no_tunnel".to_string();
-            s.message = Some(notice.unwrap_or_else(|| {
-                "Agent connected, but it has no tunnels. Add a \"Minecraft Java\" tunnel for this agent on playit.gg pointing to your server port.".to_string()
-            }));
-        }
-    })
-    .await;
 }

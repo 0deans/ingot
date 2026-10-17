@@ -23,9 +23,21 @@ pub async fn stage_typed(
     items: &[&PlanItem],
     progress: &(impl Fn(String) + Sync),
 ) -> Result<(), VersionChangeError> {
-    let _ = fs::remove_dir_all(staging);
-    fs::create_dir_all(staging).map_err(|e| {
-        VersionChangeError::DownloadPrep(format!("Failed to prepare downloads: {e}"))
+    match fs::remove_dir_all(staging) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(source) => {
+            return Err(VersionChangeError::DownloadPrep {
+                operation: "remove previous staging directory",
+                path: staging.to_owned(),
+                source,
+            })
+        }
+    }
+    fs::create_dir_all(staging).map_err(|source| VersionChangeError::DownloadPrep {
+        operation: "create staging directory",
+        path: staging.to_owned(),
+        source,
     })?;
     let mut jobs = tokio::task::JoinSet::new();
     let total = items.len();
@@ -53,7 +65,13 @@ pub async fn stage_typed(
             let (client, title) = (client.clone(), item.title.clone());
             jobs.spawn(async move {
                 if let Some(parent) = dest.parent() {
-                    let _ = fs::create_dir_all(parent);
+                    fs::create_dir_all(parent).map_err(|source| {
+                        VersionChangeError::DownloadPrep {
+                            operation: "create download directory",
+                            path: parent.to_owned(),
+                            source,
+                        }
+                    })?;
                 }
                 let result = crate::minecraft::downloader::download_file_chunked(
                     &client, &file.url, &dest, None, None,
@@ -62,27 +80,28 @@ pub async fn stage_typed(
                 match result {
                     Ok(_) if verify(&dest, &file) => Ok(()),
                     Ok(_) => Err(VersionChangeError::ChecksumMismatch(title)),
-                    Err(e) => Err(VersionChangeError::DownloadFailed(title, e.to_string())),
+                    Err(source) => Err(VersionChangeError::DownloadFailed { title, source }),
                 }
             });
         }
         let Some(result) = jobs.join_next().await else {
             break;
         };
-        result.map_err(|e| VersionChangeError::Custom(e.to_string()))??;
+        result.map_err(VersionChangeError::Task)??;
         done += 1;
         progress(format!("Downloading {done} of {total}..."));
     }
     Ok(())
 }
 
+#[cfg(test)]
+mod tests;
+
 pub async fn stage(
     client: &reqwest::Client,
     staging: &Path,
     items: &[&PlanItem],
     progress: &(impl Fn(String) + Sync),
-) -> Result<(), String> {
-    stage_typed(client, staging, items, progress)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<(), VersionChangeError> {
+    stage_typed(client, staging, items, progress).await
 }

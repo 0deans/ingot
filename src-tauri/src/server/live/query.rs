@@ -1,4 +1,4 @@
-use super::models::{bedrock_player_details, is_valid_player_name, PlayerDetails};
+use super::models::{bedrock_player_details, is_valid_player_name, LiveError, PlayerDetails};
 use super::players::player_from_nbt;
 use super::snbt::parse_snbt;
 use crate::server::process::ServerProcessManager;
@@ -47,18 +47,19 @@ pub fn parse_list_reply(line: &str) -> Vec<(String, Option<String>)> {
 pub async fn list_online(
     pm: &ServerProcessManager,
     server_id: &str,
-) -> Result<Vec<(String, Option<String>)>, String> {
+) -> Result<Vec<(String, Option<String>)>, LiveError> {
     if pm.is_bedrock(server_id).await {
         return Ok(pm.get_bedrock_online_players(server_id).await);
     }
     let line = pm
-        .query(
+        .query_typed(
             server_id,
             "list uuids",
             is_list_reply,
             Duration::from_secs(3),
         )
-        .await?;
+        .await
+        .map_err(|e| LiveError::Query(e.to_string()))?;
     Ok(parse_list_reply(&line))
 }
 
@@ -66,26 +67,27 @@ pub async fn query_player(
     pm: &ServerProcessManager,
     server_id: &str,
     name: &str,
-) -> Result<PlayerDetails, String> {
+) -> Result<PlayerDetails, LiveError> {
     if !is_valid_player_name(name) {
-        return Err(format!("Invalid player name: {name}"));
+        return Err(LiveError::InvalidPlayerName(name.to_string()));
     }
     if pm.is_bedrock(server_id).await {
         let xuid = pm.get_player_xuid(server_id, name).await;
         return Ok(bedrock_player_details(name, true, xuid));
     }
     let line = pm
-        .query(
+        .query_typed(
             server_id,
             &format!("data get entity {name}"),
             |l| l.contains(ENTITY_DATA_MARKER) || l.contains("No entity was found"),
             Duration::from_secs(3),
         )
-        .await?;
+        .await
+        .map_err(|e| LiveError::Query(e.to_string()))?;
     let snbt = line
         .split_once(ENTITY_DATA_MARKER)
         .map(|(_, data)| data)
-        .ok_or_else(|| format!("{name} is not online"))?;
+        .ok_or_else(|| LiveError::PlayerNotOnline(name.to_string()))?;
     let data = parse_snbt(snbt)?;
     Ok(player_from_nbt(name, &data, true))
 }
@@ -95,7 +97,7 @@ pub async fn query_player(
 pub async fn online_players(
     pm: &ServerProcessManager,
     server_id: &str,
-) -> Result<Vec<PlayerDetails>, String> {
+) -> Result<Vec<PlayerDetails>, LiveError> {
     use std::sync::Mutex;
     use std::time::Instant;
     type Cache = HashMap<String, (Instant, Vec<PlayerDetails>)>;

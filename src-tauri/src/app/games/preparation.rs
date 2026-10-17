@@ -23,7 +23,7 @@ impl<R: Runtime> PreparationEffects for NativePreparation<'_, R> {
         progress: Option<crate::minecraft::java::JavaProgressFn>,
     ) -> PreparationFuture<'a, PathBuf> {
         Box::pin(async move {
-            crate::minecraft::java::ensure_java_runtime(
+            crate::app::java::ensure_java_runtime(
                 self.app,
                 client,
                 major_version,

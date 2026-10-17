@@ -82,7 +82,7 @@ pub(crate) enum ImportError {
     SourceNotFound(String),
 
     #[error("Instance creation failed: {0}")]
-    InstanceCreate(String),
+    InstanceCreate(#[source] crate::minecraft::instance::InstanceError),
 
     #[error("Failed to resolve instance directory: {0}")]
     InstanceDir(String),
@@ -92,10 +92,4 @@ pub(crate) enum ImportError {
 
     #[error("Unknown launcher ID: '{0}'")]
     UnknownLauncher(String),
-}
-
-impl From<ImportError> for String {
-    fn from(err: ImportError) -> Self {
-        err.to_string()
-    }
 }

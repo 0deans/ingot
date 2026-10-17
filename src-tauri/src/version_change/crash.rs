@@ -7,7 +7,10 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use super::{read_journal, safe_file_name, safe_rel, write_journal, ContentKind, TargetKind};
+use super::{
+    read_journal, safe_file_name_typed, safe_rel_typed, write_journal_typed, ContentKind,
+    TargetKind, VersionChangeError,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -41,7 +44,7 @@ pub fn first_start_pending(root: &Path) -> bool {
 pub fn first_start_ok(root: &Path) {
     if let Some(mut journal) = read_journal(root).filter(|j| !j.first_start_checked) {
         journal.first_start_checked = true;
-        let _ = write_journal(root, &journal);
+        let _ = write_journal_typed(root, &journal);
     }
 }
 
@@ -282,24 +285,28 @@ pub fn after_exit(
 }
 
 /// Turns off a file the crash blamed, as part of the change: undo turns it back on
-pub fn disable(root: &Path, folder: &str, file_name: &str) -> Result<(), String> {
-    let mut journal = read_journal(root).ok_or("There's no version change to add this to")?;
-    safe_rel(folder)?;
+pub fn disable(root: &Path, folder: &str, file_name: &str) -> Result<(), VersionChangeError> {
+    let mut journal = read_journal(root).ok_or_else(|| {
+        VersionChangeError::Custom("There's no version change to add this to".to_string())
+    })?;
+    safe_rel_typed(folder)?;
     let kind = if file_name.to_ascii_lowercase().ends_with(".jar") {
         ContentKind::Mod
     } else {
         ContentKind::ResourcePack
     };
-    safe_file_name(file_name, kind)?;
+    safe_file_name_typed(file_name, kind)?;
     let rel = format!("{folder}/{file_name}");
     let disabled = root.join(format!("{rel}.disabled"));
     if disabled.exists() {
-        return Err(format!("{file_name} is already turned off"));
+        return Err(VersionChangeError::Custom(format!(
+            "{file_name} is already turned off"
+        )));
     }
     fs::rename(root.join(&rel), &disabled)
-        .map_err(|e| format!("Failed to turn off {file_name}: {e}"))?;
+        .map_err(|e| VersionChangeError::FileOp(format!("Failed to turn off {file_name}: {e}")))?;
     journal.disabled.push(rel);
-    write_journal(root, &journal)
+    write_journal_typed(root, &journal)
 }
 
 #[cfg(test)]

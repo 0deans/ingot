@@ -159,17 +159,11 @@ pub enum LiveError {
     #[error("No saved data for {0}")]
     NoSavedData(String),
     #[error("SNBT parse error: {0}")]
-    Snbt(String),
+    Snbt(#[from] super::snbt::SnbtError),
     #[error("Server query error: {0}")]
     Query(String),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("{0}")]
     Other(String),
-}
-
-impl From<LiveError> for String {
-    fn from(e: LiveError) -> Self {
-        e.to_string()
-    }
 }

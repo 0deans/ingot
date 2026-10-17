@@ -14,12 +14,6 @@ pub(crate) enum ProfileError {
     Recovery(#[from] crate::account::recovery::RecoveryError),
 }
 
-impl From<ProfileError> for String {
-    fn from(error: ProfileError) -> Self {
-        error.to_string()
-    }
-}
-
 pub(crate) async fn add_offline_account<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     username: String,

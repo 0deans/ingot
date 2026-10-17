@@ -17,8 +17,16 @@ impl AppPaths {
         self.data_dir.join("instances.json")
     }
 
+    pub(crate) fn instances_dir(&self) -> PathBuf {
+        self.data_dir.join("instances")
+    }
+
     pub(crate) fn servers_file(&self) -> PathBuf {
         self.data_dir.join("servers.json")
+    }
+
+    pub(crate) fn servers_dir(&self) -> PathBuf {
+        self.data_dir.join("servers")
     }
 
     pub(crate) fn accounts_file(&self) -> PathBuf {

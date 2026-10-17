@@ -178,8 +178,8 @@ pub async fn install_content_file<R: Runtime>(
     download_url: &str,
     filename: &str,
 ) -> Result<String, ContentError> {
-    let instance_dir =
-        instance::get_instance_dir(app, instance_id).map_err(ContentError::Instance)?;
+    let instance_dir = instance::get_instance_dir(app, instance_id)
+        .map_err(|e| ContentError::Instance(e.to_string()))?;
 
     let clean_name = Path::new(filename)
         .file_name()
@@ -235,7 +235,8 @@ pub async fn install_modpack_instance<R: Runtime>(
         .build()
         .map_err(ContentError::ClientInit)?;
     let bytes = pack::fetch(&client, download_url).await?;
-    let root = instance::get_instances_dir(app).map_err(ContentError::Instance)?;
+    let root =
+        instance::get_instances_dir(app).map_err(|e| ContentError::Instance(e.to_string()))?;
     let prepared = pack::prepare_modpack(
         &client,
         super::curseforge::DEFAULT_CURSEFORGE_BASE,
@@ -252,7 +253,7 @@ pub async fn install_modpack_instance<R: Runtime>(
         prepared.loader,
         prepared.loader_version,
     )
-    .map_err(ContentError::Instance)?;
+    .map_err(|e| ContentError::Instance(e.to_string()))?;
     publish_modpack(
         &crate::app::state(app).instances,
         &root,

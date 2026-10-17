@@ -17,7 +17,11 @@ fn invalid_identifiers_cannot_remove_files_outside_instances() {
     let outside = root.path().join("outside");
     fs::create_dir(&outside).unwrap();
     fs::write(outside.join("save.dat"), b"keep").unwrap();
-    let repository = MetadataRepository::new(root.path().join("instances.json"));
+    let repository = MetadataRepository::with_deletion_directory(
+        root.path().join("instances.json"),
+        instances.clone(),
+        |record: &InstanceConfig| &record.id,
+    );
     for id in [
         "../outside",
         "..\\outside",
@@ -39,11 +43,75 @@ fn required_instance_subdirectory_creation_failure_is_not_success() {
     let instance = root.path().join("instance");
     fs::create_dir(&instance).unwrap();
     fs::write(instance.join("config"), b"blocking file").unwrap();
+    let repository =
+        crate::minecraft::metadata::MetadataRepository::new(root.path().join("instances.json"));
     assert!(matches!(
-        ensure_instance_directory(root.path(), "instance"),
+        ensure_instance_directory(&repository, root.path(), "instance"),
         Err(InstanceError::Io(_))
     ));
     assert_eq!(fs::read(instance.join("config")).unwrap(), b"blocking file");
+}
+
+#[test]
+fn directory_lookup_restores_pending_deletion_before_creating_subdirectories() {
+    let root = tempfile::tempdir().unwrap();
+    let parent = root.path().join("instances");
+    let original = parent.join("instance");
+    fs::create_dir_all(&original).unwrap();
+    fs::write(original.join("world.dat"), b"retained world").unwrap();
+    let metadata = root.path().join("instances.json");
+    fs::write(
+        &metadata,
+        serde_json::to_vec(&[stored_instance("instance")]).unwrap(),
+    )
+    .unwrap();
+    let backup = format!(".deleted-{}", uuid::Uuid::new_v4());
+    let receipt = metadata.with_extension("deletion.json");
+    fs::write(
+        &receipt,
+        serde_json::to_vec(&serde_json::json!({
+            "version": 1, "id": "instance", "backup": backup,
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    fs::rename(&original, parent.join(&backup)).unwrap();
+    let repository = crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+        metadata,
+        parent.clone(),
+        |instance: &InstanceConfig| &instance.id,
+    );
+
+    assert_eq!(
+        ensure_instance_directory(&repository, &parent, "instance").unwrap(),
+        original
+    );
+    assert_eq!(
+        fs::read(original.join("world.dat")).unwrap(),
+        b"retained world"
+    );
+    assert!(original.join("saves").is_dir());
+    assert!(!parent.join(backup).exists());
+    assert!(!receipt.exists());
+}
+
+#[test]
+fn directory_lookup_cannot_create_files_while_recovery_is_blocked() {
+    let root = tempfile::tempdir().unwrap();
+    let parent = root.path().join("instances");
+    let metadata = root.path().join("instances.json");
+    let receipt = metadata.with_extension("deletion.json");
+    fs::write(&receipt, b"malformed receipt").unwrap();
+    let repository = crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+        metadata,
+        parent.clone(),
+        |instance: &InstanceConfig| &instance.id,
+    );
+
+    let result = ensure_instance_directory(&repository, &parent, "instance");
+    assert!(matches!(result, Err(InstanceError::Metadata(_))));
+    assert!(!parent.exists());
+    assert_eq!(fs::read(receipt).unwrap(), b"malformed receipt");
 }
 
 #[test]
@@ -55,7 +123,11 @@ fn deletion_commits_matching_metadata_and_files_only() {
         fs::create_dir_all(instances.join(id)).unwrap();
         fs::write(instances.join(id).join("save.dat"), id).unwrap();
     }
-    let repository = MetadataRepository::new(root.path().join("instances.json"));
+    let repository = MetadataRepository::with_deletion_directory(
+        root.path().join("instances.json"),
+        instances.clone(),
+        |record: &InstanceConfig| &record.id,
+    );
     repository
         .update(|records| {
             records.extend([stored_instance("delete"), stored_instance("keep")]);
@@ -82,7 +154,11 @@ fn failed_deletion_metadata_write_restores_original_directory() {
     fs::write(directory.join("world.dat"), b"original world").unwrap();
     let metadata = root.path().join("instances.json");
     let preserved_metadata = root.path().join("previous.json");
-    let repository = MetadataRepository::new(metadata.clone());
+    let repository = MetadataRepository::with_deletion_directory(
+        metadata.clone(),
+        instances.clone(),
+        |record: &InstanceConfig| &record.id,
+    );
     repository
         .update(|records| {
             records.push(stored_instance("instance"));
@@ -127,7 +203,11 @@ fn failed_duplicate_copy_removes_unique_stage_and_keeps_source_metadata() {
     let instances = root.path().join("instances");
     fs::create_dir(&instances).unwrap();
     let metadata = root.path().join("instances.json");
-    let repository = MetadataRepository::new(metadata.clone());
+    let repository = MetadataRepository::with_deletion_directory(
+        metadata.clone(),
+        instances.clone(),
+        |record: &InstanceConfig| &record.id,
+    );
     repository
         .update(|records| {
             records.push(stored_instance("missing-directory"));

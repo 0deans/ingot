@@ -66,12 +66,27 @@ struct PrismComponent {
     libraries: Option<Vec<PrismLibrary>>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum LoaderError {
+    #[error("Network request failed: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("JSON deserialization failed: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Vanilla has no loader profile")]
+    VanillaNotSupported,
+
+    #[error("{0}")]
+    Other(String),
+}
+
 /// Fetches available loader versions for a specific Minecraft version
 pub async fn fetch_loader_versions(
     client: &reqwest::Client,
     loader: &ModLoaderType,
     game_version: &str,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, LoaderError> {
     match loader {
         ModLoaderType::Vanilla => Ok(Vec::new()),
         ModLoaderType::Fabric => {
@@ -79,21 +94,13 @@ pub async fn fetch_loader_versions(
                 "https://meta.fabricmc.net/v2/versions/loader/{}",
                 game_version
             );
-            let resp = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Fabric versions: {e}"))?;
+            let resp = client.get(&url).send().await?;
 
             if !resp.status().is_success() {
                 return Ok(Vec::new());
             }
 
-            let entries = resp
-                .json::<Vec<FabricVersionEntry>>()
-                .await
-                .map_err(|e| format!("Failed to parse Fabric versions: {e}"))?;
-
+            let entries = resp.json::<Vec<FabricVersionEntry>>().await?;
             Ok(entries.into_iter().map(|e| e.loader.version).collect())
         }
         ModLoaderType::Quilt => {
@@ -101,40 +108,24 @@ pub async fn fetch_loader_versions(
                 "https://meta.quiltmc.org/v3/versions/loader/{}",
                 game_version
             );
-            let resp = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Quilt versions: {e}"))?;
+            let resp = client.get(&url).send().await?;
 
             if !resp.status().is_success() {
                 return Ok(Vec::new());
             }
 
-            let entries = resp
-                .json::<Vec<QuiltVersionEntry>>()
-                .await
-                .map_err(|e| format!("Failed to parse Quilt versions: {e}"))?;
-
+            let entries = resp.json::<Vec<QuiltVersionEntry>>().await?;
             Ok(entries.into_iter().map(|e| e.loader.version).collect())
         }
         ModLoaderType::NeoForge => {
             let url = "https://meta.prismlauncher.org/v1/net.neoforged/index.json";
-            let resp = client
-                .get(url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch NeoForge versions: {e}"))?;
+            let resp = client.get(url).send().await?;
 
             if !resp.status().is_success() {
                 return Ok(Vec::new());
             }
 
-            let index = resp
-                .json::<PrismIndex>()
-                .await
-                .map_err(|e| format!("Failed to parse NeoForge index: {e}"))?;
-
+            let index = resp.json::<PrismIndex>().await?;
             let matching: Vec<String> = index
                 .versions
                 .into_iter()
@@ -154,21 +145,13 @@ pub async fn fetch_loader_versions(
         }
         ModLoaderType::Forge => {
             let url = "https://meta.prismlauncher.org/v1/net.minecraftforge/index.json";
-            let resp = client
-                .get(url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Forge versions: {e}"))?;
+            let resp = client.get(url).send().await?;
 
             if !resp.status().is_success() {
                 return Ok(Vec::new());
             }
 
-            let index = resp
-                .json::<PrismIndex>()
-                .await
-                .map_err(|e| format!("Failed to parse Forge index: {e}"))?;
-
+            let index = resp.json::<PrismIndex>().await?;
             let matching: Vec<String> = index
                 .versions
                 .into_iter()
@@ -196,7 +179,7 @@ pub async fn resolve_loader_profile(
     loader: &ModLoaderType,
     game_version: &str,
     loader_version: &str,
-) -> Result<LoaderProfile, String> {
+) -> Result<LoaderProfile, LoaderError> {
     let profile_cache_dir = cache_dir.join("loader_profiles");
     let _ = fs::create_dir_all(&profile_cache_dir);
 
@@ -214,22 +197,14 @@ pub async fn resolve_loader_profile(
     }
 
     match loader {
-        ModLoaderType::Vanilla => Err("Vanilla has no loader profile".into()),
+        ModLoaderType::Vanilla => Err(LoaderError::VanillaNotSupported),
         ModLoaderType::Fabric => {
             let url = format!(
                 "https://meta.fabricmc.net/v2/versions/loader/{}/{}/profile/json",
                 game_version, loader_version
             );
-            let resp = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Fabric profile: {e}"))?;
-
-            let val = resp
-                .json::<serde_json::Value>()
-                .await
-                .map_err(|e| format!("Failed to parse Fabric profile: {e}"))?;
+            let resp = client.get(&url).send().await?;
+            let val = resp.json::<serde_json::Value>().await?;
 
             let main_class = val["mainClass"]
                 .as_str()
@@ -281,16 +256,8 @@ pub async fn resolve_loader_profile(
                 "https://meta.quiltmc.org/v3/versions/loader/{}/{}/profile/json",
                 game_version, loader_version
             );
-            let resp = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Quilt profile: {e}"))?;
-
-            let val = resp
-                .json::<serde_json::Value>()
-                .await
-                .map_err(|e| format!("Failed to parse Quilt profile: {e}"))?;
+            let resp = client.get(&url).send().await?;
+            let val = resp.json::<serde_json::Value>().await?;
 
             let main_class = val["mainClass"]
                 .as_str()
@@ -344,16 +311,8 @@ pub async fn resolve_loader_profile(
                 "https://meta.prismlauncher.org/v1/net.neoforged/{}.json",
                 loader_version
             );
-            let resp = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch NeoForge profile: {e}"))?;
-
-            let component = resp
-                .json::<PrismComponent>()
-                .await
-                .map_err(|e| format!("Failed to parse NeoForge profile: {e}"))?;
+            let resp = client.get(&url).send().await?;
+            let component = resp.json::<PrismComponent>().await?;
 
             let main_class = component
                 .main_class
@@ -411,16 +370,8 @@ pub async fn resolve_loader_profile(
                 "https://meta.prismlauncher.org/v1/net.minecraftforge/{}.json",
                 loader_version
             );
-            let resp = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Forge profile: {e}"))?;
-
-            let component = resp
-                .json::<PrismComponent>()
-                .await
-                .map_err(|e| format!("Failed to parse Forge profile: {e}"))?;
+            let resp = client.get(&url).send().await?;
+            let component = resp.json::<PrismComponent>().await?;
 
             let main_class = component
                 .main_class

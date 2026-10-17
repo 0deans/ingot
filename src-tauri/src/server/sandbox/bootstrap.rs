@@ -1,3 +1,4 @@
+use super::error::SandboxError;
 use flate2::read::GzDecoder;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
@@ -19,21 +20,20 @@ fn alpine_rootfs_url() -> String {
 }
 
 /// Resolves the sandbox directory inside app data
-pub fn get_sandbox_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
+pub fn get_sandbox_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, SandboxError> {
     let data_dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| format!("Failed to get app data directory: {e}"))?;
+        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
     let sandbox_dir = data_dir.join("sandbox");
     if !sandbox_dir.exists() {
-        fs::create_dir_all(&sandbox_dir)
-            .map_err(|e| format!("Failed to create sandbox directory: {e}"))?;
+        fs::create_dir_all(&sandbox_dir)?;
     }
     Ok(sandbox_dir)
 }
 
 /// Resolves the rootfs directory
-pub fn get_rootfs_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
+pub fn get_rootfs_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, SandboxError> {
     let sandbox_dir = get_sandbox_dir(app)?;
     Ok(sandbox_dir.join("rootfs"))
 }
@@ -79,7 +79,7 @@ async fn install_base_rootfs<FProgress>(
     sandbox_dir: &Path,
     rootfs_dir: &Path,
     on_progress: &FProgress,
-) -> Result<(), String>
+) -> Result<(), SandboxError>
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
@@ -87,33 +87,22 @@ where
 
     on_progress("Downloading Linux sandbox...", 0.05);
 
-    let mut response = client
-        .get(alpine_rootfs_url())
-        .send()
-        .await
-        .map_err(|e| format!("Failed to download rootfs: {e}"))?;
+    let mut response = client.get(alpine_rootfs_url()).send().await?;
 
     if !response.status().is_success() {
-        return Err(format!(
-            "Linux rootfs download failed (HTTP {}). On mobile, you can use PumpkinMC (Rust) which runs natively without requiring Java or rootfs.",
-            response.status()
-        ));
+        return Err(SandboxError::DownloadStatus {
+            status: response.status(),
+        });
     }
 
     let total_size = response.content_length().unwrap_or(4 * 1024 * 1024);
     let mut downloaded = 0u64;
 
-    let mut file = File::create(&archive_path)
-        .map_err(|e| format!("Failed to create temporary rootfs archive: {e}"))?;
+    let mut file = File::create(&archive_path)?;
 
-    while let Some(chunk) = response
-        .chunk()
-        .await
-        .map_err(|e| format!("Rootfs download interrupted: {e}"))?
-    {
+    while let Some(chunk) = response.chunk().await? {
         use std::io::Write;
-        file.write_all(&chunk)
-            .map_err(|e| format!("Error writing chunk: {e}"))?;
+        file.write_all(&chunk)?;
 
         downloaded += chunk.len() as u64;
         let progress = 0.05 + ((downloaded as f32 / total_size as f32) * 0.15);
@@ -128,21 +117,16 @@ where
     if rootfs_dir.exists() {
         let _ = fs::remove_dir_all(rootfs_dir);
     }
-    fs::create_dir_all(rootfs_dir)
-        .map_err(|e| format!("Failed to create rootfs directory: {e}"))?;
+    fs::create_dir_all(rootfs_dir)?;
 
     let archive_path_clone = archive_path.clone();
     let rootfs_clone = rootfs_dir.to_path_buf();
-    tokio::task::spawn_blocking(move || -> Result<(), String> {
-        let tar_file = File::open(&archive_path_clone)
-            .map_err(|e| format!("Failed to open rootfs archive for extraction: {e}"))?;
+    tokio::task::spawn_blocking(move || -> Result<(), SandboxError> {
+        let tar_file = File::open(&archive_path_clone)?;
         let mut archive = Archive::new(GzDecoder::new(tar_file));
-        archive
-            .unpack(&rootfs_clone)
-            .map_err(|e| format!("Failed to extract rootfs archive: {e}"))
+        archive.unpack(&rootfs_clone).map_err(SandboxError::from)
     })
-    .await
-    .map_err(|e| format!("Rootfs extraction task failed: {e}"))??;
+    .await??;
 
     let _ = fs::remove_file(archive_path);
 
@@ -151,38 +135,35 @@ where
     fs::write(
         etc.join("resolv.conf"),
         "nameserver 1.1.1.1\nnameserver 8.8.8.8\n",
-    )
-    .map_err(|e| format!("Failed to write resolv.conf: {e}"))?;
+    )?;
     fs::write(
         etc.join("hosts"),
         "127.0.0.1 localhost\n::1 localhost ip6-localhost\n",
-    )
-    .map_err(|e| format!("Failed to write hosts: {e}"))?;
+    )?;
     fs::write(
         etc.join("apk").join("repositories"),
         format!(
             "https://dl-cdn.alpinelinux.org/alpine/{ALPINE_BRANCH}/main\nhttps://dl-cdn.alpinelinux.org/alpine/{ALPINE_BRANCH}/community\n"
         ),
-    )
-    .map_err(|e| format!("Failed to write apk repositories: {e}"))?;
+    )?;
 
-    fs::write(rootfs_dir.join(BASE_MARKER), ALPINE_VERSION)
-        .map_err(|e| format!("Failed to write rootfs marker: {e}"))?;
+    fs::write(rootfs_dir.join(BASE_MARKER), ALPINE_VERSION)?;
     Ok(())
 }
 
 /// Installs an OpenJDK package inside the sandbox using apk (run through PRoot)
-async fn install_java(sandbox_dir: &Path, rootfs_dir: &Path, package: &str) -> Result<(), String> {
+async fn install_java(
+    sandbox_dir: &Path,
+    rootfs_dir: &Path,
+    package: &str,
+) -> Result<(), SandboxError> {
     let mut cmd = super::proot::proot_command(sandbox_dir, Some(rootfs_dir), true, &[], "/root")?;
     cmd.args(["/sbin/apk", "add", "--no-cache", "--no-progress", package]);
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    let output = cmd
-        .output()
-        .await
-        .map_err(|e| format!("Failed to launch PRoot: {e}"))?;
+    let output = cmd.output().await?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -196,11 +177,11 @@ async fn install_java(sandbox_dir: &Path, rootfs_dir: &Path, package: &str) -> R
             .take(15)
             .collect();
         let tail: Vec<&str> = tail.into_iter().rev().collect();
-        return Err(format!(
-            "Failed to install {package} in the Linux sandbox ({}):\n{}",
-            output.status,
-            tail.join("\n")
-        ));
+        return Err(SandboxError::JavaInstallFailed {
+            package: package.to_string(),
+            status: output.status,
+            details: tail.join("\n"),
+        });
     }
     Ok(())
 }
@@ -216,7 +197,7 @@ pub async fn ensure_base_rootfs<R: Runtime, FProgress>(
     app: &tauri::AppHandle<R>,
     client: &reqwest::Client,
     on_progress: FProgress,
-) -> Result<(PathBuf, PathBuf), String>
+) -> Result<(PathBuf, PathBuf), SandboxError>
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
@@ -228,7 +209,7 @@ async fn base_rootfs<R: Runtime, FProgress>(
     app: &tauri::AppHandle<R>,
     client: &reqwest::Client,
     on_progress: &FProgress,
-) -> Result<(PathBuf, PathBuf), String>
+) -> Result<(PathBuf, PathBuf), SandboxError>
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
@@ -245,7 +226,7 @@ pub async fn ensure_sandbox_rootfs<R: Runtime, FProgress>(
     client: &reqwest::Client,
     java_major: u32,
     on_progress: FProgress,
-) -> Result<(PathBuf, PathBuf, String), String>
+) -> Result<(PathBuf, PathBuf, String), SandboxError>
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
@@ -260,9 +241,10 @@ where
     on_progress(&format!("Installing Java {major} in sandbox..."), 0.30);
     install_java(&sandbox_dir, &rootfs_dir, package).await?;
 
-    let java = find_guest_java(&rootfs_dir, major).ok_or_else(|| {
-        format!("{package} was installed but no java binary was found in the sandbox")
-    })?;
+    let java =
+        find_guest_java(&rootfs_dir, major).ok_or_else(|| SandboxError::JavaBinaryNotFound {
+            package: package.to_string(),
+        })?;
 
     on_progress("Sandbox initialization complete!", 1.0);
     Ok((sandbox_dir, rootfs_dir, java))

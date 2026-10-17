@@ -127,11 +127,26 @@ pub fn should_include_library(lib: &LibraryEntry) -> bool {
     crate::minecraft::launcher::rules::should_include_library_rules(lib.rules.as_deref())
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum VersionError {
+    #[error("Network request failed: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("JSON deserialization failed: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Minecraft version '{0}' not found in manifest")]
+    NotFound(String),
+
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 /// Fetches the Mojang version manifest, caching it locally for 1 hour
 pub async fn fetch_version_manifest(
     client: &reqwest::Client,
     cache_dir: &Path,
-) -> Result<VersionManifest, String> {
+) -> Result<VersionManifest, VersionError> {
     let manifest_file = cache_dir.join("version_manifest_v2.json");
 
     if manifest_file.exists() {
@@ -153,11 +168,9 @@ pub async fn fetch_version_manifest(
     let manifest = client
         .get(MOJANG_MANIFEST_URL)
         .send()
-        .await
-        .map_err(|e| format!("Failed to fetch version manifest: {e}"))?
+        .await?
         .json::<VersionManifest>()
-        .await
-        .map_err(|e| format!("Failed to parse version manifest: {e}"))?;
+        .await?;
 
     let _ = fs::create_dir_all(cache_dir);
     if let Ok(data) = serde_json::to_string(&manifest) {
@@ -172,7 +185,7 @@ pub async fn fetch_version_package(
     client: &reqwest::Client,
     cache_dir: &Path,
     game_version: &str,
-) -> Result<VersionPackage, String> {
+) -> Result<VersionPackage, VersionError> {
     let versions_dir = cache_dir.join("versions").join(game_version);
     let pkg_file = versions_dir.join(format!("{}.json", game_version));
 
@@ -189,16 +202,14 @@ pub async fn fetch_version_package(
         .versions
         .iter()
         .find(|v| v.id == game_version)
-        .ok_or_else(|| format!("Minecraft version '{}' not found in manifest", game_version))?;
+        .ok_or_else(|| VersionError::NotFound(game_version.to_string()))?;
 
     let pkg = client
         .get(&entry.url)
         .send()
-        .await
-        .map_err(|e| format!("Failed to fetch version package for {}: {e}", game_version))?
+        .await?
         .json::<VersionPackage>()
-        .await
-        .map_err(|e| format!("Failed to parse version package for {}: {e}", game_version))?;
+        .await?;
 
     let _ = fs::create_dir_all(&versions_dir);
     if let Ok(data) = serde_json::to_string(&pkg) {
@@ -213,7 +224,7 @@ pub async fn fetch_asset_index(
     client: &reqwest::Client,
     assets_dir: &Path,
     asset_ref: &AssetIndexRef,
-) -> Result<AssetIndex, String> {
+) -> Result<AssetIndex, VersionError> {
     let indexes_dir = assets_dir.join("indexes");
     let index_file = indexes_dir.join(format!("{}.json", asset_ref.id));
 
@@ -228,11 +239,9 @@ pub async fn fetch_asset_index(
     let index = client
         .get(&asset_ref.url)
         .send()
-        .await
-        .map_err(|e| format!("Failed to fetch asset index {}: {e}", asset_ref.id))?
+        .await?
         .json::<AssetIndex>()
-        .await
-        .map_err(|e| format!("Failed to parse asset index {}: {e}", asset_ref.id))?;
+        .await?;
 
     let _ = fs::create_dir_all(&indexes_dir);
     if let Ok(data) = serde_json::to_string(&index) {

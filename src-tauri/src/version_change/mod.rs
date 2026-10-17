@@ -26,21 +26,22 @@ pub mod transaction;
 #[cfg(test)]
 mod tests;
 
+pub(crate) use journal::read_journal;
+#[cfg(test)]
+pub(crate) use journal::write_journal;
 #[cfg(test)]
 pub(crate) use journal::Journal;
 pub use journal::{
     detect_incomplete_transaction, discard_backup, discard_backup_typed, last_backup,
     read_journal_state, transaction_status, write_journal_typed, JournalState,
 };
-pub(crate) use journal::{read_journal, write_journal};
 #[cfg(test)]
-pub(crate) use models::{backup_dir, work_dir};
+pub(crate) use models::{backup_dir, safe_file_name, safe_rel, work_dir};
 pub use models::{
     loader_label, safe_file_name_typed, safe_rel_typed, ContentKind, Folder, ItemAction,
     ItemStatus, PlanItem, PlanRequest, Restored, Target, TargetFile, TargetKind, TransactionPhase,
     VersionBackup, VersionChangeError, VersionPlan, VersionTransactionStatus, WorldInfo,
 };
-pub(crate) use models::{safe_file_name, safe_rel};
 pub use planner::{check, check_typed};
 pub use scan::list_worlds;
 pub use sources::Source;

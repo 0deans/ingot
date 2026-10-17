@@ -27,10 +27,12 @@ pub use config::{
     ServerProperties, ServerStatus, ServerStatusEvent, WhitelistEntry,
 };
 pub(crate) use config::{delete_server, update_server};
-pub use downloader::fetch_core_versions;
+pub use downloader::{fetch_core_versions, ServerCoreError};
 pub use process::{launch_server, ServerProcessManager};
 pub use slp::{
-    ping_server, ServerPingResponse, ServerPlayerSample, ServerPlayersInfo, ServerVersionInfo,
+    ping_server, PingError, ServerPingResponse, ServerPlayerSample, ServerPlayersInfo,
+    ServerVersionInfo,
 };
 pub use supervisor::ServerSupervisorManager;
-pub use tunnel::PlayitManager;
+pub use transfer::TransferError;
+pub use tunnel::{PlayitError, PlayitManager};

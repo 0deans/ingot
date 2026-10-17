@@ -25,8 +25,6 @@ pub(crate) enum ChangeServiceError {
     NotFound,
     #[error("Target changed since the plan was checked")]
     StalePlan,
-    #[error("Invalid version target: {0}")]
-    InvalidTarget(String),
 }
 
 #[derive(Clone, Copy)]
@@ -114,8 +112,7 @@ pub(crate) async fn apply_instance(
     {
         return Err(ChangeServiceError::StalePlan);
     }
-    let loader =
-        targets::parse_loader(&plan.to_loader).map_err(ChangeServiceError::InvalidTarget)?;
+    let loader = targets::parse_loader(&plan.to_loader)?;
     let target = targets::instance(root, &plan.from_loader, &plan.to_loader);
     transaction::apply_typed_with_commit(
         client,
@@ -150,8 +147,7 @@ pub(crate) fn restore_instance(
         .map_err(|_| ChangeServiceError::Busy)?;
     let current = find_instance(repository, id)?;
     let commit = |restored: &Restored| -> Result<(), ChangeServiceError> {
-        let loader =
-            targets::parse_loader(&restored.loader).map_err(ChangeServiceError::InvalidTarget)?;
+        let loader = targets::parse_loader(&restored.loader)?;
         patch_instance(
             repository,
             id,
@@ -190,7 +186,7 @@ pub(crate) async fn apply_server(
         .await
         .map_err(|_| ChangeServiceError::Busy)?;
     let current = find_server(repository, &plan.target_id)?;
-    let core = targets::parse_loader(&plan.to_loader).map_err(ChangeServiceError::InvalidTarget)?;
+    let core = targets::parse_loader(&plan.to_loader)?;
     if plan.target_kind != TargetKind::Server
         || plan.from_game_version != current.game_version
         || plan.from_loader != targets::loader_id(&current.core)
@@ -235,8 +231,7 @@ pub(crate) async fn restore_server(
         .map_err(|_| ChangeServiceError::Busy)?;
     let current = find_server(repository, id)?;
     let commit = |restored: &Restored| -> Result<(), ChangeServiceError> {
-        let core =
-            targets::parse_loader(&restored.loader).map_err(ChangeServiceError::InvalidTarget)?;
+        let core = targets::parse_loader(&restored.loader)?;
         patch_server(
             repository,
             id,

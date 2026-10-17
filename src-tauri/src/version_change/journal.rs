@@ -135,8 +135,8 @@ pub fn write_journal_typed(root: &Path, journal: &Journal) -> Result<(), Version
     Ok(())
 }
 
-pub fn write_journal(root: &Path, journal: &Journal) -> Result<(), String> {
-    write_journal_typed(root, journal).map_err(|e| e.to_string())
+pub fn write_journal(root: &Path, journal: &Journal) -> Result<(), VersionChangeError> {
+    write_journal_typed(root, journal)
 }
 
 /// The last version change, if it can be undone
@@ -169,8 +169,8 @@ pub fn discard_backup_typed(root: &Path) -> Result<(), VersionChangeError> {
     Ok(())
 }
 
-pub fn discard_backup(root: &Path) -> Result<(), String> {
-    discard_backup_typed(root).map_err(|e| e.to_string())
+pub fn discard_backup(root: &Path) -> Result<(), VersionChangeError> {
+    discard_backup_typed(root)
 }
 
 /// Reports the current transaction and recovery status for a target root.

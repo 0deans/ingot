@@ -1,3 +1,3 @@
 pub mod playit;
 
-pub use playit::{PlayitManager, PlayitTunnelStatus};
+pub use playit::{PlayitError, PlayitManager, PlayitTunnelStatus};

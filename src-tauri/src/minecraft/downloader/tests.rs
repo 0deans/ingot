@@ -6,6 +6,95 @@ use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
+async fn unavailable_provider(requests: usize) -> (String, tokio::task::JoinHandle<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let server = tokio::spawn(async move {
+        for _ in 0..requests {
+            let (mut connection, _) = listener.accept().await.unwrap();
+            let mut request = Vec::new();
+            while !request.ends_with(b"\r\n\r\n") {
+                assert!(request.len() < 8192, "Request headers exceed fixture limit");
+                request.push(connection.read_u8().await.unwrap());
+            }
+            connection
+                .write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+                .await
+                .unwrap();
+        }
+    });
+    (
+        format!("http://{address}/private-artifact?token=download-secret"),
+        server,
+    )
+}
+
+fn assert_download_diagnostics_are_redacted(error: DownloadError) {
+    for diagnostic in [error.to_string(), format!("{error:?}")] {
+        assert!(!diagnostic.contains("download-secret"));
+        assert!(!diagnostic.contains("private-artifact"));
+    }
+    let boundary = crate::ipc::error::ApiError::from(error);
+    assert!(matches!(
+        boundary,
+        crate::ipc::error::ApiError::ProviderUnavailable { .. }
+    ));
+    let payload = serde_json::to_string(&boundary).unwrap();
+    assert!(!payload.contains("download-secret"));
+    assert!(!payload.contains("private-artifact"));
+}
+
+#[tokio::test]
+async fn batch_download_preserves_transport_cause_without_signed_url() {
+    let directory = tempfile::tempdir().unwrap();
+    let (url, server) = unavailable_provider(1).await;
+    let task = DownloadTask {
+        url,
+        dest: directory.path().join("artifact.jar"),
+        sha1: None,
+        size: None,
+    };
+    let error = download_files_concurrent(&reqwest::Client::new(), vec![task], 1, None)
+        .await
+        .unwrap_err();
+    let source = std::error::Error::source(&error)
+        .unwrap()
+        .downcast_ref::<reqwest::Error>()
+        .unwrap();
+    assert_eq!(
+        source.status(),
+        Some(reqwest::StatusCode::SERVICE_UNAVAILABLE)
+    );
+    assert!(source.url().is_none());
+    assert_download_diagnostics_are_redacted(error);
+    assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 0);
+    server.await.unwrap();
+}
+
+#[tokio::test]
+async fn single_download_status_diagnostics_exclude_signed_url() {
+    let directory = tempfile::tempdir().unwrap();
+    let (url, server) = unavailable_provider(2).await;
+    let error = download_file_chunked(
+        &reqwest::Client::new(),
+        &url,
+        &directory.path().join("artifact.jar"),
+        None,
+        None,
+    )
+    .await
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        DownloadError::HttpStatus {
+            status: reqwest::StatusCode::SERVICE_UNAVAILABLE
+        }
+    ));
+    assert_download_diagnostics_are_redacted(error);
+    assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 0);
+    server.await.unwrap();
+}
+
 #[test]
 fn cache_detection_with_matching_size_and_mismatched_sha1_returns_false() {
     let temp = tempfile::tempdir().unwrap();

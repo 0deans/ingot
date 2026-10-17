@@ -30,7 +30,8 @@ impl From<crate::minecraft::importer::models::ImportError> for ApiError {
             ImportError::Metadata(error) => Self::from(error),
             ImportError::Cleanup { .. } => Self::incomplete_recovery(error.to_string()),
             ImportError::Task(_) => Self::internal(error.to_string()),
-            ImportError::Io(_) | ImportError::InstanceDir(_) | ImportError::InstanceCreate(_) => {
+            ImportError::InstanceCreate(err) => Self::from(err),
+            ImportError::Io(_) | ImportError::InstanceDir(_) => {
                 Self::storage_failure(error.to_string())
             }
         }
@@ -46,6 +47,7 @@ impl From<crate::minecraft::sync::SyncError> for ApiError {
                 Self::invalid_input(error.to_string())
             }
             SyncError::Task(_) => Self::internal(error.to_string()),
+            SyncError::Instances(err) => Self::from(err),
             _ => Self::storage_failure(error.to_string()),
         }
     }
@@ -95,9 +97,10 @@ impl From<crate::minecraft::metadata::MetadataError> for ApiError {
         use crate::minecraft::metadata::MetadataError;
         match error {
             MetadataError::Conflict(message) => Self::conflict(message),
-            MetadataError::Cleanup { .. } | MetadataError::Rollback { .. } => {
-                Self::incomplete_recovery(error.to_string())
-            }
+            MetadataError::Cleanup { .. }
+            | MetadataError::Rollback { .. }
+            | MetadataError::RecoveryBlocked(_)
+            | MetadataError::RecoveryCleanup { .. } => Self::incomplete_recovery(error.to_string()),
             _ => Self::storage_failure(error.to_string()),
         }
     }
@@ -114,7 +117,6 @@ impl From<crate::version_change::service::ChangeServiceError> for ApiError {
                 Self::conflict(error.to_string())
             }
             ChangeServiceError::NotFound => Self::not_found(error.to_string()),
-            ChangeServiceError::InvalidTarget(message) => Self::invalid_input(message),
         }
     }
 }
@@ -125,7 +127,10 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
             crate::version_change::VersionChangeError::InvalidFileName(msg)
             | crate::version_change::VersionChangeError::InvalidPath(msg)
             | crate::version_change::VersionChangeError::PlanError(msg)
-            | crate::version_change::VersionChangeError::UndoError(msg) => Self::invalid_input(msg),
+            | crate::version_change::VersionChangeError::UndoError(msg)
+            | crate::version_change::VersionChangeError::InvalidTarget(msg) => {
+                Self::invalid_input(msg)
+            }
             crate::version_change::VersionChangeError::RollbackFailed {
                 primary,
                 restore,
@@ -145,14 +150,30 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
             crate::version_change::VersionChangeError::BackupError(msg)
             | crate::version_change::VersionChangeError::RestoreError(msg)
             | crate::version_change::VersionChangeError::FileOp(msg) => Self::storage_failure(msg),
-            crate::version_change::VersionChangeError::DownloadPrep(msg)
-            | crate::version_change::VersionChangeError::DownloadFailed(_, msg)
-            | crate::version_change::VersionChangeError::ChecksumMismatch(msg)
+            crate::version_change::VersionChangeError::DownloadPrep { .. } => {
+                Self::storage_failure(error.to_string())
+            }
+            crate::version_change::VersionChangeError::DownloadFailed { source, .. } => {
+                Self::from(source)
+            }
+            crate::version_change::VersionChangeError::Task(_) => Self::internal(error.to_string()),
+            crate::version_change::VersionChangeError::ChecksumMismatch(msg)
             | crate::version_change::VersionChangeError::UnknownHost(msg)
             | crate::version_change::VersionChangeError::NoChecksum(msg) => {
                 Self::provider_unavailable(msg)
             }
             crate::version_change::VersionChangeError::Custom(msg) => Self::internal(msg),
+            crate::version_change::VersionChangeError::Source(source) => match source {
+                crate::version_change::sources::SourceError::InvalidProjectId { .. } => {
+                    Self::invalid_input(source.to_string())
+                }
+                crate::version_change::sources::SourceError::Transport { .. }
+                | crate::version_change::sources::SourceError::InvalidPayload { .. }
+                | crate::version_change::sources::SourceError::HttpStatus { .. }
+                | crate::version_change::sources::SourceError::Decode { .. } => {
+                    Self::provider_unavailable(source.to_string())
+                }
+            },
         }
     }
 }
@@ -168,6 +189,9 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::NotRunning(id) => {
                 Self::not_found(format!("Instance {id} is not running"))
             }
+            crate::minecraft::launcher::LaunchError::Maintenance => {
+                Self::conflict("Instance maintenance is in progress")
+            }
             crate::minecraft::launcher::LaunchError::LoaderVersionNotSelected => {
                 Self::invalid_input("Loader version not selected")
             }
@@ -180,11 +204,17 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
                     "Cannot launch instance: version change transaction is in incomplete state ({msg}). Please recover or revert it first."
                 ))
             }
-            crate::minecraft::launcher::LaunchError::VersionPackage(msg)
-            | crate::minecraft::launcher::LaunchError::LoaderProfile(msg)
-            | crate::minecraft::launcher::LaunchError::JavaRuntime(msg)
-            | crate::minecraft::launcher::LaunchError::Download(msg) => {
-                Self::provider_unavailable(msg)
+            crate::minecraft::launcher::LaunchError::VersionPackage(err) => {
+                Self::from(err)
+            }
+            crate::minecraft::launcher::LaunchError::LoaderProfile(err) => {
+                Self::from(err)
+            }
+            crate::minecraft::launcher::LaunchError::Download(err) => {
+                Self::from(err)
+            }
+            crate::minecraft::launcher::LaunchError::JavaRuntime(err) => {
+                Self::from(err)
             }
             crate::minecraft::launcher::LaunchError::Account(msg) => {
                 Self::invalid_input(msg)
@@ -199,8 +229,60 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
                 Self::storage_failure(err.to_string())
             }
             crate::minecraft::launcher::LaunchError::Other(msg) => {
-                Self::from(msg)
+                Self::internal(msg)
             }
+        }
+    }
+}
+
+impl From<crate::minecraft::bedrock::BedrockError> for ApiError {
+    fn from(error: crate::minecraft::bedrock::BedrockError) -> Self {
+        use crate::minecraft::bedrock::BedrockError;
+        match error {
+            BedrockError::UnsupportedPlatform => Self::invalid_input(error.to_string()),
+            BedrockError::FolderNotFound => Self::not_found(error.to_string()),
+            BedrockError::ProcessSpawn(_) => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::minecraft::version::VersionError> for ApiError {
+    fn from(error: crate::minecraft::version::VersionError) -> Self {
+        use crate::minecraft::version::VersionError;
+        match error {
+            VersionError::NotFound(_) => Self::not_found(error.to_string()),
+            VersionError::Network(_) => Self::provider_unavailable(error.to_string()),
+            VersionError::Json(_) | VersionError::Io(_) => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::minecraft::loader::LoaderError> for ApiError {
+    fn from(error: crate::minecraft::loader::LoaderError) -> Self {
+        use crate::minecraft::loader::LoaderError;
+        match error {
+            LoaderError::Network(_) => Self::provider_unavailable(error.to_string()),
+            LoaderError::VanillaNotSupported => Self::invalid_input(error.to_string()),
+            LoaderError::Json(_) | LoaderError::Other(_) => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::minecraft::downloader::DownloadError> for ApiError {
+    fn from(error: crate::minecraft::downloader::DownloadError) -> Self {
+        use crate::minecraft::downloader::DownloadError;
+        match error {
+            DownloadError::Duplicate(_) => Self::conflict(error.to_string()),
+            DownloadError::Transport(_) | DownloadError::HttpStatus { .. } => {
+                Self::provider_unavailable(error.to_string())
+            }
+            DownloadError::Io(_) => Self::storage_failure(error.to_string()),
+            DownloadError::Integrity(_)
+            | DownloadError::Sha1Mismatch(_)
+            | DownloadError::ChunkLengthMismatch { .. }
+            | DownloadError::ContentRange(_)
+            | DownloadError::Task(_)
+            | DownloadError::Other(_) => Self::internal(error.to_string()),
         }
     }
 }

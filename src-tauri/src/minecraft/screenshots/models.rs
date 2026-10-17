@@ -50,9 +50,3 @@ pub enum ScreenshotError {
     #[error("Cache directory resolution error: {0}")]
     CacheDir(String),
 }
-
-impl From<ScreenshotError> for String {
-    fn from(err: ScreenshotError) -> Self {
-        err.to_string()
-    }
-}

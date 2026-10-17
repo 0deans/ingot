@@ -205,9 +205,3 @@ pub enum PluginError {
     #[error("Plugin blocking task failed: {0}")]
     Task(#[from] tokio::task::JoinError),
 }
-
-impl From<PluginError> for String {
-    fn from(error: PluginError) -> Self {
-        error.to_string()
-    }
-}

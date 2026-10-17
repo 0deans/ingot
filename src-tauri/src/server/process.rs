@@ -3,6 +3,7 @@ pub mod console;
 pub mod lifecycle;
 pub mod manager;
 pub mod models;
+pub(crate) mod monitoring;
 
 #[cfg(test)]
 mod tests;

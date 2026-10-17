@@ -80,11 +80,35 @@ struct MojangDownloadFile {
     sha1: Option<String>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum ServerCoreError {
+    #[error("Network request failed: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("JSON deserialization failed: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Installer error: {0}")]
+    Installer(#[from] crate::server::installer::InstallerError),
+
+    #[error("Pumpkin error: {0}")]
+    Pumpkin(#[from] crate::server::pumpkin::PumpkinError),
+
+    #[error("Bedrock error: {0}")]
+    Bedrock(#[from] crate::server::bedrock::BedrockServerError),
+
+    #[error("Download error: {0}")]
+    Download(#[from] crate::minecraft::downloader::DownloadError),
+
+    #[error("Version not found: {0}")]
+    NotFound(String),
+}
+
 /// Fetches supported Minecraft versions for a given server core
 pub async fn fetch_core_versions(
     client: &reqwest::Client,
     core: &ServerCoreType,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, ServerCoreError> {
     match core {
         ServerCoreType::Paper | ServerCoreType::Folia => {
             let project = if *core == ServerCoreType::Folia {
@@ -93,15 +117,8 @@ pub async fn fetch_core_versions(
                 "paper"
             };
             let url = format!("https://fill.papermc.io/v3/projects/{}", project);
-            let res = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to reach {project} API: {e}"))?;
-            let data: PaperProjectsResponseV3 = res
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse {project} API response: {e}"))?;
+            let res = client.get(&url).send().await?;
+            let data: PaperProjectsResponseV3 = res.json().await?;
 
             let mut list = Vec::new();
             for group in data.versions.values() {
@@ -115,12 +132,8 @@ pub async fn fetch_core_versions(
             let res = client
                 .get("https://api.purpurmc.org/v2/purpur")
                 .send()
-                .await
-                .map_err(|e| format!("Failed to reach Purpur API: {e}"))?;
-            let data: PurpurVersionsResponse = res
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse Purpur API: {e}"))?;
+                .await?;
+            let data: PurpurVersionsResponse = res.json().await?;
             let mut list = data.versions;
             list.reverse();
             Ok(list)
@@ -129,12 +142,8 @@ pub async fn fetch_core_versions(
             let res = client
                 .get("https://meta.fabricmc.net/v2/versions/game")
                 .send()
-                .await
-                .map_err(|e| format!("Failed to reach Fabric Meta API: {e}"))?;
-            let data: Vec<serde_json::Value> = res
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse Fabric Meta: {e}"))?;
+                .await?;
+            let data: Vec<serde_json::Value> = res.json().await?;
 
             let mut versions = Vec::new();
             for item in data {
@@ -154,12 +163,8 @@ pub async fn fetch_core_versions(
             let res = client
                 .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
                 .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Mojang manifest: {e}"))?;
-            let manifest: MojangVersionManifest = res
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse Mojang manifest: {e}"))?;
+                .await?;
+            let manifest: MojangVersionManifest = res.json().await?;
 
             let versions = manifest
                 .versions
@@ -169,10 +174,14 @@ pub async fn fetch_core_versions(
                 .collect();
             Ok(versions)
         }
-        ServerCoreType::Pumpkin => crate::server::pumpkin::fetch_pumpkin_versions(client).await,
-        ServerCoreType::Bedrock => crate::server::bedrock::fetch_bedrock_versions(client).await,
+        ServerCoreType::Pumpkin => {
+            Ok(crate::server::pumpkin::fetch_pumpkin_versions(client).await?)
+        }
+        ServerCoreType::Bedrock => {
+            Ok(crate::server::bedrock::fetch_bedrock_versions(client).await?)
+        }
         ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
-            crate::server::installer::fetch_game_versions(client, core).await
+            Ok(crate::server::installer::fetch_game_versions(client, core).await?)
         }
     }
 }
@@ -184,7 +193,7 @@ pub async fn ensure_server_jar(
     core: &ServerCoreType,
     game_version: &str,
     build_number: Option<&str>,
-) -> Result<String, String> {
+) -> Result<String, ServerCoreError> {
     // Installed on start instead: their installers need Java
     if crate::server::installer::uses_installer(core) {
         return Ok(format!("{core} is installed when the server starts"));
@@ -208,26 +217,9 @@ pub async fn ensure_server_jar(
                 project, game_version, build_target
             );
 
-            let b_resp = client.get(&build_url).send().await.map_err(|e| {
-                format!(
-                    "Failed to fetch {} build info for {}: {e}",
-                    project, game_version
-                )
-            })?;
+            let b_resp = client.get(&build_url).send().await?.error_for_status()?;
 
-            if !b_resp.status().is_success() {
-                return Err(format!(
-                    "{} API returned status {} for version {}",
-                    project,
-                    b_resp.status(),
-                    game_version
-                ));
-            }
-
-            let b_data: PaperBuildResponseV3 = b_resp
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse build info: {e}"))?;
+            let b_data: PaperBuildResponseV3 = b_resp.json().await?;
 
             let dl_entry = b_data
                 .downloads
@@ -235,10 +227,10 @@ pub async fn ensure_server_jar(
                 .or_else(|| b_data.downloads.get("application"))
                 .or_else(|| b_data.downloads.values().next())
                 .ok_or_else(|| {
-                    format!(
+                    ServerCoreError::NotFound(format!(
                         "No server download entry found for {} build #{}",
                         project, b_data.id
-                    )
+                    ))
                 })?;
 
             download_file_chunked(client, &dl_entry.url, &dest_jar, None, None).await?;
@@ -250,13 +242,8 @@ pub async fn ensure_server_jar(
                 b.to_string()
             } else {
                 let info_url = format!("https://api.purpurmc.org/v2/purpur/{}", game_version);
-                let resp = client.get(&info_url).send().await.map_err(|e| {
-                    format!("Failed to fetch Purpur builds for {}: {e}", game_version)
-                })?;
-                let data: PurpurBuildsResponse = resp
-                    .json()
-                    .await
-                    .map_err(|e| format!("Failed to parse Purpur builds: {e}"))?;
+                let resp = client.get(&info_url).send().await?.error_for_status()?;
+                let data: PurpurBuildsResponse = resp.json().await?;
                 data.builds.latest
             };
 
@@ -275,38 +262,38 @@ pub async fn ensure_server_jar(
                 "https://meta.fabricmc.net/v2/versions/loader/{}",
                 game_version
             );
-            let resp =
-                client.get(&loader_url).send().await.map_err(|e| {
-                    format!("Failed to fetch Fabric loader for {}: {e}", game_version)
-                })?;
-            let loaders: Vec<FabricLoaderEntry> = resp
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse Fabric loaders: {e}"))?;
+            let resp = client.get(&loader_url).send().await?.error_for_status()?;
+            let loaders: Vec<FabricLoaderEntry> = resp.json().await?;
 
             let loader_ver = loaders
                 .iter()
                 .find(|l| l.loader.stable)
                 .or_else(|| loaders.first())
                 .map(|l| &l.loader.version)
-                .ok_or_else(|| format!("No Fabric loader found for {}", game_version))?;
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound(format!(
+                        "No Fabric loader found for {}",
+                        game_version
+                    ))
+                })?;
 
             // The server launcher is built by a given installer version (the URL
             // without one no longer exists)
             let installers: Vec<serde_json::Value> = client
                 .get("https://meta.fabricmc.net/v2/versions/installer")
                 .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Fabric installers: {e}"))?
+                .await?
+                .error_for_status()?
                 .json()
-                .await
-                .map_err(|e| format!("Failed to parse Fabric installers: {e}"))?;
+                .await?;
             let installer = installers
                 .iter()
                 .find(|i| i.get("stable").and_then(|s| s.as_bool()) == Some(true))
                 .or_else(|| installers.first())
                 .and_then(|i| i.get("version").and_then(|v| v.as_str()))
-                .ok_or("No Fabric installer found")?;
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound("No Fabric installer found".to_string())
+                })?;
 
             let server_jar_url = format!(
                 "https://meta.fabricmc.net/v2/versions/loader/{}/{}/{}/server/jar",
@@ -321,31 +308,29 @@ pub async fn ensure_server_jar(
             let manifest_res = client
                 .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
                 .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Mojang manifest: {e}"))?;
-            let manifest: MojangVersionManifest = manifest_res
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse Mojang manifest: {e}"))?;
+                .await?
+                .error_for_status()?;
+            let manifest: MojangVersionManifest = manifest_res.json().await?;
 
             let entry = manifest
                 .versions
                 .into_iter()
                 .find(|v| v.id == game_version)
-                .ok_or_else(|| format!("Vanilla version {} not found in manifest", game_version))?;
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound(format!(
+                        "Vanilla version {} not found in manifest",
+                        game_version
+                    ))
+                })?;
 
-            let pkg_res = client
-                .get(&entry.url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch version package: {e}"))?;
-            let pkg: MojangVersionPackage = pkg_res
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse version package: {e}"))?;
+            let pkg_res = client.get(&entry.url).send().await?.error_for_status()?;
+            let pkg: MojangVersionPackage = pkg_res.json().await?;
 
             let server_dl = pkg.downloads.and_then(|d| d.server).ok_or_else(|| {
-                format!("No server download provided for vanilla {}", game_version)
+                ServerCoreError::NotFound(format!(
+                    "No server download provided for vanilla {}",
+                    game_version
+                ))
             })?;
 
             download_file_chunked(

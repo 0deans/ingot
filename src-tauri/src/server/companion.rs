@@ -80,15 +80,32 @@ pub fn status(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> C
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CompanionError {
+    #[error(
+        "Ingot's live map needs Paper, Purpur or Folia 1.20.1+, or Fabric or Quilt on Minecraft 26.1+"
+    )]
+    UnsupportedPlatform,
+
+    #[error("Plugin error during companion installation: {0}")]
+    Plugin(#[from] crate::server::plugins::PluginError),
+
+    #[error("I/O error during companion installation: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 /// Installs or updates the companion (into plugins/ or mods/). Replaces an existing copy
 /// (enabled or not) so there's only ever one. Takes effect on the next server start.
-pub fn install(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> Result<(), String> {
+pub fn install(
+    server_dir: &Path,
+    core: &ServerCoreType,
+    game_version: &str,
+) -> Result<(), CompanionError> {
     let (Some(jar), Some(platform)) = (jar_for(core, game_version), plugins::platform(core)) else {
-        return Err("Ingot's live map needs Paper, Purpur or Folia 1.20.1+, or Fabric or Quilt on Minecraft 26.1+".into());
+        return Err(CompanionError::UnsupportedPlatform);
     };
     let dir = server_dir.join(platform.folder);
-    std::fs::create_dir_all(&dir)
-        .map_err(|e| format!("Failed to create the {} folder: {e}", platform.folder))?;
+    std::fs::create_dir_all(&dir)?;
     for existing in plugins::list_installed(server_dir, core)?
         .into_iter()
         .filter(|p| p.system)
@@ -96,9 +113,9 @@ pub fn install(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> 
         let _ = std::fs::remove_file(dir.join(&existing.file_name));
     }
     let tmp = dir.join(format!("{FILE_NAME}.part"));
-    std::fs::write(&tmp, jar).map_err(|e| format!("Failed to install Ingot's live map: {e}"))?;
-    std::fs::rename(&tmp, dir.join(FILE_NAME))
-        .map_err(|e| format!("Failed to install Ingot's live map: {e}"))
+    std::fs::write(&tmp, jar)?;
+    std::fs::rename(&tmp, dir.join(FILE_NAME))?;
+    Ok(())
 }
 
 #[cfg(test)]

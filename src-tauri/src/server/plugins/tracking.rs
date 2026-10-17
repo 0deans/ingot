@@ -26,12 +26,6 @@ pub enum TrackingError {
     InvalidEntry(&'static str),
 }
 
-impl From<TrackingError> for String {
-    fn from(error: TrackingError) -> Self {
-        error.to_string()
-    }
-}
-
 pub fn read_tracking(server_dir: &Path) -> Result<Vec<TrackedPlugin>, TrackingError> {
     let path = tracking_path(server_dir);
     let bytes = match std::fs::read(&path) {

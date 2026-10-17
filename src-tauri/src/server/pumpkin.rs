@@ -29,20 +29,46 @@ pub fn get_pumpkin_binary_path(server_dir: &Path) -> PathBuf {
     server_dir.join(get_pumpkin_binary_name())
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum PumpkinError {
+    #[error("Network error during Pumpkin operation: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("I/O error during Pumpkin operation: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("JSON error during Pumpkin operation: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("No compatible Pumpkin binary found matching '{0}'")]
+    AssetNotFound(String),
+
+    #[error("Failed to download Pumpkin binary from {url}: HTTP {status}")]
+    HttpStatus {
+        url: String,
+        status: reqwest::StatusCode,
+    },
+
+    #[error("pumpkin.toml parse error: {0}")]
+    TomlParse(#[from] toml_edit::TomlError),
+
+    #[error("Invalid Pumpkin binary path")]
+    InvalidBinaryPath,
+
+    #[error("Sandbox error: {0}")]
+    Sandbox(#[from] crate::server::sandbox::SandboxError),
+}
+
 /// Fetches available Pumpkin versions from GitHub Releases
-pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<String>, String> {
+pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<String>, PumpkinError> {
     let url = "https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases?per_page=10";
     let res = client
         .get(url)
         .header("User-Agent", crate::USER_AGENT)
         .send()
-        .await
-        .map_err(|e| format!("Failed to fetch Pumpkin releases: {e}"))?;
+        .await?;
 
-    let releases: Vec<GithubRelease> = res
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse Pumpkin releases response: {e}"))?;
+    let releases: Vec<GithubRelease> = res.json().await?;
 
     let versions: Vec<String> = releases.into_iter().map(|r| r.tag_name).collect();
     if versions.is_empty() {
@@ -58,7 +84,7 @@ pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<Stri
 pub async fn ensure_pumpkin_binary(
     client: &reqwest::Client,
     server_dir: &Path,
-) -> Result<PathBuf, String> {
+) -> Result<PathBuf, PumpkinError> {
     let bin_path = get_pumpkin_binary_path(server_dir);
     if bin_path.exists() {
         if std::fs::metadata(&bin_path)
@@ -76,13 +102,9 @@ pub async fn ensure_pumpkin_binary(
         .get(url)
         .header("User-Agent", crate::USER_AGENT)
         .send()
-        .await
-        .map_err(|e| format!("Failed to fetch latest Pumpkin release: {e}"))?;
+        .await?;
 
-    let release: GithubRelease = res
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse Pumpkin release info: {e}"))?;
+    let release: GithubRelease = res.json().await?;
 
     // Release asset for this platform (e.g. "pumpkin-ARM64-Linux-musl"). Matched by
     // suffix: "ARM64-Linux" must not pick the musl build, and vice versa.
@@ -118,43 +140,27 @@ pub async fn ensure_pumpkin_binary(
         .find(|a| {
             a.name.ends_with(target_pattern) || a.name.ends_with(&format!("{target_pattern}.exe"))
         })
-        .ok_or_else(|| {
-            format!(
-                "No compatible Pumpkin binary found matching '{target_pattern}' in release {}",
-                release.tag_name
-            )
-        })?;
+        .ok_or_else(|| PumpkinError::AssetNotFound(target_pattern.to_string()))?;
 
     let download_res = client
         .get(&asset.browser_download_url)
         .header("User-Agent", crate::USER_AGENT)
         .send()
-        .await
-        .map_err(|e| format!("Failed to download Pumpkin binary: {e}"))?;
+        .await?;
 
     if !download_res.status().is_success() {
-        return Err(format!(
-            "Failed to download Pumpkin binary from {}: HTTP {}",
-            asset.browser_download_url,
-            download_res.status()
-        ));
+        return Err(PumpkinError::HttpStatus {
+            url: asset.browser_download_url.clone(),
+            status: download_res.status(),
+        });
     }
 
-    let bytes = download_res
-        .bytes()
-        .await
-        .map_err(|e| format!("Failed to read Pumpkin binary stream: {e}"))?;
+    let bytes = download_res.bytes().await?;
 
     // Write beside the target, then rename: an interrupted download never looks complete
     let part = bin_path.with_extension("part");
-    std::fs::write(&part, &bytes)
-        .and_then(|()| std::fs::rename(&part, &bin_path))
-        .map_err(|e| {
-            format!(
-                "Failed to write Pumpkin binary to {}: {e}",
-                bin_path.display()
-            )
-        })?;
+    std::fs::write(&part, &bytes)?;
+    std::fs::rename(&part, &bin_path)?;
 
     #[cfg(unix)]
     {
@@ -176,12 +182,10 @@ fn bedrock_port(public_port: u16) -> u16 {
 /// Settings). Pumpkin reads `pumpkin.toml`: `[networking.java] address` and
 /// `[networking.bedrock.nethernet] address`. Edits only those keys, so everything else
 /// in the file (and Pumpkin's own defaults for missing keys) stays as it is.
-pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<(), String> {
+pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<(), PumpkinError> {
     let path = server_dir.join("pumpkin.toml");
     let text = std::fs::read_to_string(&path).unwrap_or_default();
-    let mut doc: toml_edit::DocumentMut = text
-        .parse()
-        .map_err(|e| format!("pumpkin.toml has an error, so Ingot can't set the port: {e}"))?;
+    let mut doc: toml_edit::DocumentMut = text.parse()?;
     let set = |doc: &mut toml_edit::DocumentMut, table_path: &[&str], address: String| {
         let mut table = doc.as_table_mut();
         for key in table_path {
@@ -211,7 +215,7 @@ pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<
     );
     let out = doc.to_string();
     if out != text {
-        std::fs::write(&path, out).map_err(|e| format!("Failed to write pumpkin.toml: {e}"))?;
+        std::fs::write(&path, out)?;
     }
     Ok(())
 }
@@ -227,13 +231,13 @@ pub fn build_pumpkin_command(
     port: u16,
     public_port: u16,
     sandbox: Option<(&Path, &Path)>,
-) -> Result<Command, String> {
+) -> Result<Command, PumpkinError> {
     set_ports(server_dir, port, public_port)?;
     let mut cmd = match sandbox {
         Some((sandbox_dir, rootfs)) => {
             let name = binary_path
                 .file_name()
-                .ok_or("Invalid Pumpkin binary path")?
+                .ok_or(PumpkinError::InvalidBinaryPath)?
                 .to_string_lossy()
                 .into_owned();
             let mut cmd = crate::server::sandbox::proot_command(

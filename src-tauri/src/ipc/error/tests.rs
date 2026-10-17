@@ -7,6 +7,46 @@ use crate::minecraft::launcher::LaunchError;
 use crate::version_change::VersionChangeError;
 
 #[test]
+fn provider_payload_failure_is_not_reported_as_invalid_user_input() {
+    use crate::version_change::sources::{Source, SourceError};
+
+    let malformed = VersionChangeError::Source(SourceError::InvalidPayload {
+        provider: Source::Modrinth,
+        field: "version identity",
+    });
+    assert!(matches!(
+        ApiError::from(malformed),
+        ApiError::ProviderUnavailable { .. }
+    ));
+
+    let invalid_id = VersionChangeError::Source(SourceError::InvalidProjectId {
+        provider: Source::Curseforge,
+    });
+    assert!(matches!(
+        ApiError::from(invalid_id),
+        ApiError::InvalidInput { .. }
+    ));
+}
+
+#[test]
+fn pending_deletion_recovery_remains_distinct_from_ordinary_storage_failure() {
+    use crate::minecraft::metadata::MetadataError;
+    let errors = [
+        MetadataError::RecoveryBlocked("Ambiguous deletion directories"),
+        MetadataError::RecoveryCleanup {
+            path: std::path::PathBuf::from("retained-backup"),
+            source: std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+        },
+    ];
+    for error in errors {
+        assert!(matches!(
+            ApiError::from(error),
+            ApiError::IncompleteRecovery { .. }
+        ));
+    }
+}
+
+#[test]
 fn test_launch_error_boundary_mappings() {
     assert!(matches!(
         ApiError::from(LaunchError::AlreadyRunning),
@@ -21,8 +61,10 @@ fn test_launch_error_boundary_mappings() {
         ApiError::IncompleteRecovery { .. }
     ));
     assert!(matches!(
-        ApiError::from(LaunchError::JavaRuntime("missing".into())),
-        ApiError::ProviderUnavailable { .. }
+        ApiError::from(LaunchError::JavaRuntime(
+            crate::minecraft::java::JavaError::MissingBinary
+        )),
+        ApiError::NotFound { .. }
     ));
     assert!(matches!(
         ApiError::from(LaunchError::LoaderVersionNotSelected),
@@ -149,4 +191,114 @@ fn test_version_change_error_boundary_mappings() {
         ApiError::from(VersionChangeError::RollbackSucceeded("reverted".into())),
         ApiError::Conflict { .. }
     ));
+}
+
+#[test]
+fn test_process_error_boundary_mappings() {
+    use crate::server::process::models::ProcessError;
+
+    assert!(matches!(
+        ApiError::from(ProcessError::NotRunning("srv1".into())),
+        ApiError::NotFound { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::ServerNotFound("srv1".into())),
+        ApiError::NotFound { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::AlreadyRunning),
+        ApiError::Conflict { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::MustBeRunningToSleep),
+        ApiError::Conflict { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::PortInUse {
+            port: 25565,
+            details: "busy".into()
+        }),
+        ApiError::Conflict { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::JarDownload("failed".into())),
+        ApiError::ProviderUnavailable { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::Config(
+            crate::server::config::ConfigError::Io(std::io::Error::other("bad config"))
+        )),
+        ApiError::StorageFailure { .. }
+    ));
+}
+
+#[test]
+fn test_server_domain_error_boundary_mappings() {
+    use crate::server::live::LiveError;
+    use crate::server::map::MapError;
+    use crate::server::slp::PingError;
+    use crate::server::transfer::TransferError;
+    use crate::server::tunnel::PlayitError;
+
+    assert!(matches!(
+        ApiError::from(LiveError::InvalidPlayerName("bad!name".into())),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(MapError::RegionRead("corrupt".into())),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(PingError::Timeout),
+        ApiError::ProviderUnavailable { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(TransferError::InvalidZip),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(PlayitError::HttpStatus(reqwest::StatusCode::BAD_GATEWAY)),
+        ApiError::ProviderUnavailable { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(PlayitError::InvalidResponse),
+        ApiError::ProviderUnavailable { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(PlayitError::ClaimRejected),
+        ApiError::ProviderUnavailable { .. }
+    ));
+}
+
+#[test]
+fn server_launch_preserves_recovery_and_java_error_categories() {
+    use crate::minecraft::java::JavaError;
+    use crate::minecraft::metadata::MetadataError;
+    use crate::server::process::ProcessError;
+    let recovery = ProcessError::Metadata(MetadataError::RecoveryBlocked("ambiguous receipt"));
+    assert!(std::error::Error::source(&recovery).is_some());
+    assert!(matches!(
+        ApiError::from(recovery),
+        ApiError::IncompleteRecovery { .. }
+    ));
+    let storage = ProcessError::Java(JavaError::Io(std::io::Error::other("unreadable runtime")));
+    assert!(matches!(
+        ApiError::from(storage),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::Java(JavaError::MissingBinary)),
+        ApiError::NotFound { .. }
+    ));
+}
+
+#[test]
+fn server_port_collision_is_a_conflict() {
+    let error =
+        crate::server::config::ConfigError::Port(crate::server::config::PortError::PortInUse {
+            port: 25565,
+            owner: "another server".into(),
+            suggested: 25566,
+        });
+    assert!(matches!(ApiError::from(error), ApiError::Conflict { .. }));
 }

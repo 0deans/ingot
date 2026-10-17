@@ -51,6 +51,9 @@ pub enum LaunchError {
     #[error("Instance {0} is not running")]
     NotRunning(String),
 
+    #[error("Instance maintenance is in progress")]
+    Maintenance,
+
     #[error("Loader version not selected")]
     LoaderVersionNotSelected,
 
@@ -61,16 +64,16 @@ pub enum LaunchError {
     InstanceDir(String),
 
     #[error("Version package error: {0}")]
-    VersionPackage(String),
+    VersionPackage(#[source] crate::minecraft::version::VersionError),
 
     #[error("Mod loader profile error: {0}")]
-    LoaderProfile(String),
+    LoaderProfile(#[source] crate::minecraft::loader::LoaderError),
 
     #[error("Java runtime error: {0}")]
-    JavaRuntime(String),
+    JavaRuntime(#[source] crate::minecraft::java::JavaError),
 
     #[error("Download error: {0}")]
-    Download(String),
+    Download(#[from] crate::minecraft::downloader::DownloadError),
 
     #[error("Account error: {0}")]
     Account(String),
@@ -89,10 +92,4 @@ pub enum LaunchError {
 
     #[error("{0}")]
     Other(String),
-}
-
-impl From<LaunchError> for String {
-    fn from(err: LaunchError) -> Self {
-        err.to_string()
-    }
 }

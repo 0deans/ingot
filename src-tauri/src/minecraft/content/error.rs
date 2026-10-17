@@ -57,9 +57,3 @@ pub enum ContentError {
         cleanup: std::io::Error,
     },
 }
-
-impl From<ContentError> for String {
-    fn from(error: ContentError) -> Self {
-        error.to_string()
-    }
-}

@@ -1,12 +1,30 @@
 use super::nbt::Nbt;
 use std::collections::HashMap;
 
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+pub enum SnbtError {
+    #[error("Unexpected trailing data at position {0}")]
+    TrailingData(usize),
+    #[error("Expected '{expected}' at position {pos}")]
+    ExpectedChar { expected: char, pos: usize },
+    #[error("Unexpected end of SNBT")]
+    UnexpectedEnd,
+    #[error("Expected ',' or '{expected}' at position {pos}")]
+    ExpectedDelimiter { expected: char, pos: usize },
+    #[error("Unterminated string")]
+    UnterminatedString,
+    #[error("UTF-8 decoding error: {0}")]
+    Utf8(#[from] std::string::FromUtf8Error),
+    #[error("Unexpected character at position {0}")]
+    UnexpectedChar(usize),
+}
+
 struct SnbtParser<'a> {
     src: &'a [u8],
     pos: usize,
 }
 
-pub fn parse_snbt(text: &str) -> Result<Nbt, String> {
+pub fn parse_snbt(text: &str) -> Result<Nbt, SnbtError> {
     let mut parser = SnbtParser {
         src: text.as_bytes(),
         pos: 0,
@@ -14,7 +32,7 @@ pub fn parse_snbt(text: &str) -> Result<Nbt, String> {
     let value = parser.value()?;
     parser.skip_ws();
     if parser.pos != parser.src.len() {
-        return Err(format!("Unexpected trailing data at {}", parser.pos));
+        return Err(SnbtError::TrailingData(parser.pos));
     }
     Ok(value)
 }
@@ -30,28 +48,31 @@ impl SnbtParser<'_> {
         }
     }
 
-    fn expect(&mut self, c: u8) -> Result<(), String> {
+    fn expect(&mut self, c: u8) -> Result<(), SnbtError> {
         self.skip_ws();
         if self.peek() == Some(c) {
             self.pos += 1;
             Ok(())
         } else {
-            Err(format!("Expected '{}' at {}", c as char, self.pos))
+            Err(SnbtError::ExpectedChar {
+                expected: c as char,
+                pos: self.pos,
+            })
         }
     }
 
-    fn value(&mut self) -> Result<Nbt, String> {
+    fn value(&mut self) -> Result<Nbt, SnbtError> {
         self.skip_ws();
         match self.peek() {
             Some(b'{') => self.compound(),
             Some(b'[') => self.list(),
             Some(b'"') | Some(b'\'') => Ok(Nbt::String(self.quoted()?)),
             Some(_) => Ok(Self::scalar(&self.token()?)),
-            None => Err("Unexpected end of SNBT".to_string()),
+            None => Err(SnbtError::UnexpectedEnd),
         }
     }
 
-    fn compound(&mut self) -> Result<Nbt, String> {
+    fn compound(&mut self) -> Result<Nbt, SnbtError> {
         self.expect(b'{')?;
         let mut map = HashMap::new();
         self.skip_ws();
@@ -75,12 +96,17 @@ impl SnbtParser<'_> {
                     self.pos += 1;
                     return Ok(Nbt::Compound(map));
                 }
-                _ => return Err(format!("Expected ',' or '}}' at {}", self.pos)),
+                _ => {
+                    return Err(SnbtError::ExpectedDelimiter {
+                        expected: '}',
+                        pos: self.pos,
+                    })
+                }
             }
         }
     }
 
-    fn list(&mut self) -> Result<Nbt, String> {
+    fn list(&mut self) -> Result<Nbt, SnbtError> {
         self.expect(b'[')?;
         let array_kind = match (self.src.get(self.pos), self.src.get(self.pos + 1)) {
             (Some(k @ (b'B' | b'I' | b'L')), Some(b';')) => Some(*k),
@@ -103,7 +129,12 @@ impl SnbtParser<'_> {
                         self.pos += 1;
                         break;
                     }
-                    _ => return Err(format!("Expected ',' or ']' at {}", self.pos)),
+                    _ => {
+                        return Err(SnbtError::ExpectedDelimiter {
+                            expected: ']',
+                            pos: self.pos,
+                        })
+                    }
                 }
             }
         }
@@ -116,17 +147,17 @@ impl SnbtParser<'_> {
         })
     }
 
-    fn quoted(&mut self) -> Result<String, String> {
-        let quote = self.peek().ok_or("Unexpected end of SNBT")?;
+    fn quoted(&mut self) -> Result<String, SnbtError> {
+        let quote = self.peek().ok_or(SnbtError::UnexpectedEnd)?;
         self.pos += 1;
         let mut bytes = Vec::new();
         while let Some(c) = self.peek() {
             self.pos += 1;
             if c == quote {
-                return String::from_utf8(bytes).map_err(|e| e.to_string());
+                return String::from_utf8(bytes).map_err(SnbtError::from);
             }
             if c == b'\\' {
-                let escaped = self.peek().ok_or("Unexpected end of SNBT")?;
+                let escaped = self.peek().ok_or(SnbtError::UnexpectedEnd)?;
                 self.pos += 1;
                 bytes.push(match escaped {
                     b'n' => b'\n',
@@ -137,10 +168,10 @@ impl SnbtParser<'_> {
                 bytes.push(c);
             }
         }
-        Err("Unterminated string".to_string())
+        Err(SnbtError::UnterminatedString)
     }
 
-    fn token(&mut self) -> Result<String, String> {
+    fn token(&mut self) -> Result<String, SnbtError> {
         let start = self.pos;
         while self
             .peek()
@@ -149,7 +180,7 @@ impl SnbtParser<'_> {
             self.pos += 1;
         }
         if start == self.pos {
-            return Err(format!("Unexpected character at {}", self.pos));
+            return Err(SnbtError::UnexpectedChar(self.pos));
         }
         Ok(String::from_utf8_lossy(&self.src[start..self.pos]).into_owned())
     }

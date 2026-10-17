@@ -14,36 +14,43 @@ mod worlds;
 pub use models::{InstanceConfig, ModLoaderType};
 pub use worlds::{get_instance_worlds, InstanceWorldSummary};
 
-pub fn get_instances_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
+pub fn get_instances_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, InstanceError> {
     let data_dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| format!("Failed to get app data directory: {e}"))?;
+        .map_err(|e| InstanceError::Directory(format!("Failed to get app data directory: {e}")))?;
 
     let instances_dir = data_dir.join("instances");
-    fs::create_dir_all(&instances_dir)
-        .map_err(|e| format!("Failed to create instances directory: {e}"))?;
+    crate::app::state(app)
+        .instances
+        .with_serialized(|| fs::create_dir_all(&instances_dir))??;
     Ok(instances_dir)
 }
 
 pub fn get_instance_dir<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
-) -> Result<PathBuf, String> {
+) -> Result<PathBuf, InstanceError> {
     let instances_dir = get_instances_dir(app)?;
-    ensure_instance_directory(&instances_dir, instance_id).map_err(String::from)
+    ensure_instance_directory(
+        &crate::app::state(app).instances,
+        &instances_dir,
+        instance_id,
+    )
 }
 
 pub fn load_instances<R: Runtime>(
     app: &tauri::AppHandle<R>,
-) -> Result<Vec<InstanceConfig>, String> {
+) -> Result<Vec<InstanceConfig>, InstanceError> {
     crate::app::state(app)
         .instances
         .load()
-        .map_err(|error| error.to_string())
+        .map_err(InstanceError::Metadata)
 }
 
-pub fn get_instances<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Vec<InstanceConfig>, String> {
+pub fn get_instances<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> Result<Vec<InstanceConfig>, InstanceError> {
     load_instances(app)
 }
 
@@ -51,7 +58,7 @@ pub(crate) fn patch_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     id: &str,
     change: impl FnOnce(&mut InstanceConfig),
-) -> Result<(), String> {
+) -> Result<(), InstanceError> {
     crate::app::state(app)
         .instances
         .update(|records| {
@@ -64,7 +71,7 @@ pub(crate) fn patch_instance<R: Runtime>(
             change(record);
             Ok(())
         })
-        .map_err(|error| error.to_string())
+        .map_err(InstanceError::Metadata)
 }
 
 pub fn create_instance<R: Runtime>(
@@ -74,9 +81,8 @@ pub fn create_instance<R: Runtime>(
     loader: ModLoaderType,
     loader_version: Option<String>,
 ) -> Result<InstanceConfig, InstanceError> {
-    let instance = prepare_instance(name, game_version, loader, loader_version)
-        .map_err(InstanceError::Directory)?;
-    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    let instance = prepare_instance(name, game_version, loader, loader_version)?;
+    let parent = get_instances_dir(app)?;
     let staging = tempfile::tempdir_in(&parent)?;
     let result = (|| {
         for directory in ["mods", "config", "saves", "resourcepacks"] {
@@ -97,7 +103,11 @@ pub(crate) fn prepare_instance(
     game_version: String,
     loader: ModLoaderType,
     loader_version: Option<String>,
-) -> Result<InstanceConfig, String> {
+) -> Result<InstanceConfig, InstanceError> {
+    if name.trim().is_empty() {
+        return Err(InstanceError::EmptyName);
+    }
+
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -105,7 +115,7 @@ pub(crate) fn prepare_instance(
 
     let id = uuid::Uuid::new_v4().to_string();
     let instance = InstanceConfig {
-        id: id.clone(),
+        id,
         name,
         game_version,
         loader,
@@ -136,10 +146,10 @@ pub fn update_last_played<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
     played_seconds: u64,
-) -> Result<(), String> {
+) -> Result<(), InstanceError> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?
+        .map_err(|error| InstanceError::Directory(error.to_string()))?
         .as_secs();
     patch_instance(app, instance_id, |existing| {
         existing.last_played = Some(now);
@@ -149,7 +159,15 @@ pub fn update_last_played<R: Runtime>(
     })
 }
 
-pub(crate) fn ensure_instance_directory(parent: &Path, id: &str) -> Result<PathBuf, InstanceError> {
+fn ensure_instance_directory(
+    repository: &crate::minecraft::metadata::MetadataRepository<InstanceConfig>,
+    parent: &Path,
+    id: &str,
+) -> Result<PathBuf, InstanceError> {
+    repository.with_serialized(|| create_instance_directory(parent, id))?
+}
+
+fn create_instance_directory(parent: &Path, id: &str) -> Result<PathBuf, InstanceError> {
     let directory =
         crate::app::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
     fs::create_dir_all(&directory)?;
@@ -167,7 +185,7 @@ pub fn duplicate_instance<R: Runtime>(
     name: String,
     include_worlds: bool,
 ) -> Result<InstanceConfig, InstanceError> {
-    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    let parent = get_instances_dir(app)?;
     duplicate::duplicate_instance_record(
         &crate::app::state(app).instances,
         &parent,
@@ -181,7 +199,7 @@ pub fn delete_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     id: &str,
 ) -> Result<(), InstanceError> {
-    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    let parent = get_instances_dir(app)?;
     storage::delete_instance_record(&crate::app::state(app).instances, &parent, id)
 }
 
@@ -189,6 +207,6 @@ pub fn update_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance: InstanceConfig,
 ) -> Result<(), InstanceError> {
-    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    let parent = get_instances_dir(app)?;
     storage::update_instance_record(&crate::app::state(app).instances, &parent, instance)
 }

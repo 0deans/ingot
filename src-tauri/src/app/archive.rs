@@ -2,7 +2,7 @@ use std::io::{Read, Seek};
 use std::path::Path;
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum ArchiveError {
+pub enum ArchiveError {
     #[error("Archive contains an unsafe path or unsupported link")]
     UnsafeEntry,
     #[error("Archive entry could not be read")]

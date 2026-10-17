@@ -29,6 +29,58 @@ pub struct ImportedServer {
     pub warnings: Vec<String>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum TransferError {
+    #[error("I/O error during server transfer: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Archive error: {0}")]
+    Zip(#[from] zip::result::ZipError),
+
+    #[error("Archive extraction error: {0}")]
+    Archive(#[from] crate::app::ArchiveError),
+
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Configuration error: {0}")]
+    Config(#[from] config::ConfigError),
+
+    #[error("Server file error: {0}")]
+    File(#[from] super::files::ServerFileError),
+
+    #[error("Path prefix error: {0}")]
+    StripPrefix(#[from] std::path::StripPrefixError),
+
+    #[error("Installer error: {0}")]
+    Installer(#[from] super::installer::InstallerError),
+
+    #[error("Invalid export path encoding")]
+    InvalidPathEncoding,
+
+    #[error("This is not a valid zip file")]
+    InvalidZip,
+
+    #[error("This zip wasn't exported from Ingot (no ingot-server.json)")]
+    NotAnIngotExport,
+
+    #[error("Invalid ingot-server.json: {0}")]
+    InvalidManifest(String),
+
+    #[error("Archive destination has no parent")]
+    MissingParent,
+
+    #[error("Server transfer contains an unsupported link or special entry")]
+    UnsupportedEntry,
+
+    #[error("Failed to copy file to {}: {source}", path.display())]
+    CopyFailed {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+}
+
 /// What an export carries about the server, so an import can recreate it
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -115,21 +167,21 @@ fn collect(
     dir: &Path,
     mode: ExportMode,
     out: &mut Vec<PathBuf>,
-) -> Result<(), String> {
-    let entries = fs::read_dir(dir).map_err(|error| error.to_string())?;
+) -> Result<(), TransferError> {
+    let entries = fs::read_dir(dir)?;
     for entry in entries {
-        let entry = entry.map_err(|error| error.to_string())?;
+        let entry = entry?;
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
-        let kind = entry.file_type().map_err(|error| error.to_string())?;
-        let relative = path.strip_prefix(root).map_err(|error| error.to_string())?;
+        let kind = entry.file_type()?;
+        let relative = path.strip_prefix(root)?;
         let relative = relative
             .to_str()
-            .ok_or_else(|| "Invalid export path encoding".to_string())?;
+            .ok_or(TransferError::InvalidPathEncoding)?;
         if crate::app::safe_enclosed_path(root, relative).is_none()
             || (!kind.is_dir() && !kind.is_file())
         {
-            return Err("Server export contains an unsupported link or special entry".to_string());
+            return Err(TransferError::UnsupportedEntry);
         }
         if kind.is_dir() {
             let top_level = dir == root;
@@ -167,20 +219,17 @@ pub fn export(
     server: &ServerConfig,
     mode: ExportMode,
     dest: &Path,
-) -> Result<PathBuf, String> {
+) -> Result<PathBuf, TransferError> {
     if let Some(parent) = dest.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("Failed to create {}: {e}", parent.display()))?;
+        fs::create_dir_all(parent)?;
     }
     let mut files = Vec::new();
     collect(server_dir, server_dir, mode, &mut files)?;
 
-    let parent = dest
-        .parent()
-        .ok_or_else(|| "Archive destination has no parent".to_string())?;
-    let tmp = tempfile::NamedTempFile::new_in(parent).map_err(|error| error.to_string())?;
-    let result = (|| -> Result<(), String> {
-        let mut zip = zip::ZipWriter::new(tmp.reopen().map_err(|e| e.to_string())?);
+    let parent = dest.parent().ok_or(TransferError::MissingParent)?;
+    let tmp = tempfile::NamedTempFile::new_in(parent)?;
+    let result = (|| -> Result<(), TransferError> {
+        let mut zip = zip::ZipWriter::new(tmp.reopen()?);
         let options = zip::write::SimpleFileOptions::default()
             .compression_method(zip::CompressionMethod::Deflated)
             .large_file(true);
@@ -195,33 +244,20 @@ pub fn export(
             memory_max_mb: server.memory_max_mb,
             mode,
         };
-        zip.start_file(MANIFEST, options)
-            .map_err(|e| e.to_string())?;
-        zip.write_all(
-            serde_json::to_string_pretty(&manifest)
-                .map_err(|e| e.to_string())?
-                .as_bytes(),
-        )
-        .map_err(|e| e.to_string())?;
+        zip.start_file(MANIFEST, options)?;
+        zip.write_all(serde_json::to_string_pretty(&manifest)?.as_bytes())?;
 
         for rel in files {
             let name = rel.to_string_lossy().replace('\\', "/");
-            let mut source =
-                File::open(server_dir.join(&rel)).map_err(|error| error.to_string())?;
-            zip.start_file(name, options).map_err(|e| e.to_string())?;
-            std::io::copy(&mut source, &mut zip).map_err(|e| e.to_string())?;
+            let mut source = File::open(server_dir.join(&rel))?;
+            zip.start_file(name, options)?;
+            std::io::copy(&mut source, &mut zip)?;
         }
-        zip.finish()
-            .map_err(|e| e.to_string())?
-            .sync_all()
-            .map_err(|error| error.to_string())?;
+        zip.finish()?.sync_all()?;
         Ok(())
     })();
-    if let Err(e) = result {
-        return Err(format!("Export failed: {e}"));
-    }
-    tmp.persist(dest)
-        .map_err(|e| format!("Export failed: {}", e.error))?;
+    result?;
+    tmp.persist(dest).map_err(|e| TransferError::Io(e.error))?;
     Ok(dest.to_path_buf())
 }
 
@@ -251,7 +287,7 @@ pub fn export_file_name(server: &ServerConfig, mode: ExportMode) -> String {
 }
 
 /// Sets server-port in server.properties (copies/imports get their own port)
-fn set_port(server_dir: &Path, port: u16) -> Result<(), String> {
+fn set_port(server_dir: &Path, port: u16) -> Result<(), TransferError> {
     super::files::write_properties(
         server_dir,
         &[
@@ -264,25 +300,24 @@ fn set_port(server_dir: &Path, port: u16) -> Result<(), String> {
                 value: port.to_string(),
             },
         ],
-    )
-    .map_err(String::from)
+    )?;
+    Ok(())
 }
 
 /// Creates a new server from an exported archive
 pub fn import<R: Runtime>(
     app: &tauri::AppHandle<R>,
     archive: &Path,
-) -> Result<ServerConfig, String> {
-    let file = File::open(archive).map_err(|e| format!("Failed to open archive: {e}"))?;
-    let mut zip =
-        zip::ZipArchive::new(file).map_err(|_| "This is not a valid zip file".to_string())?;
+) -> Result<ServerConfig, TransferError> {
+    let file = File::open(archive)?;
+    let mut zip = zip::ZipArchive::new(file).map_err(|_| TransferError::InvalidZip)?;
     let manifest: Manifest = {
-        let mut entry = zip.by_name(MANIFEST).map_err(|_| {
-            "This zip wasn't exported from Ingot (no ingot-server.json)".to_string()
-        })?;
+        let mut entry = zip
+            .by_name(MANIFEST)
+            .map_err(|_| TransferError::NotAnIngotExport)?;
         let mut raw = String::new();
-        entry.read_to_string(&mut raw).map_err(|e| e.to_string())?;
-        serde_json::from_str(&raw).map_err(|e| format!("Invalid ingot-server.json: {e}"))?
+        entry.read_to_string(&mut raw)?;
+        serde_json::from_str(&raw).map_err(|e| TransferError::InvalidManifest(e.to_string()))?
     };
 
     // Keep names distinguishable when importing a server that already exists here
@@ -304,23 +339,23 @@ pub fn import<R: Runtime>(
         Some(manifest.memory_max_mb),
     )?;
     let servers_dir = config::get_servers_dir(app)?;
-    let staging = tempfile::tempdir_in(&servers_dir).map_err(|error| error.to_string())?;
-    crate::app::extract_zip_entries(&mut zip, staging.path(), "", Some(MANIFEST))
-        .map_err(|error| error.to_string())?;
+    let staging = tempfile::tempdir_in(&servers_dir)?;
+    crate::app::extract_zip_entries(&mut zip, staging.path(), "", Some(MANIFEST))?;
     set_port(staging.path(), created.port)?;
-    config::publish_staged_server(app, created, staging.path())
+    Ok(config::publish_staged_server(app, created, staging.path())?)
 }
-fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), String> {
-    fs::create_dir_all(to).map_err(|e| e.to_string())?;
-    for entry in fs::read_dir(from).map_err(|e| e.to_string())? {
-        let entry = entry.map_err(|error| error.to_string())?;
+
+fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), TransferError> {
+    fs::create_dir_all(to)?;
+    for entry in fs::read_dir(from)? {
+        let entry = entry?;
         let name = entry.file_name();
         let name_str = name.to_string_lossy();
-        let kind = entry.file_type().map_err(|error| error.to_string())?;
+        let kind = entry.file_type()?;
         if crate::app::safe_enclosed_filename(from, &name_str).is_none()
             || (!kind.is_dir() && !kind.is_file())
         {
-            return Err("Server copy contains an unsupported link or special entry".to_string());
+            return Err(TransferError::UnsupportedEntry);
         }
         if name_str == "session.lock" || (skip_jar && name_str == "server.jar") {
             continue;
@@ -332,15 +367,17 @@ fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), String> {
                 && (name_str == "cache" || name_str == "logs" || name_str == ".ingot")
             {
                 if name_str == ".ingot" && from.join(TRACKING).is_file() {
-                    fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
-                    fs::copy(from.join(TRACKING), to.join(TRACKING))
-                        .map_err(|e| format!("Failed to copy the plugin list: {e}"))?;
+                    fs::create_dir_all(&dest)?;
+                    fs::copy(from.join(TRACKING), to.join(TRACKING))?;
                 }
                 continue;
             }
             copy_dir(&entry.path(), &dest, false)?;
         } else {
-            fs::copy(entry.path(), &dest).map_err(|e| format!("Failed to copy {name_str}: {e}"))?;
+            fs::copy(entry.path(), &dest).map_err(|e| TransferError::CopyFailed {
+                path: dest,
+                source: e,
+            })?;
         }
     }
     Ok(())
@@ -354,7 +391,7 @@ pub fn duplicate<R: Runtime>(
     name: &str,
     game_version: Option<&str>,
     build_number: Option<String>,
-) -> Result<ServerConfig, String> {
+) -> Result<ServerConfig, TransferError> {
     let version_changes = game_version.is_some_and(|v| v != source.game_version);
     let mut created = config::build_unpublished_server(
         app,
@@ -371,7 +408,7 @@ pub fn duplicate<R: Runtime>(
     )?;
     let from = config::get_server_dir(app, &source.id)?;
     let parent = config::get_servers_dir(app)?;
-    let staging = tempfile::tempdir_in(parent).map_err(|error| error.to_string())?;
+    let staging = tempfile::tempdir_in(parent)?;
     let to = staging.path();
     copy_dir(&from, to, version_changes)?;
     if version_changes {
@@ -384,81 +421,8 @@ pub fn duplicate<R: Runtime>(
     created.java_path = source.java_path.clone();
     created.sleep_enabled = source.sleep_enabled;
     created.idle_timeout_seconds = source.idle_timeout_seconds;
-    config::publish_staged_server(app, created, staging.path())
+    Ok(config::publish_staged_server(app, created, staging.path())?)
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn configs_export_skips_worlds_and_jars() {
-        let root = std::env::temp_dir().join(format!("ingot-export-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
-        for dir in [
-            "world/region",
-            "plugins/LuckPerms",
-            "logs",
-            "config/ftbquests",
-            "mods",
-            ".ingot/map",
-        ] {
-            fs::create_dir_all(root.join(dir)).unwrap();
-        }
-        for file in [
-            "server.properties",
-            "server.jar",
-            "whitelist.json",
-            "world/level.dat",
-            "world/region/r.0.0.mca",
-            "plugins/LuckPerms.jar",
-            "plugins/LuckPerms/config.yml",
-            "logs/latest.log",
-            "config/paper-global.yml",
-            "config/ftbquests/chapter.snbt",
-            "mods/create.jar",
-            ".ingot/plugins.json",
-            ".ingot/map/r.0.0.png",
-            "quilt-server-launch.jar",
-            "forge-26.1.2-64.1.0-shim.jar",
-            "run.bat",
-            "user_jvm_args.txt",
-        ] {
-            fs::write(root.join(file), "x").unwrap();
-        }
-        let list = |mode| {
-            let mut out = Vec::new();
-            collect(&root, &root, mode, &mut out).unwrap();
-            let mut names: Vec<String> = out
-                .iter()
-                .map(|p| p.to_string_lossy().replace('\\', "/"))
-                .collect();
-            names.sort();
-            names
-        };
-        assert_eq!(
-            list(ExportMode::Configs),
-            [
-                ".ingot/plugins.json",
-                "config/ftbquests/chapter.snbt",
-                "config/paper-global.yml",
-                "plugins/LuckPerms/config.yml",
-                "server.properties",
-                "whitelist.json"
-            ]
-        );
-        let full = list(ExportMode::Full);
-        assert!(full.contains(&"world/region/r.0.0.mca".to_string()));
-        assert!(full.contains(&"plugins/LuckPerms.jar".to_string()));
-        assert!(full.contains(&"mods/create.jar".to_string()));
-        assert!(full.contains(&".ingot/plugins.json".to_string()));
-        assert!(!full
-            .iter()
-            .any(|f| f == "server.jar" || f.starts_with("logs/") || f.starts_with(".ingot/map")));
-        assert!(!full.iter().any(|f| f.ends_with("-shim.jar")
-            || f == "quilt-server-launch.jar"
-            || f == "run.bat"
-            || f == "user_jvm_args.txt"));
-        let _ = fs::remove_dir_all(&root);
-    }
-}
+mod tests;

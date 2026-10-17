@@ -169,8 +169,7 @@ pub async fn prepare_launch_environment(
                     client_artifact.sha1.as_deref(),
                     Some(dl_cb),
                 )
-                .await
-                .map_err(super::models::LaunchError::Download)?;
+                .await?;
             }
         }
     }
@@ -250,16 +249,14 @@ pub async fn prepare_launch_environment(
                 );
             })
         };
-        download_files_concurrent(client, missing_libs, 16, Some(lib_cb))
-            .await
-            .map_err(super::models::LaunchError::Download)?;
+        download_files_concurrent(client, missing_libs, 16, Some(lib_cb)).await?;
     }
 
     // Step 6: Assets
     if let Some(asset_ref) = &version_pkg.asset_index {
         let asset_index = fetch_asset_index(client, assets_dir, asset_ref)
             .await
-            .map_err(super::models::LaunchError::Download)?;
+            .map_err(super::models::LaunchError::VersionPackage)?;
 
         let mut asset_tasks = Vec::new();
         for (_, obj) in asset_index.objects {
@@ -269,7 +266,9 @@ pub async fn prepare_launch_environment(
                 .filter(|_| {
                     obj.hash.len() == 40 && obj.hash.bytes().all(|byte| byte.is_ascii_hexdigit())
                 })
-                .ok_or_else(|| super::models::LaunchError::Download("Invalid asset hash".into()))?;
+                .ok_or_else(|| {
+                    crate::minecraft::downloader::DownloadError::Other("Invalid asset hash".into())
+                })?;
             let dest = assets_dir.join("objects").join(prefix).join(&obj.hash);
             let url = format!(
                 "https://resources.download.minecraft.net/{}/{}",
@@ -307,9 +306,7 @@ pub async fn prepare_launch_environment(
                     );
                 })
             };
-            download_files_concurrent(client, missing_assets, 24, Some(asset_cb))
-                .await
-                .map_err(super::models::LaunchError::Download)?;
+            download_files_concurrent(client, missing_assets, 24, Some(asset_cb)).await?;
         }
     }
 

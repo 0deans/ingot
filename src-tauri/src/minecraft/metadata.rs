@@ -8,6 +8,9 @@ use std::{
     sync::Mutex,
 };
 
+mod deletion;
+pub(crate) use deletion::DeletionFiles;
+
 #[derive(Debug, thiserror::Error)]
 pub enum MetadataError {
     #[error("Metadata lock poisoned")]
@@ -40,12 +43,21 @@ pub enum MetadataError {
         primary: Box<MetadataError>,
         rollback: Box<MetadataError>,
     },
+    #[error("Directory deletion recovery is blocked: {0}")]
+    RecoveryBlocked(&'static str),
+    #[error("Metadata deletion committed; recovery cleanup remains at {path}: {source}")]
+    RecoveryCleanup {
+        path: PathBuf,
+        #[source]
+        source: io::Error,
+    },
 }
 
 pub(crate) struct MetadataRepository<T> {
     path: PathBuf,
     lock: Mutex<()>,
     kind: PhantomData<T>,
+    deletion: Option<deletion::DeletionPolicy<T>>,
 }
 
 impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
@@ -54,12 +66,28 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
             path,
             lock: Mutex::new(()),
             kind: PhantomData,
+            deletion: None,
         }
+    }
+
+    pub(crate) fn with_deletion_directory(
+        path: PathBuf,
+        directory: PathBuf,
+        identify: fn(&T) -> &str,
+    ) -> Self {
+        let mut repository = Self::new(path);
+        repository.deletion = Some(deletion::DeletionPolicy {
+            directory,
+            identify,
+        });
+        repository
     }
 
     pub(crate) fn load(&self) -> Result<Vec<T>, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
-        self.read()
+        let records = self.read()?;
+        self.recover_deletion(&records)?;
+        Ok(records)
     }
 
     pub(crate) fn update<R>(
@@ -74,6 +102,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
         action: impl FnOnce() -> R,
     ) -> Result<R, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
+        self.recover_deletion(&self.read()?)?;
         Ok(action())
     }
 
@@ -84,6 +113,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
     ) -> Result<R, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let mut records = self.read()?;
+        self.recover_deletion(&records)?;
         let result = change(&mut records)?;
         if let Err(primary) = self.write(&records) {
             if let Err(rollback) = rollback(&result) {
@@ -104,6 +134,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
     ) -> Result<R, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let mut records = self.read()?;
+        self.recover_deletion(&records)?;
         let result = change(&mut records)?;
         write(&records)?;
         Ok(result)
@@ -131,6 +162,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
     ) -> Result<(), MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let mut records = self.read()?;
+        self.recover_deletion(&records)?;
         validate(&records, &record)?;
         if destination
             .try_exists()

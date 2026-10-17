@@ -239,14 +239,17 @@ impl ProcessManager {
         (removed, is_empty)
     }
 
-    pub async fn kill_instance(&self, instance_id: &str) -> Result<(), String> {
+    pub async fn kill_instance(&self, instance_id: &str) -> Result<(), LaunchError> {
         let child_pid = {
-            let mut lock = self.running.lock().map_err(|e| e.to_string())?;
+            let mut lock = self
+                .running
+                .lock()
+                .map_err(|e| LaunchError::Other(e.to_string()))?;
             if matches!(
                 lock.get(instance_id),
                 Some(ProcessEntry::Maintenance { .. })
             ) {
-                return Err("Instance maintenance is in progress".into());
+                return Err(LaunchError::Maintenance);
             }
             match lock.get(instance_id).copied() {
                 Some(ProcessEntry::Running(child)) => Some(child.pid),
@@ -254,10 +257,8 @@ impl ProcessManager {
                     lock.remove(instance_id);
                     None
                 }
-                None => return Err(format!("Instance {} is not running", instance_id)),
-                Some(ProcessEntry::Maintenance { .. }) => {
-                    return Err("Instance maintenance is in progress".into())
-                }
+                None => return Err(LaunchError::NotRunning(instance_id.to_string())),
+                Some(ProcessEntry::Maintenance { .. }) => return Err(LaunchError::Maintenance),
             }
         };
         if let Some(pid) = child_pid {

@@ -33,17 +33,8 @@ pub fn port_owner<'a>(
         .find(|s| ports_of(s).iter().any(|p| wanted.contains(p)))
 }
 
-/// Errors when `port` belongs to another server
-pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Result<(), String> {
-    check_port_typed(servers, server_id, port).map_err(|e| e.to_string())
-}
-
 /// Typed validation for port availability
-pub fn check_port_typed(
-    servers: &[ServerConfig],
-    server_id: &str,
-    port: u16,
-) -> Result<(), PortError> {
+pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Result<(), PortError> {
     if !(1024..=65534).contains(&port) {
         return Err(PortError::InvalidPortRange);
     }
@@ -56,6 +47,8 @@ pub fn check_port_typed(
         None => Ok(()),
     }
 }
+
+pub use check_port as check_port_typed;
 
 /// Lowest free port starting from base depending on core type (19132 for Bedrock, 25565 for Java)
 pub fn free_port_for_core(servers: &[ServerConfig], server_id: &str, core: &ServerCoreType) -> u16 {

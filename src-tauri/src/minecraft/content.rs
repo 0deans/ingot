@@ -50,11 +50,11 @@ pub async fn search_content(
     sort: Option<String>,
     page: u32,
     page_size: u32,
-) -> Result<ContentSearchResult, String> {
+) -> Result<ContentSearchResult, ContentError> {
     let client = reqwest::Client::builder()
         .user_agent(crate::USER_AGENT)
         .build()
-        .map_err(|e| format!("Failed to create HTTP client: {e}"))?;
+        .map_err(ContentError::ClientInit)?;
 
     let offset = page * page_size;
     let src_clean = source.trim().to_lowercase();
@@ -86,17 +86,11 @@ pub async fn search_content(
     };
 
     if is_bedrock || src_clean == "curseforge" {
-        return cf_client
-            .search(&search_query)
-            .await
-            .map_err(|e| e.to_string());
+        return cf_client.search(&search_query).await;
     }
 
     if src_clean == "modrinth" {
-        return mr_client
-            .search(&search_query)
-            .await
-            .map_err(|e| e.to_string());
+        return mr_client.search(&search_query).await;
     }
 
     // "all": query both in parallel
@@ -134,24 +128,18 @@ pub async fn search_content(
 pub async fn get_content_details(
     source: &str,
     project_id: &str,
-) -> Result<UnifiedContentDetails, String> {
+) -> Result<UnifiedContentDetails, ContentError> {
     let (detected_source, clean_id) = parse_content_source_and_id(source, project_id);
     let src = detected_source.to_lowercase();
 
     if src == "modrinth" {
         let client = ModrinthClient::new();
-        client
-            .get_details(clean_id)
-            .await
-            .map_err(|e| e.to_string())
+        client.get_details(clean_id).await
     } else if src == "curseforge" {
         let client = CurseForgeClient::new();
-        client
-            .get_details(clean_id)
-            .await
-            .map_err(|e| e.to_string())
+        client.get_details(clean_id).await
     } else {
-        Err(format!("Unknown source: {source}"))
+        Err(ContentError::UnknownSource(source.to_string()))
     }
 }
 
@@ -162,10 +150,8 @@ pub async fn install_content_file<R: Runtime>(
     project_type: &str,
     download_url: &str,
     filename: &str,
-) -> Result<String, String> {
-    install::install_content_file(app, instance_id, project_type, download_url, filename)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<String, ContentError> {
+    install::install_content_file(app, instance_id, project_type, download_url, filename).await
 }
 
 /// Installs a full modpack archive (.mrpack or CurseForge zip) into a new instance.
@@ -175,8 +161,6 @@ pub async fn install_modpack_instance<R: Runtime>(
     source: &str,
     download_url: &str,
     filename: &str,
-) -> Result<crate::minecraft::instance::InstanceConfig, String> {
-    install::install_modpack_instance(app, name, source, download_url, filename)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<crate::minecraft::instance::InstanceConfig, ContentError> {
+    install::install_modpack_instance(app, name, source, download_url, filename).await
 }

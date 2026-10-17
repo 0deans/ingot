@@ -61,8 +61,8 @@ pub(crate) async fn import_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     options: ImportInstanceOptions,
 ) -> Result<ImportReport, ImportError> {
-    let parent =
-        crate::minecraft::instance::get_instances_dir(app).map_err(ImportError::InstanceDir)?;
+    let parent = crate::minecraft::instance::get_instances_dir(app)
+        .map_err(|e| ImportError::InstanceDir(e.to_string()))?;
     let app = app.clone();
     tokio::task::spawn_blocking(move || {
         execute_import_instance(&parent, options, |stage, instance| {

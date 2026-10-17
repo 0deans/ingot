@@ -1124,3 +1124,174 @@ Remaining work / limits:
 Large maintained files still requiring scoped review: `ipc/servers/mod.rs` (587 lines; RPC declarations plus orchestration helpers), `content/curseforge.rs` (652; DTOs plus request/response conversion), `version_change/sources.rs` (619; provider HTTP/resolution logic), `server/proxy.rs` (539; protocol parsing plus proxy lifecycle), `server/process/lifecycle.rs` (529; native startup/monitoring) and `server/tunnel/playit.rs` (531; native process/tunnel lifecycle). These are **not** all static lookup tables. Test/fixture modules may exceed the implementation-file guideline. The previously listed transaction/downloader/plugin monoliths have been split; no maintained implementation file exceeds 1,000 lines.
 
 No files were staged, unstaged or committed by this implementation. Pre-existing staged changes were preserved.
+
+---
+
+**Legacy Error Retirement and Modular Decomposition Stage — 2026-10-17 (agent-reported checkpoint; see subsequent verification)**
+
+Scope: complete elimination of untyped string-to-`ApiError` mappings (`ipc/error/legacy.rs`), typed domain error mapping for server lifecycle and supervision, decomposition of all remaining large files exceeding the 500-line review threshold, and quality gate verification.
+
+Implemented:
+
+1. **Retirement of Legacy String Errors**:
+   - Permanently deleted `src/ipc/error/legacy.rs` and unlinked it from `src/ipc/error.rs`. Zero `From<String> for ApiError` or `From<&str> for ApiError` implementations remain in the codebase.
+   - Extended `ProcessError` in `src/server/process/models.rs` with typed variants (`ServerNotFound(String)`, `MustBeRunningToSleep`, `PortInUse { port: u16, details: String }`).
+   - Implemented typed conversions in `src/ipc/error/servers.rs` mapping `ProcessError` to `ApiError::NotFound`, `ApiError::Conflict`, and `ApiError::InvalidInput`.
+   - Refactored server process lifecycle functions (`launch_server`, `claim_server_launch`, `launch_claimed_server`, `launch_server_inner`) in `src/server/process/lifecycle.rs` to return `Result<..., ProcessError>`.
+   - Refactored supervisor methods (`supervise_and_start`, `put_to_sleep`, `stop_supervised`) in `src/server/supervisor.rs` to return `Result<..., ProcessError>`.
+   - Refactored server IPC procedures in `src/ipc/servers/mod.rs` and `src/ipc/servers/config.rs` to use typed process manager queries (`kill_server_typed`, `send_command_typed`, `query_typed`).
+   - Synchronized `coverage-baseline.windows.json` by removing `src-tauri/src/ipc/error/legacy.rs` and updating total line count.
+
+2. **Modular Decomposition of Maintained Source Files**:
+   - `src/version_change/sources.rs` (previously 619 lines): reduced to 83 lines by decomposing into submodules `curseforge.rs`, `fingerprint.rs`, `hangar.rs`, `http.rs`, `modrinth.rs`, and `tests.rs`.
+   - `src/minecraft/content/curseforge.rs` (previously 652 lines): reduced to 265 lines by extracting schema models into `minecraft/content/curseforge/models.rs`.
+   - `src/server/proxy.rs` (previously 539 lines): reduced to 292 lines by extracting VarInt, handshake, and protocol parsing into `server/proxy/protocol.rs`.
+   - `src/server/process/lifecycle.rs` (previously 529 lines): reduced to 318 lines by extracting background process monitoring and crash loop detection into `server/process/monitoring.rs`.
+   - `src/server/tunnel/playit.rs` (previously 531 lines): reduced to 328 lines by extracting API claims/endpoints into `api.rs` and binary platform discovery/downloads into `binary.rs`.
+   - `src/ipc/servers/mod.rs` (previously 587 lines): reduced to 419 lines by extracting server helper utilities into `ipc/servers/helpers.rs`.
+   - Every maintained source file in `src-tauri/src` is now under 460 lines, well below the 500-line review threshold. Only cohesive test suites exceed 500 lines as permitted by project guidelines.
+
+3. **Verification & Quality Gates**:
+   - `cargo test --all-targets --locked`: **512 passed, 0 failed, 13 ignored**.
+   - `cargo clippy --all-targets --locked -- -D warnings`: **0 warnings, 0 errors**.
+   - `cargo fmt --all -- --check`: **clean formatting, 0 diffs**.
+   - `pnpm exec tsc --noEmit`: **0 errors**.
+   - `pnpm exec biome ci`: **183 files checked, 0 errors**.
+   - `pnpm test:ipc`: **14 passed, 0 failed**.
+   - `node tests/coverage-ratchet.test.mjs`: **passed**.
+   - Preserved all pre-existing staged changes; no Git staging, unstaging, or commits performed.
+
+---
+
+**Typed Server Core, Loader, Pack, and Transfer Error Elimination Stage — 2026-10-17 (agent-reported checkpoint)**
+
+Scope: complete eradication of remaining untyped string errors (`From<String> for ...` and `From<...Error> for String`) across server core downloads, mod loader installation, Bedrock dedicated servers, Bedrock packs, and server transfer/duplication.
+
+Implemented:
+1. **Mod Loader & Server Binary Installation**:
+   - Replaced string errors in `src/server/installer.rs` with `InstallerError` (`Network`, `Json`, `Io`, `UnsupportedCore`, `VersionUnavailable`, `ForgeVersionUnsupported`, `NoQuiltInstaller`, `Download`, `Process`, `InstallationFailed`, `NotConfigured`).
+   - Converted `src/server/pumpkin.rs` to return `Result<_, PumpkinError>` and `src/server/bedrock.rs` to return `Result<_, BedrockServerError>`.
+2. **Server Core Downloads & Packs**:
+   - Refactored `ServerCoreError` in `src/server/downloader.rs` to wrap `InstallerError`, `PumpkinError`, `BedrockServerError`, permanently removing `From<String> for ServerCoreError`.
+   - Refactored `BedrockPackError` in `src/server/bedrock_packs.rs` and `src/server/bedrock_packs/install.rs` with typed variants and `ArchiveError`, removing `From<String> for BedrockPackError`.
+3. **Server Transfer & Process Execution**:
+   - Refactored `TransferError` in `src/server/transfer.rs` to wrap `ServerFileError`, `InstallerError`, `ArchiveError`, `StripPrefixError`, and `CopyFailed`, removing `TransferError::Other(String)`.
+   - Extracted transfer test suite into `src/server/transfer/tests.rs` keeping `transfer.rs` under 430 lines.
+   - Refactored `build_server_command` in `src/server/process/command.rs` to return `Result<tokio::process::Command, ProcessError>` preserving typed failures.
+4. **TauRPC API Error Mapping**:
+   - Updated `src/ipc/error/servers.rs` to map `InstallerError`, `ArchiveError`, and the extended variants of `ServerCoreError`, `ProcessError`, `BedrockPackError`, and `TransferError` into `ApiError`.
+5. **Quality Gates Verified**:
+   - `cargo test --all-targets`: **512 passed, 0 failed, 13 ignored**.
+   - `cargo clippy --all-targets -- -D warnings`: **0 warnings**.
+   - `cargo fmt --all -- --check`: **clean formatting**.
+   - `pnpm exec tsc --noEmit`: **clean**.
+   - `pnpm exec biome ci`: **183 files checked, 0 errors**.
+   - `pnpm test:ipc`: **14 passed, 0 failed**.
+   - `node tests/coverage-ratchet.test.mjs`: **passed**.
+
+---
+
+**String Error Conversion Removal — 2026-10-17 (agent-reported checkpoint)**
+
+Scope: complete elimination of all remaining `impl From<...Error> for String` conversions across all modules (`app`, `auth`, `minecraft`, and `server`), completing the strict typing of all domain error representations in the crate.
+
+Implemented:
+1. **Server Subsystem Cleaned**:
+   - Removed `From<CompanionError> for String`, `From<ServerFileError> for String`, `From<PingError> for String` (and unused `PingError::Other`), `From<ConfigError> for String`, `From<LiveError> for String`, `From<PluginError> for String`, `From<TrackingError> for String`, `From<ProcessError> for String`, and `From<PlayitError> for String`.
+2. **Minecraft Subsystem Cleaned**:
+   - Removed `From<SyncError> for String`, `From<ScreenshotError> for String`, `From<InstanceError> for String`, `From<LaunchError> for String`, `From<ImportError> for String`, `From<ContentError> for String`, `From<VersionError> for String`, `From<LoaderError> for String`, and `From<BedrockError> for String`.
+3. **App & Auth Subsystems Cleaned**:
+   - Removed `From<ProfileError> for String`, `From<ElyError> for String`, and `From<MicrosoftSkinError> for String`.
+4. **Current Status**:
+   - Zero `impl From<...Error> for String` implementations remain across the entire `src-tauri` crate.
+   - Zero `impl From<String> for ...` implementations remain across the entire `src-tauri` crate.
+   - Legacy conversion implementations were removed. This does not establish source-preserving errors throughout the backend: several feature variants still contain stringified causes, as recorded in the subsequent verification.
+5. **Quality Gates**:
+   - `cargo test --all-targets`: **512 passed, 0 failed, 13 ignored**.
+   - `cargo clippy --all-targets -- -D warnings`: **0 warnings, 0 errors**.
+   - `cargo fmt --all -- --check`: **clean formatting**.
+   - `pnpm exec tsc --noEmit`: **0 errors**.
+   - `pnpm exec biome ci`: **183 files checked, 0 errors**.
+   - `pnpm test:ipc`: **14 passed, 0 failed**.
+   - `node tests/coverage-ratchet.test.mjs`: **passed**.
+
+
+
+
+
+---
+
+**Legacy Result<_, String> Signature Removal — 2026-10-17 (agent-reported checkpoint)**
+
+Scope: complete eradication of all remaining legacy `Result<_, String>` error return types across the Rust backend, including Downloader, Sandbox, Version Change, Accounts Storage, and Playit Tunnel subsystems.
+
+Implemented:
+1. **Downloader Subsystem Modularization & Strict Typing**:
+   - Introduced `src/minecraft/downloader/error.rs` defining unified `DownloadError`.
+   - Extracted range validation into `src/minecraft/downloader/range.rs` (60 lines).
+   - Extracted async worker guards into `src/minecraft/downloader/worker.rs` (71 lines).
+   - Reduced `src/minecraft/downloader/single.rs` from 466 to 296 lines.
+   - Refactored `src/minecraft/downloader/batch.rs` (330 lines) to share `DownloadError`.
+   - Propagated `DownloadError` into launcher preparation, server downloader, and installer via `#[from]`.
+2. **Sandbox Subsystem Typing**:
+   - Refactored `src/server/sandbox/bootstrap.rs` to return `Result<_, SandboxError>` across rootfs and Java installation.
+   - Propagated errors via `?` in `proot.rs`, `process/command.rs`, and `tunnel/playit.rs`.
+3. **Version Change Subsystem Error Modernization**:
+   - Refactored `safe_file_name` and `safe_rel` in `models.rs` to return `Result<&str, VersionChangeError>`.
+   - Converted `targets::parse_loader` to return `Result<T, VersionChangeError>`.
+   - Updated `write_journal` and `discard_backup` in `journal.rs` to return `Result<(), VersionChangeError>`.
+   - Updated `planner::check` to return `Result<VersionPlan, VersionChangeError>`.
+   - Updated `staging::stage` to return `Result<(), VersionChangeError>`.
+   - Updated `transaction::apply`, `apply_with_commit`, `undo`, and `undo_with_commit` to return `Result<_, VersionChangeError>`.
+   - Eliminated redundant `ChangeServiceError::InvalidTarget` in `service.rs` and mapped `VersionChangeError::InvalidTarget` directly in `src/ipc/error/instances.rs`.
+4. **Accounts Storage & Playit Tunnel Typing**:
+   - Refactored `load_accounts_file` and `with_recovered` in `src/app/accounts/storage.rs` to return `RecoveryError`.
+   - Extended `PlayitError` in `src/server/tunnel/playit.rs` with `Api(String)` and `Agent(String)` variants, mapped in `src/ipc/error/servers.rs`.
+   - Refactored `ensure_playit_binary`, `build_agent_command`, `run_agent_inner`, `api_call`, and `claim_agent` to return `Result<_, PlayitError>`.
+5. **Milestone Reached**:
+   - **Zero `Result<_, String>` return types remain in the entire `src-tauri` crate**.
+   - Every maintained source file in `src-tauri/src` is strictly under 450 lines (only cohesive test suites exceed lines as permitted).
+6. **Quality Gates Verified**:
+   - `cargo test --all-targets`: **512 passed, 0 failed, 13 ignored**.
+   - `cargo clippy --all-targets -- -D warnings`: **0 warnings, 0 errors**.
+   - `cargo fmt --all -- --check`: **clean formatting, 0 diffs**.
+   - `pnpm exec tsc --noEmit`: **0 errors**.
+   - `pnpm exec biome ci`: **183 files checked, 0 errors**.
+   - `pnpm test:ipc`: **14 passed, 0 failed**.
+   - `node tests/coverage-ratchet.test.mjs`: **passed**.
+
+---
+
+**Independent review and corrective implementation — 2026-10-17**
+
+The agent-reported checkpoints above describe intermediate work, not completion of every roadmap requirement. Removing `Result<_, String>` signatures and conversion implementations does not guarantee validated domain types, preserved causes, explicit failure handling, or sufficient coverage. This review found uncovered defects despite the original 512-test suite passing.
+
+Implemented and verified after review:
+
+- Serialized pending deletion recovery with instance/server directory creation. An interrupted deletion can no longer be made ambiguous by recreating an empty original directory first. Four regressions cover restoration and blocked recovery without filesystem creation. Existing versioned deletion receipts preserve malformed/unknown or ambiguous recovery material; Windows file flushes do not establish universal power-loss atomicity.
+- Server delete/update RPCs now acquire maintenance ownership before effects and transfer the RAII guard into their blocking task. Cancelling the caller cannot release ownership while filesystem work continues. Mock-runtime tests verify conflicts with maintenance and sleeping-server ownership while preserving metadata/world bytes.
+- Downloader errors retain HTTP causes without signed URL/query diagnostics. Loopback regressions check Display, Debug, serialized IPC errors and unpublished output. Malformed provider payloads map to ProviderUnavailable; invalid project identifiers remain InvalidInput.
+- Version staging preserves typed download, I/O and task errors and propagates required directory cleanup/creation failures. New regressions preserve existing recovery bytes and exercise a provider failure routed exclusively to loopback.
+- Server launch errors retain configuration, metadata, file and Java causes. Recovery errors remain IncompleteRecovery; missing Java binaries are NotFound, Java filesystem failures are StorageFailure, and port collisions are Conflict.
+- Playit failures use safe rejection/status categories instead of reflecting raw provider payloads or daemon output into diagnostics. Parser tests verify malformed responses, known claim failures and secret exclusion.
+- Bounded VarInt parsing rejects excessive continuation and fifth-byte overflow before shifting. The ping adapter shares this parser; malformed/truncated input and signed boundary values have regressions.
+- Added server creation/default/validation tests and an invalid-update regression preserving metadata and properties. Empty names and invalid memory bounds are intentionally rejected on create/update. Preserved Java/Bedrock defaults and existing RPC argument/DTO shapes. Windows Java version probing uses CREATE_NO_WINDOW. Installer fixtures now use unique temporary directories.
+
+Verification on Windows against the combined working tree:
+
+- `cargo test --all-targets --locked --offline --quiet`: **535 passed, 0 failed, 13 ignored**. Includes the generated-binding freshness and procedure inventory checks. The ignored tests remain explicit export/live/platform smoke checks.
+- `cargo fmt --all -- --check`: passed.
+- `cargo clippy --all-targets --locked --offline -- -D warnings`: passed without warnings.
+- `pnpm exec tsc --noEmit -p .`: passed; `pnpm test:ipc`: **14 passed**; `pnpm exec biome ci`: **183 files**, passed.
+- Android `cargo check --target aarch64-linux-android --locked --offline` with local NDK 30: passed. This verifies compilation, not device runtime behavior.
+- Explicit `keyring_store::tests::native_vault_round_trip -- --ignored --exact`: passed against the Windows vault.
+- Fresh cargo-llvm-cov all-target measurement: **13,344 / 25,763 source-file lines = 51.80%**, across 227 emitted maintained-source files. Updated the measured inventory and raised the Windows minimum from 46.86% to **51.79%**. The ratchet passes against `target/coverage.json`; its Node regression suite also passes. Standalone tests remain excluded; inline tests remain included. Six formerly measured modules no longer emit executable counters after conversion removal or becoming declaration-only modules; this is not a new exclusion policy. New emitted feature/native modules are included.
+- `git diff --check`: passed. Pre-existing staged changes were preserved; no staging, unstaging or commits were performed in this review.
+
+Still open / next slices:
+
+1. Version-change scanning still skips some unreadable files/directories, and parts of transaction/installer errors still flatten causes into strings. Audit required versus optional effects with focused failure regressions; retiring a string signature alone does not close this.
+2. Playit credential read/write failures and concurrent-start generation ownership still need explicit policies and controlled tests. Java native probes still have no execution deadline; this predates the extraction.
+3. Continue separating remaining native server lifecycle/supervision/platform effects from feature orchestration. Compatibility reexports do not by themselves establish a fully independent service boundary.
+4. Complete durable restart discovery/acknowledgement for remaining directory publication and plugin multi-resource workflows. Do not extrapolate the deletion receipt protocol into a claim that all workflows recover automatically.
+5. Obtain Linux/macOS CI execution evidence and actual runtime smoke results where needed. This host verifies Windows and Android compilation only. Measured aggregate coverage is improved but does not meet the proposed 80% feature / 90% pure-rule completion targets.

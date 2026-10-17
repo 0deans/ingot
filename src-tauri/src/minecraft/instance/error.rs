@@ -28,8 +28,3 @@ pub enum InstanceError {
         source: std::io::Error,
     },
 }
-impl From<InstanceError> for String {
-    fn from(error: InstanceError) -> Self {
-        error.to_string()
-    }
-}

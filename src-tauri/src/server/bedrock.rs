@@ -44,8 +44,37 @@ fn extract_version_from_url(url: &str) -> Option<String> {
     Some(stripped.to_string())
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum BedrockServerError {
+    #[error("Network error during Bedrock server operation: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("I/O error during Bedrock server operation: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Failed to download Bedrock server from {url}: HTTP {status}")]
+    HttpStatus {
+        url: String,
+        status: reqwest::StatusCode,
+    },
+
+    #[error("Archive error: {0}")]
+    Zip(#[from] zip::result::ZipError),
+
+    #[error("Task join error: {0}")]
+    Task(#[from] tokio::task::JoinError),
+
+    #[error("Extraction error: {0}")]
+    Extraction(String),
+
+    #[error("Extracted Bedrock server files, but executable {0} was not found")]
+    BinaryNotFound(PathBuf),
+}
+
 /// Fetches available Bedrock Dedicated Server versions from Mojang's API
-pub async fn fetch_bedrock_versions(client: &reqwest::Client) -> Result<Vec<String>, String> {
+pub async fn fetch_bedrock_versions(
+    client: &reqwest::Client,
+) -> Result<Vec<String>, BedrockServerError> {
     let url = "https://net-secondary.web.minecraft-services.net/api/v1.0/download/links";
     let res = client
         .get(url)
@@ -150,7 +179,7 @@ pub async fn ensure_bedrock_server_binary(
     client: &reqwest::Client,
     server_dir: &Path,
     version: &str,
-) -> Result<PathBuf, String> {
+) -> Result<PathBuf, BedrockServerError> {
     let bin_path = get_bedrock_binary_path(server_dir);
     if bin_path.exists() {
         if let Ok(meta) = std::fs::metadata(&bin_path) {
@@ -160,8 +189,7 @@ pub async fn ensure_bedrock_server_binary(
         }
     }
 
-    std::fs::create_dir_all(server_dir)
-        .map_err(|e| format!("Failed to create server directory: {e}"))?;
+    std::fs::create_dir_all(server_dir)?;
 
     let download_url = resolve_download_url(client, version).await;
 
@@ -169,49 +197,47 @@ pub async fn ensure_bedrock_server_binary(
         .get(&download_url)
         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
         .send()
-        .await
-        .map_err(|e| format!("Failed to download Bedrock server from {download_url}: {e}"))?;
+        .await?;
 
     if !res.status().is_success() {
-        return Err(format!(
-            "Failed to download Bedrock server from {download_url}: HTTP {}",
-            res.status()
-        ));
+        return Err(BedrockServerError::HttpStatus {
+            url: download_url,
+            status: res.status(),
+        });
     }
 
-    let bytes = res
-        .bytes()
-        .await
-        .map_err(|e| format!("Failed to read Bedrock server download stream: {e}"))?;
+    let bytes = res.bytes().await?;
 
     let parent = server_dir.to_path_buf();
     let binary_name = bin_path
         .file_name()
-        .ok_or_else(|| "Invalid Bedrock binary name".to_string())?
+        .ok_or_else(|| BedrockServerError::Extraction("Invalid Bedrock binary name".to_string()))?
         .to_os_string();
-    let (staging, mut prepared) = tokio::task::spawn_blocking(move || {
-        let staging = tempfile::tempdir_in(&parent).map_err(|error| error.to_string())?;
-        let mut archive =
-            zip::ZipArchive::new(std::io::Cursor::new(bytes)).map_err(|error| error.to_string())?;
-        crate::app::extract_zip_entries(&mut archive, staging.path(), "", None)
-            .map_err(|error| error.to_string())?;
-        if !staging.path().join(&binary_name).is_file() {
-            return Err("Bedrock archive contains no server executable".to_string());
-        }
-        let mut prepared = Vec::new();
-        prepare_files(staging.path(), staging.path(), &mut prepared)?;
-        // Publish the executable last: a partial installation never looks ready.
-        prepared.sort_by_key(|(relative, _)| relative.as_os_str() == binary_name);
-        Ok::<_, String>((staging, prepared))
-    })
-    .await
-    .map_err(|error| format!("Bedrock extraction task failed: {error}"))??;
+    let (staging, mut prepared) =
+        tokio::task::spawn_blocking(move || -> Result<_, BedrockServerError> {
+            let staging = tempfile::tempdir_in(&parent)?;
+            let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes))?;
+            crate::app::extract_zip_entries(&mut archive, staging.path(), "", None)
+                .map_err(|error| BedrockServerError::Extraction(error.to_string()))?;
+            if !staging.path().join(&binary_name).is_file() {
+                return Err(BedrockServerError::Extraction(
+                    "Bedrock archive contains no server executable".to_string(),
+                ));
+            }
+            let mut prepared = Vec::new();
+            prepare_files(staging.path(), staging.path(), &mut prepared)?;
+            // Publish the executable last: a partial installation never looks ready.
+            prepared.sort_by_key(|(relative, _)| relative.as_os_str() == binary_name);
+            Ok((staging, prepared))
+        })
+        .await??;
     for (relative, file) in prepared.drain(..) {
-        let name = relative
-            .to_str()
-            .ok_or_else(|| "Invalid archive path encoding".to_string())?;
-        let output = crate::app::safe_enclosed_path(server_dir, name)
-            .ok_or_else(|| "Unsafe Bedrock destination".to_string())?;
+        let name = relative.to_str().ok_or_else(|| {
+            BedrockServerError::Extraction("Invalid archive path encoding".to_string())
+        })?;
+        let output = crate::app::safe_enclosed_path(server_dir, name).ok_or_else(|| {
+            BedrockServerError::Extraction("Unsafe Bedrock destination".to_string())
+        })?;
         let filename = output
             .file_name()
             .and_then(|name| name.to_str())
@@ -225,10 +251,10 @@ pub async fn ensure_bedrock_server_binary(
             continue;
         }
         if let Some(parent) = output.parent() {
-            std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+            std::fs::create_dir_all(parent)?;
         }
         file.persist(&output)
-            .map_err(|error| format!("Failed to publish {}: {}", output.display(), error.error))?;
+            .map_err(|error| BedrockServerError::Io(error.error))?;
     }
     drop(staging);
     #[cfg(unix)]
@@ -238,10 +264,7 @@ pub async fn ensure_bedrock_server_binary(
     }
 
     if !bin_path.exists() {
-        return Err(format!(
-            "Extracted Bedrock server files, but executable {} was not found",
-            bin_path.display()
-        ));
+        return Err(BedrockServerError::BinaryNotFound(bin_path));
     }
 
     Ok(bin_path)
@@ -251,34 +274,31 @@ fn prepare_files(
     root: &Path,
     directory: &Path,
     prepared: &mut Vec<(std::path::PathBuf, tempfile::NamedTempFile)>,
-) -> Result<(), String> {
-    for entry in std::fs::read_dir(directory).map_err(|error| error.to_string())? {
-        let entry = entry.map_err(|error| error.to_string())?;
-        let kind = entry.file_type().map_err(|error| error.to_string())?;
+) -> Result<(), BedrockServerError> {
+    for entry in std::fs::read_dir(directory)? {
+        let entry = entry?;
+        let kind = entry.file_type()?;
         if kind.is_dir() {
             prepare_files(root, &entry.path(), prepared)?;
         } else if kind.is_file() {
-            let mut source =
-                std::fs::File::open(entry.path()).map_err(|error| error.to_string())?;
+            let mut source = std::fs::File::open(entry.path())?;
             // Tempfiles stay beside the staging root, outside the traversed tree.
-            let parent = root
-                .parent()
-                .ok_or_else(|| "Invalid staging root".to_string())?;
-            let mut output =
-                tempfile::NamedTempFile::new_in(parent).map_err(|error| error.to_string())?;
-            std::io::copy(&mut source, &mut output).map_err(|error| error.to_string())?;
-            output
-                .as_file()
-                .sync_all()
-                .map_err(|error| error.to_string())?;
+            let parent = root.parent().ok_or_else(|| {
+                BedrockServerError::Extraction("Invalid staging root".to_string())
+            })?;
+            let mut output = tempfile::NamedTempFile::new_in(parent)?;
+            std::io::copy(&mut source, &mut output)?;
+            output.as_file().sync_all()?;
             let relative = entry
                 .path()
                 .strip_prefix(root)
-                .map_err(|error| error.to_string())?
+                .map_err(|error| BedrockServerError::Extraction(error.to_string()))?
                 .to_path_buf();
             prepared.push((relative, output));
         } else {
-            return Err("Unsupported Bedrock archive entry".to_string());
+            return Err(BedrockServerError::Extraction(
+                "Unsupported Bedrock archive entry".to_string(),
+            ));
         }
     }
     Ok(())
@@ -288,7 +308,7 @@ fn prepare_files(
 pub fn configure_bedrock_properties(
     server_dir: &Path,
     config: &ServerConfig,
-) -> Result<(), String> {
+) -> Result<(), std::io::Error> {
     let props_path = server_dir.join("server.properties");
     let mut props_map = std::collections::HashMap::new();
 
@@ -340,5 +360,4 @@ pub fn configure_bedrock_properties(
     }
 
     std::fs::write(props_path, out)
-        .map_err(|e| format!("Failed to write Bedrock server.properties: {e}"))
 }

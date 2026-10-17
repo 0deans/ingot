@@ -11,37 +11,59 @@ const MAX_UTF16_UNITS: usize = 1280;
 const MAX_CHUNKS: usize = 4096;
 static STORE_LOCK: Mutex<()> = Mutex::new(());
 
+#[derive(Debug, thiserror::Error)]
+pub enum KeyringError {
+    #[error("Failed to access OS keyring: {0}")]
+    Access(#[source] keyring::Error),
+    #[error("Failed to read secret from OS keyring: {0}")]
+    Read(#[source] keyring::Error),
+    #[error("Failed to save secret in OS keyring: {0}")]
+    Write(#[source] keyring::Error),
+    #[error("Failed to delete secret from OS keyring: {0}")]
+    Delete(#[source] keyring::Error),
+    #[error("Invalid chunked credential metadata in OS keyring")]
+    InvalidManifest,
+    #[error("Stored account credentials are incomplete. Please sign in again.")]
+    IncompleteCredentials,
+    #[error("Account secret exceeds supported keyring storage size")]
+    ExceedsStorageSize,
+    #[error("OS keyring lock poisoned")]
+    LockPoisoned,
+    #[error("{0}")]
+    Store(String),
+}
+
 trait SecretStore {
-    fn read(&self, service: &str, user: &str) -> Result<Option<String>, String>;
-    fn write(&self, service: &str, user: &str, secret: &str) -> Result<(), String>;
-    fn delete(&self, service: &str, user: &str) -> Result<(), String>;
+    fn read(&self, service: &str, user: &str) -> Result<Option<String>, KeyringError>;
+    fn write(&self, service: &str, user: &str, secret: &str) -> Result<(), KeyringError>;
+    fn delete(&self, service: &str, user: &str) -> Result<(), KeyringError>;
 }
 
 struct OsStore;
 
-fn entry(service: &str, user: &str) -> Result<Entry, String> {
-    Entry::new(service, user).map_err(|e| format!("Failed to access OS keyring: {e}"))
+fn entry(service: &str, user: &str) -> Result<Entry, KeyringError> {
+    Entry::new(service, user).map_err(KeyringError::Access)
 }
 
 impl SecretStore for OsStore {
-    fn read(&self, service: &str, user: &str) -> Result<Option<String>, String> {
+    fn read(&self, service: &str, user: &str) -> Result<Option<String>, KeyringError> {
         match entry(service, user)?.get_password() {
             Ok(secret) => Ok(Some(secret)),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(e) => Err(format!("Failed to read secret from OS keyring: {e}")),
+            Err(e) => Err(KeyringError::Read(e)),
         }
     }
 
-    fn write(&self, service: &str, user: &str, secret: &str) -> Result<(), String> {
+    fn write(&self, service: &str, user: &str, secret: &str) -> Result<(), KeyringError> {
         entry(service, user)?
             .set_password(secret)
-            .map_err(|e| format!("Failed to save secret in OS keyring: {e}"))
+            .map_err(KeyringError::Write)
     }
 
-    fn delete(&self, service: &str, user: &str) -> Result<(), String> {
+    fn delete(&self, service: &str, user: &str) -> Result<(), KeyringError> {
         match entry(service, user)?.delete_credential() {
             Ok(_) | Err(keyring::Error::NoEntry) => Ok(()),
-            Err(e) => Err(format!("Failed to delete secret from OS keyring: {e}")),
+            Err(e) => Err(KeyringError::Delete(e)),
         }
     }
 }
@@ -52,16 +74,18 @@ struct Manifest {
 }
 
 impl Manifest {
-    fn parse(value: &str) -> Result<Option<Self>, String> {
+    fn parse(value: &str) -> Result<Option<Self>, KeyringError> {
         let Some(rest) = value.strip_prefix(CHUNK_PREFIX) else {
             return Ok(None);
         };
-        let invalid = || "Invalid chunked credential metadata in OS keyring".to_string();
-        let (generation, count) = rest.split_once(':').ok_or_else(invalid)?;
-        let generation = uuid::Uuid::parse_str(generation).map_err(|_| invalid())?;
-        let count = count.parse::<usize>().map_err(|_| invalid())?;
+        let (generation, count) = rest.split_once(':').ok_or(KeyringError::InvalidManifest)?;
+        let generation =
+            uuid::Uuid::parse_str(generation).map_err(|_| KeyringError::InvalidManifest)?;
+        let count = count
+            .parse::<usize>()
+            .map_err(|_| KeyringError::InvalidManifest)?;
         if count == 0 || count > MAX_CHUNKS {
-            return Err(invalid());
+            return Err(KeyringError::InvalidManifest);
         }
         Ok(Some(Self { generation, count }))
     }
@@ -70,7 +94,7 @@ impl Manifest {
         format!("{}:{index}", self.generation)
     }
 
-    fn delete_chunks(&self, store: &impl SecretStore) -> Result<(), String> {
+    fn delete_chunks(&self, store: &impl SecretStore) -> Result<(), KeyringError> {
         // Attempt every deletion even if one entry is unavailable.
         let mut result = Ok(());
         for index in 0..self.count {
@@ -100,7 +124,7 @@ fn split_secret(secret: &str) -> Vec<&str> {
     chunks
 }
 
-fn save(store: &impl SecretStore, account_id: &str, secret: &str) -> Result<(), String> {
+fn save(store: &impl SecretStore, account_id: &str, secret: &str) -> Result<(), KeyringError> {
     let old = store.read(SERVICE_NAME, account_id)?;
     let old_manifest = old.as_deref().map(Manifest::parse).transpose()?.flatten();
     let chunks = split_secret(secret);
@@ -109,7 +133,7 @@ fn save(store: &impl SecretStore, account_id: &str, secret: &str) -> Result<(), 
         store.write(SERVICE_NAME, account_id, secret)?;
     } else {
         if chunks.len() > MAX_CHUNKS {
-            return Err("Account secret exceeds supported keyring storage size".to_string());
+            return Err(KeyringError::ExceedsStorageSize);
         }
         let manifest = Manifest {
             generation: uuid::Uuid::new_v4(),
@@ -139,7 +163,7 @@ fn save(store: &impl SecretStore, account_id: &str, secret: &str) -> Result<(), 
     Ok(())
 }
 
-fn get(store: &impl SecretStore, account_id: &str) -> Result<Option<String>, String> {
+fn get(store: &impl SecretStore, account_id: &str) -> Result<Option<String>, KeyringError> {
     let Some(value) = store.read(SERVICE_NAME, account_id)? else {
         return Ok(None);
     };
@@ -150,13 +174,13 @@ fn get(store: &impl SecretStore, account_id: &str) -> Result<Option<String>, Str
     for index in 0..manifest.count {
         let chunk = store
             .read(CHUNK_SERVICE, &manifest.key(index))?
-            .ok_or("Stored account credentials are incomplete. Please sign in again.")?;
+            .ok_or(KeyringError::IncompleteCredentials)?;
         secret.push_str(&chunk);
     }
     Ok(Some(secret))
 }
 
-fn delete(store: &impl SecretStore, account_id: &str) -> Result<(), String> {
+fn delete(store: &impl SecretStore, account_id: &str) -> Result<(), KeyringError> {
     if let Some(value) = store.read(SERVICE_NAME, account_id)? {
         if let Some(manifest) = Manifest::parse(&value)? {
             manifest.delete_chunks(store)?;
@@ -166,20 +190,20 @@ fn delete(store: &impl SecretStore, account_id: &str) -> Result<(), String> {
 }
 
 /// Stores credentials in the OS vault, splitting large tokens into secure entries.
-pub fn save_secret(account_id: &str, secret: &str) -> Result<(), String> {
-    let _guard = STORE_LOCK.lock().map_err(|_| "OS keyring lock poisoned")?;
+pub fn save_secret(account_id: &str, secret: &str) -> Result<(), KeyringError> {
+    let _guard = STORE_LOCK.lock().map_err(|_| KeyringError::LockPoisoned)?;
     save(&OsStore, account_id, secret)
 }
 
 /// Reads both legacy single-entry credentials and chunked credentials.
-pub fn get_secret(account_id: &str) -> Result<Option<String>, String> {
-    let _guard = STORE_LOCK.lock().map_err(|_| "OS keyring lock poisoned")?;
+pub fn get_secret(account_id: &str) -> Result<Option<String>, KeyringError> {
+    let _guard = STORE_LOCK.lock().map_err(|_| KeyringError::LockPoisoned)?;
     get(&OsStore, account_id)
 }
 
 /// Deletes an account secret from the OS Credential Vault
-pub fn delete_secret(account_id: &str) -> Result<(), String> {
-    let _guard = STORE_LOCK.lock().map_err(|_| "OS keyring lock poisoned")?;
+pub fn delete_secret(account_id: &str) -> Result<(), KeyringError> {
+    let _guard = STORE_LOCK.lock().map_err(|_| KeyringError::LockPoisoned)?;
     delete(&OsStore, account_id)
 }
 
@@ -197,7 +221,7 @@ mod tests {
     }
 
     impl SecretStore for TestStore {
-        fn read(&self, service: &str, user: &str) -> Result<Option<String>, String> {
+        fn read(&self, service: &str, user: &str) -> Result<Option<String>, KeyringError> {
             Ok(self
                 .entries
                 .borrow()
@@ -205,17 +229,21 @@ mod tests {
                 .cloned())
         }
 
-        fn write(&self, service: &str, user: &str, secret: &str) -> Result<(), String> {
+        fn write(&self, service: &str, user: &str, secret: &str) -> Result<(), KeyringError> {
             let attempt = self.writes.get() + 1;
             self.writes.set(attempt);
             if self.fail_write.get() == Some(attempt) {
-                return Err("Injected write failure".into());
+                return Err(KeyringError::Store("Injected write failure".into()));
             }
             if secret.encode_utf16().count() * 2 > 2560 {
-                return Err("Windows credential blob limit exceeded".into());
+                return Err(KeyringError::Store(
+                    "Windows credential blob limit exceeded".into(),
+                ));
             }
             if secret.len() > MAX_UTF8_BYTES {
-                return Err("UTF-8 credential blob limit exceeded".into());
+                return Err(KeyringError::Store(
+                    "UTF-8 credential blob limit exceeded".into(),
+                ));
             }
             self.entries
                 .borrow_mut()
@@ -223,7 +251,7 @@ mod tests {
             Ok(())
         }
 
-        fn delete(&self, service: &str, user: &str) -> Result<(), String> {
+        fn delete(&self, service: &str, user: &str) -> Result<(), KeyringError> {
             self.entries
                 .borrow_mut()
                 .remove(&(service.into(), user.into()));
@@ -303,7 +331,10 @@ mod tests {
         let value = store.read(SERVICE_NAME, "account").unwrap().unwrap();
         let manifest = Manifest::parse(&value).unwrap().unwrap();
         store.delete(CHUNK_SERVICE, &manifest.key(1)).unwrap();
-        assert!(get(&store, "account").unwrap_err().contains("incomplete"));
+        assert!(matches!(
+            get(&store, "account").unwrap_err(),
+            KeyringError::IncompleteCredentials
+        ));
     }
 
     #[test]
@@ -340,7 +371,7 @@ mod tests {
     #[ignore = "requires an available, unlocked OS vault; run explicitly in platform CI"]
     fn native_vault_round_trip() {
         let account_id = format!("keyring-regression-test:{}", uuid::Uuid::new_v4());
-        let result = (|| -> Result<(), String> {
+        let result = (|| -> Result<(), KeyringError> {
             // Includes the maximum Windows blob and three-byte UTF-8 characters.
             for secret in [
                 "a".repeat(MAX_UTF16_UNITS),

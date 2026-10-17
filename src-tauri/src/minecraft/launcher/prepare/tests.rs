@@ -27,7 +27,9 @@ impl PreparationEffects for FakePreparation {
             self.java_calls.fetch_add(1, Ordering::SeqCst);
             assert_eq!(major_version, 21);
             if matches!(self.failure, Failure::Java) {
-                return Err(LaunchError::JavaRuntime("unavailable".into()));
+                return Err(LaunchError::JavaRuntime(
+                    crate::minecraft::java::JavaError::MissingBinary,
+                ));
             }
             Ok(PathBuf::from("fixture-java"))
         })

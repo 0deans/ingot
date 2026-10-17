@@ -1,25 +1,16 @@
-//! Native access to the application-owned account repository.
-use crate::account::{repository::AccountRepository, AccountProfile};
+use crate::account::{recovery::RecoveryError, repository::AccountRepository, AccountProfile};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Transitional string mapping for existing native account callers.
 pub(crate) fn load_accounts_file<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-) -> Result<Vec<AccountProfile>, String> {
+) -> Result<Vec<AccountProfile>, RecoveryError> {
     with_recovered(app, |repository| repository.load())
 }
 
 pub(super) fn with_recovered<R: tauri::Runtime, T>(
     app: &tauri::AppHandle<R>,
     action: impl FnOnce(&AccountRepository) -> Result<T, crate::account::AccountError>,
-) -> Result<T, String> {
-    with_recovered_typed(app, action).map_err(|error| error.to_string())
-}
-
-pub(super) fn with_recovered_typed<R: tauri::Runtime, T>(
-    app: &tauri::AppHandle<R>,
-    action: impl FnOnce(&AccountRepository) -> Result<T, crate::account::AccountError>,
-) -> Result<T, crate::account::recovery::RecoveryError> {
+) -> Result<T, RecoveryError> {
     let state = crate::app::state(app);
     state
         .account_recovery
@@ -27,6 +18,8 @@ pub(super) fn with_recovered_typed<R: tauri::Runtime, T>(
             action(&state.accounts)
         })
 }
+
+pub(super) use with_recovered as with_recovered_typed;
 
 pub(super) fn current_timestamp() -> u64 {
     SystemTime::now()

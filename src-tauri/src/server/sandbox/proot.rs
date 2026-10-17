@@ -1,3 +1,4 @@
+use super::error::SandboxError;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
@@ -76,14 +77,11 @@ pub fn proot_command(
     fake_root: bool,
     binds: &[(PathBuf, &str)],
     guest_cwd: &str,
-) -> Result<Command, String> {
-    let proot = locate_proot_binary().ok_or_else(|| {
-        "PRoot binary not found. The APK must bundle libproot.so (scripts/prepare-android.cjs copies it from src-tauri/android/jniLibs).".to_string()
-    })?;
+) -> Result<Command, SandboxError> {
+    let proot = locate_proot_binary().ok_or(SandboxError::ProotNotFound)?;
 
     let tmp_dir = sandbox_dir.join("tmp");
-    std::fs::create_dir_all(&tmp_dir)
-        .map_err(|e| format!("Failed to create PRoot tmp dir: {e}"))?;
+    std::fs::create_dir_all(&tmp_dir)?;
 
     let mut cmd = Command::new(&proot);
     cmd.env_clear();
@@ -100,10 +98,7 @@ pub fn proot_command(
     if let Some(lib_dir) = android_lib_dir() {
         let loader = lib_dir.join("libproot-loader.so");
         if !loader.exists() {
-            return Err(format!(
-                "PRoot loader not found at {}. The APK must bundle libproot-loader.so.",
-                loader.display()
-            ));
+            return Err(SandboxError::LoaderNotFound(loader));
         }
         cmd.env("PROOT_LOADER", &loader);
         let loader32 = lib_dir.join("libproot-loader32.so");
@@ -113,16 +108,13 @@ pub fn proot_command(
 
         // nativeLibraryDir changes on every app update, so always refresh the symlink.
         let soname_dir = sandbox_dir.join("lib");
-        std::fs::create_dir_all(&soname_dir)
-            .map_err(|e| format!("Failed to create PRoot lib dir: {e}"))?;
+        std::fs::create_dir_all(&soname_dir)?;
         let talloc_link = soname_dir.join("libtalloc.so.2");
         let _ = std::fs::remove_file(&talloc_link);
         #[cfg(unix)]
-        std::os::unix::fs::symlink(lib_dir.join("libtalloc.so"), &talloc_link)
-            .map_err(|e| format!("Failed to link libtalloc.so.2: {e}"))?;
+        std::os::unix::fs::symlink(lib_dir.join("libtalloc.so"), &talloc_link)?;
 
-        let ld_path = std::env::join_paths([soname_dir.as_path(), lib_dir.as_path()])
-            .map_err(|e| format!("Invalid library path: {e}"))?;
+        let ld_path = std::env::join_paths([soname_dir.as_path(), lib_dir.as_path()])?;
         cmd.env("LD_LIBRARY_PATH", ld_path);
     }
 
@@ -211,10 +203,9 @@ pub fn build_server_command(
     server_dir: &Path,
     java_bin: &Path,
     jvm_args: &[String],
-) -> Result<Command, String> {
+) -> Result<Command, SandboxError> {
     let mut cmd = if is_android_sandbox() {
-        let (sandbox_dir, rootfs) =
-            sandbox.ok_or_else(|| "Sandbox rootfs path is required on Android".to_string())?;
+        let (sandbox_dir, rootfs) = sandbox.ok_or(SandboxError::RootfsRequired)?;
         let mut cmd = proot_command(
             sandbox_dir,
             Some(rootfs),

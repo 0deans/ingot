@@ -20,12 +20,6 @@ pub enum ServerFileError {
     InvalidAccessEntry(&'static str),
 }
 
-impl From<ServerFileError> for String {
-    fn from(error: ServerFileError) -> Self {
-        error.to_string()
-    }
-}
-
 pub(super) fn publish_file(path: &Path, bytes: &[u8]) -> Result<(), ServerFileError> {
     use std::io::Write;
     let parent = path

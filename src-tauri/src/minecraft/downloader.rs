@@ -54,12 +54,17 @@ pub fn verify_file_sha1(path: &Path, expected_sha1: &str) -> bool {
     hash.eq_ignore_ascii_case(expected_sha1)
 }
 
+pub mod error;
+pub use error::DownloadError;
+mod batch;
+mod range;
 mod single;
+mod worker;
+
+pub use batch::{download_files_concurrent, BatchProgressCallback};
 pub use single::download_file_chunked;
 #[cfg(test)]
 use single::download_file_chunked_with_chunk_listener;
-mod batch;
-pub use batch::{download_files_concurrent, BatchProgressCallback};
 
 #[cfg(test)]
 mod tests;

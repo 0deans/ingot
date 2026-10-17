@@ -185,7 +185,7 @@ pub async fn apply_with_commit<F, E>(
     backup_worlds: bool,
     progress: impl Fn(String) + Sync,
     commit_metadata: F,
-) -> Result<(), String>
+) -> Result<(), VersionChangeError>
 where
     F: FnOnce() -> Result<(), E>,
     E: std::fmt::Display,
@@ -199,7 +199,6 @@ where
         commit_metadata,
     )
     .await
-    .map_err(|e| e.to_string())
 }
 
 pub async fn apply(
@@ -208,8 +207,6 @@ pub async fn apply(
     plan: &VersionPlan,
     backup_worlds: bool,
     progress: impl Fn(String) + Sync,
-) -> Result<(), String> {
-    apply_typed(client, target, plan, backup_worlds, progress)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<(), VersionChangeError> {
+    apply_typed(client, target, plan, backup_worlds, progress).await
 }

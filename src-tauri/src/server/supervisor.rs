@@ -1,6 +1,7 @@
 use crate::server::config::{ServerConfig, ServerLogEvent, ServerStatus, ServerStatusEvent};
-use crate::server::process::{claim_server_launch, launch_claimed_server};
-use crate::server::process::{launch_server, ServerProcessManager};
+use crate::server::process::{
+    claim_server_launch, launch_claimed_server, launch_server, ProcessError, ServerProcessManager,
+};
 use crate::server::proxy::{start_server_proxy, ProxyConfig, ServerProxyHandle};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -43,7 +44,7 @@ impl ServerSupervisorManager {
         config: ServerConfig,
         on_log: FLog,
         on_status: FStatus,
-    ) -> Result<u32, String>
+    ) -> Result<u32, ProcessError>
     where
         FLog: Fn(ServerLogEvent) + Send + Sync + 'static + Clone,
         FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static + Clone,
@@ -174,23 +175,20 @@ impl ServerSupervisorManager {
             })
         };
 
-        let proxy_handle = match start_server_proxy(
-            proxy_cfg,
-            wake_fn,
-            is_running_fn,
-            is_sleeping_fn,
-        )
-        .await
-        {
-            Ok(handle) => handle,
-            Err(e) => {
-                // Don't leave the game server running without its public port
-                let _ = pm.stop_server(&server_id).await;
-                return Err(format!(
-                    "Port {public_port} is already in use ({e}). Close whatever uses it, or give this server another port in Settings."
-                ));
-            }
-        };
+        let proxy_handle =
+            match start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn).await {
+                Ok(handle) => handle,
+                Err(e) => {
+                    // Don't leave the game server running without its public port
+                    let _ = pm
+                        .stop_server_within_typed(&server_id, Duration::from_secs(10))
+                        .await;
+                    return Err(ProcessError::PortInUse {
+                        port: public_port,
+                        details: e.to_string(),
+                    });
+                }
+            };
 
         let active_conns = proxy_handle.active_connections.clone();
 
@@ -262,7 +260,9 @@ impl ServerSupervisorManager {
                             );
 
                             // Send graceful stop to save battery and RAM
-                            let _ = pm_idle.stop_server(&s_id_idle).await;
+                            let _ = pm_idle
+                                .stop_server_within_typed(&s_id_idle, Duration::from_secs(10))
+                                .await;
 
                             // Wait for process to terminate
                             for _ in 0..20 {
@@ -303,17 +303,18 @@ impl ServerSupervisorManager {
         pm: &ServerProcessManager,
         server_id: &str,
         on_status: FStatus,
-    ) -> Result<(), String>
+    ) -> Result<(), ProcessError>
     where
         FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
     {
         let status = pm.get_server_status(server_id).await;
         if status != ServerStatus::Running {
-            return Err("Server must be running to put it into sleep mode".to_string());
+            return Err(ProcessError::MustBeRunningToSleep);
         }
 
         // Gracefully stop internal process
-        pm.stop_server(server_id).await?;
+        pm.stop_server_within_typed(server_id, Duration::from_secs(10))
+            .await?;
 
         // Wait for shutdown
         for _ in 0..20 {
@@ -349,11 +350,13 @@ impl ServerSupervisorManager {
         &self,
         pm: &ServerProcessManager,
         server_id: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), ProcessError> {
         self.release(server_id).await;
 
         // Stop the server process if running
-        let _ = pm.stop_server(server_id).await;
+        let _ = pm
+            .stop_server_within_typed(server_id, Duration::from_secs(10))
+            .await;
         Ok(())
     }
 }

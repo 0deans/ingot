@@ -87,7 +87,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
             to_loader_version: None,
             downgrade,
         };
-        version_change::check(get_http_client(&app_handle), &target, request)
+        version_change::check_typed(get_http_client(&app_handle), &target, request)
             .await
             .map_err(ApiError::from)
     }
@@ -151,7 +151,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
             .await
             .map_err(|_| ApiError::conflict("Server is busy"))?;
         let (directory, _) = server_with_config(&app_handle, &server_id)?;
-        version_change::discard_backup(&directory).map_err(ApiError::from)
+        version_change::discard_backup_typed(&directory).map_err(ApiError::from)
     }
 
     async fn recover_server_version_change(

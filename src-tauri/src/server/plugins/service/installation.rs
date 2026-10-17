@@ -100,9 +100,7 @@ pub(crate) async fn install_with_provider(
         let Some(url) = version.download_url.clone() else {
             return Err(PluginError::ManualDownloadRequired(title));
         };
-        let file_name = safe_jar_name(&version.file_name)
-            .map_err(|_| PluginError::InvalidJarName(version.file_name.clone()))?
-            .to_string();
+        let file_name = safe_jar_name(&version.file_name)?.to_string();
         let target_dest = crate::app::safe_enclosed_filename(&dir, &file_name)
             .ok_or_else(|| PluginError::InvalidJarName(file_name.clone()))?;
         let staging_file = staging.path().join(uuid::Uuid::new_v4().to_string());

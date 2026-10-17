@@ -45,9 +45,11 @@ impl ServerMapApi for ServerMapApiImpl {
         z: i32,
     ) -> Result<Option<String>, ApiError> {
         let dir = server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        tauri::async_runtime::spawn_blocking(move || server::map::tile(&dir, &dimension, x, z))
-            .await
-            .map_err(|e| ApiError::internal(e.to_string()))?
-            .map_err(ApiError::from)
+        tauri::async_runtime::spawn_blocking(move || {
+            server::map::tile_typed(&dir, &dimension, x, z)
+        })
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+        .map_err(ApiError::from)
     }
 }

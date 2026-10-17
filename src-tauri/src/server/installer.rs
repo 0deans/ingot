@@ -49,13 +49,55 @@ fn newest_first(mut games: Vec<String>) -> Vec<String> {
     games
 }
 
-async fn get(client: &reqwest::Client, url: &str) -> Result<reqwest::Response, String> {
+#[derive(Debug, thiserror::Error)]
+pub enum InstallerError {
+    #[error("Network error: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("{0} is not installed by an installer")]
+    UnsupportedCore(ServerCoreType),
+
+    #[error("{core} is not available for Minecraft {game_version}")]
+    VersionUnavailable {
+        core: ServerCoreType,
+        game_version: String,
+    },
+
+    #[error("Ingot runs Forge servers from Minecraft 1.17; this one is {0}")]
+    ForgeVersionUnsupported(String),
+
+    #[error("No Quilt installer found")]
+    NoQuiltInstaller,
+
+    #[error("Download error: {0}")]
+    Download(#[from] crate::minecraft::downloader::DownloadError),
+
+    #[error("Failed to run {core} installer: {error}")]
+    Process { core: ServerCoreType, error: String },
+
+    #[error("The {core} installer failed:\n{details}")]
+    InstallationFailed {
+        core: ServerCoreType,
+        details: String,
+    },
+
+    #[error("The {0} installer didn't set the server up")]
+    NotConfigured(ServerCoreType),
+}
+
+async fn get(client: &reqwest::Client, url: &str) -> Result<reqwest::Response, InstallerError> {
     client
         .get(url)
         .send()
         .await
         .and_then(|r| r.error_for_status())
-        .map_err(|e| format!("Failed to reach {url}: {e}"))
+        .map_err(InstallerError::Network)
 }
 
 // ─── Versions ─────────────────────────────────────────────────────────────────
@@ -88,12 +130,12 @@ fn neoforge_game_version(neoforge: &str) -> Option<String> {
     }
 }
 
-async fn neoforge_versions(client: &reqwest::Client) -> Result<Vec<String>, String> {
+async fn neoforge_versions(client: &reqwest::Client) -> Result<Vec<String>, InstallerError> {
     let xml = get(client, &format!("{NEOFORGE_MAVEN}/maven-metadata.xml"))
         .await?
         .text()
         .await
-        .map_err(|e| format!("Failed to read NeoForge versions: {e}"))?;
+        .map_err(InstallerError::Network)?;
     Ok(xml
         .split("<version>")
         .skip(1)
@@ -114,12 +156,12 @@ fn pick_neoforge(versions: &[String], game_version: &str) -> Option<String> {
 /// Forge's promoted builds: "1.20.1-recommended" -> "47.4.10"
 async fn forge_promotions(
     client: &reqwest::Client,
-) -> Result<serde_json::Map<String, Value>, String> {
+) -> Result<serde_json::Map<String, Value>, InstallerError> {
     let json: Value = get(client, FORGE_PROMOTIONS)
         .await?
         .json()
         .await
-        .map_err(|e| format!("Failed to read Forge versions: {e}"))?;
+        .map_err(InstallerError::Network)?;
     Ok(json
         .get("promos")
         .and_then(Value::as_object)
@@ -150,7 +192,7 @@ fn pick_forge(promos: &serde_json::Map<String, Value>, game_version: &str) -> Op
 pub async fn fetch_game_versions(
     client: &reqwest::Client,
     core: &ServerCoreType,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, InstallerError> {
     let games = match core {
         ServerCoreType::NeoForge => neoforge_versions(client)
             .await?
@@ -168,13 +210,13 @@ pub async fn fetch_game_versions(
                 .await?
                 .json()
                 .await
-                .map_err(|e| format!("Failed to read Quilt versions: {e}"))?;
+                .map_err(InstallerError::Network)?;
             list.iter()
                 .filter(|v| v.get("stable").and_then(Value::as_bool) == Some(true))
                 .filter_map(|v| v.get("version").and_then(Value::as_str).map(str::to_string))
                 .collect()
         }
-        _ => return Err(format!("{core} isn't installed by an installer")),
+        _ => return Err(InstallerError::UnsupportedCore(core.clone())),
     };
     Ok(newest_first(games))
 }
@@ -220,17 +262,15 @@ pub fn launch_args(server_dir: &Path, core: &ServerCoreType) -> Option<Vec<Strin
 }
 
 /// Forgets the installed loader so the next start installs it again (after a version change)
-pub fn uninstall(server_dir: &Path, core: &ServerCoreType) -> Result<(), String> {
-    let remove = |path: PathBuf| -> Result<(), String> {
+pub fn uninstall(server_dir: &Path, core: &ServerCoreType) -> Result<(), InstallerError> {
+    let remove = |path: PathBuf| -> Result<(), InstallerError> {
         let result = if path.is_dir() {
             std::fs::remove_dir_all(&path)
         } else {
             std::fs::remove_file(&path)
         };
         match result {
-            Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
-                Err(format!("Failed to remove the old {core}: {e}"))
-            }
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(InstallerError::Io(e)),
             _ => Ok(()),
         }
     };
@@ -248,81 +288,91 @@ pub fn uninstall(server_dir: &Path, core: &ServerCoreType) -> Result<(), String>
 /// it with (see [`launch_args`]). `java` builds a command running Java with the given
 /// arguments in the server folder (natively, or inside the sandbox on Android).
 /// `pinned` is a loader version to use instead of the newest.
-pub async fn ensure_installed(
+pub async fn ensure_installed<E: std::fmt::Display>(
     client: &reqwest::Client,
     server_dir: &Path,
     core: &ServerCoreType,
     game_version: &str,
     pinned: Option<&str>,
-    java: impl Fn(&[String]) -> Result<Command, String>,
-) -> Result<Vec<String>, String> {
+    java: impl Fn(&[String]) -> Result<Command, E>,
+) -> Result<Vec<String>, InstallerError> {
     if let Some(args) = launch_args(server_dir, core) {
         return Ok(args);
     }
-    let unavailable = || format!("{core} isn't available for Minecraft {game_version}");
-    let (url, installer, args): (String, &str, Vec<String>) = match core {
-        ServerCoreType::NeoForge => {
-            let version = match pinned {
-                Some(v) => v.to_string(),
-                None => pick_neoforge(&neoforge_versions(client).await?, game_version)
-                    .ok_or_else(unavailable)?,
-            };
-            let url = format!("{NEOFORGE_MAVEN}/{version}/neoforge-{version}-installer.jar");
-            (
-                url,
-                "neoforge-installer.jar",
-                vec!["--installServer".into()],
-            )
-        }
-        ServerCoreType::Forge => {
-            if !forge_supported(game_version) {
-                return Err(format!(
-                    "Ingot runs Forge servers from Minecraft 1.17; this one is {game_version}"
-                ));
+    let (url, installer, args): (String, &str, Vec<String>) =
+        match core {
+            ServerCoreType::NeoForge => {
+                let version = match pinned {
+                    Some(v) => v.to_string(),
+                    None => pick_neoforge(&neoforge_versions(client).await?, game_version)
+                        .ok_or_else(|| InstallerError::VersionUnavailable {
+                            core: core.clone(),
+                            game_version: game_version.to_string(),
+                        })?,
+                };
+                let url = format!("{NEOFORGE_MAVEN}/{version}/neoforge-{version}-installer.jar");
+                (
+                    url,
+                    "neoforge-installer.jar",
+                    vec!["--installServer".into()],
+                )
             }
-            let version = match pinned {
-                Some(v) => format!("{game_version}-{v}"),
-                None => pick_forge(&forge_promotions(client).await?, game_version)
-                    .ok_or_else(unavailable)?,
-            };
-            let url = format!("{FORGE_MAVEN}/{version}/forge-{version}-installer.jar");
-            (url, "forge-installer.jar", vec!["--installServer".into()])
-        }
-        ServerCoreType::Quilt => {
-            let list: Vec<Value> = get(client, &format!("{QUILT_META}/installer"))
-                .await?
-                .json()
-                .await
-                .map_err(|e| format!("Failed to read Quilt installer versions: {e}"))?;
-            let url = list
-                .first()
-                .and_then(|v| v.get("url"))
-                .and_then(Value::as_str)
-                .ok_or("No Quilt installer found")?
-                .to_string();
-            let mut args: Vec<String> =
-                vec!["install".into(), "server".into(), game_version.into()];
-            args.extend(pinned.map(str::to_string));
-            args.extend(["--download-server".into(), "--install-dir=.".into()]);
-            (url, "quilt-installer.jar", args)
-        }
-        _ => return Err(format!("{core} isn't installed by an installer")),
-    };
+            ServerCoreType::Forge => {
+                if !forge_supported(game_version) {
+                    return Err(InstallerError::ForgeVersionUnsupported(
+                        game_version.to_string(),
+                    ));
+                }
+                let version = match pinned {
+                    Some(v) => format!("{game_version}-{v}"),
+                    None => pick_forge(&forge_promotions(client).await?, game_version).ok_or_else(
+                        || InstallerError::VersionUnavailable {
+                            core: core.clone(),
+                            game_version: game_version.to_string(),
+                        },
+                    )?,
+                };
+                let url = format!("{FORGE_MAVEN}/{version}/forge-{version}-installer.jar");
+                (url, "forge-installer.jar", vec!["--installServer".into()])
+            }
+            ServerCoreType::Quilt => {
+                let list: Vec<Value> = get(client, &format!("{QUILT_META}/installer"))
+                    .await?
+                    .json()
+                    .await
+                    .map_err(InstallerError::Network)?;
+                let url = list
+                    .first()
+                    .and_then(|v| v.get("url"))
+                    .and_then(Value::as_str)
+                    .ok_or(InstallerError::NoQuiltInstaller)?
+                    .to_string();
+                let mut args: Vec<String> =
+                    vec!["install".into(), "server".into(), game_version.into()];
+                args.extend(pinned.map(str::to_string));
+                args.extend(["--download-server".into(), "--install-dir=.".into()]);
+                (url, "quilt-installer.jar", args)
+            }
+            _ => return Err(InstallerError::UnsupportedCore(core.clone())),
+        };
 
     let path = server_dir.join(installer);
     download_file_chunked(client, &url, &path, None, None).await?;
     let mut java_args: Vec<String> = vec!["-jar".into(), installer.into()];
     java_args.extend(args);
-    let mut cmd = java(&java_args)?;
+    let mut cmd = java(&java_args).map_err(|e| InstallerError::Process {
+        core: core.clone(),
+        error: e.to_string(),
+    })?;
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     #[cfg(windows)]
     cmd.creation_flags(0x08000000);
-    let output = cmd
-        .output()
-        .await
-        .map_err(|e| format!("Failed to run the {core} installer: {e}"))?;
+    let output = cmd.output().await.map_err(|e| InstallerError::Process {
+        core: core.clone(),
+        error: e.to_string(),
+    })?;
 
     let _ = std::fs::remove_file(&path);
     let _ = std::fs::remove_file(server_dir.join(format!("{installer}.log")));
@@ -334,107 +384,13 @@ pub async fn ensure_installed(
         );
         let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
         let tail = lines[lines.len().saturating_sub(8)..].join("\n");
-        return Err(format!("The {core} installer failed:\n{tail}"));
+        return Err(InstallerError::InstallationFailed {
+            core: core.clone(),
+            details: tail,
+        });
     }
-    launch_args(server_dir, core)
-        .ok_or_else(|| format!("The {core} installer didn't set the server up"))
+    launch_args(server_dir, core).ok_or_else(|| InstallerError::NotConfigured(core.clone()))
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn maps_neoforge_versions() {
-        assert_eq!(neoforge_game_version("21.1.77").as_deref(), Some("1.21.1"));
-        assert_eq!(neoforge_game_version("21.0.167").as_deref(), Some("1.21"));
-        assert_eq!(
-            neoforge_game_version("20.2.3-beta").as_deref(),
-            Some("1.20.2")
-        );
-        assert_eq!(
-            neoforge_game_version("26.1.2.111").as_deref(),
-            Some("26.1.2")
-        );
-        assert_eq!(
-            neoforge_game_version("26.3.0.23-beta").as_deref(),
-            Some("26.3")
-        );
-        assert_eq!(neoforge_game_version("26.1.0.0-alpha.7+snapshot-3"), None);
-        assert_eq!(neoforge_game_version("0.25w14craftmine.3-beta"), None);
-    }
-
-    #[test]
-    fn picks_newest_stable_neoforge_then_beta() {
-        let versions: Vec<String> = [
-            "21.1.9",
-            "21.1.100",
-            "21.1.99",
-            "21.1.101-beta",
-            "26.3.0.5-beta",
-            "26.3.0.23-beta",
-        ]
-        .map(str::to_string)
-        .into();
-        assert_eq!(
-            pick_neoforge(&versions, "1.21.1").as_deref(),
-            Some("21.1.100")
-        );
-        assert_eq!(
-            pick_neoforge(&versions, "26.3").as_deref(),
-            Some("26.3.0.23-beta")
-        );
-        assert_eq!(pick_neoforge(&versions, "1.20.4"), None);
-    }
-
-    #[test]
-    fn picks_recommended_forge_then_latest() {
-        let promos: serde_json::Map<String, Value> = serde_json::from_str(
-            r#"{"1.20.1-latest":"47.4.12","1.20.1-recommended":"47.4.10","26.3-latest":"66.0.5"}"#,
-        )
-        .unwrap();
-        assert_eq!(
-            pick_forge(&promos, "1.20.1").as_deref(),
-            Some("1.20.1-47.4.10")
-        );
-        assert_eq!(pick_forge(&promos, "26.3").as_deref(), Some("26.3-66.0.5"));
-        assert_eq!(pick_forge(&promos, "1.19.2"), None);
-        assert!(forge_supported("1.17.1") && forge_supported("26.1") && !forge_supported("1.16.5"));
-    }
-
-    #[test]
-    fn finds_what_to_launch() {
-        let dir = std::env::temp_dir().join(format!("ingot-installer-{}", std::process::id()));
-        let name = if cfg!(windows) {
-            "win_args.txt"
-        } else {
-            "unix_args.txt"
-        };
-        assert_eq!(launch_args(&dir, &ServerCoreType::NeoForge), None);
-        for v in ["21.1.99", "21.1.100"] {
-            let d = dir.join("libraries/net/neoforged/neoforge").join(v);
-            std::fs::create_dir_all(&d).unwrap();
-            std::fs::write(d.join(name), "").unwrap();
-        }
-        let expected = format!("@libraries/net/neoforged/neoforge/21.1.100/{name}");
-        assert_eq!(
-            launch_args(&dir, &ServerCoreType::NeoForge),
-            Some(vec![expected])
-        );
-        assert_eq!(launch_args(&dir, &ServerCoreType::Forge), None);
-        uninstall(&dir, &ServerCoreType::NeoForge).unwrap();
-        assert_eq!(launch_args(&dir, &ServerCoreType::NeoForge), None);
-
-        std::fs::write(dir.join(QUILT_LAUNCHER), "").unwrap();
-        assert_eq!(
-            launch_args(&dir, &ServerCoreType::Quilt),
-            None,
-            "needs Minecraft's server.jar too"
-        );
-        std::fs::write(dir.join("server.jar"), "").unwrap();
-        assert!(launch_args(&dir, &ServerCoreType::Quilt).is_some());
-        uninstall(&dir, &ServerCoreType::Quilt).unwrap();
-        assert_eq!(launch_args(&dir, &ServerCoreType::Quilt), None);
-        std::fs::remove_dir_all(&dir).unwrap();
-    }
-}
+mod tests;
