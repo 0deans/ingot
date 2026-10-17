@@ -115,7 +115,9 @@ pub async fn ensure_pumpkin_binary(
                 && !a.name.ends_with(".md5")
                 && !a.name.contains("checksum")
         })
-        .find(|a| a.name.ends_with(target_pattern) || a.name.ends_with(&format!("{target_pattern}.exe")))
+        .find(|a| {
+            a.name.ends_with(target_pattern) || a.name.ends_with(&format!("{target_pattern}.exe"))
+        })
         .ok_or_else(|| {
             format!(
                 "No compatible Pumpkin binary found matching '{target_pattern}' in release {}",
@@ -147,15 +149,17 @@ pub async fn ensure_pumpkin_binary(
     let part = bin_path.with_extension("part");
     std::fs::write(&part, &bytes)
         .and_then(|()| std::fs::rename(&part, &bin_path))
-        .map_err(|e| format!("Failed to write Pumpkin binary to {}: {e}", bin_path.display()))?;
+        .map_err(|e| {
+            format!(
+                "Failed to write Pumpkin binary to {}: {e}",
+                bin_path.display()
+            )
+        })?;
 
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(
-            &bin_path,
-            std::fs::Permissions::from_mode(0o755),
-        );
+        let _ = std::fs::set_permissions(&bin_path, std::fs::Permissions::from_mode(0o755));
     }
 
     Ok(bin_path)
@@ -182,7 +186,9 @@ pub fn set_ports(server_dir: &Path, java_port: u16, public_port: u16) -> Result<
         let mut table = doc.as_table_mut();
         for key in table_path {
             let entry = table.entry(key).or_insert(toml_edit::table());
-            let Some(next) = entry.as_table_mut() else { return };
+            let Some(next) = entry.as_table_mut() else {
+                return;
+            };
             next.set_implicit(true);
             table = next;
         }
@@ -258,8 +264,14 @@ mod tests {
         super::set_ports(&dir, 25568, 25567).unwrap();
         let text = std::fs::read_to_string(&file).unwrap();
         let doc: toml_edit::DocumentMut = text.parse().unwrap();
-        assert_eq!(doc["networking"]["java"]["address"].as_str(), Some("127.0.0.1:25568"));
-        assert_eq!(doc["networking"]["bedrock"]["nethernet"]["address"].as_str(), Some("0.0.0.0:19134"));
+        assert_eq!(
+            doc["networking"]["java"]["address"].as_str(),
+            Some("127.0.0.1:25568")
+        );
+        assert_eq!(
+            doc["networking"]["bedrock"]["nethernet"]["address"].as_str(),
+            Some("0.0.0.0:19134")
+        );
 
         // Pumpkin's own file: only the addresses change, comments and settings stay
         std::fs::write(
@@ -270,7 +282,10 @@ mod tests {
         super::set_ports(&dir, 25571, 25570).unwrap();
         let text = std::fs::read_to_string(&file).unwrap();
         assert!(text.starts_with("# My server\nhardcore = true\n"), "{text}");
-        assert!(text.contains("address = \"127.0.0.1:25571\"\nonline_mode = false"), "{text}");
+        assert!(
+            text.contains("address = \"127.0.0.1:25571\"\nonline_mode = false"),
+            "{text}"
+        );
         assert!(text.contains("0.0.0.0:19137"), "{text}");
         std::fs::remove_dir_all(&dir).unwrap();
     }

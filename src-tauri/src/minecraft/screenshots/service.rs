@@ -1,303 +1,145 @@
-//! Screenshot indexing, background thumbnail scheduling, and deletion operations.
-use super::{
-    discovery::{get_bedrock_screenshot_dirs, get_companion_capture_time, scan_screenshot_files},
-    models::{ScreenshotError, ScreenshotInfo},
-    thumbnails::{
-        create_thumbnail, get_thumbnail_cache_dir, get_thumbnail_file_path, SUPPORTED_EXTENSIONS,
-    },
-};
-use crate::minecraft::instance;
+//! Path-based screenshot indexing and deletion; native adapters provide sources.
+use super::discovery::{get_companion_capture_time, scan_screenshot_files};
+use super::models::{ScreenshotError, ScreenshotInfo};
+use super::thumbnails::{cached_thumbnail_exists, get_thumbnail_file_path};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
-use tauri::Runtime;
 
-/// Gathers all screenshots across all Java Edition instances and Bedrock Edition.
-pub fn get_all_screenshots<R: Runtime>(
-    app: &tauri::AppHandle<R>,
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ScreenshotKind {
+    Java,
+    Bedrock,
+}
+
+pub(crate) struct ScreenshotSource {
+    pub(crate) instance_id: String,
+    pub(crate) instance_name: String,
+    pub(crate) directory: PathBuf,
+    pub(crate) kind: ScreenshotKind,
+}
+
+pub(crate) fn get_all_screenshots(
+    sources: &[ScreenshotSource],
+    cache: &Path,
 ) -> Result<Vec<ScreenshotInfo>, ScreenshotError> {
-    let instances = instance::load_instances(app).map_err(ScreenshotError::LoadInstances)?;
     let mut screenshots = Vec::new();
-    let cache_dir = get_thumbnail_cache_dir(app).ok();
-    let mut missing_thumbnails = Vec::new();
-
-    // 1. Scan Java Edition instances
-    for inst in instances {
-        let instance_dir = match instance::get_instance_dir(app, &inst.id) {
-            Ok(d) => d,
-            Err(_) => continue,
+    for source in sources {
+        let depth = if source.kind == ScreenshotKind::Bedrock {
+            3
+        } else {
+            1
         };
-
-        let screenshots_dir = instance_dir.join("screenshots");
-        if !screenshots_dir.exists() || !screenshots_dir.is_dir() {
-            continue;
-        }
-
-        let entries = match fs::read_dir(&screenshots_dir) {
-            Ok(e) => e,
-            Err(_) => continue,
-        };
-
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if !path.is_file() {
-                continue;
-            }
-
-            let ext = path
-                .extension()
-                .and_then(|s| s.to_str())
-                .unwrap_or("")
-                .to_lowercase();
-
-            if !SUPPORTED_EXTENSIONS.contains(&ext.as_str()) {
-                continue;
-            }
-
-            let file_name = entry.file_name().to_string_lossy().to_string();
-            let metadata = match entry.metadata() {
-                Ok(m) => m,
-                Err(_) => continue,
-            };
-
-            let file_size_bytes = metadata.len();
-
-            let modified_at = metadata
-                .modified()
-                .ok()
-                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-                .map(|d| d.as_millis() as u64)
-                .unwrap_or(0);
-
+        for path in scan_screenshot_files(&source.directory, depth).map_err(ScreenshotError::Io)? {
+            let metadata = fs::metadata(&path).map_err(ScreenshotError::Io)?;
+            let file_name = path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .ok_or_else(|| ScreenshotError::InvalidFilename(path.display().to_string()))?
+                .to_string();
+            let modified = metadata.modified().map_err(ScreenshotError::Io)?;
+            let modified_at = modified
+                .duration_since(UNIX_EPOCH)
+                .map_err(|error| {
+                    ScreenshotError::Io(std::io::Error::new(std::io::ErrorKind::InvalidData, error))
+                })?
+                .as_millis() as u64;
+            // Creation time is not supported by every filesystem; modification is
+            // the deliberate fallback, not a substitute for a failed required read.
             let created_at = metadata
                 .created()
                 .ok()
-                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-                .map(|d| d.as_millis() as u64)
+                .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+                .map(|duration| duration.as_millis() as u64)
                 .unwrap_or(modified_at);
-
-            let id = format!("{}_{}", inst.id, file_name);
-            let file_path = path.to_string_lossy().to_string();
-
-            let thumbnail_path = if let Some(ref dir) = cache_dir {
-                let thumb_path = get_thumbnail_file_path(dir, &inst.id, &file_name, modified_at);
-                if thumb_path.exists() {
-                    Some(thumb_path.to_string_lossy().to_string())
-                } else {
-                    missing_thumbnails.push((path.clone(), thumb_path));
-                    None
-                }
+            let capture_time = if source.kind == ScreenshotKind::Bedrock {
+                get_companion_capture_time(&path)
             } else {
                 None
             };
-
+            let modified_at = capture_time.unwrap_or(modified_at);
+            let created_at = capture_time.unwrap_or(created_at);
+            let thumbnail =
+                get_thumbnail_file_path(cache, &source.instance_id, &file_name, modified_at);
+            let thumbnail_path = cached_thumbnail_exists(&thumbnail)?
+                .then(|| thumbnail.to_string_lossy().into_owned());
             screenshots.push(ScreenshotInfo {
-                id,
-                instance_id: inst.id.clone(),
-                instance_name: inst.name.clone(),
+                id: format!("{}_{}", source.instance_id, file_name),
+                instance_id: source.instance_id.clone(),
+                instance_name: source.instance_name.clone(),
                 file_name,
-                file_path,
+                file_path: path.to_string_lossy().into_owned(),
                 thumbnail_path,
-                file_size_bytes,
+                file_size_bytes: metadata.len(),
                 created_at,
                 modified_at,
             });
         }
     }
-
-    // 2. Scan Bedrock Edition screenshots
-    let bedrock_dirs = get_bedrock_screenshot_dirs();
-    for b_dir in bedrock_dirs {
-        let b_files = scan_screenshot_files(&b_dir, 3);
-        for path in b_files {
-            let file_name = path
-                .file_name()
-                .map(|s| s.to_string_lossy().to_string())
-                .unwrap_or_default();
-            if file_name.is_empty() {
-                continue;
-            }
-
-            let metadata = match path.metadata() {
-                Ok(m) => m,
-                Err(_) => continue,
-            };
-
-            let file_size_bytes = metadata.len();
-
-            let mut modified_at = metadata
-                .modified()
-                .ok()
-                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-                .map(|d| d.as_millis() as u64)
-                .unwrap_or(0);
-
-            let mut created_at = metadata
-                .created()
-                .ok()
-                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-                .map(|d| d.as_millis() as u64)
-                .unwrap_or(modified_at);
-
-            if let Some(capture_time) = get_companion_capture_time(&path) {
-                created_at = capture_time;
-                modified_at = capture_time;
-            }
-
-            let id = format!("bedrock_{file_name}");
-            let file_path = path.to_string_lossy().to_string();
-
-            let thumbnail_path = if let Some(ref dir) = cache_dir {
-                let thumb_path = get_thumbnail_file_path(dir, "bedrock", &file_name, modified_at);
-                if thumb_path.exists() {
-                    Some(thumb_path.to_string_lossy().to_string())
-                } else {
-                    missing_thumbnails.push((path.clone(), thumb_path));
-                    None
-                }
-            } else {
-                None
-            };
-
-            screenshots.push(ScreenshotInfo {
-                id,
-                instance_id: "bedrock".to_string(),
-                instance_name: "Bedrock Edition".to_string(),
-                file_name,
-                file_path,
-                thumbnail_path,
-                file_size_bytes,
-                created_at,
-                modified_at,
-            });
-        }
-    }
-
-    // Sort newest first by modified_at
-    screenshots.sort_by_key(|a| std::cmp::Reverse(a.modified_at));
-
-    // If only a few thumbnails are missing (e.g. newly taken screenshots),
-    // create them immediately so the frontend receives thumbnail paths right away.
-    if !missing_thumbnails.is_empty() && missing_thumbnails.len() <= 4 {
-        for (source, dest) in &missing_thumbnails {
-            let _ = create_thumbnail(source, dest);
-        }
-        for item in &mut screenshots {
-            if item.thumbnail_path.is_none() {
-                if let Some(ref dir) = cache_dir {
-                    let thumb_path = get_thumbnail_file_path(
-                        dir,
-                        &item.instance_id,
-                        &item.file_name,
-                        item.modified_at,
-                    );
-                    if thumb_path.exists() {
-                        item.thumbnail_path = Some(thumb_path.to_string_lossy().to_string());
-                    }
-                }
-            }
-        }
-    } else if !missing_thumbnails.is_empty() {
-        tokio::task::spawn_blocking(move || {
-            for (source, dest) in missing_thumbnails {
-                if !dest.exists() {
-                    let _ = create_thumbnail(&source, &dest);
-                }
-                std::thread::sleep(std::time::Duration::from_millis(25));
-            }
-        });
-    }
-
+    screenshots.sort_by_key(|item| std::cmp::Reverse(item.modified_at));
     Ok(screenshots)
 }
 
-/// Deletes a specific screenshot file and removes its cached thumbnail and companion files.
-pub fn delete_screenshot<R: Runtime>(
-    app: &tauri::AppHandle<R>,
+pub(crate) fn resolve_screenshot(
+    sources: &[ScreenshotSource],
+    cache: &Path,
+    instance_id: &str,
+    file_name: &str,
+) -> Result<ScreenshotInfo, ScreenshotError> {
+    if crate::app::safe_enclosed_filename(cache, file_name).is_none() {
+        return Err(ScreenshotError::InvalidFilename(file_name.to_string()));
+    }
+    let items = get_all_screenshots(sources, cache)?;
+    let mut matching = items
+        .into_iter()
+        .filter(|item| item.instance_id == instance_id && item.file_name == file_name);
+    let item = matching
+        .next()
+        .ok_or_else(|| ScreenshotError::NotFound(file_name.to_string()))?;
+    if matching.next().is_some() {
+        return Err(ScreenshotError::AmbiguousFilename(file_name.to_string()));
+    }
+    Ok(item)
+}
+
+pub(crate) fn delete_screenshot(
+    sources: &[ScreenshotSource],
+    cache: &Path,
     instance_id: &str,
     file_name: &str,
 ) -> Result<(), ScreenshotError> {
-    // Basic sanitization
-    if file_name.contains("..") || file_name.contains('/') || file_name.contains('\\') {
-        return Err(ScreenshotError::InvalidFilename(file_name.to_string()));
-    }
-
+    let item = resolve_screenshot(sources, cache, instance_id, file_name)?;
+    let path = Path::new(&item.file_path);
+    fs::remove_file(path).map_err(ScreenshotError::Io)?;
     if instance_id == "bedrock" {
-        let dirs = get_bedrock_screenshot_dirs();
-        let mut found_path: Option<PathBuf> = None;
-        for dir in dirs {
-            let files = scan_screenshot_files(&dir, 3);
-            if let Some(f) = files.into_iter().find(|p| {
-                p.file_name()
-                    .and_then(|n| n.to_str())
-                    .map(|n| n == file_name)
-                    .unwrap_or(false)
-            }) {
-                found_path = Some(f);
-                break;
-            }
-        }
-
-        let file_path =
-            found_path.ok_or_else(|| ScreenshotError::NotFound(file_name.to_string()))?;
-
-        let modified_at = file_path
-            .metadata()
-            .ok()
-            .and_then(|m| m.modified().ok())
-            .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(0);
-
-        if let Ok(cache_dir) = get_thumbnail_cache_dir(app) {
-            let thumb_path =
-                get_thumbnail_file_path(&cache_dir, instance_id, file_name, modified_at);
-            if thumb_path.exists() {
-                let _ = fs::remove_file(&thumb_path);
-            }
-        }
-
-        // Clean up companion files (.json, .mc)
-        if let Some(parent) = file_path.parent() {
-            if let Some(stem) = file_path.file_stem().and_then(|s| s.to_str()) {
-                let json_path = parent.join(format!("{stem}.json"));
-                if json_path.exists() {
-                    let _ = fs::remove_file(json_path);
-                }
-                let mc_path = parent.join(format!("{stem}.mc"));
-                if mc_path.exists() {
-                    let _ = fs::remove_file(mc_path);
-                }
-            }
-        }
-
-        fs::remove_file(&file_path).map_err(ScreenshotError::Io)?;
-        return Ok(());
-    }
-
-    let instance_dir =
-        instance::get_instance_dir(app, instance_id).map_err(ScreenshotError::InstanceDir)?;
-    let file_path = instance_dir.join("screenshots").join(file_name);
-
-    if !file_path.exists() {
-        return Err(ScreenshotError::NotFound(file_name.to_string()));
-    }
-
-    let modified_at = file_path
-        .metadata()
-        .ok()
-        .and_then(|m| m.modified().ok())
-        .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0);
-
-    if let Ok(cache_dir) = get_thumbnail_cache_dir(app) {
-        let thumb_path = get_thumbnail_file_path(&cache_dir, instance_id, file_name, modified_at);
-        if thumb_path.exists() {
-            let _ = fs::remove_file(&thumb_path);
+        for extension in ["json", "mc"] {
+            remove_if_present(&path.with_extension(extension))?;
         }
     }
-
-    fs::remove_file(&file_path).map_err(ScreenshotError::Io)?;
+    remove_if_present(&get_thumbnail_file_path(
+        cache,
+        instance_id,
+        file_name,
+        item.modified_at,
+    ))?;
     Ok(())
+}
+
+pub(crate) fn validate_thumbnail_request(
+    item: &ScreenshotInfo,
+    requested_path: &Path,
+    modified_at: u64,
+) -> Result<(), ScreenshotError> {
+    if Path::new(&item.file_path) != requested_path || item.modified_at != modified_at {
+        return Err(ScreenshotError::StaleMetadata);
+    }
+    Ok(())
+}
+
+fn remove_if_present(path: &Path) -> Result<(), ScreenshotError> {
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(ScreenshotError::Io(error)),
+    }
 }

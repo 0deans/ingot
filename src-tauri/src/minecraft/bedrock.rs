@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
+#[cfg(target_os = "windows")]
 use std::path::{Path, PathBuf};
+#[cfg(target_os = "windows")]
 use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -18,6 +20,7 @@ pub struct BedrockClientStatus {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg(target_os = "windows")]
 struct AppxPackageInfo {
     #[serde(rename = "Name")]
     name: Option<String>,
@@ -90,10 +93,24 @@ pub fn detect_bedrock_status() -> BedrockClientStatus {
                 if !text.is_empty() {
                     // Could be a single object or an array of objects
                     if let Ok(pkg) = serde_json::from_str::<AppxPackageInfo>(&text) {
-                        apply_package_info(&pkg, &mut is_installed, &mut version, &mut edition, &mut package_family_name, &mut install_location);
+                        apply_package_info(
+                            &pkg,
+                            &mut is_installed,
+                            &mut version,
+                            &mut edition,
+                            &mut package_family_name,
+                            &mut install_location,
+                        );
                     } else if let Ok(pkgs) = serde_json::from_str::<Vec<AppxPackageInfo>>(&text) {
                         if let Some(first) = pkgs.first() {
-                            apply_package_info(first, &mut is_installed, &mut version, &mut edition, &mut package_family_name, &mut install_location);
+                            apply_package_info(
+                                first,
+                                &mut is_installed,
+                                &mut version,
+                                &mut edition,
+                                &mut package_family_name,
+                                &mut install_location,
+                            );
                         }
                     }
                 }
@@ -161,6 +178,7 @@ pub fn detect_bedrock_status() -> BedrockClientStatus {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn apply_package_info(
     pkg: &AppxPackageInfo,
     is_installed: &mut bool,
@@ -186,6 +204,7 @@ fn apply_package_info(
 }
 
 /// Locates Bedrock GDK or UWP storage paths on Windows
+#[cfg(target_os = "windows")]
 fn find_storage_paths() -> (Option<String>, Option<String>, Option<String>) {
     let appdata = std::env::var("APPDATA").ok().map(PathBuf::from);
     let localappdata = std::env::var("LOCALAPPDATA").ok().map(PathBuf::from);
@@ -202,7 +221,10 @@ fn find_storage_paths() -> (Option<String>, Option<String>, Option<String>) {
                     for entry in entries.flatten() {
                         let path = entry.path();
                         if path.is_dir() {
-                            let w_path = path.join("games").join("com.mojang").join("minecraftWorlds");
+                            let w_path = path
+                                .join("games")
+                                .join("com.mojang")
+                                .join("minecraftWorlds");
                             if w_path.exists() {
                                 detected_worlds = Some(w_path);
                                 break;
@@ -217,8 +239,16 @@ fn find_storage_paths() -> (Option<String>, Option<String>, Option<String>) {
             let bp_path = shared_mojang.join("behavior_packs");
 
             let worlds = detected_worlds.map(|p| p.to_string_lossy().to_string());
-            let rp = if rp_path.exists() { Some(rp_path.to_string_lossy().to_string()) } else { None };
-            let bp = if bp_path.exists() { Some(bp_path.to_string_lossy().to_string()) } else { None };
+            let rp = if rp_path.exists() {
+                Some(rp_path.to_string_lossy().to_string())
+            } else {
+                None
+            };
+            let bp = if bp_path.exists() {
+                Some(bp_path.to_string_lossy().to_string())
+            } else {
+                None
+            };
 
             if worlds.is_some() || rp.is_some() || bp.is_some() {
                 return (worlds, rp, bp);
@@ -241,9 +271,21 @@ fn find_storage_paths() -> (Option<String>, Option<String>, Option<String>) {
             let bp = uwp_mojang.join("behavior_packs");
 
             return (
-                if worlds.exists() { Some(worlds.to_string_lossy().to_string()) } else { None },
-                if rp.exists() { Some(rp.to_string_lossy().to_string()) } else { None },
-                if bp.exists() { Some(bp.to_string_lossy().to_string()) } else { None },
+                if worlds.exists() {
+                    Some(worlds.to_string_lossy().to_string())
+                } else {
+                    None
+                },
+                if rp.exists() {
+                    Some(rp.to_string_lossy().to_string())
+                } else {
+                    None
+                },
+                if bp.exists() {
+                    Some(bp.to_string_lossy().to_string())
+                } else {
+                    None
+                },
             );
         }
     }
@@ -275,7 +317,11 @@ pub fn install_bedrock() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         let mut cmd = Command::new("cmd");
-        cmd.args(["/c", "start", "ms-windows-store://pdp/?ProductId=9NBLGGH2JHXJ"]);
+        cmd.args([
+            "/c",
+            "start",
+            "ms-windows-store://pdp/?ProductId=9NBLGGH2JHXJ",
+        ]);
         use std::os::windows::process::CommandExt;
         cmd.creation_flags(0x08000000);
         cmd.spawn()
@@ -290,36 +336,41 @@ pub fn install_bedrock() -> Result<(), String> {
 }
 
 /// Opens a specific Bedrock directory in File Explorer
-pub fn open_bedrock_folder(kind: &str) -> Result<(), String> {
+pub fn open_bedrock_folder(_kind: &str) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         let status = detect_bedrock_status();
-        let target_path = match kind {
+        let target_path = match _kind {
             "screenshots" => {
-                let folder = crate::minecraft::screenshots::get_primary_bedrock_screenshots_folder();
+                let folder =
+                    crate::minecraft::screenshots::get_primary_bedrock_screenshots_folder();
                 Some(folder.to_string_lossy().to_string())
             }
             "worlds" => status.worlds_path.or_else(|| {
                 // Default fallback GDK path
-                std::env::var("APPDATA").ok().map(|a| {
-                    format!("{a}\\Minecraft Bedrock\\Users")
-                })
+                std::env::var("APPDATA")
+                    .ok()
+                    .map(|a| format!("{a}\\Minecraft Bedrock\\Users"))
             }),
             "resource_packs" => status.resource_packs_path.or_else(|| {
                 std::env::var("APPDATA").ok().map(|a| {
-                    format!("{a}\\Minecraft Bedrock\\Users\\Shared\\games\\com.mojang\\resource_packs")
+                    format!(
+                        "{a}\\Minecraft Bedrock\\Users\\Shared\\games\\com.mojang\\resource_packs"
+                    )
                 })
             }),
             "behavior_packs" => status.behavior_packs_path.or_else(|| {
                 std::env::var("APPDATA").ok().map(|a| {
-                    format!("{a}\\Minecraft Bedrock\\Users\\Shared\\games\\com.mojang\\behavior_packs")
+                    format!(
+                        "{a}\\Minecraft Bedrock\\Users\\Shared\\games\\com.mojang\\behavior_packs"
+                    )
                 })
             }),
             _ => {
                 // Default root
-                std::env::var("APPDATA").ok().map(|a| {
-                    format!("{a}\\Minecraft Bedrock")
-                })
+                std::env::var("APPDATA")
+                    .ok()
+                    .map(|a| format!("{a}\\Minecraft Bedrock"))
             }
         };
 
@@ -330,7 +381,8 @@ pub fn open_bedrock_folder(kind: &str) -> Result<(), String> {
             }
             let mut cmd = Command::new("explorer");
             cmd.arg(&path_str);
-            cmd.spawn().map_err(|e| format!("Failed to open folder: {e}"))?;
+            cmd.spawn()
+                .map_err(|e| format!("Failed to open folder: {e}"))?;
             Ok(())
         } else {
             Err("Could not determine Bedrock folder location".to_string())

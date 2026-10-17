@@ -84,13 +84,20 @@ impl ApplicationApi for ApplicationApiImpl {
     ) -> Result<(), ApiError> {
         let root = match target_kind {
             crate::version_change::TargetKind::Instance => {
-                if crate::app::state(&app_handle).games.is_running(&target_id).await {
+                if crate::app::state(&app_handle)
+                    .games
+                    .is_running(&target_id)
+                    .await
+                {
                     return Err(ApiError::conflict("Close the game first"));
                 }
                 crate::minecraft::instance::get_instance_dir(&app_handle, &target_id)?
             }
             crate::version_change::TargetKind::Server => {
-                if crate::app::state(&app_handle).servers.get_server_status(&target_id).await
+                if crate::app::state(&app_handle)
+                    .servers
+                    .get_server_status(&target_id)
+                    .await
                     != crate::server::ServerStatus::Stopped
                 {
                     return Err(ApiError::conflict("Stop the server first"));

@@ -40,6 +40,7 @@ pub(crate) fn parse_content_source_and_id<'a>(
 }
 
 /// Searches content across Modrinth and CurseForge with unified filters and pagination.
+#[allow(clippy::too_many_arguments)]
 pub async fn search_content(
     source: String,
     project_type: String,
@@ -118,7 +119,7 @@ pub async fn search_content(
         combined_items.extend(cf.items);
     }
 
-    combined_items.sort_by(|a, b| b.downloads.cmp(&a.downloads));
+    combined_items.sort_by_key(|a| std::cmp::Reverse(a.downloads));
     combined_items.truncate(page_size as usize);
 
     Ok(ContentSearchResult {

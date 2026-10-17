@@ -1,34 +1,52 @@
-use super::models::{PluginDependency, PluginProject, PluginSource, PluginVersion};
+use super::models::{PluginDependency, PluginError, PluginProject, PluginSource, PluginVersion};
 use crate::USER_AGENT;
 use serde_json::Value;
 
 pub const MODRINTH: &str = "https://api.modrinth.com/v2";
 pub const HANGAR: &str = "https://hangar.papermc.io/api/v1";
 
-pub fn client() -> Result<reqwest::Client, String> {
+pub(crate) struct PluginProvider {
+    pub(crate) client: reqwest::Client,
+    pub(crate) modrinth: String,
+    pub(crate) hangar: String,
+}
+
+impl PluginProvider {
+    pub(crate) fn new() -> Result<Self, PluginError> {
+        Ok(Self::with_endpoints(client()?, MODRINTH, HANGAR))
+    }
+
+    pub(crate) fn with_endpoints(client: reqwest::Client, modrinth: &str, hangar: &str) -> Self {
+        Self {
+            client,
+            modrinth: modrinth.trim_end_matches('/').into(),
+            hangar: hangar.trim_end_matches('/').into(),
+        }
+    }
+}
+
+pub fn client() -> Result<reqwest::Client, PluginError> {
     reqwest::Client::builder()
         .user_agent(USER_AGENT)
         .build()
-        .map_err(|e| format!("Failed to create HTTP client: {e}"))
+        .map_err(PluginError::HttpClient)
 }
 
 pub async fn get_json(
     client: &reqwest::Client,
     url: &str,
     query: &[(&str, String)],
-) -> Result<Value, String> {
+) -> Result<Value, PluginError> {
     let res = client
         .get(url)
         .query(query)
         .send()
         .await
-        .map_err(|e| format!("Request failed: {e}"))?;
+        .map_err(PluginError::RequestFailed)?;
     if !res.status().is_success() {
-        return Err(format!("{url} returned HTTP {}", res.status()));
+        return Err(PluginError::HttpStatus(res.status()));
     }
-    res.json()
-        .await
-        .map_err(|e| format!("Invalid response from {url}: {e}"))
+    res.json().await.map_err(PluginError::InvalidResponse)
 }
 
 pub fn s(v: &Value, key: &str) -> String {
@@ -183,7 +201,7 @@ pub fn pick_version(versions: &[PluginVersion]) -> Option<&PluginVersion> {
 }
 
 /// Full description (Markdown) of a project
-pub async fn page(source: PluginSource, project_id: &str) -> Result<String, String> {
+pub async fn page(source: PluginSource, project_id: &str) -> Result<String, PluginError> {
     let client = client()?;
     match source {
         PluginSource::Modrinth => {
@@ -196,36 +214,51 @@ pub async fn page(source: PluginSource, project_id: &str) -> Result<String, Stri
                 .get(format!("{HANGAR}/pages/main/{project_id}"))
                 .send()
                 .await
-                .map_err(|e| format!("Request failed: {e}"))?;
-            res.text().await.map_err(|e| e.to_string())
+                .map_err(PluginError::RequestFailed)?;
+            if !res.status().is_success() {
+                return Err(PluginError::HttpStatus(res.status()));
+            }
+            res.text().await.map_err(PluginError::InvalidResponse)
         }
     }
 }
 
-pub async fn project_title(
-    client: &reqwest::Client,
+pub(crate) async fn project_title(
+    provider: &PluginProvider,
     source: PluginSource,
     id: &str,
-) -> (String, Option<String>) {
+) -> Result<(String, Option<String>), PluginError> {
     let url = match source {
-        PluginSource::Modrinth => format!("{MODRINTH}/project/{id}"),
-        PluginSource::Hangar => format!("{HANGAR}/projects/{id}"),
+        PluginSource::Modrinth => format!("{}/project/{id}", provider.modrinth),
+        PluginSource::Hangar => format!("{}/projects/{id}", provider.hangar),
     };
-    match get_json(client, &url, &[]).await {
-        Ok(p) => match source {
-            PluginSource::Modrinth => (
-                s(&p, "title"),
-                p.get("icon_url")
-                    .and_then(Value::as_str)
-                    .map(str::to_string),
-            ),
-            PluginSource::Hangar => (
-                s(&p, "name"),
-                p.get("avatarUrl")
-                    .and_then(Value::as_str)
-                    .map(str::to_string),
-            ),
-        },
-        Err(_) => (id.to_string(), None),
-    }
+    let project = get_json(&provider.client, &url, &[]).await?;
+    let (title_key, icon_key) = match source {
+        PluginSource::Modrinth => ("title", "icon_url"),
+        PluginSource::Hangar => ("name", "avatarUrl"),
+    };
+    let title = required_string(&project, title_key)?.to_owned();
+    let icon = project
+        .get(icon_key)
+        .and_then(Value::as_str)
+        .map(str::to_owned);
+    Ok((title, icon))
+}
+
+pub fn required_string<'a>(value: &'a Value, key: &'static str) -> Result<&'a str, PluginError> {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
+        .ok_or(PluginError::InvalidPayload(key))
+}
+
+pub fn required_array<'a>(
+    value: &'a Value,
+    key: &'static str,
+) -> Result<&'a Vec<Value>, PluginError> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .ok_or(PluginError::InvalidPayload(key))
 }

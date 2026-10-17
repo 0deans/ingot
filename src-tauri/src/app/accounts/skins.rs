@@ -1,53 +1,77 @@
 //! Native provider skin operations and account metadata updates.
-use super::profiles::save_skin_url;
+use super::profiles::{save_skin_url, ProfileError};
 use super::session::microsoft_token_for_locked;
-use super::storage::{current_timestamp, load_accounts_file, with_recovered};
-use crate::account::credentials::{self, CredentialError};
-use crate::auth::ely::{ElyAuthService, ElySkinsCatalogResponse};
-use crate::auth::microsoft;
+use super::storage::{current_timestamp, with_recovered_typed};
+use crate::account::{
+    credentials::{self, CredentialError},
+    operations::OperationError,
+    recovery::RecoveryError,
+    session::SessionError,
+    AccountProfile, AccountSecrets,
+};
+use crate::auth::{
+    ely::{ElyAuthService, ElyError, ElySkinsCatalogResponse},
+    microsoft::{self, MicrosoftSkinError},
+};
 use base64::Engine;
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum SkinError {
+    #[error(transparent)]
+    Ownership(#[from] OperationError),
+    #[error(transparent)]
+    Recovery(#[from] RecoveryError),
+    #[error(transparent)]
+    Credentials(#[from] CredentialError),
+    #[error(transparent)]
+    Session(#[from] SessionError),
+    #[error(transparent)]
+    Microsoft(#[from] MicrosoftSkinError),
+    #[error(transparent)]
+    Ely(#[from] ElyError),
+    #[error("Invalid base64 skin image: {0}")]
+    InvalidImage(#[from] base64::DecodeError),
+    #[error("Account not found")]
+    AccountNotFound,
+    #[error("This is not an Ely.by account")]
+    NotEly,
+    #[error("PASSWORD_REQUIRED")]
+    PasswordRequired,
+    #[error("Skin changed at provider, but local account metadata could not be saved: {0}")]
+    MetadataAfterProvider(#[source] ProfileError),
+    #[error("Skin changed at provider, but its password could not be saved: {0}")]
+    CredentialsAfterProvider(#[source] CredentialError),
+}
+
 pub(crate) async fn apply_microsoft_skin<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     account_id: &str,
     skin_url: &str,
     is_slim: bool,
-) -> Result<(), String> {
-    let _operation = crate::app::state(app)
+) -> Result<(), SkinError> {
+    let operation = crate::app::state(app)
         .account_operations
         .acquire(account_id)
-        .await
-        .map_err(|error| error.to_string())?;
-    let token = microsoft_token_for_locked(app, &_operation)
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
+    let token = microsoft_token_for_locked(app, &operation).await?;
     let new_url = microsoft::set_skin_from_url(&token, skin_url, is_slim).await?;
-    save_skin_url(app, account_id, new_url)
+    save_skin_url(app, account_id, new_url).map_err(SkinError::MetadataAfterProvider)
 }
 
-/// Uploads a PNG (base64 or data URL) as a Microsoft account's skin
 pub(crate) async fn upload_microsoft_skin<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     account_id: &str,
     image_base64: &str,
     is_slim: bool,
-) -> Result<(), String> {
-    let base64_data = image_base64
-        .split_once(',')
-        .map_or(image_base64, |(_, data)| data);
-    let png = base64::engine::general_purpose::STANDARD
-        .decode(base64_data.trim())
-        .map_err(|e| format!("Invalid base64 skin image data: {e}"))?;
-
-    let _operation = crate::app::state(app)
+) -> Result<(), SkinError> {
+    let png = decode_image(image_base64)?;
+    let operation = crate::app::state(app)
         .account_operations
         .acquire(account_id)
-        .await
-        .map_err(|error| error.to_string())?;
-    let token = microsoft_token_for_locked(app, &_operation)
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
+    let token = microsoft_token_for_locked(app, &operation).await?;
     let new_url = microsoft::upload_skin(&token, png, is_slim).await?;
-    save_skin_url(app, account_id, new_url)
+    save_skin_url(app, account_id, new_url).map_err(SkinError::MetadataAfterProvider)
 }
 
 pub(crate) async fn get_ely_skins_catalog(
@@ -56,96 +80,34 @@ pub(crate) async fn get_ely_skins_catalog(
     sort: Option<String>,
     model: Option<String>,
     uploader: Option<String>,
-) -> Result<ElySkinsCatalogResponse, String> {
-    let service = ElyAuthService::new();
-    service
+) -> Result<ElySkinsCatalogResponse, SkinError> {
+    Ok(ElyAuthService::new()
         .fetch_catalog(page, query, sort, model, uploader)
-        .await
-        .map_err(|e| e.to_string())
+        .await?)
 }
 
 pub(crate) fn has_ely_web_credentials<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     account_id: &str,
-) -> Result<bool, String> {
-    with_recovered(app, |_| Ok(()))?;
+) -> Result<bool, SkinError> {
+    with_recovered_typed(app, |_| Ok(()))?;
     match credentials::load(crate::app::state(app).credentials.as_ref(), account_id) {
         Ok(secrets) => Ok(secrets
             .password
             .as_deref()
             .is_some_and(|password| !password.trim().is_empty())),
         Err(CredentialError::Missing) => Ok(false),
-        Err(error) => Err(error.to_string()),
+        Err(error) => Err(SkinError::Credentials(error)),
     }
 }
+
 pub(crate) async fn apply_ely_skin<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     account_id: &str,
     skin_id: u64,
     password: Option<String>,
-) -> Result<(), String> {
-    let state = crate::app::state(app);
-    let _operation = state
-        .account_operations
-        .acquire(account_id)
-        .await
-        .map_err(|error| error.to_string())?;
-    let accounts = load_accounts_file(app)?;
-    let acc = accounts
-        .iter()
-        .find(|a| a.id == account_id)
-        .ok_or_else(|| "Account not found".to_string())?;
-
-    if acc.account_type != "ely" {
-        return Err("Skin changes can only be applied to Ely.by accounts".to_string());
-    }
-
-    let username = acc.username.clone();
-
-    // Determine password
-    let secrets = match credentials::load(state.credentials.as_ref(), account_id) {
-        Ok(secrets) => Some(secrets),
-        Err(CredentialError::Missing) => None,
-        Err(error) => return Err(error.to_string()),
-    };
-
-    let effective_password = match password {
-        Some(p) if !p.trim().is_empty() => {
-            let p_trimmed = p.trim().to_string();
-            // Update saved password in keyring
-            if let Some(mut s) = secrets {
-                s.password = Some(p_trimmed.clone());
-                credentials::save(state.credentials.as_ref(), &_operation, &s)
-                    .map_err(|error| error.to_string())?;
-            }
-            p_trimmed
-        }
-        _ => secrets
-            .and_then(|s| s.password)
-            .filter(|p| !p.trim().is_empty())
-            .ok_or_else(|| "PASSWORD_REQUIRED".to_string())?,
-    };
-
-    let service = ElyAuthService::new();
-    service
-        .wear_skin(&username, &effective_password, skin_id)
-        .await?;
-
-    // Update account skin_url with timestamp to invalidate local cache
-    let updated_skin_url = format!(
-        "https://skinsystem.ely.by/skins/{username}.png?t={}",
-        current_timestamp()
-    );
-    // The provider already committed the skin. Report metadata-cache failure diagnostically.
-    if let Err(error) = with_recovered(app, |repository| {
-        repository.update_profile(account_id, |stored| {
-            stored.skin_url = Some(updated_skin_url);
-        })
-    }) {
-        eprintln!("Skin changed, but account metadata could not be saved: {error}");
-    }
-
-    Ok(())
+) -> Result<(), SkinError> {
+    change_ely_skin(app, account_id, password, ElySkinAction::Wear(skin_id)).await
 }
 
 pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
@@ -153,78 +115,132 @@ pub(crate) async fn upload_ely_skin<R: tauri::Runtime>(
     account_id: &str,
     image_base64: &str,
     password: Option<String>,
-) -> Result<(), String> {
-    let state = crate::app::state(app);
-    let _operation = state
-        .account_operations
-        .acquire(account_id)
-        .await
-        .map_err(|error| error.to_string())?;
-    let accounts = load_accounts_file(app)?;
-    let acc = accounts
+) -> Result<(), SkinError> {
+    let png = decode_image(image_base64)?;
+    change_ely_skin(app, account_id, password, ElySkinAction::Upload(png)).await
+}
+
+enum ElySkinAction {
+    Wear(u64),
+    Upload(Vec<u8>),
+}
+
+fn decode_image(input: &str) -> Result<Vec<u8>, SkinError> {
+    let encoded = input.split_once(',').map_or(input, |(_, data)| data);
+    Ok(base64::engine::general_purpose::STANDARD.decode(encoded.trim())?)
+}
+
+fn ely_username(accounts: &[AccountProfile], account_id: &str) -> Result<String, SkinError> {
+    let account = accounts
         .iter()
-        .find(|a| a.id == account_id)
-        .ok_or_else(|| "Account not found".to_string())?;
-
-    if acc.account_type != "ely" {
-        return Err("Skin uploads can only be applied to Ely.by accounts".to_string());
+        .find(|account| account.id == account_id)
+        .ok_or(SkinError::AccountNotFound)?;
+    if account.account_type != "ely" {
+        return Err(SkinError::NotEly);
     }
+    Ok(account.username.clone())
+}
 
-    let username = acc.username.clone();
+// No Debug: this preparation contains user-supplied credentials.
+struct ElyPassword {
+    value: String,
+    updated_secrets: Option<AccountSecrets>,
+}
 
-    // Clean base64 data
-    let clean_base64 = if let Some(comma_pos) = image_base64.find(',') {
-        &image_base64[comma_pos + 1..]
-    } else {
-        image_base64
-    };
+fn prepare_password(
+    secrets: Option<AccountSecrets>,
+    supplied: Option<String>,
+) -> Result<ElyPassword, SkinError> {
+    let supplied = supplied.filter(|password| !password.trim().is_empty());
+    if let Some(password) = supplied {
+        let value = password.trim().to_owned();
+        let updated_secrets = secrets.map(|mut secrets| {
+            secrets.password = Some(value.clone());
+            secrets
+        });
+        return Ok(ElyPassword {
+            value,
+            updated_secrets,
+        });
+    }
+    let value = secrets
+        .and_then(|secrets| secrets.password)
+        .filter(|password| !password.trim().is_empty())
+        .ok_or(SkinError::PasswordRequired)?;
+    Ok(ElyPassword {
+        value,
+        updated_secrets: None,
+    })
+}
 
-    let png_bytes = base64::engine::general_purpose::STANDARD
-        .decode(clean_base64.trim())
-        .map_err(|e| format!("Invalid base64 skin image data: {e}"))?;
-
-    // Determine password
+async fn change_ely_skin<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    account_id: &str,
+    password: Option<String>,
+    action: ElySkinAction,
+) -> Result<(), SkinError> {
+    let state = crate::app::state(app);
+    let operation = state.account_operations.acquire(account_id).await?;
+    let accounts = with_recovered_typed(app, |repository| repository.load())?;
+    let username = ely_username(&accounts, account_id)?;
     let secrets = match credentials::load(state.credentials.as_ref(), account_id) {
         Ok(secrets) => Some(secrets),
         Err(CredentialError::Missing) => None,
-        Err(error) => return Err(error.to_string()),
+        Err(error) => return Err(SkinError::Credentials(error)),
     };
-
-    let effective_password = match password {
-        Some(p) if !p.trim().is_empty() => {
-            let p_trimmed = p.trim().to_string();
-            // Update saved password in keyring
-            if let Some(mut s) = secrets {
-                s.password = Some(p_trimmed.clone());
-                credentials::save(state.credentials.as_ref(), &_operation, &s)
-                    .map_err(|error| error.to_string())?;
-            }
-            p_trimmed
-        }
-        _ => secrets
-            .and_then(|s| s.password)
-            .filter(|p| !p.trim().is_empty())
-            .ok_or_else(|| "PASSWORD_REQUIRED".to_string())?,
-    };
-
+    let password = prepare_password(secrets, password)?;
     let service = ElyAuthService::new();
-    service
-        .upload_skin(&username, &effective_password, png_bytes)
-        .await?;
-
-    // Update account skin_url with timestamp to invalidate local cache
-    let updated_skin_url = format!(
+    match action {
+        ElySkinAction::Wear(skin_id) => {
+            service
+                .wear_skin(&username, &password.value, skin_id)
+                .await?
+        }
+        ElySkinAction::Upload(png) => service.upload_skin(&username, &password.value, png).await?,
+    }
+    // A rejected provider request must not replace previously verified credentials.
+    if let Some(secrets) = password.updated_secrets {
+        credentials::save(state.credentials.as_ref(), &operation, &secrets)
+            .map_err(SkinError::CredentialsAfterProvider)?;
+    }
+    let url = format!(
         "https://skinsystem.ely.by/skins/{username}.png?t={}",
         current_timestamp()
     );
-    // The provider already committed the skin. Report metadata-cache failure diagnostically.
-    if let Err(error) = with_recovered(app, |repository| {
-        repository.update_profile(account_id, |stored| {
-            stored.skin_url = Some(updated_skin_url);
-        })
-    }) {
-        eprintln!("Skin changed, but account metadata could not be saved: {error}");
-    }
+    save_skin_url(app, account_id, Some(url)).map_err(SkinError::MetadataAfterProvider)
+}
 
-    Ok(())
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn password_preparation_keeps_existing_credentials_until_provider_accepts() {
+        let secrets = AccountSecrets {
+            access_token: "access".into(),
+            client_token: "client".into(),
+            refresh_token: Some("refresh".into()),
+            password: Some("old".into()),
+            expires_at: Some(123),
+        };
+        let prepared = prepare_password(Some(secrets.clone()), Some(" new ".into())).unwrap();
+        assert_eq!(prepared.value, "new");
+        assert_eq!(
+            prepared.updated_secrets.unwrap().password.as_deref(),
+            Some("new")
+        );
+        assert_eq!(secrets.password.as_deref(), Some("old"));
+        let prepared = prepare_password(Some(secrets), None).unwrap();
+        assert_eq!(prepared.value, "old");
+        assert!(prepared.updated_secrets.is_none());
+        assert!(matches!(
+            prepare_password(None, None),
+            Err(SkinError::PasswordRequired)
+        ));
+    }
+    #[test]
+    fn base64_decode_failure_does_not_include_image_payload() {
+        let error = decode_image("private invalid image").unwrap_err();
+        assert!(matches!(error, SkinError::InvalidImage(_)));
+        assert!(!format!("{error:?}").contains("private invalid image"));
+    }
 }

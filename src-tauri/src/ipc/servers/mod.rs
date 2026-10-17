@@ -54,7 +54,10 @@ pub(super) fn server_with_config<R: Runtime>(
         .into_iter()
         .find(|s| s.id == server_id)
         .ok_or_else(|| ApiError::not_found(format!("Server not found: {server_id}")))?;
-    Ok((server::get_server_dir(app_handle, server_id).map_err(ApiError::from)?, config))
+    Ok((
+        server::get_server_dir(app_handle, server_id).map_err(ApiError::from)?,
+        config,
+    ))
 }
 
 pub(super) async fn is_downgrade<R: Runtime>(
@@ -67,9 +70,10 @@ pub(super) async fn is_downgrade<R: Runtime>(
         .app_data_dir()
         .map_err(|e| ApiError::storage_failure(e.to_string()))?
         .join("cache");
-    let manifest = crate::minecraft::version::fetch_version_manifest(get_http_client(app), &cache_dir)
-        .await
-        .map_err(ApiError::from)?;
+    let manifest =
+        crate::minecraft::version::fetch_version_manifest(get_http_client(app), &cache_dir)
+            .await
+            .map_err(ApiError::from)?;
     let released = |id: &str| {
         manifest
             .versions
@@ -139,6 +143,7 @@ pub(super) fn import_upload_path<R: Runtime>(
 }
 
 #[taurpc::procedures(path = "servers")]
+#[allow(clippy::too_many_arguments)]
 pub trait ServersApi {
     async fn get_servers(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -327,7 +332,9 @@ impl ServersApi for ServersApiImpl {
 
         let leftovers = leftover_servers(&app_handle).await;
         if leftovers.iter().any(|l| l.server_id == config.id) {
-            if let Err(e) = TauRpcEventsApiEventTrigger::new(app_handle.clone()).on_leftover_servers(leftovers) {
+            if let Err(e) =
+                TauRpcEventsApiEventTrigger::new(app_handle.clone()).on_leftover_servers(leftovers)
+            {
                 eprintln!("[IPC] Failed to emit on_leftover_servers: {e}");
             }
             return Err(ApiError::conflict(format!(
@@ -359,7 +366,9 @@ impl ServersApi for ServersApiImpl {
             pm.get_server_status(&config.id).await,
             ServerStatus::Stopped | ServerStatus::Sleeping
         ) {
-            get_server_supervisor_manager(&app_handle).release(&config.id).await;
+            get_server_supervisor_manager(&app_handle)
+                .release(&config.id)
+                .await;
         }
         let port_free = || std::net::TcpListener::bind(("0.0.0.0", config.port)).is_ok();
         let mut free = port_free();
@@ -402,7 +411,11 @@ impl ServersApi for ServersApiImpl {
             .supervise_and_start(app, pm, client, config, on_log, on_status)
             .await
             .map_err(ApiError::from)?;
-        server::stats::ensure_sampler(get_server_process_manager(&app_handle).clone(), &server_id, has_tps);
+        server::stats::ensure_sampler(
+            get_server_process_manager(&app_handle).clone(),
+            &server_id,
+            has_tps,
+        );
         Ok(pid)
     }
 
@@ -419,7 +432,11 @@ impl ServersApi for ServersApiImpl {
             }
         };
         get_server_supervisor_manager(&app_handle)
-            .put_to_sleep(get_server_process_manager(&app_handle), &server_id, on_status)
+            .put_to_sleep(
+                get_server_process_manager(&app_handle),
+                &server_id,
+                on_status,
+            )
             .await
             .map_err(ApiError::from)
     }
@@ -450,7 +467,9 @@ impl ServersApi for ServersApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<RunningServerSummary>, ApiError> {
-        Ok(get_server_process_manager(&app_handle).get_running_servers().await)
+        Ok(get_server_process_manager(&app_handle)
+            .get_running_servers()
+            .await)
     }
 
     async fn send_server_command(

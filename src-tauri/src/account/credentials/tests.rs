@@ -1,4 +1,14 @@
 use super::*;
+
+#[test]
+fn corrupt_credentials_diagnostics_do_not_echo_secret_values() {
+    let raw =
+        r#"{"accessToken":"access", "clientToken":"client", "expiresAt":"private-refresh-token"}"#;
+    let source = serde_json::from_str::<AccountSecrets>(raw).unwrap_err();
+    let error = CredentialError::Decode(source);
+    assert!(std::error::Error::source(&error).is_some());
+    assert!(!format!("{error:?} {error}").contains("private-refresh-token"));
+}
 use std::{
     collections::HashMap,
     error::Error,

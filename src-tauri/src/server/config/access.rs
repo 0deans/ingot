@@ -3,48 +3,34 @@ use std::fs;
 use std::path::Path;
 use uuid::Uuid;
 
-pub fn read_server_whitelist(server_dir: &Path) -> Result<Vec<WhitelistEntry>, String> {
+pub fn read_server_whitelist(
+    server_dir: &Path,
+) -> Result<Vec<WhitelistEntry>, crate::server::files::ServerFileError> {
     let path = server_dir.join("whitelist.json");
-    if !path.exists() {
-        return Ok(Vec::new());
-    }
-    let raw =
-        fs::read_to_string(&path).map_err(|e| format!("Failed to read whitelist.json: {e}"))?;
-    if raw.trim().is_empty() {
-        return Ok(Vec::new());
-    }
-    let entries: Vec<serde_json::Value> =
-        serde_json::from_str(&raw).map_err(|e| format!("Failed to parse whitelist.json: {e}"))?;
-    Ok(entries
-        .into_iter()
-        .filter_map(|v| {
-            let name = v.get("name")?.as_str()?.to_string();
-            let uuid = v
-                .get("uuid")
-                .and_then(|u| u.as_str())
-                .unwrap_or("")
-                .to_string();
-            Some(WhitelistEntry { uuid, name })
-        })
-        .collect())
-}
-
-fn write_server_whitelist(server_dir: &Path, entries: &[WhitelistEntry]) -> Result<(), String> {
-    let path = server_dir.join("whitelist.json");
-    let json_entries: Vec<serde_json::Value> = entries
+    let raw = match fs::read(&path) {
+        Ok(raw) => raw,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(error.into()),
+    };
+    let entries: Vec<WhitelistEntry> = serde_json::from_slice(&raw)?;
+    if entries
         .iter()
-        .map(|e| {
-            serde_json::json!({
-                "uuid": e.uuid,
-                "name": e.name
-            })
-        })
-        .collect();
-    let raw = serde_json::to_string_pretty(&json_entries)
-        .map_err(|e| format!("Failed to serialize whitelist: {e}"))?;
-    fs::write(path, raw).map_err(|e| format!("Failed to write whitelist.json: {e}"))
+        .any(|entry| entry.name.is_empty() || entry.uuid.is_empty())
+    {
+        return Err(crate::server::files::ServerFileError::InvalidAccessEntry(
+            "missing whitelist name or uuid",
+        ));
+    }
+    Ok(entries)
 }
 
+fn write_server_whitelist(
+    server_dir: &Path,
+    entries: &[WhitelistEntry],
+) -> Result<(), crate::server::files::ServerFileError> {
+    let raw = serde_json::to_vec_pretty(entries)?;
+    crate::server::files::publish_file(&server_dir.join("whitelist.json"), &raw)
+}
 /// Compute the offline-mode UUID that Minecraft uses for a given username.
 /// This matches Java's `UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes("UTF-8"))`.
 pub fn offline_uuid(name: &str) -> String {
@@ -71,15 +57,17 @@ pub fn offline_uuid(name: &str) -> String {
 /// Earlier Ingot versions wrote whitelist UUIDs as a v3 UUID in the nil namespace,
 /// which doesn't match Minecraft's offline UUID, so whitelisted players were still
 /// rejected. Rewrites such entries in whitelist.json / ops.json.
-pub fn repair_offline_uuids(server_dir: &Path) {
+pub fn repair_offline_uuids(
+    server_dir: &Path,
+) -> Result<(), crate::server::files::ServerFileError> {
     for file in ["whitelist.json", "ops.json"] {
         let path = server_dir.join(file);
-        let Ok(raw) = fs::read_to_string(&path) else {
-            continue;
+        let raw = match fs::read(&path) {
+            Ok(raw) => raw,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.into()),
         };
-        let Ok(mut entries) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) else {
-            continue;
-        };
+        let mut entries: Vec<serde_json::Value> = serde_json::from_slice(&raw)?;
         let mut changed = false;
         for entry in &mut entries {
             let Some(name) = entry
@@ -97,11 +85,11 @@ pub fn repair_offline_uuids(server_dir: &Path) {
             }
         }
         if changed {
-            if let Ok(fixed) = serde_json::to_string_pretty(&entries) {
-                let _ = fs::write(&path, fixed);
-            }
+            let fixed = serde_json::to_vec_pretty(&entries)?;
+            crate::server::files::publish_file(&path, &fixed)?;
         }
     }
+    Ok(())
 }
 
 pub fn offline_uuid_for(name: &str) -> String {
@@ -113,7 +101,10 @@ fn md5_bytes(data: &[u8]) -> [u8; 16] {
     md5::Md5::digest(data).into()
 }
 
-pub fn add_to_server_whitelist(server_dir: &Path, username: &str) -> Result<(), String> {
+pub fn add_to_server_whitelist(
+    server_dir: &Path,
+    username: &str,
+) -> Result<(), crate::server::files::ServerFileError> {
     let mut entries = read_server_whitelist(server_dir)?;
     if entries
         .iter()
@@ -129,7 +120,10 @@ pub fn add_to_server_whitelist(server_dir: &Path, username: &str) -> Result<(), 
     write_server_whitelist(server_dir, &entries)
 }
 
-pub fn remove_from_server_whitelist(server_dir: &Path, username: &str) -> Result<(), String> {
+pub fn remove_from_server_whitelist(
+    server_dir: &Path,
+    username: &str,
+) -> Result<(), crate::server::files::ServerFileError> {
     let mut entries = read_server_whitelist(server_dir)?;
     entries.retain(|e| !e.name.eq_ignore_ascii_case(username));
     write_server_whitelist(server_dir, &entries)

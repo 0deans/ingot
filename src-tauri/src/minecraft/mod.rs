@@ -1,3 +1,4 @@
+pub mod bedrock;
 pub mod content;
 pub mod downloader;
 pub mod importer;
@@ -8,4 +9,5 @@ pub mod loader;
 pub mod screenshots;
 pub mod sync;
 pub mod version;
-pub mod bedrock;
+
+pub(crate) mod metadata;

@@ -38,7 +38,9 @@ pub fn get_bedrock_binary_path(server_dir: &Path) -> PathBuf {
 /// e.g. "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.52.3.zip" -> "1.26.52.3"
 fn extract_version_from_url(url: &str) -> Option<String> {
     let filename = url.rsplit('/').next()?;
-    let stripped = filename.strip_prefix("bedrock-server-")?.strip_suffix(".zip")?;
+    let stripped = filename
+        .strip_prefix("bedrock-server-")?
+        .strip_suffix(".zip")?;
     Some(stripped.to_string())
 }
 
@@ -93,11 +95,7 @@ pub async fn fetch_bedrock_versions(client: &reqwest::Client) -> Result<Vec<Stri
 /// Resolves the download URL for a given version or default latest
 async fn resolve_download_url(client: &reqwest::Client, version: &str) -> String {
     let is_preview = version.to_lowercase().contains("preview");
-    let clean_ver = version
-        .split_whitespace()
-        .next()
-        .unwrap_or(version)
-        .trim();
+    let clean_ver = version.split_whitespace().next().unwrap_or(version).trim();
 
     // Query API first
     let api_url = "https://net-secondary.web.minecraft-services.net/api/v1.0/download/links";
@@ -110,9 +108,17 @@ async fn resolve_download_url(client: &reqwest::Client, version: &str) -> String
     {
         if let Ok(data) = response.json::<DownloadLinksResponse>().await {
             let target_type = if cfg!(target_os = "windows") {
-                if is_preview { "serverBedrockPreviewWindows" } else { "serverBedrockWindows" }
+                if is_preview {
+                    "serverBedrockPreviewWindows"
+                } else {
+                    "serverBedrockWindows"
+                }
             } else {
-                if is_preview { "serverBedrockPreviewLinux" } else { "serverBedrockLinux" }
+                if is_preview {
+                    "serverBedrockPreviewLinux"
+                } else {
+                    "serverBedrockLinux"
+                }
             };
 
             for entry in data.result.links {
@@ -152,7 +158,6 @@ pub async fn ensure_bedrock_server_binary(
                 return Ok(bin_path);
             }
         }
-        let _ = std::fs::remove_file(&bin_path);
     }
 
     std::fs::create_dir_all(server_dir)
@@ -179,59 +184,57 @@ pub async fn ensure_bedrock_server_binary(
         .await
         .map_err(|e| format!("Failed to read Bedrock server download stream: {e}"))?;
 
-    // Unpack ZIP archive into server_dir
-    let cursor = std::io::Cursor::new(bytes);
-    let mut archive = zip::ZipArchive::new(cursor)
-        .map_err(|e| format!("Failed to read Bedrock server ZIP archive: {e}"))?;
-
-    for i in 0..archive.len() {
-        let mut file = archive
-            .by_index(i)
-            .map_err(|e| format!("Failed to read entry #{i} in Bedrock ZIP: {e}"))?;
-
-        let outpath = match file.enclosed_name() {
-            Some(path) => server_dir.join(path),
-            None => continue,
-        };
-
-        if file.is_dir() {
-            let _ = std::fs::create_dir_all(&outpath);
-        } else {
-            if let Some(parent) = outpath.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-
-            // Do not overwrite existing configuration files
-            let file_name = outpath
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("");
-            if outpath.exists()
-                && matches!(
-                    file_name,
-                    "server.properties"
-                        | "allowlist.json"
-                        | "whitelist.json"
-                        | "permissions.json"
-                )
-            {
-                continue;
-            }
-
-            let mut outfile = std::fs::File::create(&outpath)
-                .map_err(|e| format!("Failed to create {}: {e}", outpath.display()))?;
-            std::io::copy(&mut file, &mut outfile)
-                .map_err(|e| format!("Failed to write {}: {e}", outpath.display()))?;
+    let parent = server_dir.to_path_buf();
+    let binary_name = bin_path
+        .file_name()
+        .ok_or_else(|| "Invalid Bedrock binary name".to_string())?
+        .to_os_string();
+    let (staging, mut prepared) = tokio::task::spawn_blocking(move || {
+        let staging = tempfile::tempdir_in(&parent).map_err(|error| error.to_string())?;
+        let mut archive =
+            zip::ZipArchive::new(std::io::Cursor::new(bytes)).map_err(|error| error.to_string())?;
+        crate::app::extract_zip_entries(&mut archive, staging.path(), "", None)
+            .map_err(|error| error.to_string())?;
+        if !staging.path().join(&binary_name).is_file() {
+            return Err("Bedrock archive contains no server executable".to_string());
         }
+        let mut prepared = Vec::new();
+        prepare_files(staging.path(), staging.path(), &mut prepared)?;
+        // Publish the executable last: a partial installation never looks ready.
+        prepared.sort_by_key(|(relative, _)| relative.as_os_str() == binary_name);
+        Ok::<_, String>((staging, prepared))
+    })
+    .await
+    .map_err(|error| format!("Bedrock extraction task failed: {error}"))??;
+    for (relative, file) in prepared.drain(..) {
+        let name = relative
+            .to_str()
+            .ok_or_else(|| "Invalid archive path encoding".to_string())?;
+        let output = crate::app::safe_enclosed_path(server_dir, name)
+            .ok_or_else(|| "Unsafe Bedrock destination".to_string())?;
+        let filename = output
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        if output.exists()
+            && matches!(
+                filename,
+                "server.properties" | "allowlist.json" | "whitelist.json" | "permissions.json"
+            )
+        {
+            continue;
+        }
+        if let Some(parent) = output.parent() {
+            std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+        }
+        file.persist(&output)
+            .map_err(|error| format!("Failed to publish {}: {}", output.display(), error.error))?;
     }
-
+    drop(staging);
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(
-            &bin_path,
-            std::fs::Permissions::from_mode(0o755),
-        );
+        let _ = std::fs::set_permissions(&bin_path, std::fs::Permissions::from_mode(0o755));
     }
 
     if !bin_path.exists() {
@@ -242,6 +245,43 @@ pub async fn ensure_bedrock_server_binary(
     }
 
     Ok(bin_path)
+}
+
+fn prepare_files(
+    root: &Path,
+    directory: &Path,
+    prepared: &mut Vec<(std::path::PathBuf, tempfile::NamedTempFile)>,
+) -> Result<(), String> {
+    for entry in std::fs::read_dir(directory).map_err(|error| error.to_string())? {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let kind = entry.file_type().map_err(|error| error.to_string())?;
+        if kind.is_dir() {
+            prepare_files(root, &entry.path(), prepared)?;
+        } else if kind.is_file() {
+            let mut source =
+                std::fs::File::open(entry.path()).map_err(|error| error.to_string())?;
+            // Tempfiles stay beside the staging root, outside the traversed tree.
+            let parent = root
+                .parent()
+                .ok_or_else(|| "Invalid staging root".to_string())?;
+            let mut output =
+                tempfile::NamedTempFile::new_in(parent).map_err(|error| error.to_string())?;
+            std::io::copy(&mut source, &mut output).map_err(|error| error.to_string())?;
+            output
+                .as_file()
+                .sync_all()
+                .map_err(|error| error.to_string())?;
+            let relative = entry
+                .path()
+                .strip_prefix(root)
+                .map_err(|error| error.to_string())?
+                .to_path_buf();
+            prepared.push((relative, output));
+        } else {
+            return Err("Unsupported Bedrock archive entry".to_string());
+        }
+    }
+    Ok(())
 }
 
 /// Applies Bedrock server configuration properties
@@ -269,15 +309,30 @@ pub fn configure_bedrock_properties(
     // Set configured properties
     props_map.insert("server-name".to_string(), config.name.clone());
     props_map.insert("server-port".to_string(), config.port.to_string());
-    props_map.insert("server-portv6".to_string(), (config.port.saturating_add(1)).to_string());
+    props_map.insert(
+        "server-portv6".to_string(),
+        (config.port.saturating_add(1)).to_string(),
+    );
 
     // Defaults if missing
-    props_map.entry("gamemode".to_string()).or_insert_with(|| "survival".to_string());
-    props_map.entry("difficulty".to_string()).or_insert_with(|| "easy".to_string());
-    props_map.entry("max-players".to_string()).or_insert_with(|| "10".to_string());
-    props_map.entry("online-mode".to_string()).or_insert_with(|| "true".to_string());
-    props_map.entry("white-list".to_string()).or_insert_with(|| "false".to_string());
-    props_map.entry("allow-cheats".to_string()).or_insert_with(|| "false".to_string());
+    props_map
+        .entry("gamemode".to_string())
+        .or_insert_with(|| "survival".to_string());
+    props_map
+        .entry("difficulty".to_string())
+        .or_insert_with(|| "easy".to_string());
+    props_map
+        .entry("max-players".to_string())
+        .or_insert_with(|| "10".to_string());
+    props_map
+        .entry("online-mode".to_string())
+        .or_insert_with(|| "true".to_string());
+    props_map
+        .entry("white-list".to_string())
+        .or_insert_with(|| "false".to_string());
+    props_map
+        .entry("allow-cheats".to_string())
+        .or_insert_with(|| "false".to_string());
 
     let mut out = String::from("# Bedrock server properties configured by Ingot\n");
     for (k, v) in props_map {

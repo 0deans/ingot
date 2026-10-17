@@ -1,9 +1,8 @@
-//! Instance import execution and transactional file copying.
+//! Staged instance import; publication is supplied by the application repository.
 use super::models::{ImportError, ImportInstanceOptions, ImportReport};
-use std::collections::HashSet;
-use std::fs;
-use std::path::{Path, PathBuf};
-use tauri::Runtime;
+use crate::minecraft::instance::InstanceConfig;
+use crate::minecraft::metadata::MetadataError;
+use std::{fs, io, path::Path};
 
 pub(crate) const IGNORED_ENTRIES: &[&str] = &[
     "assets",
@@ -31,269 +30,270 @@ pub(crate) const IGNORED_ENTRIES: &[&str] = &[
     "thumbs.db",
 ];
 
-/// Recursively copies a directory tree from `src` to `dst`.
-pub(crate) fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
-    fs::create_dir_all(dst)?;
-    for entry in fs::read_dir(src)? {
+#[derive(Debug, Default, PartialEq, Eq)]
+pub(crate) struct CopyCounts {
+    pub(crate) mods: u32,
+    pub(crate) saves: u32,
+}
+
+fn invalid_entry() -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        "Import entries must be regular files or directories without links",
+    )
+}
+
+fn directory_exists(path: &Path) -> io::Result<bool> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.is_dir() => {
+            if crate::app::safe_enclosed_filename(path, ".import-check").is_none() {
+                return Err(invalid_entry());
+            }
+            Ok(true)
+        }
+        Ok(_) => Err(invalid_entry()),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(error),
+    }
+}
+
+fn checked_entry(entry: &fs::DirEntry, destination: &Path) -> io::Result<std::path::PathBuf> {
+    let name = entry.file_name();
+    let name = name.to_str().ok_or_else(invalid_entry)?;
+    let path = entry.path();
+    let source_parent = path.parent().ok_or_else(invalid_entry)?;
+    if crate::app::safe_enclosed_filename(source_parent, name).is_none() {
+        return Err(invalid_entry());
+    }
+    crate::app::safe_enclosed_filename(destination, name).ok_or_else(invalid_entry)
+}
+
+pub(crate) fn copy_dir_all(source: &Path, destination: &Path) -> io::Result<()> {
+    if !directory_exists(source)? {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Import source directory disappeared",
+        ));
+    }
+    fs::create_dir_all(destination)?;
+    for entry in fs::read_dir(source)? {
         let entry = entry?;
-        let ty = entry.file_type()?;
-        if ty.is_dir() {
-            copy_dir_all(&entry.path(), &dst.join(entry.file_name()))?;
+        let target = checked_entry(&entry, destination)?;
+        let kind = entry.file_type()?;
+        if kind.is_dir() {
+            copy_dir_all(&entry.path(), &target)?;
+        } else if kind.is_file() {
+            fs::copy(entry.path(), target)?;
         } else {
-            fs::copy(entry.path(), dst.join(entry.file_name()))?;
+            return Err(invalid_entry());
         }
     }
     Ok(())
 }
 
-/// Executes copy operations from `source_dir` to `dest_dir` according to `options`.
-/// Executes copy operations from `source_dir` to `dest_dir` according to `options`.
-/// Propagates all I/O errors from required copies instead of silently suppressing them.
-/// Returns `(mods_copied, saves_copied)`.
-pub(crate) fn copy_instance_contents(
-    source_dir: &Path,
-    dest_dir: &Path,
-    options: &ImportInstanceOptions,
-) -> Result<(u32, u32), std::io::Error> {
-    let mut mods_copied = 0u32;
-    let mut saves_copied = 0u32;
-    let mut handled_entries = HashSet::new();
-
-    // 1. Copy mods
-    handled_entries.insert("mods".to_string());
-    if options.copy_mods {
-        let src_mods = source_dir.join("mods");
-        let dst_mods = dest_dir.join("mods");
-        if src_mods.exists() && src_mods.is_dir() {
-            fs::create_dir_all(&dst_mods)?;
-            for entry in fs::read_dir(&src_mods)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_file() {
-                    let fname = entry.file_name();
-                    fs::copy(&path, dst_mods.join(fname))?;
-                    mods_copied += 1;
-                }
-            }
-        }
+fn copy_optional_directory(source: &Path, destination: &Path) -> io::Result<()> {
+    if directory_exists(source)? {
+        copy_dir_all(source, destination)?;
     }
-
-    // 2. Copy config & defaultconfigs
-    handled_entries.insert("config".to_string());
-    handled_entries.insert("defaultconfigs".to_string());
-    if options.copy_configs {
-        let src_config = source_dir.join("config");
-        let dst_config = dest_dir.join("config");
-        if src_config.exists() && src_config.is_dir() {
-            copy_dir_all(&src_config, &dst_config)?;
-        }
-        let src_def = source_dir.join("defaultconfigs");
-        let dst_def = dest_dir.join("defaultconfigs");
-        if src_def.exists() && src_def.is_dir() {
-            copy_dir_all(&src_def, &dst_def)?;
-        }
-    }
-
-    // 3. Copy saves (worlds)
-    handled_entries.insert("saves".to_string());
-    if options.copy_saves {
-        let src_saves = source_dir.join("saves");
-        let dst_saves = dest_dir.join("saves");
-        if src_saves.exists() && src_saves.is_dir() {
-            fs::create_dir_all(&dst_saves)?;
-            for entry in fs::read_dir(&src_saves)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() {
-                    let fname = entry.file_name();
-                    copy_dir_all(&path, &dst_saves.join(fname))?;
-                    saves_copied += 1;
-                }
-            }
-        }
-    }
-
-    // 4. Copy resourcepacks & shaderpacks
-    handled_entries.insert("resourcepacks".to_string());
-    handled_entries.insert("shaderpacks".to_string());
-    if options.copy_resource_packs {
-        let src_rp = source_dir.join("resourcepacks");
-        let dst_rp = dest_dir.join("resourcepacks");
-        if src_rp.exists() && src_rp.is_dir() {
-            copy_dir_all(&src_rp, &dst_rp)?;
-        }
-        let src_sp = source_dir.join("shaderpacks");
-        let dst_sp = dest_dir.join("shaderpacks");
-        if src_sp.exists() && src_sp.is_dir() {
-            copy_dir_all(&src_sp, &dst_sp)?;
-        }
-    }
-
-    // 5. Copy options.txt & optionsshaders.txt
-    handled_entries.insert("options.txt".to_string());
-    handled_entries.insert("optionsshaders.txt".to_string());
-    if options.copy_options {
-        let src_opt = source_dir.join("options.txt");
-        if src_opt.exists() {
-            fs::copy(&src_opt, dest_dir.join("options.txt"))?;
-        }
-        let src_opt_sh = source_dir.join("optionsshaders.txt");
-        if src_opt_sh.exists() {
-            fs::copy(&src_opt_sh, dest_dir.join("optionsshaders.txt"))?;
-        }
-    }
-
-    // 6. Copy servers.dat
-    handled_entries.insert("servers.dat".to_string());
-    if options.copy_servers {
-        let src_srv = source_dir.join("servers.dat");
-        if src_srv.exists() {
-            fs::copy(&src_srv, dest_dir.join("servers.dat"))?;
-        }
-    }
-
-    // 7. Copy screenshots
-    handled_entries.insert("screenshots".to_string());
-    if options.copy_screenshots {
-        let src_ss = source_dir.join("screenshots");
-        let dst_ss = dest_dir.join("screenshots");
-        if src_ss.exists() && src_ss.is_dir() {
-            copy_dir_all(&src_ss, &dst_ss)?;
-        }
-    }
-
-    // 8. Copy extra data
-    if options.copy_extra_data {
-        for entry in fs::read_dir(source_dir)? {
-            let entry = entry?;
-            let name = entry.file_name().to_string_lossy().to_string();
-            let name_lower = name.to_lowercase();
-
-            if handled_entries.contains(&name_lower) || IGNORED_ENTRIES.contains(&name_lower.as_str()) {
-                continue;
-            }
-
-            let path = entry.path();
-            let target_path = dest_dir.join(&name);
-
-            if path.is_dir() {
-                copy_dir_all(&path, &target_path)?;
-            } else if path.is_file() {
-                fs::copy(&path, &target_path)?;
-            }
-        }
-    }
-
-    Ok((mods_copied, saves_copied))
+    Ok(())
 }
 
-/// Executes the transactional import of an external instance:
-/// 1. Stages all content into a temporary isolated staging directory
-/// 2. Validates and renames staging directory to destination instance directory
-/// 3. Invokes `publish_metadata` closure, rolling back destination directory if metadata persistence fails
-pub fn execute_import_instance<F>(
+fn copy_optional_file(source: &Path, destination: &Path) -> io::Result<()> {
+    for path in [source, destination] {
+        let parent = path.parent().ok_or_else(invalid_entry)?;
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or_else(invalid_entry)?;
+        if crate::app::safe_enclosed_filename(parent, name).is_none() {
+            return Err(invalid_entry());
+        }
+    }
+    match fs::symlink_metadata(source) {
+        Ok(metadata) if metadata.is_file() => {
+            fs::copy(source, destination)?;
+        }
+        Ok(_) => return Err(invalid_entry()),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error),
+    }
+    Ok(())
+}
+
+#[derive(Clone, Copy)]
+enum CountedEntry {
+    Mod,
+    World,
+}
+
+fn copy_counted_entries(
+    source: &Path,
+    destination: &Path,
+    selection: CountedEntry,
+) -> io::Result<u32> {
+    if !directory_exists(source)? {
+        return Ok(0);
+    }
+    fs::create_dir_all(destination)?;
+    let mut count = 0u32;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let target = checked_entry(&entry, destination)?;
+        let kind = entry.file_type()?;
+        if !kind.is_dir() && !kind.is_file() {
+            return Err(invalid_entry());
+        }
+        match selection {
+            CountedEntry::World if kind.is_dir() => copy_dir_all(&entry.path(), &target)?,
+            CountedEntry::Mod if kind.is_file() => {
+                fs::copy(entry.path(), target)?;
+            }
+            _ => continue,
+        }
+        count = count.checked_add(1).ok_or_else(invalid_entry)?;
+    }
+    Ok(count)
+}
+
+pub(crate) fn copy_instance_contents(
+    source: &Path,
+    destination: &Path,
+    options: &ImportInstanceOptions,
+) -> io::Result<CopyCounts> {
+    let mut counts = CopyCounts::default();
+    if options.copy_mods {
+        counts.mods = copy_counted_entries(
+            &source.join("mods"),
+            &destination.join("mods"),
+            CountedEntry::Mod,
+        )?;
+    }
+    if options.copy_saves {
+        counts.saves = copy_counted_entries(
+            &source.join("saves"),
+            &destination.join("saves"),
+            CountedEntry::World,
+        )?;
+    }
+    for (enabled, name) in [
+        (options.copy_configs, "config"),
+        (options.copy_configs, "defaultconfigs"),
+        (options.copy_resource_packs, "resourcepacks"),
+        (options.copy_resource_packs, "shaderpacks"),
+        (options.copy_screenshots, "screenshots"),
+    ] {
+        if enabled {
+            copy_optional_directory(&source.join(name), &destination.join(name))?;
+        }
+    }
+    for (enabled, name) in [
+        (options.copy_options, "options.txt"),
+        (options.copy_options, "optionsshaders.txt"),
+        (options.copy_servers, "servers.dat"),
+    ] {
+        if enabled {
+            copy_optional_file(&source.join(name), &destination.join(name))?;
+        }
+    }
+    if options.copy_extra_data {
+        copy_extra_data(source, destination)?;
+    }
+    Ok(counts)
+}
+
+fn copy_extra_data(source: &Path, destination: &Path) -> io::Result<()> {
+    const HANDLED: &[&str] = &[
+        "mods",
+        "saves",
+        "config",
+        "defaultconfigs",
+        "resourcepacks",
+        "shaderpacks",
+        "options.txt",
+        "optionsshaders.txt",
+        "servers.dat",
+        "screenshots",
+    ];
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let name = entry.file_name();
+        let name = name.to_str().ok_or_else(invalid_entry)?.to_lowercase();
+        if HANDLED.contains(&name.as_str()) || IGNORED_ENTRIES.contains(&name.as_str()) {
+            continue;
+        }
+        let target = checked_entry(&entry, destination)?;
+        let kind = entry.file_type()?;
+        if kind.is_dir() {
+            copy_dir_all(&entry.path(), &target)?;
+        } else if kind.is_file() {
+            fs::copy(entry.path(), target)?;
+        } else {
+            return Err(invalid_entry());
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn execute_import_instance(
     instances_dir: &Path,
     options: ImportInstanceOptions,
-    publish_metadata: F,
-) -> Result<ImportReport, ImportError>
-where
-    F: FnOnce(crate::minecraft::instance::InstanceConfig) -> Result<(), String>,
-{
-    let source_dir = PathBuf::from(&options.source_path);
-    if !source_dir.exists() {
+    publish: impl FnOnce(&Path, InstanceConfig) -> Result<(), MetadataError>,
+) -> Result<ImportReport, ImportError> {
+    let source = Path::new(&options.source_path);
+    if !directory_exists(source).map_err(ImportError::Io)? {
         return Err(ImportError::SourceNotFound(options.source_path));
     }
-
-    let staging_id = format!(".staging-import-{}", uuid::Uuid::new_v4());
-    let staging_dir = instances_dir.join(&staging_id);
-    fs::create_dir_all(&staging_dir).map_err(ImportError::Io)?;
-
-    // 1. Stage all requested content into staging_dir
-    let (mods_copied, saves_copied) = match copy_instance_contents(&source_dir, &staging_dir, &options) {
+    let config = crate::minecraft::instance::prepare_instance(
+        options.name.clone(),
+        options.game_version.clone(),
+        options.loader.clone(),
+        options.loader_version.clone(),
+    )
+    .map_err(ImportError::InstanceCreate)?;
+    let instance_id = config.id.clone();
+    fs::create_dir_all(instances_dir).map_err(ImportError::Io)?;
+    let source_root = source.canonicalize().map_err(ImportError::Io)?;
+    let destination_root = instances_dir.canonicalize().map_err(ImportError::Io)?;
+    if destination_root.starts_with(&source_root) {
+        return Err(ImportError::OverlappingPaths);
+    }
+    let staging = tempfile::Builder::new()
+        .prefix(".staging-import-")
+        .tempdir_in(instances_dir)
+        .map_err(ImportError::Io)?;
+    let prepared = (|| {
+        let counts =
+            copy_instance_contents(source, staging.path(), &options).map_err(ImportError::Io)?;
+        for directory in ["mods", "config", "saves", "resourcepacks"] {
+            fs::create_dir_all(staging.path().join(directory)).map_err(ImportError::Io)?;
+        }
+        publish(staging.path(), config).map_err(ImportError::Metadata)?;
+        Ok(counts)
+    })();
+    let counts = match prepared {
         Ok(counts) => counts,
-        Err(err) => {
-            let _ = fs::remove_dir_all(&staging_dir);
-            return Err(ImportError::Io(err));
+        Err(primary) => {
+            if let Err(cleanup) = staging.close() {
+                return Err(ImportError::Cleanup {
+                    primary: Box::new(primary),
+                    cleanup,
+                });
+            }
+            return Err(primary);
         }
     };
-
-    // Ensure standard subdirectories are initialized in staging
-    let _ = fs::create_dir_all(staging_dir.join("mods"));
-    let _ = fs::create_dir_all(staging_dir.join("config"));
-    let _ = fs::create_dir_all(staging_dir.join("saves"));
-    let _ = fs::create_dir_all(staging_dir.join("resourcepacks"));
-
-    // 2. Publish staging directory to target instance ID
-    let instance_id = uuid::Uuid::new_v4().to_string();
-    let dest_dir = instances_dir.join(&instance_id);
-
-    if let Err(e) = fs::rename(&staging_dir, &dest_dir) {
-        let _ = fs::remove_dir_all(&staging_dir);
-        let _ = fs::remove_dir_all(&dest_dir);
-        return Err(ImportError::Io(e));
-    }
-
-    // 3. Atomically publish instance metadata
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    let instance = crate::minecraft::instance::InstanceConfig {
-        id: instance_id.clone(),
-        name: options.name.clone(),
-        game_version: options.game_version.clone(),
-        loader: options.loader.clone(),
-        loader_version: options.loader_version.clone(),
-        java_path: None,
-        memory_min_mb: None,
-        memory_max_mb: None,
-        icon: None,
-        created_at: now,
-        last_played: None,
-        total_play_time_seconds: 0,
-        jvm_args: None,
-        fullscreen: None,
-        window_width: None,
-        window_height: None,
-        sync_options: None,
-        sync_servers: None,
-        sync_resource_packs: None,
-        sync_command_history: None,
-        sync_creative_hotbars: None,
-        last_synced_at: None,
-    };
-
-    if let Err(e) = publish_metadata(instance) {
-        let _ = fs::remove_dir_all(&dest_dir);
-        return Err(ImportError::InstanceCreate(e));
-    }
-
+    // Publication consumes the directory through rename.
+    let _ = staging.keep();
+    let message = format!(
+        "Successfully imported instance with {} mods and {} worlds.",
+        counts.mods, counts.saves
+    );
     Ok(ImportReport {
         success: true,
         instance_id,
         name: options.name,
-        mods_copied,
-        saves_copied,
-        message: format!(
-            "Successfully imported instance with {mods_copied} mods and {saves_copied} worlds."
-        ),
-    })
-}
-
-/// Imports an external instance into Ingot transactionally:
-/// Stages and validates all content in an isolated staging folder first,
-/// and only publishes the new instance and configuration once all required copies succeed.
-pub fn import_instance<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    options: ImportInstanceOptions,
-) -> Result<ImportReport, ImportError> {
-    let instances_dir = crate::minecraft::instance::get_instances_dir(app)
-        .map_err(ImportError::InstanceDir)?;
-
-    execute_import_instance(&instances_dir, options, |instance| {
-        let mut instances = crate::minecraft::instance::load_instances(app)?;
-        instances.push(instance);
-        crate::minecraft::instance::save_instances(app, &instances)
+        mods_copied: counts.mods,
+        saves_copied: counts.saves,
+        message,
     })
 }

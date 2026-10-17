@@ -8,7 +8,7 @@
 	"license": "GPL-3.0-only",
 	"type": "module",
 	"scripts": {
-		"test:ipc": "node --test tests/ipc-routing.test.mjs",
+		"test:ipc": "node --test tests/ipc-routing.test.mjs tests/rpc-result.test.mjs tests/coverage-ratchet.test.mjs",
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"check": "biome check",

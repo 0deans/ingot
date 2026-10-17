@@ -1,6 +1,5 @@
-use crate::server::config::{
-    ServerConfig, ServerLogEvent, ServerStatus, ServerStatusEvent,
-};
+use crate::server::config::{ServerConfig, ServerLogEvent, ServerStatus, ServerStatusEvent};
+use crate::server::process::{claim_server_launch, launch_claimed_server};
 use crate::server::process::{launch_server, ServerProcessManager};
 use crate::server::proxy::{start_server_proxy, ProxyConfig, ServerProxyHandle};
 use std::collections::HashMap;
@@ -49,6 +48,8 @@ impl ServerSupervisorManager {
         FLog: Fn(ServerLogEvent) + Send + Sync + 'static + Clone,
         FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static + Clone,
     {
+        let mut claimed = claim_server_launch(&app, &pm, &config.id).await?;
+        let config = claimed.config.clone();
         let server_id = config.id.clone();
         let sleep_enabled = if config.core == super::config::ServerCoreType::Bedrock {
             false
@@ -67,9 +68,8 @@ impl ServerSupervisorManager {
         ));
 
         // If sleep/proxy is enabled, launch internal server on internal_port
-        let mut internal_config = config.clone();
         if sleep_enabled {
-            internal_config.port = internal_port;
+            claimed.config.port = internal_port;
         }
 
         // A proxy left from an earlier run (crash, or waking a sleeping server) still
@@ -78,11 +78,11 @@ impl ServerSupervisorManager {
         let generation = GENERATION.fetch_add(1, Ordering::SeqCst);
 
         // Launch the initial server process
-        let pid = launch_server(
+        let pid = launch_claimed_server(
             app.clone(),
             pm.clone(),
             client.clone(),
-            internal_config,
+            claimed,
             on_log.clone(),
             on_status.clone(),
         )
@@ -115,8 +115,7 @@ impl ServerSupervisorManager {
             let pm_w = pm_wake.clone();
             let app_w = app_wake.clone();
             let client_w = client_wake.clone();
-            let mut cfg_w = config_wake.clone();
-            cfg_w.port = internal_port;
+            let cfg_w = config_wake.clone();
             let on_l = on_log_wake.clone();
             let on_s = on_status_wake.clone();
             let s_id = s_id_wake.clone();
@@ -130,12 +129,15 @@ impl ServerSupervisorManager {
                 });
 
                 // Launch internal server
-                match launch_server(app_w, pm_w, client_w, cfg_w, on_l, on_s).await {
+                match launch_server(app_w, pm_w, client_w, cfg_w.id, on_l, on_s).await {
                     Ok(_) => {
                         // Poll internal port until accepting connections
                         for _ in 0..50 {
                             tokio::time::sleep(Duration::from_millis(500)).await;
-                            if TcpStream::connect(format!("127.0.0.1:{internal_port}")).await.is_ok() {
+                            if TcpStream::connect(format!("127.0.0.1:{internal_port}"))
+                                .await
+                                .is_ok()
+                            {
                                 let _ = tx.send(true);
                                 return;
                             }
@@ -172,7 +174,14 @@ impl ServerSupervisorManager {
             })
         };
 
-        let proxy_handle = match start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn).await {
+        let proxy_handle = match start_server_proxy(
+            proxy_cfg,
+            wake_fn,
+            is_running_fn,
+            is_sleeping_fn,
+        )
+        .await
+        {
             Ok(handle) => handle,
             Err(e) => {
                 // Don't leave the game server running without its public port
@@ -212,7 +221,11 @@ impl ServerSupervisorManager {
                 tokio::time::sleep(Duration::from_secs(10)).await;
 
                 // A newer start (or a manual stop) replaced this run: nothing left to watch
-                let current = supervised.lock().await.get(&s_id_idle).map(|s| s.generation);
+                let current = supervised
+                    .lock()
+                    .await
+                    .get(&s_id_idle)
+                    .map(|s| s.generation);
                 if current != Some(generation) {
                     break;
                 }
@@ -225,7 +238,9 @@ impl ServerSupervisorManager {
                     if pm_idle.get_server_status(&s_id_idle).await == ServerStatus::Stopped {
                         let mut guard = supervised.lock().await;
                         if guard.get(&s_id_idle).map(|s| s.generation) == Some(generation) {
-                            if let Some(proxy) = guard.remove(&s_id_idle).and_then(|s| s.proxy_handle) {
+                            if let Some(proxy) =
+                                guard.remove(&s_id_idle).and_then(|s| s.proxy_handle)
+                            {
                                 let _ = proxy.shutdown_tx.send(());
                             }
                             eprintln!("[Supervisor] {s_id_idle} exited; released its port");
@@ -252,13 +267,17 @@ impl ServerSupervisorManager {
                             // Wait for process to terminate
                             for _ in 0..20 {
                                 tokio::time::sleep(Duration::from_millis(500)).await;
-                                if pm_idle.get_server_status(&s_id_idle).await == ServerStatus::Stopped {
+                                if pm_idle.get_server_status(&s_id_idle).await
+                                    == ServerStatus::Stopped
+                                {
                                     break;
                                 }
                             }
 
                             // Transition status to Sleeping
-                            pm_idle.set_server_status(&s_id_idle, ServerStatus::Sleeping).await;
+                            pm_idle
+                                .set_server_status(&s_id_idle, ServerStatus::Sleeping)
+                                .await;
                             on_status_idle(ServerStatusEvent {
                                 server_id: s_id_idle.clone(),
                                 status: ServerStatus::Sleeping,
@@ -304,7 +323,8 @@ impl ServerSupervisorManager {
             }
         }
 
-        pm.set_server_status(server_id, ServerStatus::Sleeping).await;
+        pm.set_server_status(server_id, ServerStatus::Sleeping)
+            .await;
         on_status(ServerStatusEvent {
             server_id: server_id.to_string(),
             status: ServerStatus::Sleeping,
@@ -325,7 +345,11 @@ impl ServerSupervisorManager {
     }
 
     /// Stops the server and shuts down its proxy
-    pub async fn stop_supervised(&self, pm: &ServerProcessManager, server_id: &str) -> Result<(), String> {
+    pub async fn stop_supervised(
+        &self,
+        pm: &ServerProcessManager,
+        server_id: &str,
+    ) -> Result<(), String> {
         self.release(server_id).await;
 
         // Stop the server process if running

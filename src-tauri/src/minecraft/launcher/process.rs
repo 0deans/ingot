@@ -13,6 +13,7 @@ pub(crate) struct ActiveChild {
 pub(crate) enum ProcessEntry {
     Starting { reservation_id: u64 },
     Running(ActiveChild),
+    Maintenance { reservation_id: u64 },
 }
 
 /// RAII reservation for a game process currently starting up.
@@ -36,10 +37,14 @@ impl StartingGuard {
             .lock()
             .map_err(|e| LaunchError::Other(e.to_string()))?;
         match lock.get(&self.instance_id) {
-            Some(ProcessEntry::Starting { reservation_id }) if *reservation_id == self.reservation_id => {
+            Some(ProcessEntry::Starting { reservation_id })
+                if *reservation_id == self.reservation_id =>
+            {
                 Ok(())
             }
-            _ => Err(LaunchError::Other("Launch reservation was cancelled".to_string())),
+            _ => Err(LaunchError::Other(
+                "Launch reservation was cancelled".to_string(),
+            )),
         }
     }
 
@@ -51,7 +56,9 @@ impl StartingGuard {
             .lock()
             .map_err(|e| LaunchError::Other(e.to_string()))?;
         match lock.get(&self.instance_id) {
-            Some(ProcessEntry::Starting { reservation_id }) if *reservation_id == self.reservation_id => {
+            Some(ProcessEntry::Starting { reservation_id })
+                if *reservation_id == self.reservation_id =>
+            {
                 lock.insert(
                     self.instance_id.clone(),
                     ProcessEntry::Running(ActiveChild { pid, started_at }),
@@ -69,7 +76,8 @@ impl Drop for StartingGuard {
     fn drop(&mut self) {
         if !self.committed {
             if let Ok(mut lock) = self.running.lock() {
-                if let Some(ProcessEntry::Starting { reservation_id }) = lock.get(&self.instance_id) {
+                if let Some(ProcessEntry::Starting { reservation_id }) = lock.get(&self.instance_id)
+                {
                     if *reservation_id == self.reservation_id {
                         lock.remove(&self.instance_id);
                     }
@@ -102,7 +110,12 @@ impl ProcessManager {
             return Err(LaunchError::AlreadyRunning);
         }
         let res_id = self.next_reservation_id.fetch_add(1, Ordering::SeqCst);
-        lock.insert(instance_id.to_string(), ProcessEntry::Starting { reservation_id: res_id });
+        lock.insert(
+            instance_id.to_string(),
+            ProcessEntry::Starting {
+                reservation_id: res_id,
+            },
+        );
         Ok(StartingGuard {
             running: self.running.clone(),
             instance_id: instance_id.to_string(),
@@ -111,9 +124,40 @@ impl ProcessManager {
         })
     }
 
+    pub(crate) fn reserve_maintenance(
+        &self,
+        instance_id: &str,
+    ) -> Result<MaintenanceGuard, LaunchError> {
+        let mut entries = self
+            .running
+            .lock()
+            .map_err(|error| LaunchError::Other(error.to_string()))?;
+        if entries.contains_key(instance_id) {
+            return Err(LaunchError::AlreadyRunning);
+        }
+        let reservation_id = self.next_reservation_id.fetch_add(1, Ordering::SeqCst);
+        entries.insert(
+            instance_id.to_string(),
+            ProcessEntry::Maintenance { reservation_id },
+        );
+        Ok(MaintenanceGuard {
+            entries: self.running.clone(),
+            instance_id: instance_id.to_string(),
+            reservation_id,
+        })
+    }
+
     pub async fn is_running(&self, instance_id: &str) -> bool {
         let lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
         lock.contains_key(instance_id)
+    }
+
+    pub(crate) fn has_active_entries(&self) -> bool {
+        !self
+            .running
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .is_empty()
     }
 
     pub async fn is_starting(&self, instance_id: &str) -> bool {
@@ -130,7 +174,7 @@ impl ProcessManager {
                     pid: child.pid,
                     started_at: child.started_at,
                 }),
-                ProcessEntry::Starting { .. } => None,
+                ProcessEntry::Starting { .. } | ProcessEntry::Maintenance { .. } => None,
             })
             .collect()
     }
@@ -141,6 +185,42 @@ impl ProcessManager {
             instance_id.to_string(),
             ProcessEntry::Running(ActiveChild { pid, started_at }),
         );
+    }
+
+    pub(crate) fn register_if_vacant(&self, instance_id: &str, pid: u32, started_at: u64) -> bool {
+        let mut entries = self
+            .running
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if entries.contains_key(instance_id) {
+            return false;
+        }
+        entries.insert(
+            instance_id.to_owned(),
+            ProcessEntry::Running(ActiveChild { pid, started_at }),
+        );
+        true
+    }
+
+    pub(crate) fn claim_exit(&self, instance_id: &str, pid: u32) -> Option<MaintenanceGuard> {
+        let mut entries = self
+            .running
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        let owns_process = matches!(entries.get(instance_id), Some(ProcessEntry::Running(child)) if child.pid == pid);
+        if !owns_process {
+            return None;
+        }
+        let reservation_id = self.next_reservation_id.fetch_add(1, Ordering::SeqCst);
+        entries.insert(
+            instance_id.to_owned(),
+            ProcessEntry::Maintenance { reservation_id },
+        );
+        Some(MaintenanceGuard {
+            entries: self.running.clone(),
+            instance_id: instance_id.to_owned(),
+            reservation_id,
+        })
     }
 
     pub async fn remove_if_pid_matches(&self, instance_id: &str, pid: u32) -> (bool, bool) {
@@ -162,10 +242,22 @@ impl ProcessManager {
     pub async fn kill_instance(&self, instance_id: &str) -> Result<(), String> {
         let child_pid = {
             let mut lock = self.running.lock().map_err(|e| e.to_string())?;
-            match lock.remove(instance_id) {
+            if matches!(
+                lock.get(instance_id),
+                Some(ProcessEntry::Maintenance { .. })
+            ) {
+                return Err("Instance maintenance is in progress".into());
+            }
+            match lock.get(instance_id).copied() {
                 Some(ProcessEntry::Running(child)) => Some(child.pid),
-                Some(ProcessEntry::Starting { .. }) => None,
+                Some(ProcessEntry::Starting { .. }) => {
+                    lock.remove(instance_id);
+                    None
+                }
                 None => return Err(format!("Instance {} is not running", instance_id)),
+                Some(ProcessEntry::Maintenance { .. }) => {
+                    return Err("Instance maintenance is in progress".into())
+                }
             }
         };
         if let Some(pid) = child_pid {
@@ -183,5 +275,56 @@ impl ProcessManager {
             }
         }
         Ok(())
+    }
+}
+
+pub(crate) struct MaintenanceGuard {
+    entries: Arc<Mutex<HashMap<String, ProcessEntry>>>,
+    instance_id: String,
+    reservation_id: u64,
+}
+
+impl Drop for MaintenanceGuard {
+    fn drop(&mut self) {
+        let mut entries = self
+            .entries
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if matches!(entries.get(&self.instance_id), Some(ProcessEntry::Maintenance { reservation_id }) if *reservation_id == self.reservation_id)
+        {
+            entries.remove(&self.instance_id);
+        }
+    }
+}
+
+#[cfg(test)]
+mod maintenance_tests {
+    use super::*;
+    #[tokio::test]
+    async fn maintenance_excludes_start_and_releases_on_drop() {
+        let manager = ProcessManager::new();
+        let guard = manager.reserve_maintenance("instance").unwrap();
+        assert!(manager.reserve_starting("instance").await.is_err());
+        assert!(manager.reserve_maintenance("instance").is_err());
+        assert!(manager.kill_instance("instance").await.is_err());
+        drop(guard);
+        let starting = manager.reserve_starting("instance").await.unwrap();
+        assert!(manager.reserve_maintenance("instance").is_err());
+        drop(starting);
+        assert!(manager.reserve_maintenance("instance").is_ok());
+    }
+
+    #[tokio::test]
+    async fn stale_exit_cannot_claim_replacement_or_release_its_ownership() {
+        let manager = ProcessManager::new();
+        assert!(manager.register_if_vacant("instance", 20, 100));
+        assert!(!manager.register_if_vacant("instance", 30, 200));
+        assert!(manager.claim_exit("instance", 10).is_none());
+        let exit = manager.claim_exit("instance", 20).unwrap();
+        assert!(manager.reserve_starting("instance").await.is_err());
+        assert!(manager.reserve_maintenance("instance").is_err());
+        assert!(manager.kill_instance("instance").await.is_err());
+        drop(exit);
+        assert!(manager.reserve_starting("instance").await.is_ok());
     }
 }

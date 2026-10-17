@@ -90,6 +90,9 @@ impl ConflictResolution {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SyncError {
+    #[error("Sync background task failed")]
+    Task(#[from] tokio::task::JoinError),
+
     #[error("Failed to get app data directory: {0}")]
     AppDataDir(String),
 

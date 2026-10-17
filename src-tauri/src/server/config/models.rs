@@ -62,7 +62,7 @@ pub struct PlayitTunnelStatus {
     pub message: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerConfig {
     pub id: String,
@@ -84,6 +84,18 @@ pub struct ServerConfig {
     pub playit_secret_key: Option<String>,
     pub created_at: u64,
     pub last_run_at: Option<u64>,
+}
+
+impl std::fmt::Debug for ServerConfig {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ServerConfig")
+            .field("id", &self.id)
+            .field("core", &self.core)
+            .field("game_version", &self.game_version)
+            .field("port", &self.port)
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -149,21 +161,7 @@ pub struct ServerStatusEvent {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum ConfigError {
-    #[error("Server not found: {0}")]
-    NotFound(String),
-    #[error("Failed to get app data directory: {0}")]
-    AppDataDir(String),
-    #[error("Failed to create servers directory: {0}")]
-    CreateDir(String),
-    #[error("Failed to read servers.json: {0}")]
-    ReadServers(String),
-    #[error("Failed to parse servers.json: {0}")]
-    ParseServers(String),
-    #[error("Failed to serialize servers: {0}")]
-    SerializeServers(String),
-    #[error("Failed to write servers.json: {0}")]
-    WriteServers(String),
+pub enum PortError {
     #[error("Port {port} is already used by \"{owner}\". Try {suggested}.")]
     PortInUse {
         port: u16,
@@ -172,28 +170,4 @@ pub enum ConfigError {
     },
     #[error("Use a port between 1024 and 65534.")]
     InvalidPortRange,
-    #[error("Failed to read server.properties: {0}")]
-    ReadProperties(String),
-    #[error("Failed to write server.properties: {0}")]
-    WriteProperties(String),
-    #[error("Failed to read whitelist.json: {0}")]
-    ReadWhitelist(String),
-    #[error("Failed to parse whitelist.json: {0}")]
-    ParseWhitelist(String),
-    #[error("Failed to serialize whitelist: {0}")]
-    SerializeWhitelist(String),
-    #[error("Failed to write whitelist.json: {0}")]
-    WriteWhitelist(String),
-    #[error("Invalid base64 icon data: {0}")]
-    InvalidIconBase64(String),
-    #[error("Failed to write server-icon.png: {0}")]
-    WriteIcon(String),
-    #[error("{0}")]
-    Other(String),
-}
-
-impl From<ConfigError> for String {
-    fn from(e: ConfigError) -> Self {
-        e.to_string()
-    }
 }

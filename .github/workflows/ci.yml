@@ -71,6 +71,8 @@ jobs:
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -84,9 +86,44 @@ jobs:
           mkdir -p dist
           [ -f dist/index.html ] || echo '<!doctype html><title>Ingot</title>' > dist/index.html
 
+      - name: Check formatting
+        working-directory: src-tauri
+        run: cargo fmt --all -- --check
+
+      - name: Clippy lint check
+        working-directory: src-tauri
+        run: cargo clippy --all-targets --locked -- -D warnings
+
       - name: Run tests
         working-directory: src-tauri
         run: cargo test --all-targets --locked
+
+      - name: Verify IPC binding contract freshness
+        working-directory: src-tauri
+        run: cargo test --lib --locked ipc_contract::generated_bindings_match_the_committed_contract
+
+      - name: Install cargo-llvm-cov
+        if: runner.os != 'macOS'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov@0.9.1
+
+      - name: Measure test coverage
+        working-directory: src-tauri
+        if: runner.os != 'macOS'
+        run: cargo llvm-cov --all-targets --locked --json --summary-only --output-path target/coverage.json
+
+      - name: Enforce measured Windows coverage baseline
+        if: runner.os == 'Windows'
+        run: node scripts/coverage-ratchet.mjs src-tauri/target/coverage.json src-tauri/coverage-baseline.windows.json
+
+      - name: Upload coverage report
+        if: always() && runner.os != 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage-${{ runner.os }}
+          path: src-tauri/target/coverage.json
+          if-no-files-found: warn
 
       - name: Test native desktop vault
         working-directory: src-tauri
@@ -102,3 +139,45 @@ jobs:
             printf "%s" "ci-test-keyring" | gnome-keyring-daemon --unlock --components=secrets
             cargo test --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
           '
+
+  android:
+    name: Android compile check (aarch64)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Android NDK
+        run: |
+          NDK_BASE="/usr/local/lib/android/sdk/ndk"
+          if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
+            SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
+          else
+            /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+            SELECTED_NDK="$NDK_BASE/26.1.10909125"
+          fi
+          echo "NDK_HOME=$SELECTED_NDK" >> $GITHUB_ENV
+          echo "$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+          echo "TARGET_AR=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
+          echo "AR_aarch64_linux_android=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
+          echo "CC_aarch64_linux_android=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" >> $GITHUB_ENV
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Placeholder frontend build
+        shell: bash
+        run: |
+          mkdir -p dist
+          [ -f dist/index.html ] || echo '<!doctype html><title>Ingot</title>' > dist/index.html
+
+      - name: Check Android compilation
+        working-directory: src-tauri
+        run: cargo check --target aarch64-linux-android --locked

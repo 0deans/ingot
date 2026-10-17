@@ -40,6 +40,11 @@ pub type StatusFn = Arc<dyn Fn(InstanceStatusEvent) + Send + Sync>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum LaunchError {
+    #[error(transparent)]
+    Metadata(#[from] crate::minecraft::metadata::MetadataError),
+
+    #[error("Instance {0} not found")]
+    InstanceNotFound(String),
     #[error("Instance is already running")]
     AlreadyRunning,
 

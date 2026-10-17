@@ -31,7 +31,10 @@ pub struct CompanionStatus {
 
 /// (major, minor, patch) of versions like "1.21.4" or "26.1"
 fn version_parts(game_version: &str) -> (u32, u32, u32) {
-    let parts: Vec<u32> = game_version.split('.').map(|p| p.parse().unwrap_or(0)).collect();
+    let parts: Vec<u32> = game_version
+        .split('.')
+        .map(|p| p.parse().unwrap_or(0))
+        .collect();
     let part = |i: usize| parts.get(i).copied().unwrap_or(0);
     (part(0), part(1), part(2))
 }
@@ -48,8 +51,14 @@ fn jar_for(core: &ServerCoreType, game_version: &str) -> Option<&'static [u8]> {
             (v.0 > 1 || (v.0 == 1 && (v.1 > 20 || (v.1 == 20 && v.2 >= 1)))).then_some(PAPER_JAR)
         }
         // Quilt runs Fabric mods
-        ServerCoreType::Fabric | ServerCoreType::Quilt => (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR),
-        ServerCoreType::Vanilla | ServerCoreType::Pumpkin | ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Bedrock => None,
+        ServerCoreType::Fabric | ServerCoreType::Quilt => {
+            (v.0 > 26 || (v.0 == 26 && v.1 >= 1)).then_some(FABRIC_JAR)
+        }
+        ServerCoreType::Vanilla
+        | ServerCoreType::Pumpkin
+        | ServerCoreType::NeoForge
+        | ServerCoreType::Forge
+        | ServerCoreType::Bedrock => None,
     }
 }
 
@@ -78,13 +87,18 @@ pub fn install(server_dir: &Path, core: &ServerCoreType, game_version: &str) -> 
         return Err("Ingot's live map needs Paper, Purpur or Folia 1.20.1+, or Fabric or Quilt on Minecraft 26.1+".into());
     };
     let dir = server_dir.join(platform.folder);
-    std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to create the {} folder: {e}", platform.folder))?;
-    for existing in plugins::list_installed(server_dir, core)?.into_iter().filter(|p| p.system) {
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| format!("Failed to create the {} folder: {e}", platform.folder))?;
+    for existing in plugins::list_installed(server_dir, core)?
+        .into_iter()
+        .filter(|p| p.system)
+    {
         let _ = std::fs::remove_file(dir.join(&existing.file_name));
     }
     let tmp = dir.join(format!("{FILE_NAME}.part"));
     std::fs::write(&tmp, jar).map_err(|e| format!("Failed to install Ingot's live map: {e}"))?;
-    std::fs::rename(&tmp, dir.join(FILE_NAME)).map_err(|e| format!("Failed to install Ingot's live map: {e}"))
+    std::fs::rename(&tmp, dir.join(FILE_NAME))
+        .map_err(|e| format!("Failed to install Ingot's live map: {e}"))
 }
 
 #[cfg(test)]
@@ -102,11 +116,18 @@ mod tests {
     fn bundled_jars_match_version() {
         let yml = read(PAPER_JAR, "plugin.yml");
         assert!(yml.contains(&format!("name: {PLUGIN_NAME}\n")));
-        assert!(yml.contains(&format!("version: \"{BUNDLED_VERSION}\"")), "rebuild with scripts/build-companion.mjs");
+        assert!(
+            yml.contains(&format!("version: \"{BUNDLED_VERSION}\"")),
+            "rebuild with scripts/build-companion.mjs"
+        );
 
-        let json: serde_json::Value = serde_json::from_str(&read(FABRIC_JAR, "fabric.mod.json")).unwrap();
+        let json: serde_json::Value =
+            serde_json::from_str(&read(FABRIC_JAR, "fabric.mod.json")).unwrap();
         assert_eq!(json["name"], PLUGIN_NAME);
-        assert_eq!(json["version"], BUNDLED_VERSION, "rebuild with scripts/build-companion.mjs");
+        assert_eq!(
+            json["version"], BUNDLED_VERSION,
+            "rebuild with scripts/build-companion.mjs"
+        );
         assert_eq!(json["environment"], "server");
         assert!(read(FABRIC_JAR, "ingot.mixins.json").contains("LevelChunkMixin"));
     }
@@ -122,7 +143,10 @@ mod tests {
         assert!(supported(&ServerCoreType::Fabric, "26.3"));
         assert!(supported(&ServerCoreType::Quilt, "26.1.2"));
         assert!(!supported(&ServerCoreType::NeoForge, "26.2"));
-        assert!(!supported(&ServerCoreType::Fabric, "1.21.11"), "obfuscated versions need remapping");
+        assert!(
+            !supported(&ServerCoreType::Fabric, "1.21.11"),
+            "obfuscated versions need remapping"
+        );
         assert!(!supported(&ServerCoreType::Vanilla, "26.2"));
         assert!(!supported(&ServerCoreType::Pumpkin, "26.2"));
     }

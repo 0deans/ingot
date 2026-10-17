@@ -17,6 +17,14 @@ pub struct ScreenshotInfo {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ScreenshotError {
+    #[error("Screenshot metadata changed; reload the screenshot list")]
+    StaleMetadata,
+
+    #[error("More than one screenshot matches '{0}'; select a unique capture")]
+    AmbiguousFilename(String),
+
+    #[error("Screenshot background task failed")]
+    Task(#[from] tokio::task::JoinError),
     #[error("Screenshot file not found: {0}")]
     NotFound(String),
 

@@ -257,13 +257,13 @@ Implementation evidence and handoff: [src-tauri/REFACTOR_PROGRESS.md](src-tauri/
 | --- | --- | --- |
 | Analysis and initial test baseline | Complete | 52 passed; 6 ignored; 5 live tests filtered; Windows only |
 | Coding and agent guidance | Complete | Root and Rust AGENTS.md files; plan linked to rules |
-| Phase 1: deterministic suite and contract inventory | In progress | Live tests isolated; 151-procedure inventory and binding check; Windows baseline verified; provider fixtures, coverage and other platforms remain |
+| Phase 1: deterministic suite and contract inventory | Windows verified; desktop CI pending | Live/provider/vault/installed-app smoke tests are opt-in; current inventory has 155 procedures (147 commands, 8 events); provider and stored-format fixtures checked; Windows coverage measured; Linux/macOS execution remains unverified locally |
 | Phase 2: settings pilot | Implemented; Windows verified | 11 settings tests; typed errors; application-owned store; legacy/current JSON compatibility; remaining platform/coverage evidence tracked below |
-| Phase 3: IPC and state separation | In progress | Settings, app, events, accounts and skins migrated; process/client/lifecycle/sign-in state managed; account rules separated from native adapters; 107 root commands and remaining orchestration/feature caches still need migration |
-| Phase 4: failure integrity | In progress | Account corruption/atomic updates, typed vault boundary, per-account ownership, durable local recovery, OAuth checkpoints/handoff and explicit pending-sign-in resume implemented; interruption before a usable grant/checkpoint and other destructive workflows remain |
-| Phase 5: feature extraction | In progress | Account models, rules, repository, credential/recovery effects and injectable session service extracted; Ely/Microsoft protocols, device-code ownership, OAuth grant boundaries and explicit resume covered; semantic profile validation, remaining provider adapters and other features remain |
-| Phase 6: typed IPC errors | Not started | Generated result contract and all affected consumers verified |
-| Phase 7: enforcement | Not started | Applicable formatting, lint, coverage, binding, and platform gates |
+| Phase 3: IPC and state separation | Namespaces migrated; native separation remains | Router/binding inventory accounts for all namespaces; game preparation, imports, sync, screenshots and version mutations have services independent of Tauri; server lifecycle/configuration, Java/platform and some content native adapters remain in feature directories |
+| Phase 4: failure integrity | Implemented slices verified; broader audit remains | Staged modpack/import/plugin publication, atomic verified downloads, serialized instance/server metadata, compensated deletion, operation ownership and retryable version restoration covered by failure regressions; multi-resource operations are not claimed globally crash-atomic |
+| Phase 5: feature extraction | In progress | Account/session, launcher preparation, importer, sync/screenshots, plugin installation and version transaction responsibilities extracted; remaining legacy provider/directory adapters and measured coverage gaps are recorded in the progress document |
+| Phase 6: typed IPC errors | Public contract migrated; legacy mappings remain | RPC signatures use ApiError/TauRpcResult; migrated services map typed feature errors directly; frontend result/transport/failure/stale-response cases covered. ipc/error/legacy.rs still classifies remaining String adapters and must be removed as those adapters migrate |
+| Phase 7: enforcement | In progress | Windows deterministic/coverage runs and Android target compilation executed; fmt/Clippy/typecheck/bindings/Biome gates configured. Coverage ratchet uses a measured Windows baseline; native desktop smoke tests and Linux/macOS CI results remain separate evidence, not assumed passes |
 
 **Completion criteria**
 

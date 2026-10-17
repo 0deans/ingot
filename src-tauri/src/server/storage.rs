@@ -38,14 +38,18 @@ pub struct WorldSize {
 
 /// Total size of a file or directory tree (symlinks not followed)
 fn size_of(path: &Path) -> u64 {
-    let Ok(meta) = std::fs::symlink_metadata(path) else { return 0 };
+    let Ok(meta) = std::fs::symlink_metadata(path) else {
+        return 0;
+    };
     if !meta.is_dir() {
         return meta.len();
     }
     let mut total = 0;
     let mut stack = vec![path.to_path_buf()];
     while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else { continue };
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let Ok(meta) = entry.metadata() else { continue };
             if meta.is_dir() {
@@ -60,12 +64,19 @@ fn size_of(path: &Path) -> u64 {
 
 fn category_of(name: &str, path: &Path) -> &'static str {
     let lower = name.to_ascii_lowercase();
-    if lower == "worlds" || path.join("level.dat").is_file() || path.join("levelname.txt").is_file() {
+    if lower == "worlds" || path.join("level.dat").is_file() || path.join("levelname.txt").is_file()
+    {
         return "worlds";
     }
     match lower.as_str() {
-        "plugins" | "mods" | "config" | "datapacks" | "behavior_packs" | "resource_packs"
-        | "development_behavior_packs" | "development_resource_packs" => "plugins",
+        "plugins"
+        | "mods"
+        | "config"
+        | "datapacks"
+        | "behavior_packs"
+        | "resource_packs"
+        | "development_behavior_packs"
+        | "development_resource_packs" => "plugins",
         "logs" | "crash-reports" | "debug" => "logs",
         "backups" | "world-backups" => "backups",
         "libraries" | "versions" | "cache" | "bundler" | ".fabric" | ".paper-remapped" => "server",
@@ -79,7 +90,10 @@ fn category_of(name: &str, path: &Path) -> &'static str {
 fn device_space(path: &Path) -> Option<(u64, u64)> {
     let path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
     // Windows canonical paths start with \\?\, mount points don't
-    let path_str = path.to_string_lossy().trim_start_matches(r"\\?\").to_ascii_lowercase();
+    let path_str = path
+        .to_string_lossy()
+        .trim_start_matches(r"\\?\")
+        .to_ascii_lowercase();
     let disks = sysinfo::Disks::new_with_refreshed_list();
     disks
         .list()
@@ -110,12 +124,18 @@ pub fn storage(server_dir: &Path) -> ServerStorage {
                             if p.is_dir() {
                                 let w_name = entry.file_name().to_string_lossy().into_owned();
                                 let w_bytes = size_of(&p);
-                                worlds.push(WorldSize { name: w_name, bytes: w_bytes as f64 });
+                                worlds.push(WorldSize {
+                                    name: w_name,
+                                    bytes: w_bytes as f64,
+                                });
                             }
                         }
                     }
                 } else {
-                    worlds.push(WorldSize { name: name.clone(), bytes: bytes as f64 });
+                    worlds.push(WorldSize {
+                        name: name.clone(),
+                        bytes: bytes as f64,
+                    });
                 }
             }
             match sums.iter_mut().find(|(id, _)| *id == category) {
@@ -125,14 +145,17 @@ pub fn storage(server_dir: &Path) -> ServerStorage {
         }
     }
     sums.retain(|(_, bytes)| *bytes > 0);
-    sums.sort_by(|a, b| b.1.cmp(&a.1));
+    sums.sort_by_key(|a| std::cmp::Reverse(a.1));
     worlds.sort_by(|a, b| b.bytes.total_cmp(&a.bytes));
     let device = device_space(server_dir);
     ServerStorage {
         total_bytes: sums.iter().map(|(_, b)| *b).sum::<u64>() as f64,
         categories: sums
             .into_iter()
-            .map(|(id, bytes)| StorageCategory { id: id.to_string(), bytes: bytes as f64 })
+            .map(|(id, bytes)| StorageCategory {
+                id: id.to_string(),
+                bytes: bytes as f64,
+            })
             .collect(),
         worlds,
         device_free_bytes: device.map(|(free, _)| free as f64),

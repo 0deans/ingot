@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-const MOJANG_MANIFEST_URL: &str =
-    "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
+const MOJANG_MANIFEST_URL: &str = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct VersionManifestEntry {
@@ -44,18 +43,7 @@ pub struct VersionDownloads {
     pub server: Option<DownloadArtifact>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OsRule {
-    pub name: Option<String>,
-    pub version: Option<String>,
-    pub arch: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuleEntry {
-    pub action: String, // "allow" or "disallow"
-    pub os: Option<OsRule>,
-}
+pub use crate::minecraft::launcher::rules::{OsRule, RuleEntry};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LibraryDownloads {
@@ -132,63 +120,11 @@ pub struct AssetIndex {
     pub objects: HashMap<String, AssetObject>,
 }
 
-/// Evaluates Mojang rules for the current operating system and architecture
-pub fn check_rules(rules: &[RuleEntry]) -> bool {
-    let current_os = if cfg!(target_os = "windows") {
-        "windows"
-    } else if cfg!(target_os = "macos") {
-        "osx"
-    } else {
-        "linux"
-    };
-
-    let mut allowed = false;
-
-    for rule in rules {
-        let matches = match &rule.os {
-            Some(os_rule) => {
-                let os_match = os_rule
-                    .name
-                    .as_deref()
-                    .map(|n| n == current_os)
-                    .unwrap_or(true);
-                os_match
-            }
-            None => true,
-        };
-
-        if matches {
-            allowed = rule.action == "allow";
-        }
-    }
-
-    allowed
-}
+pub use crate::minecraft::launcher::classpath::maven_coordinate_to_path as maven_to_path;
+pub use crate::minecraft::launcher::rules::check_rules;
 
 pub fn should_include_library(lib: &LibraryEntry) -> bool {
-    if let Some(ref rules) = lib.rules {
-        check_rules(rules)
-    } else {
-        true
-    }
-}
-
-/// Converts a maven coordinate like `com.mojang:authlib:1.5.25` into a relative path
-pub fn maven_to_path(name: &str, classifier: Option<&str>) -> Option<String> {
-    let parts: Vec<&str> = name.split(':').collect();
-    if parts.len() < 3 {
-        return None;
-    }
-    let group = parts[0].replace('.', "/");
-    let artifact = parts[1];
-    let version = parts[2];
-    let class_suffix = classifier.map(|c| format!("-{}", c)).unwrap_or_default();
-    let ext = parts.get(3).unwrap_or(&"jar");
-
-    Some(format!(
-        "{}/{}/{}/{}-{}{}.{}",
-        group, artifact, version, artifact, version, class_suffix, ext
-    ))
+    crate::minecraft::launcher::rules::should_include_library_rules(lib.rules.as_deref())
 }
 
 /// Fetches the Mojang version manifest, caching it locally for 1 hour

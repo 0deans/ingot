@@ -80,14 +80,42 @@ impl ServerProcessManager {
         })
     }
 
+    pub(super) async fn claim_launch(
+        &self,
+        server_id: &str,
+    ) -> Result<StartingGuard, ProcessError> {
+        let ownership = self.try_claim_starting(server_id)?;
+        if self.servers.lock().await.contains_key(server_id) {
+            return Err(ProcessError::AlreadyRunning);
+        }
+        Ok(ownership)
+    }
+
+    pub(crate) async fn reserve_maintenance(
+        &self,
+        server_id: &str,
+    ) -> Result<StartingGuard, ProcessError> {
+        let ownership = self.try_claim_starting(server_id)?;
+        if self.servers.lock().await.contains_key(server_id)
+            || self.sleeping_servers.lock().await.contains(server_id)
+        {
+            return Err(ProcessError::AlreadyStarting);
+        }
+        Ok(ownership)
+    }
+
     pub(crate) async fn insert_server(&self, server: ActiveServer) {
         let mut guard = self.servers.lock().await;
         guard.insert(server.server_id.clone(), server);
     }
 
-    pub(crate) async fn remove_server(&self, server_id: &str) {
+    pub(crate) async fn remove_if_pid_matches(&self, server_id: &str, pid: u32) -> bool {
         let mut guard = self.servers.lock().await;
-        guard.remove(server_id);
+        if guard.get(server_id).is_some_and(|server| server.pid == pid) {
+            guard.remove(server_id);
+            return true;
+        }
+        false
     }
 
     pub async fn set_server_status(&self, server_id: &str, status: ServerStatus) {
@@ -280,17 +308,10 @@ impl ServerProcessManager {
         let server_id_clone = server_id.to_string();
         let servers_map = self.servers.clone();
         tokio::spawn(async move {
-            let deadline = tokio::time::Instant::now() + timeout;
-            while tokio::time::Instant::now() < deadline {
-                tokio::time::sleep(Duration::from_millis(500)).await;
-                if !has_process(&servers_map, &server_id_clone, pid).await {
-                    return;
-                }
-            }
-            eprintln!(
-                "[ServerManager] Graceful stop timed out for {server_id_clone}, killing process..."
-            );
-            crate::running::kill_tree(pid);
+            force_stop_after_timeout(&servers_map, &server_id_clone, pid, timeout, |pid| {
+                eprintln!("[ServerManager] Graceful stop timed out for {server_id_clone}, killing process...");
+                crate::running::kill_tree(pid);
+            }).await;
         });
 
         Ok(())
@@ -348,4 +369,31 @@ async fn has_process(
         .await
         .get(server_id)
         .is_some_and(|s| s.pid == pid)
+}
+
+pub(super) async fn force_stop_after_timeout(
+    servers: &Mutex<HashMap<String, ActiveServer>>,
+    server_id: &str,
+    pid: u32,
+    timeout: Duration,
+    kill: impl FnOnce(u32),
+) {
+    let deadline = tokio::time::Instant::now() + timeout;
+    while tokio::time::Instant::now() < deadline {
+        tokio::time::sleep_until(
+            deadline.min(tokio::time::Instant::now() + Duration::from_millis(500)),
+        )
+        .await;
+        if !has_process(servers, server_id, pid).await {
+            return;
+        }
+    }
+    // Keep replacement publication serialized with the final identity check and kill.
+    let entries = servers.lock().await;
+    if entries
+        .get(server_id)
+        .is_some_and(|server| server.pid == pid)
+    {
+        kill(pid);
+    }
 }

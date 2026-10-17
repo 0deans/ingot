@@ -1,7 +1,5 @@
 use crate::minecraft::instance::ModLoaderType;
-use crate::minecraft::version::{
-    maven_to_path, DownloadArtifact, LibraryDownloads, LibraryEntry,
-};
+use crate::minecraft::version::{maven_to_path, DownloadArtifact, LibraryDownloads, LibraryEntry};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -304,7 +302,9 @@ pub async fn resolve_loader_profile(
 
             for lib in raw_libs {
                 let name = lib["name"].as_str().unwrap_or_default().to_string();
-                let base_url = lib["url"].as_str().unwrap_or("https://maven.quiltmc.org/repository/release/");
+                let base_url = lib["url"]
+                    .as_str()
+                    .unwrap_or("https://maven.quiltmc.org/repository/release/");
                 if let Some(rel_path) = maven_to_path(&name, None) {
                     let full_url = format!("{}{}", base_url, rel_path);
                     libraries.push(LibraryEntry {

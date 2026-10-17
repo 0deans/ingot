@@ -62,7 +62,7 @@ fn test_scan_screenshot_files_filtering_and_depth() {
     fs::write(sub2.join("sub2.webp"), b"webp").expect("write");
 
     // Depth 1 -> only root.png
-    let files_d1 = scan_screenshot_files(root, 1);
+    let files_d1 = scan_screenshot_files(root, 1).unwrap();
     assert_eq!(files_d1.len(), 1);
     assert_eq!(
         files_d1[0].file_name().and_then(|s| s.to_str()),
@@ -70,11 +70,11 @@ fn test_scan_screenshot_files_filtering_and_depth() {
     );
 
     // Depth 2 -> root.png and sub1.jpg
-    let files_d2 = scan_screenshot_files(root, 2);
+    let files_d2 = scan_screenshot_files(root, 2).unwrap();
     assert_eq!(files_d2.len(), 2);
 
     // Depth 3 -> root.png, sub1.jpg, and sub2.webp
-    let files_d3 = scan_screenshot_files(root, 3);
+    let files_d3 = scan_screenshot_files(root, 3).unwrap();
     assert_eq!(files_d3.len(), 3);
 }
 
@@ -102,38 +102,133 @@ fn test_create_thumbnail_real_image() {
 
 #[test]
 fn test_delete_screenshot_sanitization() {
-    // We create a dummy AppHandle without running Tauri by checking filename sanitization path directly
-    let temp = tempfile::tempdir().expect("tempdir");
-    let cache_dir = temp.path().to_path_buf();
-
-    // Invalid traversal names must fail early before touching app
-    let dummy_app: Option<&tauri::AppHandle<tauri::Wry>> = None;
-    if let Some(app) = dummy_app {
-        let res = delete_screenshot(app, "inst1", "../secret.png");
-        assert!(matches!(res, Err(ScreenshotError::InvalidFilename(_))));
-
-        let res2 = delete_screenshot(app, "inst1", "foo/bar.png");
-        assert!(matches!(res2, Err(ScreenshotError::InvalidFilename(_))));
-
-        let res3 = delete_screenshot(app, "inst1", "foo\\bar.png");
-        assert!(matches!(res3, Err(ScreenshotError::InvalidFilename(_))));
-    } else {
-        // Direct test of invalid filename sanitization
-        let filename = "../secret.png";
-        assert!(filename.contains("..") || filename.contains('/') || filename.contains('\\'));
+    let temp = tempfile::tempdir().unwrap();
+    for name in [
+        "../secret.png",
+        "foo/bar.png",
+        "foo\\bar.png",
+        "file:stream.png",
+        "CON.png",
+    ] {
+        let result = delete_screenshot(&[], temp.path(), "inst1", name);
+        assert!(matches!(result, Err(ScreenshotError::InvalidFilename(_))));
     }
-
-    let _ = cache_dir;
 }
-
 #[test]
+#[ignore = "opt-in discovery smoke test reads installed Bedrock directories"]
 fn test_bedrock_screenshot_dirs_detection() {
     let dirs = get_bedrock_screenshot_dirs();
     for d in &dirs {
-        let files = scan_screenshot_files(d, 3);
+        let files = scan_screenshot_files(d, 3).unwrap();
         assert!(d.exists(), "Detected directory must exist");
         for f in files {
             assert!(f.is_file(), "Scanned item must be a file");
         }
     }
+}
+
+#[test]
+fn corrupt_image_does_not_publish_partial_thumbnail() {
+    let temp = tempfile::tempdir().unwrap();
+    let source = temp.path().join("invalid.png");
+    fs::write(&source, b"invalid image").unwrap();
+    let destination = temp.path().join("cache/thumb.jpg");
+    assert!(matches!(
+        create_thumbnail(&source, &destination),
+        Err(ScreenshotError::Image { .. })
+    ));
+    assert!(!destination.exists());
+}
+
+#[test]
+fn index_validates_thumbnail_identity_and_deletion_cleans_cached_capture() {
+    use super::service::{
+        get_all_screenshots, validate_thumbnail_request, ScreenshotKind, ScreenshotSource,
+    };
+    let temp = tempfile::tempdir().unwrap();
+    let directory = temp.path().join("captures");
+    let cache = temp.path().join("cache");
+    fs::create_dir_all(&directory).unwrap();
+    fs::create_dir_all(&cache).unwrap();
+    let image = directory.join("shot.png");
+    fs::write(
+        &image,
+        b"image bytes are decoded only for thumbnail requests",
+    )
+    .unwrap();
+    fs::write(
+        directory.join("shot.json"),
+        br#"{"captureTime":1700000000}"#,
+    )
+    .unwrap();
+    fs::write(directory.join("shot.mc"), b"companion").unwrap();
+    let sources = vec![ScreenshotSource {
+        instance_id: "bedrock".into(),
+        instance_name: "Bedrock".into(),
+        directory,
+        kind: ScreenshotKind::Bedrock,
+    }];
+    let items = get_all_screenshots(&sources, &cache).unwrap();
+    assert_eq!(items.len(), 1);
+    let item = &items[0];
+    assert_eq!(item.modified_at, 1700000000000);
+    assert!(validate_thumbnail_request(item, &image, item.modified_at).is_ok());
+    assert!(matches!(
+        validate_thumbnail_request(item, &image, item.modified_at + 1),
+        Err(ScreenshotError::StaleMetadata)
+    ));
+    assert!(matches!(
+        validate_thumbnail_request(item, &temp.path().join("outside.png"), item.modified_at),
+        Err(ScreenshotError::StaleMetadata)
+    ));
+    let cached = get_thumbnail_file_path(&cache, "bedrock", "shot.png", item.modified_at);
+    fs::write(&cached, b"cached").unwrap();
+    delete_screenshot(&sources, &cache, "bedrock", "shot.png").unwrap();
+    assert!(!image.exists());
+    assert!(!cached.exists());
+    assert!(!image.with_extension("json").exists());
+    assert!(!image.with_extension("mc").exists());
+}
+
+#[test]
+fn scan_distinguishes_missing_directory_from_invalid_directory() {
+    let temp = tempfile::tempdir().unwrap();
+    assert!(scan_screenshot_files(&temp.path().join("missing"), 3)
+        .unwrap()
+        .is_empty());
+    let file = temp.path().join("not-directory");
+    fs::write(&file, b"file").unwrap();
+    assert!(scan_screenshot_files(&file, 3).is_err());
+}
+
+#[test]
+fn duplicate_bedrock_capture_names_do_not_delete_an_arbitrary_capture() {
+    use super::service::{ScreenshotKind, ScreenshotSource};
+    let temp = tempfile::tempdir().unwrap();
+    let directory = temp.path().join("captures");
+    for user in ["one", "two"] {
+        let user_directory = directory.join(user);
+        fs::create_dir_all(&user_directory).unwrap();
+        fs::write(user_directory.join("shot.png"), user).unwrap();
+    }
+    let sources = vec![ScreenshotSource {
+        instance_id: "bedrock".into(),
+        instance_name: "Bedrock".into(),
+        directory: directory.clone(),
+        kind: ScreenshotKind::Bedrock,
+    }];
+    let result = delete_screenshot(&sources, &temp.path().join("cache"), "bedrock", "shot.png");
+    assert!(matches!(result, Err(ScreenshotError::AmbiguousFilename(_))));
+    assert_eq!(fs::read(directory.join("one/shot.png")).unwrap(), b"one");
+    assert_eq!(fs::read(directory.join("two/shot.png")).unwrap(), b"two");
+}
+
+#[test]
+fn thumbnail_cache_directory_is_not_reported_as_an_existing_image() {
+    let temp = tempfile::tempdir().unwrap();
+    let destination = temp.path().join("thumb.jpg");
+    fs::create_dir(&destination).unwrap();
+    let result = create_thumbnail(&temp.path().join("unused.png"), &destination);
+    assert!(matches!(result, Err(ScreenshotError::Io(_))));
+    assert!(destination.is_dir());
 }

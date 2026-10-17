@@ -182,8 +182,14 @@ pub struct Target {
     /// Files and folders moved into the backup (a server's jar and installed loader):
     /// they're downloaded again for the new version and put back by undo
     pub core_files: Vec<String>,
-    /// Plugins Ingot installed from Hangar: file name -> (project, version, title, icon)
-    pub hangar: HashMap<String, (String, String, String, Option<String>)>,
+    pub hangar: HashMap<String, TrackedHangarPlugin>,
+}
+
+pub struct TrackedHangarPlugin {
+    pub project_id: String,
+    pub version_id: String,
+    pub title: String,
+    pub icon_url: Option<String>,
 }
 
 /// What `check` compares against
@@ -215,6 +221,8 @@ pub enum TransactionPhase {
     #[default]
     Committed,
     RollbackFailed,
+    Restoring,
+    Restored,
 }
 
 #[derive(Debug, Error)]
@@ -251,6 +259,24 @@ pub enum VersionChangeError {
     },
     #[error("Migration failed: {0}. All changes were cleanly rolled back.")]
     RollbackSucceeded(String),
+    #[error("{operation} failed; recovery material retained at {backup_path}: {source}")]
+    Finalization {
+        operation: &'static str,
+        backup_path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Files restored, but metadata commit failed: {message}. Recovery material retained at {backup_path}")]
+    MetadataAfterRestore {
+        message: String,
+        backup_path: PathBuf,
+    },
+    #[error("Files and metadata changed, but journal finalization failed: {source}. Recovery material retained at {backup_path}")]
+    CommitJournal {
+        backup_path: PathBuf,
+        #[source]
+        source: Box<VersionChangeError>,
+    },
     #[error("{0}")]
     Custom(String),
 }
@@ -315,6 +341,11 @@ pub fn safe_file_name(name: &str, kind: ContentKind) -> Result<&str, String> {
 pub fn safe_rel_typed(rel: &str) -> Result<&str, VersionChangeError> {
     let path = Path::new(rel);
     let ok = !rel.is_empty()
+        && !rel.contains([':', '\0'])
+        && !rel.starts_with(['/', '\\'])
+        && rel
+            .split(['/', '\\'])
+            .all(|part| !matches!(part, "" | "." | ".."))
         && path
             .components()
             .all(|c| matches!(c, std::path::Component::Normal(_)));

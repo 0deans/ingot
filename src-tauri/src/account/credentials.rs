@@ -6,7 +6,7 @@ use super::AccountSecrets;
 #[error("{0}")]
 pub(crate) struct VaultFailure(pub(crate) String);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(thiserror::Error)]
 pub(crate) enum CredentialError {
     #[error("Cannot {operation} account credentials")]
     Vault {
@@ -20,6 +20,15 @@ pub(crate) enum CredentialError {
     Encode(#[source] serde_json::Error),
     #[error("No credentials found in OS Keyring")]
     Missing,
+}
+
+impl std::fmt::Debug for CredentialError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("CredentialError")
+            .field("message", &self.to_string())
+            .finish_non_exhaustive()
+    }
 }
 
 pub(crate) trait CredentialStore: Send + Sync {

@@ -44,7 +44,15 @@ struct Manifest {
 }
 
 /// Regenerated automatically, machine-specific, or huge and re-downloadable
-const SKIP_DIRS: [&str; 7] = ["cache", "libraries", "versions", "logs", "crash-reports", "debug", ".ingot"];
+const SKIP_DIRS: [&str; 7] = [
+    "cache",
+    "libraries",
+    "versions",
+    "logs",
+    "crash-reports",
+    "debug",
+    ".ingot",
+];
 const SKIP_FILES: [&str; 5] = [
     "server.jar",
     "bedrock_server.exe",
@@ -53,7 +61,13 @@ const SKIP_FILES: [&str; 5] = [
     "usercache.json",
 ];
 /// Written by the Forge, NeoForge and Quilt installers, which run again after an import
-const INSTALLER_FILES: [&str; 5] = ["quilt-server-launch.jar", "run.bat", "run.sh", "user_jvm_args.txt", "README.txt"];
+const INSTALLER_FILES: [&str; 5] = [
+    "quilt-server-launch.jar",
+    "run.bat",
+    "run.sh",
+    "user_jvm_args.txt",
+    "README.txt",
+];
 /// The one file kept from .ingot: which plugins/mods came from Modrinth or Hangar (for
 /// updates, and to download them again when an export has no jars)
 const TRACKING: &str = ".ingot/plugins.json";
@@ -67,27 +81,55 @@ fn is_world_dir(dir: &Path) -> bool {
     dir.join("level.dat").exists()
         || dir.join("region").is_dir()
         || dir.join("levelname.txt").exists()
-        || dir.file_name().is_some_and(|n| n.to_ascii_lowercase() == "worlds")
+        || dir
+            .file_name()
+            .is_some_and(|n| n.eq_ignore_ascii_case("worlds"))
 }
 
 fn is_config_file(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     // Scripts, quests and old-style configs are how mods are usually set up
-    [".yml", ".yaml", ".json", ".json5", ".toml", ".properties", ".conf", ".txt", ".cfg", ".ini", ".snbt", ".js", ".zs"]
-        .iter()
-        .any(|ext| lower.ends_with(ext))
+    [
+        ".yml",
+        ".yaml",
+        ".json",
+        ".json5",
+        ".toml",
+        ".properties",
+        ".conf",
+        ".txt",
+        ".cfg",
+        ".ini",
+        ".snbt",
+        ".js",
+        ".zs",
+    ]
+    .iter()
+    .any(|ext| lower.ends_with(ext))
         || lower == "server-icon.png"
 }
 
 /// Relative paths (forward slashes) of everything to put in the archive
-fn collect(root: &Path, dir: &Path, mode: ExportMode, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = fs::read_dir(dir) else { return };
-    for entry in entries.flatten() {
+fn collect(
+    root: &Path,
+    dir: &Path,
+    mode: ExportMode,
+    out: &mut Vec<PathBuf>,
+) -> Result<(), String> {
+    let entries = fs::read_dir(dir).map_err(|error| error.to_string())?;
+    for entry in entries {
+        let entry = entry.map_err(|error| error.to_string())?;
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
-        let Ok(kind) = entry.file_type() else { continue };
-        if kind.is_symlink() {
-            continue;
+        let kind = entry.file_type().map_err(|error| error.to_string())?;
+        let relative = path.strip_prefix(root).map_err(|error| error.to_string())?;
+        let relative = relative
+            .to_str()
+            .ok_or_else(|| "Invalid export path encoding".to_string())?;
+        if crate::app::safe_enclosed_path(root, relative).is_none()
+            || (!kind.is_dir() && !kind.is_file())
+        {
+            return Err("Server export contains an unsupported link or special entry".to_string());
         }
         if kind.is_dir() {
             let top_level = dir == root;
@@ -100,7 +142,7 @@ fn collect(root: &Path, dir: &Path, mode: ExportMode, out: &mut Vec<PathBuf>) {
             if mode == ExportMode::Configs && is_world_dir(&path) {
                 continue;
             }
-            collect(root, &path, mode, out);
+            collect(root, &path, mode, out)?;
         } else if !SKIP_FILES.contains(&name.as_str())
             && !name.ends_with(".part")
             && !(dir == root && is_installer_file(&name))
@@ -116,19 +158,29 @@ fn collect(root: &Path, dir: &Path, mode: ExportMode, out: &mut Vec<PathBuf>) {
             }
         }
     }
+    Ok(())
 }
 
 /// Writes the archive and returns its path
-pub fn export(server_dir: &Path, server: &ServerConfig, mode: ExportMode, dest: &Path) -> Result<PathBuf, String> {
+pub fn export(
+    server_dir: &Path,
+    server: &ServerConfig,
+    mode: ExportMode,
+    dest: &Path,
+) -> Result<PathBuf, String> {
     if let Some(parent) = dest.parent() {
-        fs::create_dir_all(parent).map_err(|e| format!("Failed to create {}: {e}", parent.display()))?;
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create {}: {e}", parent.display()))?;
     }
     let mut files = Vec::new();
-    collect(server_dir, server_dir, mode, &mut files);
+    collect(server_dir, server_dir, mode, &mut files)?;
 
-    let tmp = dest.with_extension("zip.part");
+    let parent = dest
+        .parent()
+        .ok_or_else(|| "Archive destination has no parent".to_string())?;
+    let tmp = tempfile::NamedTempFile::new_in(parent).map_err(|error| error.to_string())?;
     let result = (|| -> Result<(), String> {
-        let mut zip = zip::ZipWriter::new(File::create(&tmp).map_err(|e| e.to_string())?);
+        let mut zip = zip::ZipWriter::new(tmp.reopen().map_err(|e| e.to_string())?);
         let options = zip::write::SimpleFileOptions::default()
             .compression_method(zip::CompressionMethod::Deflated)
             .large_file(true);
@@ -143,25 +195,33 @@ pub fn export(server_dir: &Path, server: &ServerConfig, mode: ExportMode, dest: 
             memory_max_mb: server.memory_max_mb,
             mode,
         };
-        zip.start_file(MANIFEST, options).map_err(|e| e.to_string())?;
-        zip.write_all(serde_json::to_string_pretty(&manifest).map_err(|e| e.to_string())?.as_bytes())
+        zip.start_file(MANIFEST, options)
             .map_err(|e| e.to_string())?;
+        zip.write_all(
+            serde_json::to_string_pretty(&manifest)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
 
         for rel in files {
             let name = rel.to_string_lossy().replace('\\', "/");
-            // Files can vanish or be locked while the server runs; skip those
-            let Ok(mut source) = File::open(server_dir.join(&rel)) else { continue };
+            let mut source =
+                File::open(server_dir.join(&rel)).map_err(|error| error.to_string())?;
             zip.start_file(name, options).map_err(|e| e.to_string())?;
             std::io::copy(&mut source, &mut zip).map_err(|e| e.to_string())?;
         }
-        zip.finish().map_err(|e| e.to_string())?;
+        zip.finish()
+            .map_err(|e| e.to_string())?
+            .sync_all()
+            .map_err(|error| error.to_string())?;
         Ok(())
     })();
     if let Err(e) = result {
-        let _ = fs::remove_file(&tmp);
         return Err(format!("Export failed: {e}"));
     }
-    fs::rename(&tmp, dest).map_err(|e| format!("Export failed: {e}"))?;
+    tmp.persist(dest)
+        .map_err(|e| format!("Export failed: {}", e.error))?;
     Ok(dest.to_path_buf())
 }
 
@@ -170,10 +230,24 @@ pub fn export_file_name(server: &ServerConfig, mode: ExportMode) -> String {
     let safe: String = server
         .name
         .chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '-' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect();
-    let kind = if mode == ExportMode::Full { "full" } else { "configs" };
-    format!("{}-{}-{kind}.zip", safe.trim_matches('_'), server.game_version)
+    let kind = if mode == ExportMode::Full {
+        "full"
+    } else {
+        "configs"
+    };
+    format!(
+        "{}-{}-{kind}.zip",
+        safe.trim_matches('_'),
+        server.game_version
+    )
 }
 
 /// Sets server-port in server.properties (copies/imports get their own port)
@@ -181,78 +255,86 @@ fn set_port(server_dir: &Path, port: u16) -> Result<(), String> {
     super::files::write_properties(
         server_dir,
         &[
-            PropertyEntry { key: "server-port".into(), value: port.to_string() },
-            PropertyEntry { key: "query.port".into(), value: port.to_string() },
+            PropertyEntry {
+                key: "server-port".into(),
+                value: port.to_string(),
+            },
+            PropertyEntry {
+                key: "query.port".into(),
+                value: port.to_string(),
+            },
         ],
     )
+    .map_err(String::from)
 }
 
 /// Creates a new server from an exported archive
-pub fn import<R: Runtime>(app: &tauri::AppHandle<R>, archive: &Path) -> Result<ServerConfig, String> {
+pub fn import<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    archive: &Path,
+) -> Result<ServerConfig, String> {
     let file = File::open(archive).map_err(|e| format!("Failed to open archive: {e}"))?;
-    let mut zip = zip::ZipArchive::new(file).map_err(|_| "This is not a valid zip file".to_string())?;
+    let mut zip =
+        zip::ZipArchive::new(file).map_err(|_| "This is not a valid zip file".to_string())?;
     let manifest: Manifest = {
-        let mut entry = zip
-            .by_name(MANIFEST)
-            .map_err(|_| "This zip wasn't exported from Ingot (no ingot-server.json)".to_string())?;
+        let mut entry = zip.by_name(MANIFEST).map_err(|_| {
+            "This zip wasn't exported from Ingot (no ingot-server.json)".to_string()
+        })?;
         let mut raw = String::new();
         entry.read_to_string(&mut raw).map_err(|e| e.to_string())?;
         serde_json::from_str(&raw).map_err(|e| format!("Invalid ingot-server.json: {e}"))?
     };
 
     // Keep names distinguishable when importing a server that already exists here
-    let taken = config::load_servers(app)?.iter().any(|s| s.name == manifest.name);
-    let name = if taken { format!("{} (imported)", manifest.name) } else { manifest.name.clone() };
-    let created = config::create_server(
+    let taken = config::load_servers(app)?
+        .iter()
+        .any(|s| s.name == manifest.name);
+    let name = if taken {
+        format!("{} (imported)", manifest.name)
+    } else {
+        manifest.name.clone()
+    };
+    let created = config::build_unpublished_server(
         app,
         name,
         manifest.core.clone(),
         manifest.game_version.clone(),
         manifest.build_number.clone(),
-        None,
         Some(manifest.memory_min_mb),
         Some(manifest.memory_max_mb),
     )?;
-    let dir = config::get_server_dir(app, &created.id)?;
-
-    for i in 0..zip.len() {
-        let mut entry = zip.by_index(i).map_err(|e| e.to_string())?;
-        // enclosed_name rejects absolute paths and "..", so entries stay inside the folder
-        let Some(rel) = entry.enclosed_name() else { continue };
-        if rel == Path::new(MANIFEST) {
-            continue;
-        }
-        let out = dir.join(rel);
-        if entry.is_dir() {
-            let _ = fs::create_dir_all(&out);
-            continue;
-        }
-        if let Some(parent) = out.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-        }
-        let mut target = File::create(&out).map_err(|e| format!("Failed to write {}: {e}", out.display()))?;
-        std::io::copy(&mut entry, &mut target).map_err(|e| e.to_string())?;
-    }
-    set_port(&dir, created.port)?;
-    Ok(created)
+    let servers_dir = config::get_servers_dir(app)?;
+    let staging = tempfile::tempdir_in(&servers_dir).map_err(|error| error.to_string())?;
+    crate::app::extract_zip_entries(&mut zip, staging.path(), "", Some(MANIFEST))
+        .map_err(|error| error.to_string())?;
+    set_port(staging.path(), created.port)?;
+    config::publish_staged_server(app, created, staging.path())
 }
-
 fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), String> {
     fs::create_dir_all(to).map_err(|e| e.to_string())?;
-    for entry in fs::read_dir(from).map_err(|e| e.to_string())?.flatten() {
+    for entry in fs::read_dir(from).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|error| error.to_string())?;
         let name = entry.file_name();
         let name_str = name.to_string_lossy();
-        let Ok(kind) = entry.file_type() else { continue };
-        if kind.is_symlink() || name_str == "session.lock" || (skip_jar && name_str == "server.jar") {
+        let kind = entry.file_type().map_err(|error| error.to_string())?;
+        if crate::app::safe_enclosed_filename(from, &name_str).is_none()
+            || (!kind.is_dir() && !kind.is_file())
+        {
+            return Err("Server copy contains an unsupported link or special entry".to_string());
+        }
+        if name_str == "session.lock" || (skip_jar && name_str == "server.jar") {
             continue;
         }
         let dest = to.join(&name);
         if kind.is_dir() {
             // Only skip regenerated folders at the top level of the server
-            if from.join("server.properties").exists() && (name_str == "cache" || name_str == "logs" || name_str == ".ingot") {
+            if from.join("server.properties").exists()
+                && (name_str == "cache" || name_str == "logs" || name_str == ".ingot")
+            {
                 if name_str == ".ingot" && from.join(TRACKING).is_file() {
                     fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
-                    fs::copy(from.join(TRACKING), to.join(TRACKING)).map_err(|e| format!("Failed to copy the plugin list: {e}"))?;
+                    fs::copy(from.join(TRACKING), to.join(TRACKING))
+                        .map_err(|e| format!("Failed to copy the plugin list: {e}"))?;
                 }
                 continue;
             }
@@ -274,31 +356,35 @@ pub fn duplicate<R: Runtime>(
     build_number: Option<String>,
 ) -> Result<ServerConfig, String> {
     let version_changes = game_version.is_some_and(|v| v != source.game_version);
-    let mut created = config::create_server(
+    let mut created = config::build_unpublished_server(
         app,
         name.to_string(),
         source.core.clone(),
         game_version.unwrap_or(&source.game_version).to_string(),
-        if version_changes { build_number } else { source.build_number.clone() },
-        None,
+        if version_changes {
+            build_number
+        } else {
+            source.build_number.clone()
+        },
         Some(source.memory_min_mb),
         Some(source.memory_max_mb),
     )?;
     let from = config::get_server_dir(app, &source.id)?;
-    let to = config::get_server_dir(app, &created.id)?;
-    copy_dir(&from, &to, version_changes)?;
+    let parent = config::get_servers_dir(app)?;
+    let staging = tempfile::tempdir_in(parent).map_err(|error| error.to_string())?;
+    let to = staging.path();
+    copy_dir(&from, to, version_changes)?;
     if version_changes {
         // Forge, NeoForge and Quilt install themselves again for the new version
-        super::installer::uninstall(&to, &created.core)?;
+        super::installer::uninstall(to, &created.core)?;
     }
-    set_port(&to, created.port)?;
+    set_port(to, created.port)?;
 
     created.jvm_args = source.jvm_args.clone();
     created.java_path = source.java_path.clone();
     created.sleep_enabled = source.sleep_enabled;
     created.idle_timeout_seconds = source.idle_timeout_seconds;
-    config::update_server(app, created.clone())?;
-    Ok(created)
+    config::publish_staged_server(app, created, staging.path())
 }
 
 #[cfg(test)]
@@ -309,7 +395,14 @@ mod tests {
     fn configs_export_skips_worlds_and_jars() {
         let root = std::env::temp_dir().join(format!("ingot-export-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
-        for dir in ["world/region", "plugins/LuckPerms", "logs", "config/ftbquests", "mods", ".ingot/map"] {
+        for dir in [
+            "world/region",
+            "plugins/LuckPerms",
+            "logs",
+            "config/ftbquests",
+            "mods",
+            ".ingot/map",
+        ] {
             fs::create_dir_all(root.join(dir)).unwrap();
         }
         for file in [
@@ -335,8 +428,11 @@ mod tests {
         }
         let list = |mode| {
             let mut out = Vec::new();
-            collect(&root, &root, mode, &mut out);
-            let mut names: Vec<String> = out.iter().map(|p| p.to_string_lossy().replace('\\', "/")).collect();
+            collect(&root, &root, mode, &mut out).unwrap();
+            let mut names: Vec<String> = out
+                .iter()
+                .map(|p| p.to_string_lossy().replace('\\', "/"))
+                .collect();
             names.sort();
             names
         };
@@ -356,8 +452,13 @@ mod tests {
         assert!(full.contains(&"plugins/LuckPerms.jar".to_string()));
         assert!(full.contains(&"mods/create.jar".to_string()));
         assert!(full.contains(&".ingot/plugins.json".to_string()));
-        assert!(!full.iter().any(|f| f == "server.jar" || f.starts_with("logs/") || f.starts_with(".ingot/map")));
-        assert!(!full.iter().any(|f| f.ends_with("-shim.jar") || f == "quilt-server-launch.jar" || f == "run.bat" || f == "user_jvm_args.txt"));
+        assert!(!full
+            .iter()
+            .any(|f| f == "server.jar" || f.starts_with("logs/") || f.starts_with(".ingot/map")));
+        assert!(!full.iter().any(|f| f.ends_with("-shim.jar")
+            || f == "quilt-server-launch.jar"
+            || f == "run.bat"
+            || f == "user_jvm_args.txt"));
         let _ = fs::remove_dir_all(&root);
     }
 }

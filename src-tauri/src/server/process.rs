@@ -9,5 +9,6 @@ mod tests;
 
 pub use console::clean_console_line;
 pub use lifecycle::launch_server;
+pub(crate) use lifecycle::{claim_server_launch, launch_claimed_server};
 pub use manager::ServerProcessManager;
 pub use models::*;

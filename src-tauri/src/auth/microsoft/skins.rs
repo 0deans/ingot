@@ -1,28 +1,34 @@
 //! Microsoft and Minecraft Services skin upload and change adapter.
 use super::exchange::McProfile;
 use reqwest::{Client, StatusCode};
-use serde::Deserialize;
 use serde_json::json;
 use std::time::Duration;
 
 pub const DEFAULT_MINECRAFT_SERVICES_BASE: &str = "https://api.minecraftservices.com";
 
-#[derive(Debug, thiserror::Error)]
+#[derive(thiserror::Error)]
 pub enum MicrosoftSkinError {
-    #[error("Couldn't reach Minecraft services: {0}")]
+    #[error("Couldn't reach Minecraft services")]
     Transport(#[source] reqwest::Error),
 
-    #[error("Failed to prepare the skin file: {0}")]
+    #[error("Failed to prepare the skin file")]
     Multipart(#[source] reqwest::Error),
-
-    #[error("Minecraft refused the skin: {0}")]
-    Refused(String),
 
     #[error("Minecraft refused the skin (HTTP {0})")]
     HttpStatus(StatusCode),
 
-    #[error("Unexpected response from Minecraft services: {0}")]
+    #[error("Unexpected response from Minecraft services")]
     Response(#[source] reqwest::Error),
+}
+
+impl std::fmt::Debug for MicrosoftSkinError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // A malformed profile can echo credentials in its decode source.
+        formatter
+            .debug_struct("MicrosoftSkinError")
+            .field("message", &self.to_string())
+            .finish()
+    }
 }
 
 impl From<MicrosoftSkinError> for String {
@@ -79,7 +85,7 @@ impl MicrosoftSkinClient {
             }))
             .send()
             .await
-            .map_err(MicrosoftSkinError::Transport)?;
+            .map_err(|error| MicrosoftSkinError::Transport(error.without_url()))?;
 
         active_skin_url(res).await
     }
@@ -94,7 +100,7 @@ impl MicrosoftSkinClient {
         let file = reqwest::multipart::Part::bytes(png)
             .file_name("skin.png")
             .mime_str("image/png")
-            .map_err(MicrosoftSkinError::Multipart)?;
+            .map_err(|error| MicrosoftSkinError::Multipart(error.without_url()))?;
 
         let form = reqwest::multipart::Form::new()
             .text("variant", skin_variant(slim))
@@ -108,7 +114,7 @@ impl MicrosoftSkinClient {
             .multipart(form)
             .send()
             .await
-            .map_err(MicrosoftSkinError::Transport)?;
+            .map_err(|error| MicrosoftSkinError::Transport(error.without_url()))?;
 
         active_skin_url(res).await
     }
@@ -146,25 +152,15 @@ pub(crate) fn skin_variant(slim: bool) -> &'static str {
 
 /// Reads the updated profile a skin change returns, or the reason it was refused.
 async fn active_skin_url(res: reqwest::Response) -> Result<Option<String>, MicrosoftSkinError> {
-    #[derive(Deserialize)]
-    #[serde(rename_all = "camelCase")]
-    struct McError {
-        error_message: Option<String>,
-    }
-
     let status = res.status();
     if !status.is_success() {
-        if let Ok(error_body) = res.json::<McError>().await {
-            if let Some(reason) = error_body.error_message {
-                if !reason.trim().is_empty() {
-                    return Err(MicrosoftSkinError::Refused(reason));
-                }
-            }
-        }
         return Err(MicrosoftSkinError::HttpStatus(status));
     }
 
-    let profile: McProfile = res.json().await.map_err(MicrosoftSkinError::Response)?;
+    let profile: McProfile = res
+        .json()
+        .await
+        .map_err(|error| MicrosoftSkinError::Response(error.without_url()))?;
 
     Ok(profile
         .skins

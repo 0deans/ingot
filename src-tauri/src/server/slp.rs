@@ -73,7 +73,11 @@ fn extract_motd_text(desc_val: &serde_json::Value) -> String {
         return s.to_string();
     }
     if let Some(obj) = desc_val.as_object() {
-        let mut text = obj.get("text").and_then(|t| t.as_str()).unwrap_or("").to_string();
+        let mut text = obj
+            .get("text")
+            .and_then(|t| t.as_str())
+            .unwrap_or("")
+            .to_string();
         if let Some(extra) = obj.get("extra").and_then(|e| e.as_array()) {
             for item in extra {
                 text.push_str(&extract_motd_text(item));
@@ -86,7 +90,7 @@ fn extract_motd_text(desc_val: &serde_json::Value) -> String {
 
 pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, String> {
     let addr = format!("{}:{}", host, port);
-    
+
     // Connect with a 1.5-second timeout
     let stream_res = timeout(Duration::from_millis(1500), TcpStream::connect(&addr)).await;
     let mut stream = match stream_res {
@@ -103,15 +107,15 @@ pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, St
     // Fields: Packet ID (0x00), Protocol Version (VarInt -1 = 47 or 765), Server Address (String), Server Port (u16), Next State (VarInt 1 = status)
     let mut handshake_data = Vec::new();
     write_varint(&mut handshake_data, 0x00); // packet id 0
-    write_varint(&mut handshake_data, 765);  // protocol version (1.20+)
-    
+    write_varint(&mut handshake_data, 765); // protocol version (1.20+)
+
     // Server host string
     write_varint(&mut handshake_data, host.len() as i32);
     handshake_data.extend_from_slice(host.as_bytes());
-    
+
     // Server port (u16 be)
     handshake_data.extend_from_slice(&port.to_be_bytes());
-    
+
     // Next state: 1 (status)
     write_varint(&mut handshake_data, 1);
 
@@ -154,8 +158,8 @@ pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, St
     let raw_str = String::from_utf8(json_bytes)
         .map_err(|e| format!("Invalid UTF-8 in status response: {e}"))?;
 
-    let json_val: serde_json::Value = serde_json::from_str(&raw_str)
-        .map_err(|e| format!("Failed to parse status JSON: {e}"))?;
+    let json_val: serde_json::Value =
+        serde_json::from_str(&raw_str).map_err(|e| format!("Failed to parse status JSON: {e}"))?;
 
     let version_name = json_val
         .get("version")
@@ -228,7 +232,8 @@ pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, S
         .map_err(|e| format!("Failed to bind UDP socket: {e}"))?;
 
     let target_addr = format!("{host}:{port}");
-    socket.connect(&target_addr)
+    socket
+        .connect(&target_addr)
         .await
         .map_err(|e| format!("Failed to connect UDP to {target_addr}: {e}"))?;
 
@@ -242,12 +247,13 @@ pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, S
     packet.push(0x01); // ID_UNCONNECTED_PING
     packet.extend_from_slice(&time_ms.to_be_bytes());
     packet.extend_from_slice(&[
-        0x00, 0xff, 0xff, 0x00, 0xfe, 0xfe, 0xfe, 0xfe,
-        0xfd, 0xfd, 0xfd, 0xfd, 0x12, 0x34, 0x56, 0x78,
+        0x00, 0xff, 0xff, 0x00, 0xfe, 0xfe, 0xfe, 0xfe, 0xfd, 0xfd, 0xfd, 0xfd, 0x12, 0x34, 0x56,
+        0x78,
     ]); // RakNet offline magic
     packet.extend_from_slice(&0x0123456789abcdefu64.to_be_bytes()); // Client GUID
 
-    socket.send(&packet)
+    socket
+        .send(&packet)
         .await
         .map_err(|e| format!("Failed to send Bedrock ping: {e}"))?;
 
@@ -271,10 +277,19 @@ pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, S
 
     let parts: Vec<&str> = str_data.split(';').collect();
     let motd = parts.get(1).unwrap_or(&"Bedrock Server").to_string();
-    let protocol = parts.get(2).and_then(|p| p.parse::<i32>().ok()).unwrap_or(0);
+    let protocol = parts
+        .get(2)
+        .and_then(|p| p.parse::<i32>().ok())
+        .unwrap_or(0);
     let version_name = parts.get(3).unwrap_or(&"Bedrock").to_string();
-    let online_players = parts.get(4).and_then(|o| o.parse::<u32>().ok()).unwrap_or(0);
-    let max_players = parts.get(5).and_then(|m| m.parse::<u32>().ok()).unwrap_or(10);
+    let online_players = parts
+        .get(4)
+        .and_then(|o| o.parse::<u32>().ok())
+        .unwrap_or(0);
+    let max_players = parts
+        .get(5)
+        .and_then(|m| m.parse::<u32>().ok())
+        .unwrap_or(10);
 
     Ok(ServerPingResponse {
         version: ServerVersionInfo {
@@ -291,4 +306,3 @@ pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, S
         ping_ms,
     })
 }
-

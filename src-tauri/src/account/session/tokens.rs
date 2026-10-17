@@ -12,13 +12,17 @@ impl SessionService<'_> {
             .find(|profile| profile.is_active)
             .ok_or(SessionError::NoActiveAccount)?
             .id;
-        let operation = self.operations.acquire(&id).await?;
+        self.token_for(&id).await
+    }
+
+    pub(crate) async fn token_for(&self, id: &str) -> Result<String, SessionError> {
+        let operation = self.operations.acquire(id).await?;
         // Re-read after waiting: removal or re-login may have completed.
-        let profile = self.profile(&id)?;
+        let profile = self.profile(id)?;
         if profile.account_type == "offline" {
             return Ok("offline".to_owned());
         }
-        let secrets = credentials::load(self.credentials, &id)?;
+        let secrets = credentials::load(self.credentials, id)?;
         if profile.account_type == "microsoft" {
             return self
                 .microsoft_access_token(&profile, secrets, &operation)
@@ -47,7 +51,7 @@ impl SessionService<'_> {
             self.repository,
             &operation,
             &secrets,
-            ProfileChange::Keep { id },
+            ProfileChange::Keep { id: id.to_string() },
         )?;
         Ok(secrets.access_token)
     }

@@ -63,7 +63,21 @@ pub struct ImportReport {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum ImportError {
+pub(crate) enum ImportError {
+    #[error("Import source must not contain the destination instances directory")]
+    OverlappingPaths,
+    #[error("Import background task failed")]
+    Task(#[from] tokio::task::JoinError),
+
+    #[error("Import metadata publication failed: {0}")]
+    Metadata(#[source] crate::minecraft::metadata::MetadataError),
+
+    #[error("{primary}; import staging cleanup also failed: {cleanup}")]
+    Cleanup {
+        #[source]
+        primary: Box<ImportError>,
+        cleanup: std::io::Error,
+    },
     #[error("Source directory does not exist: {0}")]
     SourceNotFound(String),
 

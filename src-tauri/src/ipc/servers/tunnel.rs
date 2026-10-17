@@ -15,7 +15,8 @@ pub trait ServerTunnelApi {
         secret_key: Option<String>,
     ) -> Result<PlayitTunnelStatus, ApiError>;
 
-    async fn stop_playit_tunnel(app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), ApiError>;
+    async fn stop_playit_tunnel(app_handle: tauri::AppHandle<impl Runtime>)
+        -> Result<(), ApiError>;
 
     async fn get_playit_status(
         app_handle: tauri::AppHandle<impl Runtime>,

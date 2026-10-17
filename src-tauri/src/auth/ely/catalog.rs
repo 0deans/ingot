@@ -74,7 +74,7 @@ pub(crate) async fn fetch_catalog(
         .header("X-Requested-With", "XMLHttpRequest")
         .send()
         .await
-        .map_err(ElyError::Transport)?;
+        .map_err(|error| ElyError::Transport(error.without_url()))?;
 
     if !res.status().is_success() {
         return Err(ElyError::HttpStatus(res.status()));
@@ -83,7 +83,7 @@ pub(crate) async fn fetch_catalog(
     let raw = res
         .json::<ElyRawCatalogResponse>()
         .await
-        .map_err(ElyError::ParseCatalog)?;
+        .map_err(|error| ElyError::ParseCatalog(error.without_url()))?;
 
     let items = raw
         .items

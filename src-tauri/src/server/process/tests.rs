@@ -135,7 +135,7 @@ async fn test_pending_query_guard_drop_decrements_immediately() {
     assert_eq!(pending.load(std::sync::atomic::Ordering::SeqCst), 0);
 }
 
-#[tokio::test]
+#[tokio::test(start_paused = true)]
 async fn test_pending_query_guard_complete_delayed() {
     let pending = Arc::new(std::sync::atomic::AtomicUsize::new(0));
     let guard = super::models::PendingQueryGuard::new(pending.clone());
@@ -145,7 +145,187 @@ async fn test_pending_query_guard_complete_delayed() {
     // Immediately after complete_delayed, still 1 due to delay
     assert_eq!(pending.load(std::sync::atomic::Ordering::SeqCst), 1);
 
-    tokio::time::sleep(Duration::from_millis(80)).await;
+    tokio::task::yield_now().await;
+    tokio::time::advance(Duration::from_millis(50)).await;
+    tokio::task::yield_now().await;
     // After delay, background task has decremented it
     assert_eq!(pending.load(std::sync::atomic::Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
+async fn maintenance_excludes_server_start_and_releases_ownership() {
+    let manager = ServerProcessManager::new();
+    let maintenance = manager.reserve_maintenance("server").await.unwrap();
+    assert!(manager.try_claim_starting("server").is_err());
+    assert!(manager.reserve_maintenance("server").await.is_err());
+    drop(maintenance);
+    let starting = manager.try_claim_starting("server").unwrap();
+    assert!(manager.reserve_maintenance("server").await.is_err());
+    drop(starting);
+    manager
+        .set_server_status("server", ServerStatus::Sleeping)
+        .await;
+    assert!(manager.reserve_maintenance("server").await.is_err());
+    assert!(!manager.is_starting("server"));
+}
+
+async fn server_fixture(pid: u32) -> super::models::ActiveServer {
+    use super::models::ActiveServer;
+    use std::sync::atomic::{AtomicBool, AtomicUsize};
+    use tokio::sync::Mutex;
+    let mut fixture = tokio::process::Command::new(std::env::current_exe().unwrap());
+    fixture
+        .arg("--list")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .kill_on_drop(true);
+    let mut child = fixture.spawn().unwrap();
+    let stdin = child.stdin.take().unwrap();
+    child.wait().await.unwrap();
+    let (line_tx, _) = tokio::sync::broadcast::channel(4);
+    ActiveServer {
+        server_id: "server".into(),
+        core: crate::server::ServerCoreType::Paper,
+        pid,
+        port: 25565,
+        started_at: 0,
+        status: ServerStatus::Running,
+        stdin: Arc::new(Mutex::new(stdin)),
+        log_history: Arc::new(Mutex::new(Vec::new())),
+        online_players: Arc::new(Mutex::new(Vec::new())),
+        player_xuids: Arc::new(Mutex::new(std::collections::HashMap::new())),
+        line_tx,
+        query_lock: Arc::new(Mutex::new(())),
+        pending_queries: Arc::new(AtomicUsize::new(0)),
+        ready: Arc::new(AtomicBool::new(true)),
+    }
+}
+
+#[tokio::test]
+async fn stale_exit_does_not_remove_replacement_server() {
+    let server = server_fixture(20).await;
+    let manager = ServerProcessManager::new();
+    manager.insert_server(server).await;
+    assert!(!manager.remove_if_pid_matches("server", 10).await);
+    assert!(manager.owns("server", 20).await);
+    assert!(manager.remove_if_pid_matches("server", 20).await);
+    assert_eq!(
+        manager.get_server_status("server").await,
+        ServerStatus::Stopped
+    );
+}
+
+#[tokio::test]
+async fn stale_stopped_observation_cannot_start_over_a_published_server() {
+    let manager = ServerProcessManager::new();
+    assert_eq!(
+        manager.get_server_status("server").await,
+        ServerStatus::Stopped
+    );
+    manager.insert_server(server_fixture(20).await).await;
+    assert!(matches!(
+        manager.claim_launch("server").await,
+        Err(super::models::ProcessError::AlreadyRunning)
+    ));
+    assert!(!manager.is_starting("server"));
+    assert!(manager.owns("server", 20).await);
+}
+
+#[tokio::test]
+async fn server_claim_reads_latest_metadata_and_releases_missing_target() {
+    use crate::minecraft::metadata::MetadataRepository;
+    let directory = tempfile::tempdir().unwrap();
+    let repository = MetadataRepository::new(directory.path().join("servers.json"));
+    let config: crate::server::config::ServerConfig = serde_json::from_value(serde_json::json!({
+        "id": "server", "name": "Fixture", "core": "paper", "gameVersion": "1.20", "port": 25565,
+        "createdAt": 0, "memoryMinMb": 1024, "memoryMaxMb": 2048
+    }))
+    .unwrap();
+    repository
+        .update(|records| {
+            records.push(config);
+            Ok(())
+        })
+        .unwrap();
+    let manager = ServerProcessManager::new();
+    let maintenance = manager.reserve_maintenance("server").await.unwrap();
+    assert!(
+        super::lifecycle::claim_server_from_repository(&repository, &manager, "server")
+            .await
+            .is_err()
+    );
+    repository
+        .update(|records| {
+            records[0].game_version = "1.21".into();
+            Ok(())
+        })
+        .unwrap();
+    drop(maintenance);
+    let claimed = super::lifecycle::claim_server_from_repository(&repository, &manager, "server")
+        .await
+        .unwrap();
+    assert_eq!(claimed.config.game_version, "1.21");
+    drop(claimed);
+    repository
+        .update(|records| {
+            records.clear();
+            Ok(())
+        })
+        .unwrap();
+    assert!(
+        super::lifecycle::claim_server_from_repository(&repository, &manager, "server")
+            .await
+            .is_err()
+    );
+    assert!(!manager.is_starting("server"));
+}
+
+#[tokio::test(start_paused = true)]
+async fn stop_timeout_does_not_kill_a_replacement_process() {
+    use std::future::{poll_fn, Future};
+    use std::task::Poll;
+    let manager = ServerProcessManager::new();
+    manager.insert_server(server_fixture(10).await).await;
+    let killed = std::sync::atomic::AtomicU32::new(0);
+    let mut timeout = Box::pin(super::manager::force_stop_after_timeout(
+        &manager.servers,
+        "server",
+        10,
+        Duration::from_secs(1),
+        |pid| {
+            killed.store(pid, std::sync::atomic::Ordering::SeqCst);
+        },
+    ));
+    assert!(poll_fn(|cx| Poll::Ready(timeout.as_mut().poll(cx).is_pending())).await);
+    manager.servers.lock().await.get_mut("server").unwrap().pid = 20;
+    tokio::time::advance(Duration::from_secs(1)).await;
+    timeout.await;
+    assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 0);
+    assert!(manager.owns("server", 20).await);
+}
+
+#[tokio::test(start_paused = true)]
+async fn stop_timeout_kills_only_the_original_process_at_deadline() {
+    use std::future::{poll_fn, Future};
+    use std::task::Poll;
+    let manager = ServerProcessManager::new();
+    manager.insert_server(server_fixture(10).await).await;
+    let killed = std::sync::atomic::AtomicU32::new(0);
+    let mut timeout = Box::pin(super::manager::force_stop_after_timeout(
+        &manager.servers,
+        "server",
+        10,
+        Duration::from_secs(1),
+        |pid| {
+            killed.store(pid, std::sync::atomic::Ordering::SeqCst);
+        },
+    ));
+    assert!(poll_fn(|cx| Poll::Ready(timeout.as_mut().poll(cx).is_pending())).await);
+    tokio::time::advance(Duration::from_millis(999)).await;
+    assert!(poll_fn(|cx| Poll::Ready(timeout.as_mut().poll(cx).is_pending())).await);
+    assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 0);
+    tokio::time::advance(Duration::from_millis(1)).await;
+    timeout.await;
+    assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 10);
 }

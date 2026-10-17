@@ -1,5 +1,6 @@
+use crate::app::screenshots;
 use crate::ipc::ApiError;
-use crate::minecraft::screenshots::{self, ScreenshotInfo};
+use crate::minecraft::screenshots::{reveal_screenshot_file, ScreenshotInfo};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "instances.screenshots")]
@@ -39,7 +40,9 @@ impl InstanceScreenshotsApi for InstanceScreenshotsApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<ScreenshotInfo>, ApiError> {
-        screenshots::get_all_screenshots(&app_handle).map_err(ApiError::from)
+        screenshots::get_all_screenshots(&app_handle)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn get_screenshot_thumbnail(
@@ -50,27 +53,25 @@ impl InstanceScreenshotsApi for InstanceScreenshotsApiImpl {
         file_path: String,
         modified_at: u64,
     ) -> Result<String, ApiError> {
-        tokio::task::spawn_blocking(move || {
-            screenshots::get_or_create_thumbnail(
-                &app_handle,
-                &instance_id,
-                &file_name,
-                &file_path,
-                modified_at,
-            )
-        })
+        screenshots::get_or_create_thumbnail(
+            &app_handle,
+            instance_id,
+            file_name,
+            file_path,
+            modified_at,
+        )
         .await
-        .map_err(ApiError::from_display)?
         .map_err(ApiError::from)
     }
-
     async fn delete_screenshot(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
         file_name: String,
     ) -> Result<(), ApiError> {
-        screenshots::delete_screenshot(&app_handle, &instance_id, &file_name).map_err(ApiError::from)
+        screenshots::delete_screenshot(&app_handle, &instance_id, &file_name)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn open_screenshots_folder(
@@ -83,6 +84,6 @@ impl InstanceScreenshotsApi for InstanceScreenshotsApiImpl {
     }
 
     async fn reveal_screenshot_file(self, file_path: String) -> Result<(), ApiError> {
-        screenshots::reveal_screenshot_file(&file_path).map_err(ApiError::from)
+        reveal_screenshot_file(&file_path).map_err(ApiError::from)
     }
 }

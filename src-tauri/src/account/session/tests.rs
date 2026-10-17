@@ -692,3 +692,32 @@ mod pending_login_tests;
 
 #[path = "resume_tests.rs"]
 mod resume_tests;
+
+#[tokio::test]
+async fn requested_account_token_does_not_follow_later_active_selection() {
+    let context = Context::new();
+    let microsoft_id = context.add("microsoft", 1301);
+    let ownership = context.operations.acquire(&microsoft_id).await.unwrap();
+    let service = context.service();
+    let mut requested = Box::pin(service.token_for(&microsoft_id));
+    assert!(poll_fn(|cx| Poll::Ready(requested.as_mut().poll(cx).is_pending())).await);
+    let ely_id = context.add("ely", 1301);
+    context.credentials.put(
+        &ely_id,
+        &serde_json::to_string(&AccountSecrets {
+            access_token: "ely-access".into(),
+            ..Default::default()
+        })
+        .unwrap(),
+    );
+    drop(ownership);
+    assert_eq!(requested.await.unwrap(), "old-access");
+    assert_eq!(
+        context.service().active_token().await.unwrap(),
+        "ely-access"
+    );
+    assert!(matches!(
+        context.service().token_for("microsoft:missing").await,
+        Err(SessionError::AccountNotFound)
+    ));
+}

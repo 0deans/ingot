@@ -1,4 +1,4 @@
-use super::models::{ConfigError, ServerConfig, ServerCoreType};
+use super::models::{PortError, ServerConfig, ServerCoreType};
 
 /// Internal loopback port offset (+10000, or -10000 for high ports) so consecutive
 /// public ports like 25565, 25566, 25567 never collide with each other.
@@ -43,12 +43,12 @@ pub fn check_port_typed(
     servers: &[ServerConfig],
     server_id: &str,
     port: u16,
-) -> Result<(), ConfigError> {
-    if port < 1024 {
-        return Err(ConfigError::InvalidPortRange);
+) -> Result<(), PortError> {
+    if !(1024..=65534).contains(&port) {
+        return Err(PortError::InvalidPortRange);
     }
     match port_owner(servers, server_id, port) {
-        Some(other) => Err(ConfigError::PortInUse {
+        Some(other) => Err(PortError::PortInUse {
             port,
             owner: other.name.clone(),
             suggested: free_port(servers, server_id),

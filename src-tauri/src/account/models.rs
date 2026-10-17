@@ -12,7 +12,7 @@ pub struct AccountProfile {
     pub created_at: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountSecrets {
     pub access_token: String,
@@ -27,9 +27,39 @@ pub struct AccountSecrets {
     pub expires_at: Option<u64>,
 }
 
+impl std::fmt::Debug for AccountSecrets {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("AccountSecrets")
+            .field("expires_at", &self.expires_at)
+            .finish_non_exhaustive()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn credential_debug_does_not_expose_secrets() {
+        let secrets = AccountSecrets {
+            access_token: "private-access".into(),
+            client_token: "private-client".into(),
+            password: Some("private-password".into()),
+            refresh_token: Some("private-refresh".into()),
+            expires_at: Some(42),
+        };
+        let debug = format!("{secrets:?}");
+        for secret in [
+            "private-access",
+            "private-client",
+            "private-password",
+            "private-refresh",
+        ] {
+            assert!(!debug.contains(secret));
+        }
+        assert!(debug.contains("42"));
+    }
 
     #[test]
     fn profile_json_retains_provider_ids_camel_case_and_all_metadata() {

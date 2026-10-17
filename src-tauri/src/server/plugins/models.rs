@@ -163,37 +163,51 @@ pub enum PluginError {
     #[error("Not a plugin file: {0}")]
     InvalidJarName(String),
     #[error("Failed to create HTTP client: {0}")]
-    HttpClient(String),
+    HttpClient(#[source] reqwest::Error),
     #[error("HTTP request failed: {0}")]
-    RequestFailed(String),
-    #[error("{0} returned HTTP {1}")]
-    HttpStatus(String, reqwest::StatusCode),
-    #[error("Invalid response from {0}: {1}")]
-    InvalidResponse(String, String),
-    #[error("Download failed: {0}")]
-    Download(String),
+    RequestFailed(#[source] reqwest::Error),
+    #[error("Provider returned HTTP {0}")]
+    HttpStatus(reqwest::StatusCode),
+    #[error("Invalid provider response: {0}")]
+    InvalidResponse(#[source] reqwest::Error),
+    #[error("Provider response missing or invalid field: {0}")]
+    InvalidPayload(&'static str),
     #[error("{title} has no downloadable version for Minecraft {game_version}")]
     NoCompatibleVersion { title: String, game_version: String },
     #[error("{0} must be downloaded from its website")]
     ManualDownloadRequired(String),
-    #[error("Publication failed: {primary}. Rollback failed: {rollback}. Previous version is retained at {backup}")]
+    #[error("Downloaded plugin is empty")]
+    EmptyDownload,
+    #[error("Publication failed: {primary}. Rollback failed: {rollback:?}. Previous version is retained at {backup:?}")]
     PublicationRollbackFailed {
-        primary: String,
-        rollback: String,
-        backup: String,
+        #[source]
+        primary: Box<PluginError>,
+        rollback: Vec<std::io::Error>,
+        backup: Option<std::path::PathBuf>,
     },
     #[error("Publication failed: {primary}. Previous version was restored.")]
     PublicationFailed {
-        primary: String,
+        #[source]
+        primary: Box<PluginError>,
+    },
+    #[error("Plugin was published but obsolete-file cleanup failed at {path}: {source}")]
+    Cleanup {
+        path: std::path::PathBuf,
+        #[source]
+        source: std::io::Error,
     },
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
-    #[error("{0}")]
-    Other(String),
+    #[error("Plugin tracking error: {0}")]
+    Tracking(#[from] super::tracking::TrackingError),
+    #[error("Invalid JSON: {0}")]
+    Json(#[from] serde_json::Error),
+    #[error("Plugin blocking task failed: {0}")]
+    Task(#[from] tokio::task::JoinError),
 }
 
 impl From<PluginError> for String {
-    fn from(e: PluginError) -> Self {
-        e.to_string()
+    fn from(error: PluginError) -> Self {
+        error.to_string()
     }
 }

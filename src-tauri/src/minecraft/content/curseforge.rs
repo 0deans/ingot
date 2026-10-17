@@ -318,10 +318,9 @@ impl CurseForgeClient {
                                     }
                                 } else if !v.eq_ignore_ascii_case("client")
                                     && !v.eq_ignore_ascii_case("server")
+                                    && !game_versions.contains(&v)
                                 {
-                                    if !game_versions.contains(&v) {
-                                        game_versions.push(v);
-                                    }
+                                    game_versions.push(v);
                                 }
                             }
                         }
@@ -499,10 +498,10 @@ impl CurseForgeClient {
                                     if !loaders.contains(&gv_lower) {
                                         loaders.push(gv_lower);
                                     }
-                                } else if gv.chars().next().is_some_and(|c| c.is_ascii_digit()) {
-                                    if !game_versions.contains(gv) {
-                                        game_versions.push(gv.clone());
-                                    }
+                                } else if gv.chars().next().is_some_and(|c| c.is_ascii_digit())
+                                    && !game_versions.contains(gv)
+                                {
+                                    game_versions.push(gv.clone());
                                 }
                             }
                         }

@@ -4,7 +4,9 @@ use crate::minecraft::instance::InstanceConfig;
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "content")]
+#[allow(clippy::too_many_arguments)]
 pub trait ContentApi {
+    #[allow(clippy::too_many_arguments)]
     async fn search_content(
         source: String,
         project_type: String,

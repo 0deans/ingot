@@ -172,22 +172,6 @@ fn test_extract_zip_overrides() {
             .expect("start_file");
         zip.write_all(b"ignore").expect("write");
 
-        zip.start_file("overrides/../escape.txt", options)
-            .expect("start_file");
-        zip.write_all(b"escape").expect("write");
-
-        zip.start_file("overrides/../../escape_parent.txt", options)
-            .expect("start_file");
-        zip.write_all(b"escape").expect("write");
-
-        zip.start_file("overrides/stream.txt:stream", options)
-            .expect("start_file");
-        zip.write_all(b"escape").expect("write");
-
-        zip.start_file("overrides/trailing_dot.", options)
-            .expect("start_file");
-        zip.write_all(b"escape").expect("write");
-
         zip.finish().expect("finish");
     }
 

@@ -1,9 +1,9 @@
+pub mod account;
 mod app;
-mod settings;
+pub mod auth;
 #[cfg(test)]
 mod ipc_contract;
-pub mod account;
-pub mod auth;
+mod settings;
 /// User agent for all HTTP requests; the version comes from Cargo.toml at build time
 pub const USER_AGENT: &str = concat!(
     "Ingot-Launcher/",
@@ -17,9 +17,9 @@ pub mod minecraft;
 pub mod running;
 pub mod server;
 pub mod system;
-pub mod version_change;
 #[cfg(desktop)]
 pub mod tray;
+pub mod version_change;
 
 use tauri::Manager;
 
@@ -66,7 +66,10 @@ pub fn run() {
             _app.manage(app::AppState::new(paths)?);
             #[cfg(desktop)]
             {
-                if let Err(e) = _app.handle().plugin(tauri_plugin_updater::Builder::new().build()) {
+                if let Err(e) = _app
+                    .handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())
+                {
                     eprintln!("[Updater] Failed to initialize updater plugin: {e}");
                 }
                 if let Err(e) = tray::setup_tray(_app.handle()) {
@@ -75,7 +78,9 @@ pub fn run() {
             }
             // Games still running from last time show as running again
             let handle = _app.handle().clone();
-            tauri::async_runtime::spawn(async move { app::lifecycle::adopt_running_games(&handle).await });
+            tauri::async_runtime::spawn(async move {
+                app::lifecycle::adopt_running_games(&handle).await
+            });
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -94,7 +99,10 @@ pub fn run() {
         .run(|_app, _event| {
             // Any other way out (the tray, the launcher closing itself) goes through the same check
             #[cfg(desktop)]
-            if let tauri::RunEvent::ExitRequested { api, code: Some(_), .. } = _event {
+            if let tauri::RunEvent::ExitRequested {
+                api, code: Some(_), ..
+            } = _event
+            {
                 if !app::lifecycle::is_quitting(_app) {
                     api.prevent_exit();
                     app::lifecycle::request_quit(_app);
@@ -102,5 +110,3 @@ pub fn run() {
             }
         });
 }
-
-

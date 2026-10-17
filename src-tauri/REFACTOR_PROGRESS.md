@@ -985,3 +985,142 @@ Verification on Windows:
 - Biome code check: `npx biome check src`: **Checked 146 files. No fixes applied (0 errors)**.
 - Strict code style adherence: zero TypeScript `any`, block arrow functions with explicit returns, no manual edits to `src/bindings.ts`.
 - Working tree hygiene: all changes kept unstaged; no Git actions performed; no `.md` files created.
+
+---
+
+**Phase 7: Maintainability, Lint Enforcement & Quality Gates — 2026-10-14**
+
+Scope: repository-wide lint debt resolution in `src-tauri` (`ipc/`, `minecraft/`, `server/`, `version_change/`), format compliance on touched modules, binding contract validation, and clean verification gates.
+
+Implemented:
+
+1. **Complete Clippy Lint Debt Resolution**:
+   - `src/ipc/content.rs`, `src/ipc/servers/plugins.rs`, `src/ipc/servers/mod.rs`: marked TauRPC procedure traits and methods with explicit `#[allow(clippy::too_many_arguments)]` matching their macro-generated IPC contracts.
+   - `src/minecraft/content/curseforge.rs`: collapsed nested `if` statements into single conditional blocks.
+   - `src/minecraft/content.rs`: marked `search_content` with `#[allow(clippy::too_many_arguments)]` and converted manual comparator sort to `sort_by_key(|a| std::cmp::Reverse(a.downloads))`.
+   - `src/minecraft/downloader.rs`: introduced `pub type BatchProgressCallback` to reduce closure type complexity in `download_files_concurrent`.
+   - `src/minecraft/instance.rs`: derived `Default` on `ModLoaderType` with `#[default]` on `Vanilla` (removed redundant manual `impl Default`), and converted world sort to `sort_by_key`.
+   - `src/minecraft/java.rs`: introduced `pub type JavaProgressFn` to reduce closure type complexity in `ensure_java_runtime`.
+   - `src/server/proxy.rs`: simplified numeric boundary check to `!(0..=32767).contains(&length)` and simplified match to `matches!(wake_result, Ok(Ok(true)))`.
+   - `src/server/storage.rs`: converted storage sum sort to `sort_by_key`.
+   - `src/server/transfer.rs`: converted world folder check to `.eq_ignore_ascii_case("worlds")`.
+   - `src/version_change/sources.rs`: replaced `chunks_exact(4)` with `as_chunks::<4>()` and converted file date sort to `sort_by_key`.
+   - `src/version_change/transaction.rs`: replaced byte-offset string slicing with safe component-by-component matching (`components_match`) and component traversal in `strip_contained_root` on Windows, eliminating panics on multibyte Unicode paths.
+
+2. **Binding Contract & Quality Gates**:
+   - Regenerated and checked bindings freshness: `ipc_contract::generated_bindings_match_the_committed_contract` passes.
+   - Passed `cargo clippy --all-targets --locked --offline -- -D warnings` with 0 warnings.
+   - Formatted all touched files with `rustfmt --edition 2021`.
+
+Verification on Windows:
+
+- Clippy check: `cargo clippy --all-targets --locked --offline -- -D warnings`: **PASSED (0 warnings, 0 errors)**.
+- Full Rust test suite: `cargo test --all-targets --locked --offline`: **363 passed, 0 failed, 12 ignored, 0 filtered out**. No skip filters or --lib restrictions applied.
+- Binding contract freshness: `cargo test --lib --locked ipc_contract::generated_bindings_match_the_committed_contract`: **PASSED**.
+- Node IPC routing tests: `node tests/ipc-routing.test.mjs`: **10 passed, 0 failed**.
+- TypeScript typecheck: `npx tsc --noEmit`: **PASSED (0 errors)**.
+- Biome code check: `npx biome check src`: **Checked 146 files. No fixes applied (0 errors)**.
+- Git whitespace check: `git diff --check`: **PASSED (0 errors)**.
+- Strict code style adherence: zero TypeScript `any`, block arrow functions with explicit returns, no manual edits to `src/bindings.ts`.
+- Working tree hygiene: all changes kept unstaged; no Git actions performed; no `.md` files created.
+
+---
+
+**Phase 5 Refinements & CI Workflow Gates — 2026-10-14**
+
+Scope: configure CI workflow to enforce formatting and Clippy across all supported platforms, synchronize status in `RUST_REFACTOR_PLAN.md`, decompose `minecraft/downloader.rs` test suite, and extract launcher domain modules (`rules.rs`, `classpath.rs`, and argument builders).
+
+Implemented:
+
+1. **CI Quality Gates Configuration (`.github/workflows/ci.yml`)**:
+   - Added `components: clippy, rustfmt` to `Setup Rust toolchain` in the multiplatform matrix job (`ubuntu-22.04`, `windows-latest`, `macos-latest`).
+   - Added `Check formatting` step (`cargo fmt --all -- --check`) and `Clippy lint check` step (`cargo clippy --all-targets --locked -- -D warnings`) before `cargo test --all-targets --locked`.
+
+2. **Downloader Modularization (`src-tauri/src/minecraft/downloader.rs`)**:
+   - Extracted 617 lines of unit and asynchronous cancellation tests into dedicated submodule `src/minecraft/downloader/tests.rs`.
+   - Reduced `downloader.rs` to 687 lines containing purely production download and cache-checking logic.
+
+3. **Launcher Pure Domain Extractions**:
+   - **OS & Architecture Rules (`src-tauri/src/minecraft/launcher/rules.rs`)**: Extracted `OsRule`, `RuleEntry`, `current_os_name`, `current_arch_name`, `check_rules_for_target`, `check_rules`, and `should_include_library_rules` into a pure, testable domain module. Re-exported in `version.rs` for compatibility. Added unit tests for allow/disallow overrides, target arch, and OS matching.
+   - **Classpath Calculation (`src-tauri/src/minecraft/launcher/classpath.rs`)**: Pure domain module for `default_classpath_separator`, `maven_coordinate_to_path`, `resolve_library_path`, `build_classpath_string`, and `assemble_classpath`. Re-exported in `version.rs` and consumed by `prepare.rs` and `service.rs`. Added unit tests for separator handling, client JAR ordering, and Maven coordinate conversions.
+   - **Argument Builders & Window Settings (`src-tauri/src/minecraft/launcher/arguments.rs`)**: Wired pure rules and classpath helpers; added focused unit tests for `is_version_at_least`, `build_jvm_arguments`, `build_game_arguments`, and `apply_window_settings`.
+
+4. **Refactor Plan Status Synchronization (`RUST_REFACTOR_PLAN.md`)**:
+   - Marked Phase 6 as complete (all 151 TauRPC procedures return `Result<T, ApiError>`, typed `TauRpcResult`, zero raw `invoke` calls, frontend `unwrapRpc`/`RpcError` handling verified).
+   - Retained Phase 7 as `In progress` pending coverage metrics, automated Android compile job, and multiplatform CI verification.
+
+5. **Mechanical Formatting & Cross-Platform Test Compilation**:
+   - Resolved repository-wide formatting debt via `cargo fmt --all`; verified that `cargo fmt --all -- --check` passes cleanly across the entire workspace (exit code 0).
+   - Scoped `lock_holder` and `lock_clone` in `src/server/plugins/tests.rs` strictly under `#[cfg(target_os = "windows")]` with explicit typing (`None::<std::fs::File>`), eliminating unconstrained type and unused variable errors on Linux/macOS.
+
+6. **Automated Android CI Compile Check & Coverage Measurement**:
+   - Added automated `android` job in `.github/workflows/ci.yml` running `cargo check --target aarch64-linux-android --locked` on push and pull requests with NDK LLVM toolchain environment (`TARGET_AR`, `AR_aarch64_linux_android`, `CC_aarch64_linux_android`).
+   - Added `cargo-llvm-cov` installation (`taiki-e/install-action@cargo-llvm-cov`) and coverage measurement step (`cargo llvm-cov --all-targets --locked --summary-only`) to the Linux CI job.
+   - Added binding contract freshness verification step to CI test execution.
+
+7. **Reviewed Large-File Exceptions (> 500 lines)**:
+   - `src/version_change/transaction.rs` (757 lines): Atomic transaction engine with crash recovery, staging, path containment, and symlink remapping. Cohesive transactional state machine.
+   - `src/minecraft/downloader.rs` (687 lines): Core chunked HTTP streaming and worker pool; test suite extracted to `downloader/tests.rs`.
+   - `src/minecraft/content/curseforge.rs` (589 lines): CurseForge schema models and category/loader lookup tables.
+   - `src/version_change/sources.rs` (586 lines): Static loader version resolution tables and dependency matrix.
+   - `src/server/plugins/service.rs` (557 lines): Plugin installation, safe same-filename replacement, rollback recovery, and mod metadata.
+   - `src/ipc/servers/mod.rs` (533 lines): TauRPC procedure mapping layer for server management endpoints.
+   - No application logic files > 1,000 lines remain.
+
+Verification on Windows:
+
+- Formatting check: `cargo fmt --all -- --check`: **PASSED (0 diffs, exit 0)**.
+- Clippy check: `cargo clippy --all-targets --locked --offline -- -D warnings`: **PASSED (0 warnings, 0 errors)**.
+- Full Rust test suite: `cargo test --all-targets --locked --offline`: **380 passed, 0 failed, 12 ignored, 0 filtered out** (17 new pure domain tests added).
+- Binding contract freshness: `cargo test --lib --locked ipc_contract::generated_bindings_match_the_committed_contract`: **PASSED**.
+- Node IPC routing tests: `node tests/ipc-routing.test.mjs`: **10 passed, 0 failed**.
+- TypeScript typecheck: `npx tsc --noEmit`: **PASSED (0 errors)**.
+- Biome code check: `npx biome check src`: **Checked 146 files. No fixes applied (0 errors)**.
+- Git whitespace check: `git diff --check`: **PASSED (0 errors)**.
+- Working tree hygiene: all changes kept unstaged; no Git actions performed; no `.md` files created.
+
+---
+
+**Integrated failure-integrity and maintainability stage — 2026-10-17**
+
+This entry supersedes the earlier current-state claims about 151 routes, root commands, complete internal error migration and large-file exceptions. The inventory contains **155 procedures: 147 commands and 8 events**. All are registered through the shared namespaced router; public RPC signatures use `ApiError`/`TauRpcResult`. Internal legacy adapters are still tracked below, so this is not a declaration that the whole roadmap is complete.
+
+Implemented and reviewed:
+
+- Split game preparation from native lifecycle/authentication adapters. Reserve game/server launch ownership before reading current metadata; stale exits and stop timeouts cannot remove or kill a replacement process. Requested-account token lookup stays bound to its original account during an active-account switch.
+- Serialize complete instance/server metadata updates and publish JSON through flushed temporary files. Import/modpack/duplication prepare unique stages before directory/metadata publication. Deletion retains a renamed directory until metadata commits and compensates a failed commit; cleanup failures report retained paths.
+- Download workers publish only verified temporary files, cancel outstanding work on failure/drop, and cannot publish after a dropped blocking receiver. Cached entries must be regular files. ZIP extraction validates portable paths, explicit directory entries, and linked/reparse ancestors. Trusted OS aliases above an owned root remain supported.
+- Prepare plugin dependency graphs before publication, preserve prior files on failed replacement, validate tracking records and propagate corrupt tracking/provider failures. File operations, access lists and properties report corruption and required write failures; property/metadata updates compensate failed commits.
+- Split version transactions into application, swap, rooted path, file restoration and recovery responsibilities. Validate persisted journal paths before mutations. Disabled-file restoration retains an immutable source across retries, including when an older `.disabled` file existed. Durable `restoring`/`restored` states keep metadata/cleanup failures retryable; all checks recognize these states and generated bindings were regenerated through the exporter.
+- Move importer, synchronization and screenshot operations behind native adapters and focused services. Required filesystem errors propagate; copies/thumbnails publish atomically; ambiguous screenshot names and stale thumbnail metadata fail explicitly. Blocking operations own their relevant reservations/stages through completion.
+- Use typed feature errors at migrated RPC boundaries. Redact credentials, device codes, session tokens, provider authentication payloads and signed skin URLs from normal Display/Debug/IPC diagnostics while retaining useful error causes. An uploaded Ely skin whose application fails reports a partial commit.
+- Frontend account loading remains single-flight, rejects required read failures, exposes `loadError` to the account switcher, and invalidates snapshots after mutations. Earlier responses cannot replace newer account state. Account-order persistence failures now reject instead of reporting apparent success.
+
+Verification performed on Windows:
+
+- `cargo test --all-targets --locked --offline`: **475 passed, 0 failed, 13 ignored**. The instrumented full suite also passed with the same counts. Binding freshness and the 155-procedure inventory run in this suite.
+- `cargo clippy --all-targets --locked --offline -- -D warnings`: **passed**.
+- `cargo fmt --all -- --check`: **passed**.
+- Explicit binding export: **passed**; only the two added transaction phase literals changed the generated TypeScript contract.
+- Explicit `keyring_store::tests::native_vault_round_trip --ignored --exact`: **passed** against the Windows vault, separately from default hermetic tests.
+- `cargo check --target aarch64-linux-android --locked --offline`: **passed without warnings**, using the installed Android NDK and target C compiler/archive tool. This is compile evidence, not an Android runtime/APK smoke test.
+- `pnpm exec tsc --noEmit -p .`: **passed**. `pnpm test:ipc`: **14 passed**. `pnpm exec biome ci`: **passed across 183 files**. Backend JSON fixtures required whitespace-only formatting for the existing Biome CI scope. Staged and unstaged whitespace checks also passed.
+
+Coverage:
+
+- `cargo-llvm-cov 0.9.1` measured **12,101 / 25,820 lines (46.87%) across 211 source files** on Windows. `coverage-baseline.windows.json` records a **46.86%** minimum from this actual report, with the full tracked file inventory. The gate rejects missing files, additional untracked production sources, invalid counters and coverage regressions.
+- Standalone `tests.rs`, `*_tests.rs`, `tests/` modules and the contract-export test harness are excluded from this aggregation. Inline test modules remain in LLVM's file counters; this is source-file line coverage, not a claim of production-only coverage. Native glue, provider code and difficult transaction paths are not excluded to raise the percentage.
+- CI now exports Windows/Linux LLVM JSON artifacts and enforces the measured Windows baseline. A Windows percentage is not imposed on Linux/macOS branch counts. Raise the baseline after measured improvements; do not lower it merely to pass a failing change.
+- The proposed 80% refactored-feature / 90% pure-rule completion targets have **not** been met throughout the project. In particular, transaction failure/finalization branches and native/service paths still need additional scenario coverage. Passing the initial no-regression gate does not close that work.
+
+Remaining work / limits:
+
+1. Run and inspect the configured Linux/macOS CI jobs. No Linux/macOS execution or native vault result is claimed from this Windows host. Actual game/server startup, shutdown, Android runtime behavior and real-provider sign-ins remain separate opt-in smoke checks.
+2. Finish native separation and typed errors for remaining server lifecycle/supervision/configuration, Java/platform, directory and provider adapters. `ipc/error/legacy.rs` still maps String adapters by message content; migrated paths use direct typed conversions. Remove this compatibility layer as those adapters migrate.
+3. Audit/migrate the legacy version-planning providers in `version_change/sources.rs`: some discovery paths still collapse provider failures into empty/unknown results. Add injectable provider endpoints and failure fixtures before claiming complete failure-category coverage.
+4. Directory publication/deletion and plugin multi-file changes have tested in-process compensation, not a universal crash-atomic transaction. Retained sibling/staging/backup material can require manual inspection after an abrupt process/OS crash. A durable restart-discovery/acknowledgement protocol for these remaining workflows is still required before claiming automatic recovery everywhere.
+5. Coverage remains below the roadmap's completion targets. Keep adding observable failure/concurrency/recovery scenarios, rather than excluding untested business logic or adding tests that merely mirror implementation.
+
+Large maintained files still requiring scoped review: `ipc/servers/mod.rs` (587 lines; RPC declarations plus orchestration helpers), `content/curseforge.rs` (652; DTOs plus request/response conversion), `version_change/sources.rs` (619; provider HTTP/resolution logic), `server/proxy.rs` (539; protocol parsing plus proxy lifecycle), `server/process/lifecycle.rs` (529; native startup/monitoring) and `server/tunnel/playit.rs` (531; native process/tunnel lifecycle). These are **not** all static lookup tables. Test/fixture modules may exceed the implementation-file guideline. The previously listed transaction/downloader/plugin monoliths have been split; no maintained implementation file exceeds 1,000 lines.
+
+No files were staged, unstaged or committed by this implementation. Pre-existing staged changes were preserved.

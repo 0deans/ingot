@@ -1,4 +1,131 @@
 //! Comprehensive hermetic tests for launcher discovery, version ID parsing, and instance importing.
+
+fn import_options(source: &std::path::Path) -> ImportInstanceOptions {
+    ImportInstanceOptions {
+        source_path: source.to_string_lossy().into_owned(),
+        launcher_id: "custom".into(),
+        name: "Imported".into(),
+        game_version: "1.20.1".into(),
+        loader: ModLoaderType::Vanilla,
+        loader_version: None,
+        copy_mods: true,
+        copy_configs: true,
+        copy_saves: true,
+        copy_resource_packs: true,
+        copy_options: true,
+        copy_servers: true,
+        copy_screenshots: true,
+        copy_extra_data: true,
+    }
+}
+
+#[test]
+fn staged_import_publishes_complete_files_and_matching_metadata() {
+    use crate::minecraft::{instance::InstanceConfig, metadata::MetadataRepository};
+    let source = tempfile::tempdir().unwrap();
+    let destination = tempfile::tempdir().unwrap();
+    let instances = destination.path().join("instances");
+    fs::create_dir_all(source.path().join("mods")).unwrap();
+    fs::write(source.path().join("mods/test.jar"), b"jar").unwrap();
+    let repository =
+        MetadataRepository::<InstanceConfig>::new(destination.path().join("instances.json"));
+    let report = super::execute::execute_import_instance(
+        &instances,
+        import_options(source.path()),
+        |stage, config| {
+            assert_eq!(fs::read(stage.join("mods/test.jar")).unwrap(), b"jar");
+            assert!(!instances.join(&config.id).exists());
+            let target = instances.join(&config.id);
+            repository.publish(stage, &target, config, |_, _| Ok(()))
+        },
+    )
+    .unwrap();
+    assert_eq!(report.mods_copied, 1);
+    assert_eq!(repository.load().unwrap()[0].id, report.instance_id);
+    assert_eq!(
+        fs::read(instances.join(report.instance_id).join("mods/test.jar")).unwrap(),
+        b"jar"
+    );
+    assert_eq!(fs::read_dir(instances).unwrap().count(), 1);
+}
+
+#[test]
+fn metadata_write_failure_rolls_back_directory_and_removes_import_stage() {
+    use crate::minecraft::{instance::InstanceConfig, metadata::MetadataRepository};
+    let source = tempfile::tempdir().unwrap();
+    let destination = tempfile::tempdir().unwrap();
+    fs::write(source.path().join("options.txt"), b"original").unwrap();
+    let instances = destination.path().join("instances");
+    let metadata = destination.path().join("instances.json");
+    let repository = MetadataRepository::<InstanceConfig>::new(metadata.clone());
+    let result = super::execute::execute_import_instance(
+        &instances,
+        import_options(source.path()),
+        |stage, config| {
+            let target = instances.join(&config.id);
+            repository.publish(stage, &target, config, |_, _| {
+                // Inject failure after the repository read, before its atomic metadata replace.
+                fs::create_dir(&metadata).unwrap();
+                Ok(())
+            })
+        },
+    );
+    assert!(matches!(result, Err(super::ImportError::Metadata(_))));
+    assert_eq!(fs::read_dir(instances).unwrap().count(), 0);
+    assert_eq!(
+        fs::read(source.path().join("options.txt")).unwrap(),
+        b"original"
+    );
+}
+
+#[test]
+fn invalid_selected_category_never_reaches_publication() {
+    let source = tempfile::tempdir().unwrap();
+    let destination = tempfile::tempdir().unwrap();
+    fs::write(source.path().join("config"), b"not a directory").unwrap();
+    let result = super::execute::execute_import_instance(
+        destination.path(),
+        import_options(source.path()),
+        |_, _| panic!("invalid content must not publish"),
+    );
+    assert!(matches!(result, Err(super::ImportError::Io(_))));
+    assert_eq!(fs::read_dir(destination.path()).unwrap().count(), 0);
+}
+
+#[test]
+fn import_source_cannot_recursively_include_its_stage() {
+    let source = tempfile::tempdir().unwrap();
+    let destination = source.path().join("instances");
+    let result = super::execute::execute_import_instance(
+        &destination,
+        import_options(source.path()),
+        |_, _| panic!("overlapping directories must not publish"),
+    );
+    assert!(matches!(result, Err(super::ImportError::OverlappingPaths)));
+    assert_eq!(fs::read_dir(destination).unwrap().count(), 0);
+}
+
+#[cfg(unix)]
+#[test]
+fn linked_import_content_never_publishes_or_changes_external_data() {
+    let source = tempfile::tempdir().unwrap();
+    let destination = tempfile::tempdir().unwrap();
+    let external = tempfile::tempdir().unwrap();
+    fs::write(external.path().join("secret"), b"external").unwrap();
+    std::os::unix::fs::symlink(external.path(), source.path().join("config")).unwrap();
+    let result = super::execute::execute_import_instance(
+        destination.path(),
+        import_options(source.path()),
+        |_, _| panic!("linked content must not publish"),
+    );
+    assert!(matches!(result, Err(super::ImportError::Io(_))));
+    assert_eq!(fs::read_dir(destination.path()).unwrap().count(), 0);
+    assert_eq!(
+        fs::read(external.path().join("secret")).unwrap(),
+        b"external"
+    );
+}
+
 use super::{
     discovery::detect_custom_instance,
     execute::copy_instance_contents,
@@ -287,10 +414,9 @@ fn test_copy_instance_contents_full_and_ignored() {
         copy_extra_data: true,
     };
 
-    let (mods_copied, saves_copied) =
-        copy_instance_contents(src, dst, &options).expect("copy success");
-    assert_eq!(mods_copied, 1);
-    assert_eq!(saves_copied, 1);
+    let counts = copy_instance_contents(src, dst, &options).expect("copy success");
+    assert_eq!(counts.mods, 1);
+    assert_eq!(counts.saves, 1);
 
     assert!(dst.join("mods").join("foo.jar").exists());
     assert!(dst.join("config").join("mod.cfg").exists());
@@ -336,10 +462,9 @@ fn test_copy_instance_contents_selective() {
         copy_extra_data: false,
     };
 
-    let (mods_copied, saves_copied) =
-        copy_instance_contents(src, dst, &options).expect("copy success");
-    assert_eq!(mods_copied, 0);
-    assert_eq!(saves_copied, 0);
+    let counts = copy_instance_contents(src, dst, &options).expect("copy success");
+    assert_eq!(counts.mods, 0);
+    assert_eq!(counts.saves, 0);
     assert!(!dst.join("mods").exists());
     assert!(!dst.join("saves").exists());
 }
@@ -406,14 +531,20 @@ fn test_execute_import_instance_cleans_up_on_metadata_failure() {
         copy_extra_data: false,
     };
 
-    let res = super::execute::execute_import_instance(instances_dir, options, |_cfg| {
-        Err("Injected metadata persistence failure".to_string())
+    let res = super::execute::execute_import_instance(instances_dir, options, |_stage, _cfg| {
+        Err(crate::minecraft::metadata::MetadataError::Conflict(
+            "Injected metadata persistence failure".to_string(),
+        ))
     });
 
     assert!(res.is_err());
     // Verify destination was cleaned up and instances_dir has no leftovers
     let entries = fs::read_dir(instances_dir).unwrap().collect::<Vec<_>>();
-    assert_eq!(entries.len(), 0, "Failed import must leave no staged/published directory");
+    assert_eq!(
+        entries.len(),
+        0,
+        "Failed import must leave no staged/published directory"
+    );
 }
 
 #[test]

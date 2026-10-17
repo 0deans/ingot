@@ -146,7 +146,17 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<(), ApiError> {
-        instance::delete_instance(&app_handle, &instance_id).map_err(ApiError::from)
+        adopt_running_games(&app_handle).await;
+        let ownership = get_process_manager(&app_handle)
+            .reserve_maintenance(&instance_id)
+            .map_err(ApiError::from)?;
+        tokio::task::spawn_blocking(move || {
+            let _ownership = ownership;
+            instance::delete_instance(&app_handle, &instance_id)
+        })
+        .await
+        .map_err(ApiError::from_display)?
+        .map_err(ApiError::from)
     }
 
     async fn update_instance(
@@ -154,7 +164,17 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance: InstanceConfig,
     ) -> Result<(), ApiError> {
-        instance::update_instance(&app_handle, instance).map_err(ApiError::from)
+        adopt_running_games(&app_handle).await;
+        let ownership = get_process_manager(&app_handle)
+            .reserve_maintenance(&instance.id)
+            .map_err(ApiError::from)?;
+        tokio::task::spawn_blocking(move || {
+            let _ownership = ownership;
+            instance::update_instance(&app_handle, instance)
+        })
+        .await
+        .map_err(ApiError::from_display)?
+        .map_err(ApiError::from)
     }
 
     async fn duplicate_instance(
@@ -164,10 +184,12 @@ impl InstancesApi for InstancesApiImpl {
         name: String,
         include_worlds: bool,
     ) -> Result<InstanceConfig, ApiError> {
-        if include_worlds && get_process_manager(&app_handle).is_running(&instance_id).await {
-            return Err(ApiError::conflict("Close the game first, so the worlds are copied as they were saved."));
-        }
+        adopt_running_games(&app_handle).await;
+        let ownership = get_process_manager(&app_handle)
+            .reserve_maintenance(&instance_id)
+            .map_err(ApiError::from)?;
         tauri::async_runtime::spawn_blocking(move || {
+            let _ownership = ownership;
             instance::duplicate_instance(&app_handle, &instance_id, name, include_worlds)
         })
         .await
@@ -181,24 +203,7 @@ impl InstancesApi for InstancesApiImpl {
         instance_id: String,
     ) -> Result<(), ApiError> {
         let dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        let _path_str = dir.to_string_lossy().to_string();
-        #[cfg(target_os = "windows")]
-        {
-            let _ = std::process::Command::new("explorer")
-                .arg(&_path_str)
-                .spawn();
-        }
-        #[cfg(target_os = "macos")]
-        {
-            let _ = std::process::Command::new("open").arg(&_path_str).spawn();
-        }
-        #[cfg(target_os = "linux")]
-        {
-            let _ = std::process::Command::new("xdg-open")
-                .arg(&_path_str)
-                .spawn();
-        }
-        Ok(())
+        crate::app::platform::open_directory(&dir).map_err(ApiError::from)
     }
 
     async fn launch_instance(
@@ -207,12 +212,6 @@ impl InstancesApi for InstancesApiImpl {
         instance_id: String,
         quick_play: Option<launcher::QuickPlayOptions>,
     ) -> Result<u32, ApiError> {
-        let instances = instance::load_instances(&app_handle).map_err(ApiError::from)?;
-        let inst = instances
-            .into_iter()
-            .find(|i| i.id == instance_id)
-            .ok_or_else(|| ApiError::not_found(format!("Instance not found: {}", instance_id)))?;
-
         adopt_running_games(&app_handle).await;
         let pm = get_process_manager(&app_handle).clone();
         let client = get_http_client(&app_handle).clone();
@@ -234,9 +233,17 @@ impl InstancesApi for InstancesApiImpl {
             }
         };
 
-        launcher::launch_minecraft(app, pm, client, inst, quick_play, on_prog, on_status)
-            .await
-            .map_err(ApiError::from)
+        crate::app::games::launch_minecraft(
+            app,
+            pm,
+            client,
+            instance_id,
+            quick_play,
+            on_prog,
+            on_status,
+        )
+        .await
+        .map_err(ApiError::from)
     }
 
     async fn get_instance_worlds(
@@ -244,7 +251,8 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<Vec<instance::InstanceWorldSummary>, ApiError> {
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
         instance::get_instance_worlds(&instance_dir).map_err(ApiError::from)
     }
 
@@ -264,6 +272,8 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<RunningInstanceSummary>, ApiError> {
         adopt_running_games(&app_handle).await;
-        Ok(get_process_manager(&app_handle).get_running_instances().await)
+        Ok(get_process_manager(&app_handle)
+            .get_running_instances()
+            .await)
     }
 }

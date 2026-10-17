@@ -1,60 +1,18 @@
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{Manager, Runtime};
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
-pub enum ModLoaderType {
-    Vanilla,
-    Fabric,
-    Quilt,
-    NeoForge,
-    Forge,
-}
-
-impl Default for ModLoaderType {
-    fn default() -> Self {
-        Self::Vanilla
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct InstanceConfig {
-    pub id: String,
-    pub name: String,
-    pub game_version: String,
-    pub loader: ModLoaderType,
-    pub loader_version: Option<String>,
-    pub java_path: Option<String>,
-    pub memory_min_mb: Option<u32>,
-    pub memory_max_mb: Option<u32>,
-    pub icon: Option<String>,
-    pub created_at: u64,
-    pub last_played: Option<u64>,
-    pub total_play_time_seconds: u64,
-    pub jvm_args: Option<Vec<String>>,
-    #[serde(default)]
-    pub fullscreen: Option<bool>,
-    #[serde(default)]
-    pub window_width: Option<u32>,
-    #[serde(default)]
-    pub window_height: Option<u32>,
-    #[serde(default)]
-    pub sync_options: Option<bool>,
-    #[serde(default)]
-    pub sync_servers: Option<bool>,
-    #[serde(default)]
-    pub sync_resource_packs: Option<bool>,
-    #[serde(default)]
-    pub sync_command_history: Option<bool>,
-    #[serde(default)]
-    pub sync_creative_hotbars: Option<bool>,
-    #[serde(default)]
-    pub last_synced_at: Option<u64>,
-}
+mod duplicate;
+mod error;
+mod models;
+mod storage;
+#[cfg(test)]
+mod tests;
+pub use error::InstanceError;
+mod worlds;
+pub use models::{InstanceConfig, ModLoaderType};
+pub use worlds::{get_instance_worlds, InstanceWorldSummary};
 
 pub fn get_instances_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
     let data_dir = app
@@ -63,10 +21,8 @@ pub fn get_instances_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBu
         .map_err(|e| format!("Failed to get app data directory: {e}"))?;
 
     let instances_dir = data_dir.join("instances");
-    if !instances_dir.exists() {
-        fs::create_dir_all(&instances_dir)
-            .map_err(|e| format!("Failed to create instances directory: {e}"))?;
-    }
+    fs::create_dir_all(&instances_dir)
+        .map_err(|e| format!("Failed to create instances directory: {e}"))?;
     Ok(instances_dir)
 }
 
@@ -75,52 +31,40 @@ pub fn get_instance_dir<R: Runtime>(
     instance_id: &str,
 ) -> Result<PathBuf, String> {
     let instances_dir = get_instances_dir(app)?;
-    let instance_dir = instances_dir.join(instance_id);
-    if !instance_dir.exists() {
-        fs::create_dir_all(&instance_dir)
-            .map_err(|e| format!("Failed to create instance directory: {e}"))?;
-        let _ = fs::create_dir_all(instance_dir.join("mods"));
-        let _ = fs::create_dir_all(instance_dir.join("config"));
-        let _ = fs::create_dir_all(instance_dir.join("saves"));
-        let _ = fs::create_dir_all(instance_dir.join("resourcepacks"));
-    }
-    Ok(instance_dir)
+    ensure_instance_directory(&instances_dir, instance_id).map_err(String::from)
 }
 
-fn get_instances_file<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("Failed to get app data directory: {e}"))?;
-    if !data_dir.exists() {
-        fs::create_dir_all(&data_dir)
-            .map_err(|e| format!("Failed to create app data directory: {e}"))?;
-    }
-    Ok(data_dir.join("instances.json"))
-}
-
-pub fn load_instances<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Vec<InstanceConfig>, String> {
-    let file_path = get_instances_file(app)?;
-    if !file_path.exists() {
-        return Ok(Vec::new());
-    }
-    let data = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read instances file: {e}"))?;
-    serde_json::from_str(&data).map_err(|e| format!("Failed to parse instances file: {e}"))
+pub fn load_instances<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> Result<Vec<InstanceConfig>, String> {
+    crate::app::state(app)
+        .instances
+        .load()
+        .map_err(|error| error.to_string())
 }
 
 pub fn get_instances<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Vec<InstanceConfig>, String> {
     load_instances(app)
 }
 
-pub fn save_instances<R: Runtime>(
+pub(crate) fn patch_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
-    instances: &[InstanceConfig],
+    id: &str,
+    change: impl FnOnce(&mut InstanceConfig),
 ) -> Result<(), String> {
-    let file_path = get_instances_file(app)?;
-    let data = serde_json::to_string_pretty(instances)
-        .map_err(|e| format!("Failed to serialize instances: {e}"))?;
-    fs::write(&file_path, data).map_err(|e| format!("Failed to write instances file: {e}"))
+    crate::app::state(app)
+        .instances
+        .update(|records| {
+            let record = records
+                .iter_mut()
+                .find(|record| record.id == id)
+                .ok_or_else(|| {
+                    crate::minecraft::metadata::MetadataError::Conflict("Instance not found".into())
+                })?;
+            change(record);
+            Ok(())
+        })
+        .map_err(|error| error.to_string())
 }
 
 pub fn create_instance<R: Runtime>(
@@ -129,8 +73,31 @@ pub fn create_instance<R: Runtime>(
     game_version: String,
     loader: ModLoaderType,
     loader_version: Option<String>,
+) -> Result<InstanceConfig, InstanceError> {
+    let instance = prepare_instance(name, game_version, loader, loader_version)
+        .map_err(InstanceError::Directory)?;
+    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    let staging = tempfile::tempdir_in(&parent)?;
+    let result = (|| {
+        for directory in ["mods", "config", "saves", "resourcepacks"] {
+            fs::create_dir_all(staging.path().join(directory))?;
+        }
+        storage::publish_instance(
+            &crate::app::state(app).instances,
+            &parent,
+            instance,
+            staging.path(),
+        )
+    })();
+    storage::finish_publication(staging, result)
+}
+
+pub(crate) fn prepare_instance(
+    name: String,
+    game_version: String,
+    loader: ModLoaderType,
+    loader_version: Option<String>,
 ) -> Result<InstanceConfig, String> {
-    let mut instances = load_instances(app)?;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -162,120 +129,7 @@ pub fn create_instance<R: Runtime>(
         last_synced_at: None,
     };
 
-    // Ensure instance dir exists
-    get_instance_dir(app, &id)?;
-
-    instances.push(instance.clone());
-    save_instances(app, &instances)?;
-
     Ok(instance)
-}
-
-/// Top-level folders a copy leaves behind: regenerated, or the original's own history
-/// (its screenshots, and the undo backup of its last version change)
-const NOT_COPIED: &[&str] = &["logs", "crash-reports", "screenshots", ".ingot"];
-
-fn copy_instance_tree(from: &Path, to: &Path, top: bool, include_worlds: bool) -> Result<(), String> {
-    fs::create_dir_all(to).map_err(|e| format!("Failed to create {}: {e}", to.display()))?;
-    for entry in fs::read_dir(from).map_err(|e| format!("Failed to read {}: {e}", from.display()))?.flatten() {
-        let name = entry.file_name();
-        let name_str = name.to_string_lossy();
-        let Ok(kind) = entry.file_type() else { continue };
-        // Links and junctions (the Quick Play world link) point into the original
-        if kind.is_symlink() || name_str == "session.lock" || (top && NOT_COPIED.contains(&name_str.as_ref())) {
-            continue;
-        }
-        let dest = to.join(&name);
-        if kind.is_dir() {
-            if top && name_str == "saves" && !include_worlds {
-                fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
-                continue;
-            }
-            copy_instance_tree(&entry.path(), &dest, false, include_worlds)?;
-        } else {
-            fs::copy(entry.path(), &dest).map_err(|e| format!("Failed to copy {name_str}: {e}"))?;
-        }
-    }
-    Ok(())
-}
-
-/// Copies an instance into a new, independent one: mods, configs, resource packs and
-/// settings, plus its worlds if asked. Playtime starts over.
-pub fn duplicate_instance<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    source_id: &str,
-    name: String,
-    include_worlds: bool,
-) -> Result<InstanceConfig, String> {
-    let name = name.trim().to_string();
-    if name.is_empty() {
-        return Err("Give the copy a name".to_string());
-    }
-    let source = load_instances(app)?
-        .into_iter()
-        .find(|i| i.id == source_id)
-        .ok_or_else(|| format!("Instance not found: {source_id}"))?;
-
-    let id = uuid::Uuid::new_v4().to_string();
-    let instances_dir = get_instances_dir(app)?;
-    // Copied under a temporary name, so a failure leaves no half instance behind
-    let part = instances_dir.join(format!("{id}.part"));
-    let _ = fs::remove_dir_all(&part);
-    let copied = copy_instance_tree(&instances_dir.join(&source.id), &part, true, include_worlds)
-        .and_then(|_| fs::rename(&part, instances_dir.join(&id)).map_err(|e| format!("Failed to finish the copy: {e}")));
-    if let Err(e) = copied {
-        let _ = fs::remove_dir_all(&part);
-        return Err(e);
-    }
-
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    let copy = InstanceConfig {
-        id,
-        name,
-        created_at: now,
-        last_played: None,
-        total_play_time_seconds: 0,
-        last_synced_at: None,
-        ..source
-    };
-    let mut instances = load_instances(app)?;
-    instances.push(copy.clone());
-    save_instances(app, &instances)?;
-    Ok(copy)
-}
-
-pub fn delete_instance<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    instance_id: &str,
-) -> Result<(), String> {
-    let mut instances = load_instances(app)?;
-    instances.retain(|i| i.id != instance_id);
-    save_instances(app, &instances)?;
-
-    // Delete instance directory
-    let instance_dir = get_instances_dir(app)?.join(instance_id);
-    if instance_dir.exists() {
-        let _ = fs::remove_dir_all(instance_dir);
-    }
-
-    Ok(())
-}
-
-pub fn update_instance<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    instance: InstanceConfig,
-) -> Result<(), String> {
-    let mut instances = load_instances(app)?;
-    if let Some(existing) = instances.iter_mut().find(|i| i.id == instance.id) {
-        *existing = instance;
-        save_instances(app, &instances)?;
-        Ok(())
-    } else {
-        Err(format!("Instance not found: {}", instance.id))
-    }
 }
 
 pub fn update_last_played<R: Runtime>(
@@ -283,165 +137,58 @@ pub fn update_last_played<R: Runtime>(
     instance_id: &str,
     played_seconds: u64,
 ) -> Result<(), String> {
-    let mut instances = load_instances(app)?;
-    if let Some(existing) = instances.iter_mut().find(|i| i.id == instance_id) {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_secs();
+    patch_instance(app, instance_id, |existing| {
         existing.last_played = Some(now);
-        existing.total_play_time_seconds += played_seconds;
-        save_instances(app, &instances)?;
-    }
-    Ok(())
+        existing.total_play_time_seconds = existing
+            .total_play_time_seconds
+            .saturating_add(played_seconds);
+    })
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct InstanceWorldSummary {
-    pub folder_name: String,
-    pub display_name: String,
-    pub icon: Option<String>,
-    pub last_played: Option<u64>,
+pub(crate) fn ensure_instance_directory(parent: &Path, id: &str) -> Result<PathBuf, InstanceError> {
+    let directory =
+        crate::app::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
+    fs::create_dir_all(&directory)?;
+    for name in ["mods", "config", "saves", "resourcepacks"] {
+        let child =
+            crate::app::safe_enclosed_filename(&directory, name).ok_or(InstanceError::InvalidId)?;
+        fs::create_dir_all(child)?;
+    }
+    Ok(directory)
 }
 
-pub fn get_instance_worlds(instance_dir: &std::path::Path) -> Result<Vec<InstanceWorldSummary>, String> {
-    use std::io::Read;
-    let saves_dir = instance_dir.join("saves");
-    if !saves_dir.exists() {
-        return Ok(Vec::new());
-    }
-
-    let entries = fs::read_dir(&saves_dir).map_err(|e| format!("Failed to read saves dir: {e}"))?;
-    let mut worlds = Vec::new();
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-
-        let folder_name = entry.file_name().to_string_lossy().to_string();
-        if folder_name == "qp_world" || folder_name.starts_with(".qp_") {
-            continue;
-        }
-        let level_dat = path.join("level.dat");
-        if !level_dat.is_file() {
-            continue;
-        }
-
-        let mut display_name = folder_name.clone();
-        let mut last_played = None;
-
-        if let Ok(metadata) = level_dat.metadata() {
-            if let Ok(modified) = metadata.modified() {
-                if let Ok(dur) = modified.duration_since(UNIX_EPOCH) {
-                    last_played = Some(dur.as_secs());
-                }
-            }
-        }
-
-        if let Ok(compressed_bytes) = fs::read(&level_dat) {
-            let mut gz = flate2::read::GzDecoder::new(&compressed_bytes[..]);
-            let mut decompressed = Vec::new();
-            if gz.read_to_end(&mut decompressed).is_ok() {
-                // Search for LevelName string tag in NBT: Tag ID (0x08), Name Len (0x00, 0x09), "LevelName"
-                let needle = b"\x08\x00\x09LevelName";
-                if let Some(pos) = decompressed.windows(needle.len()).position(|w| w == needle) {
-                    let val_start = pos + needle.len();
-                    if val_start + 2 <= decompressed.len() {
-                        let str_len = u16::from_be_bytes([decompressed[val_start], decompressed[val_start + 1]]) as usize;
-                        let str_end = val_start + 2 + str_len;
-                        if str_end <= decompressed.len() {
-                            if let Ok(name) = std::str::from_utf8(&decompressed[val_start + 2..str_end]) {
-                                if !name.trim().is_empty() {
-                                    display_name = name.to_string();
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Also check for LastPlayed tag in NBT: Tag ID (0x04), Name Len (0x00, 0x0A), "LastPlayed"
-                let lp_needle = b"\x04\x00\x0aLastPlayed";
-                if let Some(pos) = decompressed.windows(lp_needle.len()).position(|w| w == lp_needle) {
-                    let val_start = pos + lp_needle.len();
-                    if val_start + 8 <= decompressed.len() {
-                        if let Ok(bytes) = decompressed[val_start..val_start + 8].try_into() {
-                            let lp_ms = i64::from_be_bytes(bytes);
-                            if lp_ms > 0 {
-                                last_played = Some((lp_ms / 1000) as u64);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        let mut icon = None;
-        let icon_path = path.join("icon.png");
-        if icon_path.is_file() {
-            if let Ok(icon_bytes) = fs::read(&icon_path) {
-                use base64::Engine;
-                let b64 = base64::engine::general_purpose::STANDARD.encode(&icon_bytes);
-                icon = Some(format!("data:image/png;base64,{b64}"));
-            }
-        }
-
-        worlds.push(InstanceWorldSummary {
-            folder_name,
-            display_name,
-            icon,
-            last_played,
-        });
-    }
-
-    worlds.sort_by(|a, b| b.last_played.cmp(&a.last_played));
-    Ok(worlds)
+pub fn duplicate_instance<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    source_id: &str,
+    name: String,
+    include_worlds: bool,
+) -> Result<InstanceConfig, InstanceError> {
+    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    duplicate::duplicate_instance_record(
+        &crate::app::state(app).instances,
+        &parent,
+        source_id,
+        name,
+        include_worlds,
+    )
 }
 
-#[cfg(test)]
-mod duplicate_tests {
-    use super::*;
+pub fn delete_instance<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    id: &str,
+) -> Result<(), InstanceError> {
+    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    storage::delete_instance_record(&crate::app::state(app).instances, &parent, id)
+}
 
-    #[test]
-    fn copy_leaves_history_and_optionally_worlds_behind() {
-        let root = std::env::temp_dir().join(format!("ingot-dup-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
-        let src = root.join("src");
-        for dir in ["mods", "config/sodium", "saves/World/region", "logs", "crash-reports", "screenshots", ".ingot/version-change"] {
-            fs::create_dir_all(src.join(dir)).unwrap();
-        }
-        for file in [
-            "options.txt",
-            "mods/sodium.jar",
-            "config/sodium/options.json",
-            "saves/World/level.dat",
-            "saves/World/session.lock",
-            "saves/World/region/r.0.0.mca",
-            "logs/latest.log",
-            "crash-reports/crash.txt",
-            "screenshots/a.png",
-            ".ingot/version-change/journal.json",
-        ] {
-            fs::write(src.join(file), file).unwrap();
-        }
-
-        let with = root.join("with");
-        copy_instance_tree(&src, &with, true, true).unwrap();
-        for kept in ["options.txt", "mods/sodium.jar", "config/sodium/options.json", "saves/World/level.dat", "saves/World/region/r.0.0.mca"] {
-            assert!(with.join(kept).is_file(), "{kept} should be copied");
-        }
-        for left in ["saves/World/session.lock", "logs", "crash-reports", "screenshots", ".ingot"] {
-            assert!(!with.join(left).exists(), "{left} should stay behind");
-        }
-
-        let without = root.join("without");
-        copy_instance_tree(&src, &without, true, false).unwrap();
-        assert!(without.join("mods/sodium.jar").is_file());
-        assert!(without.join("saves").is_dir());
-        assert_eq!(fs::read_dir(without.join("saves")).unwrap().count(), 0);
-
-        let _ = fs::remove_dir_all(&root);
-    }
+pub fn update_instance<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    instance: InstanceConfig,
+) -> Result<(), InstanceError> {
+    let parent = get_instances_dir(app).map_err(InstanceError::Directory)?;
+    storage::update_instance_record(&crate::app::state(app).instances, &parent, instance)
 }

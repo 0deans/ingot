@@ -13,24 +13,48 @@ impl AppPaths {
         self.data_dir.join("settings.json")
     }
 
+    pub(crate) fn instances_file(&self) -> PathBuf {
+        self.data_dir.join("instances.json")
+    }
+
+    pub(crate) fn servers_file(&self) -> PathBuf {
+        self.data_dir.join("servers.json")
+    }
+
     pub(crate) fn accounts_file(&self) -> PathBuf {
         self.data_dir.join("accounts.json")
     }
 }
 
-/// Safely joins a relative path to `base_dir`, guaranteeing that the target path
-/// stays completely enclosed within `base_dir` and does not escape via `..`, absolute paths,
-/// Windows drive prefixes, UNC paths, alternate data streams, or trailing dot/space bypasses.
+/// Uses a portable archive policy: both separators are recognized, Windows
+/// aliases are rejected on every platform. The trusted root and its descendants
+/// may not be links/reparse points; OS aliases above the root remain supported.
+/// Callers exclusively own the destination while checking and writing.
 pub(crate) fn safe_enclosed_path(base_dir: &Path, rel: &str) -> Option<PathBuf> {
     if rel.is_empty() || rel.contains('\0') || rel.contains(':') {
         return None;
     }
-    let p = Path::new(rel);
+    let normalized = rel.replace('\\', "/");
+    if normalized.starts_with('/') {
+        return None;
+    }
+    if normalized
+        .split('/')
+        .any(|part| matches!(part, "" | "." | ".."))
+    {
+        return None;
+    }
+    let p = Path::new(&normalized);
     for c in p.components() {
         match c {
             Component::Normal(part) => {
                 let part_str = part.to_string_lossy();
-                if part_str.ends_with(' ') || part_str.ends_with('.') {
+                let stem = part_str.split('.').next()?.to_ascii_uppercase();
+                let reserved = matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
+                    || (stem.len() == 4
+                        && (stem.starts_with("COM") || stem.starts_with("LPT"))
+                        && matches!(stem.as_bytes()[3], b'1'..=b'9'));
+                if part_str.ends_with(' ') || part_str.ends_with('.') || reserved {
                     return None;
                 }
             }
@@ -38,11 +62,38 @@ pub(crate) fn safe_enclosed_path(base_dir: &Path, rel: &str) -> Option<PathBuf> 
         }
     }
     let full = base_dir.join(p);
-    if full.starts_with(base_dir) {
+    if full.starts_with(base_dir) && existing_components_are_unlinked(base_dir, p) {
         Some(full)
     } else {
         None
     }
+}
+
+fn existing_components_are_unlinked(base: &Path, relative: &Path) -> bool {
+    let mut current = base.to_path_buf();
+    let components = std::iter::once(None).chain(relative.components().map(Some));
+    for component in components {
+        if let Some(component) = component {
+            current.push(component);
+        }
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) => {
+                if metadata.file_type().is_symlink() {
+                    return false;
+                }
+                #[cfg(windows)]
+                {
+                    use std::os::windows::fs::MetadataExt;
+                    if metadata.file_attributes() & 0x400 != 0 {
+                        return false;
+                    }
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(_) => return false,
+        }
+    }
+    true
 }
 
 /// Safely validates that `name` is a single filename (not containing directory separators
@@ -59,12 +110,7 @@ pub(crate) fn safe_enclosed_filename(base_dir: &Path, name: &str) -> Option<Path
             if part_str.ends_with(' ') || part_str.ends_with('.') {
                 return None;
             }
-            let full = base_dir.join(part);
-            if full.starts_with(base_dir) {
-                Some(full)
-            } else {
-                None
-            }
+            safe_enclosed_path(base_dir, &part_str)
         }
         _ => None,
     }
@@ -73,6 +119,38 @@ pub(crate) fn safe_enclosed_filename(base_dir: &Path, name: &str) -> Option<Path
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rejects_windows_device_and_backslash_traversal_on_every_platform() {
+        let temp = tempfile::tempdir().unwrap();
+        for name in [
+            "..\\escape",
+            "mods\\..\\escape",
+            "//host/share",
+            "CON",
+            "aux.txt",
+            "COM1.jar",
+            "a/./b",
+            "a//b",
+        ] {
+            assert!(safe_enclosed_path(temp.path(), name).is_none(), "{name}");
+        }
+        assert_eq!(
+            safe_enclosed_path(temp.path(), "mods\\valid.jar"),
+            Some(temp.path().join("mods/valid.jar"))
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_linked_destination_and_linked_root() {
+        let temp = tempfile::tempdir().unwrap();
+        let outside = tempfile::tempdir().unwrap();
+        std::os::unix::fs::symlink(outside.path(), temp.path().join("linked")).unwrap();
+        assert!(safe_enclosed_path(temp.path(), "linked/escape").is_none());
+        assert!(safe_enclosed_path(&temp.path().join("linked"), "escape").is_none());
+        assert!(!outside.path().join("escape").exists());
+    }
 
     #[test]
     fn safe_enclosed_path_validates_containment() {

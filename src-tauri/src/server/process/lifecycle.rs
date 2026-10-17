@@ -3,7 +3,7 @@ use super::console::{
     clean_console_line, extract_player_keyword, parse_bedrock_connected, parse_bedrock_disconnected,
 };
 use super::manager::ServerProcessManager;
-use super::models::{ActiveServer, ProcessError};
+use super::models::{ActiveServer, StartingGuard};
 use crate::server::config::{
     get_server_dir, read_server_properties_from_dir, write_server_properties_to_dir, ServerConfig,
     ServerCoreType, ServerLogEvent, ServerStatus, ServerStatusEvent,
@@ -24,7 +24,7 @@ pub async fn launch_server<R: Runtime, FLog, FStatus>(
     app: tauri::AppHandle<R>,
     pm: ServerProcessManager,
     client: reqwest::Client,
-    config: ServerConfig,
+    server_id: String,
     on_log: FLog,
     on_status: FStatus,
 ) -> Result<u32, String>
@@ -32,16 +32,63 @@ where
     FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
     FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
 {
-    let server_id = config.id.clone();
-
-    // Check if already running or starting, and claim the "starting" slot atomically
-    let cur_status = pm.get_server_status(&server_id).await;
-    if cur_status != ServerStatus::Stopped && cur_status != ServerStatus::Sleeping {
-        return Err(ProcessError::AlreadyRunning.to_string());
+    let mut claimed = claim_server_launch(&app, &pm, &server_id).await?;
+    if claimed.config.core != ServerCoreType::Bedrock
+        && claimed.config.sleep_enabled.unwrap_or(true)
+    {
+        claimed.config.port = crate::server::config::internal_port(&claimed.config);
     }
-    let _starting = pm
-        .try_claim_starting(&server_id)
-        .map_err(|e| e.to_string())?;
+    launch_claimed_server(app, pm, client, claimed, on_log, on_status).await
+}
+
+pub(crate) struct ClaimedServerLaunch {
+    pub(crate) config: ServerConfig,
+    ownership: StartingGuard,
+}
+
+pub(crate) async fn claim_server_launch<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    processes: &ServerProcessManager,
+    server_id: &str,
+) -> Result<ClaimedServerLaunch, String> {
+    claim_server_from_repository(&crate::app::state(app).server_configs, processes, server_id).await
+}
+
+pub(super) async fn claim_server_from_repository(
+    repository: &crate::minecraft::metadata::MetadataRepository<ServerConfig>,
+    processes: &ServerProcessManager,
+    server_id: &str,
+) -> Result<ClaimedServerLaunch, String> {
+    let ownership = processes
+        .claim_launch(server_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    let config = repository
+        .load()
+        .map_err(|error| error.to_string())?
+        .into_iter()
+        .find(|config| config.id == server_id)
+        .ok_or_else(|| format!("Server not found: {server_id}"))?;
+    Ok(ClaimedServerLaunch { config, ownership })
+}
+
+pub(crate) async fn launch_claimed_server<R: Runtime, FLog, FStatus>(
+    app: tauri::AppHandle<R>,
+    pm: ServerProcessManager,
+    client: reqwest::Client,
+    claimed: ClaimedServerLaunch,
+    on_log: FLog,
+    on_status: FStatus,
+) -> Result<u32, String>
+where
+    FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
+    FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
+{
+    let ClaimedServerLaunch {
+        config,
+        ownership: _starting,
+    } = claimed;
+    let server_id = config.id.clone();
 
     let on_status = Arc::new(on_status);
     let status_cb = on_status.clone();
@@ -135,7 +182,10 @@ where
         return Err(format!("Failed to download server jar: {e}"));
     }
 
-    crate::server::config::repair_offline_uuids(&server_dir);
+    crate::app::state(&app)
+        .server_configs
+        .with_serialized(|| crate::server::config::repair_offline_uuids(&server_dir))
+        .map_err(|error| error.to_string())??;
 
     // 2. Ensure eula.txt is accepted
     let eula_path = server_dir.join("eula.txt");
@@ -144,24 +194,24 @@ where
     }
 
     // 3. Ensure server.properties exists and has configured port & loopback bind when behind proxy
-    if let Ok(mut props) = read_server_properties_from_dir(&server_dir) {
-        if props.server_port != config.port {
-            props.server_port = config.port;
-            let _ = write_server_properties_to_dir(&server_dir, &props);
-        }
+    let mut props = read_server_properties_from_dir(&server_dir)?;
+    if props.server_port != config.port {
+        props.server_port = config.port;
+        write_server_properties_to_dir(&server_dir, &props)?;
     }
     let bind_ip = if config.sleep_enabled.unwrap_or(true) {
         "127.0.0.1"
     } else {
         ""
     };
-    let _ = crate::server::files::write_properties(
+    crate::server::files::write_properties(
         &server_dir,
         &[crate::server::files::PropertyEntry {
             key: "server-ip".to_string(),
             value: bind_ip.to_string(),
         }],
-    );
+    )
+    .map_err(|error| error.to_string())?;
 
     // 4. Build execution command
     let mut cmd = build_server_command(&app, &client, &config, &server_dir, step.clone()).await?;
@@ -444,6 +494,9 @@ fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
     tokio::spawn(async move {
         let mut child = child_arc.lock().await;
         let exited = child.wait().await;
+        if !pm.owns(&server_id, pid).await {
+            return;
+        }
         let stopping = pm.get_server_status(&server_id).await == ServerStatus::Stopping;
         let started = ready_flag.load(std::sync::atomic::Ordering::SeqCst);
         if !started && !stopping {
@@ -463,7 +516,9 @@ fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
         }
 
         crate::running::remove(&app, crate::running::Kind::Server, &server_id, pid);
-        pm.remove_server(&server_id).await;
+        if !pm.remove_if_pid_matches(&server_id, pid).await {
+            return;
+        }
 
         on_status(ServerStatusEvent {
             server_id,

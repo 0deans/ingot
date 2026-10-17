@@ -75,31 +75,38 @@ pub fn get_bedrock_screenshot_dirs() -> Vec<PathBuf> {
 }
 
 /// Recursively finds all image files up to `max_depth` inside `dir`.
-pub(crate) fn scan_screenshot_files(dir: &Path, max_depth: usize) -> Vec<PathBuf> {
+pub(crate) fn scan_screenshot_files(
+    dir: &Path,
+    max_depth: usize,
+) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut files = Vec::new();
-    if max_depth == 0 || !dir.is_dir() {
-        return files;
+    if max_depth == 0 {
+        return Ok(files);
     }
-    if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_file() {
-                let ext = path
-                    .extension()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("")
-                    .to_lowercase();
-                if SUPPORTED_EXTENSIONS.contains(&ext.as_str()) {
-                    files.push(path);
-                }
-            } else if path.is_dir() && max_depth > 1 {
-                files.extend(scan_screenshot_files(&path, max_depth - 1));
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(files),
+        Err(error) => return Err(error),
+    };
+    for entry in entries {
+        let entry = entry?;
+        let kind = entry.file_type()?;
+        let path = entry.path();
+        if kind.is_file() {
+            let extension = path
+                .extension()
+                .and_then(|value| value.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            if SUPPORTED_EXTENSIONS.contains(&extension.as_str()) {
+                files.push(path);
             }
+        } else if kind.is_dir() && max_depth > 1 {
+            files.extend(scan_screenshot_files(&path, max_depth - 1)?);
         }
     }
-    files
+    Ok(files)
 }
-
 /// Reads companion `.json` metadata file if available to extract accurate capture timestamp.
 pub(crate) fn get_companion_capture_time(image_path: &Path) -> Option<u64> {
     let parent = image_path.parent()?;
@@ -134,7 +141,13 @@ pub fn get_primary_bedrock_screenshots_folder() -> PathBuf {
     let mut best_folder: Option<(PathBuf, u64)> = None;
 
     for dir in &dirs {
-        let files = scan_screenshot_files(dir, 3);
+        let files = match scan_screenshot_files(dir, 3) {
+            Ok(files) => files,
+            Err(error) => {
+                eprintln!("Could not choose the most recent screenshot folder: {error}");
+                continue;
+            }
+        };
         for file in files {
             let modified = file
                 .metadata()

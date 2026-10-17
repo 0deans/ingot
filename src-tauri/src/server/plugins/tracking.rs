@@ -6,14 +6,58 @@ pub fn tracking_path(server_dir: &Path) -> PathBuf {
     server_dir.join(".ingot").join("plugins.json")
 }
 
-pub fn read_tracking(server_dir: &Path) -> Vec<TrackedPlugin> {
-    std::fs::read_to_string(tracking_path(server_dir))
-        .ok()
-        .and_then(|raw| serde_json::from_str(&raw).ok())
-        .unwrap_or_default()
+#[derive(Debug, thiserror::Error)]
+pub enum TrackingError {
+    #[error("Cannot read plugin tracking at {path}: {source}")]
+    Read {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Invalid plugin tracking at {path}: {source}")]
+    Decode {
+        path: PathBuf,
+        #[source]
+        source: serde_json::Error,
+    },
+    #[error("Cannot publish plugin tracking: {0}")]
+    Write(#[source] std::io::Error),
+    #[error("Invalid plugin tracking entry: {0}")]
+    InvalidEntry(&'static str),
 }
 
-pub fn write_tracking_typed(server_dir: &Path, tracked: &[TrackedPlugin]) -> Result<(), std::io::Error> {
+impl From<TrackingError> for String {
+    fn from(error: TrackingError) -> Self {
+        error.to_string()
+    }
+}
+
+pub fn read_tracking(server_dir: &Path) -> Result<Vec<TrackedPlugin>, TrackingError> {
+    let path = tracking_path(server_dir);
+    let bytes = match std::fs::read(&path) {
+        Ok(bytes) => bytes,
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(source) => return Err(TrackingError::Read { path, source }),
+    };
+    let tracked: Vec<TrackedPlugin> =
+        serde_json::from_slice(&bytes).map_err(|source| TrackingError::Decode { path, source })?;
+    for item in &tracked {
+        if super::metadata::safe_jar_name(&item.file_name).is_err()
+            || crate::app::safe_enclosed_filename(server_dir, &item.file_name).is_none()
+        {
+            return Err(TrackingError::InvalidEntry("file_name"));
+        }
+        if item.project_id.trim().is_empty() || item.version_id.trim().is_empty() {
+            return Err(TrackingError::InvalidEntry("project_id or version_id"));
+        }
+    }
+    Ok(tracked)
+}
+
+pub fn write_tracking_typed(
+    server_dir: &Path,
+    tracked: &[TrackedPlugin],
+) -> Result<(), std::io::Error> {
     use std::io::Write;
     let path = tracking_path(server_dir);
     let parent = path.parent().unwrap_or(server_dir);
@@ -28,32 +72,39 @@ pub fn write_tracking_typed(server_dir: &Path, tracked: &[TrackedPlugin]) -> Res
     Ok(())
 }
 
-pub fn write_tracking(server_dir: &Path, tracked: &[TrackedPlugin]) {
-    let _ = write_tracking_typed(server_dir, tracked);
+pub fn write_tracking(server_dir: &Path, tracked: &[TrackedPlugin]) -> Result<(), TrackingError> {
+    write_tracking_typed(server_dir, tracked).map_err(TrackingError::Write)
 }
 
-/// Plugins installed from Hangar: file name -> (project, version, title, icon). Hangar has
-/// no lookup by file, so this is how a version change recognises them.
+/// Hangar has no lookup by file, so version changes need the installed project's identity.
 pub(crate) fn tracked_hangar(
     server_dir: &Path,
-) -> HashMap<String, (String, String, String, Option<String>)> {
-    read_tracking(server_dir)
+) -> Result<HashMap<String, crate::version_change::models::TrackedHangarPlugin>, TrackingError> {
+    Ok(read_tracking(server_dir)?
         .into_iter()
         .filter(|t| t.source == PluginSource::Hangar)
         .map(|t| {
             (
                 t.file_name,
-                (t.project_id, t.version_id, t.title, t.icon_url),
+                crate::version_change::models::TrackedHangarPlugin {
+                    project_id: t.project_id,
+                    version_id: t.version_id,
+                    title: t.title,
+                    icon_url: t.icon_url,
+                },
             )
         })
-        .collect()
+        .collect())
 }
 
 /// After a version change: remembers the files it installed (from Modrinth or Hangar)
 /// in place of the ones they replaced
-pub(crate) fn track_version_change(server_dir: &Path, items: &[crate::version_change::PlanItem]) {
+pub(crate) fn track_version_change(
+    server_dir: &Path,
+    items: &[crate::version_change::PlanItem],
+) -> Result<(), TrackingError> {
     use crate::version_change::{ItemAction, Source};
-    let mut tracked = read_tracking(server_dir);
+    let mut tracked = read_tracking(server_dir)?;
     for item in items
         .iter()
         .filter(|i| matches!(i.action, ItemAction::Update | ItemAction::Add))
@@ -78,5 +129,40 @@ pub(crate) fn track_version_change(server_dir: &Path, items: &[crate::version_ch
             icon_url: item.icon_url.clone(),
         });
     }
-    write_tracking(server_dir, &tracked);
+    write_tracking(server_dir, &tracked)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_tracking_is_distinct_from_corrupt_and_unreadable_tracking() {
+        let directory = tempfile::tempdir().unwrap();
+        assert!(read_tracking(directory.path()).unwrap().is_empty());
+        let path = tracking_path(directory.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"{ incomplete").unwrap();
+        assert!(matches!(
+            read_tracking(directory.path()),
+            Err(TrackingError::Decode { .. })
+        ));
+        assert_eq!(std::fs::read(&path).unwrap(), b"{ incomplete");
+        std::fs::remove_file(&path).unwrap();
+        std::fs::create_dir(&path).unwrap();
+        assert!(matches!(
+            read_tracking(directory.path()),
+            Err(TrackingError::Read { .. })
+        ));
+    }
+
+    #[test]
+    fn rejected_version_tracking_keeps_corrupt_bytes() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = tracking_path(directory.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"invalid").unwrap();
+        assert!(track_version_change(directory.path(), &[]).is_err());
+        assert_eq!(std::fs::read(path).unwrap(), b"invalid");
+    }
 }

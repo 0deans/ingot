@@ -8,36 +8,15 @@ use super::{
 };
 use crate::minecraft::instance::ModLoaderType;
 use std::path::PathBuf;
-use tauri::{Manager, Runtime};
 
-pub(crate) fn get_appdata_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("APPDATA") {
-        return Some(PathBuf::from(p));
-    }
-    app.path()
-        .app_data_dir()
-        .ok()
-        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+pub(crate) struct DiscoveryRoots {
+    pub(crate) app_data: Option<PathBuf>,
+    pub(crate) home: Option<PathBuf>,
 }
 
-#[allow(dead_code)]
-pub(crate) fn get_local_appdata_dir() -> Option<PathBuf> {
-    std::env::var("LOCALAPPDATA").ok().map(PathBuf::from)
-}
-
-pub(crate) fn get_user_home<R: Runtime>(app: &tauri::AppHandle<R>) -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("USERPROFILE") {
-        return Some(PathBuf::from(p));
-    }
-    if let Ok(p) = std::env::var("HOME") {
-        return Some(PathBuf::from(p));
-    }
-    app.path().home_dir().ok()
-}
-
-pub(crate) fn get_curseforge_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<PathBuf> {
+pub(crate) fn get_curseforge_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    if let Some(home) = get_user_home(app) {
+    if let Some(home) = roots.home.clone() {
         dirs.push(home.join("curseforge").join("minecraft").join("Instances"));
         dirs.push(home.join("CurseForge").join("minecraft").join("Instances"));
         dirs.push(
@@ -56,13 +35,13 @@ pub(crate) fn get_curseforge_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<
     dirs
 }
 
-pub(crate) fn get_modrinth_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<PathBuf> {
+pub(crate) fn get_modrinth_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    if let Some(appdata) = get_appdata_dir(app) {
+    if let Some(appdata) = roots.app_data.clone() {
         dirs.push(appdata.join("com.modrinth.theseus").join("profiles"));
         dirs.push(appdata.join("Modrinth App").join("profiles"));
     }
-    if let Some(home) = get_user_home(app) {
+    if let Some(home) = roots.home.clone() {
         dirs.push(
             home.join(".local")
                 .join("share")
@@ -79,12 +58,12 @@ pub(crate) fn get_modrinth_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Pa
     dirs
 }
 
-pub(crate) fn get_atlauncher_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<PathBuf> {
+pub(crate) fn get_atlauncher_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    if let Some(appdata) = get_appdata_dir(app) {
+    if let Some(appdata) = roots.app_data.clone() {
         dirs.push(appdata.join("ATLauncher").join("instances"));
     }
-    if let Some(home) = get_user_home(app) {
+    if let Some(home) = roots.home.clone() {
         dirs.push(home.join(".atlauncher").join("instances"));
         dirs.push(home.join("ATLauncher").join("instances"));
         dirs.push(
@@ -97,9 +76,9 @@ pub(crate) fn get_atlauncher_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<
     dirs
 }
 
-pub(crate) fn get_legacylauncher_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<PathBuf> {
+pub(crate) fn get_legacylauncher_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    if let Some(appdata) = get_appdata_dir(app) {
+    if let Some(appdata) = roots.app_data.clone() {
         dirs.push(
             appdata
                 .join(".tlauncher")
@@ -109,7 +88,7 @@ pub(crate) fn get_legacylauncher_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> 
         );
         dirs.push(appdata.join(".minecraft"));
     }
-    if let Some(home) = get_user_home(app) {
+    if let Some(home) = roots.home.clone() {
         dirs.push(
             home.join(".tlauncher")
                 .join("legacy")
@@ -121,12 +100,12 @@ pub(crate) fn get_legacylauncher_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> 
     dirs
 }
 
-pub(crate) fn get_vanilla_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<PathBuf> {
+pub(crate) fn get_vanilla_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    if let Some(appdata) = get_appdata_dir(app) {
+    if let Some(appdata) = roots.app_data.clone() {
         dirs.push(appdata.join(".minecraft"));
     }
-    if let Some(home) = get_user_home(app) {
+    if let Some(home) = roots.home.clone() {
         dirs.push(home.join(".minecraft"));
         dirs.push(
             home.join("Library")
@@ -137,14 +116,14 @@ pub(crate) fn get_vanilla_dirs<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Pat
     dirs
 }
 
-pub fn get_detected_launchers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<DetectedLauncher> {
+pub fn get_detected_launchers(roots: &DiscoveryRoots) -> Vec<DetectedLauncher> {
     let mut launchers = Vec::new();
 
     // 1. CurseForge
     let mut cf_path = String::new();
     let mut cf_count = 0u32;
     let mut cf_found = false;
-    for dir in get_curseforge_dirs(app) {
+    for dir in get_curseforge_dirs(roots) {
         if dir.exists() {
             cf_found = true;
             cf_path = dir.to_string_lossy().to_string();
@@ -165,7 +144,7 @@ pub fn get_detected_launchers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Dete
     let mut mr_path = String::new();
     let mut mr_count = 0u32;
     let mut mr_found = false;
-    for dir in get_modrinth_dirs(app) {
+    for dir in get_modrinth_dirs(roots) {
         if dir.exists() {
             mr_found = true;
             mr_path = dir.to_string_lossy().to_string();
@@ -186,7 +165,7 @@ pub fn get_detected_launchers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Dete
     let mut atl_path = String::new();
     let mut atl_count = 0u32;
     let mut atl_found = false;
-    for dir in get_atlauncher_dirs(app) {
+    for dir in get_atlauncher_dirs(roots) {
         if dir.exists() {
             atl_found = true;
             atl_path = dir.to_string_lossy().to_string();
@@ -207,7 +186,7 @@ pub fn get_detected_launchers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Dete
     let mut tl_path = String::new();
     let mut tl_count = 0u32;
     let mut tl_found = false;
-    for dir in get_legacylauncher_dirs(app) {
+    for dir in get_legacylauncher_dirs(roots) {
         if dir.exists() {
             tl_found = true;
             tl_path = dir.to_string_lossy().to_string();
@@ -228,7 +207,7 @@ pub fn get_detected_launchers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Dete
     let mut mc_path = String::new();
     let mut mc_count = 0u32;
     let mut mc_found = false;
-    for dir in get_vanilla_dirs(app) {
+    for dir in get_vanilla_dirs(roots) {
         if dir.exists() {
             mc_found = true;
             mc_path = dir.to_string_lossy().to_string();
@@ -248,8 +227,8 @@ pub fn get_detected_launchers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<Dete
     launchers
 }
 
-pub fn get_launcher_instances<R: Runtime>(
-    app: &tauri::AppHandle<R>,
+pub fn get_launcher_instances(
+    roots: &DiscoveryRoots,
     launcher_id: &str,
     custom_path: Option<&str>,
 ) -> Result<Vec<ImportableInstance>, ImportError> {
@@ -257,7 +236,7 @@ pub fn get_launcher_instances<R: Runtime>(
         "curseforge" => {
             let path = custom_path
                 .map(PathBuf::from)
-                .or_else(|| get_curseforge_dirs(app).into_iter().find(|p| p.exists()));
+                .or_else(|| get_curseforge_dirs(roots).into_iter().find(|p| p.exists()));
             if let Some(p) = path {
                 Ok(scan_curseforge_instances(&p))
             } else {
@@ -267,7 +246,7 @@ pub fn get_launcher_instances<R: Runtime>(
         "modrinth" => {
             let path = custom_path
                 .map(PathBuf::from)
-                .or_else(|| get_modrinth_dirs(app).into_iter().find(|p| p.exists()));
+                .or_else(|| get_modrinth_dirs(roots).into_iter().find(|p| p.exists()));
             if let Some(p) = path {
                 Ok(scan_modrinth_instances(&p))
             } else {
@@ -277,7 +256,7 @@ pub fn get_launcher_instances<R: Runtime>(
         "atlauncher" => {
             let path = custom_path
                 .map(PathBuf::from)
-                .or_else(|| get_atlauncher_dirs(app).into_iter().find(|p| p.exists()));
+                .or_else(|| get_atlauncher_dirs(roots).into_iter().find(|p| p.exists()));
             if let Some(p) = path {
                 Ok(scan_atlauncher_instances(&p))
             } else {
@@ -286,7 +265,7 @@ pub fn get_launcher_instances<R: Runtime>(
         }
         "legacylauncher" => {
             let path = custom_path.map(PathBuf::from).or_else(|| {
-                get_legacylauncher_dirs(app)
+                get_legacylauncher_dirs(roots)
                     .into_iter()
                     .find(|p| p.exists())
             });
@@ -299,7 +278,7 @@ pub fn get_launcher_instances<R: Runtime>(
         "vanilla" => {
             let path = custom_path
                 .map(PathBuf::from)
-                .or_else(|| get_vanilla_dirs(app).into_iter().find(|p| p.exists()));
+                .or_else(|| get_vanilla_dirs(roots).into_iter().find(|p| p.exists()));
             if let Some(p) = path {
                 Ok(scan_vanilla_instances(&p))
             } else {

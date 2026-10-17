@@ -3,26 +3,15 @@ use super::models::ScreenshotError;
 use md5::Digest;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tauri::{Manager, Runtime};
 
 pub const SUPPORTED_EXTENSIONS: &[&str] = &["png", "jpg", "jpeg", "webp"];
 
 /// Resolves and ensures the cache directory for screenshot thumbnails.
-pub fn get_thumbnail_cache_dir<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-) -> Result<PathBuf, ScreenshotError> {
-    let cache_dir = app
-        .path()
-        .app_cache_dir()
-        .map_err(|e| ScreenshotError::CacheDir(e.to_string()))?
-        .join("screenshot_thumbnails");
-
-    if !cache_dir.exists() {
-        let _ = fs::create_dir_all(&cache_dir);
-    }
-    Ok(cache_dir)
+pub fn get_thumbnail_cache_dir(root: &Path) -> Result<PathBuf, ScreenshotError> {
+    let cache = root.join("screenshot_thumbnails");
+    fs::create_dir_all(&cache).map_err(ScreenshotError::Io)?;
+    Ok(cache)
 }
-
 /// Generates a deterministic thumbnail path based on an MD5 hash of instance, name, and modification timestamp.
 pub fn get_thumbnail_file_path(
     cache_dir: &Path,
@@ -37,7 +26,7 @@ pub fn get_thumbnail_file_path(
 
 /// Generates a 480x270 JPEG thumbnail for the given source image.
 pub fn create_thumbnail(source_path: &Path, dest_path: &Path) -> Result<(), ScreenshotError> {
-    if dest_path.exists() {
+    if cached_thumbnail_exists(dest_path)? {
         return Ok(());
     }
 
@@ -48,37 +37,50 @@ pub fn create_thumbnail(source_path: &Path, dest_path: &Path) -> Result<(), Scre
 
     let thumb = img.thumbnail(480, 270);
 
-    if let Some(parent) = dest_path.parent() {
-        if !parent.exists() {
-            let _ = fs::create_dir_all(parent);
-        }
-    }
-
+    let parent = dest_path
+        .parent()
+        .ok_or_else(|| ScreenshotError::CacheDir("Thumbnail has no parent directory".into()))?;
+    fs::create_dir_all(parent).map_err(ScreenshotError::Io)?;
+    let mut staged = tempfile::NamedTempFile::new_in(parent).map_err(ScreenshotError::Io)?;
     thumb
-        .save_with_format(dest_path, image::ImageFormat::Jpeg)
-        .map_err(|e| ScreenshotError::Image {
+        .write_to(&mut staged, image::ImageFormat::Jpeg)
+        .map_err(|source| ScreenshotError::Image {
             path: dest_path.display().to_string(),
-            source: e,
+            source,
         })?;
-
+    staged.as_file().sync_all().map_err(ScreenshotError::Io)?;
+    staged
+        .persist(dest_path)
+        .map_err(|error| ScreenshotError::Io(error.error))?;
     Ok(())
 }
 
 /// Retrieves an existing thumbnail or generates one immediately if missing.
-pub fn get_or_create_thumbnail<R: Runtime>(
-    app: &tauri::AppHandle<R>,
+pub fn get_or_create_thumbnail(
+    cache_dir: &Path,
     instance_id: &str,
     file_name: &str,
     file_path: &str,
     modified_at: u64,
 ) -> Result<String, ScreenshotError> {
-    let cache_dir = get_thumbnail_cache_dir(app)?;
-    let thumb_path = get_thumbnail_file_path(&cache_dir, instance_id, file_name, modified_at);
+    let thumb_path = get_thumbnail_file_path(cache_dir, instance_id, file_name, modified_at);
 
-    if thumb_path.exists() {
+    if cached_thumbnail_exists(&thumb_path)? {
         return Ok(thumb_path.to_string_lossy().to_string());
     }
 
     create_thumbnail(Path::new(file_path), &thumb_path)?;
     Ok(thumb_path.to_string_lossy().to_string())
+}
+
+pub(super) fn cached_thumbnail_exists(path: &Path) -> Result<bool, ScreenshotError> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.is_file() => Ok(true),
+        Ok(_) => Err(ScreenshotError::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "Thumbnail cache entry must be a regular file",
+        ))),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(ScreenshotError::Io(error)),
+    }
 }

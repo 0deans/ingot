@@ -76,3 +76,10 @@ pub(crate) async fn get_active_account_token<R: tauri::Runtime>(
 
 #[cfg(test)]
 mod tests;
+
+pub(crate) async fn get_account_token<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    id: &str,
+) -> Result<String, SessionError> {
+    service(app).token_for(id).await
+}

@@ -121,7 +121,10 @@ async fn credential_status_route_distinguishes_missing_corrupt_and_unavailable_v
     vault.fail_reads();
     let error = invoke(&webview, "TauRPC__skins.has_ely_web_credentials", arguments).unwrap_err();
     assert_eq!(error["kind"], "providerUnavailable");
-    assert!(!error["message"].as_str().unwrap().contains("private vault diagnostic"));
+    assert!(!error["message"]
+        .as_str()
+        .unwrap()
+        .contains("private vault diagnostic"));
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -157,8 +160,7 @@ async fn settings_namespace_dispatches_and_preserves_errors_and_storage() {
     )
     .unwrap_err();
     assert_eq!(
-        error["kind"],
-        "invalidInput",
+        error["kind"], "invalidInput",
         "The typed API error envelope must represent invalid input"
     );
     assert_eq!(

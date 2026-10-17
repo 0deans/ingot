@@ -1,22 +1,25 @@
 use super::models::ServerProperties;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
 /// Parses server.properties from a key=value file format
-pub fn read_server_properties_from_dir(server_dir: &Path) -> Result<ServerProperties, String> {
+pub fn read_server_properties_from_dir(
+    server_dir: &Path,
+) -> Result<ServerProperties, crate::server::files::ServerFileError> {
     let file_path = server_dir.join("server.properties");
-    if !file_path.exists() {
-        return Ok(ServerProperties::default());
-    }
-
-    let contents = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read server.properties: {e}"))?;
+    let contents = match fs::read_to_string(&file_path) {
+        Ok(contents) => contents,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(ServerProperties::default())
+        }
+        Err(error) => return Err(error.into()),
+    };
 
     let mut map = HashMap::new();
     for line in contents.lines() {
         let line = line.trim();
-        if line.starts_with('#') || line.empty_or_whitespace() {
+        if line.starts_with('#') || line.is_empty() {
             continue;
         }
         if let Some((k, v)) = line.split_once('=') {
@@ -29,142 +32,93 @@ pub fn read_server_properties_from_dir(server_dir: &Path) -> Result<ServerProper
 
     let default = ServerProperties::default();
     Ok(ServerProperties {
-        server_port: map
-            .get("server-port")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.server_port),
+        server_port: parse_setting(&map, "server-port", default.server_port)?,
         motd: map
             .get("motd")
             .or_else(|| map.get("server-name"))
             .cloned()
             .unwrap_or(default.motd),
-        online_mode: map
-            .get("online-mode")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.online_mode),
+        online_mode: parse_setting(&map, "online-mode", default.online_mode)?,
         difficulty: map.get("difficulty").cloned().unwrap_or(default.difficulty),
         gamemode: map.get("gamemode").cloned().unwrap_or(default.gamemode),
-        max_players: map
-            .get("max-players")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.max_players),
-        pvp: map
-            .get("pvp")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.pvp),
-        view_distance: map
-            .get("view-distance")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.view_distance),
-        simulation_distance: map
-            .get("simulation-distance")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.simulation_distance),
-        white_list: map
-            .get("white-list")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.white_list),
-        allow_flight: map
-            .get("allow-flight")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.allow_flight),
-        spawn_protection: map
-            .get("spawn-protection")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(default.spawn_protection),
+        max_players: parse_setting(&map, "max-players", default.max_players)?,
+        pvp: parse_setting(&map, "pvp", default.pvp)?,
+        view_distance: parse_setting(&map, "view-distance", default.view_distance)?,
+        simulation_distance: parse_setting(
+            &map,
+            "simulation-distance",
+            default.simulation_distance,
+        )?,
+        white_list: parse_setting(&map, "white-list", default.white_list)?,
+        allow_flight: parse_setting(&map, "allow-flight", default.allow_flight)?,
+        spawn_protection: parse_setting(&map, "spawn-protection", default.spawn_protection)?,
     })
 }
 
-trait EmptyOrWhitespace {
-    fn empty_or_whitespace(&self) -> bool;
-}
-
-impl EmptyOrWhitespace for str {
-    fn empty_or_whitespace(&self) -> bool {
-        self.trim().is_empty()
-    }
-}
-
-/// Serializes ServerProperties back into server.properties, preserving any extra custom properties
+/// Updates supported keys while retaining custom settings and Bedrock aliases.
 pub fn write_server_properties_to_dir(
     server_dir: &Path,
     props: &ServerProperties,
-) -> Result<(), String> {
-    let file_path = server_dir.join("server.properties");
+) -> Result<(), crate::server::files::ServerFileError> {
+    let entries = property_updates(server_dir, props)?;
+    crate::server::files::write_properties(server_dir, &entries)
+}
 
-    let mut existing_lines: Vec<String> = if file_path.exists() {
-        fs::read_to_string(&file_path)
-            .unwrap_or_default()
-            .lines()
-            .map(|l| l.to_string())
-            .collect()
-    } else {
-        vec!["# Minecraft server properties generated by Ingot".to_string()]
-    };
-
-    let has_server_name = existing_lines
-        .iter()
-        .any(|l| l.trim().starts_with("server-name="));
-    let has_allow_list = existing_lines
-        .iter()
-        .any(|l| l.trim().starts_with("allow-list="));
-    let has_portv6 = existing_lines
-        .iter()
-        .any(|l| l.trim().starts_with("server-portv6="));
-
-    let mut updated_keys = HashSet::new();
-
-    let mut apply_prop = |key: &str, value: &str| {
-        updated_keys.insert(key.to_string());
-        let mut replaced = false;
-        for line in existing_lines.iter_mut() {
-            if let Some((k, _)) = line.split_once('=') {
-                if k.trim() == key {
-                    *line = format!("{}={}", key, value);
-                    replaced = true;
-                    break;
-                }
-            }
-        }
-        if !replaced {
-            existing_lines.push(format!("{}={}", key, value));
-        }
-    };
-
-    apply_prop("server-port", &props.server_port.to_string());
-    apply_prop("query.port", &props.server_port.to_string());
-    apply_prop("motd", &crate::server::files::escape_property(&props.motd));
-    apply_prop("online-mode", &props.online_mode.to_string());
-    apply_prop("difficulty", &props.difficulty);
-    apply_prop("gamemode", &props.gamemode);
-    apply_prop("max-players", &props.max_players.to_string());
-    apply_prop("pvp", &props.pvp.to_string());
-    apply_prop("view-distance", &props.view_distance.to_string());
-    apply_prop(
-        "simulation-distance",
-        &props.simulation_distance.to_string(),
-    );
-    apply_prop("white-list", &props.white_list.to_string());
-    apply_prop("allow-flight", &props.allow_flight.to_string());
-    apply_prop("spawn-protection", &props.spawn_protection.to_string());
-
-    if has_server_name {
-        apply_prop(
-            "server-name",
-            &crate::server::files::escape_property(&props.motd),
-        );
-    }
-    if has_allow_list {
-        apply_prop("allow-list", &props.white_list.to_string());
-    }
-    if has_portv6 {
-        apply_prop(
+pub(crate) fn property_updates(
+    server_dir: &Path,
+    props: &ServerProperties,
+) -> Result<Vec<crate::server::files::PropertyEntry>, crate::server::files::ServerFileError> {
+    use crate::server::files::{read_properties, PropertyEntry};
+    let existing = read_properties(server_dir)?;
+    let values = [
+        ("server-port", props.server_port.to_string()),
+        ("query.port", props.server_port.to_string()),
+        ("motd", props.motd.clone()),
+        ("online-mode", props.online_mode.to_string()),
+        ("difficulty", props.difficulty.clone()),
+        ("gamemode", props.gamemode.clone()),
+        ("max-players", props.max_players.to_string()),
+        ("pvp", props.pvp.to_string()),
+        ("view-distance", props.view_distance.to_string()),
+        ("simulation-distance", props.simulation_distance.to_string()),
+        ("white-list", props.white_list.to_string()),
+        ("allow-flight", props.allow_flight.to_string()),
+        ("spawn-protection", props.spawn_protection.to_string()),
+    ];
+    let mut updates: Vec<PropertyEntry> = values
+        .into_iter()
+        .map(|(key, value)| PropertyEntry {
+            key: key.into(),
+            value,
+        })
+        .collect();
+    for (key, value) in [
+        ("server-name", props.motd.clone()),
+        ("allow-list", props.white_list.to_string()),
+        (
             "server-portv6",
-            &(props.server_port.saturating_add(1)).to_string(),
-        );
+            props.server_port.saturating_add(1).to_string(),
+        ),
+    ] {
+        if existing.iter().any(|entry| entry.key == key) {
+            updates.push(PropertyEntry {
+                key: key.into(),
+                value,
+            });
+        }
     }
+    Ok(updates)
+}
 
-    let final_content = existing_lines.join("\n") + "\n";
-    fs::write(file_path, final_content)
-        .map_err(|e| format!("Failed to write server.properties: {e}"))
+fn parse_setting<T: std::str::FromStr>(
+    values: &HashMap<String, String>,
+    key: &str,
+    default: T,
+) -> Result<T, crate::server::files::ServerFileError> {
+    match values.get(key) {
+        Some(value) => value
+            .parse()
+            .map_err(|_| crate::server::files::ServerFileError::InvalidProperty(key.into())),
+        None => Ok(default),
+    }
 }

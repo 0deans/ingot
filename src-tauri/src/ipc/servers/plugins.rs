@@ -8,6 +8,7 @@ use crate::server::plugins::{
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "servers.plugins")]
+#[allow(clippy::too_many_arguments)]
 pub trait ServerPluginsApi {
     /// Search plugins or server-side mods for this server.
     async fn search_server_plugins(
@@ -135,6 +136,11 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         project_id: String,
         version_id: Option<String>,
     ) -> Result<InstallReport, ApiError> {
+        let _operation = crate::app::state(&app_handle)
+            .servers
+            .reserve_maintenance(&server_id)
+            .await
+            .map_err(ApiError::from)?;
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         server::plugins::install(
             &dir,
@@ -169,6 +175,11 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         file_name: String,
         enabled: bool,
     ) -> Result<(), ApiError> {
+        let _operation = crate::app::state(&app_handle)
+            .servers
+            .reserve_maintenance(&server_id)
+            .await
+            .map_err(ApiError::from)?;
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         server::plugins::set_enabled(&dir, &config.core, &file_name, enabled)
             .map_err(ApiError::from)
@@ -180,9 +191,13 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         server_id: String,
         file_name: String,
     ) -> Result<(), ApiError> {
+        let _operation = crate::app::state(&app_handle)
+            .servers
+            .reserve_maintenance(&server_id)
+            .await
+            .map_err(ApiError::from)?;
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::remove(&dir, &config.core, &file_name)
-            .map_err(ApiError::from)
+        server::plugins::remove(&dir, &config.core, &file_name).map_err(ApiError::from)
     }
 
     async fn check_server_plugin_updates(
@@ -191,6 +206,8 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         server_id: String,
     ) -> Result<Vec<PluginUpdate>, ApiError> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        Ok(server::plugins::check_updates(&dir, &config.core, &config.game_version).await)
+        server::plugins::check_updates(&dir, &config.core, &config.game_version)
+            .await
+            .map_err(ApiError::from)
     }
 }

@@ -31,7 +31,7 @@ const AccountSwitcher = ({
 	onPreloadSettings,
 }: AccountSwitcherProps) => {
 	const { t } = useTranslation()
-	const { accounts, activeAccount, setActiveAccount, removeAccount } = useAccounts()
+	const { accounts, activeAccount, setActiveAccount, removeAccount, loadError } = useAccounts()
 	const [isAddOpen, setIsAddOpen] = useState(false)
 	const [previewAccount, setPreviewAccount] = useState<AccountProfile | null>(null)
 
@@ -124,6 +124,11 @@ const AccountSwitcher = ({
 					sideOffset={8}
 					className="w-60 border-border/60 bg-background/95 p-1.5 shadow-xl backdrop-blur-md"
 				>
+					{loadError && (
+						<p role="alert" className="p-2 text-destructive text-xs">
+							{loadError}
+						</p>
+					)}
 					<DropdownMenuGroup>
 						<DropdownMenuLabel className="flex items-center justify-between text-2xs">
 							<span>{t("accounts.minecraftAccounts")}</span>

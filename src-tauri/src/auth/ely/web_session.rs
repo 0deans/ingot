@@ -60,14 +60,14 @@ pub(crate) async fn create_authenticated_web_client(
         .cookie_provider(jar.clone())
         .redirect(Policy::none())
         .build()
-        .map_err(ElyError::ClientInit)?;
+        .map_err(|error| ElyError::ClientInit(error.without_url()))?;
 
     // Step A: GET authorization/login to obtain redirect location and initial session cookie
     let login_init_res = client
         .get(format!("{ely_base}/authorization/login"))
         .send()
         .await
-        .map_err(ElyError::Transport)?;
+        .map_err(|error| ElyError::Transport(error.without_url()))?;
 
     let redirect_url = login_init_res
         .headers()
@@ -88,39 +88,14 @@ pub(crate) async fn create_authenticated_web_client(
         .json(&auth_payload)
         .send()
         .await
-        .map_err(ElyError::Transport)?;
+        .map_err(|error| ElyError::Transport(error.without_url()))?;
 
     let auth_json = auth_res
         .json::<serde_json::Value>()
         .await
-        .map_err(ElyError::ParseResponse)?;
+        .map_err(|error| ElyError::ParseResponse(error.without_url()))?;
 
-    let success = auth_json
-        .get("success")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(false);
-    if !success {
-        if let Some(errors) = auth_json.get("errors") {
-            if let Some(pw_err) = errors.get("password").and_then(|v| v.as_str()) {
-                if pw_err.contains("password_incorrect") {
-                    return Err(ElyError::IncorrectPassword);
-                }
-                return Err(ElyError::Account(format!(
-                    "Authentication failed: {pw_err}"
-                )));
-            }
-            if let Some(login_err) = errors.get("login").and_then(|v| v.as_str()) {
-                return Err(ElyError::Account(login_err.to_string()));
-            }
-            if errors.get("totp").and_then(|v| v.as_str()).is_some() {
-                return Err(ElyError::TwoFactorRequired);
-            }
-            return Err(ElyError::Account(errors.to_string()));
-        }
-        return Err(ElyError::Account(
-            "Ely.by authentication failed".to_string(),
-        ));
-    }
+    validate_authentication(&auth_json)?;
 
     let web_access_token = auth_json
         .get("access_token")
@@ -135,33 +110,15 @@ pub(crate) async fn create_authenticated_web_client(
         .form(&[("accept", "true")])
         .send()
         .await
-        .map_err(ElyError::Transport)?;
+        .map_err(|error| ElyError::Transport(error.without_url()))?;
 
     let status = complete_res.status();
     let complete_json = complete_res
         .json::<serde_json::Value>()
         .await
-        .map_err(ElyError::ParseResponse)?;
+        .map_err(|error| ElyError::ParseResponse(error.without_url()))?;
 
-    if !status.is_success() {
-        let err_detail = complete_json
-            .get("message")
-            .or_else(|| complete_json.get("error_description"))
-            .or_else(|| complete_json.get("error"))
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| complete_json.to_string());
-        return Err(ElyError::OAuthCompletion {
-            status,
-            message: err_detail,
-        });
-    }
-
-    let redirect_uri = complete_json
-        .get("redirectUri")
-        .or_else(|| complete_json.get("redirect_uri"))
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| ElyError::MissingRedirectUri(complete_json.to_string()))?;
+    let redirect_uri = completion_redirect_uri(status, &complete_json)?;
 
     // Step D: GET redirect_uri to finalize session cookies
     let finalize_url = if redirect_uri.starts_with('/') {
@@ -173,7 +130,7 @@ pub(crate) async fn create_authenticated_web_client(
         .get(&finalize_url)
         .send()
         .await
-        .map_err(ElyError::Transport)?;
+        .map_err(|error| ElyError::Transport(error.without_url()))?;
 
     if !finalize_res.status().is_redirection() && !finalize_res.status().is_success() {
         return Err(ElyError::HttpStatus(finalize_res.status()));
@@ -196,4 +153,80 @@ pub(crate) async fn create_authenticated_web_client(
     }
 
     Ok(client)
+}
+
+fn validate_authentication(json: &serde_json::Value) -> Result<(), ElyError> {
+    if json.get("success").and_then(serde_json::Value::as_bool) == Some(true) {
+        return Ok(());
+    }
+    let errors = json.get("errors");
+    if errors
+        .and_then(|errors| errors.get("password"))
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|error| error.contains("password_incorrect"))
+    {
+        return Err(ElyError::IncorrectPassword);
+    }
+    if errors
+        .and_then(|errors| errors.get("totp"))
+        .and_then(serde_json::Value::as_str)
+        .is_some()
+    {
+        return Err(ElyError::TwoFactorRequired);
+    }
+    Err(ElyError::AuthenticationRejected)
+}
+
+fn completion_redirect_uri(
+    status: reqwest::StatusCode,
+    json: &serde_json::Value,
+) -> Result<&str, ElyError> {
+    if !status.is_success() {
+        return Err(ElyError::OAuthCompletion { status });
+    }
+    json.get("redirectUri")
+        .or_else(|| json.get("redirect_uri"))
+        .and_then(serde_json::Value::as_str)
+        .ok_or(ElyError::MissingRedirectUri)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn credential_bearing_authentication_responses_are_never_formatted() {
+        let responses = [
+            serde_json::json!({"success": false, "errors": {"login": "private-password"}, "access_token": "private-token"}),
+            serde_json::json!({"success": false, "errors": {"password": "private-password"}}),
+        ];
+        for response in responses {
+            let error = validate_authentication(&response).unwrap_err();
+            assert!(matches!(error, ElyError::AuthenticationRejected));
+            assert!(!format!("{error} {error:?}").contains("private-"));
+        }
+        assert!(matches!(
+            validate_authentication(
+                &serde_json::json!({"errors": {"password": "password_incorrect"}})
+            ),
+            Err(ElyError::IncorrectPassword)
+        ));
+        assert!(matches!(
+            validate_authentication(&serde_json::json!({"errors": {"totp": "required"}})),
+            Err(ElyError::TwoFactorRequired)
+        ));
+    }
+
+    #[test]
+    fn oauth_errors_do_not_retain_raw_authentication_responses() {
+        let json = serde_json::json!({"access_token": "private-token", "password": "private-password", "error_description": "private-provider-text"});
+        for status in [reqwest::StatusCode::BAD_REQUEST, reqwest::StatusCode::OK] {
+            let error = completion_redirect_uri(status, &json).unwrap_err();
+            let native = format!("{error} {error:?}");
+            let ipc = crate::ipc::ApiError::from(crate::app::accounts::SkinError::Ely(error));
+            let wire = serde_json::to_string(&ipc).unwrap();
+            assert!(!native.contains("private-"));
+            assert!(!wire.contains("private-"));
+        }
+    }
 }

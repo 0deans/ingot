@@ -1,6 +1,7 @@
+use crate::app::importer;
 use crate::ipc::ApiError;
 use crate::minecraft::importer::{
-    self, DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance,
+    DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance,
 };
 use tauri::Runtime;
 
@@ -36,7 +37,9 @@ impl InstanceImportsApi for InstanceImportsApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<DetectedLauncher>, ApiError> {
-        Ok(importer::get_detected_launchers(&app_handle))
+        importer::get_detected_launchers(&app_handle)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn get_launcher_instances(
@@ -45,7 +48,8 @@ impl InstanceImportsApi for InstanceImportsApiImpl {
         launcher_id: String,
         custom_path: Option<String>,
     ) -> Result<Vec<ImportableInstance>, ApiError> {
-        importer::get_launcher_instances(&app_handle, &launcher_id, custom_path.as_deref())
+        importer::get_launcher_instances(&app_handle, launcher_id, custom_path)
+            .await
             .map_err(ApiError::from)
     }
 
@@ -54,7 +58,9 @@ impl InstanceImportsApi for InstanceImportsApiImpl {
         _app_handle: tauri::AppHandle<impl Runtime>,
         path: String,
     ) -> Result<ImportableInstance, ApiError> {
-        importer::detect_custom_instance(&path).map_err(ApiError::from)
+        importer::detect_custom_instance(path)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn import_instance(
@@ -62,6 +68,8 @@ impl InstanceImportsApi for InstanceImportsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         options: ImportInstanceOptions,
     ) -> Result<ImportReport, ApiError> {
-        importer::import_instance(&app_handle, options).map_err(ApiError::from)
+        importer::import_instance(&app_handle, options)
+            .await
+            .map_err(ApiError::from)
     }
 }

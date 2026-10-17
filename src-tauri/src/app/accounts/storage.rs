@@ -13,13 +13,19 @@ pub(super) fn with_recovered<R: tauri::Runtime, T>(
     app: &tauri::AppHandle<R>,
     action: impl FnOnce(&AccountRepository) -> Result<T, crate::account::AccountError>,
 ) -> Result<T, String> {
+    with_recovered_typed(app, action).map_err(|error| error.to_string())
+}
+
+pub(super) fn with_recovered_typed<R: tauri::Runtime, T>(
+    app: &tauri::AppHandle<R>,
+    action: impl FnOnce(&AccountRepository) -> Result<T, crate::account::AccountError>,
+) -> Result<T, crate::account::recovery::RecoveryError> {
     let state = crate::app::state(app);
     state
         .account_recovery
         .with_recovered(state.credentials.as_ref(), &state.accounts, || {
             action(&state.accounts)
         })
-        .map_err(|error| error.to_string())
 }
 
 pub(super) fn current_timestamp() -> u64 {

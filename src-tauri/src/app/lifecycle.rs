@@ -55,7 +55,12 @@ pub(crate) async fn adopt_running_games<R: Runtime>(app: &tauri::AppHandle<R>) {
             let on_status = std::sync::Arc::new(move |ev: InstanceStatusEvent| {
                 events::instance_status(&app_stat, ev);
             });
-            launcher::adopt_running(app.clone(), get_process_manager(app).clone(), on_status).await;
+            crate::app::games::adopt_running(
+                app.clone(),
+                get_process_manager(app).clone(),
+                on_status,
+            )
+            .await;
         })
         .await;
 }

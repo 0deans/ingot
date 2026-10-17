@@ -75,7 +75,11 @@ impl PlayitManager {
         #[cfg(not(target_os = "android"))]
         if let Ok(path) = std::env::var("PATH") {
             for dir in std::env::split_paths(&path) {
-                let p = dir.join(if cfg!(windows) { "playit.exe" } else { "playit" });
+                let p = dir.join(if cfg!(windows) {
+                    "playit.exe"
+                } else {
+                    "playit"
+                });
                 if p.exists() {
                     return Ok(p);
                 }
@@ -99,7 +103,10 @@ impl PlayitManager {
 
         if target_path.exists() {
             // Sanity-check: must be > 1 MB (reject corrupt/partial downloads)
-            if std::fs::metadata(&target_path).map(|m| m.len() > 1_000_000).unwrap_or(false) {
+            if std::fs::metadata(&target_path)
+                .map(|m| m.len() > 1_000_000)
+                .unwrap_or(false)
+            {
                 return Ok(target_path);
             }
             let _ = std::fs::remove_file(&target_path);
@@ -138,15 +145,17 @@ impl PlayitManager {
         let part = target_path.with_extension("part");
         std::fs::write(&part, &bytes)
             .and_then(|()| std::fs::rename(&part, &target_path))
-            .map_err(|e| format!("Failed to write playit binary to {}: {e}", target_path.display()))?;
+            .map_err(|e| {
+                format!(
+                    "Failed to write playit binary to {}: {e}",
+                    target_path.display()
+                )
+            })?;
 
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let _ = std::fs::set_permissions(
-                &target_path,
-                std::fs::Permissions::from_mode(0o755),
-            );
+            let _ = std::fs::set_permissions(&target_path, std::fs::Permissions::from_mode(0o755));
         }
 
         Ok(target_path)
@@ -442,7 +451,10 @@ async fn claim_agent(ctx: &AgentContext) -> Result<String, String> {
             None => {
                 let err = setup.err().unwrap_or_default();
                 if err.contains("CodeExpired") || err.contains("InvalidCode") {
-                    return Err("The playit.gg claim link expired. Tap Connect to get a new one.".to_string());
+                    return Err(
+                        "The playit.gg claim link expired. Tap Connect to get a new one."
+                            .to_string(),
+                    );
                 }
                 eprintln!("[Playit] Claim status check failed: {err}");
             }
@@ -451,7 +463,14 @@ async fn claim_agent(ctx: &AgentContext) -> Result<String, String> {
     }
 
     for _ in 0..10 {
-        match api_call(&ctx.client, "/claim/exchange", json!({ "code": code }), None).await {
+        match api_call(
+            &ctx.client,
+            "/claim/exchange",
+            json!({ "code": code }),
+            None,
+        )
+        .await
+        {
             Ok(data) => {
                 if let Some(secret) = data["secret_key"].as_str() {
                     return Ok(secret.to_string());
@@ -471,7 +490,11 @@ async fn claim_agent(ctx: &AgentContext) -> Result<String, String> {
 async fn apply_rundata(ctx: &AgentContext, data: &Value) {
     let tunnels: Vec<&Value> = data["tunnels"]
         .as_array()
-        .map(|t| t.iter().filter(|t| t["disabled_reason"].is_null()).collect())
+        .map(|t| {
+            t.iter()
+                .filter(|t| t["disabled_reason"].is_null())
+                .collect()
+        })
         .unwrap_or_default();
 
     let tunnel = tunnels

@@ -51,6 +51,65 @@ fn plan(items: Vec<PlanItem>) -> VersionPlan {
     }
 }
 
+#[test]
+fn recovery_rejects_journal_paths_outside_target() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path().join("instance");
+    fs::create_dir_all(&root).unwrap();
+    let outside = directory.path().join("important.txt");
+    fs::write(&outside, b"preserve").unwrap();
+    for unsafe_path in [
+        "../important.txt",
+        "..\\important.txt",
+        "/important.txt",
+        "C:\\important.txt",
+    ] {
+        let journal = Journal {
+            added: vec![unsafe_path.into()],
+            ..Default::default()
+        };
+        write_journal_typed(&root, &journal).unwrap();
+        assert!(matches!(
+            read_journal_state(&root),
+            JournalState::Corrupt(_)
+        ));
+        assert!(recover_interrupted_transaction(&root).is_err());
+        assert_eq!(fs::read(&outside).unwrap(), b"preserve");
+        assert!(backup_dir(&root).exists());
+    }
+}
+
+#[test]
+fn missing_staged_replacement_fails_and_can_restore_original() {
+    let temporary = tempfile::tempdir().unwrap();
+    let root = temporary.path();
+    write(root, &[("plugins/old.jar", "original")]);
+    let target = targets::server(root, &crate::server::ServerCoreType::Paper).unwrap();
+    let plan = plan(vec![item(
+        ContentKind::Plugin,
+        "plugins",
+        Some("old.jar"),
+        ItemAction::Update,
+        Some("new.jar"),
+    )]);
+    let backup = backup_dir(root);
+    let staging = work_dir(root).join("staging");
+    let mut journal = Journal::default();
+    assert!(swap(
+        &target,
+        &backup,
+        &staging,
+        &plan,
+        false,
+        &mut journal,
+        &|_| {}
+    )
+    .is_err());
+    super::transaction::restore(root, &backup, &journal).unwrap();
+    assert_eq!(fs::read(root.join("plugins/old.jar")).unwrap(), b"original");
+    assert!(!root.join("plugins/new.jar").exists());
+}
+
 fn write(root: &Path, files: &[(&str, &str)]) {
     for (path, text) in files {
         fs::create_dir_all(root.join(path).parent().unwrap()).unwrap();
@@ -61,8 +120,8 @@ fn write(root: &Path, files: &[(&str, &str)]) {
 /// Swap + undo on real files, without downloads (staging prepared by hand)
 #[test]
 fn swaps_and_undoes_exactly() {
-    let root = std::env::temp_dir().join(format!("ingot-version-change-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&root);
+    let temporary = tempfile::tempdir().unwrap();
+    let root = temporary.path().to_path_buf();
     write(
         &root,
         &[
@@ -80,7 +139,7 @@ fn swaps_and_undoes_exactly() {
         &staging,
         &[("plugins/old-2.jar", "new"), ("plugins/dep.jar", "dep")],
     );
-    let target = targets::server(&root, &crate::server::config::ServerCoreType::Purpur);
+    let target = targets::server(&root, &crate::server::config::ServerCoreType::Purpur).unwrap();
     let plan = plan(vec![
         item(
             ContentKind::Plugin,
@@ -194,8 +253,8 @@ fn swaps_and_undoes_exactly() {
 
 #[test]
 fn crash_check_and_turning_off_suspects() {
-    let root = std::env::temp_dir().join(format!("ingot-version-crash-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&root);
+    let temporary = tempfile::tempdir().unwrap();
+    let root = temporary.path().to_path_buf();
     write(
         &root,
         &[
@@ -296,6 +355,7 @@ fn journal_roundtrip_and_discard() {
         disabled: vec!["mods/b.jar".into()],
         added: vec!["mods/c.jar".into()],
         configs: vec!["config/a.json".into()],
+        absent_configs: Vec::new(),
         worlds: vec!["saves/World".into()],
         phase: TransactionPhase::Committed,
         first_start_checked: false,
@@ -334,7 +394,7 @@ async fn metadata_commit_failure_triggers_clean_rollback() {
     let staging = work_dir(root).join("staging");
     write(&staging, &[("plugins/old-2.jar", "new")]);
 
-    let target = targets::server(root, &crate::server::config::ServerCoreType::Purpur);
+    let target = targets::server(root, &crate::server::config::ServerCoreType::Purpur).unwrap();
     let plan = plan(vec![item(
         ContentKind::Plugin,
         "plugins",
@@ -387,7 +447,7 @@ async fn metadata_commit_failure_with_failed_restore_preserves_backup() {
         &[("plugins/old-1.jar", "old"), ("server.jar", "paper 1.21.4")],
     );
 
-    let target = targets::server(root, &crate::server::config::ServerCoreType::Purpur);
+    let target = targets::server(root, &crate::server::config::ServerCoreType::Purpur).unwrap();
     let plan = plan(vec![item(
         ContentKind::Plugin,
         "plugins",
@@ -1042,6 +1102,7 @@ fn test_swap_and_restore_preserves_contained_absolute_symlinks() {
 }
 
 #[test]
+#[cfg(windows)]
 fn test_is_contained_rejects_unrelated_unicode_paths_without_panicking() {
     use super::transaction::{is_contained, strip_contained_root};
 
@@ -1068,6 +1129,26 @@ fn test_is_contained_rejects_unrelated_unicode_paths_without_panicking() {
         strip_contained_root(contained_unicode, root),
         Some(std::path::PathBuf::from(r"世界\level.dat"))
     );
+}
+
+#[cfg(unix)]
+#[test]
+fn unix_containment_handles_unicode_path_components() {
+    use super::transaction::{is_contained, strip_contained_root};
+
+    let root = Path::new("/world");
+    let link = root.join("link");
+    let outside = Path::new("/世界/x");
+    assert!(!is_contained(&link, outside, root));
+    assert_eq!(strip_contained_root(outside, root), None);
+
+    let inside = root.join("世界/level.dat");
+    assert!(is_contained(&link, &inside, root));
+    assert_eq!(
+        strip_contained_root(&inside, root),
+        Some(std::path::PathBuf::from("世界/level.dat"))
+    );
+    assert!(!is_contained(&link, Path::new("/world-sibling/x"), root));
 }
 
 #[test]
@@ -1146,4 +1227,52 @@ fn test_swap_rejects_unrelated_unicode_symlink_without_panicking() {
         .unwrap()
         .file_type()
         .is_symlink());
+}
+
+#[test]
+fn recovery_restores_missing_plugin_tracking_to_absence() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    let target = targets::server(root, &crate::server::ServerCoreType::Purpur).unwrap();
+    let mut journal = Journal {
+        phase: TransactionPhase::Swapping,
+        ..Default::default()
+    };
+    let backup = backup_dir(root);
+    fs::create_dir_all(&backup).unwrap();
+    let staging = work_dir(root).join("staging");
+    fs::create_dir_all(&staging).unwrap();
+    swap(
+        &target,
+        &backup,
+        &staging,
+        &plan(Vec::new()),
+        false,
+        &mut journal,
+        &|_| {},
+    )
+    .unwrap();
+    assert!(journal
+        .absent_configs
+        .contains(&".ingot/plugins.json".to_string()));
+    write(root, &[(".ingot/plugins.json", "[]")]);
+    transaction::restore(root, &backup, &journal).unwrap();
+    assert!(!root.join(".ingot/plugins.json").exists());
+    transaction::restore(root, &backup, &journal).unwrap();
+}
+
+#[test]
+fn legacy_journal_without_absence_list_remains_readable() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    let journal = Journal::default();
+    let mut json = serde_json::to_value(&journal).unwrap();
+    json.as_object_mut().unwrap().remove("absentConfigs");
+    fs::create_dir_all(backup_dir(root)).unwrap();
+    fs::write(
+        backup_dir(root).join("journal.json"),
+        serde_json::to_vec(&json).unwrap(),
+    )
+    .unwrap();
+    assert!(read_journal(root).unwrap().absent_configs.is_empty());
 }

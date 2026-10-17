@@ -195,7 +195,7 @@ async fn test_upload_skin_multipart_success() {
 async fn test_skin_refused_with_error_message() {
     let mock = MockServer::start(|_, _, _, _| {
         let err_json = serde_json::json!({
-            "errorMessage": "Invalid image dimensions: expected 64x64 or 64x32"
+            "errorMessage": "private-token private-password"
         });
         (
             400,
@@ -211,14 +211,17 @@ async fn test_skin_refused_with_error_message() {
         .await
         .unwrap_err();
 
-    match err {
-        MicrosoftSkinError::Refused(reason) => {
-            assert_eq!(reason, "Invalid image dimensions: expected 64x64 or 64x32");
-        }
-        other => panic!("Expected Refused error, got {other:?}"),
-    }
+    assert!(matches!(
+        err,
+        MicrosoftSkinError::HttpStatus(StatusCode::BAD_REQUEST)
+    ));
+    assert!(!format!("{err} {err:?}").contains("private-"));
+    let wire = serde_json::to_string(&crate::ipc::ApiError::from(
+        crate::app::accounts::SkinError::Microsoft(err),
+    ))
+    .unwrap();
+    assert!(!wire.contains("private-"));
 }
-
 #[tokio::test]
 async fn test_skin_refused_http_status_when_no_message() {
     let mock = MockServer::start(|_, _, _, _| (401, vec![], "Unauthorized".to_string())).await;
@@ -243,7 +246,7 @@ async fn test_skin_response_decode_error() {
         (
             200,
             vec![("Content-Type", "application/json")],
-            "{\"broken\": true}".to_string(),
+            r#"{"id":"id","name":"Steve","skins":"private-token"}"#.to_string(),
         )
     })
     .await;
@@ -254,10 +257,14 @@ async fn test_skin_response_decode_error() {
         .await
         .unwrap_err();
 
-    match err {
-        MicrosoftSkinError::Response(_) => {}
-        other => panic!("Expected Response decode error, got {other:?}"),
-    }
+    assert!(matches!(err, MicrosoftSkinError::Response(_)));
+    assert!(!format!("{err} {err:?}").contains("private-token"));
+    assert!(std::error::Error::source(&err).is_some());
+    let wire = serde_json::to_string(&crate::ipc::ApiError::from(
+        crate::app::accounts::SkinError::Microsoft(err),
+    ))
+    .unwrap();
+    assert!(!wire.contains("private-token"));
 }
 
 #[tokio::test]

@@ -673,7 +673,7 @@ export type TargetFile = {
 export type TargetKind = "instance" | "server";
 
 /**  Phase of an active or completed version change transaction */
-export type TransactionPhase = "prepared" | "swapping" | "committed" | "rollbackFailed";
+export type TransactionPhase = "prepared" | "swapping" | "committed" | "rollbackFailed" | "restoring" | "restored";
 
 export type UnifiedContentDetails = {
 	id: string,

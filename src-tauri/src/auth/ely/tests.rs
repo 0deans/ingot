@@ -84,16 +84,6 @@ fn test_extract_skin_id() {
 }
 
 #[test]
-fn test_strip_html_tags() {
-    assert_eq!(skins::strip_html_tags("Hello World"), "Hello World");
-    assert_eq!(
-        skins::strip_html_tags("<p>Error: <b>Forbidden</b></p>"),
-        "Error: Forbidden"
-    );
-    assert_eq!(skins::strip_html_tags(""), "");
-}
-
-#[test]
 fn test_check_ely_web_response() {
     let ok1 = serde_json::json!({ "success": true });
     assert!(skins::check_ely_web_response(&ok1).is_ok());
@@ -106,7 +96,7 @@ fn test_check_ely_web_response() {
         "text": "<span>Access Denied</span>"
     });
     match skins::check_ely_web_response(&err1) {
-        Err(ElyError::Api(msg)) => assert_eq!(msg, "Access Denied"),
+        Err(ElyError::ApiRejected) => {}
         other => panic!("Expected Api error, got {other:?}"),
     }
 
@@ -115,7 +105,7 @@ fn test_check_ely_web_response() {
         "message": "Invalid password"
     });
     match skins::check_ely_web_response(&err2) {
-        Err(ElyError::Api(msg)) => assert_eq!(msg, "Invalid password"),
+        Err(ElyError::ApiRejected) => {}
         other => panic!("Expected Api error, got {other:?}"),
     }
 }
@@ -503,4 +493,71 @@ async fn test_fetch_catalog_with_uploader() {
         "Expected fetch_catalog with uploader to succeed, got: {:?}",
         res.err()
     );
+}
+
+#[tokio::test]
+async fn uploaded_skin_reports_all_required_wear_failures() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    for (status, body) in [
+        (503, r#"{"error":"private-provider-text"}"#),
+        (200, r#"{"success":false,"text":"private-provider-text"}"#),
+        (200, "invalid JSON"),
+        (0, "invalid HTTP response"),
+    ] {
+        let wears = Arc::new(AtomicUsize::new(0));
+        let observed_wears = wears.clone();
+        let mock = MockServer::start(move |method, path, request| {
+            if path == "/api/legacy/skins" {
+                assert_eq!(method, "POST");
+                return (
+                    200,
+                    vec![("Content-Type", "application/json")],
+                    r#"{"success":true,"id":8888}"#.into(),
+                );
+            }
+            if path == "/api/legacy/users/skin" {
+                observed_wears.fetch_add(1, Ordering::SeqCst);
+                assert_eq!(method, "PUT");
+                assert_eq!(request, b"skinId=8888");
+                return (
+                    status,
+                    vec![("Content-Type", "application/json")],
+                    body.into(),
+                );
+            }
+            (404, vec![], String::new())
+        })
+        .await;
+        let error = skins::upload_skin(&reqwest::Client::new(), &mock.base_url, b"png".to_vec())
+            .await
+            .unwrap_err();
+        let ElyError::UploadedNotApplied {
+            skin_id,
+            ref source,
+        } = error
+        else {
+            panic!("Expected an uploaded-but-not-applied result, got {error:?}");
+        };
+        assert_eq!(skin_id, 8888);
+        match status {
+            503 => assert!(matches!(
+                source.as_ref(),
+                ElyError::HttpStatus(StatusCode::SERVICE_UNAVAILABLE)
+            )),
+            200 if body == "invalid JSON" => {
+                assert!(matches!(source.as_ref(), ElyError::ParseResponse(_)))
+            }
+            200 => assert!(matches!(source.as_ref(), ElyError::ApiRejected)),
+            0 => assert!(matches!(source.as_ref(), ElyError::Transport(_))),
+            _ => unreachable!(),
+        }
+        assert_eq!(wears.load(Ordering::SeqCst), 1);
+        let diagnostic = format!("{error} {error:?}");
+        assert!(!diagnostic.contains("private-provider-text"));
+        let ipc = crate::ipc::ApiError::from(crate::app::accounts::SkinError::Ely(error));
+        assert!(matches!(
+            ipc,
+            crate::ipc::ApiError::IncompleteRecovery { .. }
+        ));
+    }
 }

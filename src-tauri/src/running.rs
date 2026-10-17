@@ -76,7 +76,10 @@ impl Registry {
 static LOCK: Mutex<()> = Mutex::new(());
 
 fn path<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
-    app.path().app_data_dir().ok().map(|d| d.join("running.json"))
+    app.path()
+        .app_data_dir()
+        .ok()
+        .map(|d| d.join("running.json"))
 }
 
 fn read(path: &PathBuf) -> Registry {
@@ -91,7 +94,9 @@ fn update<R: Runtime>(app: &AppHandle<R>, f: impl FnOnce(&mut Registry)) {
     let _guard = LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let mut registry = read(&path);
     f(&mut registry);
-    let Ok(data) = serde_json::to_string_pretty(&registry) else { return };
+    let Ok(data) = serde_json::to_string_pretty(&registry) else {
+        return;
+    };
     let tmp = path.with_extension("json.tmp");
     if std::fs::write(&tmp, data).is_ok() {
         let _ = std::fs::rename(&tmp, &path);
@@ -100,8 +105,15 @@ fn update<R: Runtime>(app: &AppHandle<R>, f: impl FnOnce(&mut Registry)) {
 
 /// Remembers a process Ingot just started
 pub fn add<R: Runtime>(app: &AppHandle<R>, kind: Kind, id: &str, pid: u32, started_at: u64) {
-    let Some(proc_start) = process_start(pid) else { return };
-    let entry = Entry { id: id.to_string(), pid, started_at, proc_start };
+    let Some(proc_start) = process_start(pid) else {
+        return;
+    };
+    let entry = Entry {
+        id: id.to_string(),
+        pid,
+        started_at,
+        proc_start,
+    };
     update(app, |r| {
         let list = r.list(kind);
         list.retain(|e| e.id != entry.id);
@@ -111,11 +123,15 @@ pub fn add<R: Runtime>(app: &AppHandle<R>, kind: Kind, id: &str, pid: u32, start
 
 /// Forgets a process once it has exited (only that process: the id may have been started again)
 pub fn remove<R: Runtime>(app: &AppHandle<R>, kind: Kind, id: &str, pid: u32) {
-    update(app, |r| r.list(kind).retain(|e| !(e.id == id && e.pid == pid)));
+    update(app, |r| {
+        r.list(kind).retain(|e| !(e.id == id && e.pid == pid))
+    });
 }
 
 pub fn load<R: Runtime>(app: &AppHandle<R>, kind: Kind) -> Vec<Entry> {
-    let Some(path) = path(app) else { return Vec::new() };
+    let Some(path) = path(app) else {
+        return Vec::new();
+    };
     let _guard = LOCK.lock().unwrap_or_else(|e| e.into_inner());
     read(&path).list(kind).clone()
 }
@@ -124,7 +140,11 @@ pub fn load<R: Runtime>(app: &AppHandle<R>, kind: Kind) -> Vec<Entry> {
 pub fn process_start(pid: u32) -> Option<u64> {
     let pid = Pid::from_u32(pid);
     let mut sys = System::new();
-    sys.refresh_processes_specifics(ProcessesToUpdate::Some(&[pid]), true, ProcessRefreshKind::nothing());
+    sys.refresh_processes_specifics(
+        ProcessesToUpdate::Some(&[pid]),
+        true,
+        ProcessRefreshKind::nothing(),
+    );
     sys.process(pid).map(|p| p.start_time())
 }
 
@@ -159,10 +179,18 @@ mod tests {
     fn knows_its_own_process() {
         let pid = std::process::id();
         let start = process_start(pid).expect("this process is running");
-        let entry = Entry { id: "x".into(), pid, started_at: 0, proc_start: start };
+        let entry = Entry {
+            id: "x".into(),
+            pid,
+            started_at: 0,
+            proc_start: start,
+        };
         assert!(is_alive(&entry));
         // Same pid, another start time: a different process that reused the pid
-        let reused = Entry { proc_start: start.saturating_sub(3600), ..entry };
+        let reused = Entry {
+            proc_start: start.saturating_sub(3600),
+            ..entry
+        };
         assert!(!is_alive(&reused));
     }
 }

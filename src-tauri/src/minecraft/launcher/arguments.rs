@@ -269,3 +269,87 @@ pub fn apply_window_settings(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn version_comparison_logic() {
+        assert!(is_version_at_least("1.20.1", 1, 20));
+        assert!(is_version_at_least("1.21", 1, 20));
+        assert!(!is_version_at_least("1.19.4", 1, 20));
+        assert!(is_version_at_least("24w14a", 1, 20));
+    }
+
+    #[test]
+    fn apply_window_settings_fullscreen() {
+        let mut args = Vec::new();
+        apply_window_settings(&mut args, true, 800, 600);
+        assert_eq!(args, vec!["--fullscreen"]);
+    }
+
+    #[test]
+    fn apply_window_settings_windowed() {
+        let mut args = Vec::new();
+        apply_window_settings(&mut args, false, 1280, 720);
+        assert_eq!(args, vec!["--width", "1280", "--height", "720"]);
+    }
+
+    #[test]
+    fn build_jvm_arguments_includes_ram_and_main_class() {
+        let nat = PathBuf::from("/nat");
+        let lib = PathBuf::from("/lib");
+        let cfg = JvmArgsConfig {
+            min_ram_mb: 2048,
+            max_ram_mb: 4096,
+            natives_dir: &nat,
+            libraries_dir: &lib,
+            classpath_str: "/lib/a.jar",
+            cp_separator: ";",
+            custom_jvm_args: Some(&["-Dcustom=true".into()]),
+            authlib_agent_path: None,
+            version_arguments: None,
+            main_class: "net.minecraft.client.main.Main",
+        };
+        let args = build_jvm_arguments(&cfg);
+        assert!(args.contains(&"-Xms2048M".to_string()));
+        assert!(args.contains(&"-Xmx4096M".to_string()));
+        assert!(args.contains(&"-Dcustom=true".to_string()));
+        assert!(args.contains(&"-cp".to_string()));
+        assert!(args.contains(&"/lib/a.jar".to_string()));
+        assert_eq!(args.last().unwrap(), "net.minecraft.client.main.Main");
+    }
+
+    #[test]
+    fn build_game_arguments_substitutes_standard_variables() {
+        let inst = PathBuf::from("/inst");
+        let assets = PathBuf::from("/assets");
+        let cfg = GameArgsConfig {
+            player_name: "Steve",
+            game_version: "1.20.1",
+            instance_dir: &inst,
+            assets_dir: &assets,
+            asset_index_id: "1.20",
+            uuid_str: "1234-uuid",
+            access_token: "token123",
+            user_type: "mojang",
+            xuid: None,
+            version_arguments: None,
+            legacy_arguments: Some(
+                "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory}",
+            ),
+            is_fullscreen: false,
+            window_width: 854,
+            window_height: 480,
+        };
+        let args = build_game_arguments(&cfg);
+        assert!(args.contains(&"--username".to_string()));
+        assert!(args.contains(&"Steve".to_string()));
+        assert!(args.contains(&"--version".to_string()));
+        assert!(args.contains(&"1.20.1".to_string()));
+        assert!(args.contains(&"--width".to_string()));
+        assert!(args.contains(&"854".to_string()));
+    }
+}

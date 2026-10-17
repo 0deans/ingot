@@ -128,7 +128,8 @@ where
     if rootfs_dir.exists() {
         let _ = fs::remove_dir_all(rootfs_dir);
     }
-    fs::create_dir_all(rootfs_dir).map_err(|e| format!("Failed to create rootfs directory: {e}"))?;
+    fs::create_dir_all(rootfs_dir)
+        .map_err(|e| format!("Failed to create rootfs directory: {e}"))?;
 
     let archive_path_clone = archive_path.clone();
     let rootfs_clone = rootfs_dir.to_path_buf();
@@ -147,10 +148,16 @@ where
 
     // Android has no /etc/resolv.conf, so the guest needs its own DNS config
     let etc = rootfs_dir.join("etc");
-    fs::write(etc.join("resolv.conf"), "nameserver 1.1.1.1\nnameserver 8.8.8.8\n")
-        .map_err(|e| format!("Failed to write resolv.conf: {e}"))?;
-    fs::write(etc.join("hosts"), "127.0.0.1 localhost\n::1 localhost ip6-localhost\n")
-        .map_err(|e| format!("Failed to write hosts: {e}"))?;
+    fs::write(
+        etc.join("resolv.conf"),
+        "nameserver 1.1.1.1\nnameserver 8.8.8.8\n",
+    )
+    .map_err(|e| format!("Failed to write resolv.conf: {e}"))?;
+    fs::write(
+        etc.join("hosts"),
+        "127.0.0.1 localhost\n::1 localhost ip6-localhost\n",
+    )
+    .map_err(|e| format!("Failed to write hosts: {e}"))?;
     fs::write(
         etc.join("apk").join("repositories"),
         format!(
@@ -168,7 +175,9 @@ where
 async fn install_java(sandbox_dir: &Path, rootfs_dir: &Path, package: &str) -> Result<(), String> {
     let mut cmd = super::proot::proot_command(sandbox_dir, Some(rootfs_dir), true, &[], "/root")?;
     cmd.args(["/sbin/apk", "add", "--no-cache", "--no-progress", package]);
-    cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    cmd.stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
 
     let output = cmd
         .output()
@@ -180,7 +189,12 @@ async fn install_java(sandbox_dir: &Path, rootfs_dir: &Path, package: &str) -> R
     eprintln!("[Sandbox] apk add {package}:\n{stdout}{stderr}");
 
     if !output.status.success() {
-        let tail: Vec<&str> = stderr.lines().chain(stdout.lines()).rev().take(15).collect();
+        let tail: Vec<&str> = stderr
+            .lines()
+            .chain(stdout.lines())
+            .rev()
+            .take(15)
+            .collect();
         let tail: Vec<&str> = tail.into_iter().rev().collect();
         return Err(format!(
             "Failed to install {package} in the Linux sandbox ({}):\n{}",

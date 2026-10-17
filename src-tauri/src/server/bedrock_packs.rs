@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::{Cursor, Read};
 use std::path::{Path, PathBuf};
-use zip::ZipArchive;
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -84,27 +82,40 @@ fn world_dir(server_dir: &Path) -> PathBuf {
     server_dir.join("worlds").join(level)
 }
 
-fn read_world_pack_refs(world: &Path, file_name: &str) -> Vec<WorldPackRef> {
+fn read_world_pack_refs(world: &Path, file_name: &str) -> Result<Vec<WorldPackRef>, String> {
     let path = world.join(file_name);
-    if let Ok(content) = fs::read_to_string(&path) {
-        if let Ok(refs) = serde_json::from_str::<Vec<WorldPackRef>>(&content) {
-            return refs;
-        }
-    }
-    Vec::new()
+    let content = match fs::read_to_string(&path) {
+        Ok(content) => content,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(format!("Failed to read world pack references: {error}")),
+    };
+    serde_json::from_str(&content)
+        .map_err(|error| format!("Invalid world pack references: {error}"))
 }
-
-fn write_world_pack_refs(world: &Path, file_name: &str, refs: &[WorldPackRef]) -> Result<(), String> {
+fn write_world_pack_refs(
+    world: &Path,
+    file_name: &str,
+    refs: &[WorldPackRef],
+) -> Result<(), String> {
     let path = world.join(file_name);
-    let _ = fs::create_dir_all(world);
+    fs::create_dir_all(world).map_err(|e| format!("Failed to create world directory: {e}"))?;
     let json = serde_json::to_string_pretty(refs).map_err(|e| e.to_string())?;
-    fs::write(&path, json).map_err(|e| format!("Failed to write {}: {e}", path.display()))
+    let mut staged = tempfile::NamedTempFile::new_in(world).map_err(|e| e.to_string())?;
+    std::io::Write::write_all(&mut staged, json.as_bytes()).map_err(|e| e.to_string())?;
+    staged.as_file().sync_all().map_err(|e| e.to_string())?;
+    staged
+        .persist(&path)
+        .map_err(|e| format!("Failed to write {}: {}", path.display(), e.error))?;
+    Ok(())
 }
 
 fn format_version(v: Option<&serde_json::Value>) -> String {
     match v {
         Some(serde_json::Value::Array(arr)) => {
-            let parts: Vec<String> = arr.iter().filter_map(|x| x.as_u64().map(|n| n.to_string())).collect();
+            let parts: Vec<String> = arr
+                .iter()
+                .filter_map(|x| x.as_u64().map(|n| n.to_string()))
+                .collect();
             if !parts.is_empty() {
                 return parts.join(".");
             }
@@ -115,7 +126,9 @@ fn format_version(v: Option<&serde_json::Value>) -> String {
     "1.0.0".to_string()
 }
 
-fn parse_manifest(manifest_bytes: &[u8]) -> Option<(String, String, String, Option<String>, String)> {
+fn parse_manifest(
+    manifest_bytes: &[u8],
+) -> Option<(String, String, String, Option<String>, String)> {
     let manifest: PackManifest = serde_json::from_slice(manifest_bytes).ok()?;
     let header = manifest.header?;
     let uuid = header.uuid?;
@@ -167,8 +180,8 @@ fn is_system_pack(folder_name: &str, name: &str, description: Option<&str>) -> b
 
 pub fn list_installed_packs(server_dir: &Path) -> Result<Vec<BedrockPackInfo>, String> {
     let world = world_dir(server_dir);
-    let active_behavior = read_world_pack_refs(&world, "world_behavior_packs.json");
-    let active_resource = read_world_pack_refs(&world, "world_resource_packs.json");
+    let active_behavior = read_world_pack_refs(&world, "world_behavior_packs.json")?;
+    let active_resource = read_world_pack_refs(&world, "world_resource_packs.json")?;
 
     let mut results = Vec::new();
 
@@ -177,7 +190,9 @@ pub fn list_installed_packs(server_dir: &Path) -> Result<Vec<BedrockPackInfo>, S
         ("resource_packs", "resource", &active_resource),
     ] {
         let dir = server_dir.join(sub);
-        let Ok(entries) = fs::read_dir(&dir) else { continue };
+        let Ok(entries) = fs::read_dir(&dir) else {
+            continue;
+        };
 
         for entry in entries.flatten() {
             let path = entry.path();
@@ -187,13 +202,17 @@ pub fn list_installed_packs(server_dir: &Path) -> Result<Vec<BedrockPackInfo>, S
             let folder_name = entry.file_name().to_string_lossy().into_owned();
 
             let manifest_path = path.join("manifest.json");
-            let Ok(bytes) = fs::read(&manifest_path) else { continue };
+            let Ok(bytes) = fs::read(&manifest_path) else {
+                continue;
+            };
 
             if let Some((uuid, name, version, description, _)) = parse_manifest(&bytes) {
                 if is_system_pack(&folder_name, &name, description.as_deref()) {
                     continue;
                 }
-                let enabled = active_list.iter().any(|r| r.pack_id.eq_ignore_ascii_case(&uuid));
+                let enabled = active_list
+                    .iter()
+                    .any(|r| r.pack_id.eq_ignore_ascii_case(&uuid));
                 results.push(BedrockPackInfo {
                     id: uuid,
                     name,
@@ -232,12 +251,19 @@ pub fn set_pack_enabled(
         "world_behavior_packs.json"
     };
 
-    let mut active = read_world_pack_refs(&world, file_name);
+    let mut active = read_world_pack_refs(&world, file_name)?;
 
     if enabled {
-        if !active.iter().any(|r| r.pack_id.eq_ignore_ascii_case(pack_id)) {
+        if !active
+            .iter()
+            .any(|r| r.pack_id.eq_ignore_ascii_case(pack_id))
+        {
             // Find the pack's version from manifest
-            let sub = if pack_type == "resource" { "resource_packs" } else { "behavior_packs" };
+            let sub = if pack_type == "resource" {
+                "resource_packs"
+            } else {
+                "behavior_packs"
+            };
             let mut pack_version = serde_json::json!([1, 0, 0]);
 
             if let Ok(entries) = fs::read_dir(server_dir.join(sub)) {
@@ -246,7 +272,10 @@ pub fn set_pack_enabled(
                     if let Ok(bytes) = fs::read(&manifest_path) {
                         if let Ok(m) = serde_json::from_slice::<PackManifest>(&bytes) {
                             if let Some(h) = m.header {
-                                if h.uuid.as_deref().is_some_and(|u| u.eq_ignore_ascii_case(pack_id)) {
+                                if h.uuid
+                                    .as_deref()
+                                    .is_some_and(|u| u.eq_ignore_ascii_case(pack_id))
+                                {
                                     if let Some(v) = h.version {
                                         pack_version = v;
                                         break;
@@ -275,8 +304,13 @@ pub fn delete_pack(server_dir: &Path, folder_name: &str, pack_type: &str) -> Res
         return Err("Cannot delete built-in BDS system packs".to_string());
     }
 
-    let sub = if pack_type == "resource" { "resource_packs" } else { "behavior_packs" };
-    let target = server_dir.join(sub).join(folder_name);
+    let sub = if pack_type == "resource" {
+        "resource_packs"
+    } else {
+        "behavior_packs"
+    };
+    let target = crate::app::safe_enclosed_filename(&server_dir.join(sub), folder_name)
+        .ok_or_else(|| "Invalid pack folder name or linked destination".to_string())?;
     if !target.exists() {
         return Err(format!("Pack folder not found: {folder_name}"));
     }
@@ -284,156 +318,12 @@ pub fn delete_pack(server_dir: &Path, folder_name: &str, pack_type: &str) -> Res
     // Read manifest to unregister from world
     if let Ok(bytes) = fs::read(target.join("manifest.json")) {
         if let Some((uuid, _, _, _, _)) = parse_manifest(&bytes) {
-            let _ = set_pack_enabled(server_dir, &uuid, pack_type, false);
+            set_pack_enabled(server_dir, &uuid, pack_type, false)?;
         }
     }
 
     fs::remove_dir_all(&target).map_err(|e| format!("Failed to delete pack: {e}"))
 }
 
-pub async fn install_bedrock_pack(
-    server_dir: &Path,
-    download_url: &str,
-    filename: &str,
-) -> Result<String, String> {
-    let clean_stem = Path::new(filename)
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("addon")
-        .replace([' ', '(', ')', '[', ']', '+'], "_");
-
-    let client = reqwest::Client::builder()
-        .user_agent(crate::USER_AGENT)
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let mut req = client.get(download_url);
-    if download_url.contains("curseforge.com") {
-        req = req.header("x-api-key", crate::minecraft::content::CURSEFORGE_API_KEY);
-    }
-
-    let resp = req.send().await.map_err(|e| format!("Download failed: {e}"))?;
-    if !resp.status().is_success() {
-        return Err(format!("Download failed with status: {}", resp.status()));
-    }
-
-    let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
-
-    // Try extracting as zip archive (mcpack, mcaddon, or zip)
-    let cursor = Cursor::new(&bytes);
-    let mut zip = ZipArchive::new(cursor).map_err(|e| format!("Invalid archive file: {e}"))?;
-
-    // Check if archive contains nested .mcpack files (.mcaddon bundle)
-    let mut nested_packs: Vec<(String, Vec<u8>)> = Vec::new();
-    for i in 0..zip.len() {
-        if let Ok(mut file) = zip.by_index(i) {
-            let name = file.name().to_string();
-            if name.ends_with(".mcpack") || name.ends_with(".zip") {
-                let mut buf = Vec::new();
-                if file.read_to_end(&mut buf).is_ok() {
-                    nested_packs.push((name, buf));
-                }
-            }
-        }
-    }
-
-    let mut installed_names = Vec::new();
-
-    if !nested_packs.is_empty() {
-        for (nested_name, nested_bytes) in nested_packs {
-            let sub_stem = Path::new(&nested_name)
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or(&clean_stem)
-                .replace([' ', '(', ')', '[', ']', '+'], "_");
-
-            if let Ok(mut sub_zip) = ZipArchive::new(Cursor::new(&nested_bytes)) {
-                let extracted = extract_single_pack(server_dir, &mut sub_zip, &sub_stem)?;
-                installed_names.push(extracted);
-            }
-        }
-    } else {
-        let extracted = extract_single_pack(server_dir, &mut zip, &clean_stem)?;
-        installed_names.push(extracted);
-    }
-
-    Ok(format!("Installed {}", installed_names.join(", ")))
-}
-
-fn extract_single_pack<R: Read + std::io::Seek>(
-    server_dir: &Path,
-    zip: &mut ZipArchive<R>,
-    pack_name: &str,
-) -> Result<String, String> {
-    // Find manifest to determine if behavior or resource pack
-    let mut manifest_bytes = None;
-    for i in 0..zip.len() {
-        if let Ok(mut f) = zip.by_index(i) {
-            let name = f.name().to_lowercase().replace('\\', "/");
-            if name == "manifest.json" || name.ends_with("/manifest.json") {
-                let mut buf = Vec::new();
-                if f.read_to_end(&mut buf).is_ok() {
-                    manifest_bytes = Some(buf);
-                    break;
-                }
-            }
-        }
-    }
-
-    let Some(m_bytes) = manifest_bytes else {
-        return Err("No manifest.json found in pack archive".to_string());
-    };
-
-    let (uuid, name, _, _, pack_type) = parse_manifest(&m_bytes)
-        .ok_or_else(|| "Failed to parse pack manifest.json".to_string())?;
-
-    let sub = if pack_type == "resource" { "resource_packs" } else { "behavior_packs" };
-    let out_dir = server_dir.join(sub).join(pack_name);
-    fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
-
-    // Determine strip prefix if files are wrapped in a top folder
-    let mut prefix = String::new();
-    for i in 0..zip.len() {
-        if let Ok(f) = zip.by_index(i) {
-            let name = f.name().replace('\\', "/");
-            if name.ends_with("/manifest.json") {
-                if let Some(p) = name.strip_suffix("manifest.json") {
-                    prefix = p.to_string();
-                    break;
-                }
-            }
-        }
-    }
-
-    for i in 0..zip.len() {
-        let mut file = zip.by_index(i).map_err(|e| e.to_string())?;
-        let full_name = file.name().replace('\\', "/");
-        let rel_name = if !prefix.is_empty() && full_name.starts_with(&prefix) {
-            &full_name[prefix.len()..]
-        } else {
-            &full_name
-        };
-
-        if rel_name.is_empty() {
-            continue;
-        }
-
-        let Some(dest) = crate::app::safe_enclosed_path(&out_dir, rel_name) else {
-            continue;
-        };
-        if file.is_dir() {
-            let _ = fs::create_dir_all(&dest);
-        } else {
-            if let Some(p) = dest.parent() {
-                let _ = fs::create_dir_all(p);
-            }
-            let mut out = fs::File::create(&dest).map_err(|e| e.to_string())?;
-            std::io::copy(&mut file, &mut out).map_err(|e| e.to_string())?;
-        }
-    }
-
-    // Automatically enable for the world
-    let _ = set_pack_enabled(server_dir, &uuid, &pack_type, true);
-
-    Ok(format!("{name} ({pack_type})"))
-}
+mod install;
+pub use install::install_bedrock_pack;

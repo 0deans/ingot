@@ -1,12 +1,18 @@
 import { useEffect } from "react"
 import { create } from "zustand"
 import type { AccountProfile, MicrosoftDeviceCode, PendingMicrosoftLogin } from "@/bindings"
-import { rpc, unwrapRpc } from "@/lib/rpc"
+import { getRpcErrorMessage, rpc, unwrapRpc } from "@/lib/rpc"
+import { createAccountLoader } from "./account-loader"
 
-const useAccountStore = create<{ accounts: AccountProfile[]; fetched: boolean }>(() => {
+const useAccountStore = create<{
+	accounts: AccountProfile[]
+	fetched: boolean
+	loadError: string | null
+}>(() => {
 	return {
 		accounts: [],
 		fetched: false,
+		loadError: null,
 	}
 })
 const current = () => {
@@ -15,10 +21,21 @@ const current = () => {
 const skinCache = new Map<string, string>()
 
 function notify(accounts: AccountProfile[]) {
+	loadAccounts.invalidate()
 	useAccountStore.setState({ accounts })
 }
 
-let refreshAccountsPromise: Promise<AccountProfile[]> | null = null
+const loadAccounts = createAccountLoader(
+	() => {
+		return unwrapRpc(rpc.accounts.get_accounts())
+	},
+	(accounts) => {
+		useAccountStore.setState({ accounts, fetched: true, loadError: null })
+	},
+	(failure) => {
+		useAccountStore.setState({ loadError: getRpcErrorMessage(failure) })
+	},
+)
 
 export const accountService = {
 	getCachedAccounts(): AccountProfile[] {
@@ -34,24 +51,7 @@ export const accountService = {
 	},
 
 	async refreshAccounts(): Promise<AccountProfile[]> {
-		if (refreshAccountsPromise) {
-			return refreshAccountsPromise
-		}
-
-		refreshAccountsPromise = (async () => {
-			try {
-				const list = await unwrapRpc(rpc.accounts.get_accounts())
-				useAccountStore.setState({ accounts: list, fetched: true })
-				return list
-			} catch (error) {
-				console.error("Failed to load accounts:", error)
-				return current()
-			} finally {
-				refreshAccountsPromise = null
-			}
-		})()
-
-		return refreshAccountsPromise
+		return loadAccounts.load()
 	},
 
 	async elyLogin(username: string, password: string): Promise<AccountProfile> {
@@ -78,6 +78,7 @@ export const accountService = {
 	/** Resolves once the user has entered the code and the account is saved */
 	async finishMicrosoftLogin(code: MicrosoftDeviceCode): Promise<AccountProfile> {
 		const account = await unwrapRpc(rpc.accounts.microsoft_login_finish(code))
+		loadAccounts.invalidate()
 		await this.refreshAccounts()
 		return account
 	},
@@ -88,6 +89,7 @@ export const accountService = {
 
 	async getPendingMicrosoftLogin(): Promise<PendingMicrosoftLogin | null> {
 		const pending = await unwrapRpc(rpc.accounts.get_pending_microsoft_login())
+		loadAccounts.invalidate()
 		// Inspection can finish a durable account handoff before reading the slot.
 		await this.refreshAccounts()
 		return pending
@@ -95,6 +97,7 @@ export const accountService = {
 
 	async resumeMicrosoftLogin(ticket: string): Promise<AccountProfile> {
 		const account = await unwrapRpc(rpc.accounts.resume_microsoft_login(ticket))
+		loadAccounts.invalidate()
 		await this.refreshAccounts()
 		return account
 	},
@@ -177,6 +180,7 @@ export const accountService = {
 	},
 
 	async reorderAccounts(accountIds: string[]): Promise<void> {
+		await unwrapRpc(rpc.accounts.reorder_accounts(accountIds))
 		const reordered: AccountProfile[] = []
 		for (const id of accountIds) {
 			const found = current().find((a) => {
@@ -194,13 +198,6 @@ export const accountService = {
 			}
 		}
 		notify(reordered)
-
-		try {
-			await unwrapRpc(rpc.accounts.reorder_accounts(accountIds))
-		} catch (error) {
-			console.error("Failed to persist account order:", error)
-			await accountService.refreshAccounts()
-		}
 	},
 
 	async getElySkins(
@@ -345,23 +342,27 @@ export const accountService = {
 
 	async applyElySkin(accountId: string, skinId: number, password?: string): Promise<void> {
 		await unwrapRpc(rpc.skins.apply_ely_skin(accountId, skinId, password ?? null))
+		loadAccounts.invalidate()
 		await this.refreshAccounts()
 	},
 
 	async uploadElySkin(accountId: string, imageBase64: string, password?: string): Promise<void> {
 		await unwrapRpc(rpc.skins.upload_ely_skin(accountId, imageBase64, password ?? null))
+		loadAccounts.invalidate()
 		await this.refreshAccounts()
 	},
 
 	/** Sets a Microsoft account's skin to a public PNG, such as a catalog skin */
 	async applyMicrosoftSkin(accountId: string, skinUrl: string, isSlim: boolean): Promise<void> {
 		await unwrapRpc(rpc.skins.apply_microsoft_skin(accountId, skinUrl, isSlim))
+		loadAccounts.invalidate()
 		await this.refreshAccounts()
 	},
 
 	/** Uploads a PNG data URL as a Microsoft account's skin */
 	async uploadMicrosoftSkin(accountId: string, dataUrl: string, isSlim: boolean): Promise<void> {
 		await unwrapRpc(rpc.skins.upload_microsoft_skin(accountId, dataUrl, isSlim))
+		loadAccounts.invalidate()
 		await this.refreshAccounts()
 	},
 
@@ -436,13 +437,18 @@ export const skinStorageService = {
 }
 
 export function useAccounts() {
+	const loadError = useAccountStore((state) => {
+		return state.loadError
+	})
 	const accounts = useAccountStore((s) => {
 		return s.accounts
 	})
 
 	useEffect(() => {
 		if (!accountService.isFetched()) {
-			accountService.refreshAccounts()
+			accountService.refreshAccounts().catch(() => {
+				// The loader publishes this failure through loadError for the account UI.
+			})
 		}
 	}, [])
 
@@ -453,6 +459,7 @@ export function useAccounts() {
 
 	return {
 		accounts,
+		loadError,
 		activeAccount,
 		refreshAccounts: accountService.refreshAccounts.bind(accountService),
 		setActiveAccount: accountService.setActiveAccount.bind(accountService),

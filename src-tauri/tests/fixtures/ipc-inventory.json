@@ -1,1453 +1,1107 @@
 {
-  "description": "Baseline before namespace migration; update deliberately alongside router and consumers.",
-  "procedures": [
-    {
-      "name": "add_access_entry",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "kind",
-        "name"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "add_offline_account",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "username"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "add_to_server_whitelist",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "username"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "apply_ely_skin",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "account_id",
-        "skin_id",
-        "password"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "apply_instance_version_change",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "plan",
-        "backup_worlds"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "apply_microsoft_skin",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "account_id",
-        "skin_url",
-        "is_slim"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "apply_server_version_change",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "plan",
-        "backup_worlds"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "check_instance_version_change",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "game_version",
-        "loader",
-        "loader_version"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "check_server_plugin_updates",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "check_server_version_change",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "game_version",
-        "core"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "check_sync_conflict",
-      "currentPath": "instances.sync",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.sync"
-    },
-    {
-      "name": "create_instance",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "name",
-        "game_version",
-        "loader",
-        "loader_version"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "create_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "name",
-        "core",
-        "game_version",
-        "build_number",
-        "port",
-        "memory_min_mb",
-        "memory_max_mb"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "delete_bedrock_pack",
-      "currentPath": "servers.packs",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "folder_name",
-        "pack_type"
-      ],
-      "destination": "servers.packs"
-    },
-    {
-      "name": "delete_instance",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "delete_screenshot",
-      "currentPath": "instances.screenshots",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "file_name"
-      ],
-      "destination": "instances.screenshots"
-    },
-    {
-      "name": "delete_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "delete_files"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "detect_custom_instance",
-      "currentPath": "instances.imports",
-      "kind": "command",
-      "arguments": [
-        "path"
-      ],
-      "destination": "instances.imports"
-    },
-    {
-      "name": "discard_instance_version_backup",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "discard_pending_microsoft_login",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "ticket"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "discard_server_version_backup",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "duplicate_instance",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "name",
-        "include_worlds"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "duplicate_server",
-      "currentPath": "servers.transfer",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "name",
-        "game_version",
-        "build_number"
-      ],
-      "destination": "servers.transfer"
-    },
-    {
-      "name": "ely_login",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "username",
-        "password"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "export_instance_category_to_shared",
-      "currentPath": "instances.sync",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "category"
-      ],
-      "destination": "instances.sync"
-    },
-    {
-      "name": "export_server",
-      "currentPath": "servers.transfer",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "mode",
-        "dest"
-      ],
-      "destination": "servers.transfer"
-    },
-    {
-      "name": "get_access_list",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "kind"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "get_accounts",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [],
-      "destination": "accounts"
-    },
-    {
-      "name": "get_active_account_token",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [],
-      "destination": "accounts"
-    },
-    {
-      "name": "get_all_screenshots",
-      "currentPath": "instances.screenshots",
-      "kind": "command",
-      "arguments": [],
-      "destination": "instances.screenshots"
-    },
-    {
-      "name": "get_available_game_versions",
-      "currentPath": "versions",
-      "kind": "command",
-      "arguments": [],
-      "destination": "versions"
-    },
-    {
-      "name": "get_available_loader_versions",
-      "currentPath": "versions",
-      "kind": "command",
-      "arguments": [
-        "game_version",
-        "loader"
-      ],
-      "destination": "versions"
-    },
-    {
-      "name": "get_available_server_core_versions",
-      "currentPath": "versions",
-      "kind": "command",
-      "arguments": [
-        "core"
-      ],
-      "destination": "versions"
-    },
-    {
-      "name": "get_bedrock_client_status",
-      "currentPath": "bedrock",
-      "kind": "command",
-      "arguments": [],
-      "destination": "bedrock"
-    },
-    {
-      "name": "get_companion_status",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "get_content_details",
-      "currentPath": "content",
-      "kind": "command",
-      "arguments": [
-        "source",
-        "project_id"
-      ],
-      "destination": "content"
-    },
-    {
-      "name": "get_detected_launchers",
-      "currentPath": "instances.imports",
-      "kind": "command",
-      "arguments": [],
-      "destination": "instances.imports"
-    },
-    {
-      "name": "get_ely_skins",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "page",
-        "query",
-        "sort",
-        "model",
-        "uploader"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "get_instance_version_backup",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "get_instance_version_transaction_status",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "get_instance_worlds",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "get_instances",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [],
-      "destination": "instances"
-    },
-    {
-      "name": "get_known_players",
-      "currentPath": "servers.players",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.players"
-    },
-    {
-      "name": "get_lan_address",
-      "currentPath": "servers.metrics",
-      "kind": "command",
-      "arguments": [],
-      "destination": "servers.metrics"
-    },
-    {
-      "name": "get_launcher_behavior",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [],
-      "destination": "settings"
-    },
-    {
-      "name": "get_launcher_instances",
-      "currentPath": "instances.imports",
-      "kind": "command",
-      "arguments": [
-        "launcher_id",
-        "custom_path"
-      ],
-      "destination": "instances.imports"
-    },
-    {
-      "name": "get_leftover_servers",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [],
-      "destination": "app"
-    },
-    {
-      "name": "get_map_dimensions",
-      "currentPath": "servers.map",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.map"
-    },
-    {
-      "name": "get_map_tile",
-      "currentPath": "servers.map",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "dimension",
-        "x",
-        "z"
-      ],
-      "destination": "servers.map"
-    },
-    {
-      "name": "get_memory_settings",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [],
-      "destination": "settings"
-    },
-    {
-      "name": "get_online_players",
-      "currentPath": "servers.players",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.players"
-    },
-    {
-      "name": "get_pending_microsoft_login",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [],
-      "destination": "accounts"
-    },
-    {
-      "name": "get_player_details",
-      "currentPath": "servers.players",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "name"
-      ],
-      "destination": "servers.players"
-    },
-    {
-      "name": "get_playit_status",
-      "currentPath": "servers.tunnel",
-      "kind": "command",
-      "arguments": [],
-      "destination": "servers.tunnel"
-    },
-    {
-      "name": "get_quit_blockers",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [],
-      "destination": "app"
-    },
-    {
-      "name": "get_running_instances",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [],
-      "destination": "instances"
-    },
-    {
-      "name": "get_running_servers",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [],
-      "destination": "servers"
-    },
-    {
-      "name": "get_screenshot_thumbnail",
-      "currentPath": "instances.screenshots",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "file_name",
-        "file_path",
-        "modified_at"
-      ],
-      "destination": "instances.screenshots"
-    },
-    {
-      "name": "get_server_icon",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "get_server_logs",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "get_server_online_players",
-      "currentPath": "servers.players",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.players"
-    },
-    {
-      "name": "get_server_plugin_page",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "source",
-        "project_id"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "get_server_plugin_versions",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "source",
-        "project_id",
-        "compatible_only"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "get_server_properties",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "get_server_properties_all",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "get_server_stats",
-      "currentPath": "servers.metrics",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.metrics"
-    },
-    {
-      "name": "get_server_storage",
-      "currentPath": "servers.metrics",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.metrics"
-    },
-    {
-      "name": "get_server_version_backup",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "get_server_version_transaction_status",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "get_server_whitelist",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "get_servers",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [],
-      "destination": "servers"
-    },
-    {
-      "name": "get_shared_sync_status",
-      "currentPath": "instances.sync",
-      "kind": "command",
-      "arguments": [],
-      "destination": "instances.sync"
-    },
-    {
-      "name": "get_skin_data_url",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "skin_url"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "get_sync_settings",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [],
-      "destination": "settings"
-    },
-    {
-      "name": "get_system_memory",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [],
-      "destination": "settings"
-    },
-    {
-      "name": "get_window_settings",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [],
-      "destination": "settings"
-    },
-    {
-      "name": "greet",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [
-        "name"
-      ],
-      "destination": "app"
-    },
-    {
-      "name": "has_ely_web_credentials",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "account_id"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "import_instance",
-      "currentPath": "instances.imports",
-      "kind": "command",
-      "arguments": [
-        "options"
-      ],
-      "destination": "instances.imports"
-    },
-    {
-      "name": "import_server",
-      "currentPath": "servers.transfer",
-      "kind": "command",
-      "arguments": [
-        "upload_id"
-      ],
-      "destination": "servers.transfer"
-    },
-    {
-      "name": "import_upload_chunk",
-      "currentPath": "servers.transfer",
-      "kind": "command",
-      "arguments": [
-        "upload_id",
-        "data_base64",
-        "first"
-      ],
-      "destination": "servers.transfer"
-    },
-    {
-      "name": "install_bedrock_client",
-      "currentPath": "bedrock",
-      "kind": "command",
-      "arguments": [],
-      "destination": "bedrock"
-    },
-    {
-      "name": "install_bedrock_pack",
-      "currentPath": "servers.packs",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "download_url",
-        "filename"
-      ],
-      "destination": "servers.packs"
-    },
-    {
-      "name": "install_companion",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "install_content_file",
-      "currentPath": "content",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "project_type",
-        "download_url",
-        "filename"
-      ],
-      "destination": "content"
-    },
-    {
-      "name": "install_modpack_instance",
-      "currentPath": "content",
-      "kind": "command",
-      "arguments": [
-        "name",
-        "source",
-        "download_url",
-        "filename"
-      ],
-      "destination": "content"
-    },
-    {
-      "name": "install_server_plugin",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "source",
-        "project_id",
-        "version_id"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "kill_instance",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "kill_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "launch_bedrock_client",
-      "currentPath": "bedrock",
-      "kind": "command",
-      "arguments": [],
-      "destination": "bedrock"
-    },
-    {
-      "name": "launch_instance",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "quick_play"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "list_bedrock_packs",
-      "currentPath": "servers.packs",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.packs"
-    },
-    {
-      "name": "list_server_config_files",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "list_server_plugins",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "microsoft_login_cancel",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [],
-      "destination": "accounts"
-    },
-    {
-      "name": "microsoft_login_finish",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "code"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "microsoft_login_start",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [],
-      "destination": "accounts"
-    },
-    {
-      "name": "on_instance_status_changed",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "event"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_launch_progress",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "event"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_leftover_servers",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "servers"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_memory_changed",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "settings"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_quit_requested",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "event"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_server_log",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "event"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_server_status_changed",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "event"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "on_version_change_crash",
-      "currentPath": "events",
-      "kind": "event",
-      "arguments": [
-        "event"
-      ],
-      "destination": "events"
-    },
-    {
-      "name": "open_bedrock_folder",
-      "currentPath": "bedrock",
-      "kind": "command",
-      "arguments": [
-        "kind"
-      ],
-      "destination": "bedrock"
-    },
-    {
-      "name": "open_bedrock_server_subfolder",
-      "currentPath": "servers.packs",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "subfolder"
-      ],
-      "destination": "servers.packs"
-    },
-    {
-      "name": "open_instance_folder",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "open_screenshots_folder",
-      "currentPath": "instances.screenshots",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.screenshots"
-    },
-    {
-      "name": "open_server_folder",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "ping_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "port"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "pull_instance_sync",
-      "currentPath": "instances.sync",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.sync"
-    },
-    {
-      "name": "push_instance_sync",
-      "currentPath": "instances.sync",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.sync"
-    },
-    {
-      "name": "put_server_to_sleep",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "quit_app",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [],
-      "destination": "app"
-    },
-    {
-      "name": "read_server_config_file",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "path"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "recover_instance_version_change",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "recover_server_version_change",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "remove_access_entry",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "kind",
-        "name"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "remove_account",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "account_id"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "remove_from_server_whitelist",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "username"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "remove_server_plugin",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "file_name"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "reorder_accounts",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "account_ids"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "resolve_sync_conflict",
-      "currentPath": "instances.sync",
-      "kind": "command",
-      "arguments": [
-        "instance_id",
-        "resolution"
-      ],
-      "destination": "instances.sync"
-    },
-    {
-      "name": "resume_microsoft_login",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "ticket"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "reveal_screenshot_file",
-      "currentPath": "instances.screenshots",
-      "kind": "command",
-      "arguments": [
-        "file_path"
-      ],
-      "destination": "instances.screenshots"
-    },
-    {
-      "name": "save_server_world",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "flush"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "save_skin_to_downloads",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "username",
-        "skin_url"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "search_content",
-      "currentPath": "content",
-      "kind": "command",
-      "arguments": [
-        "source",
-        "project_type",
-        "query",
-        "game_version",
-        "loader",
-        "sort",
-        "page",
-        "page_size"
-      ],
-      "destination": "content"
-    },
-    {
-      "name": "search_server_plugins",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "source",
-        "query",
-        "sort",
-        "compatible_only",
-        "page"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "send_server_command",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "command"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "set_active_account",
-      "currentPath": "accounts",
-      "kind": "command",
-      "arguments": [
-        "account_id"
-      ],
-      "destination": "accounts"
-    },
-    {
-      "name": "set_bedrock_pack_enabled",
-      "currentPath": "servers.packs",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "pack_id",
-        "pack_type",
-        "enabled"
-      ],
-      "destination": "servers.packs"
-    },
-    {
-      "name": "set_launcher_behavior",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [
-        "behavior"
-      ],
-      "destination": "settings"
-    },
-    {
-      "name": "set_memory_settings",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [
-        "min_ram_mb",
-        "max_ram_mb"
-      ],
-      "destination": "settings"
-    },
-    {
-      "name": "set_server_icon",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "base64_data"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "set_server_plugin_enabled",
-      "currentPath": "servers.plugins",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "file_name",
-        "enabled"
-      ],
-      "destination": "servers.plugins"
-    },
-    {
-      "name": "set_server_properties",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "properties"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "set_server_properties_all",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "entries"
-      ],
-      "destination": "servers.config"
-    },
-    {
-      "name": "set_sync_settings",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [
-        "settings"
-      ],
-      "destination": "settings"
-    },
-    {
-      "name": "set_window_settings",
-      "currentPath": "settings",
-      "kind": "command",
-      "arguments": [
-        "settings"
-      ],
-      "destination": "settings"
-    },
-    {
-      "name": "start_playit_tunnel",
-      "currentPath": "servers.tunnel",
-      "kind": "command",
-      "arguments": [
-        "secret_key"
-      ],
-      "destination": "servers.tunnel"
-    },
-    {
-      "name": "start_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "stop_all_servers",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [],
-      "destination": "app"
-    },
-    {
-      "name": "stop_leftover_server",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "app"
-    },
-    {
-      "name": "stop_playit_tunnel",
-      "currentPath": "servers.tunnel",
-      "kind": "command",
-      "arguments": [],
-      "destination": "servers.tunnel"
-    },
-    {
-      "name": "stop_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "turn_off_after_version_change",
-      "currentPath": "app",
-      "kind": "command",
-      "arguments": [
-        "target_kind",
-        "target_id",
-        "folder",
-        "file_name"
-      ],
-      "destination": "app"
-    },
-    {
-      "name": "undo_instance_version_change",
-      "currentPath": "instances.version_change",
-      "kind": "command",
-      "arguments": [
-        "instance_id"
-      ],
-      "destination": "instances.version_change"
-    },
-    {
-      "name": "undo_server_version_change",
-      "currentPath": "servers.version_change",
-      "kind": "command",
-      "arguments": [
-        "server_id"
-      ],
-      "destination": "servers.version_change"
-    },
-    {
-      "name": "update_instance",
-      "currentPath": "instances",
-      "kind": "command",
-      "arguments": [
-        "instance"
-      ],
-      "destination": "instances"
-    },
-    {
-      "name": "update_server",
-      "currentPath": "servers",
-      "kind": "command",
-      "arguments": [
-        "server"
-      ],
-      "destination": "servers"
-    },
-    {
-      "name": "upload_ely_skin",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "account_id",
-        "image_base64",
-        "password"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "upload_microsoft_skin",
-      "currentPath": "skins",
-      "kind": "command",
-      "arguments": [
-        "account_id",
-        "image_base64",
-        "is_slim"
-      ],
-      "destination": "skins"
-    },
-    {
-      "name": "write_server_config_file",
-      "currentPath": "servers.config",
-      "kind": "command",
-      "arguments": [
-        "server_id",
-        "path",
-        "content"
-      ],
-      "destination": "servers.config"
-    }
-  ]
+	"description": "Baseline before namespace migration; update deliberately alongside router and consumers.",
+	"procedures": [
+		{
+			"name": "add_access_entry",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "kind", "name"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "add_offline_account",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["username"],
+			"destination": "accounts"
+		},
+		{
+			"name": "add_to_server_whitelist",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "username"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "apply_ely_skin",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["account_id", "skin_id", "password"],
+			"destination": "skins"
+		},
+		{
+			"name": "apply_instance_version_change",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["plan", "backup_worlds"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "apply_microsoft_skin",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["account_id", "skin_url", "is_slim"],
+			"destination": "skins"
+		},
+		{
+			"name": "apply_server_version_change",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["plan", "backup_worlds"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "check_instance_version_change",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["instance_id", "game_version", "loader", "loader_version"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "check_server_plugin_updates",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "check_server_version_change",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["server_id", "game_version", "core"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "check_sync_conflict",
+			"currentPath": "instances.sync",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.sync"
+		},
+		{
+			"name": "create_instance",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["name", "game_version", "loader", "loader_version"],
+			"destination": "instances"
+		},
+		{
+			"name": "create_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": [
+				"name",
+				"core",
+				"game_version",
+				"build_number",
+				"port",
+				"memory_min_mb",
+				"memory_max_mb"
+			],
+			"destination": "servers"
+		},
+		{
+			"name": "delete_bedrock_pack",
+			"currentPath": "servers.packs",
+			"kind": "command",
+			"arguments": ["server_id", "folder_name", "pack_type"],
+			"destination": "servers.packs"
+		},
+		{
+			"name": "delete_instance",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances"
+		},
+		{
+			"name": "delete_screenshot",
+			"currentPath": "instances.screenshots",
+			"kind": "command",
+			"arguments": ["instance_id", "file_name"],
+			"destination": "instances.screenshots"
+		},
+		{
+			"name": "delete_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id", "delete_files"],
+			"destination": "servers"
+		},
+		{
+			"name": "detect_custom_instance",
+			"currentPath": "instances.imports",
+			"kind": "command",
+			"arguments": ["path"],
+			"destination": "instances.imports"
+		},
+		{
+			"name": "discard_instance_version_backup",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "discard_pending_microsoft_login",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["ticket"],
+			"destination": "accounts"
+		},
+		{
+			"name": "discard_server_version_backup",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "duplicate_instance",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id", "name", "include_worlds"],
+			"destination": "instances"
+		},
+		{
+			"name": "duplicate_server",
+			"currentPath": "servers.transfer",
+			"kind": "command",
+			"arguments": ["server_id", "name", "game_version", "build_number"],
+			"destination": "servers.transfer"
+		},
+		{
+			"name": "ely_login",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["username", "password"],
+			"destination": "accounts"
+		},
+		{
+			"name": "export_instance_category_to_shared",
+			"currentPath": "instances.sync",
+			"kind": "command",
+			"arguments": ["instance_id", "category"],
+			"destination": "instances.sync"
+		},
+		{
+			"name": "export_server",
+			"currentPath": "servers.transfer",
+			"kind": "command",
+			"arguments": ["server_id", "mode", "dest"],
+			"destination": "servers.transfer"
+		},
+		{
+			"name": "get_access_list",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "kind"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "get_accounts",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": [],
+			"destination": "accounts"
+		},
+		{
+			"name": "get_active_account_token",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": [],
+			"destination": "accounts"
+		},
+		{
+			"name": "get_all_screenshots",
+			"currentPath": "instances.screenshots",
+			"kind": "command",
+			"arguments": [],
+			"destination": "instances.screenshots"
+		},
+		{
+			"name": "get_available_game_versions",
+			"currentPath": "versions",
+			"kind": "command",
+			"arguments": [],
+			"destination": "versions"
+		},
+		{
+			"name": "get_available_loader_versions",
+			"currentPath": "versions",
+			"kind": "command",
+			"arguments": ["game_version", "loader"],
+			"destination": "versions"
+		},
+		{
+			"name": "get_available_server_core_versions",
+			"currentPath": "versions",
+			"kind": "command",
+			"arguments": ["core"],
+			"destination": "versions"
+		},
+		{
+			"name": "get_bedrock_client_status",
+			"currentPath": "bedrock",
+			"kind": "command",
+			"arguments": [],
+			"destination": "bedrock"
+		},
+		{
+			"name": "get_companion_status",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "get_content_details",
+			"currentPath": "content",
+			"kind": "command",
+			"arguments": ["source", "project_id"],
+			"destination": "content"
+		},
+		{
+			"name": "get_detected_launchers",
+			"currentPath": "instances.imports",
+			"kind": "command",
+			"arguments": [],
+			"destination": "instances.imports"
+		},
+		{
+			"name": "get_ely_skins",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["page", "query", "sort", "model", "uploader"],
+			"destination": "skins"
+		},
+		{
+			"name": "get_instance_version_backup",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "get_instance_version_transaction_status",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "get_instance_worlds",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances"
+		},
+		{
+			"name": "get_instances",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": [],
+			"destination": "instances"
+		},
+		{
+			"name": "get_known_players",
+			"currentPath": "servers.players",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.players"
+		},
+		{
+			"name": "get_lan_address",
+			"currentPath": "servers.metrics",
+			"kind": "command",
+			"arguments": [],
+			"destination": "servers.metrics"
+		},
+		{
+			"name": "get_launcher_behavior",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": [],
+			"destination": "settings"
+		},
+		{
+			"name": "get_launcher_instances",
+			"currentPath": "instances.imports",
+			"kind": "command",
+			"arguments": ["launcher_id", "custom_path"],
+			"destination": "instances.imports"
+		},
+		{
+			"name": "get_leftover_servers",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": [],
+			"destination": "app"
+		},
+		{
+			"name": "get_map_dimensions",
+			"currentPath": "servers.map",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.map"
+		},
+		{
+			"name": "get_map_tile",
+			"currentPath": "servers.map",
+			"kind": "command",
+			"arguments": ["server_id", "dimension", "x", "z"],
+			"destination": "servers.map"
+		},
+		{
+			"name": "get_memory_settings",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": [],
+			"destination": "settings"
+		},
+		{
+			"name": "get_online_players",
+			"currentPath": "servers.players",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.players"
+		},
+		{
+			"name": "get_pending_microsoft_login",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": [],
+			"destination": "accounts"
+		},
+		{
+			"name": "get_player_details",
+			"currentPath": "servers.players",
+			"kind": "command",
+			"arguments": ["server_id", "name"],
+			"destination": "servers.players"
+		},
+		{
+			"name": "get_playit_status",
+			"currentPath": "servers.tunnel",
+			"kind": "command",
+			"arguments": [],
+			"destination": "servers.tunnel"
+		},
+		{
+			"name": "get_quit_blockers",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": [],
+			"destination": "app"
+		},
+		{
+			"name": "get_running_instances",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": [],
+			"destination": "instances"
+		},
+		{
+			"name": "get_running_servers",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": [],
+			"destination": "servers"
+		},
+		{
+			"name": "get_screenshot_thumbnail",
+			"currentPath": "instances.screenshots",
+			"kind": "command",
+			"arguments": ["instance_id", "file_name", "file_path", "modified_at"],
+			"destination": "instances.screenshots"
+		},
+		{
+			"name": "get_server_icon",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "get_server_logs",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "get_server_online_players",
+			"currentPath": "servers.players",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.players"
+		},
+		{
+			"name": "get_server_plugin_page",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["source", "project_id"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "get_server_plugin_versions",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id", "source", "project_id", "compatible_only"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "get_server_properties",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "get_server_properties_all",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "get_server_stats",
+			"currentPath": "servers.metrics",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.metrics"
+		},
+		{
+			"name": "get_server_storage",
+			"currentPath": "servers.metrics",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.metrics"
+		},
+		{
+			"name": "get_server_version_backup",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "get_server_version_transaction_status",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "get_server_whitelist",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "get_servers",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": [],
+			"destination": "servers"
+		},
+		{
+			"name": "get_shared_sync_status",
+			"currentPath": "instances.sync",
+			"kind": "command",
+			"arguments": [],
+			"destination": "instances.sync"
+		},
+		{
+			"name": "get_skin_data_url",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["skin_url"],
+			"destination": "skins"
+		},
+		{
+			"name": "get_sync_settings",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": [],
+			"destination": "settings"
+		},
+		{
+			"name": "get_system_memory",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": [],
+			"destination": "settings"
+		},
+		{
+			"name": "get_window_settings",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": [],
+			"destination": "settings"
+		},
+		{
+			"name": "greet",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": ["name"],
+			"destination": "app"
+		},
+		{
+			"name": "has_ely_web_credentials",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["account_id"],
+			"destination": "skins"
+		},
+		{
+			"name": "import_instance",
+			"currentPath": "instances.imports",
+			"kind": "command",
+			"arguments": ["options"],
+			"destination": "instances.imports"
+		},
+		{
+			"name": "import_server",
+			"currentPath": "servers.transfer",
+			"kind": "command",
+			"arguments": ["upload_id"],
+			"destination": "servers.transfer"
+		},
+		{
+			"name": "import_upload_chunk",
+			"currentPath": "servers.transfer",
+			"kind": "command",
+			"arguments": ["upload_id", "data_base64", "first"],
+			"destination": "servers.transfer"
+		},
+		{
+			"name": "install_bedrock_client",
+			"currentPath": "bedrock",
+			"kind": "command",
+			"arguments": [],
+			"destination": "bedrock"
+		},
+		{
+			"name": "install_bedrock_pack",
+			"currentPath": "servers.packs",
+			"kind": "command",
+			"arguments": ["server_id", "download_url", "filename"],
+			"destination": "servers.packs"
+		},
+		{
+			"name": "install_companion",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "install_content_file",
+			"currentPath": "content",
+			"kind": "command",
+			"arguments": ["instance_id", "project_type", "download_url", "filename"],
+			"destination": "content"
+		},
+		{
+			"name": "install_modpack_instance",
+			"currentPath": "content",
+			"kind": "command",
+			"arguments": ["name", "source", "download_url", "filename"],
+			"destination": "content"
+		},
+		{
+			"name": "install_server_plugin",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id", "source", "project_id", "version_id"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "kill_instance",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances"
+		},
+		{
+			"name": "kill_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "launch_bedrock_client",
+			"currentPath": "bedrock",
+			"kind": "command",
+			"arguments": [],
+			"destination": "bedrock"
+		},
+		{
+			"name": "launch_instance",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id", "quick_play"],
+			"destination": "instances"
+		},
+		{
+			"name": "list_bedrock_packs",
+			"currentPath": "servers.packs",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.packs"
+		},
+		{
+			"name": "list_server_config_files",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "list_server_plugins",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "microsoft_login_cancel",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": [],
+			"destination": "accounts"
+		},
+		{
+			"name": "microsoft_login_finish",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["code"],
+			"destination": "accounts"
+		},
+		{
+			"name": "microsoft_login_start",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": [],
+			"destination": "accounts"
+		},
+		{
+			"name": "on_instance_status_changed",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "on_launch_progress",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "on_leftover_servers",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["servers"],
+			"destination": "events"
+		},
+		{
+			"name": "on_memory_changed",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["settings"],
+			"destination": "events"
+		},
+		{
+			"name": "on_quit_requested",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "on_server_log",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "on_server_status_changed",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "on_version_change_crash",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "open_bedrock_folder",
+			"currentPath": "bedrock",
+			"kind": "command",
+			"arguments": ["kind"],
+			"destination": "bedrock"
+		},
+		{
+			"name": "open_bedrock_server_subfolder",
+			"currentPath": "servers.packs",
+			"kind": "command",
+			"arguments": ["server_id", "subfolder"],
+			"destination": "servers.packs"
+		},
+		{
+			"name": "open_instance_folder",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances"
+		},
+		{
+			"name": "open_screenshots_folder",
+			"currentPath": "instances.screenshots",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.screenshots"
+		},
+		{
+			"name": "open_server_folder",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "ping_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["port"],
+			"destination": "servers"
+		},
+		{
+			"name": "pull_instance_sync",
+			"currentPath": "instances.sync",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.sync"
+		},
+		{
+			"name": "push_instance_sync",
+			"currentPath": "instances.sync",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.sync"
+		},
+		{
+			"name": "put_server_to_sleep",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "quit_app",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": [],
+			"destination": "app"
+		},
+		{
+			"name": "read_server_config_file",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "path"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "recover_instance_version_change",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "recover_server_version_change",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "remove_access_entry",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "kind", "name"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "remove_account",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["account_id"],
+			"destination": "accounts"
+		},
+		{
+			"name": "remove_from_server_whitelist",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "username"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "remove_server_plugin",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id", "file_name"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "reorder_accounts",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["account_ids"],
+			"destination": "accounts"
+		},
+		{
+			"name": "resolve_sync_conflict",
+			"currentPath": "instances.sync",
+			"kind": "command",
+			"arguments": ["instance_id", "resolution"],
+			"destination": "instances.sync"
+		},
+		{
+			"name": "resume_microsoft_login",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["ticket"],
+			"destination": "accounts"
+		},
+		{
+			"name": "reveal_screenshot_file",
+			"currentPath": "instances.screenshots",
+			"kind": "command",
+			"arguments": ["file_path"],
+			"destination": "instances.screenshots"
+		},
+		{
+			"name": "save_server_world",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id", "flush"],
+			"destination": "servers"
+		},
+		{
+			"name": "save_skin_to_downloads",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["username", "skin_url"],
+			"destination": "skins"
+		},
+		{
+			"name": "search_content",
+			"currentPath": "content",
+			"kind": "command",
+			"arguments": [
+				"source",
+				"project_type",
+				"query",
+				"game_version",
+				"loader",
+				"sort",
+				"page",
+				"page_size"
+			],
+			"destination": "content"
+		},
+		{
+			"name": "search_server_plugins",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id", "source", "query", "sort", "compatible_only", "page"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "send_server_command",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id", "command"],
+			"destination": "servers"
+		},
+		{
+			"name": "set_active_account",
+			"currentPath": "accounts",
+			"kind": "command",
+			"arguments": ["account_id"],
+			"destination": "accounts"
+		},
+		{
+			"name": "set_bedrock_pack_enabled",
+			"currentPath": "servers.packs",
+			"kind": "command",
+			"arguments": ["server_id", "pack_id", "pack_type", "enabled"],
+			"destination": "servers.packs"
+		},
+		{
+			"name": "set_launcher_behavior",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": ["behavior"],
+			"destination": "settings"
+		},
+		{
+			"name": "set_memory_settings",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": ["min_ram_mb", "max_ram_mb"],
+			"destination": "settings"
+		},
+		{
+			"name": "set_server_icon",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id", "base64_data"],
+			"destination": "servers"
+		},
+		{
+			"name": "set_server_plugin_enabled",
+			"currentPath": "servers.plugins",
+			"kind": "command",
+			"arguments": ["server_id", "file_name", "enabled"],
+			"destination": "servers.plugins"
+		},
+		{
+			"name": "set_server_properties",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "properties"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "set_server_properties_all",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "entries"],
+			"destination": "servers.config"
+		},
+		{
+			"name": "set_sync_settings",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": ["settings"],
+			"destination": "settings"
+		},
+		{
+			"name": "set_window_settings",
+			"currentPath": "settings",
+			"kind": "command",
+			"arguments": ["settings"],
+			"destination": "settings"
+		},
+		{
+			"name": "start_playit_tunnel",
+			"currentPath": "servers.tunnel",
+			"kind": "command",
+			"arguments": ["secret_key"],
+			"destination": "servers.tunnel"
+		},
+		{
+			"name": "start_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "stop_all_servers",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": [],
+			"destination": "app"
+		},
+		{
+			"name": "stop_leftover_server",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "app"
+		},
+		{
+			"name": "stop_playit_tunnel",
+			"currentPath": "servers.tunnel",
+			"kind": "command",
+			"arguments": [],
+			"destination": "servers.tunnel"
+		},
+		{
+			"name": "stop_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers"
+		},
+		{
+			"name": "turn_off_after_version_change",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": ["target_kind", "target_id", "folder", "file_name"],
+			"destination": "app"
+		},
+		{
+			"name": "undo_instance_version_change",
+			"currentPath": "instances.version_change",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.version_change"
+		},
+		{
+			"name": "undo_server_version_change",
+			"currentPath": "servers.version_change",
+			"kind": "command",
+			"arguments": ["server_id"],
+			"destination": "servers.version_change"
+		},
+		{
+			"name": "update_instance",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance"],
+			"destination": "instances"
+		},
+		{
+			"name": "update_server",
+			"currentPath": "servers",
+			"kind": "command",
+			"arguments": ["server"],
+			"destination": "servers"
+		},
+		{
+			"name": "upload_ely_skin",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["account_id", "image_base64", "password"],
+			"destination": "skins"
+		},
+		{
+			"name": "upload_microsoft_skin",
+			"currentPath": "skins",
+			"kind": "command",
+			"arguments": ["account_id", "image_base64", "is_slim"],
+			"destination": "skins"
+		},
+		{
+			"name": "write_server_config_file",
+			"currentPath": "servers.config",
+			"kind": "command",
+			"arguments": ["server_id", "path", "content"],
+			"destination": "servers.config"
+		}
+	]
 }

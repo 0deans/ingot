@@ -36,10 +36,9 @@ impl VersionsApi for VersionsApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<VersionManifestEntry>, ApiError> {
-        let data_dir = app_handle
-            .path()
-            .app_data_dir()
-            .map_err(|e| ApiError::storage_failure(format!("Failed to get app data directory: {e}")))?;
+        let data_dir = app_handle.path().app_data_dir().map_err(|e| {
+            ApiError::storage_failure(format!("Failed to get app data directory: {e}"))
+        })?;
         let cache_dir = data_dir.join("cache");
         let manifest = version::fetch_version_manifest(get_http_client(&app_handle), &cache_dir)
             .await

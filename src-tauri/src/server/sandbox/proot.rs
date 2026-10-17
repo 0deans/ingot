@@ -3,7 +3,10 @@ use tokio::process::Command;
 
 /// Checks whether the sandbox (PRoot) execution should be used
 pub fn is_android_sandbox() -> bool {
-    cfg!(target_os = "android") || std::env::var("INGOT_USE_PROOT").map(|v| v == "1").unwrap_or(false)
+    cfg!(target_os = "android")
+        || std::env::var("INGOT_USE_PROOT")
+            .map(|v| v == "1")
+            .unwrap_or(false)
 }
 
 /// Directory holding the APK's extracted native libraries (`nativeLibraryDir`).
@@ -79,13 +82,17 @@ pub fn proot_command(
     })?;
 
     let tmp_dir = sandbox_dir.join("tmp");
-    std::fs::create_dir_all(&tmp_dir).map_err(|e| format!("Failed to create PRoot tmp dir: {e}"))?;
+    std::fs::create_dir_all(&tmp_dir)
+        .map_err(|e| format!("Failed to create PRoot tmp dir: {e}"))?;
 
     let mut cmd = Command::new(&proot);
     cmd.env_clear();
     cmd.env("PROOT_TMP_DIR", &tmp_dir);
     cmd.env("HOME", "/root");
-    cmd.env("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+    cmd.env(
+        "PATH",
+        "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    );
     cmd.env("LANG", "C.UTF-8");
     cmd.env("TERM", "dumb");
     cmd.env("TMPDIR", "/tmp");
@@ -106,7 +113,8 @@ pub fn proot_command(
 
         // nativeLibraryDir changes on every app update, so always refresh the symlink.
         let soname_dir = sandbox_dir.join("lib");
-        std::fs::create_dir_all(&soname_dir).map_err(|e| format!("Failed to create PRoot lib dir: {e}"))?;
+        std::fs::create_dir_all(&soname_dir)
+            .map_err(|e| format!("Failed to create PRoot lib dir: {e}"))?;
         let talloc_link = soname_dir.join("libtalloc.so.2");
         let _ = std::fs::remove_file(&talloc_link);
         #[cfg(unix)]
@@ -188,7 +196,8 @@ fn add_rootfs_args(cmd: &mut Command, sandbox_dir: &Path, rootfs: &Path) {
             continue;
         }
         let fake = fake_proc_dir.join(name);
-        if std::fs::create_dir_all(&fake_proc_dir).is_ok() && std::fs::write(&fake, content).is_ok() {
+        if std::fs::create_dir_all(&fake_proc_dir).is_ok() && std::fs::write(&fake, content).is_ok()
+        {
             cmd.arg("-b");
             cmd.arg(format!("{}:/proc/{name}", fake.to_string_lossy()));
         }
@@ -206,7 +215,13 @@ pub fn build_server_command(
     let mut cmd = if is_android_sandbox() {
         let (sandbox_dir, rootfs) =
             sandbox.ok_or_else(|| "Sandbox rootfs path is required on Android".to_string())?;
-        let mut cmd = proot_command(sandbox_dir, Some(rootfs), false, &[(server_dir.to_path_buf(), "/server")], "/server")?;
+        let mut cmd = proot_command(
+            sandbox_dir,
+            Some(rootfs),
+            false,
+            &[(server_dir.to_path_buf(), "/server")],
+            "/server",
+        )?;
         // Inside rootfs, invoke java
         cmd.arg(java_bin);
         cmd

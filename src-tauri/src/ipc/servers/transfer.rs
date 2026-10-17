@@ -1,5 +1,7 @@
 //! IPC procedures for server export, import, and duplication.
-use super::{get_server_process_manager, import_upload_path, is_server_running, server_with_config};
+use super::{
+    get_server_process_manager, import_upload_path, is_server_running, server_with_config,
+};
 use crate::ipc::ApiError;
 use crate::server::transfer::{ExportMode, ImportedServer};
 use crate::server::{self, ServerConfig};
@@ -84,7 +86,8 @@ impl ServerTransferApi for ServerTransferApiImpl {
             .decode(data_base64)
             .map_err(|e| ApiError::invalid_input(format!("Invalid upload chunk: {e}")))?;
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| ApiError::storage_failure(e.to_string()))?;
+            std::fs::create_dir_all(parent)
+                .map_err(|e| ApiError::storage_failure(e.to_string()))?;
         }
         let mut file = std::fs::OpenOptions::new()
             .create(true)
@@ -112,7 +115,8 @@ impl ServerTransferApi for ServerTransferApiImpl {
         let _ = std::fs::remove_file(&path);
         let created = result.map_err(ApiError::from)?;
         let dir = server::get_server_dir(&app_handle, &created.id).map_err(ApiError::from)?;
-        let warnings = server::plugins::restore_missing(&dir, &created.core, &created.game_version).await;
+        let warnings =
+            server::plugins::restore_missing(&dir, &created.core, &created.game_version).await;
         Ok(ImportedServer {
             server: created,
             warnings,

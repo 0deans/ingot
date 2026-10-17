@@ -3,6 +3,8 @@ use reqwest::StatusCode;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ContentError {
+    #[error("Instance metadata publication failed: {0}")]
+    Metadata(#[source] crate::minecraft::metadata::MetadataError),
     #[error("Network transport failure: {0}")]
     Transport(#[source] reqwest::Error),
 
@@ -38,6 +40,22 @@ pub enum ContentError {
 
     #[error("Instance error: {0}")]
     Instance(String),
+
+    #[error("Modpack contains an invalid or unsafe path: {0}")]
+    UnsafePath(String),
+
+    #[error("Modpack download failed integrity validation: {0}")]
+    Integrity(&'static str),
+
+    #[error("Modpack blocking task failed: {0}")]
+    Task(#[source] tokio::task::JoinError),
+
+    #[error("Modpack failed ({primary}); staging cleanup also failed: {cleanup}")]
+    Cleanup {
+        #[source]
+        primary: Box<ContentError>,
+        cleanup: std::io::Error,
+    },
 }
 
 impl From<ContentError> for String {

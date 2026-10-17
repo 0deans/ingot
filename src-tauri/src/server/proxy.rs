@@ -58,7 +58,7 @@ pub async fn write_varint<W: AsyncWrite + Unpin>(writer: &mut W, value: i32) -> 
 /// Reads a Minecraft length-prefixed UTF-8 string
 pub async fn read_mc_string<R: AsyncRead + Unpin>(reader: &mut R) -> io::Result<String> {
     let length = read_varint(reader).await?;
-    if length < 0 || length > 32767 {
+    if !(0..=32767).contains(&length) {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "String length out of bounds",
@@ -237,7 +237,8 @@ where
                     TcpStream::connect(format!("127.0.0.1:{}", config.internal_port)).await
                 {
                     server_stream.write_all(&handshake.raw_bytes).await?;
-                    let _ = tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await;
+                    let _ =
+                        tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await;
                 }
             }
         }
@@ -250,10 +251,7 @@ where
                 // Wait for wake signal or timeout (max 25 seconds before client timeout)
                 let wake_result = tokio::time::timeout(Duration::from_secs(25), wake_rx).await;
 
-                let is_ready = match wake_result {
-                    Ok(Ok(true)) => true,
-                    _ => false,
-                };
+                let is_ready = matches!(wake_result, Ok(Ok(true)));
 
                 if is_ready {
                     // Try connecting to internal port
@@ -263,7 +261,8 @@ where
                         server_stream.write_all(&handshake.raw_bytes).await?;
                         active_conns.fetch_add(1, Ordering::SeqCst);
                         let _ =
-                            tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await;
+                            tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream)
+                                .await;
                         active_conns.fetch_sub(1, Ordering::SeqCst);
                         return Ok(());
                     }
@@ -283,7 +282,10 @@ where
                         .map_err(|e| {
                             io::Error::new(
                                 io::ErrorKind::ConnectionRefused,
-                                format!("Could not connect to internal server port {}: {e}", config.internal_port),
+                                format!(
+                                    "Could not connect to internal server port {}: {e}",
+                                    config.internal_port
+                                ),
                             )
                         })?;
 
@@ -301,7 +303,8 @@ where
                         server_stream.write_all(&handshake.raw_bytes).await?;
                         active_conns.fetch_add(1, Ordering::SeqCst);
                         let _ =
-                            tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await;
+                            tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream)
+                                .await;
                         active_conns.fetch_sub(1, Ordering::SeqCst);
                         return Ok(());
                     }
@@ -487,7 +490,9 @@ mod tests {
             encode_varint(val, &mut buf);
 
             let mut cursor = io::Cursor::new(buf);
-            let decoded = read_varint(&mut cursor).await.expect("failed to decode varint");
+            let decoded = read_varint(&mut cursor)
+                .await
+                .expect("failed to decode varint");
             assert_eq!(val, decoded);
         }
     }
@@ -510,7 +515,9 @@ mod tests {
         wire_packet.extend_from_slice(&body);
 
         let mut cursor = io::Cursor::new(wire_packet);
-        let parsed = read_handshake_packet(&mut cursor).await.expect("failed to parse handshake");
+        let parsed = read_handshake_packet(&mut cursor)
+            .await
+            .expect("failed to parse handshake");
 
         assert_eq!(parsed.protocol_version, 765);
         assert_eq!(parsed.server_address, "localhost");
@@ -524,6 +531,9 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(&json_str).expect("invalid json");
         assert_eq!(parsed["players"]["max"], 20);
         assert_eq!(parsed["players"]["online"], 0);
-        assert!(parsed["version"]["name"].as_str().unwrap().contains("Sleeping"));
+        assert!(parsed["version"]["name"]
+            .as_str()
+            .unwrap()
+            .contains("Sleeping"));
     }
 }

@@ -85,13 +85,20 @@ pub struct Scope {
 }
 
 fn text(v: &Value, key: &str) -> String {
-    v.get(key).and_then(Value::as_str).unwrap_or_default().to_string()
+    v.get(key)
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string()
 }
 
 fn strings(v: &Value, key: &str) -> Vec<String> {
     v.get(key)
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(|x| x.as_str().map(str::to_string)).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(|x| x.as_str().map(str::to_string))
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -108,7 +115,11 @@ async fn send(req: reqwest::RequestBuilder, name: &str) -> Result<Value, String>
 // ─── Modrinth ─────────────────────────────────────────────────────────────────
 
 fn modrinth_release(v: &Value) -> Release {
-    let files = v.get("files").and_then(Value::as_array).cloned().unwrap_or_default();
+    let files = v
+        .get("files")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     let file = files
         .iter()
         .find(|f| f.get("primary").and_then(Value::as_bool) == Some(true))
@@ -128,7 +139,10 @@ fn modrinth_release(v: &Value) -> Release {
             version_number: text(v, "version_number"),
             file_name: text(f, "filename"),
             url: text(f, "url"),
-            sha1: f.get("hashes").map(|h| text(h, "sha1")).filter(|h| !h.is_empty()),
+            sha1: f
+                .get("hashes")
+                .map(|h| text(h, "sha1"))
+                .filter(|h| !h.is_empty()),
             sha256: None,
             bytes: f.get("size").and_then(Value::as_f64).unwrap_or(0.0),
         }),
@@ -145,8 +159,14 @@ fn modrinth_release(v: &Value) -> Release {
                 };
                 Some(Dep {
                     required,
-                    project: d.get("project_id").and_then(Value::as_str).map(str::to_string),
-                    version_id: d.get("version_id").and_then(Value::as_str).map(str::to_string),
+                    project: d
+                        .get("project_id")
+                        .and_then(Value::as_str)
+                        .map(str::to_string),
+                    version_id: d
+                        .get("version_id")
+                        .and_then(Value::as_str)
+                        .map(str::to_string),
                 })
             })
             .collect(),
@@ -154,8 +174,13 @@ fn modrinth_release(v: &Value) -> Release {
 }
 
 fn modrinth_supports(v: &Value, game_version: &str, loaders: &[&str]) -> bool {
-    strings(v, "game_versions").iter().any(|g| g == game_version)
-        && (loaders.is_empty() || strings(v, "loaders").iter().any(|l| loaders.contains(&l.as_str())))
+    strings(v, "game_versions")
+        .iter()
+        .any(|g| g == game_version)
+        && (loaders.is_empty()
+            || strings(v, "loaders")
+                .iter()
+                .any(|l| loaders.contains(&l.as_str())))
 }
 
 /// What each hash is on Modrinth now, and whether that version already fits the target
@@ -169,7 +194,9 @@ pub async fn modrinth_identify(
         return Ok(HashMap::new());
     }
     let found = send(
-        client.post(format!("{MODRINTH}/version_files")).json(&json!({ "hashes": hashes, "algorithm": "sha1" })),
+        client
+            .post(format!("{MODRINTH}/version_files"))
+            .json(&json!({ "hashes": hashes, "algorithm": "sha1" })),
         "Modrinth",
     )
     .await?;
@@ -178,7 +205,15 @@ pub async fn modrinth_identify(
         .into_iter()
         .flatten()
         .filter(|(_, v)| v.is_object())
-        .map(|(hash, v)| (hash.clone(), (modrinth_release(v), modrinth_supports(v, game_version, loaders))))
+        .map(|(hash, v)| {
+            (
+                hash.clone(),
+                (
+                    modrinth_release(v),
+                    modrinth_supports(v, game_version, loaders),
+                ),
+            )
+        })
         .collect())
 }
 
@@ -193,10 +228,15 @@ pub async fn modrinth_target(
         return None;
     }
     let list = send(
-        client.get(format!("{MODRINTH}/project/{project}/version")).query(&[
-            ("loaders", serde_json::to_string(loaders).ok()?),
-            ("game_versions", serde_json::to_string(&[game_version]).ok()?),
-        ]),
+        client
+            .get(format!("{MODRINTH}/project/{project}/version"))
+            .query(&[
+                ("loaders", serde_json::to_string(loaders).ok()?),
+                (
+                    "game_versions",
+                    serde_json::to_string(&[game_version]).ok()?,
+                ),
+            ]),
         "Modrinth",
     )
     .await
@@ -210,16 +250,26 @@ pub async fn modrinth_target(
 
 /// The project a Modrinth version belongs to
 pub async fn modrinth_project_of(client: &reqwest::Client, version_id: &str) -> Option<String> {
-    let v = send(client.get(format!("{MODRINTH}/version/{version_id}")), "Modrinth").await.ok()?;
+    let v = send(
+        client.get(format!("{MODRINTH}/version/{version_id}")),
+        "Modrinth",
+    )
+    .await
+    .ok()?;
     Some(text(&v, "project_id")).filter(|p| !p.is_empty())
 }
 
-pub async fn modrinth_projects(client: &reqwest::Client, ids: &[String]) -> HashMap<String, ProjectInfo> {
+pub async fn modrinth_projects(
+    client: &reqwest::Client,
+    ids: &[String],
+) -> HashMap<String, ProjectInfo> {
     if ids.is_empty() {
         return HashMap::new();
     }
     let Ok(list) = send(
-        client.get(format!("{MODRINTH}/projects")).query(&[("ids", serde_json::to_string(ids).unwrap_or_default())]),
+        client
+            .get(format!("{MODRINTH}/projects"))
+            .query(&[("ids", serde_json::to_string(ids).unwrap_or_default())]),
         "Modrinth",
     )
     .await
@@ -232,7 +282,11 @@ pub async fn modrinth_projects(client: &reqwest::Client, ids: &[String]) -> Hash
         .map(|p| {
             let info = ProjectInfo {
                 title: text(p, "title"),
-                icon_url: p.get("icon_url").and_then(Value::as_str).filter(|u| !u.is_empty()).map(str::to_string),
+                icon_url: p
+                    .get("icon_url")
+                    .and_then(Value::as_str)
+                    .filter(|u| !u.is_empty())
+                    .map(str::to_string),
                 page_url: Some(format!("https://modrinth.com/project/{}", text(p, "slug"))),
             };
             (text(p, "id"), info)
@@ -245,18 +299,21 @@ pub async fn modrinth_projects(client: &reqwest::Client, ids: &[String]) -> Hash
 /// CurseForge's file fingerprint: 32-bit MurmurHash2 (seed 1) of the file without
 /// whitespace bytes (tab, newline, carriage return, space)
 pub fn cf_fingerprint(data: &[u8]) -> u32 {
-    let bytes: Vec<u8> = data.iter().copied().filter(|b| !matches!(b, 9 | 10 | 13 | 32)).collect();
+    let bytes: Vec<u8> = data
+        .iter()
+        .copied()
+        .filter(|b| !matches!(b, 9 | 10 | 13 | 32))
+        .collect();
     const M: u32 = 0x5bd1_e995;
     let mut h: u32 = 1 ^ (bytes.len() as u32);
-    let mut chunks = bytes.chunks_exact(4);
-    for chunk in &mut chunks {
-        let mut k = u32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
+    let (chunks, tail) = bytes.as_chunks::<4>();
+    for chunk in chunks {
+        let mut k = u32::from_le_bytes(*chunk);
         k = k.wrapping_mul(M);
         k ^= k >> 24;
         k = k.wrapping_mul(M);
         h = h.wrapping_mul(M) ^ k;
     }
-    let tail = chunks.remainder();
     if !tail.is_empty() {
         if tail.len() >= 3 {
             h ^= (tail[2] as u32) << 16;
@@ -278,7 +335,11 @@ fn cf(req: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
 }
 
 fn cf_release(mod_id: u64, f: &Value) -> Release {
-    let hashes = f.get("hashes").and_then(Value::as_array).cloned().unwrap_or_default();
+    let hashes = f
+        .get("hashes")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     let sha1 = hashes
         .iter()
         .find(|h| h.get("algo").and_then(Value::as_u64) == Some(1))
@@ -320,7 +381,11 @@ fn cf_release(mod_id: u64, f: &Value) -> Release {
                     _ => return None,
                 };
                 let id = d.get("modId").and_then(Value::as_u64)?;
-                Some(Dep { required, project: Some(id.to_string()), version_id: None })
+                Some(Dep {
+                    required,
+                    project: Some(id.to_string()),
+                    version_id: None,
+                })
             })
             .collect(),
     }
@@ -330,7 +395,12 @@ fn cf_supports(f: &Value, game_version: &str, scope: &Scope) -> bool {
     let versions = strings(f, "gameVersions");
     versions.iter().any(|g| g == game_version)
         && (scope.cf_loader_names.is_empty()
-            || versions.iter().any(|g| scope.cf_loader_names.iter().any(|l| g.eq_ignore_ascii_case(l))))
+            || versions.iter().any(|g| {
+                scope
+                    .cf_loader_names
+                    .iter()
+                    .any(|l| g.eq_ignore_ascii_case(l))
+            }))
 }
 
 /// What each fingerprint is on CurseForge, and whether it already fits the target
@@ -344,31 +414,55 @@ pub async fn cf_identify(
         return Ok(HashMap::new());
     }
     let found = send(
-        cf(client.post(format!("{CURSEFORGE}/fingerprints/{CF_MINECRAFT}"))).json(&json!({ "fingerprints": fingerprints })),
+        cf(client.post(format!("{CURSEFORGE}/fingerprints/{CF_MINECRAFT}")))
+            .json(&json!({ "fingerprints": fingerprints })),
         "CurseForge",
     )
     .await?;
-    let matches = found.pointer("/data/exactMatches").and_then(Value::as_array).cloned().unwrap_or_default();
+    let matches = found
+        .pointer("/data/exactMatches")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     Ok(matches
         .iter()
         .filter_map(|m| {
             let mod_id = m.get("id").and_then(Value::as_u64)?;
             let file = m.get("file")?;
             let fingerprint = file.get("fileFingerprint").and_then(Value::as_u64)? as u32;
-            Some((fingerprint, (cf_release(mod_id, file), cf_supports(file, game_version, scope))))
+            Some((
+                fingerprint,
+                (
+                    cf_release(mod_id, file),
+                    cf_supports(file, game_version, scope),
+                ),
+            ))
         })
         .collect())
 }
 
 /// The newest file of a mod for the target (stable preferred)
-pub async fn cf_target(client: &reqwest::Client, mod_id: &str, game_version: &str, scope: &Scope) -> Option<Release> {
-    let mut query = vec![("gameVersion", game_version.to_string()), ("pageSize", "50".to_string())];
+pub async fn cf_target(
+    client: &reqwest::Client,
+    mod_id: &str,
+    game_version: &str,
+    scope: &Scope,
+) -> Option<Release> {
+    let mut query = vec![
+        ("gameVersion", game_version.to_string()),
+        ("pageSize", "50".to_string()),
+    ];
     if let Some(loader) = scope.cf_loader {
         query.push(("modLoaderType", loader.to_string()));
     }
-    let list = send(cf(client.get(format!("{CURSEFORGE}/mods/{mod_id}/files")).query(&query)), "CurseForge")
-        .await
-        .ok()?;
+    let list = send(
+        cf(client
+            .get(format!("{CURSEFORGE}/mods/{mod_id}/files"))
+            .query(&query)),
+        "CurseForge",
+    )
+    .await
+    .ok()?;
     let mut files: Vec<Value> = list
         .get("data")
         .and_then(Value::as_array)
@@ -378,10 +472,17 @@ pub async fn cf_target(client: &reqwest::Client, mod_id: &str, game_version: &st
         .cloned()
         .collect();
     // Newest first
-    files.sort_by(|a, b| text(b, "fileDate").cmp(&text(a, "fileDate")));
+    files.sort_by_key(|a| std::cmp::Reverse(text(a, "fileDate")));
     let mod_id: u64 = mod_id.parse().ok()?;
-    let pick = |kind: u64| files.iter().find(|f| f.get("releaseType").and_then(Value::as_u64) == Some(kind));
-    pick(1).or_else(|| pick(2)).or_else(|| pick(3)).map(|f| cf_release(mod_id, f))
+    let pick = |kind: u64| {
+        files
+            .iter()
+            .find(|f| f.get("releaseType").and_then(Value::as_u64) == Some(kind))
+    };
+    pick(1)
+        .or_else(|| pick(2))
+        .or_else(|| pick(3))
+        .map(|f| cf_release(mod_id, f))
 }
 
 pub async fn cf_projects(client: &reqwest::Client, ids: &[String]) -> HashMap<String, ProjectInfo> {
@@ -406,8 +507,14 @@ pub async fn cf_projects(client: &reqwest::Client, ids: &[String]) -> HashMap<St
             let id = m.get("id").and_then(Value::as_u64)?.to_string();
             let info = ProjectInfo {
                 title: text(m, "name"),
-                icon_url: m.pointer("/logo/thumbnailUrl").and_then(Value::as_str).map(str::to_string),
-                page_url: m.pointer("/links/websiteUrl").and_then(Value::as_str).map(str::to_string),
+                icon_url: m
+                    .pointer("/logo/thumbnailUrl")
+                    .and_then(Value::as_str)
+                    .map(str::to_string),
+                page_url: m
+                    .pointer("/links/websiteUrl")
+                    .and_then(Value::as_str)
+                    .map(str::to_string),
             };
             Some((id, info))
         })
@@ -426,7 +533,11 @@ fn hangar_release(project: &str, v: &Value) -> Option<Release> {
         project: project.to_string(),
         version_id: name.clone(),
         version_number: name.clone(),
-        channel: if v.pointer("/channel/name").and_then(Value::as_str).is_some_and(|c| c.eq_ignore_ascii_case("release")) {
+        channel: if v
+            .pointer("/channel/name")
+            .and_then(Value::as_str)
+            .is_some_and(|c| c.eq_ignore_ascii_case("release"))
+        {
             Channel::Release
         } else {
             Channel::Beta
@@ -438,8 +549,13 @@ fn hangar_release(project: &str, v: &Value) -> Option<Release> {
             file_name: info.map(|i| text(i, "name")).unwrap_or_default(),
             url,
             sha1: None,
-            sha256: info.map(|i| text(i, "sha256Hash")).filter(|h| !h.is_empty()),
-            bytes: info.and_then(|i| i.get("sizeBytes")).and_then(Value::as_f64).unwrap_or(0.0),
+            sha256: info
+                .map(|i| text(i, "sha256Hash"))
+                .filter(|h| !h.is_empty()),
+            bytes: info
+                .and_then(|i| i.get("sizeBytes"))
+                .and_then(Value::as_f64)
+                .unwrap_or(0.0),
         }),
         deps: v
             .pointer("/pluginDependencies/PAPER")
@@ -448,19 +564,29 @@ fn hangar_release(project: &str, v: &Value) -> Option<Release> {
             .flatten()
             .filter(|d| d.get("required").and_then(Value::as_bool) == Some(true))
             .filter(|d| d.get("externalUrl").is_none_or(Value::is_null))
-            .map(|d| Dep { required: true, project: Some(text(d, "name")), version_id: None })
+            .map(|d| Dep {
+                required: true,
+                project: Some(text(d, "name")),
+                version_id: None,
+            })
             .collect(),
     })
 }
 
 /// Versions of a Hangar project for the target, newest first
-pub async fn hangar_versions(client: &reqwest::Client, project: &str, game_version: &str) -> Vec<Release> {
+pub async fn hangar_versions(
+    client: &reqwest::Client,
+    project: &str,
+    game_version: &str,
+) -> Vec<Release> {
     let Ok(found) = send(
-        client.get(format!("{HANGAR}/projects/{project}/versions")).query(&[
-            ("platform", "PAPER"),
-            ("platformVersion", game_version),
-            ("limit", "25"),
-        ]),
+        client
+            .get(format!("{HANGAR}/projects/{project}/versions"))
+            .query(&[
+                ("platform", "PAPER"),
+                ("platformVersion", game_version),
+                ("limit", "25"),
+            ]),
         "Hangar",
     )
     .await

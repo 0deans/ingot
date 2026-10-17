@@ -66,8 +66,12 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         if config.core == ServerCoreType::Bedrock {
             if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-                if let Ok(details) =
-                    server::live::query_player(get_server_process_manager(&app_handle), &server_id, &name).await
+                if let Ok(details) = server::live::query_player(
+                    get_server_process_manager(&app_handle),
+                    &server_id,
+                    &name,
+                )
+                .await
                 {
                     return Ok(details);
                 }
@@ -76,8 +80,12 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         }
 
         if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-            if let Ok(details) =
-                server::live::query_player(get_server_process_manager(&app_handle), &server_id, &name).await
+            if let Ok(details) = server::live::query_player(
+                get_server_process_manager(&app_handle),
+                &server_id,
+                &name,
+            )
+            .await
             {
                 return Ok(details);
             }

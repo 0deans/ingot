@@ -26,6 +26,8 @@ pub struct Journal {
     pub added: Vec<String>,
     /// Configs copied into the backup
     pub configs: Vec<String>,
+    #[serde(default)]
+    pub absent_configs: Vec<String>,
     pub worlds: Vec<String>,
     /// Set after the first successful start; until then a crash is reported
     pub first_start_checked: bool,
@@ -40,17 +42,46 @@ pub enum JournalState {
 
 pub fn read_journal_state(root: &Path) -> JournalState {
     let path = backup_dir(root).join(JOURNAL);
-    if !path.exists() {
-        return JournalState::Missing;
+    if let Err(error) = super::transaction::checked_path(root, &path) {
+        return JournalState::Corrupt(error.to_string());
     }
     let raw = match fs::read_to_string(&path) {
         Ok(raw) => raw,
-        Err(e) => return JournalState::Corrupt(format!("Unreadable journal at {}: {e}", path.display())),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return JournalState::Missing,
+        Err(e) => {
+            return JournalState::Corrupt(format!("Unreadable journal at {}: {e}", path.display()))
+        }
     };
     match serde_json::from_str::<Journal>(&raw) {
-        Ok(journal) => JournalState::Present(Box::new(journal)),
-        Err(e) => JournalState::Corrupt(format!("Invalid journal format at {}: {e}", path.display())),
+        Ok(journal) => match validate_journal_paths(&journal) {
+            Ok(()) => JournalState::Present(Box::new(journal)),
+            Err(error) => JournalState::Corrupt(error.to_string()),
+        },
+        Err(e) => {
+            JournalState::Corrupt(format!("Invalid journal format at {}: {e}", path.display()))
+        }
     }
+}
+
+pub(super) fn validate_journal_paths(journal: &Journal) -> Result<(), VersionChangeError> {
+    let paths = journal
+        .added
+        .iter()
+        .chain(&journal.disabled)
+        .chain(&journal.configs)
+        .chain(&journal.absent_configs)
+        .chain(&journal.worlds);
+    for path in paths {
+        super::models::safe_rel_typed(path)?;
+    }
+    for (original, stored) in &journal.moved {
+        super::models::safe_rel_typed(original)?;
+        super::models::safe_rel_typed(stored)?;
+        if !stored.starts_with("files/") {
+            return Err(VersionChangeError::InvalidPath(stored.clone()));
+        }
+    }
+    Ok(())
 }
 
 pub fn read_journal(root: &Path) -> Option<Journal> {
@@ -67,6 +98,7 @@ pub fn detect_incomplete_transaction(root: &Path) -> Result<Option<Journal>, Ver
             if matches!(
                 journal.phase,
                 TransactionPhase::Swapping | TransactionPhase::RollbackFailed
+                    | TransactionPhase::Restoring | TransactionPhase::Restored
             ) {
                 Ok(Some(*journal))
             } else {
@@ -82,23 +114,24 @@ pub fn detect_incomplete_transaction(root: &Path) -> Result<Option<Journal>, Ver
 pub fn write_journal_typed(root: &Path, journal: &Journal) -> Result<(), VersionChangeError> {
     use std::io::Write;
     let backup = backup_dir(root);
-    fs::create_dir_all(&backup)
-        .map_err(|e| VersionChangeError::BackupError(format!("Failed to create backup directory: {e}")))?;
+    super::transaction::checked_path(root, &backup.join(JOURNAL))?;
+    fs::create_dir_all(&backup).map_err(|e| {
+        VersionChangeError::BackupError(format!("Failed to create backup directory: {e}"))
+    })?;
     let raw = serde_json::to_string_pretty(journal)
         .map_err(|e| VersionChangeError::Custom(e.to_string()))?;
 
     let mut staged = tempfile::NamedTempFile::new_in(&backup)
         .map_err(|e| VersionChangeError::BackupError(format!("Failed to stage journal: {e}")))?;
-    staged
-        .write_all(raw.as_bytes())
-        .map_err(|e| VersionChangeError::BackupError(format!("Failed to write staged journal: {e}")))?;
-    staged
-        .as_file()
-        .sync_all()
-        .map_err(|e| VersionChangeError::BackupError(format!("Failed to sync staged journal: {e}")))?;
-    staged
-        .persist(backup.join(JOURNAL))
-        .map_err(|e| VersionChangeError::BackupError(format!("Failed to publish journal: {}", e.error)))?;
+    staged.write_all(raw.as_bytes()).map_err(|e| {
+        VersionChangeError::BackupError(format!("Failed to write staged journal: {e}"))
+    })?;
+    staged.as_file().sync_all().map_err(|e| {
+        VersionChangeError::BackupError(format!("Failed to sync staged journal: {e}"))
+    })?;
+    staged.persist(backup.join(JOURNAL)).map_err(|e| {
+        VersionChangeError::BackupError(format!("Failed to publish journal: {}", e.error))
+    })?;
     Ok(())
 }
 
@@ -109,7 +142,10 @@ pub fn write_journal(root: &Path, journal: &Journal) -> Result<(), String> {
 /// The last version change, if it can be undone
 pub fn last_backup(root: &Path) -> Option<VersionBackup> {
     let journal = read_journal(root)?;
-    if journal.phase == TransactionPhase::RollbackFailed {
+    if !matches!(
+        journal.phase,
+        TransactionPhase::Committed | TransactionPhase::Prepared
+    ) {
         return None;
     }
     Some(VersionBackup {
@@ -150,7 +186,10 @@ pub fn transaction_status(root: &Path) -> VersionTransactionStatus {
         JournalState::Present(j) => {
             let is_incomplete = matches!(
                 j.phase,
-                TransactionPhase::Swapping | TransactionPhase::RollbackFailed
+                TransactionPhase::Swapping
+                    | TransactionPhase::RollbackFailed
+                    | TransactionPhase::Restoring
+                    | TransactionPhase::Restored
             );
             let can_recover = is_incomplete;
             let backup = Some(VersionBackup {
@@ -171,6 +210,11 @@ pub fn transaction_status(root: &Path) -> VersionTransactionStatus {
                     Some("A previous version change rollback failed. Recovery is required to restore files and metadata.".into())
                 } else if j.phase == TransactionPhase::Swapping {
                     Some("An interrupted version change was detected. Recovery is required before launching or updating.".into())
+                } else if matches!(
+                    j.phase,
+                    TransactionPhase::Restoring | TransactionPhase::Restored
+                ) {
+                    Some("Version restoration needs finalization. Retry recovery before launching or updating.".into())
                 } else {
                     None
                 },

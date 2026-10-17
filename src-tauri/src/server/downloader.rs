@@ -138,7 +138,11 @@ pub async fn fetch_core_versions(
 
             let mut versions = Vec::new();
             for item in data {
-                if item.get("stable").and_then(|v| v.as_bool()).unwrap_or(false) {
+                if item
+                    .get("stable")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false)
+                {
                     if let Some(ver) = item.get("version").and_then(|v| v.as_str()) {
                         versions.push(ver.to_string());
                     }
@@ -204,11 +208,12 @@ pub async fn ensure_server_jar(
                 project, game_version, build_target
             );
 
-            let b_resp = client
-                .get(&build_url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch {} build info for {}: {e}", project, game_version))?;
+            let b_resp = client.get(&build_url).send().await.map_err(|e| {
+                format!(
+                    "Failed to fetch {} build info for {}: {e}",
+                    project, game_version
+                )
+            })?;
 
             if !b_resp.status().is_success() {
                 return Err(format!(
@@ -229,7 +234,12 @@ pub async fn ensure_server_jar(
                 .get("server:default")
                 .or_else(|| b_data.downloads.get("application"))
                 .or_else(|| b_data.downloads.values().next())
-                .ok_or_else(|| format!("No server download entry found for {} build #{}", project, b_data.id))?;
+                .ok_or_else(|| {
+                    format!(
+                        "No server download entry found for {} build #{}",
+                        project, b_data.id
+                    )
+                })?;
 
             download_file_chunked(client, &dl_entry.url, &dest_jar, None, None).await?;
             Ok(format!("{} build #{} installed", core, b_data.id))
@@ -240,11 +250,9 @@ pub async fn ensure_server_jar(
                 b.to_string()
             } else {
                 let info_url = format!("https://api.purpurmc.org/v2/purpur/{}", game_version);
-                let resp = client
-                    .get(&info_url)
-                    .send()
-                    .await
-                    .map_err(|e| format!("Failed to fetch Purpur builds for {}: {e}", game_version))?;
+                let resp = client.get(&info_url).send().await.map_err(|e| {
+                    format!("Failed to fetch Purpur builds for {}: {e}", game_version)
+                })?;
                 let data: PurpurBuildsResponse = resp
                     .json()
                     .await
@@ -267,11 +275,10 @@ pub async fn ensure_server_jar(
                 "https://meta.fabricmc.net/v2/versions/loader/{}",
                 game_version
             );
-            let resp = client
-                .get(&loader_url)
-                .send()
-                .await
-                .map_err(|e| format!("Failed to fetch Fabric loader for {}: {e}", game_version))?;
+            let resp =
+                client.get(&loader_url).send().await.map_err(|e| {
+                    format!("Failed to fetch Fabric loader for {}: {e}", game_version)
+                })?;
             let loaders: Vec<FabricLoaderEntry> = resp
                 .json()
                 .await
@@ -337,10 +344,9 @@ pub async fn ensure_server_jar(
                 .await
                 .map_err(|e| format!("Failed to parse version package: {e}"))?;
 
-            let server_dl = pkg
-                .downloads
-                .and_then(|d| d.server)
-                .ok_or_else(|| format!("No server download provided for vanilla {}", game_version))?;
+            let server_dl = pkg.downloads.and_then(|d| d.server).ok_or_else(|| {
+                format!("No server download provided for vanilla {}", game_version)
+            })?;
 
             download_file_chunked(
                 client,
@@ -357,9 +363,12 @@ pub async fn ensure_server_jar(
             Ok("Pumpkin binary ready".to_string())
         }
         ServerCoreType::Bedrock => {
-            crate::server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_version).await?;
+            crate::server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_version)
+                .await?;
             Ok("Bedrock server binary ready".to_string())
         }
-        ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => unreachable!("handled above"),
+        ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
+            unreachable!("handled above")
+        }
     }
 }

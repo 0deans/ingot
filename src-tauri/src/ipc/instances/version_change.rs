@@ -1,7 +1,7 @@
-use super::{find_instance, get_http_client, get_process_manager, is_downgrade};
+use super::{find_instance, get_http_client, is_downgrade};
 use crate::ipc::ApiError;
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
-use crate::version_change::targets::{self as change_targets, loader_id, parse_loader};
+use crate::version_change::targets::{self as change_targets, loader_id};
 use crate::version_change::{self, PlanRequest, TargetKind, VersionBackup, VersionPlan};
 use tauri::Runtime;
 
@@ -70,10 +70,13 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         let instance = find_instance(&app_handle, &instance_id)?;
         if loader != ModLoaderType::Vanilla && loader_version.is_none() {
             let name = version_change::loader_label(&loader_id(&loader));
-            return Err(ApiError::invalid_input(format!("Pick a {name} version for Minecraft {game_version}")));
+            return Err(ApiError::invalid_input(format!(
+                "Pick a {name} version for Minecraft {game_version}"
+            )));
         }
         let downgrade = is_downgrade(&app_handle, &instance.game_version, &game_version).await?;
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
         let (from, to) = (loader_id(&instance.loader), loader_id(&loader));
         let target = change_targets::instance(&instance_dir, &from, &to);
         let request = PlanRequest {
@@ -98,48 +101,19 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         plan: VersionPlan,
         backup_worlds: bool,
     ) -> Result<InstanceConfig, ApiError> {
-        if get_process_manager(&app_handle).is_running(&plan.target_id).await {
-            return Err(ApiError::conflict("Close the game first"));
-        }
-        let instance = find_instance(&app_handle, &plan.target_id)?;
-        if plan.target_kind != TargetKind::Instance
-            || plan.from_game_version != instance.game_version
-            || plan.from_loader != loader_id(&instance.loader)
-        {
-            return Err(ApiError::conflict("The instance changed since it was checked. Check again."));
-        }
-        let mut updated = instance.clone();
-        updated.game_version = plan.to_game_version.clone();
-        updated.loader = parse_loader(&plan.to_loader).map_err(ApiError::from)?;
-        updated.loader_version = plan.to_loader_version.clone();
-
-        let instance_dir = instance::get_instance_dir(&app_handle, &plan.target_id).map_err(ApiError::from)?;
-        match version_change::detect_incomplete_transaction(&instance_dir) {
-            Ok(Some(incomplete)) => {
-                return Err(ApiError::incomplete_recovery(format!(
-                    "Cannot apply version change: an incomplete transaction ({:?}) is pending recovery. Please recover or revert it first.",
-                    incomplete.phase
-                )));
-            }
-            Err(err) => {
-                return Err(ApiError::incomplete_recovery(format!(
-                    "Cannot apply version change: {err}"
-                )));
-            }
-            Ok(None) => {}
-        }
-        let target = change_targets::instance(&instance_dir, &plan.from_loader, &plan.to_loader);
-        version_change::apply_with_commit(
-            get_http_client(&app_handle),
-            &target,
+        let directory =
+            instance::get_instance_dir(&app_handle, &plan.target_id).map_err(ApiError::from)?;
+        let state = crate::app::state(&app_handle);
+        version_change::service::apply_instance(
+            &state.instances,
+            &state.games,
+            &state.http,
+            &directory,
             &plan,
             backup_worlds,
-            |_| {},
-            || instance::update_instance(&app_handle, updated.clone()),
         )
         .await
-        .map_err(ApiError::from)?;
-        Ok(updated)
+        .map_err(ApiError::from)
     }
 
     async fn get_instance_version_backup(
@@ -147,7 +121,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<Option<VersionBackup>, ApiError> {
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
         Ok(version_change::last_backup(&instance_dir))
     }
 
@@ -156,29 +131,17 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, ApiError> {
-        if get_process_manager(&app_handle).is_running(&instance_id).await {
-            return Err(ApiError::conflict("Close the game first"));
-        }
-        let instance = find_instance(&app_handle, &instance_id)?;
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        let restored = version_change::undo_with_commit(
-            &instance_dir,
-            &instance.game_version,
-            &loader_id(&instance.loader),
-            |restored| {
-                let mut to_update = instance.clone();
-                to_update.game_version = restored.game_version.clone();
-                to_update.loader = parse_loader(&restored.loader)?;
-                to_update.loader_version = restored.loader_version.clone();
-                instance::update_instance(&app_handle, to_update)
-            },
+        let directory =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let state = crate::app::state(&app_handle);
+        version_change::service::restore_instance(
+            &state.instances,
+            &state.games,
+            &directory,
+            &instance_id,
+            version_change::service::Restoration::Undo,
         )
-        .map_err(ApiError::from)?;
-        let mut updated = instance.clone();
-        updated.game_version = restored.game_version;
-        updated.loader = parse_loader(&restored.loader).map_err(ApiError::from)?;
-        updated.loader_version = restored.loader_version;
-        Ok(updated)
+        .map_err(ApiError::from)
     }
 
     async fn discard_instance_version_backup(
@@ -186,8 +149,15 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<(), ApiError> {
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        version_change::discard_backup(&instance_dir).map_err(ApiError::from)
+        let state = crate::app::state(&app_handle);
+        let _ownership = state
+            .games
+            .reserve_maintenance(&instance_id)
+            .map_err(|_| ApiError::conflict("Instance is busy"))?;
+        find_instance(&app_handle, &instance_id)?;
+        let directory =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        version_change::discard_backup(&directory).map_err(ApiError::from)
     }
 
     async fn recover_instance_version_change(
@@ -195,27 +165,17 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, ApiError> {
-        if get_process_manager(&app_handle).is_running(&instance_id).await {
-            return Err(ApiError::conflict("Close the game first"));
-        }
-        let instance = find_instance(&app_handle, &instance_id)?;
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        let restored = version_change::recover_interrupted_transaction_with_commit(
-            &instance_dir,
-            |restored| {
-                let mut to_update = instance.clone();
-                to_update.game_version = restored.game_version.clone();
-                to_update.loader = parse_loader(&restored.loader)?;
-                to_update.loader_version = restored.loader_version.clone();
-                instance::update_instance(&app_handle, to_update)
-            },
+        let directory =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let state = crate::app::state(&app_handle);
+        version_change::service::restore_instance(
+            &state.instances,
+            &state.games,
+            &directory,
+            &instance_id,
+            version_change::service::Restoration::Recover,
         )
-        .map_err(ApiError::from)?;
-        let mut updated = instance.clone();
-        updated.game_version = restored.game_version;
-        updated.loader = parse_loader(&restored.loader).map_err(ApiError::from)?;
-        updated.loader_version = restored.loader_version;
-        Ok(updated)
+        .map_err(ApiError::from)
     }
 
     async fn get_instance_version_transaction_status(
@@ -223,7 +183,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<version_change::VersionTransactionStatus, ApiError> {
-        let instance_dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir =
+            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
         Ok(version_change::transaction_status(&instance_dir))
     }
 }

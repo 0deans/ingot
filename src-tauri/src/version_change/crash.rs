@@ -51,7 +51,9 @@ fn crash_report(root: &Path, since: SystemTime) -> Option<PathBuf> {
         .ok()?
         .flatten()
         .filter_map(|e| Some((e.metadata().ok()?.modified().ok()?, e.path())))
-        .filter(|(modified, path)| *modified >= since && path.extension().is_some_and(|x| x == "txt"))
+        .filter(|(modified, path)| {
+            *modified >= since && path.extension().is_some_and(|x| x == "txt")
+        })
         .max_by_key(|(modified, _)| *modified)
         .map(|(_, path)| path)
 }
@@ -60,7 +62,9 @@ fn crash_report(root: &Path, since: SystemTime) -> Option<PathBuf> {
 pub(crate) fn blamed(text: &str) -> Vec<String> {
     let mut found = Vec::new();
     let mut push = |s: &str| {
-        let s = s.trim().trim_matches(|c| c == '\'' || c == '"' || c == ',' || c == '.');
+        let s = s
+            .trim()
+            .trim_matches(|c| c == '\'' || c == '"' || c == ',' || c == '.');
         if !s.is_empty() && !found.iter().any(|f: &String| f.eq_ignore_ascii_case(s)) {
             found.push(s.to_string());
         }
@@ -98,7 +102,10 @@ pub(crate) fn blamed(text: &str) -> Vec<String> {
             in_suspects = false;
         }
         // Fabric: "Mod 'Name' (id) 1.0 requires ..." / "Incompatible mod set!"
-        if let Some(id) = trimmed.find("Mod '").and_then(|i| between(&trimmed[i..], "' (", ')')) {
+        if let Some(id) = trimmed
+            .find("Mod '")
+            .and_then(|i| between(&trimmed[i..], "' (", ')'))
+        {
             push(&id);
         }
         // Forge/NeoForge: "-- Mod loading issue for: id --", "Mod ID: 'id'", "Mod File: /path/x.jar"
@@ -131,23 +138,48 @@ pub(crate) fn blamed(text: &str) -> Vec<String> {
 /// Ids and names a jar declares (Fabric, Quilt, Forge, NeoForge, Bukkit)
 fn jar_names(path: &Path) -> Vec<String> {
     let mut names = Vec::new();
-    let Ok(file) = fs::File::open(path) else { return names };
-    let Ok(mut zip) = zip::ZipArchive::new(file) else { return names };
+    let Ok(file) = fs::File::open(path) else {
+        return names;
+    };
+    let Ok(mut zip) = zip::ZipArchive::new(file) else {
+        return names;
+    };
     let mut read = |name: &str| -> Option<String> {
         let mut text = String::new();
         zip.by_name(name).ok()?.read_to_string(&mut text).ok()?;
         Some(text)
     };
-    if let Some(json) = read("fabric.mod.json").and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok()) {
-        names.extend(["id", "name"].iter().filter_map(|k| json.get(k)?.as_str().map(str::to_string)));
+    if let Some(json) =
+        read("fabric.mod.json").and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok())
+    {
+        names.extend(
+            ["id", "name"]
+                .iter()
+                .filter_map(|k| json.get(k)?.as_str().map(str::to_string)),
+        );
     }
-    if let Some(json) = read("quilt.mod.json").and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok()) {
-        names.extend(json.pointer("/quilt_loader/id").and_then(|v| v.as_str()).map(str::to_string));
+    if let Some(json) =
+        read("quilt.mod.json").and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok())
+    {
+        names.extend(
+            json.pointer("/quilt_loader/id")
+                .and_then(|v| v.as_str())
+                .map(str::to_string),
+        );
     }
     for toml in ["META-INF/neoforge.mods.toml", "META-INF/mods.toml"] {
         if let Some(doc) = read(toml).and_then(|t| t.parse::<toml_edit::DocumentMut>().ok()) {
-            for table in doc.get("mods").and_then(|m| m.as_array_of_tables()).into_iter().flat_map(|a| a.iter()) {
-                names.extend(["modId", "displayName"].iter().filter_map(|k| table.get(k)?.as_str().map(str::to_string)));
+            for table in doc
+                .get("mods")
+                .and_then(|m| m.as_array_of_tables())
+                .into_iter()
+                .flat_map(|a| a.iter())
+            {
+                names.extend(
+                    ["modId", "displayName"]
+                        .iter()
+                        .filter_map(|k| table.get(k)?.as_str().map(str::to_string)),
+                );
             }
         }
     }
@@ -190,7 +222,9 @@ pub fn analyze(
     let blamed = blamed(&text);
     let mut suspects = Vec::new();
     for folder in folders {
-        let Ok(entries) = fs::read_dir(root.join(folder)) else { continue };
+        let Ok(entries) = fs::read_dir(root.join(folder)) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let file_name = entry.file_name().to_string_lossy().into_owned();
             if !file_name.to_ascii_lowercase().ends_with(".jar") {
@@ -198,10 +232,15 @@ pub fn analyze(
             }
             let names = jar_names(&entry.path());
             let hit = blamed.iter().any(|b| {
-                b.eq_ignore_ascii_case(&file_name) || names.iter().any(|n| n.eq_ignore_ascii_case(b))
+                b.eq_ignore_ascii_case(&file_name)
+                    || names.iter().any(|n| n.eq_ignore_ascii_case(b))
             });
             if hit {
-                let title = names.iter().rev().find(|n| n.contains(' ') || n.chars().any(char::is_uppercase)).or(names.first());
+                let title = names
+                    .iter()
+                    .rev()
+                    .find(|n| n.contains(' ') || n.chars().any(char::is_uppercase))
+                    .or(names.first());
                 suspects.push(CrashSuspect {
                     title: title.cloned().unwrap_or_else(|| file_name.clone()),
                     folder: folder.to_string(),
@@ -246,14 +285,19 @@ pub fn after_exit(
 pub fn disable(root: &Path, folder: &str, file_name: &str) -> Result<(), String> {
     let mut journal = read_journal(root).ok_or("There's no version change to add this to")?;
     safe_rel(folder)?;
-    let kind = if file_name.to_ascii_lowercase().ends_with(".jar") { ContentKind::Mod } else { ContentKind::ResourcePack };
+    let kind = if file_name.to_ascii_lowercase().ends_with(".jar") {
+        ContentKind::Mod
+    } else {
+        ContentKind::ResourcePack
+    };
     safe_file_name(file_name, kind)?;
     let rel = format!("{folder}/{file_name}");
     let disabled = root.join(format!("{rel}.disabled"));
     if disabled.exists() {
         return Err(format!("{file_name} is already turned off"));
     }
-    fs::rename(root.join(&rel), &disabled).map_err(|e| format!("Failed to turn off {file_name}: {e}"))?;
+    fs::rename(root.join(&rel), &disabled)
+        .map_err(|e| format!("Failed to turn off {file_name}: {e}"))?;
     journal.disabled.push(rel);
     write_journal(root, &journal)
 }

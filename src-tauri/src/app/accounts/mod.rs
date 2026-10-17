@@ -11,7 +11,7 @@ pub(crate) use profiles::{
     add_offline_account, get_accounts, remove_account, reorder_accounts, set_active_account,
 };
 pub(crate) use session::{
-    discard_pending_microsoft_login, ely_login, get_active_account_token,
+    discard_pending_microsoft_login, ely_login, get_account_token, get_active_account_token,
     get_pending_microsoft_login, microsoft_login_cancel, microsoft_login_finish,
     microsoft_login_start, resume_microsoft_login,
 };
@@ -20,3 +20,7 @@ pub(crate) use skins::{
     upload_ely_skin, upload_microsoft_skin,
 };
 pub(crate) use storage::load_accounts_file;
+
+pub(crate) use downloads::DownloadError;
+pub(crate) use profiles::ProfileError;
+pub(crate) use skins::SkinError;

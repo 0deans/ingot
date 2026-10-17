@@ -25,7 +25,10 @@ pub fn get_required_java_version(game_version: &str, meta_major_version: Option<
                     if minor >= 21 {
                         return 21;
                     } else if minor == 20 {
-                        let patch = parts.get(2).and_then(|p| p.parse::<u32>().ok()).unwrap_or(0);
+                        let patch = parts
+                            .get(2)
+                            .and_then(|p| p.parse::<u32>().ok())
+                            .unwrap_or(0);
                         if patch >= 5 {
                             return 21;
                         } else {
@@ -181,7 +184,9 @@ pub fn get_runtime_dir<R: Runtime>(
         .path()
         .app_data_dir()
         .map_err(|e| format!("Failed to get app data directory: {e}"))?;
-    let runtimes_dir = data_dir.join("runtimes").join(format!("java-{}", major_version));
+    let runtimes_dir = data_dir
+        .join("runtimes")
+        .join(format!("java-{}", major_version));
     if !runtimes_dir.exists() {
         fs::create_dir_all(&runtimes_dir)
             .map_err(|e| format!("Failed to create runtimes directory: {e}"))?;
@@ -189,13 +194,15 @@ pub fn get_runtime_dir<R: Runtime>(
     Ok(runtimes_dir)
 }
 
+pub type JavaProgressFn = Arc<dyn Fn(u64, u64, &str) + Send + Sync>;
+
 /// Ensures a compatible Java runtime exists, downloading it automatically from Adoptium if needed.
 pub async fn ensure_java_runtime<R: Runtime>(
     app: &tauri::AppHandle<R>,
     client: &reqwest::Client,
     major_version: u32,
     custom_path: Option<&str>,
-    progress: Option<Arc<dyn Fn(u64, u64, &str) + Send + Sync>>,
+    progress: Option<JavaProgressFn>,
 ) -> Result<PathBuf, String> {
     // 1. Check custom path if provided
     if let Some(custom) = custom_path {
@@ -223,7 +230,11 @@ pub async fn ensure_java_runtime<R: Runtime>(
 
     // 4. Not found: Automatically download from Eclipse Adoptium
     if let Some(ref cb) = progress {
-        cb(0, 100, &format!("Downloading Java {} runtime...", major_version));
+        cb(
+            0,
+            100,
+            &format!("Downloading Java {} runtime...", major_version),
+        );
     }
 
     #[cfg(target_os = "windows")]
@@ -272,28 +283,48 @@ pub async fn ensure_java_runtime<R: Runtime>(
 
     // Extract archive
     if let Some(ref cb) = progress {
-        cb(100, 100, &format!("Extracting Java {} runtime...", major_version));
+        cb(
+            100,
+            100,
+            &format!("Extracting Java {} runtime...", major_version),
+        );
     }
 
-    let zip_file = fs::File::open(&zip_dest)
-        .map_err(|e| format!("Failed to open downloaded java zip: {e}"))?;
-    let mut archive = zip::ZipArchive::new(zip_file)
-        .map_err(|e| format!("Failed to read java zip archive: {e}"))?;
-
-    archive
-        .extract(&runtime_dir)
-        .map_err(|e| format!("Failed to extract java archive: {e}"))?;
-
-    // Remove zip file to free disk space
-    let _ = fs::remove_file(zip_dest);
-
-    // Find the newly extracted java binary
-    if let Some(bin) = find_java_in_dir(&runtime_dir) {
-        Ok(bin)
-    } else {
-        Err(format!(
-            "Failed to find java binary in extracted directory: {}",
-            runtime_dir.display()
-        ))
+    let extraction_target = runtime_dir.clone();
+    let archive_path = zip_dest.clone();
+    let (staging, relative_binary) = tokio::task::spawn_blocking(move || {
+        let parent = extraction_target
+            .parent()
+            .ok_or_else(|| "Invalid Java runtime directory".to_string())?;
+        let staging = tempfile::tempdir_in(parent).map_err(|error| error.to_string())?;
+        let file = fs::File::open(archive_path).map_err(|error| error.to_string())?;
+        let mut archive = zip::ZipArchive::new(file).map_err(|error| error.to_string())?;
+        crate::app::extract_zip_entries(&mut archive, staging.path(), "", None)
+            .map_err(|error| error.to_string())?;
+        let binary = find_java_in_dir(staging.path())
+            .ok_or_else(|| "Downloaded archive contains no Java binary".to_string())?;
+        let relative = binary
+            .strip_prefix(staging.path())
+            .map_err(|error| error.to_string())?
+            .to_path_buf();
+        Ok::<_, String>((staging, relative))
+    })
+    .await
+    .map_err(|error| format!("Java extraction task failed: {error}"))??;
+    // An incomplete old runtime is retained rather than recursively deleted.
+    // Removing an empty directory is safe and preserves existing first-install behavior.
+    if runtime_dir.exists() {
+        fs::remove_dir(&runtime_dir).map_err(|error| {
+            format!(
+                "Incomplete Java runtime retained at {}: {error}",
+                runtime_dir.display()
+            )
+        })?;
     }
+    fs::rename(staging.path(), &runtime_dir)
+        .map_err(|error| format!("Failed to publish Java runtime: {error}"))?;
+    if let Err(error) = fs::remove_file(&zip_dest) {
+        eprintln!("Java runtime installed; cached archive cleanup failed: {error}");
+    }
+    Ok(runtime_dir.join(relative_binary))
 }

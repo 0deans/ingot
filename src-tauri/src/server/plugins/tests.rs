@@ -5,6 +5,155 @@ use super::service::{search, versions};
 use super::tracking::{read_tracking, write_tracking};
 use crate::server::config::ServerCoreType;
 
+struct ProviderFixture {
+    provider: super::providers::PluginProvider,
+    task: tokio::task::JoinHandle<()>,
+}
+
+impl Drop for ProviderFixture {
+    fn drop(&mut self) {
+        self.task.abort();
+    }
+}
+
+async fn provider_fixture(dependency_fails: bool, malformed: bool) -> ProviderFixture {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let endpoint = format!("http://{}", listener.local_addr().unwrap());
+    let provider = super::providers::PluginProvider::with_endpoints(
+        reqwest::Client::new(),
+        &endpoint,
+        &endpoint,
+    );
+    let task = tokio::spawn(async move {
+        loop {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buffer = [0; 8192];
+            let count = socket.read(&mut buffer).await.unwrap();
+            let request = String::from_utf8_lossy(&buffer[..count]);
+            let path = request
+                .split_whitespace()
+                .nth(1)
+                .unwrap()
+                .split('?')
+                .next()
+                .unwrap();
+            let (status, body) = if path == "/project/dependency" && dependency_fails {
+                (500, "failed".into())
+            } else if path.ends_with("/version") {
+                if malformed {
+                    (200, r#"{"unexpected":[]}"#.into())
+                } else {
+                    let id = path.split('/').nth(2).unwrap();
+                    let dependencies = if id == "root" {
+                        serde_json::json!([{"dependency_type":"required","project_id":"dependency"}])
+                    } else {
+                        serde_json::json!([])
+                    };
+                    (200,serde_json::json!([{"id":format!("{id}-v2"),"version_number":"2","version_type":"release","files":[{"filename":format!("{id}.jar"),"url":format!("{endpoint}/download/{id}"),"size":3}],"dependencies":dependencies}]).to_string())
+                }
+            } else if path.starts_with("/download/") {
+                (200, "new".into())
+            } else {
+                (
+                    200,
+                    serde_json::json!({"title":path.split('/').next_back().unwrap()}).to_string(),
+                )
+            };
+            let response=format!("HTTP/1.1 {status} Response\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",body.len());
+            socket.write_all(response.as_bytes()).await.unwrap();
+        }
+    });
+    ProviderFixture { provider, task }
+}
+
+#[tokio::test]
+async fn required_dependency_failure_preserves_entire_previous_installation() {
+    let root = tempfile::tempdir().unwrap();
+    let plugins = root.path().join("plugins");
+    std::fs::create_dir(&plugins).unwrap();
+    std::fs::write(plugins.join("root.jar"), b"old").unwrap();
+    let fixture = provider_fixture(true, false).await;
+    let result = super::service::install_with_provider(
+        root.path(),
+        &ServerCoreType::Paper,
+        "1.20.1",
+        PluginSource::Modrinth,
+        "root",
+        None,
+        &fixture.provider,
+    )
+    .await;
+    assert!(matches!(
+        result,
+        Err(super::models::PluginError::HttpStatus(_))
+    ));
+    assert_eq!(std::fs::read(plugins.join("root.jar")).unwrap(), b"old");
+    assert_eq!(std::fs::read_dir(&plugins).unwrap().count(), 1);
+    assert!(read_tracking(root.path()).unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn full_dependency_graph_publishes_files_and_tracking_together() {
+    let root = tempfile::tempdir().unwrap();
+    let fixture = provider_fixture(false, false).await;
+    let report = super::service::install_with_provider(
+        root.path(),
+        &ServerCoreType::Paper,
+        "1.20.1",
+        PluginSource::Modrinth,
+        "root",
+        None,
+        &fixture.provider,
+    )
+    .await
+    .unwrap();
+    assert_eq!(report.installed.len(), 2);
+    let tracking = read_tracking(root.path()).unwrap();
+    assert_eq!(tracking.len(), 2);
+    for file in ["root.jar", "dependency.jar"] {
+        assert_eq!(
+            std::fs::read(root.path().join("plugins").join(file)).unwrap(),
+            b"new"
+        );
+    }
+    assert_eq!(
+        std::fs::read_dir(root.path().join("plugins"))
+            .unwrap()
+            .count(),
+        2
+    );
+}
+
+#[tokio::test]
+async fn malformed_versions_are_an_error_instead_of_an_empty_success() {
+    let fixture = provider_fixture(false, true).await;
+    let result = super::service::versions_with_provider(
+        &ServerCoreType::Paper,
+        "1.20.1",
+        PluginSource::Modrinth,
+        "root",
+        true,
+        &fixture.provider,
+    )
+    .await;
+    assert!(matches!(
+        result,
+        Err(super::models::PluginError::InvalidPayload("versions"))
+    ));
+}
+
+#[test]
+fn tracking_rejects_escape_before_plugin_mutations() {
+    let root = tempfile::tempdir().unwrap();
+    let path = super::tracking::tracking_path(root.path());
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let raw=serde_json::json!([{"fileName":"../escape.jar","source":"modrinth","projectId":"root","versionId":"v1","versionNumber":"1","title":"Root","iconUrl":null}]).to_string();
+    std::fs::write(&path, &raw).unwrap();
+    assert!(read_tracking(root.path()).is_err());
+    assert_eq!(std::fs::read_to_string(path).unwrap(), raw);
+}
+
 #[test]
 fn jar_names_are_restricted() {
     assert!(safe_jar_name("EssentialsX-2.21.jar").is_ok());
@@ -121,7 +270,7 @@ fn test_tracking_persistence() {
     let tmp = tempfile::tempdir().unwrap();
     let dir = tmp.path();
 
-    assert!(read_tracking(dir).is_empty());
+    assert!(read_tracking(dir).unwrap().is_empty());
 
     let tracked = vec![TrackedPlugin {
         file_name: "WorldEdit.jar".to_string(),
@@ -132,9 +281,9 @@ fn test_tracking_persistence() {
         title: "WorldEdit".to_string(),
         icon_url: Some("https://example.com/icon.png".to_string()),
     }];
-    write_tracking(dir, &tracked);
+    write_tracking(dir, &tracked).unwrap();
 
-    let read_back = read_tracking(dir);
+    let read_back = read_tracking(dir).unwrap();
     assert_eq!(read_back.len(), 1);
     assert_eq!(read_back[0].file_name, "WorldEdit.jar");
     assert_eq!(read_back[0].title, "WorldEdit");
@@ -167,9 +316,10 @@ fn tracking_safe_replacement_and_persistence() {
         title: "Plugin B".to_string(),
         icon_url: None,
     });
-    super::tracking::write_tracking_typed(dir, &updated).expect("safe replacement write should succeed");
+    super::tracking::write_tracking_typed(dir, &updated)
+        .expect("safe replacement write should succeed");
 
-    let read_back = read_tracking(dir);
+    let read_back = read_tracking(dir).unwrap();
     assert_eq!(read_back.len(), 2);
     assert_eq!(read_back[0].title, "Plugin A");
     assert_eq!(read_back[1].title, "Plugin B");
@@ -192,19 +342,29 @@ fn test_publish_installed_plugin_tracking_failure_restores_backup() {
         &staging_file,
         &target_dest,
         "ViaVersion",
-        || Err(super::models::PluginError::Other("disk full".into())),
+        || {
+            Err(super::models::PluginError::Io(std::io::Error::other(
+                "disk full",
+            )))
+        },
         &[],
     );
 
     // Verify it returns PublicationFailed
     assert!(res.is_err());
     let err = res.unwrap_err();
-    assert!(matches!(err, super::models::PluginError::PublicationFailed { .. }));
+    assert!(matches!(
+        err,
+        super::models::PluginError::PublicationFailed { .. }
+    ));
     assert!(err.to_string().contains("Previous version was restored"));
 
     // Verify that target_dest has been safely restored with version 1 contents
     assert!(target_dest.exists());
-    assert_eq!(std::fs::read_to_string(&target_dest).unwrap(), "version 1 contents");
+    assert_eq!(
+        std::fs::read_to_string(&target_dest).unwrap(),
+        "version 1 contents"
+    );
 }
 
 #[test]
@@ -219,7 +379,9 @@ fn test_publish_installed_plugin_rollback_failure_retains_and_reports_backup() {
     let staging_file = plugins_dir.join(".staging.jar");
     std::fs::write(&staging_file, "version 2 new contents").unwrap();
 
-    let lock_holder = std::sync::Arc::new(std::sync::Mutex::new(None));
+    #[cfg(target_os = "windows")]
+    let lock_holder = std::sync::Arc::new(std::sync::Mutex::new(None::<std::fs::File>));
+    #[cfg(target_os = "windows")]
     let lock_clone = lock_holder.clone();
 
     // Call production publication function where commit_tracking fails AND locks target_dest
@@ -241,13 +403,18 @@ fn test_publish_installed_plugin_rollback_failure_retains_and_reports_backup() {
                     .unwrap();
                 *lock_clone.lock().unwrap() = Some(locked);
                 // Deliberately fail tracking
-                Err(super::models::PluginError::Other("tracking disk full".into()))
+                Err(super::models::PluginError::Io(std::io::Error::other(
+                    "tracking disk full",
+                )))
             }
             #[cfg(not(target_os = "windows"))]
             {
                 use std::os::unix::fs::PermissionsExt;
-                let _ = std::fs::set_permissions(&plugins_dir, std::fs::Permissions::from_mode(0o555));
-                Err(super::models::PluginError::Other("tracking disk full".into()))
+                let _ =
+                    std::fs::set_permissions(&plugins_dir, std::fs::Permissions::from_mode(0o555));
+                Err(super::models::PluginError::Io(std::io::Error::other(
+                    "tracking disk full",
+                )))
             }
         },
         &[],
@@ -265,7 +432,10 @@ fn test_publish_installed_plugin_rollback_failure_retains_and_reports_backup() {
     assert!(res.is_err());
     let err = res.unwrap_err();
     // Must report PublicationRollbackFailed, identify failed rollback, and report retained backup
-    assert!(matches!(err, super::models::PluginError::PublicationRollbackFailed { .. }));
+    assert!(matches!(
+        err,
+        super::models::PluginError::PublicationRollbackFailed { .. }
+    ));
     let err_msg = err.to_string();
     assert!(err_msg.contains("Rollback failed"));
     assert!(err_msg.contains("Previous version is retained at"));
@@ -274,9 +444,17 @@ fn test_publish_installed_plugin_rollback_failure_retains_and_reports_backup() {
     let backups: Vec<_> = std::fs::read_dir(&plugins_dir)
         .unwrap()
         .flatten()
-        .filter(|e| e.file_name().to_string_lossy().starts_with(".ViaVersion.jar.backup"))
+        .filter(|e| {
+            e.file_name()
+                .to_string_lossy()
+                .starts_with(".plugin.backup.")
+        })
         .collect();
-    assert_eq!(backups.len(), 1, "Backup must be retained when rollback fails");
+    assert_eq!(
+        backups.len(),
+        1,
+        "Backup must be retained when rollback fails"
+    );
     assert_eq!(
         std::fs::read_to_string(backups[0].path()).unwrap(),
         "version 1 contents"

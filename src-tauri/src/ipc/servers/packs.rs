@@ -62,7 +62,8 @@ impl ServerPacksApi for ServerPacksApiImpl {
         enabled: bool,
     ) -> Result<(), ApiError> {
         let dir = server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        server::bedrock_packs::set_pack_enabled(&dir, &pack_id, &pack_type, enabled).map_err(ApiError::from)
+        server::bedrock_packs::set_pack_enabled(&dir, &pack_id, &pack_type, enabled)
+            .map_err(ApiError::from)
     }
 
     async fn install_bedrock_pack(
@@ -95,23 +96,12 @@ impl ServerPacksApi for ServerPacksApiImpl {
         server_id: String,
         subfolder: String,
     ) -> Result<(), ApiError> {
-        let dir = server::get_server_dir(&app_handle, &server_id)
-            .map_err(ApiError::from)?
-            .join(&subfolder);
-        let _ = std::fs::create_dir_all(&dir);
-        let path_str = dir.to_string_lossy().to_string();
-        #[cfg(target_os = "windows")]
-        {
-            let _ = std::process::Command::new("explorer").arg(&path_str).spawn();
-        }
-        #[cfg(target_os = "macos")]
-        {
-            let _ = std::process::Command::new("open").arg(&path_str).spawn();
-        }
-        #[cfg(target_os = "linux")]
-        {
-            let _ = std::process::Command::new("xdg-open").arg(&path_str).spawn();
-        }
-        Ok(())
+        let server_directory =
+            server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
+        let directory = crate::app::safe_enclosed_path(&server_directory, &subfolder)
+            .ok_or_else(|| ApiError::invalid_input("Invalid server subfolder"))?;
+        std::fs::create_dir_all(&directory)
+            .map_err(|error| ApiError::storage_failure(error.to_string()))?;
+        crate::app::platform::open_directory(&directory).map_err(ApiError::from_display)
     }
 }

@@ -1,18 +1,31 @@
-use crate::app::accounts as account;
 use crate::minecraft::downloader::{
     download_file_chunked, download_files_concurrent, is_download_task_cached, DownloadTask,
 };
 use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-use crate::minecraft::java::ensure_java_runtime;
 use crate::minecraft::loader::{resolve_loader_profile, LoaderProfile};
 use crate::minecraft::version::{
-    fetch_asset_index, fetch_version_package, maven_to_path, should_include_library, LibraryEntry,
-    VersionPackage,
+    fetch_asset_index, fetch_version_package, should_include_library, LibraryEntry, VersionPackage,
 };
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tauri::{AppHandle, Runtime};
+
+pub type PreparationFuture<'a, T> = std::pin::Pin<
+    Box<dyn std::future::Future<Output = Result<T, super::models::LaunchError>> + Send + 'a>,
+>;
+
+pub trait PreparationEffects: Sync {
+    fn ensure_java<'a>(
+        &'a self,
+        client: &'a reqwest::Client,
+        major_version: u32,
+        custom_path: Option<&'a str>,
+        progress: Option<crate::minecraft::java::JavaProgressFn>,
+    ) -> PreparationFuture<'a, PathBuf>;
+    fn resolve_auth(&self) -> PreparationFuture<'_, ResolvedAuth>;
+}
+
+pub use super::authlib::setup_ely_authlib_agent;
 
 pub struct ResolvedAuth {
     pub player_name: String,
@@ -34,22 +47,24 @@ pub struct LaunchPreparation {
 
 use super::progress::ProgressCallback;
 
-pub async fn prepare_launch_environment<R: Runtime>(
-    app: &AppHandle<R>,
+pub async fn prepare_launch_environment(
+    effects: &impl PreparationEffects,
     client: &reqwest::Client,
     instance: &InstanceConfig,
     cache_dir: &Path,
     assets_dir: &Path,
     libraries_dir: &Path,
     report_prog: ProgressCallback,
-) -> Result<LaunchPreparation, String> {
-    fs::create_dir_all(cache_dir).map_err(|e| e.to_string())?;
-    fs::create_dir_all(assets_dir).map_err(|e| e.to_string())?;
-    fs::create_dir_all(libraries_dir).map_err(|e| e.to_string())?;
+) -> Result<LaunchPreparation, super::models::LaunchError> {
+    fs::create_dir_all(cache_dir)?;
+    fs::create_dir_all(assets_dir)?;
+    fs::create_dir_all(libraries_dir)?;
 
     // Step 1: Version Package
     report_prog("Resolving Version", 1, 10, "Fetching version metadata...");
-    let version_pkg = fetch_version_package(client, cache_dir, &instance.game_version).await?;
+    let version_pkg = fetch_version_package(client, cache_dir, &instance.game_version)
+        .await
+        .map_err(super::models::LaunchError::VersionPackage)?;
 
     // Step 2: Loader Profile (if modded)
     let loader_profile: Option<LoaderProfile> = match instance.loader {
@@ -58,7 +73,7 @@ pub async fn prepare_launch_environment<R: Runtime>(
             let loader_ver = instance
                 .loader_version
                 .as_deref()
-                .ok_or_else(|| "Loader version not selected".to_string())?;
+                .ok_or(super::models::LaunchError::LoaderVersionNotSelected)?;
             report_prog(
                 "Resolving Mod Loader",
                 2,
@@ -72,7 +87,8 @@ pub async fn prepare_launch_environment<R: Runtime>(
                 &instance.game_version,
                 loader_ver,
             )
-            .await?;
+            .await
+            .map_err(super::models::LaunchError::LoaderProfile)?;
             Some(profile)
         }
     };
@@ -100,14 +116,14 @@ pub async fn prepare_launch_environment<R: Runtime>(
         })
     };
 
-    let java_bin = ensure_java_runtime(
-        app,
-        client,
-        required_java,
-        instance.java_path.as_deref(),
-        Some(java_prog),
-    )
-    .await?;
+    let java_bin = effects
+        .ensure_java(
+            client,
+            required_java,
+            instance.java_path.as_deref(),
+            Some(java_prog),
+        )
+        .await?;
 
     // Step 4: Client Jar
     let client_jar_dest = cache_dir
@@ -153,7 +169,8 @@ pub async fn prepare_launch_environment<R: Runtime>(
                     client_artifact.sha1.as_deref(),
                     Some(dl_cb),
                 )
-                .await?;
+                .await
+                .map_err(super::models::LaunchError::Download)?;
             }
         }
     }
@@ -176,13 +193,12 @@ pub async fn prepare_launch_environment<R: Runtime>(
     for lib in &all_libraries {
         if let Some(downloads) = &lib.downloads {
             if let Some(artifact) = &downloads.artifact {
-                let rel_path = artifact
-                    .path
-                    .clone()
-                    .or_else(|| maven_to_path(&lib.name, None));
-
-                if let Some(path) = rel_path {
-                    let dest = libraries_dir.join(&path);
+                if let Some(dest) = super::classpath::resolve_library_path(
+                    &lib.name,
+                    artifact.path.as_deref(),
+                    None,
+                    libraries_dir,
+                ) {
                     classpath_entries.push(dest.clone());
                     library_tasks.push(DownloadTask {
                         url: artifact.url.clone(),
@@ -192,7 +208,7 @@ pub async fn prepare_launch_environment<R: Runtime>(
                     });
                 }
             }
-        } else if let Some(path) = maven_to_path(&lib.name, None) {
+        } else if let Some(path) = super::classpath::maven_coordinate_to_path(&lib.name, None) {
             let base_url = lib
                 .url
                 .as_deref()
@@ -234,16 +250,26 @@ pub async fn prepare_launch_environment<R: Runtime>(
                 );
             })
         };
-        download_files_concurrent(client, missing_libs, 16, Some(lib_cb)).await?;
+        download_files_concurrent(client, missing_libs, 16, Some(lib_cb))
+            .await
+            .map_err(super::models::LaunchError::Download)?;
     }
 
     // Step 6: Assets
     if let Some(asset_ref) = &version_pkg.asset_index {
-        let asset_index = fetch_asset_index(client, assets_dir, asset_ref).await?;
+        let asset_index = fetch_asset_index(client, assets_dir, asset_ref)
+            .await
+            .map_err(super::models::LaunchError::Download)?;
 
         let mut asset_tasks = Vec::new();
         for (_, obj) in asset_index.objects {
-            let prefix = &obj.hash[..2];
+            let prefix = obj
+                .hash
+                .get(..2)
+                .filter(|_| {
+                    obj.hash.len() == 40 && obj.hash.bytes().all(|byte| byte.is_ascii_hexdigit())
+                })
+                .ok_or_else(|| super::models::LaunchError::Download("Invalid asset hash".into()))?;
             let dest = assets_dir.join("objects").join(prefix).join(&obj.hash);
             let url = format!(
                 "https://resources.download.minecraft.net/{}/{}",
@@ -281,56 +307,16 @@ pub async fn prepare_launch_environment<R: Runtime>(
                     );
                 })
             };
-            download_files_concurrent(client, missing_assets, 24, Some(asset_cb)).await?;
+            download_files_concurrent(client, missing_assets, 24, Some(asset_cb))
+                .await
+                .map_err(super::models::LaunchError::Download)?;
         }
     }
 
     report_prog("Verifying Files", 7, 10, "All game files verified");
 
     // Step 7: Resolve active account and auth
-    let accounts = account::load_accounts_file(app)?;
-    let active_account = accounts.into_iter().find(|a| a.is_active);
-
-    let auth = match active_account {
-        Some(acc) => {
-            let is_ely = acc.account_type == "ely";
-            let is_microsoft = acc.account_type == "microsoft";
-            let token = if is_microsoft {
-                account::get_active_account_token(app.clone())
-                    .await
-                    .map_err(|e| e.to_string())?
-            } else if is_ely {
-                account::get_active_account_token(app.clone())
-                    .await
-                    .map_err(|e| e.to_string())
-                    .unwrap_or_else(|_| "0".to_string())
-            } else {
-                "0".to_string()
-            };
-            let user_type = if is_microsoft { "msa" } else { "mojang" };
-            let xuid = if is_microsoft {
-                crate::auth::microsoft::xuid_from_token(&token)
-            } else {
-                None
-            };
-            ResolvedAuth {
-                player_name: acc.username,
-                uuid_str: acc.uuid,
-                access_token: token,
-                user_type,
-                xuid,
-                is_ely,
-            }
-        }
-        None => ResolvedAuth {
-            player_name: "Player".to_string(),
-            uuid_str: uuid::Uuid::new_v4().to_string(),
-            access_token: "0".to_string(),
-            user_type: "mojang",
-            xuid: None,
-            is_ely: false,
-        },
-    };
+    let auth = effects.resolve_auth().await?;
 
     Ok(LaunchPreparation {
         version_pkg,
@@ -342,40 +328,5 @@ pub async fn prepare_launch_environment<R: Runtime>(
     })
 }
 
-pub async fn setup_ely_authlib_agent(
-    client: &reqwest::Client,
-    cache_dir: &Path,
-    report_prog: &ProgressCallback,
-) -> PathBuf {
-    let authlib_path = cache_dir.join("authlib-injector.jar");
-    if !authlib_path.exists() {
-        report_prog(
-            "Auth Setup",
-            7,
-            10,
-            "Setting up Ely.by skin & authentication agent...",
-        );
-        let mut dl_url =
-            "https://authlib-injector.yushi.moe/artifact/56/authlib-injector-1.2.8.jar".to_string();
-        if let Ok(resp) = client
-            .get("https://authlib-injector.yushi.moe/artifact/latest.json")
-            .send()
-            .await
-        {
-            if let Ok(json) = resp.json::<serde_json::Value>().await {
-                if let Some(u) = json.get("download_url").and_then(|v| v.as_str()) {
-                    dl_url = u.to_string();
-                }
-            }
-        }
-
-        if let Err(e) = download_file_chunked(client, &dl_url, &authlib_path, None, None).await {
-            eprintln!(
-                "[Launcher] Primary authlib-injector download failed ({e}), trying GitHub releases mirror..."
-            );
-            let github_url = "https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.8/authlib-injector-1.2.8.jar";
-            let _ = download_file_chunked(client, github_url, &authlib_path, None, None).await;
-        }
-    }
-    authlib_path
-}
+#[cfg(test)]
+mod tests;

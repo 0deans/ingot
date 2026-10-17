@@ -284,8 +284,21 @@ fn test_sync_failed_backup_prevents_overwrite() {
     let shared_options = shared.join("options.txt");
     let instance_options = instance.join("options.txt");
     fs::write(&instance_options, "original_instance_content").unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(50));
     fs::write(&shared_options, "new_shared_content").unwrap();
+    let older = UNIX_EPOCH + Duration::from_secs(100);
+    let newer = UNIX_EPOCH + Duration::from_secs(200);
+    fs::File::options()
+        .write(true)
+        .open(&instance_options)
+        .unwrap()
+        .set_modified(older)
+        .unwrap();
+    fs::File::options()
+        .write(true)
+        .open(&shared_options)
+        .unwrap()
+        .set_modified(newer)
+        .unwrap();
 
     // Make instance options.txt.bak a directory so backup fails
     let instance_bak = instance.join("options.txt.bak");
@@ -313,7 +326,10 @@ fn test_sync_failed_backup_prevents_overwrite() {
         creative_hotbars: false,
     };
     let exit_res = execute_sync_after_exit(&shared, &instance, &eff);
-    assert!(exit_res.is_err(), "Expected post-exit sync to fail because shared backup failed");
+    assert!(
+        exit_res.is_err(),
+        "Expected post-exit sync to fail because shared backup failed"
+    );
 
     // Shared content must NOT have been overwritten
     assert_eq!(
@@ -389,7 +405,7 @@ fn test_inspect_shared_status() {
     let temp = TempDir::new().unwrap();
     let shared = temp.path();
 
-    let initial = inspect_shared_status(shared);
+    let initial = inspect_shared_status(shared).unwrap();
     assert!(!initial.has_options);
     assert!(!initial.has_servers);
     assert!(!initial.has_command_history);
@@ -403,7 +419,7 @@ fn test_inspect_shared_status() {
     fs::write(packs.join("pack1.zip"), "zip").unwrap();
     fs::write(packs.join("pack2.zip"), "zip").unwrap();
 
-    let updated = inspect_shared_status(shared);
+    let updated = inspect_shared_status(shared).unwrap();
     assert!(updated.has_options);
     assert!(!updated.has_servers);
     assert_eq!(updated.resource_packs_count, 2);
@@ -453,7 +469,10 @@ fn test_sync_resourcepacks_dir_propagates_copy_failure() {
     fs::write(src.join("pack1.zip"), "meta").unwrap();
 
     let res = sync_resourcepacks_dir(&src, &dst);
-    assert!(res.is_err(), "sync_resourcepacks_dir must propagate copy failures when destination cannot be written");
+    assert!(
+        res.is_err(),
+        "sync_resourcepacks_dir must propagate copy failures when destination cannot be written"
+    );
 }
 
 #[test]
@@ -473,5 +492,65 @@ fn test_sync_service_resourcepacks_propagates_error() {
     fs::write(&inst_packs, "blocking file").unwrap();
 
     let res = import_shared_files_to_instance(&shared, &inst);
-    assert!(res.is_err(), "import_shared_files_to_instance must fail when resourcepack sync fails");
+    assert!(
+        res.is_err(),
+        "import_shared_files_to_instance must fail when resourcepack sync fails"
+    );
+}
+
+#[test]
+fn shared_directory_creation_failure_is_not_success() {
+    let temp = TempDir::new().unwrap();
+    fs::write(temp.path().join("resourcepacks"), b"blocking file").unwrap();
+    assert!(super::execute::ensure_shared_directories(temp.path()).is_err());
+}
+
+#[test]
+fn invalid_shared_metadata_is_not_an_empty_status() {
+    let temp = TempDir::new().unwrap();
+    fs::create_dir(temp.path().join("options.txt")).unwrap();
+    assert!(inspect_shared_status(temp.path()).is_err());
+}
+
+#[test]
+fn resource_pack_source_file_is_not_treated_as_missing() {
+    let temp = TempDir::new().unwrap();
+    let source = temp.path().join("instance");
+    let shared = temp.path().join("shared");
+    fs::create_dir_all(&source).unwrap();
+    fs::create_dir_all(&shared).unwrap();
+    fs::write(source.join("resourcepacks"), b"not a directory").unwrap();
+    let result = export_instance_category_files(&shared, &source, SyncCategory::ResourcePacks);
+    assert!(matches!(result, Err(super::models::SyncError::Io(_))));
+    assert!(!shared.join("resourcepacks/pack.zip").exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn linked_sync_file_is_rejected_without_changing_its_target() {
+    let temp = TempDir::new().unwrap();
+    let outside = temp.path().join("outside.txt");
+    let shared = temp.path().join("shared.txt");
+    let instance = temp.path().join("instance.txt");
+    fs::write(&outside, b"original").unwrap();
+    fs::write(&shared, b"replacement").unwrap();
+    std::os::unix::fs::symlink(&outside, &instance).unwrap();
+    assert!(sync_file_bidirectional(&shared, &instance).is_err());
+    assert_eq!(fs::read(outside).unwrap(), b"original");
+}
+
+#[cfg(unix)]
+#[test]
+fn failed_pack_copy_never_publishes_partial_directory() {
+    let temp = TempDir::new().unwrap();
+    let source = temp.path().join("source");
+    let target = temp.path().join("target");
+    fs::create_dir_all(source.join("pack")).unwrap();
+    fs::create_dir_all(&target).unwrap();
+    fs::write(source.join("pack/valid.txt"), b"valid").unwrap();
+    std::os::unix::fs::symlink("valid.txt", source.join("pack/link.txt")).unwrap();
+    assert!(sync_resourcepacks_dir(&source, &target).is_err());
+    assert!(!target.join("pack").exists());
+    assert_eq!(fs::read_dir(target).unwrap().count(), 0);
+    assert_eq!(fs::read(source.join("pack/valid.txt")).unwrap(), b"valid");
 }

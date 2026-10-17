@@ -70,7 +70,8 @@ impl PendingQueryGuard {
 impl Drop for PendingQueryGuard {
     fn drop(&mut self) {
         if !self.disarmed {
-            self.pending.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+            self.pending
+                .fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
         }
     }
 }

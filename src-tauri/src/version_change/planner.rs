@@ -81,29 +81,34 @@ pub async fn check_typed(
             Some(found.clone())
         } else if let Some(found) = file.fingerprint.and_then(|p| on_curseforge.get(&p)) {
             Some(found.clone())
-        } else if let Some((project, version, title, icon)) = target.hangar.get(&file.file_name) {
+        } else if let Some(tracked) = target.hangar.get(&file.file_name) {
             hangar_info.insert(
-                project.clone(),
+                tracked.project_id.clone(),
                 ProjectInfo {
-                    title: title.clone(),
-                    icon_url: icon.clone(),
-                    page_url: Some(format!("https://hangar.papermc.io/search?query={project}")),
+                    title: tracked.title.clone(),
+                    icon_url: tracked.icon_url.clone(),
+                    page_url: Some(format!(
+                        "https://hangar.papermc.io/search?query={}",
+                        tracked.project_id
+                    )),
                 },
             );
-            let versions = sources::hangar_versions(client, project, game).await;
+            let versions = sources::hangar_versions(client, &tracked.project_id, game).await;
             let now = Release {
                 source: Source::Hangar,
-                project: project.clone(),
-                version_id: version.clone(),
-                version_number: version.clone(),
+                project: tracked.project_id.clone(),
+                version_id: tracked.version_id.clone(),
+                version_number: tracked.version_id.clone(),
                 channel: sources::Channel::Release,
                 file: None,
                 deps: Vec::new(),
             };
-            Some(match versions.iter().find(|v| &v.version_id == version) {
-                Some(listed) => (listed.clone(), true),
-                None => (now, false),
-            })
+            Some(
+                match versions.iter().find(|v| v.version_id == tracked.version_id) {
+                    Some(listed) => (listed.clone(), true),
+                    None => (now, false),
+                },
+            )
         } else {
             None
         };
