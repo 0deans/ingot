@@ -204,6 +204,8 @@ impl ServersApi for ServersApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<u32, ApiError> {
+        use tauri::Manager;
+
         let servers = server::load_servers(&app_handle)?;
         let config = servers
             .into_iter()
@@ -213,9 +215,25 @@ impl ServersApi for ServersApiImpl {
         let (dir, _) = server_with_config(&app_handle, &server_id)?;
         validate_pre_launch(&app_handle, &config, &dir).await?;
 
+        let data_dir = app_handle
+            .path()
+            .app_data_dir()
+            .map_err(|e| ApiError::storage_failure(e.to_string()))?;
+
         let pm = get_server_process_manager(&app_handle).clone();
         let client = get_http_client(&app_handle).clone();
-        let app = app_handle.clone();
+
+        let claimed = crate::server::process::claim_server_launch(
+            &crate::app::state(&app_handle).server_configs,
+            &pm,
+            &server_id,
+        )
+        .await
+        .map_err(ApiError::from)?;
+
+        let hooks = std::sync::Arc::new(crate::app::TauriServerLifecycleHooks::new(
+            app_handle.clone(),
+        ));
 
         let app_log = app_handle.clone();
         let on_log = move |ev: server::ServerLogEvent| {
@@ -235,7 +253,23 @@ impl ServersApi for ServersApiImpl {
 
         let has_tps = core_has_tps(&config);
         let pid = get_server_supervisor_manager(&app_handle)
-            .supervise_and_start(app, pm, client, config, on_log, on_status)
+            .supervise_and_start(
+                crate::server::process::ServerLaunchContext {
+                    repository: crate::app::state(&app_handle).server_configs.clone(),
+                    server_dir: dir,
+                    data_dir,
+                    processes: pm,
+                    client,
+                    hooks,
+                    command_builder: std::sync::Arc::new(
+                        crate::app::server_lifecycle::DefaultServerCommandBuilder,
+                    ),
+                    on_log: std::sync::Arc::new(on_log),
+                    on_status: std::sync::Arc::new(on_status),
+                    publication: Default::default(),
+                },
+                claimed,
+            )
             .await
             .map_err(ApiError::from)?;
         server::stats::ensure_sampler(

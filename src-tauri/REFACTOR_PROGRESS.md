@@ -1295,3 +1295,37 @@ Still open / next slices:
 3. Continue separating remaining native server lifecycle/supervision/platform effects from feature orchestration. Compatibility reexports do not by themselves establish a fully independent service boundary.
 4. Complete durable restart discovery/acknowledgement for remaining directory publication and plugin multi-resource workflows. Do not extrapolate the deletion receipt protocol into a claim that all workflows recover automatically.
 5. Obtain Linux/macOS CI execution evidence and actual runtime smoke results where needed. This host verifies Windows and Android compilation only. Measured aggregate coverage is improved but does not meet the proposed 80% feature / 90% pure-rule completion targets.
+
+---
+
+**Corrective implementation of the five agent assignments — 2026-10-18**
+
+Scope: fix the recovery, lifecycle, error-propagation and verification defects identified in the independent review of the five assignments. Existing staged changes were preserved. This is not a claim that every backend workflow is globally transactional or that the whole refactor roadmap is complete.
+
+Implemented:
+
+- Plugin publication uses a version-2 intent and an explicit durable commit marker. Equal before/after tracking is no longer treated as proof of commit. Prepared recovery preserves untouched originals, restores through synced temporary copies, and remains repeatable after interrupted restoration or acknowledgement. Backup cleanup remains discoverable until acknowledgement. Recovery validates operation-specific JAR paths, UUID staging/backup names, tracking contents, overlapping paths and links before destructive effects. Reads, recovery, tracking changes, installation, removal and enablement share the same per-server gate; corrupt tracking and required recovery failures propagate. Old ambiguous version-1 intents are preserved and blocked for inspection; ordinary plugins.json contents remain unchanged.
+- Directory publication records its intent before moving staging, requires an explicit identity policy, and retains material on unreadable metadata or ambiguous postcommit errors. Importer fixtures now exercise the configured production protocol. Missing former staging paths are legitimate after ownership transfers into recovery; other cleanup failures still preserve their primary error.
+- Playit process creation and registration share generation ownership. Stop and replacement preserve failed-cleanup handles for retry; termination deadlines cover kill and reap together. Readers and monitoring tasks have cleanup ownership. Credential changes are serialized with generation transitions, and rejection of a one-time provided credential cannot delete a different saved credential. Controlled tests replace arbitrary timing sleeps.
+- Java probing has a bounded execution lifecycle, bounded retained output while draining both pipes, and a worker that retains process cleanup ownership after caller cancellation. Native cleanup awaits actual reaping and has its own deadline; primary and cleanup failures remain distinguishable. Filesystem discovery stays behind blocking boundaries. The blocking channel inside the async cancellation fixture was replaced with an async notification/pending future.
+- Server termination preserves the exit monitor as the reaping/registry-cleanup owner. Publication cannot be split between spawn and registry insertion by cancellation. Start and supervisor generation gates prevent late publication after stop/release. Wake reloads current configuration while retaining the proxy generation's established backend binding. Access-file repair and environment updates remain serialized by the metadata repository. Native command construction moved into the application adapter. Proxy release awaits listener shutdown. Application stop-all cancels pending starts and temporarily closes admission using a reference-counted RAII guard, including concurrent stop-all calls.
+- Installer execution now has a fifteen-minute deadline, bounded concurrently drained output, child cancellation ownership and bounded termination. Required artifact cleanup retains primary and cleanup failures. Tests exercise actual preparation/spawn failures rather than manually constructing error variants. Version-change scans propagate required inspection/read failures; journal writes preserve I/O/encoding causes, and backup-size errors are not converted into zero or apparent absence.
+- Default lifecycle/probe/installer tests use fake effects or the current Rust test executable as a hermetic child. The three ignored child fixtures are invoked explicitly by their parent tests; they are not additional unverified smoke scenarios. No generated bindings, dependency pins or persisted instance/server configuration shapes were changed.
+
+Limits retained:
+
+- Unix publication ordering includes directory flushes. No universal Windows directory-fsync or whole-filesystem power-loss guarantee is claimed.
+- Old ambiguous recovery intents are blocked rather than guessed away. Recovery material must remain available for inspection.
+- Native running-process bookkeeping hooks and OS process-tree termination retain their existing reporting boundaries. Some legacy transaction error variants still contain contextual strings; removal of every string-bearing error is not claimed.
+- Linux/macOS CI execution and real game/server/provider smoke checks remain unverified on this Windows host. Roadmap coverage targets require further work beyond a passing aggregate ratchet.
+
+Verification of the final combined tree:
+
+- `cargo test --all-targets --locked --offline --quiet`: **632 passed, 0 failed, 16 ignored**; generated-binding freshness and procedure inventory passed in this suite. All default tests completed in under five seconds after compilation, including the formerly deadlocked cancellation case.
+- `cargo fmt --all -- --check` and `cargo clippy --all-targets --locked --offline -- -D warnings`: passed; no warnings or lint suppressions added to obtain a green gate.
+- `pnpm exec tsc --noEmit -p .`, `pnpm exec biome ci` (183 files), and `pnpm test:ipc` (14 tests): passed.
+- Android `cargo check --target aarch64-linux-android --locked --offline` with the local NDK: passed without warnings. Windows native vault round trip: passed separately through its exact ignored smoke test.
+- A fresh profraw-only-cleaned cargo-llvm-cov all-target run passed all default tests. Windows source-file aggregation: **15,325 / 27,564 lines = 55.60%**, across 238 emitted maintained-source files. The inventory includes all eleven newly emitted source modules; none of the previous 227 sources were removed or excluded. Raised the no-regression minimum from 51.79% to **55.59%**; the coverage ratchet passes. The existing standalone-test exclusions and inclusion of inline test counters remain unchanged.
+- No staging, unstaging or commits were performed by this implementation. User-staged changes encountered during continuation were preserved.
+
+Maintainability review: process/manager.rs is approximately 500 lines after admission, reservation and shutdown fixes. It retains the shared registry's command/query/stop operations and concrete ownership state; this is a reviewed size exception, not a claim that every implementation file is below a hard threshold. Other new responsibilities are separated into native lifecycle adapters, probe ownership, installer execution, publication journal validation/recovery, and feature-local tests.

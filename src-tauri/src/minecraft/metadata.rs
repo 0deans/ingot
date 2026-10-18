@@ -10,6 +10,12 @@ use std::{
 
 mod deletion;
 pub(crate) use deletion::DeletionFiles;
+mod publication;
+
+pub(crate) struct Policy<T> {
+    pub(crate) directory: PathBuf,
+    pub(crate) identify: fn(&T) -> &str,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum MetadataError {
@@ -53,11 +59,11 @@ pub enum MetadataError {
     },
 }
 
-pub(crate) struct MetadataRepository<T> {
+pub struct MetadataRepository<T> {
     path: PathBuf,
     lock: Mutex<()>,
     kind: PhantomData<T>,
-    deletion: Option<deletion::DeletionPolicy<T>>,
+    policy: Option<Policy<T>>,
 }
 
 impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
@@ -66,7 +72,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
             path,
             lock: Mutex::new(()),
             kind: PhantomData,
-            deletion: None,
+            policy: None,
         }
     }
 
@@ -76,17 +82,23 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
         identify: fn(&T) -> &str,
     ) -> Self {
         let mut repository = Self::new(path);
-        repository.deletion = Some(deletion::DeletionPolicy {
+        repository.policy = Some(Policy {
             directory,
             identify,
         });
         repository
     }
 
+    fn recover(&self, records: &[T]) -> Result<(), MetadataError> {
+        self.recover_deletion(records)?;
+        self.recover_publication(records)?;
+        Ok(())
+    }
+
     pub(crate) fn load(&self) -> Result<Vec<T>, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let records = self.read()?;
-        self.recover_deletion(&records)?;
+        self.recover(&records)?;
         Ok(records)
     }
 
@@ -102,7 +114,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
         action: impl FnOnce() -> R,
     ) -> Result<R, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
-        self.recover_deletion(&self.read()?)?;
+        self.recover(&self.read()?)?;
         Ok(action())
     }
 
@@ -113,7 +125,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
     ) -> Result<R, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let mut records = self.read()?;
-        self.recover_deletion(&records)?;
+        self.recover(&records)?;
         let result = change(&mut records)?;
         if let Err(primary) = self.write(&records) {
             if let Err(rollback) = rollback(&result) {
@@ -134,7 +146,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
     ) -> Result<R, MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let mut records = self.read()?;
-        self.recover_deletion(&records)?;
+        self.recover(&records)?;
         let result = change(&mut records)?;
         write(&records)?;
         Ok(result)
@@ -152,7 +164,7 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
         })
     }
 
-    fn publish_with(
+    pub(crate) fn publish_with(
         &self,
         staging: &Path,
         destination: &Path,
@@ -160,30 +172,16 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
         validate: impl FnOnce(&[T], &T) -> Result<(), MetadataError>,
         write: impl FnOnce(&[T]) -> Result<(), MetadataError>,
     ) -> Result<(), MetadataError> {
-        let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
-        let mut records = self.read()?;
-        self.recover_deletion(&records)?;
-        validate(&records, &record)?;
-        if destination
-            .try_exists()
-            .map_err(|source| self.io("inspect destination", source))?
-        {
-            return Err(MetadataError::Conflict(
-                "Publication destination already exists".into(),
-            ));
-        }
-        fs::rename(staging, destination).map_err(|source| self.io("publish directory", source))?;
-        records.push(record);
-        if let Err(primary) = write(&records) {
-            if let Err(cleanup) = fs::rename(destination, staging) {
-                return Err(MetadataError::Cleanup {
-                    primary: Box::new(primary),
-                    cleanup,
-                });
-            }
-            return Err(primary);
-        }
-        Ok(())
+        self.publish_with_effects(
+            staging,
+            destination,
+            record,
+            validate,
+            write,
+            |source, dest| fs::rename(source, dest),
+            |path| fs::remove_dir_all(path),
+            |path| fs::remove_file(path),
+        )
     }
 
     fn read(&self) -> Result<Vec<T>, MetadataError> {
@@ -293,7 +291,17 @@ mod tests {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("store.json");
         fs::write(&path, b"[1]").unwrap();
-        let repository = MetadataRepository::<u32>::new(path.clone());
+        let repository = MetadataRepository::<u32>::with_deletion_directory(
+            path.clone(),
+            directory.path().to_owned(),
+            |record| {
+                if *record == 2 {
+                    "published"
+                } else {
+                    "existing"
+                }
+            },
+        );
         let staging = directory.path().join("staging");
         let destination = directory.path().join("published");
         fs::create_dir_all(&staging).unwrap();

@@ -28,7 +28,7 @@ pub use config::{
 };
 pub(crate) use config::{delete_server, update_server};
 pub use downloader::{fetch_core_versions, ServerCoreError};
-pub use process::{launch_server, ServerProcessManager};
+pub use process::ServerProcessManager;
 pub use slp::{
     ping_server, PingError, ServerPingResponse, ServerPlayerSample, ServerPlayersInfo,
     ServerVersionInfo,

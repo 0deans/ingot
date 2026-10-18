@@ -9,7 +9,7 @@ pub(crate) struct AppState {
     pub(crate) instances:
         crate::minecraft::metadata::MetadataRepository<crate::minecraft::instance::InstanceConfig>,
     pub(crate) server_configs:
-        crate::minecraft::metadata::MetadataRepository<crate::server::ServerConfig>,
+        std::sync::Arc<crate::minecraft::metadata::MetadataRepository<crate::server::ServerConfig>>,
     pub(crate) settings: SettingsRepository,
     pub(crate) games: ProcessManager,
     pub(crate) servers: ServerProcessManager,
@@ -37,10 +37,12 @@ impl AppState {
                 paths.instances_dir(),
                 |instance| &instance.id,
             ),
-            server_configs: crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
-                paths.servers_file(),
-                paths.servers_dir(),
-                |server| &server.id,
+            server_configs: std::sync::Arc::new(
+                crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+                    paths.servers_file(),
+                    paths.servers_dir(),
+                    |server| &server.id,
+                ),
             ),
             settings: SettingsRepository::new(paths.settings_file()),
             games: ProcessManager::new(),

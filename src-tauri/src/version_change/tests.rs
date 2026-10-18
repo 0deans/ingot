@@ -203,7 +203,7 @@ fn swaps_and_undoes_exactly() {
         !exists("server.jar"),
         "the jar is downloaded again for the new version"
     );
-    let info = last_backup(&root).unwrap();
+    let info = last_backup(&root).unwrap().unwrap();
     assert_eq!(
         (
             info.to_game_version.as_str(),
@@ -247,7 +247,7 @@ fn swaps_and_undoes_exactly() {
             && !exists("plugins/dep.jar")
             && !exists("plugins/gone.jar.disabled")
     );
-    assert!(last_backup(&root).is_none());
+    assert!(last_backup(&root).unwrap().is_none());
     fs::remove_dir_all(&root).unwrap();
 }
 
@@ -342,7 +342,7 @@ fn journal_roundtrip_and_discard() {
     let root = temp.path();
 
     assert!(read_journal(root).is_none());
-    assert!(last_backup(root).is_none());
+    assert!(last_backup(root).unwrap().is_none());
 
     let journal = Journal {
         created_at: 12345678,
@@ -373,13 +373,13 @@ fn journal_roundtrip_and_discard() {
     assert_eq!(read_back.configs.len(), 1);
     assert_eq!(read_back.worlds.len(), 1);
 
-    let backup_info = last_backup(root).unwrap();
+    let backup_info = last_backup(root).unwrap().unwrap();
     assert_eq!(backup_info.from_game_version, "1.20.1");
     assert!(backup_info.worlds_backed_up);
 
     discard_backup_typed(root).unwrap();
     assert!(read_journal(root).is_none());
-    assert!(last_backup(root).is_none());
+    assert!(last_backup(root).unwrap().is_none());
 }
 
 #[tokio::test]

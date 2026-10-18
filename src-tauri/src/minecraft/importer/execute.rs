@@ -274,10 +274,13 @@ pub(crate) fn execute_import_instance(
         Ok(counts) => counts,
         Err(primary) => {
             if let Err(cleanup) = staging.close() {
-                return Err(ImportError::Cleanup {
-                    primary: Box::new(primary),
-                    cleanup,
-                });
+                // A durable publication intent may already own the renamed tree.
+                if cleanup.kind() != std::io::ErrorKind::NotFound {
+                    return Err(ImportError::Cleanup {
+                        primary: Box::new(primary),
+                        cleanup,
+                    });
+                }
             }
             return Err(primary);
         }

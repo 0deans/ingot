@@ -1,4 +1,7 @@
-use super::models::{ActiveServer, PendingQueryGuard, ProcessError, StartingGuard};
+use super::models::{
+    ActiveServer, PendingQueryGuard, ProcessError, ServerLaunchGeneration, StartAdmissionPause,
+    StartingGuard,
+};
 use crate::server::config::{RunningServerSummary, ServerCoreType, ServerStatus};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -12,7 +15,8 @@ pub struct ServerProcessManager {
     pub(crate) sleeping_servers: Arc<Mutex<HashSet<String>>>,
     /// Servers between "Start" and a spawned process (jar download, sandbox setup).
     /// A std Mutex so the guard in `launch_server` can release it in `Drop`.
-    pub(crate) starting_servers: Arc<std::sync::Mutex<HashSet<String>>>,
+    pub(crate) starting_servers: Arc<std::sync::Mutex<HashMap<String, ServerLaunchGeneration>>>,
+    paused_starts: Arc<std::sync::atomic::AtomicUsize>,
 }
 
 impl ServerProcessManager {
@@ -20,7 +24,8 @@ impl ServerProcessManager {
         Self {
             servers: Arc::new(Mutex::new(HashMap::new())),
             sleeping_servers: Arc::new(Mutex::new(HashSet::new())),
-            starting_servers: Arc::new(std::sync::Mutex::new(HashSet::new())),
+            starting_servers: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            paused_starts: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
         }
     }
 
@@ -43,6 +48,26 @@ impl ServerProcessManager {
             .collect()
     }
 
+    /// A synchronous proxy callback must never block a Tokio worker.
+    pub(crate) fn observed_status(&self, server_id: &str) -> ServerStatus {
+        if self.is_starting(server_id) {
+            return ServerStatus::Starting;
+        }
+        let Ok(servers) = self.servers.try_lock() else {
+            return ServerStatus::Starting;
+        };
+        if let Some(server) = servers.get(server_id) {
+            return server.status.clone();
+        }
+        let Ok(sleeping) = self.sleeping_servers.try_lock() else {
+            return ServerStatus::Starting;
+        };
+        if sleeping.contains(server_id) {
+            return ServerStatus::Sleeping;
+        }
+        ServerStatus::Stopped
+    }
+
     pub async fn get_server_status(&self, server_id: &str) -> ServerStatus {
         if self.is_starting(server_id) {
             return ServerStatus::Starting;
@@ -61,26 +86,74 @@ impl ServerProcessManager {
     pub fn is_starting(&self, server_id: &str) -> bool {
         self.starting_servers
             .lock()
-            .map(|s| s.contains(server_id))
+            .map(|s| s.contains_key(server_id))
             .unwrap_or(false)
     }
 
     pub fn try_claim_starting(&self, server_id: &str) -> Result<StartingGuard, ProcessError> {
-        let claimed = self
+        let mut starting = self
             .starting_servers
             .lock()
-            .map(|mut s| s.insert(server_id.to_string()))
-            .unwrap_or(false);
-        if !claimed {
+            .map_err(|_| ProcessError::AlreadyStarting)?;
+        if self
+            .paused_starts
+            .load(std::sync::atomic::Ordering::Acquire)
+            > 0
+        {
+            return Err(ProcessError::ServerStopped);
+        }
+        if starting.contains_key(server_id) {
             return Err(ProcessError::AlreadyStarting);
         }
+        let generation = ServerLaunchGeneration::default();
+        starting.insert(server_id.to_string(), generation.clone());
         Ok(StartingGuard {
             set: self.starting_servers.clone(),
             server_id: server_id.to_string(),
+            generation,
         })
     }
 
-    pub(super) async fn claim_launch(
+    pub(crate) fn cancel_start(&self, server_id: &str) {
+        let starting = match self.starting_servers.lock() {
+            Ok(starting) => starting,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        let generation = starting.get(server_id).cloned();
+        drop(starting);
+        if let Some(generation) = generation {
+            generation.cancel();
+        }
+    }
+
+    pub(crate) fn cancel_all_starts(&self) {
+        let starting = match self.starting_servers.lock() {
+            Ok(starting) => starting,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        let generations: Vec<_> = starting.values().cloned().collect();
+        drop(starting);
+        for generation in generations {
+            generation.cancel();
+        }
+    }
+
+    pub(crate) fn pause_starts(&self) -> StartAdmissionPause {
+        let starting = match self.starting_servers.lock() {
+            Ok(starting) => starting,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        // Admission changes share the reservation lock. Once paused, no new
+        // reservation can escape the cancellation snapshot below.
+        self.paused_starts
+            .fetch_add(1, std::sync::atomic::Ordering::AcqRel);
+        let pause = StartAdmissionPause(self.paused_starts.clone());
+        drop(starting);
+        self.cancel_all_starts();
+        pause
+    }
+
+    pub(crate) async fn claim_launch(
         &self,
         server_id: &str,
     ) -> Result<StartingGuard, ProcessError> {
@@ -104,6 +177,7 @@ impl ServerProcessManager {
         Ok(ownership)
     }
 
+    #[cfg(test)]
     pub(crate) async fn insert_server(&self, server: ActiveServer) {
         let mut guard = self.servers.lock().await;
         guard.insert(server.server_id.clone(), server);
@@ -112,7 +186,9 @@ impl ServerProcessManager {
     pub(crate) async fn remove_if_pid_matches(&self, server_id: &str, pid: u32) -> bool {
         let mut guard = self.servers.lock().await;
         if guard.get(server_id).is_some_and(|server| server.pid == pid) {
-            guard.remove(server_id);
+            if let Some(server) = guard.remove(server_id) {
+                server.cancel_tasks();
+            }
             return true;
         }
         false
@@ -216,11 +292,8 @@ impl ServerProcessManager {
         stdin
             .write_all(line.as_bytes())
             .await
-            .map_err(|e| ProcessError::StdinWrite(e.to_string()))?;
-        stdin
-            .flush()
-            .await
-            .map_err(|e| ProcessError::StdinFlush(e.to_string()))?;
+            .map_err(ProcessError::StdinWrite)?;
+        stdin.flush().await.map_err(ProcessError::StdinFlush)?;
         Ok(())
     }
 
@@ -362,20 +435,29 @@ impl ServerProcessManager {
         has_process(&self.servers, server_id, pid).await
     }
 
+    pub(crate) async fn kill_if_owned(&self, server_id: &str, pid: u32) {
+        let mut servers = self.servers.lock().await;
+        if let Some(server) = servers
+            .get_mut(server_id)
+            .filter(|server| server.pid == pid)
+        {
+            server.status = ServerStatus::Stopping;
+            crate::running::kill_tree(pid);
+        }
+    }
+
     pub async fn kill_server(&self, server_id: &str) -> Result<(), ProcessError> {
         self.kill_server_typed(server_id).await
     }
 
     pub async fn kill_server_typed(&self, server_id: &str) -> Result<(), ProcessError> {
-        let pid = {
-            let guard = self.servers.lock().await;
-            match guard.get(server_id) {
-                Some(s) => s.pid,
-                None => return Err(ProcessError::NotRunning(server_id.to_string())),
-            }
-        };
-        // By pid: the exit task holds the child while it waits, and cleans up after it
-        crate::running::kill_tree(pid);
+        let mut servers = self.servers.lock().await;
+        let server = servers
+            .get_mut(server_id)
+            .ok_or_else(|| ProcessError::NotRunning(server_id.to_string()))?;
+        server.status = ServerStatus::Stopping;
+        // The monitor remains the owner of reaping and registry cleanup.
+        crate::running::kill_tree(server.pid);
         Ok(())
     }
 }

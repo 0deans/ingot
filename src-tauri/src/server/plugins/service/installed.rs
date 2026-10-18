@@ -1,9 +1,9 @@
 use super::super::{
     metadata::{read_jar_metadata, safe_jar_name},
     models::{platform, InstalledPlugin, PluginError},
-    tracking::{read_tracking, write_tracking},
+    tracking::read_tracking_raw,
 };
-use super::publication::publication_error;
+use super::publication::{publish_plugin_transaction_locked, with_plugin_lock};
 use crate::server::config::ServerCoreType;
 use std::path::{Path, PathBuf};
 pub fn folder(server_dir: &Path, core: &ServerCoreType) -> Result<PathBuf, PluginError> {
@@ -15,8 +15,15 @@ pub fn list_installed(
     server_dir: &Path,
     core: &ServerCoreType,
 ) -> Result<Vec<InstalledPlugin>, PluginError> {
+    with_plugin_lock(server_dir, || list_installed_locked(server_dir, core))
+}
+
+fn list_installed_locked(
+    server_dir: &Path,
+    core: &ServerCoreType,
+) -> Result<Vec<InstalledPlugin>, PluginError> {
     let dir = folder(server_dir, core)?;
-    let tracked = read_tracking(server_dir)?;
+    let tracked = read_tracking_raw(server_dir)?;
     let entries = match std::fs::read_dir(&dir) {
         Ok(entries) => entries,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -70,22 +77,24 @@ pub fn set_enabled(
     file_name: &str,
     enabled: bool,
 ) -> Result<(), PluginError> {
-    let dir = folder(server_dir, core)?;
-    let file_name = safe_jar_name(file_name)?;
-    let jar = file_name.trim_end_matches(".disabled");
-    let (from, to) = if enabled {
-        (format!("{jar}.disabled"), jar.to_string())
-    } else {
-        (jar.to_string(), format!("{jar}.disabled"))
-    };
-    if dir.join(&to).exists() {
-        return Ok(());
-    }
-    let from = crate::app::safe_enclosed_filename(&dir, &from)
-        .ok_or_else(|| PluginError::InvalidJarName(from))?;
-    let to = crate::app::safe_enclosed_filename(&dir, &to)
-        .ok_or_else(|| PluginError::InvalidJarName(to))?;
-    std::fs::rename(from, to).map_err(PluginError::Io)
+    with_plugin_lock(server_dir, || {
+        let dir = folder(server_dir, core)?;
+        let file_name = safe_jar_name(file_name)?;
+        let jar = file_name.trim_end_matches(".disabled");
+        let (from, to) = if enabled {
+            (format!("{jar}.disabled"), jar.to_string())
+        } else {
+            (jar.to_string(), format!("{jar}.disabled"))
+        };
+        if dir.join(&to).exists() {
+            return Ok(());
+        }
+        let from = crate::app::safe_enclosed_filename(&dir, &from)
+            .ok_or_else(|| PluginError::InvalidJarName(from))?;
+        let to = crate::app::safe_enclosed_filename(&dir, &to)
+            .ok_or_else(|| PluginError::InvalidJarName(to))?;
+        std::fs::rename(from, to).map_err(PluginError::Io)
+    })
 }
 
 pub fn remove(
@@ -93,24 +102,14 @@ pub fn remove(
     core: &ServerCoreType,
     file_name: &str,
 ) -> Result<(), PluginError> {
-    let dir = folder(server_dir, core)?;
-    let file_name = safe_jar_name(file_name)?;
-    let mut tracked = read_tracking(server_dir)?;
-    let path = crate::app::safe_enclosed_filename(&dir, file_name)
-        .ok_or_else(|| PluginError::InvalidJarName(file_name.into()))?;
-    let backup = dir.join(format!(".removed-{}", uuid::Uuid::new_v4()));
-    std::fs::rename(&path, &backup)?;
-    let jar = file_name.trim_end_matches(".disabled");
-    tracked.retain(|item| item.file_name != jar);
-    if let Err(primary) = write_tracking(server_dir, &tracked) {
-        return Err(publication_error(
-            PluginError::Tracking(primary),
-            &[(path, backup)],
-        ));
-    }
-    std::fs::remove_file(&backup).map_err(|source| PluginError::Cleanup {
-        path: backup,
-        source,
-    })?;
-    Ok(())
+    with_plugin_lock(server_dir, || {
+        let dir = folder(server_dir, core)?;
+        let file_name = safe_jar_name(file_name)?;
+        let mut tracked = read_tracking_raw(server_dir)?;
+        let path = crate::app::safe_enclosed_filename(&dir, file_name)
+            .ok_or_else(|| PluginError::InvalidJarName(file_name.into()))?;
+        let jar = file_name.trim_end_matches(".disabled");
+        tracked.retain(|item| item.file_name != jar);
+        publish_plugin_transaction_locked(server_dir, core, &[], &[path], &tracked)
+    })
 }

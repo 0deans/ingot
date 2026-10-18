@@ -123,7 +123,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
     ) -> Result<Option<VersionBackup>, ApiError> {
         let instance_dir =
             instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        Ok(version_change::last_backup(&instance_dir))
+        version_change::last_backup(&instance_dir).map_err(ApiError::from)
     }
 
     async fn undo_instance_version_change(

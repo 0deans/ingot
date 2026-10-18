@@ -165,6 +165,7 @@ pub struct VersionTransactionStatus {
 }
 
 /// A folder of content to check
+#[derive(Clone)]
 pub struct Folder {
     pub kind: ContentKind,
     pub dir: &'static str,
@@ -172,6 +173,7 @@ pub struct Folder {
 }
 
 /// What a change covers: the instance or server folder and what's in it
+#[derive(Clone)]
 pub struct Target {
     pub root: PathBuf,
     pub folders: Vec<Folder>,
@@ -185,6 +187,7 @@ pub struct Target {
     pub hangar: HashMap<String, TrackedHangarPlugin>,
 }
 
+#[derive(Clone)]
 pub struct TrackedHangarPlugin {
     pub project_id: String,
     pub version_id: String,
@@ -227,6 +230,15 @@ pub enum TransactionPhase {
 
 #[derive(Debug, Error)]
 pub enum VersionChangeError {
+    #[error("Failed to {operation} recovery journal at {path}: {source}")]
+    JournalIo {
+        operation: &'static str,
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Cannot encode recovery journal")]
+    JournalEncode(#[source] serde_json::Error),
     #[error(transparent)]
     Source(#[from] super::sources::SourceError),
     #[error("Unexpected file name: {0}")]
@@ -236,6 +248,18 @@ pub enum VersionChangeError {
     #[error("Failed to {operation} at {path}: {source}")]
     DownloadPrep {
         operation: &'static str,
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Failed to inspect directory at {path}: {source}")]
+    ScanDirectory {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Failed to read file at {path}: {source}")]
+    ScanFile {
         path: PathBuf,
         #[source]
         source: std::io::Error,
@@ -320,19 +344,24 @@ pub fn sha256_hex(data: &[u8]) -> String {
         .collect()
 }
 
-pub fn dir_size(path: &Path) -> u64 {
-    let Ok(meta) = std::fs::symlink_metadata(path) else {
-        return 0;
+pub fn dir_size_typed(path: &Path) -> Result<u64, std::io::Error> {
+    let meta = match std::fs::symlink_metadata(path) {
+        Ok(m) => m,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e),
     };
     if meta.is_file() {
-        return meta.len();
+        return Ok(meta.len());
     }
     if !meta.is_dir() {
-        return 0;
+        return Ok(0);
     }
-    std::fs::read_dir(path)
-        .map(|e| e.flatten().map(|e| dir_size(&e.path())).sum())
-        .unwrap_or(0)
+    let mut total = 0u64;
+    for entry in std::fs::read_dir(path)? {
+        let entry = entry?;
+        total += dir_size_typed(&entry.path())?;
+    }
+    Ok(total)
 }
 
 /// Only a plain file name (no folders), with the expected extension

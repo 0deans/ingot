@@ -13,6 +13,16 @@ pub(crate) async fn ensure_java_runtime<R: Runtime>(
     progress: Option<JavaProgressFn>,
 ) -> Result<PathBuf, JavaError> {
     let data_dir = app.path().app_data_dir().map_err(std::io::Error::other)?;
+    ensure_java_runtime_in_dir(data_dir, client, major_version, custom_path, progress).await
+}
+
+pub(crate) async fn ensure_java_runtime_in_dir(
+    data_dir: PathBuf,
+    client: &reqwest::Client,
+    major_version: u32,
+    custom_path: Option<&str>,
+    progress: Option<JavaProgressFn>,
+) -> Result<PathBuf, JavaError> {
     let (os, archive_format) = if cfg!(target_os = "windows") {
         ("windows", ArchiveFormat::Zip)
     } else if cfg!(target_os = "macos") {
@@ -36,8 +46,13 @@ pub(crate) async fn ensure_java_runtime<R: Runtime>(
         download_url,
         archive_format,
     };
-    crate::minecraft::java::ensure_java_runtime(request, client, Arc::new(NativeProbe), progress)
-        .await
+    crate::minecraft::java::ensure_java_runtime(
+        request,
+        client,
+        Arc::new(NativeProbe::new()),
+        progress,
+    )
+    .await
 }
 
 fn system_roots() -> Vec<PathBuf> {

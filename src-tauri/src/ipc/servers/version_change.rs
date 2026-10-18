@@ -118,7 +118,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
         server_id: String,
     ) -> Result<Option<VersionBackup>, ApiError> {
         let (dir, _) = server_with_config(&app_handle, &server_id)?;
-        Ok(version_change::last_backup(&dir))
+        version_change::last_backup(&dir).map_err(ApiError::from)
     }
 
     async fn undo_server_version_change(

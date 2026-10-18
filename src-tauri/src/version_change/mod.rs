@@ -26,6 +26,7 @@ pub mod transaction;
 #[cfg(test)]
 mod tests;
 
+pub use crash::{first_start_pending, VersionChangeCrash, VersionChangeCrash as CrashReport};
 pub(crate) use journal::read_journal;
 #[cfg(test)]
 pub(crate) use journal::write_journal;

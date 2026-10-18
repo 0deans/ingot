@@ -326,139 +326,32 @@ fn tracking_safe_replacement_and_persistence() {
 }
 
 #[test]
-fn test_publish_installed_plugin_tracking_failure_restores_backup() {
-    let tmp = tempfile::tempdir().unwrap();
-    let plugins_dir = tmp.path().join("plugins");
-    std::fs::create_dir_all(&plugins_dir).unwrap();
-
-    let target_dest = plugins_dir.join("ViaVersion.jar");
-    std::fs::write(&target_dest, "version 1 contents").unwrap();
-
-    let staging_file = plugins_dir.join(".staging.jar");
-    std::fs::write(&staging_file, "version 2 new contents").unwrap();
-
-    // Directly call the production publication function with a failing tracking commit
-    let res = super::service::publish_installed_plugin(
-        &staging_file,
-        &target_dest,
-        "ViaVersion",
-        || {
-            Err(super::models::PluginError::Io(std::io::Error::other(
-                "disk full",
-            )))
-        },
+fn corrupt_tracking_rejects_replacement_without_mutating_working_plugin() {
+    let temporary = tempfile::tempdir().unwrap();
+    let plugins = temporary.path().join("plugins");
+    std::fs::create_dir(&plugins).unwrap();
+    let destination = plugins.join("ViaVersion.jar");
+    std::fs::write(&destination, b"working version").unwrap();
+    let staging = plugins.join("stage");
+    std::fs::write(&staging, b"new version").unwrap();
+    let tracking = super::tracking::tracking_path(temporary.path());
+    std::fs::create_dir_all(tracking.parent().unwrap()).unwrap();
+    std::fs::write(&tracking, b"corrupt").unwrap();
+    let result = super::service::publish_plugin_transaction(
+        temporary.path(),
+        &ServerCoreType::Paper,
+        &[(staging, destination.clone())],
+        &[],
         &[],
     );
-
-    // Verify it returns PublicationFailed
-    assert!(res.is_err());
-    let err = res.unwrap_err();
     assert!(matches!(
-        err,
-        super::models::PluginError::PublicationFailed { .. }
+        result,
+        Err(super::models::PluginError::Tracking(
+            super::tracking::TrackingError::Decode { .. }
+        ))
     ));
-    assert!(err.to_string().contains("Previous version was restored"));
-
-    // Verify that target_dest has been safely restored with version 1 contents
-    assert!(target_dest.exists());
-    assert_eq!(
-        std::fs::read_to_string(&target_dest).unwrap(),
-        "version 1 contents"
-    );
-}
-
-#[test]
-fn test_publish_installed_plugin_rollback_failure_retains_and_reports_backup() {
-    let tmp = tempfile::tempdir().unwrap();
-    let plugins_dir = tmp.path().join("plugins");
-    std::fs::create_dir_all(&plugins_dir).unwrap();
-
-    let target_dest = plugins_dir.join("ViaVersion.jar");
-    std::fs::write(&target_dest, "version 1 contents").unwrap();
-
-    let staging_file = plugins_dir.join(".staging.jar");
-    std::fs::write(&staging_file, "version 2 new contents").unwrap();
-
-    #[cfg(target_os = "windows")]
-    let lock_holder = std::sync::Arc::new(std::sync::Mutex::new(None::<std::fs::File>));
-    #[cfg(target_os = "windows")]
-    let lock_clone = lock_holder.clone();
-
-    // Call production publication function where commit_tracking fails AND locks target_dest
-    // so that std::fs::remove_file(&target_dest) in rollback fails
-    let res = super::service::publish_installed_plugin(
-        &staging_file,
-        &target_dest,
-        "ViaVersion",
-        || {
-            // Lock target_dest so removal fails during rollback
-            #[cfg(target_os = "windows")]
-            {
-                use std::os::windows::fs::OpenOptionsExt;
-                let locked = std::fs::OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .share_mode(0)
-                    .open(&target_dest)
-                    .unwrap();
-                *lock_clone.lock().unwrap() = Some(locked);
-                // Deliberately fail tracking
-                Err(super::models::PluginError::Io(std::io::Error::other(
-                    "tracking disk full",
-                )))
-            }
-            #[cfg(not(target_os = "windows"))]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                let _ =
-                    std::fs::set_permissions(&plugins_dir, std::fs::Permissions::from_mode(0o555));
-                Err(super::models::PluginError::Io(std::io::Error::other(
-                    "tracking disk full",
-                )))
-            }
-        },
-        &[],
-    );
-
-    #[cfg(target_os = "windows")]
-    drop(lock_holder);
-
-    #[cfg(not(target_os = "windows"))]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(&plugins_dir, std::fs::Permissions::from_mode(0o755));
-    }
-
-    assert!(res.is_err());
-    let err = res.unwrap_err();
-    // Must report PublicationRollbackFailed, identify failed rollback, and report retained backup
-    assert!(matches!(
-        err,
-        super::models::PluginError::PublicationRollbackFailed { .. }
-    ));
-    let err_msg = err.to_string();
-    assert!(err_msg.contains("Rollback failed"));
-    assert!(err_msg.contains("Previous version is retained at"));
-
-    // Verify backup file was retained on disk
-    let backups: Vec<_> = std::fs::read_dir(&plugins_dir)
-        .unwrap()
-        .flatten()
-        .filter(|e| {
-            e.file_name()
-                .to_string_lossy()
-                .starts_with(".plugin.backup.")
-        })
-        .collect();
-    assert_eq!(
-        backups.len(),
-        1,
-        "Backup must be retained when rollback fails"
-    );
-    assert_eq!(
-        std::fs::read_to_string(backups[0].path()).unwrap(),
-        "version 1 contents"
-    );
+    assert_eq!(std::fs::read(destination).unwrap(), b"working version");
+    assert_eq!(std::fs::read(tracking).unwrap(), b"corrupt");
 }
 
 /// Hits the real APIs: cargo test -- --ignored plugins_live

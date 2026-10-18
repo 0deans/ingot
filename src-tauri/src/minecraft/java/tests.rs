@@ -1,4 +1,4 @@
-use super::discovery::{executable_name, find_binary, parse_version, JavaProbe};
+use super::discovery::{executable_name, find_binary, parse_version};
 use super::extract::extract_runtime;
 use super::install::{ArchiveFormat, RuntimeRequest};
 use super::{ensure_java_runtime, get_required_java_version, JavaError};
@@ -7,10 +7,13 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+use super::probe::{JavaProbe, JavaProbeFuture};
+
 struct FixedProbe(u32);
 impl JavaProbe for FixedProbe {
-    fn major_version(&self, _: &Path) -> Result<u32, JavaError> {
-        Ok(self.0)
+    fn major_version<'a>(&'a self, _: &'a Path) -> JavaProbeFuture<'a> {
+        let version = self.0;
+        Box::pin(async move { Ok(version) })
     }
 }
 
@@ -330,11 +333,13 @@ fn runtime_links_cannot_escape_cycle_or_alias_directories() {
 async fn installed_candidates_are_checked_until_a_matching_major_is_found() {
     struct CandidateProbe;
     impl JavaProbe for CandidateProbe {
-        fn major_version(&self, path: &Path) -> Result<u32, JavaError> {
-            if path.components().any(|part| part.as_os_str() == "jdk-17") {
-                return Ok(17);
-            }
-            Ok(21)
+        fn major_version<'a>(&'a self, path: &'a Path) -> JavaProbeFuture<'a> {
+            let version = if path.components().any(|part| part.as_os_str() == "jdk-17") {
+                17
+            } else {
+                21
+            };
+            Box::pin(async move { Ok(version) })
         }
     }
     let temp = tempfile::tempdir().unwrap();
@@ -357,28 +362,14 @@ async fn installed_candidates_are_checked_until_a_matching_major_is_found() {
 #[tokio::test]
 async fn cancelling_during_runtime_validation_never_publishes() {
     struct ControlledProbe {
-        entered: std::sync::Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
-        release: std::sync::Mutex<std::sync::mpsc::Receiver<()>>,
-        finished: std::sync::Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
+        entered: tokio::sync::Notify,
     }
     impl JavaProbe for ControlledProbe {
-        fn major_version(&self, _: &Path) -> Result<u32, JavaError> {
-            self.entered
-                .lock()
-                .unwrap()
-                .take()
-                .unwrap()
-                .send(())
-                .unwrap();
-            self.release.lock().unwrap().recv().unwrap();
-            self.finished
-                .lock()
-                .unwrap()
-                .take()
-                .unwrap()
-                .send(())
-                .unwrap();
-            Ok(21)
+        fn major_version<'a>(&'a self, _: &'a Path) -> JavaProbeFuture<'a> {
+            Box::pin(async move {
+                self.entered.notify_one();
+                std::future::pending().await
+            })
         }
     }
     let temp = tempfile::tempdir().unwrap();
@@ -389,22 +380,16 @@ async fn cancelling_during_runtime_validation_never_publishes() {
     .await;
     let mut request = request(temp.path());
     request.download_url = url;
-    let (entered_tx, entered_rx) = tokio::sync::oneshot::channel();
-    let (release_tx, release_rx) = std::sync::mpsc::channel();
-    let (finished_tx, finished_rx) = tokio::sync::oneshot::channel();
     let probe = Arc::new(ControlledProbe {
-        entered: std::sync::Mutex::new(Some(entered_tx)),
-        release: std::sync::Mutex::new(release_rx),
-        finished: std::sync::Mutex::new(Some(finished_tx)),
+        entered: tokio::sync::Notify::new(),
     });
+    let watcher = probe.clone();
     let installation = tokio::spawn(async move {
         ensure_java_runtime(request, &reqwest::Client::new(), probe, None).await
     });
-    entered_rx.await.unwrap();
+    watcher.entered.notified().await;
     installation.abort();
     assert!(installation.await.unwrap_err().is_cancelled());
-    release_tx.send(()).unwrap();
-    finished_rx.await.unwrap();
     server.await.unwrap();
     assert!(!temp.path().join("runtimes/java-21").exists());
 }

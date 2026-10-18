@@ -27,8 +27,11 @@ fn staged_import_publishes_complete_files_and_matching_metadata() {
     let instances = destination.path().join("instances");
     fs::create_dir_all(source.path().join("mods")).unwrap();
     fs::write(source.path().join("mods/test.jar"), b"jar").unwrap();
-    let repository =
-        MetadataRepository::<InstanceConfig>::new(destination.path().join("instances.json"));
+    let repository = MetadataRepository::with_deletion_directory(
+        destination.path().join("instances.json"),
+        instances.clone(),
+        |config: &InstanceConfig| &config.id,
+    );
     let report = super::execute::execute_import_instance(
         &instances,
         import_options(source.path()),
@@ -50,14 +53,18 @@ fn staged_import_publishes_complete_files_and_matching_metadata() {
 }
 
 #[test]
-fn metadata_write_failure_rolls_back_directory_and_removes_import_stage() {
+fn unreadable_metadata_after_failed_import_retains_material_until_recovery() {
     use crate::minecraft::{instance::InstanceConfig, metadata::MetadataRepository};
     let source = tempfile::tempdir().unwrap();
     let destination = tempfile::tempdir().unwrap();
     fs::write(source.path().join("options.txt"), b"original").unwrap();
     let instances = destination.path().join("instances");
     let metadata = destination.path().join("instances.json");
-    let repository = MetadataRepository::<InstanceConfig>::new(metadata.clone());
+    let repository = MetadataRepository::with_deletion_directory(
+        metadata.clone(),
+        instances.clone(),
+        |config: &InstanceConfig| &config.id,
+    );
     let result = super::execute::execute_import_instance(
         &instances,
         import_options(source.path()),
@@ -71,7 +78,14 @@ fn metadata_write_failure_rolls_back_directory_and_removes_import_stage() {
         },
     );
     assert!(matches!(result, Err(super::ImportError::Metadata(_))));
+    assert_eq!(fs::read_dir(&instances).unwrap().count(), 1);
+    let receipt = metadata.with_extension("publication.json");
+    assert!(receipt.is_file());
+    assert!(repository.load().is_err());
+    fs::remove_dir(&metadata).unwrap();
+    assert!(repository.load().unwrap().is_empty());
     assert_eq!(fs::read_dir(instances).unwrap().count(), 0);
+    assert!(!receipt.exists());
     assert_eq!(
         fs::read(source.path().join("options.txt")).unwrap(),
         b"original"

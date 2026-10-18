@@ -1,6 +1,8 @@
-use super::PlayitError;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::{Manager, Runtime};
+use tokio::sync::watch;
+
+use super::PlayitError;
 
 /// Finds or downloads the playit agent, the first time someone goes public.
 /// On Android it isn't bundled: it runs through PRoot (see `build_agent_command`),
@@ -8,6 +10,16 @@ use tauri::{Manager, Runtime};
 pub async fn ensure_playit_binary<R: Runtime>(
     app: &tauri::AppHandle<R>,
     client: &reqwest::Client,
+) -> Result<PathBuf, PlayitError> {
+    let data_dir = app.path().app_data_dir().map_err(PlayitError::AppData)?;
+    let (_tx, rx) = watch::channel(false);
+    ensure_playit_binary_with_dir(&data_dir, client, rx).await
+}
+
+pub(crate) async fn ensure_playit_binary_with_dir(
+    data_dir: &Path,
+    client: &reqwest::Client,
+    mut cancel_rx: watch::Receiver<bool>,
 ) -> Result<PathBuf, PlayitError> {
     // 1. Desktop: an agent the user installed themselves
     #[cfg(not(target_os = "android"))]
@@ -25,7 +37,6 @@ pub async fn ensure_playit_binary<R: Runtime>(
     }
 
     // 2. Previously downloaded, else download it
-    let data_dir = app.path().app_data_dir().map_err(PlayitError::AppData)?;
     let tools_dir = data_dir.join("tools");
     std::fs::create_dir_all(&tools_dir)?;
 
@@ -57,21 +68,26 @@ pub async fn ensure_playit_binary<R: Runtime>(
     };
 
     eprintln!("[Playit] Downloading agent binary from {download_url}...");
-    let res = client
-        .get(download_url)
-        .header("User-Agent", crate::USER_AGENT)
-        .send()
-        .await
-        .map_err(|error| PlayitError::Network(error.without_url()))?;
+    let res = tokio::select! {
+        _ = cancel_rx.changed() => return Err(PlayitError::Cancelled),
+        res = client
+            .get(download_url)
+            .header("User-Agent", crate::USER_AGENT)
+            .send() => {
+            res.map_err(|error| PlayitError::Network(error.without_url()))?
+        }
+    };
 
     if !res.status().is_success() {
         return Err(PlayitError::HttpStatus(res.status()));
     }
 
-    let bytes = res
-        .bytes()
-        .await
-        .map_err(|error| PlayitError::Network(error.without_url()))?;
+    let bytes = tokio::select! {
+        _ = cancel_rx.changed() => return Err(PlayitError::Cancelled),
+        bytes = res.bytes() => {
+            bytes.map_err(|error| PlayitError::Network(error.without_url()))?
+        }
+    };
 
     // Write beside the target, then rename: an interrupted download never looks complete
     let part = target_path.with_extension("part");

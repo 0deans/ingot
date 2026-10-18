@@ -1,22 +1,34 @@
-use super::{ClaimRejection, PlayitError, PlayitInner, PlayitTunnelStatus, PLAYIT_API};
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::Mutex;
+use tokio::sync::{watch, Mutex};
+
+use super::adapter::PlayitAdapter;
+use super::generation::Generation;
+use super::{ClaimRejection, PlayitError, PlayitInner, PlayitTunnelStatus, PLAYIT_API};
 
 pub(crate) struct AgentContext {
     pub(crate) inner: Arc<Mutex<PlayitInner>>,
+    pub(crate) status_tx: Arc<watch::Sender<PlayitTunnelStatus>>,
+    pub(crate) adapter: Arc<dyn PlayitAdapter>,
     pub(crate) client: reqwest::Client,
+    pub(crate) generation: Generation,
     pub(crate) binary_path: PathBuf,
     pub(crate) playit_dir: PathBuf,
     pub(crate) sandbox_dir: Option<PathBuf>,
+    pub(crate) cancel_rx: watch::Receiver<bool>,
 }
 
 impl AgentContext {
-    pub(crate) async fn update(&self, f: impl FnOnce(&mut PlayitTunnelStatus)) {
+    pub(crate) async fn update_status(&self, f: impl FnOnce(&mut PlayitTunnelStatus)) -> bool {
         let mut guard = self.inner.lock().await;
+        if guard.generation != self.generation.0 {
+            return false;
+        }
         f(&mut guard.status);
+        let _ = self.status_tx.send(guard.status.clone());
+        true
     }
 }
 
@@ -73,57 +85,54 @@ pub(crate) async fn claim_agent(ctx: &AgentContext) -> Result<String, PlayitErro
     let code: String = uuid::Uuid::new_v4().simple().to_string()[..10].to_string();
     let claim_url = format!("https://playit.gg/claim/{code}");
 
-    ctx.update(|s| {
+    ctx.update_status(|s| {
         s.status = "claiming".to_string();
         s.claim_url = Some(claim_url);
     })
     .await;
 
-    let version = format!("ingot {}", env!("CARGO_PKG_VERSION"));
+    let mut cancel_rx = ctx.cancel_rx.clone();
     loop {
-        let setup = api_call(
-            &ctx.client,
-            "/claim/setup",
-            json!({ "code": code, "agent_type": "self-managed", "version": version }),
-            None,
-        )
-        .await;
+        if *cancel_rx.borrow() {
+            return Err(PlayitError::Cancelled);
+        }
 
+        let setup = ctx.adapter.claim_setup(&ctx.client, &code).await;
         match setup {
-            Ok(data) if data.as_str() == Some("UserAccepted") => break,
-            Ok(data) if data.as_str() == Some("UserRejected") => {
-                return Err(PlayitError::ClaimRejected)
-            }
+            Ok(status) if status == "UserAccepted" => break,
+            Ok(status) if status == "UserRejected" => return Err(PlayitError::ClaimRejected),
             Ok(_) => {}
             Err(PlayitError::Rejected(ClaimRejection::Expired | ClaimRejection::InvalidCode)) => {
                 return Err(PlayitError::ClaimExpired)
             }
+            Err(PlayitError::Cancelled) => return Err(PlayitError::Cancelled),
             Err(error) => eprintln!("[Playit] Claim status check failed: {error}"),
         }
-        tokio::time::sleep(Duration::from_secs(2)).await;
+
+        tokio::select! {
+            _ = cancel_rx.changed() => return Err(PlayitError::Cancelled),
+            _ = tokio::time::sleep(Duration::from_secs(2)) => {}
+        }
     }
 
     for _ in 0..10 {
-        match api_call(
-            &ctx.client,
-            "/claim/exchange",
-            json!({ "code": code }),
-            None,
-        )
-        .await
-        {
-            Ok(data) => {
-                if let Some(secret) = data["secret_key"].as_str() {
-                    return Ok(secret.to_string());
-                }
-                return Err(PlayitError::InvalidResponse);
-            }
+        if *cancel_rx.borrow() {
+            return Err(PlayitError::Cancelled);
+        }
+
+        match ctx.adapter.claim_exchange(&ctx.client, &code).await {
+            Ok(secret) => return Ok(secret),
             Err(PlayitError::Rejected(ClaimRejection::NotAccepted) | PlayitError::Network(_)) => {
-                tokio::time::sleep(Duration::from_secs(2)).await;
+                tokio::select! {
+                    _ = cancel_rx.changed() => return Err(PlayitError::Cancelled),
+                    _ = tokio::time::sleep(Duration::from_secs(2)) => {}
+                }
             }
+            Err(PlayitError::Cancelled) => return Err(PlayitError::Cancelled),
             Err(error) => return Err(error),
         }
     }
+
     Err(PlayitError::ClaimTimeout)
 }
 
@@ -153,7 +162,7 @@ pub(crate) async fn apply_rundata(ctx: &AgentContext, data: &Value) {
         .and_then(|n| n["message"].as_str())
         .map(str::to_string);
 
-    ctx.update(|s| {
+    ctx.update_status(|s| {
         s.public_address = address.clone();
         if address.is_some() {
             s.status = "connected".to_string();

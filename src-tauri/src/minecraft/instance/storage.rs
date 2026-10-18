@@ -35,10 +35,13 @@ pub(super) fn finish_publication(
         }
         Err(primary) => {
             if let Err(cleanup) = staging.close() {
-                return Err(InstanceError::Cleanup {
-                    primary: Box::new(primary),
-                    cleanup,
-                });
+                // Publication can transfer the tree into durable recovery ownership.
+                if cleanup.kind() != std::io::ErrorKind::NotFound {
+                    return Err(InstanceError::Cleanup {
+                        primary: Box::new(primary),
+                        cleanup,
+                    });
+                }
             }
             Err(primary)
         }

@@ -6,11 +6,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub(super) struct DeletionPolicy<T> {
-    pub(super) directory: PathBuf,
-    pub(super) identify: fn(&T) -> &str,
-}
-
 pub(crate) enum DeletionFiles {
     Retain,
     Remove,
@@ -43,13 +38,10 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
     ) -> Result<(), MetadataError> {
         let _guard = self.lock.lock().map_err(|_| MetadataError::LockPoisoned)?;
         let mut records = self.read()?;
-        self.recover_deletion(&records)?;
-        let policy = self
-            .deletion
-            .as_ref()
-            .ok_or(MetadataError::RecoveryBlocked(
-                "Deletion directory is not configured",
-            ))?;
+        self.recover(&records)?;
+        let policy = self.policy.as_ref().ok_or(MetadataError::RecoveryBlocked(
+            "Deletion directory is not configured",
+        ))?;
         let directory = checked_path(&policy.directory, id)?;
         let matches: Vec<_> = records
             .iter()
@@ -129,12 +121,9 @@ impl<T: Serialize + DeserializeOwned> MetadataRepository<T> {
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
             Err(source) => return Err(path_io("read deletion receipt", &path, source)),
         };
-        let policy = self
-            .deletion
-            .as_ref()
-            .ok_or(MetadataError::RecoveryBlocked(
-                "Deletion directory is not configured",
-            ))?;
+        let policy = self.policy.as_ref().ok_or(MetadataError::RecoveryBlocked(
+            "Deletion directory is not configured",
+        ))?;
         let receipt: Receipt =
             serde_json::from_slice(&bytes).map_err(|source| MetadataError::Decode {
                 path: path.clone(),

@@ -1,5 +1,5 @@
 use super::models::{
-    backup_dir, dir_size, TransactionPhase, VersionBackup, VersionChangeError,
+    backup_dir, dir_size_typed, TransactionPhase, VersionBackup, VersionChangeError,
     VersionTransactionStatus, JOURNAL,
 };
 use serde::{Deserialize, Serialize};
@@ -111,27 +111,34 @@ pub fn detect_incomplete_transaction(root: &Path) -> Result<Option<Journal>, Ver
     }
 }
 
+fn journal_io(operation: &'static str, path: &Path, source: std::io::Error) -> VersionChangeError {
+    VersionChangeError::JournalIo {
+        operation,
+        path: path.to_owned(),
+        source,
+    }
+}
+
 pub fn write_journal_typed(root: &Path, journal: &Journal) -> Result<(), VersionChangeError> {
     use std::io::Write;
     let backup = backup_dir(root);
-    super::transaction::checked_path(root, &backup.join(JOURNAL))?;
-    fs::create_dir_all(&backup).map_err(|e| {
-        VersionChangeError::BackupError(format!("Failed to create backup directory: {e}"))
-    })?;
-    let raw = serde_json::to_string_pretty(journal)
-        .map_err(|e| VersionChangeError::Custom(e.to_string()))?;
-
+    let path = backup.join(JOURNAL);
+    super::transaction::checked_path(root, &path)?;
+    fs::create_dir_all(&backup)
+        .map_err(|source| journal_io("create directory for", &path, source))?;
+    let raw = serde_json::to_vec_pretty(journal).map_err(VersionChangeError::JournalEncode)?;
     let mut staged = tempfile::NamedTempFile::new_in(&backup)
-        .map_err(|e| VersionChangeError::BackupError(format!("Failed to stage journal: {e}")))?;
-    staged.write_all(raw.as_bytes()).map_err(|e| {
-        VersionChangeError::BackupError(format!("Failed to write staged journal: {e}"))
-    })?;
-    staged.as_file().sync_all().map_err(|e| {
-        VersionChangeError::BackupError(format!("Failed to sync staged journal: {e}"))
-    })?;
-    staged.persist(backup.join(JOURNAL)).map_err(|e| {
-        VersionChangeError::BackupError(format!("Failed to publish journal: {}", e.error))
-    })?;
+        .map_err(|source| journal_io("stage", &path, source))?;
+    staged
+        .write_all(&raw)
+        .map_err(|source| journal_io("write", &path, source))?;
+    staged
+        .as_file()
+        .sync_all()
+        .map_err(|source| journal_io("sync", &path, source))?;
+    staged
+        .persist(&path)
+        .map_err(|error| journal_io("publish", &path, error.error))?;
     Ok(())
 }
 
@@ -140,22 +147,40 @@ pub fn write_journal(root: &Path, journal: &Journal) -> Result<(), VersionChange
 }
 
 /// The last version change, if it can be undone
-pub fn last_backup(root: &Path) -> Option<VersionBackup> {
-    let journal = read_journal(root)?;
+pub fn last_backup(root: &Path) -> Result<Option<VersionBackup>, VersionChangeError> {
+    let journal = match read_journal_state(root) {
+        JournalState::Missing => return Ok(None),
+        JournalState::Present(journal) => journal,
+        JournalState::Corrupt(error) => return Err(VersionChangeError::RestoreError(error)),
+    };
     if !matches!(
         journal.phase,
         TransactionPhase::Committed | TransactionPhase::Prepared
     ) {
-        return None;
+        return Ok(None);
     }
-    Some(VersionBackup {
-        from_game_version: journal.from_game_version,
-        from_loader: journal.from_loader,
-        to_game_version: journal.to_game_version,
-        to_loader: journal.to_loader,
+    backup_summary(root, &journal).map(Some)
+}
+
+fn backup_summary(root: &Path, journal: &Journal) -> Result<VersionBackup, VersionChangeError> {
+    backup_summary_with(root, journal, dir_size_typed)
+}
+
+fn backup_summary_with(
+    root: &Path,
+    journal: &Journal,
+    measure: impl FnOnce(&Path) -> std::io::Result<u64>,
+) -> Result<VersionBackup, VersionChangeError> {
+    let path = backup_dir(root);
+    let bytes = measure(&path).map_err(|source| journal_io("measure backup for", &path, source))?;
+    Ok(VersionBackup {
+        from_game_version: journal.from_game_version.clone(),
+        from_loader: journal.from_loader.clone(),
+        to_game_version: journal.to_game_version.clone(),
+        to_loader: journal.to_loader.clone(),
         created_at: journal.created_at,
         worlds_backed_up: !journal.worlds.is_empty(),
-        bytes: dir_size(&backup_dir(root)) as f64,
+        bytes: bytes as f64,
     })
 }
 
@@ -192,15 +217,18 @@ pub fn transaction_status(root: &Path) -> VersionTransactionStatus {
                     | TransactionPhase::Restored
             );
             let can_recover = is_incomplete;
-            let backup = Some(VersionBackup {
-                from_game_version: j.from_game_version.clone(),
-                from_loader: j.from_loader.clone(),
-                to_game_version: j.to_game_version.clone(),
-                to_loader: j.to_loader.clone(),
-                created_at: j.created_at,
-                worlds_backed_up: !j.worlds.is_empty(),
-                bytes: dir_size(&backup_dir(root)) as f64,
-            });
+            let backup = match backup_summary(root, &j) {
+                Ok(backup) => Some(backup),
+                Err(error) => {
+                    return VersionTransactionStatus {
+                        phase: Some(j.phase),
+                        is_incomplete: true,
+                        can_recover: false,
+                        backup: None,
+                        error: Some(error.to_string()),
+                    }
+                }
+            };
             VersionTransactionStatus {
                 phase: Some(j.phase),
                 is_incomplete,
@@ -229,3 +257,6 @@ pub fn transaction_status(root: &Path) -> VersionTransactionStatus {
         },
     }
 }
+
+#[cfg(test)]
+mod tests;

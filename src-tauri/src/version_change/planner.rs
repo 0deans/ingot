@@ -31,7 +31,10 @@ pub(super) async fn check_with_sources(
 ) -> Result<VersionPlan, VersionChangeError> {
     let game = request.to_game_version.as_str();
     let loader_changes = request.from_loader != request.to_loader;
-    let local = scan(target);
+    let target_clone = target.clone();
+    let local = tokio::task::spawn_blocking(move || scan(&target_clone))
+        .await
+        .map_err(VersionChangeError::Task)??;
 
     // Identify: Modrinth by hash (per folder: the loaders differ), then CurseForge
     let mut on_modrinth: HashMap<String, (Release, bool)> = HashMap::new();
@@ -331,6 +334,11 @@ pub(super) async fn check_with_sources(
         }
     }
 
+    let target_clone = target.clone();
+    let worlds = tokio::task::spawn_blocking(move || list_worlds(&target_clone))
+        .await
+        .map_err(VersionChangeError::Task)??;
+
     Ok(VersionPlan {
         target_kind: request.target_kind,
         target_id: request.target_id,
@@ -342,7 +350,7 @@ pub(super) async fn check_with_sources(
         to_loader_version: request.to_loader_version,
         downgrade: request.downgrade,
         items,
-        worlds: list_worlds(target),
+        worlds,
     })
 }
 

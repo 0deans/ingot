@@ -22,11 +22,13 @@ pub enum TrackingError {
     },
     #[error("Cannot publish plugin tracking: {0}")]
     Write(#[source] std::io::Error),
+    #[error("Plugin recovery failed: {0}")]
+    Recovery(#[source] Box<super::models::PluginError>),
     #[error("Invalid plugin tracking entry: {0}")]
     InvalidEntry(&'static str),
 }
 
-pub fn read_tracking(server_dir: &Path) -> Result<Vec<TrackedPlugin>, TrackingError> {
+pub fn read_tracking_raw(server_dir: &Path) -> Result<Vec<TrackedPlugin>, TrackingError> {
     let path = tracking_path(server_dir);
     let bytes = match std::fs::read(&path) {
         Ok(bytes) => bytes,
@@ -48,6 +50,13 @@ pub fn read_tracking(server_dir: &Path) -> Result<Vec<TrackedPlugin>, TrackingEr
     Ok(tracked)
 }
 
+pub fn read_tracking(server_dir: &Path) -> Result<Vec<TrackedPlugin>, TrackingError> {
+    super::service::with_plugin_lock(server_dir, || {
+        read_tracking_raw(server_dir).map_err(Into::into)
+    })
+    .map_err(tracking_failure)
+}
+
 pub fn write_tracking_typed(
     server_dir: &Path,
     tracked: &[TrackedPlugin],
@@ -63,11 +72,23 @@ pub fn write_tracking_typed(
     staged.write_all(raw.as_bytes())?;
     staged.as_file().sync_all()?;
     staged.persist(&path).map_err(|e| e.error)?;
+    #[cfg(unix)]
+    std::fs::File::open(parent)?.sync_all()?;
     Ok(())
 }
 
 pub fn write_tracking(server_dir: &Path, tracked: &[TrackedPlugin]) -> Result<(), TrackingError> {
-    write_tracking_typed(server_dir, tracked).map_err(TrackingError::Write)
+    super::service::with_plugin_lock(server_dir, || {
+        write_tracking_typed(server_dir, tracked).map_err(super::models::PluginError::Io)
+    })
+    .map_err(tracking_failure)
+}
+
+fn tracking_failure(error: super::models::PluginError) -> TrackingError {
+    match error {
+        super::models::PluginError::Tracking(error) => error,
+        other => TrackingError::Recovery(Box::new(other)),
+    }
 }
 
 /// Hangar has no lookup by file, so version changes need the installed project's identity.
@@ -98,32 +119,37 @@ pub(crate) fn track_version_change(
     items: &[crate::version_change::PlanItem],
 ) -> Result<(), TrackingError> {
     use crate::version_change::{ItemAction, Source};
-    let mut tracked = read_tracking(server_dir)?;
-    for item in items
-        .iter()
-        .filter(|i| matches!(i.action, ItemAction::Update | ItemAction::Add))
-    {
-        let source = match item.source {
-            Some(Source::Modrinth) => PluginSource::Modrinth,
-            Some(Source::Hangar) => PluginSource::Hangar,
-            _ => continue,
-        };
-        let (Some(target), Some(project)) = (&item.target, &item.project_id) else {
-            continue;
-        };
-        tracked
-            .retain(|t| Some(&t.file_name) != item.file_name.as_ref() && &t.project_id != project);
-        tracked.push(TrackedPlugin {
-            file_name: target.file_name.clone(),
-            source,
-            project_id: project.clone(),
-            version_id: target.version_id.clone(),
-            version_number: target.version_number.clone(),
-            title: item.title.clone(),
-            icon_url: item.icon_url.clone(),
-        });
-    }
-    write_tracking(server_dir, &tracked)
+    super::service::with_plugin_lock(server_dir, || {
+        let mut tracked = read_tracking_raw(server_dir)?;
+        for item in items
+            .iter()
+            .filter(|i| matches!(i.action, ItemAction::Update | ItemAction::Add))
+        {
+            let source = match item.source {
+                Some(Source::Modrinth) => PluginSource::Modrinth,
+                Some(Source::Hangar) => PluginSource::Hangar,
+                _ => continue,
+            };
+            let (Some(target), Some(project)) = (&item.target, &item.project_id) else {
+                continue;
+            };
+            tracked.retain(|t| {
+                Some(&t.file_name) != item.file_name.as_ref() && &t.project_id != project
+            });
+            tracked.push(TrackedPlugin {
+                file_name: target.file_name.clone(),
+                source,
+                project_id: project.clone(),
+                version_id: target.version_id.clone(),
+                version_number: target.version_number.clone(),
+                title: item.title.clone(),
+                icon_url: item.icon_url.clone(),
+            });
+        }
+        write_tracking_typed(server_dir, &tracked)?;
+        Ok(())
+    })
+    .map_err(tracking_failure)
 }
 
 #[cfg(test)]

@@ -220,6 +220,14 @@ pub struct ServerProxyHandle {
     pub shutdown_tx: broadcast::Sender<()>,
     pub active_connections: Arc<AtomicUsize>,
     pub is_running: Arc<AtomicBool>,
+    listener_task: tokio::task::JoinHandle<()>,
+}
+
+impl ServerProxyHandle {
+    pub(crate) async fn shutdown(self) {
+        let _ = self.shutdown_tx.send(());
+        let _ = self.listener_task.await;
+    }
 }
 
 /// Spawns the TCP proxy listener on public_port
@@ -246,7 +254,7 @@ where
     let is_running_arc = Arc::new(is_running_fn);
     let is_sleeping_arc = Arc::new(is_sleeping_fn);
 
-    tokio::spawn(async move {
+    let listener_task = tokio::spawn(async move {
         loop {
             tokio::select! {
                 accept_res = listener.accept() => {
@@ -287,5 +295,6 @@ where
         shutdown_tx,
         active_connections,
         is_running,
+        listener_task,
     })
 }

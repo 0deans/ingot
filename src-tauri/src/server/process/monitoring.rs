@@ -1,13 +1,13 @@
 use super::console::{
     clean_console_line, extract_player_keyword, parse_bedrock_connected, parse_bedrock_disconnected,
 };
+use super::lifecycle::ServerLifecycleHooks;
 use super::manager::ServerProcessManager;
 use crate::server::config::{ServerCoreType, ServerLogEvent, ServerStatus, ServerStatusEvent};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
-use tauri::Runtime;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::{Child, ChildStderr, ChildStdout};
 use tokio::sync::Mutex;
@@ -25,7 +25,7 @@ pub(crate) struct StdoutReaderContext {
     pub(crate) on_log: Arc<dyn Fn(ServerLogEvent) + Send + Sync + 'static>,
 }
 
-pub(crate) fn spawn_stdout_reader(ctx: StdoutReaderContext) {
+pub(crate) fn spawn_stdout_reader(ctx: StdoutReaderContext) -> tokio::task::JoinHandle<()> {
     let StdoutReaderContext {
         stdout,
         server_id,
@@ -87,7 +87,7 @@ pub(crate) fn spawn_stdout_reader(ctx: StdoutReaderContext) {
         guard.clear();
         let mut x_guard = player_xuids.lock().await;
         x_guard.clear();
-    });
+    })
 }
 
 async fn process_player_events(
@@ -133,7 +133,7 @@ pub(crate) fn spawn_stderr_reader(
     server_id: String,
     log_history: Arc<Mutex<Vec<String>>>,
     on_log: Arc<dyn Fn(ServerLogEvent) + Send + Sync + 'static>,
-) {
+) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         let mut lines = BufReader::new(stderr).lines();
         while let Ok(Some(raw)) = lines.next_line().await {
@@ -152,39 +152,49 @@ pub(crate) fn spawn_stderr_reader(
                 level: "error".to_string(),
             });
         }
-    });
+    })
 }
 
-pub(crate) struct ExitMonitorContext<R: Runtime> {
-    pub(crate) app: tauri::AppHandle<R>,
+pub(crate) struct ExitMonitorContext {
     pub(crate) pm: ServerProcessManager,
     pub(crate) child_arc: Arc<Mutex<Child>>,
+    pub(crate) readers: Vec<tokio::task::JoinHandle<()>>,
     pub(crate) server_id: String,
     pub(crate) server_dir: PathBuf,
     pub(crate) server_name: String,
     pub(crate) core: ServerCoreType,
     pub(crate) pid: u32,
     pub(crate) ready_flag: Arc<std::sync::atomic::AtomicBool>,
+    pub(crate) hooks: Arc<dyn ServerLifecycleHooks>,
     pub(crate) on_status: Arc<dyn Fn(ServerStatusEvent) + Send + Sync + 'static>,
 }
 
-pub(crate) fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
+pub(crate) fn spawn_exit_monitor(ctx: ExitMonitorContext) -> tokio::task::JoinHandle<()> {
     let ExitMonitorContext {
-        app,
         pm,
         child_arc,
+        readers,
         server_id,
         server_dir,
         server_name,
         core,
         pid,
         ready_flag,
+        hooks,
         on_status,
     } = ctx;
     let started_at = SystemTime::now() - Duration::from_secs(2);
     tokio::spawn(async move {
         let mut child = child_arc.lock().await;
         let exited = child.wait().await;
+        for mut reader in readers {
+            if tokio::time::timeout(Duration::from_secs(1), &mut reader)
+                .await
+                .is_err()
+            {
+                reader.abort();
+            }
+        }
         if !pm.owns(&server_id, pid).await {
             return;
         }
@@ -202,11 +212,11 @@ pub(crate) fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
                 folder.as_slice(),
                 started_at,
             ) {
-                crate::app::events::version_change_crash(&app, crash);
+                hooks.on_crash(crash);
             }
         }
 
-        crate::running::remove(&app, crate::running::Kind::Server, &server_id, pid);
+        hooks.on_process_exited(&server_id, pid);
         if !pm.remove_if_pid_matches(&server_id, pid).await {
             return;
         }
@@ -216,5 +226,5 @@ pub(crate) fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
             status: ServerStatus::Stopped,
             pid: None,
         });
-    });
+    })
 }

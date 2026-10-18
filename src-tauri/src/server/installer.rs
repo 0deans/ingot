@@ -8,7 +8,7 @@ use super::config::ServerCoreType;
 use crate::minecraft::downloader::download_file_chunked;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
+mod execution;
 use tokio::process::Command;
 
 const NEOFORGE_MAVEN: &str = "https://maven.neoforged.net/releases/net/neoforged/neoforge";
@@ -78,8 +78,12 @@ pub enum InstallerError {
     #[error("Download error: {0}")]
     Download(#[from] crate::minecraft::downloader::DownloadError),
 
-    #[error("Failed to run {core} installer: {error}")]
-    Process { core: ServerCoreType, error: String },
+    #[error("Failed to run {core} installer: {source}")]
+    Process {
+        core: ServerCoreType,
+        #[source]
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("The {core} installer failed:\n{details}")]
     InstallationFailed {
@@ -89,6 +93,16 @@ pub enum InstallerError {
 
     #[error("The {0} installer didn't set the server up")]
     NotConfigured(ServerCoreType),
+
+    #[error("The {core} installer exceeded its execution time limit")]
+    ExecutionTimeout { core: ServerCoreType },
+
+    #[error("Installer cleanup failed: {source}")]
+    Cleanup {
+        primary: Option<Box<InstallerError>>,
+        #[source]
+        source: std::io::Error,
+    },
 }
 
 async fn get(client: &reqwest::Client, url: &str) -> Result<reqwest::Response, InstallerError> {
@@ -223,26 +237,93 @@ pub async fn fetch_game_versions(
 
 // ─── Installing ───────────────────────────────────────────────────────────────
 
+fn default_version_dirs(vdir: &Path) -> std::io::Result<Vec<std::io::Result<PathBuf>>> {
+    let entries = std::fs::read_dir(vdir)?;
+    let mut out = Vec::new();
+    for entry in entries {
+        match entry {
+            Ok(e) => match e.file_type() {
+                Ok(ft) => {
+                    if ft.is_dir() {
+                        out.push(Ok(e.path()));
+                    }
+                }
+                Err(err) => out.push(Err(err)),
+            },
+            Err(err) => out.push(Err(err)),
+        }
+    }
+    Ok(out)
+}
+
 /// What to start the installed server with, after the JVM options: an argument file for
 /// NeoForge and Forge ("@libraries/.../unix_args.txt"), the launch jar for Quilt.
-/// None if it isn't installed.
-pub fn launch_args(server_dir: &Path, core: &ServerCoreType) -> Option<Vec<String>> {
+/// Returns Ok(None) if it isn't installed, or an error if installation cannot be inspected.
+pub fn launch_args(
+    server_dir: &Path,
+    core: &ServerCoreType,
+) -> Result<Option<Vec<String>>, InstallerError> {
+    launch_args_with(server_dir, core, default_version_dirs, |p| {
+        std::fs::metadata(p)
+    })
+}
+
+pub(crate) fn launch_args_with<DirFn, MetaFn>(
+    server_dir: &Path,
+    core: &ServerCoreType,
+    mut read_dirs_fn: DirFn,
+    mut meta_fn: MetaFn,
+) -> Result<Option<Vec<String>>, InstallerError>
+where
+    DirFn: FnMut(&Path) -> std::io::Result<Vec<std::io::Result<PathBuf>>>,
+    MetaFn: FnMut(&Path) -> std::io::Result<std::fs::Metadata>,
+{
     if *core == ServerCoreType::Quilt {
-        let installed =
-            server_dir.join(QUILT_LAUNCHER).is_file() && server_dir.join("server.jar").is_file();
-        return installed.then(|| vec!["-jar".into(), QUILT_LAUNCHER.into()]);
+        let launcher = server_dir.join(QUILT_LAUNCHER);
+        let server_jar = server_dir.join("server.jar");
+        let launcher_exists = match meta_fn(&launcher) {
+            Ok(m) => m.is_file(),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
+            Err(e) => return Err(InstallerError::Io(e)),
+        };
+        let server_exists = match meta_fn(&server_jar) {
+            Ok(m) => m.is_file(),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
+            Err(e) => return Err(InstallerError::Io(e)),
+        };
+        if launcher_exists && server_exists {
+            return Ok(Some(vec!["-jar".into(), QUILT_LAUNCHER.into()]));
+        }
+        return Ok(None);
     }
+    let Some(rel_dir) = versions_dir(core) else {
+        return Ok(None);
+    };
+    let vdir = server_dir.join(rel_dir);
+    let dirs = match read_dirs_fn(&vdir) {
+        Ok(dirs) => dirs,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(InstallerError::Io(e)),
+    };
     let name = if cfg!(windows) {
         "win_args.txt"
     } else {
         "unix_args.txt"
     };
-    let mut found: Vec<PathBuf> = std::fs::read_dir(server_dir.join(versions_dir(core)?))
-        .ok()?
-        .flatten()
-        .map(|e| e.path().join(name))
-        .filter(|p| p.is_file())
-        .collect();
+    let mut found: Vec<PathBuf> = Vec::new();
+    for dir_res in dirs {
+        let dir_path = dir_res.map_err(InstallerError::Io)?;
+        let arg_path = dir_path.join(name);
+        match meta_fn(&arg_path) {
+            Ok(m) if m.is_file() => found.push(arg_path),
+            Ok(_) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(InstallerError::Io(e)),
+        }
+    }
+    if found.is_empty() {
+        return Ok(None);
+    }
     found.sort_by_key(|p| {
         version_key(
             &p.parent()
@@ -253,12 +334,12 @@ pub fn launch_args(server_dir: &Path, core: &ServerCoreType) -> Option<Vec<Strin
         )
     });
     let rel = found
-        .pop()?
-        .strip_prefix(server_dir)
-        .ok()?
+        .pop()
+        .and_then(|p| p.strip_prefix(server_dir).ok().map(|s| s.to_path_buf()))
+        .ok_or_else(|| InstallerError::NotConfigured(core.clone()))?
         .to_string_lossy()
         .replace('\\', "/");
-    Some(vec![format!("@{rel}")])
+    Ok(Some(vec![format!("@{rel}")]))
 }
 
 /// Forgets the installed loader so the next start installs it again (after a version change)
@@ -288,7 +369,7 @@ pub fn uninstall(server_dir: &Path, core: &ServerCoreType) -> Result<(), Install
 /// it with (see [`launch_args`]). `java` builds a command running Java with the given
 /// arguments in the server folder (natively, or inside the sandbox on Android).
 /// `pinned` is a loader version to use instead of the newest.
-pub async fn ensure_installed<E: std::fmt::Display>(
+pub async fn ensure_installed<E: std::error::Error + Send + Sync + 'static>(
     client: &reqwest::Client,
     server_dir: &Path,
     core: &ServerCoreType,
@@ -296,7 +377,7 @@ pub async fn ensure_installed<E: std::fmt::Display>(
     pinned: Option<&str>,
     java: impl Fn(&[String]) -> Result<Command, E>,
 ) -> Result<Vec<String>, InstallerError> {
-    if let Some(args) = launch_args(server_dir, core) {
+    if let Some(args) = launch_args(server_dir, core)? {
         return Ok(args);
     }
     let (url, installer, args): (String, &str, Vec<String>) =
@@ -358,38 +439,8 @@ pub async fn ensure_installed<E: std::fmt::Display>(
 
     let path = server_dir.join(installer);
     download_file_chunked(client, &url, &path, None, None).await?;
-    let mut java_args: Vec<String> = vec!["-jar".into(), installer.into()];
-    java_args.extend(args);
-    let mut cmd = java(&java_args).map_err(|e| InstallerError::Process {
-        core: core.clone(),
-        error: e.to_string(),
-    })?;
-    cmd.stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    #[cfg(windows)]
-    cmd.creation_flags(0x08000000);
-    let output = cmd.output().await.map_err(|e| InstallerError::Process {
-        core: core.clone(),
-        error: e.to_string(),
-    })?;
-
-    let _ = std::fs::remove_file(&path);
-    let _ = std::fs::remove_file(server_dir.join(format!("{installer}.log")));
-    if !output.status.success() {
-        let text = format!(
-            "{}{}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
-        );
-        let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
-        let tail = lines[lines.len().saturating_sub(8)..].join("\n");
-        return Err(InstallerError::InstallationFailed {
-            core: core.clone(),
-            details: tail,
-        });
-    }
-    launch_args(server_dir, core).ok_or_else(|| InstallerError::NotConfigured(core.clone()))
+    execution::run_downloaded_installer(server_dir, core, installer, args, java).await?;
+    launch_args(server_dir, core)?.ok_or_else(|| InstallerError::NotConfigured(core.clone()))
 }
 
 #[cfg(test)]

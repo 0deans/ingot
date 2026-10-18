@@ -4,6 +4,7 @@ impl From<crate::minecraft::java::JavaError> for ApiError {
     fn from(error: crate::minecraft::java::JavaError) -> Self {
         use crate::minecraft::java::JavaError;
         match error {
+            JavaError::ProbeCancelled => Self::cancelled(error.to_string()),
             JavaError::Io(_) => Self::storage_failure(error.to_string()),
             JavaError::Http(_) => Self::provider_unavailable(error.to_string()),
             JavaError::MissingBinary => Self::not_found(error.to_string()),
@@ -11,9 +12,12 @@ impl From<crate::minecraft::java::JavaError> for ApiError {
             | JavaError::InvalidVersion
             | JavaError::VersionMismatch { .. }
             | JavaError::UnsafeArchive => Self::invalid_input(error.to_string()),
-            JavaError::Zip(_) | JavaError::ProbeFailed | JavaError::Task(_) => {
-                Self::internal(error.to_string())
-            }
+            JavaError::Zip(_)
+            | JavaError::ProbeFailed
+            | JavaError::ProbeTimeout(_)
+            | JavaError::ProbeSpawn(_)
+            | JavaError::ProbeCleanup { .. }
+            | JavaError::Task(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -56,7 +60,10 @@ impl From<crate::server::files::ServerFileError> for ApiError {
 
 impl From<crate::server::plugins::tracking::TrackingError> for ApiError {
     fn from(error: crate::server::plugins::tracking::TrackingError) -> Self {
-        Self::storage_failure(error.to_string())
+        match error {
+            crate::server::plugins::tracking::TrackingError::Recovery(error) => Self::from(*error),
+            error => Self::storage_failure(error.to_string()),
+        }
     }
 }
 
@@ -104,9 +111,9 @@ impl From<crate::server::plugins::PluginError> for ApiError {
             | PluginError::ManualDownloadRequired(_) => Self::invalid_input(error.to_string()),
             PluginError::Tracking(error) => Self::from(error),
             PluginError::Io(error) => Self::storage_failure(error.to_string()),
-            PluginError::PublicationRollbackFailed { .. } | PluginError::Cleanup { .. } => {
-                Self::incomplete_recovery(error.to_string())
-            }
+            PluginError::PublicationRollbackFailed { .. }
+            | PluginError::Cleanup { .. }
+            | PluginError::RecoveryBlocked(_) => Self::incomplete_recovery(error.to_string()),
             PluginError::PublicationFailed { primary } => Self::from(*primary),
             PluginError::HttpClient(_)
             | PluginError::RequestFailed(_)
@@ -172,6 +179,8 @@ impl From<crate::server::installer::InstallerError> for ApiError {
     fn from(error: crate::server::installer::InstallerError) -> Self {
         use crate::server::installer::InstallerError;
         match error {
+            InstallerError::Cleanup { .. } => Self::incomplete_recovery(error.to_string()),
+            InstallerError::ExecutionTimeout { .. } => Self::internal(error.to_string()),
             InstallerError::Network(_) => Self::provider_unavailable(error.to_string()),
             InstallerError::Download(err) => Self::from(err),
             InstallerError::VersionUnavailable { .. }
@@ -289,9 +298,13 @@ impl From<crate::server::tunnel::PlayitError> for ApiError {
     fn from(error: crate::server::tunnel::PlayitError) -> Self {
         use crate::server::tunnel::PlayitError;
         match error {
-            PlayitError::Io(_) | PlayitError::AppData(_) => {
-                Self::storage_failure(error.to_string())
-            }
+            PlayitError::Io(_)
+            | PlayitError::AppData(_)
+            | PlayitError::CredentialRead(_)
+            | PlayitError::CredentialWrite(_)
+            | PlayitError::CredentialDelete(_) => Self::storage_failure(error.to_string()),
+            PlayitError::Cancelled => Self::cancelled(error.to_string()),
+            PlayitError::TerminationFailed(_) => Self::internal(error.to_string()),
             PlayitError::Network(_)
             | PlayitError::HttpStatus(_)
             | PlayitError::InvalidResponse

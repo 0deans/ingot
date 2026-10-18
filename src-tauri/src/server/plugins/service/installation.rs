@@ -2,13 +2,13 @@ use super::super::{
     metadata::safe_jar_name,
     models::{InstallReport, PluginError, PluginSource, PluginUpdate, TrackedPlugin},
     providers::{pick_version, project_title, PluginProvider},
-    tracking::{read_tracking, write_tracking_typed},
+    tracking::{read_tracking, read_tracking_raw},
 };
 use super::{
     discovery::{versions, versions_with_provider},
     download::download_with_stage,
     installed::{folder, list_installed},
-    publication::publish_plugin_batch,
+    publication::{publish_plugin_transaction_locked, with_plugin_lock},
 };
 use crate::server::config::ServerCoreType;
 use std::{
@@ -140,35 +140,34 @@ pub(crate) async fn install_with_provider(
             queue.push((dep.project_id.clone(), None, false));
         }
     }
-    let mut tracked = read_tracking(server_dir)?;
-    let mut old_files = Vec::new();
-    for item in &pending {
-        for old in tracked
-            .iter()
-            .filter(|old| old.project_id == item.tracking.project_id)
-        {
-            for filename in [&old.file_name, &format!("{}.disabled", old.file_name)] {
-                let path = crate::app::safe_enclosed_filename(&dir, filename)
-                    .ok_or_else(|| PluginError::InvalidJarName(filename.clone()))?;
-                if path.exists() {
-                    old_files.push(path);
+    with_plugin_lock(server_dir, || {
+        let mut tracked = read_tracking_raw(server_dir)?;
+        let mut old_files = Vec::new();
+        for item in &pending {
+            for old in tracked
+                .iter()
+                .filter(|old| old.project_id == item.tracking.project_id)
+            {
+                for filename in [&old.file_name, &format!("{}.disabled", old.file_name)] {
+                    let path = crate::app::safe_enclosed_filename(&dir, filename)
+                        .ok_or_else(|| PluginError::InvalidJarName(filename.clone()))?;
+                    if path.exists() {
+                        old_files.push(path);
+                    }
                 }
             }
+            tracked.retain(|old| {
+                old.project_id != item.tracking.project_id
+                    && old.file_name != item.tracking.file_name
+            });
+            tracked.push(item.tracking.clone());
         }
-        tracked.retain(|old| {
-            old.project_id != item.tracking.project_id && old.file_name != item.tracking.file_name
-        });
-        tracked.push(item.tracking.clone());
-    }
-    let replacements = pending
-        .iter()
-        .map(|item| (item.stage.clone(), item.target.clone()))
-        .collect::<Vec<_>>();
-    publish_plugin_batch(
-        &replacements,
-        || write_tracking_typed(server_dir, &tracked).map_err(PluginError::Io),
-        &old_files,
-    )?;
+        let replacements = pending
+            .iter()
+            .map(|item| (item.stage.clone(), item.target.clone()))
+            .collect::<Vec<_>>();
+        publish_plugin_transaction_locked(server_dir, core, &replacements, &old_files, &tracked)
+    })?;
     Ok(report)
 }
 

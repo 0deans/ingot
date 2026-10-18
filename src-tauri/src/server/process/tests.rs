@@ -6,9 +6,30 @@ use super::console::{
 use super::manager::ServerProcessManager;
 use super::models::StartingGuard;
 use crate::server::config::ServerStatus;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
+
+#[tokio::test]
+async fn stop_all_admission_cancels_pending_starts_and_reopens_after_last_owner() {
+    use super::models::ProcessError;
+    let manager = ServerProcessManager::new();
+    let pending = manager.try_claim_starting("pending").unwrap();
+    let first = manager.pause_starts();
+    assert!(matches!(
+        pending.generation.enter(),
+        Err(ProcessError::ServerStopped)
+    ));
+    assert!(manager.try_claim_starting("new").is_err());
+    let second = manager.pause_starts();
+    drop(first);
+    assert!(manager.try_claim_starting("new").is_err());
+    drop(second);
+    let next = manager.try_claim_starting("new").unwrap();
+    assert!(next.generation.enter().is_ok());
+    drop(pending);
+    assert!(manager.is_starting("new"));
+}
 
 #[test]
 fn test_clean_console_line_ansi_and_prompts() {
@@ -79,17 +100,40 @@ async fn test_process_manager_status_and_starting() {
 
 #[test]
 fn test_starting_guard_drop_behavior() {
-    let set = Arc::new(std::sync::Mutex::new(HashSet::new()));
-    set.lock().unwrap().insert("test-srv".to_string());
+    let set = Arc::new(std::sync::Mutex::new(HashMap::new()));
+    let generation = super::models::ServerLaunchGeneration::default();
+    set.lock()
+        .unwrap()
+        .insert("test-srv".to_string(), generation.clone());
 
     let guard = StartingGuard {
         set: set.clone(),
         server_id: "test-srv".to_string(),
+        generation,
     };
-    assert!(set.lock().unwrap().contains("test-srv"));
+    assert!(set.lock().unwrap().contains_key("test-srv"));
 
     drop(guard);
-    assert!(!set.lock().unwrap().contains("test-srv"));
+    assert!(!set.lock().unwrap().contains_key("test-srv"));
+}
+
+#[test]
+fn stale_start_guard_cannot_release_a_newer_reservation() {
+    let manager = ServerProcessManager::new();
+    let old = manager.try_claim_starting("server").unwrap();
+    let replacement = super::models::ServerLaunchGeneration::default();
+    manager
+        .starting_servers
+        .lock()
+        .unwrap()
+        .insert("server".into(), replacement.clone());
+    drop(old);
+    assert!(manager.is_starting("server"));
+    manager.cancel_start("server");
+    assert!(matches!(
+        replacement.enter(),
+        Err(super::models::ProcessError::ServerStopped)
+    ));
 }
 
 #[test]
@@ -171,7 +215,7 @@ async fn maintenance_excludes_server_start_and_releases_ownership() {
     assert!(!manager.is_starting("server"));
 }
 
-async fn server_fixture(pid: u32) -> super::models::ActiveServer {
+pub(super) async fn server_fixture(pid: u32) -> super::models::ActiveServer {
     use super::models::ActiveServer;
     use std::sync::atomic::{AtomicBool, AtomicUsize};
     use tokio::sync::Mutex;
@@ -201,6 +245,7 @@ async fn server_fixture(pid: u32) -> super::models::ActiveServer {
         query_lock: Arc::new(Mutex::new(())),
         pending_queries: Arc::new(AtomicUsize::new(0)),
         ready: Arc::new(AtomicBool::new(true)),
+        abort_handles: Vec::new(),
     }
 }
 
@@ -253,7 +298,7 @@ async fn server_claim_reads_latest_metadata_and_releases_missing_target() {
     let manager = ServerProcessManager::new();
     let maintenance = manager.reserve_maintenance("server").await.unwrap();
     assert!(
-        super::lifecycle::claim_server_from_repository(&repository, &manager, "server")
+        super::lifecycle::claim_server_launch(&repository, &manager, "server")
             .await
             .is_err()
     );
@@ -264,7 +309,7 @@ async fn server_claim_reads_latest_metadata_and_releases_missing_target() {
         })
         .unwrap();
     drop(maintenance);
-    let claimed = super::lifecycle::claim_server_from_repository(&repository, &manager, "server")
+    let claimed = super::lifecycle::claim_server_launch(&repository, &manager, "server")
         .await
         .unwrap();
     assert_eq!(claimed.config.game_version, "1.21");
@@ -276,7 +321,7 @@ async fn server_claim_reads_latest_metadata_and_releases_missing_target() {
         })
         .unwrap();
     assert!(
-        super::lifecycle::claim_server_from_repository(&repository, &manager, "server")
+        super::lifecycle::claim_server_launch(&repository, &manager, "server")
             .await
             .is_err()
     );

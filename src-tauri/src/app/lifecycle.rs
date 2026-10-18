@@ -105,6 +105,7 @@ pub(crate) async fn quit_request<R: Runtime>(app: &tauri::AppHandle<R>) -> QuitR
 /// before it's ended
 pub(crate) async fn stop_all_servers<R: Runtime>(app: &tauri::AppHandle<R>) {
     let pm = get_server_process_manager(app);
+    let _admission = pm.pause_starts();
     let supervisor = get_server_supervisor_manager(app);
     // Sleeping ones only have a proxy; stop those too so nothing wakes up meanwhile
     for id in pm.sleeping_ids().await {

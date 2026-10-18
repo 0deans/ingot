@@ -150,7 +150,11 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
             crate::version_change::VersionChangeError::BackupError(msg)
             | crate::version_change::VersionChangeError::RestoreError(msg)
             | crate::version_change::VersionChangeError::FileOp(msg) => Self::storage_failure(msg),
-            crate::version_change::VersionChangeError::DownloadPrep { .. } => {
+            crate::version_change::VersionChangeError::DownloadPrep { .. }
+            | crate::version_change::VersionChangeError::JournalIo { .. }
+            | crate::version_change::VersionChangeError::JournalEncode(_)
+            | crate::version_change::VersionChangeError::ScanDirectory { .. }
+            | crate::version_change::VersionChangeError::ScanFile { .. } => {
                 Self::storage_failure(error.to_string())
             }
             crate::version_change::VersionChangeError::DownloadFailed { source, .. } => {

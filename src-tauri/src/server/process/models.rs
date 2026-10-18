@@ -4,6 +4,14 @@ use std::sync::Arc;
 use tokio::process::ChildStdin;
 use tokio::sync::Mutex;
 
+pub(crate) struct StartAdmissionPause(pub(super) Arc<std::sync::atomic::AtomicUsize>);
+
+impl Drop for StartAdmissionPause {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, std::sync::atomic::Ordering::AcqRel);
+    }
+}
+
 pub(crate) struct ActiveServer {
     pub(crate) server_id: String,
     pub(crate) core: ServerCoreType,
@@ -23,17 +31,65 @@ pub(crate) struct ActiveServer {
     pub(crate) pending_queries: Arc<std::sync::atomic::AtomicUsize>,
     /// Set once the server logs "Done (...)"; commands sent earlier crash on Paper
     pub(crate) ready: Arc<std::sync::atomic::AtomicBool>,
+    /// Reader tasks; the exit monitor retains ownership until the process is reaped.
+    pub(crate) abort_handles: Vec<tokio::task::AbortHandle>,
+}
+
+impl ActiveServer {
+    pub(crate) fn cancel_tasks(&self) {
+        for handle in &self.abort_handles {
+            handle.abort();
+        }
+    }
 }
 
 /// Removes a server from the "starting" set when launch finishes or fails
 pub struct StartingGuard {
-    pub(crate) set: Arc<std::sync::Mutex<std::collections::HashSet<String>>>,
+    pub(crate) set: Arc<std::sync::Mutex<HashMap<String, ServerLaunchGeneration>>>,
     pub(crate) server_id: String,
+    pub(crate) generation: ServerLaunchGeneration,
+}
+
+#[derive(Clone)]
+pub(crate) struct ServerLaunchGeneration(Arc<std::sync::Mutex<bool>>);
+
+impl Default for ServerLaunchGeneration {
+    fn default() -> Self {
+        Self(Arc::new(std::sync::Mutex::new(true)))
+    }
+}
+
+impl ServerLaunchGeneration {
+    fn matches(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    pub(crate) fn cancel(&self) {
+        match self.0.lock() {
+            Ok(mut active) => *active = false,
+            Err(poisoned) => *poisoned.into_inner() = false,
+        }
+    }
+
+    pub(super) fn enter(&self) -> Result<std::sync::MutexGuard<'_, bool>, ProcessError> {
+        let active = self.0.lock().map_err(|_| ProcessError::ServerStopped)?;
+        if !*active {
+            return Err(ProcessError::ServerStopped);
+        }
+        Ok(active)
+    }
 }
 
 impl Drop for StartingGuard {
     fn drop(&mut self) {
-        if let Ok(mut set) = self.set.lock() {
+        let mut set = match self.set.lock() {
+            Ok(set) => set,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        let owns_reservation = set
+            .get(&self.server_id)
+            .is_some_and(|generation| generation.matches(&self.generation));
+        if owns_reservation {
             set.remove(&self.server_id);
         }
     }
@@ -95,13 +151,13 @@ pub enum ProcessError {
     #[error("No reply to `{0}`")]
     NoReply(String),
     #[error("Failed to write command to server stdin: {0}")]
-    StdinWrite(String),
+    StdinWrite(#[source] std::io::Error),
     #[error("Failed to flush server stdin: {0}")]
-    StdinFlush(String),
+    StdinFlush(#[source] std::io::Error),
     #[error("Failed to download server jar: {0}")]
     JarDownload(String),
     #[error("Failed to spawn server process: {0}")]
-    SpawnFailed(String),
+    SpawnFailed(#[source] std::io::Error),
     #[error("Failed to get server PID")]
     MissingPid,
     #[error("Failed to attach stdin")]

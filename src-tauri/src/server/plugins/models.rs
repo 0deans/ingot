@@ -94,7 +94,7 @@ pub struct InstallReport {
 }
 
 /// What Ingot remembers about jars it installed (for icons and update checks)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrackedPlugin {
     pub file_name: String,
     pub source: PluginSource,
@@ -202,6 +202,8 @@ pub enum PluginError {
     Tracking(#[from] super::tracking::TrackingError),
     #[error("Invalid JSON: {0}")]
     Json(#[from] serde_json::Error),
+    #[error("Plugin recovery is blocked: {0}")]
+    RecoveryBlocked(&'static str),
     #[error("Plugin blocking task failed: {0}")]
     Task(#[from] tokio::task::JoinError),
 }

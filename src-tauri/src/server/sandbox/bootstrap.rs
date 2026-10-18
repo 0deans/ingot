@@ -20,16 +20,27 @@ fn alpine_rootfs_url() -> String {
 }
 
 /// Resolves the sandbox directory inside app data
-pub fn get_sandbox_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, SandboxError> {
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
+pub fn get_sandbox_dir_in(data_dir: &Path) -> Result<PathBuf, SandboxError> {
     let sandbox_dir = data_dir.join("sandbox");
     if !sandbox_dir.exists() {
         fs::create_dir_all(&sandbox_dir)?;
     }
     Ok(sandbox_dir)
+}
+
+/// Resolves the rootfs directory
+pub fn get_rootfs_dir_in(data_dir: &Path) -> Result<PathBuf, SandboxError> {
+    let sandbox_dir = get_sandbox_dir_in(data_dir)?;
+    Ok(sandbox_dir.join("rootfs"))
+}
+
+/// Resolves the sandbox directory inside app data
+pub fn get_sandbox_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, SandboxError> {
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
+    get_sandbox_dir_in(&data_dir)
 }
 
 /// Resolves the rootfs directory
@@ -191,8 +202,18 @@ async fn install_java(
 /// Serializes sandbox setup: concurrent starts would race on extraction and apk's db lock
 static SETUP_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
-/// The Alpine rootfs without Java, for servers that are a native Linux program
-/// (Pumpkin). Returns (sandbox_dir, rootfs_dir).
+pub async fn ensure_base_rootfs_in_dir<FProgress>(
+    data_dir: &Path,
+    client: &reqwest::Client,
+    on_progress: FProgress,
+) -> Result<(PathBuf, PathBuf), SandboxError>
+where
+    FProgress: Fn(&str, f32) + Send + Sync + 'static,
+{
+    let _setup_guard = SETUP_LOCK.lock().await;
+    base_rootfs_in_dir(data_dir, client, &on_progress).await
+}
+
 pub async fn ensure_base_rootfs<R: Runtime, FProgress>(
     app: &tauri::AppHandle<R>,
     client: &reqwest::Client,
@@ -201,28 +222,31 @@ pub async fn ensure_base_rootfs<R: Runtime, FProgress>(
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
-    let _setup_guard = SETUP_LOCK.lock().await;
-    base_rootfs(app, client, &on_progress).await
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
+    ensure_base_rootfs_in_dir(&data_dir, client, on_progress).await
 }
 
-async fn base_rootfs<R: Runtime, FProgress>(
-    app: &tauri::AppHandle<R>,
+async fn base_rootfs_in_dir<FProgress>(
+    data_dir: &Path,
     client: &reqwest::Client,
     on_progress: &FProgress,
 ) -> Result<(PathBuf, PathBuf), SandboxError>
 where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
-    let sandbox_dir = get_sandbox_dir(app)?;
-    let rootfs_dir = get_rootfs_dir(app)?;
+    let sandbox_dir = get_sandbox_dir_in(data_dir)?;
+    let rootfs_dir = get_rootfs_dir_in(data_dir)?;
     if !is_rootfs_installed(&rootfs_dir) {
         install_base_rootfs(client, &sandbox_dir, &rootfs_dir, on_progress).await?;
     }
     Ok((sandbox_dir, rootfs_dir))
 }
 
-pub async fn ensure_sandbox_rootfs<R: Runtime, FProgress>(
-    app: &tauri::AppHandle<R>,
+pub async fn ensure_sandbox_rootfs_in_dir<FProgress>(
+    data_dir: &Path,
     client: &reqwest::Client,
     java_major: u32,
     on_progress: FProgress,
@@ -231,7 +255,7 @@ where
     FProgress: Fn(&str, f32) + Send + Sync + 'static,
 {
     let _setup_guard = SETUP_LOCK.lock().await;
-    let (sandbox_dir, rootfs_dir) = base_rootfs(app, client, &on_progress).await?;
+    let (sandbox_dir, rootfs_dir) = base_rootfs_in_dir(data_dir, client, &on_progress).await?;
 
     let (major, package) = java_package(java_major);
     if let Some(java) = find_guest_java(&rootfs_dir, major) {
@@ -248,4 +272,20 @@ where
 
     on_progress("Sandbox initialization complete!", 1.0);
     Ok((sandbox_dir, rootfs_dir, java))
+}
+
+pub async fn ensure_sandbox_rootfs<R: Runtime, FProgress>(
+    app: &tauri::AppHandle<R>,
+    client: &reqwest::Client,
+    java_major: u32,
+    on_progress: FProgress,
+) -> Result<(PathBuf, PathBuf, String), SandboxError>
+where
+    FProgress: Fn(&str, f32) + Send + Sync + 'static,
+{
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
+    ensure_sandbox_rootfs_in_dir(&data_dir, client, java_major, on_progress).await
 }

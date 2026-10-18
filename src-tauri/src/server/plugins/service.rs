@@ -12,4 +12,6 @@ pub use download::download;
 pub(crate) use installation::install_with_provider;
 pub use installation::{check_updates, install, restore_missing};
 pub use installed::{folder, list_installed, remove, set_enabled};
-pub use publication::publish_installed_plugin;
+pub use publication::{publish_plugin_transaction, recover_plugins};
+
+pub(crate) use publication::with_plugin_lock;

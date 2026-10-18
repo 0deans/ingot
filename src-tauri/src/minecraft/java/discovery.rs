@@ -1,36 +1,12 @@
-use super::JavaError;
+use super::{probe::JavaProbe, JavaError};
 use std::path::{Path, PathBuf};
 
-pub(crate) trait JavaProbe: Send + Sync {
-    fn major_version(&self, binary: &Path) -> Result<u32, JavaError>;
-}
-
-pub(crate) struct NativeProbe;
-
-impl JavaProbe for NativeProbe {
-    fn major_version(&self, binary: &Path) -> Result<u32, JavaError> {
-        let console_binary = binary.with_file_name("java.exe");
-        let probe_binary = if cfg!(windows) && console_binary.is_file() {
-            console_binary.as_path()
-        } else {
-            binary
-        };
-        let mut command = std::process::Command::new(probe_binary);
-        command.arg("-version");
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            command.creation_flags(0x08000000);
-        }
-        let output = command.output()?;
-        if !output.status.success() {
-            return Err(JavaError::ProbeFailed);
-        }
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        parse_version(&stderr)
-            .or_else(|| parse_version(&stdout))
-            .ok_or(JavaError::InvalidVersion)
+pub(crate) fn resolve_probe_binary(binary: &Path) -> PathBuf {
+    let console_binary = binary.with_file_name("java.exe");
+    if cfg!(windows) && console_binary.is_file() {
+        console_binary
+    } else {
+        binary.to_path_buf()
     }
 }
 
@@ -83,12 +59,12 @@ pub(super) fn find_binaries(directory: &Path) -> Result<Vec<PathBuf>, JavaError>
     Ok(binaries)
 }
 
-pub(super) fn validate_binary(
+pub(super) async fn validate_binary(
     binary: PathBuf,
     required: u32,
     probe: &dyn JavaProbe,
 ) -> Result<PathBuf, JavaError> {
-    let actual = probe.major_version(&binary)?;
+    let actual = probe.major_version(&binary).await?;
     if actual != required {
         return Err(JavaError::VersionMismatch { required, actual });
     }

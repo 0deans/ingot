@@ -1,58 +1,48 @@
-use super::command::build_server_command;
 use super::manager::ServerProcessManager;
-use super::models::{ActiveServer, ProcessError, StartingGuard};
+use super::models::{ActiveServer, ProcessError, ServerLaunchGeneration, StartingGuard};
 use super::monitoring::{
     spawn_exit_monitor, spawn_stderr_reader, spawn_stdout_reader, ExitMonitorContext,
     StdoutReaderContext,
 };
+use crate::minecraft::metadata::MetadataRepository;
 use crate::server::config::{
-    get_server_dir, read_server_properties_from_dir, write_server_properties_to_dir, ServerConfig,
-    ServerCoreType, ServerLogEvent, ServerStatus, ServerStatusEvent,
+    read_server_properties_from_dir, write_server_properties_to_dir, ServerConfig, ServerLogEvent,
+    ServerStatus, ServerStatusEvent,
 };
-use crate::server::downloader::ensure_server_jar;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::Runtime;
 use tokio::sync::Mutex;
 
-/// Launches the Minecraft server process
-pub async fn launch_server<R: Runtime, FLog, FStatus>(
-    app: tauri::AppHandle<R>,
-    pm: ServerProcessManager,
-    client: reqwest::Client,
-    server_id: String,
-    on_log: FLog,
-    on_status: FStatus,
-) -> Result<u32, ProcessError>
-where
-    FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
-    FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
-{
-    let mut claimed = claim_server_launch(&app, &pm, &server_id).await?;
-    if claimed.config.core != ServerCoreType::Bedrock
-        && claimed.config.sleep_enabled.unwrap_or(true)
-    {
-        claimed.config.port = crate::server::config::internal_port(&claimed.config);
-    }
-    launch_claimed_server(app, pm, client, claimed, on_log, on_status).await
+/// Trait for receiving server lifecycle events and updating external tracking state.
+pub trait ServerLifecycleHooks: Send + Sync + 'static {
+    fn on_process_started(&self, server_id: &str, pid: u32, started_at: u64);
+    fn on_process_exited(&self, server_id: &str, pid: u32);
+    fn on_crash(&self, crash: crate::version_change::CrashReport);
 }
 
-pub(crate) struct ClaimedServerLaunch {
-    pub(crate) config: ServerConfig,
+/// Strategy for constructing the server execution command.
+pub trait ServerCommandBuilder: Send + Sync + 'static {
+    fn build_command(
+        &self,
+        data_dir: &Path,
+        client: &reqwest::Client,
+        config: &ServerConfig,
+        server_dir: &Path,
+        step: Arc<dyn Fn(&str) + Send + Sync>,
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<tokio::process::Command, ProcessError>> + Send>,
+    >;
+}
+
+pub struct ClaimedServerLaunch {
+    pub config: ServerConfig,
     ownership: StartingGuard,
 }
 
-pub(crate) async fn claim_server_launch<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    processes: &ServerProcessManager,
-    server_id: &str,
-) -> Result<ClaimedServerLaunch, ProcessError> {
-    claim_server_from_repository(&crate::app::state(app).server_configs, processes, server_id).await
-}
-
-pub(super) async fn claim_server_from_repository(
+pub(crate) async fn claim_server_launch(
     repository: &crate::minecraft::metadata::MetadataRepository<ServerConfig>,
     processes: &ServerProcessManager,
     server_id: &str,
@@ -66,37 +56,62 @@ pub(super) async fn claim_server_from_repository(
     Ok(ClaimedServerLaunch { config, ownership })
 }
 
-pub(crate) async fn launch_claimed_server<R: Runtime, FLog, FStatus>(
-    app: tauri::AppHandle<R>,
-    pm: ServerProcessManager,
-    client: reqwest::Client,
-    claimed: ClaimedServerLaunch,
-    on_log: FLog,
-    on_status: FStatus,
-) -> Result<u32, ProcessError>
-where
-    FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
-    FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
-{
-    let ClaimedServerLaunch {
-        config,
-        ownership: _starting,
-    } = claimed;
+/// Ensures required configuration files (EULA and server.properties) are written before launch.
+pub fn setup_server_environment(
+    server_dir: &Path,
+    config: &ServerConfig,
+) -> Result<(), ProcessError> {
+    let eula_path = server_dir.join("eula.txt");
+    if !eula_path.exists() {
+        std::fs::write(&eula_path, "# Agreed by Ingot\neula=true\n").map_err(ProcessError::Io)?;
+    }
+
+    let mut props = read_server_properties_from_dir(server_dir)?;
+    if props.server_port != config.port {
+        props.server_port = config.port;
+        write_server_properties_to_dir(server_dir, &props)?;
+    }
+    let bind_ip = if config.sleep_enabled.unwrap_or(true) {
+        "127.0.0.1"
+    } else {
+        ""
+    };
+    crate::server::files::write_properties(
+        server_dir,
+        &[crate::server::files::PropertyEntry {
+            key: "server-ip".to_string(),
+            value: bind_ip.to_string(),
+        }],
+    )?;
+    Ok(())
+}
+
+/// Dependencies owned by one server launch and retained for supervised wakes.
+#[derive(Clone)]
+pub(crate) struct ServerLaunchContext {
+    pub(crate) repository: Arc<MetadataRepository<ServerConfig>>,
+    pub(crate) server_dir: PathBuf,
+    pub(crate) data_dir: PathBuf,
+    pub(crate) processes: ServerProcessManager,
+    pub(crate) client: reqwest::Client,
+    pub(crate) hooks: Arc<dyn ServerLifecycleHooks>,
+    pub(crate) command_builder: Arc<dyn ServerCommandBuilder>,
+    pub(crate) on_log: Arc<dyn Fn(ServerLogEvent) + Send + Sync>,
+    pub(crate) on_status: Arc<dyn Fn(ServerStatusEvent) + Send + Sync>,
+    pub(crate) publication: ServerLaunchGeneration,
+}
+
+pub(crate) async fn launch_claimed_server(
+    context: &ServerLaunchContext,
+    claimed: &ClaimedServerLaunch,
+) -> Result<u32, ProcessError> {
+    let config = claimed.config.clone();
     let server_id = config.id.clone();
 
-    let on_status = Arc::new(on_status);
-    let status_cb = on_status.clone();
-    let on_log = Arc::new(on_log);
-    let log_cb = on_log.clone();
-    let result = launch_server_inner(
-        app,
-        pm.clone(),
-        client,
-        config,
-        move |e| log_cb(e),
-        move |e| status_cb(e),
-    )
-    .await;
+    let pm = &context.processes;
+    let on_log = &context.on_log;
+    let on_status = &context.on_status;
+    let result = launch_server_inner(context, config, &claimed.ownership.generation).await;
 
     if let Err(ref e) = result {
         on_log(ServerLogEvent {
@@ -104,32 +119,37 @@ where
             line: format!("[Ingot] Failed to start: {e}"),
             level: "error".to_string(),
         });
-    }
-    if result.is_err() && pm.get_server_status(&server_id).await != ServerStatus::Running {
-        on_status(ServerStatusEvent {
-            server_id: server_id.clone(),
-            status: ServerStatus::Stopped,
-            pid: None,
-        });
+        if pm.get_server_status(&server_id).await != ServerStatus::Running {
+            pm.set_server_status(&server_id, ServerStatus::Stopped)
+                .await;
+            on_status(ServerStatusEvent {
+                server_id: server_id.clone(),
+                status: ServerStatus::Stopped,
+                pid: None,
+            });
+        }
     }
     result
 }
 
-async fn launch_server_inner<R: Runtime, FLog, FStatus>(
-    app: tauri::AppHandle<R>,
-    pm: ServerProcessManager,
-    client: reqwest::Client,
+async fn launch_server_inner(
+    context: &ServerLaunchContext,
     config: ServerConfig,
-    on_log: FLog,
-    on_status: FStatus,
-) -> Result<u32, ProcessError>
-where
-    FLog: Fn(ServerLogEvent) + Send + Sync + 'static,
-    FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
-{
-    let on_status: Arc<dyn Fn(ServerStatusEvent) + Send + Sync + 'static> = Arc::new(on_status);
+    generation: &ServerLaunchGeneration,
+) -> Result<u32, ProcessError> {
+    let ServerLaunchContext {
+        repository,
+        server_dir,
+        data_dir,
+        processes: pm,
+        client,
+        hooks,
+        command_builder: cmd_builder,
+        on_log,
+        on_status,
+        publication,
+    } = context;
     let server_id = config.id.clone();
-    let server_dir = get_server_dir(&app, &server_id)?;
 
     pm.set_server_status(&server_id, ServerStatus::Starting)
         .await;
@@ -139,13 +159,13 @@ where
         pid: None,
     });
 
-    let on_log = Arc::new(on_log);
+    let on_log = on_log.clone();
     let setup_log: Arc<std::sync::Mutex<Vec<String>>> = Arc::default();
     let step = {
         let on_log = on_log.clone();
         let setup_log = setup_log.clone();
         let server_id = server_id.clone();
-        move |msg: &str| {
+        Arc::new(move |msg: &str| {
             let line = format!("[Ingot] {msg}");
             if let Ok(mut log) = setup_log.lock() {
                 log.push(line.clone());
@@ -155,58 +175,18 @@ where
                 line,
                 level: "info".to_string(),
             });
-        }
+        })
     };
 
-    // 1. Ensure server.jar is downloaded
-    step("Checking server files...");
-    let core_type = config.core.clone();
-    let game_ver = config.game_version.clone();
-    let build_num = config.build_number.as_deref();
+    repository.with_serialized(|| {
+        crate::server::config::repair_offline_uuids(server_dir)?;
+        setup_server_environment(server_dir, &config)
+    })??;
 
-    if let Err(e) = ensure_server_jar(&client, &server_dir, &core_type, &game_ver, build_num).await
-    {
-        pm.set_server_status(&server_id, ServerStatus::Stopped)
-            .await;
-        on_status(ServerStatusEvent {
-            server_id: server_id.clone(),
-            status: ServerStatus::Stopped,
-            pid: None,
-        });
-        return Err(ProcessError::Core(e));
-    }
-
-    crate::app::state(&app)
-        .server_configs
-        .with_serialized(|| crate::server::config::repair_offline_uuids(&server_dir))??;
-
-    // 2. Ensure eula.txt is accepted
-    let eula_path = server_dir.join("eula.txt");
-    if !eula_path.exists() {
-        let _ = std::fs::write(eula_path, "# Agreed by Ingot\neula=true\n");
-    }
-
-    // 3. Ensure server.properties exists and has configured port & loopback bind when behind proxy
-    let mut props = read_server_properties_from_dir(&server_dir)?;
-    if props.server_port != config.port {
-        props.server_port = config.port;
-        write_server_properties_to_dir(&server_dir, &props)?;
-    }
-    let bind_ip = if config.sleep_enabled.unwrap_or(true) {
-        "127.0.0.1"
-    } else {
-        ""
-    };
-    crate::server::files::write_properties(
-        &server_dir,
-        &[crate::server::files::PropertyEntry {
-            key: "server-ip".to_string(),
-            value: bind_ip.to_string(),
-        }],
-    )?;
-
-    // 4. Build execution command
-    let mut cmd = build_server_command(&app, &client, &config, &server_dir, step.clone()).await?;
+    // 3. Build execution command
+    let mut cmd = cmd_builder
+        .build_command(data_dir, client, &config, server_dir, step.clone())
+        .await?;
 
     step("Launching server process...");
     cmd.stdin(Stdio::piped())
@@ -219,9 +199,14 @@ where
         cmd.creation_flags(0x08000000);
     }
 
-    let mut child = cmd
-        .spawn()
-        .map_err(|e| ProcessError::SpawnFailed(e.to_string()))?;
+    cmd.kill_on_drop(true);
+    // Acquire before spawning: cancellation cannot split spawn from registry publication.
+    let mut registry = pm.servers.lock().await;
+    // Lock order: async registry, launch generation, supervisor generation.
+    // Cancellation releases its synchronous gate before acquiring the registry.
+    let _launch_publication = generation.enter()?;
+    let _supervisor_publication = publication.enter()?;
+    let mut child = cmd.spawn().map_err(ProcessError::SpawnFailed)?;
 
     let pid = child.id().ok_or(ProcessError::MissingPid)?;
 
@@ -245,25 +230,50 @@ where
         .map(|d| d.as_secs())
         .unwrap_or(0);
 
-    pm.insert_server(ActiveServer {
+    let stdout_task = spawn_stdout_reader(StdoutReaderContext {
+        stdout,
         server_id: server_id.clone(),
-        core: config.core.clone(),
-        pid,
-        port: config.port,
-        started_at: now,
-        status: ServerStatus::Running,
-        stdin: stdin_arc.clone(),
+        server_dir: server_dir.to_path_buf(),
+        ready: ready.clone(),
+        line_tx: line_tx.clone(),
+        pending_queries: pending_queries.clone(),
         log_history: log_history.clone(),
         online_players: online_players.clone(),
         player_xuids: player_xuids.clone(),
-        line_tx: line_tx.clone(),
-        query_lock: Arc::new(Mutex::new(())),
-        pending_queries: pending_queries.clone(),
-        ready: ready.clone(),
-    })
-    .await;
+        on_log: on_log.clone(),
+    });
 
-    crate::running::add(&app, crate::running::Kind::Server, &server_id, pid, now);
+    let stderr_task = spawn_stderr_reader(
+        stderr,
+        server_id.clone(),
+        log_history.clone(),
+        on_log.clone(),
+    );
+
+    let abort_handles = vec![stdout_task.abort_handle(), stderr_task.abort_handle()];
+
+    registry.insert(
+        server_id.clone(),
+        ActiveServer {
+            server_id: server_id.clone(),
+            core: config.core.clone(),
+            pid,
+            port: config.port,
+            started_at: now,
+            status: ServerStatus::Running,
+            stdin: stdin_arc.clone(),
+            log_history: log_history.clone(),
+            online_players: online_players.clone(),
+            player_xuids: player_xuids.clone(),
+            line_tx: line_tx.clone(),
+            query_lock: Arc::new(Mutex::new(())),
+            pending_queries: pending_queries.clone(),
+            ready: ready.clone(),
+            abort_handles,
+        },
+    );
+
+    hooks.on_process_started(&server_id, pid, now);
 
     on_status(ServerStatusEvent {
         server_id: server_id.clone(),
@@ -271,33 +281,20 @@ where
         pid: Some(pid),
     });
 
-    spawn_stdout_reader(StdoutReaderContext {
-        stdout,
-        server_id: server_id.clone(),
-        server_dir: server_dir.clone(),
-        ready,
-        line_tx,
-        pending_queries,
-        log_history: log_history.clone(),
-        online_players,
-        player_xuids,
-        on_log: on_log.clone(),
-    });
-
-    spawn_stderr_reader(stderr, server_id.clone(), log_history, on_log);
-
+    drop(registry);
+    // The exit monitor is the reaping owner and must never be cancelled with readers.
     spawn_exit_monitor(ExitMonitorContext {
-        app,
-        pm,
+        pm: pm.clone(),
         child_arc,
+        readers: vec![stdout_task, stderr_task],
         server_id,
-        server_dir,
+        server_dir: server_dir.clone(),
         server_name: config.name,
         core: config.core,
         pid,
         ready_flag,
+        hooks: hooks.clone(),
         on_status: on_status.clone(),
     });
-
     Ok(pid)
 }
