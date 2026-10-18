@@ -1329,3 +1329,20 @@ Verification of the final combined tree:
 - No staging, unstaging or commits were performed by this implementation. User-staged changes encountered during continuation were preserved.
 
 Maintainability review: process/manager.rs is approximately 500 lines after admission, reservation and shutdown fixes. It retains the shared registry's command/query/stop operations and concrete ownership state; this is a reviewed size exception, not a claim that every implementation file is below a hard threshold. Other new responsibilities are separated into native lifecycle adapters, probe ownership, installer execution, publication journal validation/recovery, and feature-local tests.
+
+
+### Transaction errors and content/platform audit fixes — 2026-10-18
+
+Scope: the six findings from the transaction-error and content/platform audit.
+
+- Moved version-change errors out of the model file. File operations and journal decoding preserve native causes; restoration aggregates retain individual typed failures; rollback retains its primary, restoration, and checkpoint failures. Heterogeneous metadata callback errors are boxed only at that effect boundary, retaining their original types and source chains.
+- Rollback acknowledges cleanup only after it succeeds. A restored checkpoint permits cleanup retry without replaying file restoration or committing metadata again. Failed staging cleanup and failed checkpoint writes are reported explicitly.
+- Crash-triggered disabling records a validated recovery intent before renaming. Tests cover checkpoint failure and recovery on either side of the rename.
+- Content discovery and installation use explicit service dependencies, application-owned HTTP clients, injected provider endpoints, and an application adapter for native paths/state. Instance errors remain typed. Blocking publication owns its repository and staging directory until completion.
+- Combined search requires both providers because the current response has no partial-result status. Provider/version-list failures propagate; optional CurseForge description failures deliberately fall back to the project summary. Pagination overflow and nested download filenames are rejected.
+- File-manager command planning/opening/revealing lives in the application adapter. Unsupported platforms return an error. Tests inspect Windows/macOS/Linux argument vectors and inject spawn failures without opening native applications.
+- IPC names, arguments exposed to TypeScript, persisted journal shapes, and provider/dependency pins remain unchanged. Bindings were regenerated through their exporter and produced no diff.
+
+Verification: the final instrumented all-target suite passed 649 Rust tests, with 16 opt-in tests ignored (including subprocess fixtures exercised by parent tests). Clippy with warnings denied, rustfmt, binding regeneration/freshness, TypeScript, all 14 IPC tests, Biome, and the final Android arm64 compile passed. Exported bindings have no diff. Windows coverage is 15,730 / 27,835 maintained source-file lines (56.51%); the minimum is now 56.51%, with 240 production source files tracked. The moved screenshot platform file is replaced by the application adapter; new content/service/error files are included, with the existing test-file exclusion policy unchanged. Inline test counters remain part of this measurement; this is not a production-only coverage claim.
+
+Remaining scope: this closes the six audit findings, not the entire roadmap. Other native wrappers (including instance management, server transfer and sandbox setup), higher coverage targets, Linux/macOS execution, and real game/server/file-manager smoke checks remain separate work. No universal power-loss atomicity is claimed.

@@ -13,7 +13,7 @@ use super::{
 };
 use std::{collections::HashMap, fs};
 
-/// Carries out the reviewed plan with an atomic metadata commit, all or nothing.
+/// Applies a reviewed plan, retaining recovery material when rollback or finalization fails.
 pub async fn apply_typed_with_commit<F, E>(
     client: &reqwest::Client,
     target: &Target,
@@ -24,22 +24,11 @@ pub async fn apply_typed_with_commit<F, E>(
 ) -> Result<(), VersionChangeError>
 where
     F: FnOnce() -> Result<(), E>,
-    E: std::fmt::Display,
+    E: std::error::Error + Send + Sync + 'static,
 {
     let root = &target.root;
-    match detect_incomplete_transaction(root) {
-        Ok(Some(incomplete)) => {
-            return Err(VersionChangeError::Custom(format!(
-                "Cannot start version change: a previous transaction is in state {:?} and requires recovery",
-                incomplete.phase
-            )));
-        }
-        Err(err) => {
-            return Err(VersionChangeError::Custom(format!(
-                "Cannot start version change: {err}"
-            )));
-        }
-        Ok(None) => {}
+    if let Some(incomplete) = detect_incomplete_transaction(root)? {
+        return Err(VersionChangeError::IncompleteTransaction(incomplete.phase));
     }
 
     let kinds: HashMap<&str, ContentKind> =
@@ -76,19 +65,16 @@ where
     if !to_download.is_empty() {
         progress("Downloading...".into());
         if let Err(e) = stage_typed(client, &staging, &to_download, &progress).await {
-            let _ = fs::remove_dir_all(&staging);
-            return Err(e);
+            return Err(with_staging_cleanup(e, &staging));
         }
     }
 
     // 2. Snapshot, then swap; any failure puts back what was done so far
     progress("Backing up...".into());
-    remove_path(&backup).map_err(|error| {
-        VersionChangeError::BackupError(format!("Failed to replace previous backup: {error}"))
-    })?;
-    fs::create_dir_all(&backup).map_err(|e| {
-        VersionChangeError::BackupError(format!("Failed to create the backup: {e}"))
-    })?;
+    remove_path(&backup)
+        .map_err(|error| super::super::error::file_io("replace previous backup", &backup, error))?;
+    fs::create_dir_all(&backup)
+        .map_err(|e| super::super::error::file_io("create backup", &backup, e))?;
     let mut journal = Journal {
         created_at: now_secs(),
         from_game_version: plan.from_game_version.clone(),
@@ -110,50 +96,34 @@ where
         &mut journal,
         &progress,
     );
-    let _ = fs::remove_dir_all(&staging);
+    let swap_res = match (swap_res, remove_path(&staging)) {
+        (result, Ok(())) => result,
+        (Ok(()), Err(source)) => Err(super::super::error::file_io(
+            "clean staging",
+            &staging,
+            source,
+        )),
+        (Err(primary), Err(source)) => Err(VersionChangeError::AdditionalFailure {
+            primary: Box::new(primary),
+            secondary: Box::new(super::super::error::file_io(
+                "clean staging",
+                &staging,
+                source,
+            )),
+        }),
+    };
 
-    if let Err(swap_err) = swap_res {
-        let rollback_res = restore(root, &backup, &journal);
-        match rollback_res {
-            Ok(()) => {
-                let _ = fs::remove_dir_all(&backup);
-                return Err(VersionChangeError::RollbackSucceeded(swap_err.to_string()));
-            }
-            Err(restore_err) => {
-                journal.phase = TransactionPhase::RollbackFailed;
-                let _ = write_journal_typed(root, &journal);
-                return Err(VersionChangeError::RollbackFailed {
-                    primary: swap_err.to_string(),
-                    restore: restore_err.to_string(),
-                    backup_path: backup,
-                });
-            }
-        }
+    if let Err(primary) = swap_res {
+        return Err(rollback(root, &backup, &mut journal, primary));
     }
 
     // Save intermediate journal with recorded files
     write_journal_typed(root, &journal)?;
 
     // 3. Commit metadata: unify configuration commit with transaction journal state
-    if let Err(meta_err) = commit_metadata() {
-        let rollback_res = restore(root, &backup, &journal);
-        match rollback_res {
-            Ok(()) => {
-                let _ = fs::remove_dir_all(&backup);
-                return Err(VersionChangeError::RollbackSucceeded(format!(
-                    "Failed to save configuration: {meta_err}"
-                )));
-            }
-            Err(restore_err) => {
-                journal.phase = TransactionPhase::RollbackFailed;
-                let _ = write_journal_typed(root, &journal);
-                return Err(VersionChangeError::RollbackFailed {
-                    primary: format!("Failed to save configuration: {meta_err}"),
-                    restore: restore_err.to_string(),
-                    backup_path: backup,
-                });
-            }
-        }
+    if let Err(source) = commit_metadata() {
+        let primary = VersionChangeError::MetadataCommit(Box::new(source));
+        return Err(rollback(root, &backup, &mut journal, primary));
     }
 
     // 4. Finalize journal state
@@ -188,7 +158,7 @@ pub async fn apply_with_commit<F, E>(
 ) -> Result<(), VersionChangeError>
 where
     F: FnOnce() -> Result<(), E>,
-    E: std::fmt::Display,
+    E: std::error::Error + Send + Sync + 'static,
 {
     apply_typed_with_commit(
         client,
@@ -210,3 +180,74 @@ pub async fn apply(
 ) -> Result<(), VersionChangeError> {
     apply_typed(client, target, plan, backup_worlds, progress).await
 }
+
+fn with_staging_cleanup(
+    primary: VersionChangeError,
+    staging: &std::path::Path,
+) -> VersionChangeError {
+    match remove_path(staging) {
+        Ok(()) => primary,
+        Err(source) => VersionChangeError::AdditionalFailure {
+            primary: Box::new(primary),
+            secondary: Box::new(super::super::error::file_io(
+                "clean staging",
+                staging,
+                source,
+            )),
+        },
+    }
+}
+
+fn rollback(
+    root: &std::path::Path,
+    backup: &std::path::Path,
+    journal: &mut Journal,
+    primary: VersionChangeError,
+) -> VersionChangeError {
+    rollback_with(
+        root,
+        backup,
+        journal,
+        primary,
+        write_journal_typed,
+        super::recovery::cleanup_backup,
+    )
+}
+
+fn rollback_with(
+    root: &std::path::Path,
+    backup: &std::path::Path,
+    journal: &mut Journal,
+    primary: VersionChangeError,
+    checkpoint: impl Fn(&std::path::Path, &Journal) -> Result<(), VersionChangeError>,
+    cleanup: impl FnOnce(&std::path::Path, &std::path::Path) -> Result<(), VersionChangeError>,
+) -> VersionChangeError {
+    if let Err(restore) = restore(root, backup, journal) {
+        journal.phase = TransactionPhase::RollbackFailed;
+        let checkpoint = checkpoint(root, journal).err().map(Box::new);
+        return VersionChangeError::RollbackFailed {
+            primary: Box::new(primary),
+            restore: Box::new(restore),
+            checkpoint,
+            backup_path: backup.to_owned(),
+        };
+    }
+    // Restored permits retrying cleanup without replaying file changes or metadata.
+    journal.phase = TransactionPhase::Restored;
+    if let Err(secondary) = checkpoint(root, journal) {
+        return VersionChangeError::AdditionalFailure {
+            primary: Box::new(primary),
+            secondary: Box::new(secondary),
+        };
+    }
+    match cleanup(root, backup) {
+        Ok(()) => VersionChangeError::RollbackSucceeded(Box::new(primary)),
+        Err(secondary) => VersionChangeError::AdditionalFailure {
+            primary: Box::new(primary),
+            secondary: Box::new(secondary),
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests;

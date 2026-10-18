@@ -410,13 +410,17 @@ async fn metadata_commit_failure_triggers_clean_rollback() {
         &plan,
         false,
         |_| {},
-        || Err::<(), _>("injected metadata failure: disk full"),
+        || {
+            Err::<(), _>(std::io::Error::other(
+                "injected metadata failure: disk full",
+            ))
+        },
     )
     .await;
 
     match res {
         Err(VersionChangeError::RollbackSucceeded(msg)) => {
-            assert!(msg.contains("injected metadata failure"));
+            assert!(msg.to_string().contains("injected metadata failure"));
         }
         other => panic!("expected RollbackSucceeded error, got: {:?}", other),
     }
@@ -468,7 +472,7 @@ async fn metadata_commit_failure_with_failed_restore_preserves_backup() {
         || {
             // Tamper with the backup files before failing commit, so that restore fails
             let _ = fs::remove_file(backup_path.join("files/server.jar"));
-            Err::<(), _>("injected metadata failure")
+            Err::<(), _>(std::io::Error::other("injected metadata failure"))
         },
     )
     .await;
@@ -478,9 +482,10 @@ async fn metadata_commit_failure_with_failed_restore_preserves_backup() {
             primary,
             restore,
             backup_path: preserved,
+            ..
         }) => {
-            assert!(primary.contains("injected metadata failure"));
-            assert!(!restore.is_empty());
+            assert!(primary.to_string().contains("injected metadata failure"));
+            assert!(!restore.to_string().is_empty());
             assert_eq!(preserved, backup_path);
         }
         other => panic!("expected RollbackFailed error, got: {:?}", other),
@@ -563,7 +568,9 @@ fn undo_retry_after_metadata_failure_preserves_restored_files() {
 
     // Undo with failing commit callback (attempt 1)
     let undo_res = undo_typed_with_commit(root, "1.21.0", "fabric", |_| {
-        Err::<(), _>("failed to commit undo to instance config")
+        Err::<(), _>(std::io::Error::other(
+            "failed to commit undo to instance config",
+        ))
     });
     assert!(undo_res.is_err());
     // File was restored, but backup must be preserved because metadata commit failed
@@ -578,7 +585,8 @@ fn undo_retry_after_metadata_failure_preserves_restored_files() {
     );
 
     // Undo retry with successful commit callback (attempt 2)
-    let undo_retry = undo_typed_with_commit(root, "1.21.0", "fabric", |_| Ok::<(), &str>(()));
+    let undo_retry =
+        undo_typed_with_commit(root, "1.21.0", "fabric", |_| Ok::<(), std::io::Error>(()));
     assert!(
         undo_retry.is_ok(),
         "retry after metadata failure must succeed"
@@ -696,7 +704,7 @@ fn interrupted_transaction_at_mutation_boundary_recovers_idempotently() {
             assert_eq!(restored.game_version, "1.20.1");
             assert_eq!(restored.loader, "paper");
             metadata_committed = true;
-            Ok::<(), &str>(())
+            Ok::<(), std::io::Error>(())
         });
     assert!(res.is_ok(), "recovery must succeed: {:?}", res.err());
     assert!(metadata_committed);

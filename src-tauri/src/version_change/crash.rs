@@ -286,9 +286,26 @@ pub fn after_exit(
 
 /// Turns off a file the crash blamed, as part of the change: undo turns it back on
 pub fn disable(root: &Path, folder: &str, file_name: &str) -> Result<(), VersionChangeError> {
-    let mut journal = read_journal(root).ok_or_else(|| {
-        VersionChangeError::Custom("There's no version change to add this to".to_string())
-    })?;
+    disable_with(root, folder, file_name, write_journal_typed)
+}
+
+fn disable_with(
+    root: &Path,
+    folder: &str,
+    file_name: &str,
+    checkpoint: impl FnOnce(&Path, &super::journal::Journal) -> Result<(), VersionChangeError>,
+) -> Result<(), VersionChangeError> {
+    let mut journal = match super::journal::read_journal_state(root) {
+        super::journal::JournalState::Present(journal) => *journal,
+        super::journal::JournalState::Missing => return Err(VersionChangeError::NoVersionChange),
+        super::journal::JournalState::Corrupt(source) => return Err(*source),
+    };
+    if !matches!(
+        journal.phase,
+        super::TransactionPhase::Committed | super::TransactionPhase::Prepared
+    ) {
+        return Err(VersionChangeError::IncompleteTransaction(journal.phase));
+    }
     safe_rel_typed(folder)?;
     let kind = if file_name.to_ascii_lowercase().ends_with(".jar") {
         ContentKind::Mod
@@ -297,16 +314,20 @@ pub fn disable(root: &Path, folder: &str, file_name: &str) -> Result<(), Version
     };
     safe_file_name_typed(file_name, kind)?;
     let rel = format!("{folder}/{file_name}");
-    let disabled = root.join(format!("{rel}.disabled"));
+    let original = super::transaction::checked_path(root, &root.join(&rel))?;
+    let disabled = super::transaction::checked_path(root, &root.join(format!("{rel}.disabled")))?;
     if disabled.exists() {
-        return Err(VersionChangeError::Custom(format!(
-            "{file_name} is already turned off"
-        )));
+        return Err(VersionChangeError::AlreadyDisabled(file_name.to_owned()));
     }
-    fs::rename(root.join(&rel), &disabled)
-        .map_err(|e| VersionChangeError::FileOp(format!("Failed to turn off {file_name}: {e}")))?;
-    journal.disabled.push(rel);
-    write_journal_typed(root, &journal)
+    fs::symlink_metadata(&original).map_err(|source| {
+        super::error::file_io("inspect file before disabling", &original, source)
+    })?;
+    if !journal.disabled.contains(&rel) {
+        journal.disabled.push(rel);
+    }
+    checkpoint(root, &journal)?;
+    fs::rename(&original, &disabled)
+        .map_err(|source| super::error::file_io("disable file", &original, source))
 }
 
 #[cfg(test)]
@@ -325,5 +346,69 @@ mod tests {
         assert_eq!(blamed(forge), ["create", "create-6.0.jar"]);
         let paper = "[ERROR]: Could not load 'plugins/OldPlugin.jar' in folder 'plugins'\nError occurred while enabling Essentials v2.0 (Is it up to date?)";
         assert_eq!(blamed(paper), ["OldPlugin.jar", "Essentials"]);
+    }
+    #[test]
+    fn failed_disable_checkpoint_leaves_original_file_untouched() {
+        let root = tempfile::tempdir().unwrap();
+        fs::create_dir(root.path().join("mods")).unwrap();
+        fs::write(root.path().join("mods/a.jar"), b"original").unwrap();
+        let journal = super::super::journal::Journal::default();
+        write_journal_typed(root.path(), &journal).unwrap();
+        let result = disable_with(root.path(), "mods", "a.jar", |_, _| {
+            Err(super::super::error::file_io(
+                "checkpoint",
+                root.path(),
+                std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+            ))
+        });
+        assert!(matches!(result, Err(VersionChangeError::FileIo { .. })));
+        assert_eq!(
+            fs::read(root.path().join("mods/a.jar")).unwrap(),
+            b"original"
+        );
+        assert!(!root.path().join("mods/a.jar.disabled").exists());
+        assert!(read_journal(root.path()).unwrap().disabled.is_empty());
+    }
+
+    #[test]
+    fn missing_disable_target_does_not_add_an_unrestorable_intent() {
+        let root = tempfile::tempdir().unwrap();
+        write_journal_typed(root.path(), &super::super::journal::Journal::default()).unwrap();
+        let result = disable(root.path(), "mods", "missing.jar");
+        assert!(
+            matches!(result, Err(VersionChangeError::FileIo { source, .. })
+            if source.kind() == std::io::ErrorKind::NotFound)
+        );
+        assert!(read_journal(root.path()).unwrap().disabled.is_empty());
+    }
+
+    #[test]
+    fn interrupted_disable_intent_can_be_restored_before_or_after_rename() {
+        for rename_completed in [false, true] {
+            let root = tempfile::tempdir().unwrap();
+            fs::create_dir(root.path().join("mods")).unwrap();
+            fs::write(root.path().join("mods/a.jar"), b"original").unwrap();
+            let mut journal = super::super::journal::Journal::default();
+            journal.disabled.push("mods/a.jar".into());
+            write_journal_typed(root.path(), &journal).unwrap();
+            if rename_completed {
+                fs::rename(
+                    root.path().join("mods/a.jar"),
+                    root.path().join("mods/a.jar.disabled"),
+                )
+                .unwrap();
+            }
+            super::super::transaction::restore(
+                root.path(),
+                &super::super::models::backup_dir(root.path()),
+                &journal,
+            )
+            .unwrap();
+            assert_eq!(
+                fs::read(root.path().join("mods/a.jar")).unwrap(),
+                b"original"
+            );
+            assert!(!root.path().join("mods/a.jar.disabled").exists());
+        }
     }
 }

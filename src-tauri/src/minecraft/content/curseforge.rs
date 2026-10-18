@@ -19,24 +19,7 @@ pub struct CurseForgeClient {
     api_key: String,
 }
 
-impl Default for CurseForgeClient {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl CurseForgeClient {
-    pub fn new() -> Self {
-        Self::with_endpoint(
-            Client::builder()
-                .user_agent(crate::USER_AGENT)
-                .build()
-                .unwrap_or_default(),
-            DEFAULT_CURSEFORGE_BASE,
-            CURSEFORGE_API_KEY,
-        )
-    }
-
     pub fn with_endpoint(
         client: Client,
         base_url: impl Into<String>,
@@ -164,22 +147,23 @@ impl CurseForgeClient {
                 .json::<CurseForgeDescriptionResponse>()
                 .await
                 .map(|d| d.data)
-                .unwrap_or_default(),
+                .unwrap_or_else(|_| m.summary.clone()),
             _ => m.summary.clone(),
         };
 
-        let mut versions = Vec::new();
-        if let Ok(f_resp) = files_res {
-            if f_resp.status().is_success() {
-                if let Ok(f_data) = f_resp.json::<CurseForgeFilesResponse>().await {
-                    versions = f_data
-                        .data
-                        .into_iter()
-                        .map(map_file_detail_to_unified)
-                        .collect();
-                }
-            }
+        let response = files_res.map_err(ContentError::Transport)?;
+        if !response.status().is_success() {
+            return Err(ContentError::HttpStatus(response.status()));
         }
+        let files = response
+            .json::<CurseForgeFilesResponse>()
+            .await
+            .map_err(ContentError::Response)?;
+        let versions = files
+            .data
+            .into_iter()
+            .map(map_file_detail_to_unified)
+            .collect();
 
         Ok(map_mod_detail_to_unified(m, body, versions))
     }

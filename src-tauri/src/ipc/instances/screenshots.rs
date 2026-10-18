@@ -1,6 +1,6 @@
 use crate::app::screenshots;
 use crate::ipc::ApiError;
-use crate::minecraft::screenshots::{reveal_screenshot_file, ScreenshotInfo};
+use crate::minecraft::screenshots::ScreenshotInfo;
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "instances.screenshots")]
@@ -84,6 +84,6 @@ impl InstanceScreenshotsApi for InstanceScreenshotsApiImpl {
     }
 
     async fn reveal_screenshot_file(self, file_path: String) -> Result<(), ApiError> {
-        reveal_screenshot_file(&file_path).map_err(ApiError::from)
+        crate::app::platform::reveal_file(std::path::Path::new(&file_path)).map_err(ApiError::from)
     }
 }

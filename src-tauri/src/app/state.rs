@@ -6,8 +6,9 @@ use tauri::Manager;
 use super::{lifecycle::LifecycleState, AppPaths};
 
 pub(crate) struct AppState {
-    pub(crate) instances:
+    pub(crate) instances: std::sync::Arc<
         crate::minecraft::metadata::MetadataRepository<crate::minecraft::instance::InstanceConfig>,
+    >,
     pub(crate) server_configs:
         std::sync::Arc<crate::minecraft::metadata::MetadataRepository<crate::server::ServerConfig>>,
     pub(crate) settings: SettingsRepository,
@@ -32,10 +33,12 @@ impl AppState {
             .user_agent(crate::USER_AGENT)
             .build()?;
         Ok(Self {
-            instances: crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
-                paths.instances_file(),
-                paths.instances_dir(),
-                |instance| &instance.id,
+            instances: std::sync::Arc::new(
+                crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+                    paths.instances_file(),
+                    paths.instances_dir(),
+                    |instance| &instance.id,
+                ),
             ),
             server_configs: std::sync::Arc::new(
                 crate::minecraft::metadata::MetadataRepository::with_deletion_directory(

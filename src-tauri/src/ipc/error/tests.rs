@@ -181,14 +181,17 @@ fn test_account_error_boundary_mappings() {
 fn test_version_change_error_boundary_mappings() {
     assert!(matches!(
         ApiError::from(VersionChangeError::RollbackFailed {
-            primary: "failed".into(),
-            restore: "also failed".into(),
+            primary: Box::new(VersionChangeError::InvalidPath("failed".into())),
+            restore: Box::new(VersionChangeError::InvalidPath("also failed".into())),
+            checkpoint: None,
             backup_path: std::path::PathBuf::from("/tmp/backup"),
         }),
         ApiError::IncompleteRecovery { .. }
     ));
     assert!(matches!(
-        ApiError::from(VersionChangeError::RollbackSucceeded("reverted".into())),
+        ApiError::from(VersionChangeError::RollbackSucceeded(Box::new(
+            VersionChangeError::InvalidPath("reverted".into())
+        ))),
         ApiError::Conflict { .. }
     ));
 }

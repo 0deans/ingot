@@ -1,14 +1,13 @@
 //! Tests for Minecraft content searching, details retrieval, and installation.
 use super::{
     curseforge::CurseForgeClient,
-    get_content_details,
     install::{
         construct_curseforge_cdn_url, extract_zip_overrides, parse_curseforge_loader,
         parse_modrinth_loader, target_subfolder_for_project_type, CurseForgeManifestModLoader,
     },
     models::ContentSearchQuery,
     modrinth::ModrinthClient,
-    parse_content_source_and_id, search_content,
+    parse_content_source_and_id,
 };
 use crate::minecraft::instance::ModLoaderType;
 use reqwest::Client;
@@ -522,17 +521,18 @@ async fn test_curseforge_client_get_file_loopback() {
 #[tokio::test]
 #[ignore = "requires the public Modrinth API; run explicitly as a live smoke test"]
 async fn test_search_modrinth_mods() {
-    let res = search_content(
-        "modrinth".into(),
-        "mod".into(),
-        Some("sodium".into()),
-        Some("1.20.1".into()),
-        Some("fabric".into()),
-        Some("downloads".into()),
-        0,
-        5,
-    )
-    .await;
+    let res = super::service::ContentService::new(Client::new())
+        .search_content(crate::minecraft::content::service::ContentSearchRequest {
+            source: "modrinth".into(),
+            project_type: "mod".into(),
+            query: Some("sodium".into()),
+            game_version: Some("1.20.1".into()),
+            loader: Some("fabric".into()),
+            sort: Some("downloads".into()),
+            page: 0,
+            page_size: 5,
+        })
+        .await;
 
     assert!(res.is_ok(), "search_content failed: {:?}", res.err());
     let result = res.unwrap();
@@ -543,17 +543,18 @@ async fn test_search_modrinth_mods() {
 #[tokio::test]
 #[ignore = "requires the public CurseForge API and API key; run explicitly as a live smoke test"]
 async fn test_search_curseforge_mods() {
-    let res = search_content(
-        "curseforge".into(),
-        "mod".into(),
-        Some("jei".into()),
-        Some("1.20.1".into()),
-        Some("forge".into()),
-        Some("downloads".into()),
-        0,
-        5,
-    )
-    .await;
+    let res = super::service::ContentService::new(Client::new())
+        .search_content(crate::minecraft::content::service::ContentSearchRequest {
+            source: "curseforge".into(),
+            project_type: "mod".into(),
+            query: Some("jei".into()),
+            game_version: Some("1.20.1".into()),
+            loader: Some("forge".into()),
+            sort: Some("downloads".into()),
+            page: 0,
+            page_size: 5,
+        })
+        .await;
 
     assert!(res.is_ok(), "CurseForge search failed: {:?}", res.err());
     let result = res.unwrap();
@@ -564,7 +565,9 @@ async fn test_search_curseforge_mods() {
 #[tokio::test]
 #[ignore = "requires the public Modrinth API; run explicitly as a live smoke test"]
 async fn test_get_modrinth_details() {
-    let res = get_content_details("modrinth", "mr:sodium").await;
+    let res = super::service::ContentService::new(Client::new())
+        .get_content_details("modrinth", "mr:sodium")
+        .await;
     assert!(res.is_ok(), "get_modrinth_details failed: {:?}", res.err());
     let details = res.unwrap();
     assert_eq!(details.slug, "sodium");
@@ -574,17 +577,18 @@ async fn test_get_modrinth_details() {
 #[tokio::test]
 #[ignore = "requires the public CurseForge API and API key; run explicitly as a live smoke test"]
 async fn test_search_curseforge_bedrock_addons() {
-    let res = search_content(
-        "curseforge".into(),
-        "addon".into(),
-        None,
-        None,
-        Some("bedrock".into()),
-        Some("downloads".into()),
-        0,
-        5,
-    )
-    .await;
+    let res = super::service::ContentService::new(Client::new())
+        .search_content(crate::minecraft::content::service::ContentSearchRequest {
+            source: "curseforge".into(),
+            project_type: "addon".into(),
+            query: None,
+            game_version: None,
+            loader: Some("bedrock".into()),
+            sort: Some("downloads".into()),
+            page: 0,
+            page_size: 5,
+        })
+        .await;
 
     assert!(
         res.is_ok(),
@@ -597,4 +601,111 @@ async fn test_search_curseforge_bedrock_addons() {
         "expected items from CurseForge Bedrock"
     );
     assert_eq!(result.items[0].source, "curseforge");
+}
+
+#[tokio::test]
+async fn combined_search_propagates_one_or_both_provider_failures() {
+    for (mr_status, cf_status) in [(503, 503), (200, 503), (503, 200), (200, 200)] {
+        let server = MockServer::start(move |_, path| {
+            if path.starts_with("/search") {
+                (
+                    mr_status,
+                    r#"{"hits":[],"total_hits":0,"offset":0,"limit":10}"#.into(),
+                )
+            } else {
+                (
+                    cf_status,
+                    r#"{"data":[],"pagination":{"totalCount":0,"index":0,"pageSize":10}}"#.into(),
+                )
+            }
+        })
+        .await;
+        let service = super::service::ContentService::with_providers(
+            ModrinthClient::with_endpoint(Client::new(), &server.base_url),
+            CurseForgeClient::with_endpoint(Client::new(), &server.base_url, "fixture-key"),
+        );
+        let result = service
+            .search_content(crate::minecraft::content::service::ContentSearchRequest {
+                source: "all".into(),
+                project_type: "mod".into(),
+                query: None,
+                game_version: None,
+                loader: None,
+                sort: None,
+                page: 0,
+                page_size: 10,
+            })
+            .await;
+        match (mr_status, cf_status) {
+            (503, 503) => assert!(matches!(
+                result,
+                Err(super::ContentError::ProvidersUnavailable { .. })
+            )),
+            (200, 503) => assert!(matches!(
+                result,
+                Err(super::ContentError::Provider {
+                    provider: "curseforge",
+                    ..
+                })
+            )),
+            (503, 200) => assert!(matches!(
+                result,
+                Err(super::ContentError::Provider {
+                    provider: "modrinth",
+                    ..
+                })
+            )),
+            _ => assert!(result.unwrap().items.is_empty()),
+        }
+    }
+}
+
+#[tokio::test]
+async fn required_version_responses_cannot_be_replaced_with_empty_versions() {
+    for (status, body) in [(503, "unavailable"), (200, "invalid json")] {
+        let server = MockServer::start(move |_, path| {
+            if path.ends_with("/version") || path.contains("/files") {
+                (status, body.into())
+            } else if path.starts_with("/project/") {
+                (200, r#"{"id":"a","slug":"a","project_type":"mod","title":"A","description":"A","downloads":1}"#.into())
+            } else {
+                (200, r#"{"data":{"id":1,"name":"A","slug":"a","summary":"A"}}"#.into())
+            }
+        }).await;
+        let mr = ModrinthClient::with_endpoint(Client::new(), &server.base_url);
+        let cf = CurseForgeClient::with_endpoint(Client::new(), &server.base_url, "fixture-key");
+        for result in [mr.get_details("a").await, cf.get_details("1").await] {
+            if status == 503 {
+                assert!(matches!(result, Err(super::ContentError::HttpStatus(_))));
+            } else {
+                assert!(matches!(result, Err(super::ContentError::Response(_))));
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn pagination_overflow_is_rejected_before_provider_requests() {
+    let server =
+        MockServer::start(|_, _| panic!("invalid pagination must not request providers")).await;
+    let service = super::service::ContentService::with_providers(
+        ModrinthClient::with_endpoint(Client::new(), &server.base_url),
+        CurseForgeClient::with_endpoint(Client::new(), &server.base_url, "fixture-key"),
+    );
+    let result = service
+        .search_content(crate::minecraft::content::service::ContentSearchRequest {
+            source: "all".into(),
+            project_type: "mod".into(),
+            query: None,
+            game_version: None,
+            loader: None,
+            sort: None,
+            page: u32::MAX,
+            page_size: 2,
+        })
+        .await;
+    assert!(matches!(
+        result,
+        Err(super::ContentError::InvalidPagination)
+    ));
 }

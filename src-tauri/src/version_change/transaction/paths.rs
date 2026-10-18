@@ -37,10 +37,11 @@ fn reject_link_ancestor(path: &Path) -> Result<(), VersionChangeError> {
         Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
         Err(error) => {
-            return Err(VersionChangeError::FileOp(format!(
-                "Cannot inspect {}: {error}",
-                path.display()
-            )))
+            return Err(super::super::error::file_io(
+                "inspect ancestor",
+                path,
+                error,
+            ));
         }
     };
     #[cfg(windows)]
@@ -268,10 +269,8 @@ pub fn remove_path(path: &Path) -> std::io::Result<()> {
 /// Moves a file or folder, creating the destination's parent
 pub fn move_path(from: &Path, to: &Path) -> Result<(), VersionChangeError> {
     if let Some(parent) = to.parent() {
-        fs::create_dir_all(parent).map_err(|e| {
-            VersionChangeError::FileOp(format!("Failed to create {}: {e}", parent.display()))
-        })?;
+        fs::create_dir_all(parent)
+            .map_err(|e| super::super::error::file_io("create parent directory", parent, e))?;
     }
-    fs::rename(from, to)
-        .map_err(|e| VersionChangeError::FileOp(format!("Failed to move {}: {e}", from.display())))
+    fs::rename(from, to).map_err(|e| super::super::error::file_io("move file", from, e))
 }

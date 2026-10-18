@@ -40,6 +40,7 @@ pub enum MetadataError {
     Conflict(String),
     #[error("{primary}; publication cleanup also failed: {cleanup}")]
     Cleanup {
+        #[source]
         primary: Box<MetadataError>,
         cleanup: io::Error,
     },

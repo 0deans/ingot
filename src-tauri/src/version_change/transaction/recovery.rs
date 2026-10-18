@@ -5,7 +5,7 @@ use super::super::{
 use super::{paths::remove_path, restoration_files::restore};
 use std::path::Path;
 
-/// Restores everything as it was before the last change, atomically updating metadata.
+/// Restores files before committing metadata; incomplete work remains retryable.
 pub fn undo_typed_with_commit<F, E>(
     root: &Path,
     game_version: &str,
@@ -14,7 +14,7 @@ pub fn undo_typed_with_commit<F, E>(
 ) -> Result<Restored, VersionChangeError>
 where
     F: FnOnce(&Restored) -> Result<(), E>,
-    E: std::fmt::Display,
+    E: std::error::Error + Send + Sync + 'static,
 {
     let journal = match read_journal_state(root) {
         JournalState::Present(j) => *j,
@@ -23,11 +23,7 @@ where
                 "There's no version change to undo".into(),
             ));
         }
-        JournalState::Corrupt(err) => {
-            return Err(VersionChangeError::UndoError(format!(
-                "Cannot undo: recovery journal is corrupt: {err}"
-            )));
-        }
+        JournalState::Corrupt(err) => return Err(*err),
     };
     if journal.phase == TransactionPhase::RollbackFailed {
         return Err(VersionChangeError::UndoError(
@@ -73,7 +69,7 @@ pub fn undo_with_commit<F, E>(
 ) -> Result<Restored, VersionChangeError>
 where
     F: FnOnce(&Restored) -> Result<(), E>,
-    E: std::fmt::Display,
+    E: std::error::Error + Send + Sync + 'static,
 {
     undo_typed_with_commit(root, game_version, loader, commit_metadata)
 }
@@ -90,27 +86,23 @@ pub fn recover_interrupted_transaction_with_commit<F, E>(
 ) -> Result<Restored, VersionChangeError>
 where
     F: FnOnce(&Restored) -> Result<(), E>,
-    E: std::fmt::Display,
+    E: std::error::Error + Send + Sync + 'static,
 {
     let journal = match read_journal_state(root) {
         JournalState::Present(j) => *j,
         JournalState::Missing => {
-            return Err(VersionChangeError::RestoreError(
-                "No recovery journal found".into(),
+            return Err(VersionChangeError::RecoveryUnavailable(
+                "No recovery journal found",
             ));
         }
-        JournalState::Corrupt(err) => {
-            return Err(VersionChangeError::RestoreError(format!(
-                "Cannot recover: recovery journal is corrupt: {err}"
-            )));
-        }
+        JournalState::Corrupt(err) => return Err(*err),
     };
     if matches!(
         journal.phase,
         TransactionPhase::Committed | TransactionPhase::Prepared
     ) {
-        return Err(VersionChangeError::RestoreError(
-            "Transaction was already committed. Use undo instead.".into(),
+        return Err(VersionChangeError::RecoveryUnavailable(
+            "Transaction was already committed. Use undo instead.",
         ));
     }
     finish_restoration(root, journal, commit_metadata, |backup| {
@@ -128,11 +120,11 @@ fn finish_restoration<F, E>(
     root: &Path,
     mut journal: Journal,
     commit_metadata: F,
-    cleanup: impl FnOnce(&Path) -> std::io::Result<()>,
+    cleanup: impl FnOnce(&Path) -> Result<(), VersionChangeError>,
 ) -> Result<Restored, VersionChangeError>
 where
     F: FnOnce(&Restored) -> Result<(), E>,
-    E: std::fmt::Display,
+    E: std::error::Error + Send + Sync + 'static,
 {
     let backup = backup_dir(root);
     let restored = Restored {
@@ -145,20 +137,18 @@ where
         write_journal_typed(root, &journal)?;
         if let Err(primary) = restore(root, &backup, &journal) {
             journal.phase = TransactionPhase::RollbackFailed;
-            let diagnostic = match write_journal_typed(root, &journal) {
-                Ok(()) => primary.to_string(),
-                Err(checkpoint) => {
-                    format!("{primary}; failure checkpoint also failed: {checkpoint}")
-                }
-            };
+            let checkpoint = write_journal_typed(root, &journal).err().map(Box::new);
             return Err(VersionChangeError::RollbackFailed {
-                primary: "Version restoration failed".into(),
-                restore: diagnostic,
+                primary: Box::new(VersionChangeError::RecoveryUnavailable(
+                    "Version restoration failed",
+                )),
+                restore: Box::new(primary),
+                checkpoint,
                 backup_path: backup,
             });
         }
         commit_metadata(&restored).map_err(|error| VersionChangeError::MetadataAfterRestore {
-            message: error.to_string(),
+            source: Box::new(error),
             backup_path: backup.clone(),
         })?;
         journal.phase = TransactionPhase::Restored;
@@ -172,37 +162,48 @@ where
     cleanup(&backup).map_err(|source| VersionChangeError::Finalization {
         operation: "Restoration cleanup",
         backup_path: backup,
-        source,
+        source: Box::new(source),
     })?;
     Ok(restored)
 }
 
-fn cleanup_backup(root: &Path, backup: &Path) -> std::io::Result<()> {
+pub(super) fn cleanup_backup(root: &Path, backup: &Path) -> Result<(), VersionChangeError> {
+    cleanup_backup_with(root, backup, remove_path)
+}
+
+fn cleanup_backup_with(
+    root: &Path,
+    backup: &Path,
+    remove: impl Fn(&Path) -> std::io::Result<()>,
+) -> Result<(), VersionChangeError> {
+    let io_error = |source| super::super::error::file_io("clean recovery backup", backup, source);
     use super::super::models::JOURNAL;
     let journal = match read_journal_state(root) {
         JournalState::Present(journal) => journal,
-        _ => {
-            return Err(std::io::Error::other(
+        JournalState::Corrupt(source) => return Err(*source),
+        JournalState::Missing => {
+            return Err(VersionChangeError::RecoveryUnavailable(
                 "Restoration cleanup checkpoint is unavailable",
             ))
         }
     };
-    for entry in std::fs::read_dir(backup)? {
-        let entry = entry?;
+    for entry in std::fs::read_dir(backup).map_err(io_error)? {
+        let entry = entry.map_err(io_error)?;
         if entry.file_name() != JOURNAL {
-            remove_path(&entry.path())?;
+            remove(&entry.path()).map_err(io_error)?;
         }
     }
-    std::fs::remove_file(backup.join(JOURNAL))?;
+    std::fs::remove_file(backup.join(JOURNAL)).map_err(io_error)?;
     if let Err(primary) = std::fs::remove_dir(backup) {
         // An empty directory can fail deletion after its contents were acknowledged.
         // Restore the checkpoint so cleanup remains explicitly retryable.
         if let Err(checkpoint) = write_journal_typed(root, &journal) {
-            return Err(std::io::Error::other(format!(
-                "{primary}; cleanup checkpoint failed: {checkpoint}"
-            )));
+            return Err(VersionChangeError::AdditionalFailure {
+                primary: Box::new(io_error(primary)),
+                secondary: Box::new(checkpoint),
+            });
         }
-        return Err(primary);
+        return Err(io_error(primary));
     }
     Ok(())
 }
@@ -265,7 +266,7 @@ mod tests {
         let result = finish_restoration(
             root,
             journal,
-            |_| Err("injected metadata failure"),
+            |_| Err(std::io::Error::other("injected metadata failure")),
             |_| Ok(()),
         );
         assert!(matches!(
@@ -273,7 +274,8 @@ mod tests {
             Err(VersionChangeError::MetadataAfterRestore { .. })
         ));
         assert!(super::super::super::journal::transaction_status(root).can_recover);
-        recover_interrupted_transaction_with_commit(root, |_| Ok::<(), String>(())).unwrap();
+        recover_interrupted_transaction_with_commit(root, |_| Ok::<(), std::io::Error>(()))
+            .unwrap();
         assert_originals(root);
         assert!(!backup_dir(root).exists());
     }
@@ -286,11 +288,15 @@ mod tests {
         let result = finish_restoration(
             root,
             journal,
-            |_| Ok::<(), String>(()),
+            |_| Ok::<(), std::io::Error>(()),
             |_| {
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::PermissionDenied,
-                    "injected cleanup failure",
+                Err(super::super::super::error::file_io(
+                    "cleanup",
+                    root,
+                    std::io::Error::new(
+                        std::io::ErrorKind::PermissionDenied,
+                        "injected cleanup failure",
+                    ),
                 ))
             },
         );

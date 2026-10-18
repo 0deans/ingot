@@ -360,3 +360,99 @@ async fn missing_required_download_does_not_publish_or_leave_staging() {
     assert!(result.is_err());
     assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
 }
+
+async fn binary_server(body: Vec<u8>, status: u16) -> Server {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    let task = tokio::spawn(async move {
+        let (mut socket, _) = listener.accept().await.unwrap();
+        let mut request = [0; 4096];
+        assert!(socket.read(&mut request).await.unwrap() > 0);
+        let header = format!(
+            "HTTP/1.1 {status} Response\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            body.len()
+        );
+        socket.write_all(header.as_bytes()).await.unwrap();
+        socket.write_all(&body).await.unwrap();
+    });
+    Server { url, task }
+}
+
+#[tokio::test]
+async fn modpack_service_publishes_files_and_metadata_without_tauri() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path().join("instances");
+    std::fs::create_dir(&root).unwrap();
+    let repository = std::sync::Arc::new(
+        crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+            directory.path().join("instances.json"),
+            root.clone(),
+            |record: &crate::minecraft::instance::InstanceConfig| &record.id,
+        ),
+    );
+    let bytes = archive(
+        "modrinth.index.json",
+        serde_json::json!({"dependencies":{"minecraft":"1.20.1"},"files":[]}),
+        Some(("overrides/options.txt", b"prepared options")),
+    );
+    let server = binary_server(bytes, 200).await;
+    let service = super::ModpackInstaller {
+        client: reqwest::Client::new(),
+        instances: std::sync::Arc::clone(&repository),
+        root: root.clone(),
+        curseforge_base: server.url.clone(),
+    };
+    let config = service
+        .install("Pack", "modrinth", &server.url, "pack.mrpack")
+        .await
+        .unwrap();
+    assert_eq!(repository.load().unwrap().len(), 1);
+    assert_eq!(repository.load().unwrap()[0].id, config.id);
+    assert_eq!(
+        std::fs::read(root.join(&config.id).join("options.txt")).unwrap(),
+        b"prepared options"
+    );
+    assert_eq!(std::fs::read_dir(root).unwrap().count(), 1);
+}
+
+#[tokio::test]
+async fn content_file_service_keeps_previous_file_on_http_failure() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir(root.path().join("mods")).unwrap();
+    std::fs::write(root.path().join("mods/a.jar"), b"old").unwrap();
+    let server = binary_server(b"unavailable".to_vec(), 503).await;
+    let result = super::install_content_file(
+        &reqwest::Client::new(),
+        root.path(),
+        "mod",
+        &server.url,
+        "a.jar",
+    )
+    .await;
+    assert!(matches!(
+        result,
+        Err(crate::minecraft::content::ContentError::HttpStatus(_))
+    ));
+    assert_eq!(
+        std::fs::read(root.path().join("mods/a.jar")).unwrap(),
+        b"old"
+    );
+}
+
+#[tokio::test]
+async fn content_file_service_rejects_nested_filenames_before_download() {
+    let root = tempfile::tempdir().unwrap();
+    let result = super::install_content_file(
+        &reqwest::Client::new(),
+        root.path(),
+        "mod",
+        "invalid-url",
+        "../a.jar",
+    )
+    .await;
+    assert!(matches!(
+        result,
+        Err(crate::minecraft::content::ContentError::InvalidFilename(_))
+    ));
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+}

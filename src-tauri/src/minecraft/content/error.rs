@@ -3,6 +3,20 @@ use reqwest::StatusCode;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ContentError {
+    #[error("Content pagination exceeds the supported range")]
+    InvalidPagination,
+    #[error("{provider} content request failed: {source}")]
+    Provider {
+        provider: &'static str,
+        #[source]
+        source: Box<ContentError>,
+    },
+    #[error("Both content providers failed: Modrinth: {modrinth}; CurseForge: {curseforge}")]
+    ProvidersUnavailable {
+        #[source]
+        modrinth: Box<ContentError>,
+        curseforge: Box<ContentError>,
+    },
     #[error("Instance metadata publication failed: {0}")]
     Metadata(#[source] crate::minecraft::metadata::MetadataError),
     #[error("Network transport failure: {0}")]
@@ -32,14 +46,11 @@ pub enum ContentError {
     #[error("Invalid filename: '{0}'")]
     InvalidFilename(String),
 
-    #[error("Failed to build HTTP client: {0}")]
-    ClientInit(#[source] reqwest::Error),
-
     #[error("Modpack archive missing required manifest ({0})")]
     MissingManifest(&'static str),
 
     #[error("Instance error: {0}")]
-    Instance(String),
+    Instance(#[source] crate::minecraft::instance::InstanceError),
 
     #[error("Modpack contains an invalid or unsafe path: {0}")]
     UnsafePath(String),

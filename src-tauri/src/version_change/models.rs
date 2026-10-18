@@ -2,7 +2,6 @@ use super::sources::{Scope, Source};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use thiserror::Error;
 
 /// Everything version change keeps lives here, inside the instance or server folder
 pub const WORK_DIR: &str = ".ingot/version-change";
@@ -228,97 +227,7 @@ pub enum TransactionPhase {
     Restored,
 }
 
-#[derive(Debug, Error)]
-pub enum VersionChangeError {
-    #[error("Failed to {operation} recovery journal at {path}: {source}")]
-    JournalIo {
-        operation: &'static str,
-        path: PathBuf,
-        #[source]
-        source: std::io::Error,
-    },
-    #[error("Cannot encode recovery journal")]
-    JournalEncode(#[source] serde_json::Error),
-    #[error(transparent)]
-    Source(#[from] super::sources::SourceError),
-    #[error("Unexpected file name: {0}")]
-    InvalidFileName(String),
-    #[error("Unexpected path: {0}")]
-    InvalidPath(String),
-    #[error("Failed to {operation} at {path}: {source}")]
-    DownloadPrep {
-        operation: &'static str,
-        path: PathBuf,
-        #[source]
-        source: std::io::Error,
-    },
-    #[error("Failed to inspect directory at {path}: {source}")]
-    ScanDirectory {
-        path: PathBuf,
-        #[source]
-        source: std::io::Error,
-    },
-    #[error("Failed to read file at {path}: {source}")]
-    ScanFile {
-        path: PathBuf,
-        #[source]
-        source: std::io::Error,
-    },
-    #[error("Download error for {title}: {source}")]
-    DownloadFailed {
-        title: String,
-        #[source]
-        source: crate::minecraft::downloader::DownloadError,
-    },
-    #[error("Version change download task failed: {0}")]
-    Task(#[from] tokio::task::JoinError),
-    #[error("{0} downloaded incorrectly (checksum mismatch)")]
-    ChecksumMismatch(String),
-    #[error("{0} doesn't come from a known download server")]
-    UnknownHost(String),
-    #[error("{0} can't be verified (no checksum)")]
-    NoChecksum(String),
-    #[error("Plan item error: {0}")]
-    PlanError(String),
-    #[error("Invalid version target: {0}")]
-    InvalidTarget(String),
-    #[error("Failed to create backup: {0}")]
-    BackupError(String),
-    #[error("File operation error: {0}")]
-    FileOp(String),
-    #[error("Undo error: {0}")]
-    UndoError(String),
-    #[error("Some files couldn't be restored: {0}")]
-    RestoreError(String),
-    #[error("Migration failed: {primary}. Rollback also failed: {restore}. Recovery backup preserved at {backup_path}")]
-    RollbackFailed {
-        primary: String,
-        restore: String,
-        backup_path: PathBuf,
-    },
-    #[error("Migration failed: {0}. All changes were cleanly rolled back.")]
-    RollbackSucceeded(String),
-    #[error("{operation} failed; recovery material retained at {backup_path}: {source}")]
-    Finalization {
-        operation: &'static str,
-        backup_path: PathBuf,
-        #[source]
-        source: std::io::Error,
-    },
-    #[error("Files restored, but metadata commit failed: {message}. Recovery material retained at {backup_path}")]
-    MetadataAfterRestore {
-        message: String,
-        backup_path: PathBuf,
-    },
-    #[error("Files and metadata changed, but journal finalization failed: {source}. Recovery material retained at {backup_path}")]
-    CommitJournal {
-        backup_path: PathBuf,
-        #[source]
-        source: Box<VersionChangeError>,
-    },
-    #[error("{0}")]
-    Custom(String),
-}
+pub use super::error::VersionChangeError;
 
 pub fn work_dir(root: &Path) -> PathBuf {
     root.join(WORK_DIR)

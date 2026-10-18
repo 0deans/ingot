@@ -73,7 +73,8 @@ impl From<crate::minecraft::content::error::ContentError> for ApiError {
         use crate::minecraft::content::error::ContentError;
         match error {
             ContentError::Metadata(error) => Self::from(error),
-            ContentError::UnknownSource(_)
+            ContentError::InvalidPagination
+            | ContentError::UnknownSource(_)
             | ContentError::MissingField(_)
             | ContentError::InvalidFilename(_)
             | ContentError::MissingManifest(_)
@@ -83,11 +84,13 @@ impl From<crate::minecraft::content::error::ContentError> for ApiError {
             | ContentError::Zip(_) => Self::invalid_input(error.to_string()),
             ContentError::Io(error) => Self::storage_failure(error.to_string()),
             ContentError::Cleanup { .. } => Self::incomplete_recovery(error.to_string()),
-            ContentError::Transport(_)
+            ContentError::ProvidersUnavailable { .. }
+            | ContentError::Provider { .. }
+            | ContentError::Transport(_)
             | ContentError::Response(_)
-            | ContentError::ClientInit(_)
             | ContentError::HttpStatus(_) => Self::provider_unavailable(error.to_string()),
-            ContentError::Task(_) | ContentError::Instance(_) => Self::internal(error.to_string()),
+            ContentError::Instance(source) => Self::from(source),
+            ContentError::Task(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -135,8 +138,9 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
                 primary,
                 restore,
                 backup_path,
+                checkpoint,
             } => Self::incomplete_recovery(format!(
-                "{primary}; restore also failed: {restore}. Recovery backup preserved at {}",
+                "{primary}; restore also failed: {restore}; checkpoint failure: {checkpoint:?}. Recovery backup preserved at {}",
                 backup_path.display()
             )),
             crate::version_change::VersionChangeError::RollbackSucceeded(msg) => {
@@ -147,9 +151,16 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
             | crate::version_change::VersionChangeError::CommitJournal { .. } => {
                 Self::incomplete_recovery(error.to_string())
             }
-            crate::version_change::VersionChangeError::BackupError(msg)
-            | crate::version_change::VersionChangeError::RestoreError(msg)
-            | crate::version_change::VersionChangeError::FileOp(msg) => Self::storage_failure(msg),
+            crate::version_change::VersionChangeError::FileIo { .. }
+            | crate::version_change::VersionChangeError::JournalDecode(_) => Self::storage_failure(error.to_string()),
+            crate::version_change::VersionChangeError::RestoreFailures(_)
+            | crate::version_change::VersionChangeError::MissingRecoveryFile(_)
+            | crate::version_change::VersionChangeError::AdditionalFailure { .. } => Self::incomplete_recovery(error.to_string()),
+            crate::version_change::VersionChangeError::MetadataCommit(_) => Self::storage_failure(error.to_string()),
+            crate::version_change::VersionChangeError::IncompleteTransaction(_)
+            | crate::version_change::VersionChangeError::AlreadyDisabled(_) => Self::conflict(error.to_string()),
+            crate::version_change::VersionChangeError::RecoveryUnavailable(_)
+            | crate::version_change::VersionChangeError::NoVersionChange => Self::invalid_input(error.to_string()),
             crate::version_change::VersionChangeError::DownloadPrep { .. }
             | crate::version_change::VersionChangeError::JournalIo { .. }
             | crate::version_change::VersionChangeError::JournalEncode(_)
@@ -166,7 +177,6 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
             | crate::version_change::VersionChangeError::NoChecksum(msg) => {
                 Self::provider_unavailable(msg)
             }
-            crate::version_change::VersionChangeError::Custom(msg) => Self::internal(msg),
             crate::version_change::VersionChangeError::Source(source) => match source {
                 crate::version_change::sources::SourceError::InvalidProjectId { .. } => {
                     Self::invalid_input(source.to_string())
@@ -287,6 +297,19 @@ impl From<crate::minecraft::downloader::DownloadError> for ApiError {
             | DownloadError::ContentRange(_)
             | DownloadError::Task(_)
             | DownloadError::Other(_) => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::app::screenshots::ScreenshotActionError> for ApiError {
+    fn from(error: crate::app::screenshots::ScreenshotActionError) -> Self {
+        match error {
+            crate::app::screenshots::ScreenshotActionError::Screenshot(source) => {
+                Self::from(source)
+            }
+            crate::app::screenshots::ScreenshotActionError::FileManager(source) => {
+                Self::from(source)
+            }
         }
     }
 }

@@ -102,7 +102,7 @@ pub(crate) async fn delete_screenshot<R: Runtime>(
 pub(crate) fn open_screenshots_folder<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: Option<&str>,
-) -> Result<(), ScreenshotError> {
+) -> Result<(), ScreenshotActionError> {
     let directory = match instance_id {
         Some("bedrock") => screenshots::get_primary_bedrock_screenshots_folder(),
         Some(id) if !id.is_empty() => instance::get_instance_dir(app, id)
@@ -112,5 +112,13 @@ pub(crate) fn open_screenshots_folder<R: Runtime>(
             .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?,
     };
     std::fs::create_dir_all(&directory).map_err(ScreenshotError::Io)?;
-    screenshots::platform::open_screenshots_folder(&directory)
+    super::platform::open_directory(&directory).map_err(ScreenshotActionError::FileManager)
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum ScreenshotActionError {
+    #[error(transparent)]
+    Screenshot(#[from] ScreenshotError),
+    #[error(transparent)]
+    FileManager(#[from] super::platform::OpenDirectoryError),
 }

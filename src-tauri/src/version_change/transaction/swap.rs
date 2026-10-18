@@ -27,24 +27,7 @@ pub fn swap(
                     uuid::Uuid::new_v4()
                 ));
                 let staging_dest = checked_path(root, &staging_dest)?;
-                if let Err(e) = copy_path_contained(&from, &staging_dest, &from, &final_dest) {
-                    let _ = remove_path(&staging_dest);
-                    return Err(VersionChangeError::BackupError(format!(
-                        "Failed to back up {rel}: {e}"
-                    )));
-                }
-                if let Some(parent) = final_dest.parent() {
-                    if let Err(e) = fs::create_dir_all(parent) {
-                        let _ = remove_path(&staging_dest);
-                        return Err(VersionChangeError::BackupError(format!(
-                            "Failed to create directory for {rel}: {e}"
-                        )));
-                    }
-                }
-                if let Err(e) = move_path(&staging_dest, &final_dest) {
-                    let _ = remove_path(&staging_dest);
-                    return Err(e);
-                }
+                prepare_snapshot(&from, &final_dest, &staging_dest)?;
             }
             if !journal.configs.contains(rel) {
                 journal.configs.push(rel.clone());
@@ -72,24 +55,7 @@ pub fn swap(
                         uuid::Uuid::new_v4()
                     ));
                     let staging_dest = checked_path(root, &staging_dest)?;
-                    if let Err(e) = copy_path_contained(&from, &staging_dest, &from, &final_dest) {
-                        let _ = remove_path(&staging_dest);
-                        return Err(VersionChangeError::BackupError(format!(
-                            "Failed to back up the world {world}: {e}"
-                        )));
-                    }
-                    if let Some(parent) = final_dest.parent() {
-                        if let Err(e) = fs::create_dir_all(parent) {
-                            let _ = remove_path(&staging_dest);
-                            return Err(VersionChangeError::BackupError(format!(
-                                "Failed to create directory for {world}: {e}"
-                            )));
-                        }
-                    }
-                    if let Err(e) = move_path(&staging_dest, &final_dest) {
-                        let _ = remove_path(&staging_dest);
-                        return Err(e);
-                    }
+                    prepare_snapshot(&from, &final_dest, &staging_dest)?;
                 }
                 if !journal.worlds.contains(world) {
                     journal.worlds.push(world.clone());
@@ -137,9 +103,8 @@ pub fn swap(
                 }
                 let src = rooted_path(root, &rel)?;
                 if src.exists() {
-                    fs::rename(&src, &disabled).map_err(|e| {
-                        VersionChangeError::FileOp(format!("Failed to turn off {name}: {e}"))
-                    })?;
+                    fs::rename(&src, &disabled)
+                        .map_err(|e| super::super::error::file_io("disable file", &src, e))?;
                 }
             }
             ItemAction::Update | ItemAction::Add => {
@@ -168,4 +133,30 @@ pub fn swap(
         }
     }
     Ok(())
+}
+
+fn prepare_snapshot(
+    source: &Path,
+    destination: &Path,
+    staging: &Path,
+) -> Result<(), VersionChangeError> {
+    let result = (|| {
+        copy_path_contained(source, staging, source, destination)
+            .map_err(|error| super::super::error::file_io("copy backup", source, error))?;
+        move_path(staging, destination)
+    })();
+    match result {
+        Ok(()) => Ok(()),
+        Err(primary) => match remove_path(staging) {
+            Ok(()) => Err(primary),
+            Err(source) => Err(VersionChangeError::AdditionalFailure {
+                primary: Box::new(primary),
+                secondary: Box::new(super::super::error::file_io(
+                    "clean backup staging",
+                    staging,
+                    source,
+                )),
+            }),
+        },
+    }
 }

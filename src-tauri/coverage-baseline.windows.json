@@ -2,10 +2,10 @@
 	"platform": "windows-x86_64",
 	"measuredOn": "2026-10-18",
 	"sourceRoot": "src-tauri/src/",
-	"minimumLinePercent": 55.59,
+	"minimumLinePercent": 56.51,
 	"measuredLines": {
-		"count": 27564,
-		"covered": 15325
+		"count": 27835,
+		"covered": 15730
 	},
 	"files": [
 		"src-tauri/src/account/credentials.rs",
@@ -35,6 +35,7 @@
 		"src-tauri/src/app/accounts/storage.rs",
 		"src-tauri/src/app/accounts/vault.rs",
 		"src-tauri/src/app/archive.rs",
+		"src-tauri/src/app/content.rs",
 		"src-tauri/src/app/events.rs",
 		"src-tauri/src/app/games/exit.rs",
 		"src-tauri/src/app/games/launch.rs",
@@ -106,6 +107,7 @@
 		"src-tauri/src/minecraft/content/install.rs",
 		"src-tauri/src/minecraft/content/install/pack.rs",
 		"src-tauri/src/minecraft/content/modrinth.rs",
+		"src-tauri/src/minecraft/content/service.rs",
 		"src-tauri/src/minecraft/downloader.rs",
 		"src-tauri/src/minecraft/downloader/batch.rs",
 		"src-tauri/src/minecraft/downloader/error.rs",
@@ -145,7 +147,6 @@
 		"src-tauri/src/minecraft/metadata/deletion.rs",
 		"src-tauri/src/minecraft/metadata/publication.rs",
 		"src-tauri/src/minecraft/screenshots/discovery.rs",
-		"src-tauri/src/minecraft/screenshots/platform.rs",
 		"src-tauri/src/minecraft/screenshots/service.rs",
 		"src-tauri/src/minecraft/screenshots/thumbnails.rs",
 		"src-tauri/src/minecraft/sync/execute.rs",
@@ -228,6 +229,7 @@
 		"src-tauri/src/tray.rs",
 		"src-tauri/src/version_change/crash.rs",
 		"src-tauri/src/version_change/dependencies.rs",
+		"src-tauri/src/version_change/error.rs",
 		"src-tauri/src/version_change/journal.rs",
 		"src-tauri/src/version_change/models.rs",
 		"src-tauri/src/version_change/planner.rs",

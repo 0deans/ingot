@@ -33,33 +33,29 @@ pub struct Journal {
     pub first_start_checked: bool,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum JournalState {
     Missing,
     Present(Box<Journal>),
-    Corrupt(String),
+    Corrupt(Box<VersionChangeError>),
 }
 
 pub fn read_journal_state(root: &Path) -> JournalState {
     let path = backup_dir(root).join(JOURNAL);
     if let Err(error) = super::transaction::checked_path(root, &path) {
-        return JournalState::Corrupt(error.to_string());
+        return JournalState::Corrupt(Box::new(error));
     }
     let raw = match fs::read_to_string(&path) {
         Ok(raw) => raw,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return JournalState::Missing,
-        Err(e) => {
-            return JournalState::Corrupt(format!("Unreadable journal at {}: {e}", path.display()))
-        }
+        Err(e) => return JournalState::Corrupt(Box::new(journal_io("read", &path, e))),
     };
     match serde_json::from_str::<Journal>(&raw) {
         Ok(journal) => match validate_journal_paths(&journal) {
             Ok(()) => JournalState::Present(Box::new(journal)),
-            Err(error) => JournalState::Corrupt(error.to_string()),
+            Err(error) => JournalState::Corrupt(Box::new(error)),
         },
-        Err(e) => {
-            JournalState::Corrupt(format!("Invalid journal format at {}: {e}", path.display()))
-        }
+        Err(e) => JournalState::Corrupt(Box::new(VersionChangeError::JournalDecode(e))),
     }
 }
 
@@ -97,17 +93,17 @@ pub fn detect_incomplete_transaction(root: &Path) -> Result<Option<Journal>, Ver
         JournalState::Present(journal) => {
             if matches!(
                 journal.phase,
-                TransactionPhase::Swapping | TransactionPhase::RollbackFailed
-                    | TransactionPhase::Restoring | TransactionPhase::Restored
+                TransactionPhase::Swapping
+                    | TransactionPhase::RollbackFailed
+                    | TransactionPhase::Restoring
+                    | TransactionPhase::Restored
             ) {
                 Ok(Some(*journal))
             } else {
                 Ok(None)
             }
         }
-        JournalState::Corrupt(err) => Err(VersionChangeError::RestoreError(format!(
-            "Corrupt or unreadable recovery journal found: {err}. Manual recovery or inspection required before proceeding."
-        ))),
+        JournalState::Corrupt(err) => Err(*err),
     }
 }
 
@@ -151,7 +147,7 @@ pub fn last_backup(root: &Path) -> Result<Option<VersionBackup>, VersionChangeEr
     let journal = match read_journal_state(root) {
         JournalState::Missing => return Ok(None),
         JournalState::Present(journal) => journal,
-        JournalState::Corrupt(error) => return Err(VersionChangeError::RestoreError(error)),
+        JournalState::Corrupt(error) => return Err(*error),
     };
     if !matches!(
         journal.phase,
@@ -189,7 +185,7 @@ pub fn discard_backup_typed(root: &Path) -> Result<(), VersionChangeError> {
     let backup = backup_dir(root);
     if backup.exists() {
         fs::remove_dir_all(&backup)
-            .map_err(|e| VersionChangeError::FileOp(format!("Failed to delete the backup: {e}")))?;
+            .map_err(|source| super::error::file_io("delete backup", &backup, source))?;
     }
     Ok(())
 }

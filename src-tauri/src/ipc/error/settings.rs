@@ -2,7 +2,16 @@ use super::ApiError;
 
 impl From<crate::app::platform::OpenDirectoryError> for ApiError {
     fn from(error: crate::app::platform::OpenDirectoryError) -> Self {
-        Self::internal(error.to_string())
+        use crate::app::platform::OpenDirectoryError;
+        match error {
+            OpenDirectoryError::Target(source) if source.kind() == std::io::ErrorKind::NotFound => {
+                Self::not_found(source.to_string())
+            }
+            OpenDirectoryError::Target(source) => Self::storage_failure(source.to_string()),
+            OpenDirectoryError::Spawn(_) | OpenDirectoryError::Unsupported => {
+                Self::internal(error.to_string())
+            }
+        }
     }
 }
 

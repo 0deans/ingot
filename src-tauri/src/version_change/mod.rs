@@ -14,6 +14,7 @@
 
 pub mod crash;
 pub mod dependencies;
+mod error;
 pub mod journal;
 pub mod models;
 pub mod planner;

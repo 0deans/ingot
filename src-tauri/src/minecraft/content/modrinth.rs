@@ -90,23 +90,7 @@ pub struct ModrinthClient {
     base_url: String,
 }
 
-impl Default for ModrinthClient {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ModrinthClient {
-    pub fn new() -> Self {
-        Self::with_endpoint(
-            Client::builder()
-                .user_agent(crate::USER_AGENT)
-                .build()
-                .unwrap_or_default(),
-            DEFAULT_MODRINTH_BASE,
-        )
-    }
-
     pub fn with_endpoint(client: Client, base_url: impl Into<String>) -> Self {
         Self {
             client,
@@ -262,35 +246,35 @@ impl ModrinthClient {
         }
         let proj: ModrinthProjectDetail = proj_resp.json().await.map_err(ContentError::Response)?;
 
+        let response = vers_res.map_err(ContentError::Transport)?;
+        if !response.status().is_success() {
+            return Err(ContentError::HttpStatus(response.status()));
+        }
+        let v_list = response
+            .json::<Vec<ModrinthVersionItem>>()
+            .await
+            .map_err(ContentError::Response)?;
         let mut versions = Vec::new();
-        if let Ok(v_resp) = vers_res {
-            if v_resp.status().is_success() {
-                if let Ok(v_list) = v_resp.json::<Vec<ModrinthVersionItem>>().await {
-                    for v in v_list {
-                        if let Some(files) = v.files {
-                            if let Some(f) = files
-                                .iter()
-                                .find(|f| f.primary.unwrap_or(false))
-                                .or_else(|| files.first())
-                            {
-                                versions.push(UnifiedContentVersion {
-                                    id: v.id,
-                                    name: v.name,
-                                    version_number: v.version_number,
-                                    game_versions: v.game_versions.unwrap_or_default(),
-                                    loaders: v.loaders.unwrap_or_default(),
-                                    version_type: v
-                                        .version_type
-                                        .unwrap_or_else(|| "release".into()),
-                                    date_published: v.date_published.unwrap_or_default(),
-                                    downloads: v.downloads.unwrap_or(0),
-                                    filename: f.filename.clone(),
-                                    download_url: f.url.clone(),
-                                    size_bytes: f.size.unwrap_or(0),
-                                });
-                            }
-                        }
-                    }
+        for v in v_list {
+            if let Some(files) = v.files {
+                if let Some(f) = files
+                    .iter()
+                    .find(|f| f.primary.unwrap_or(false))
+                    .or_else(|| files.first())
+                {
+                    versions.push(UnifiedContentVersion {
+                        id: v.id,
+                        name: v.name,
+                        version_number: v.version_number,
+                        game_versions: v.game_versions.unwrap_or_default(),
+                        loaders: v.loaders.unwrap_or_default(),
+                        version_type: v.version_type.unwrap_or_else(|| "release".into()),
+                        date_published: v.date_published.unwrap_or_default(),
+                        downloads: v.downloads.unwrap_or(0),
+                        filename: f.filename.clone(),
+                        download_url: f.url.clone(),
+                        size_bytes: f.size.unwrap_or(0),
+                    });
                 }
             }
         }

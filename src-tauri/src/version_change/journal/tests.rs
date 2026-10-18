@@ -50,3 +50,16 @@ fn unreadable_backup_is_not_measured_as_zero() {
     );
     assert!(error.source().unwrap().is::<io::Error>());
 }
+
+#[test]
+fn malformed_journal_keeps_the_original_json_error() {
+    let root = tempfile::tempdir().unwrap();
+    let backup = backup_dir(root.path());
+    fs::create_dir_all(&backup).unwrap();
+    fs::write(backup.join(JOURNAL), b"{invalid").unwrap();
+    let JournalState::Corrupt(error) = read_journal_state(root.path()) else {
+        panic!("expected invalid journal")
+    };
+    assert!(matches!(*error, VersionChangeError::JournalDecode(_)));
+    assert!(error.source().unwrap().is::<serde_json::Error>());
+}

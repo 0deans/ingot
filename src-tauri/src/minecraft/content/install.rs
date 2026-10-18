@@ -8,7 +8,6 @@ use std::{
     io::{Read, Seek},
     path::Path,
 };
-use tauri::Runtime;
 use zip::ZipArchive;
 
 mod pack;
@@ -171,36 +170,27 @@ pub(crate) fn extract_zip_overrides<R: Read + Seek>(
 }
 
 /// Installs a single content file (mod, resource pack, or shader) into an instance directory.
-pub async fn install_content_file<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    instance_id: &str,
+pub(crate) async fn install_content_file(
+    client: &reqwest::Client,
+    instance_dir: &Path,
     project_type: &str,
     download_url: &str,
     filename: &str,
 ) -> Result<String, ContentError> {
-    let instance_dir = instance::get_instance_dir(app, instance_id)
-        .map_err(|e| ContentError::Instance(e.to_string()))?;
-
-    let clean_name = Path::new(filename)
-        .file_name()
-        .and_then(|n| n.to_str())
-        .ok_or_else(|| ContentError::InvalidFilename(filename.to_string()))?;
-
     let subfolder = target_subfolder_for_project_type(project_type);
-    let target_dir = instance_dir.join(subfolder);
-    if !target_dir.exists() {
-        fs::create_dir_all(&target_dir).map_err(ContentError::Io)?;
-    }
+    let directory = instance_dir.join(subfolder);
+    let filename = filename.to_owned();
+    let clean_name = filename.clone();
+    let target_file = tokio::task::spawn_blocking(move || {
+        let target = crate::app::safe_enclosed_filename(&directory, &filename)
+            .ok_or_else(|| ContentError::InvalidFilename(filename.clone()))?;
+        fs::create_dir_all(&directory).map_err(ContentError::Io)?;
+        Ok::<_, ContentError>(target)
+    })
+    .await
+    .map_err(ContentError::Task)??;
 
-    let target_file = crate::app::safe_enclosed_filename(&target_dir, clean_name)
-        .ok_or_else(|| ContentError::InvalidFilename(filename.to_string()))?;
-
-    let client = reqwest::Client::builder()
-        .user_agent(crate::USER_AGENT)
-        .build()
-        .map_err(ContentError::ClientInit)?;
-
-    let bytes = pack::fetch(&client, download_url).await?;
+    let bytes = pack::fetch(client, download_url).await?;
     tokio::task::spawn_blocking(move || publish_content_file(&target_file, &bytes))
         .await
         .map_err(ContentError::Task)??;
@@ -222,44 +212,50 @@ fn publish_content_file(destination: &Path, bytes: &[u8]) -> Result<(), ContentE
     Ok(())
 }
 
-/// Installs a full modpack archive (.mrpack or CurseForge zip) into a new instance.
-pub async fn install_modpack_instance<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    name: &str,
-    source: &str,
-    download_url: &str,
-    filename: &str,
-) -> Result<InstanceConfig, ContentError> {
-    let client = reqwest::Client::builder()
-        .user_agent(crate::USER_AGENT)
-        .build()
-        .map_err(ContentError::ClientInit)?;
-    let bytes = pack::fetch(&client, download_url).await?;
-    let root =
-        instance::get_instances_dir(app).map_err(|e| ContentError::Instance(e.to_string()))?;
-    let prepared = pack::prepare_modpack(
-        &client,
-        super::curseforge::DEFAULT_CURSEFORGE_BASE,
-        &root,
-        bytes,
-        source,
-        filename,
-        name,
-    )
-    .await?;
-    let config = instance::prepare_instance(
-        prepared.name,
-        prepared.game_version,
-        prepared.loader,
-        prepared.loader_version,
-    )
-    .map_err(|e| ContentError::Instance(e.to_string()))?;
-    publish_modpack(
-        &crate::app::state(app).instances,
-        &root,
-        config,
-        prepared.stage.path(),
-    )
+pub(crate) struct ModpackInstaller {
+    pub(crate) client: reqwest::Client,
+    pub(crate) instances:
+        std::sync::Arc<crate::minecraft::metadata::MetadataRepository<InstanceConfig>>,
+    pub(crate) root: std::path::PathBuf,
+    pub(crate) curseforge_base: String,
+}
+
+impl ModpackInstaller {
+    pub(crate) async fn install(
+        &self,
+        name: &str,
+        source: &str,
+        download_url: &str,
+        filename: &str,
+    ) -> Result<InstanceConfig, ContentError> {
+        let bytes = pack::fetch(&self.client, download_url).await?;
+        let prepared = pack::prepare_modpack(
+            &self.client,
+            &self.curseforge_base,
+            &self.root,
+            bytes,
+            source,
+            filename,
+            name,
+        )
+        .await?;
+        let config = instance::prepare_instance(
+            prepared.name,
+            prepared.game_version,
+            prepared.loader,
+            prepared.loader_version,
+        )
+        .map_err(ContentError::Instance)?;
+        let repository = std::sync::Arc::clone(&self.instances);
+        let root = self.root.clone();
+        tokio::task::spawn_blocking(move || {
+            // Publication owns the stage until the repository has recorded its outcome.
+            let stage = prepared.stage;
+            publish_modpack(&repository, &root, config, stage.path())
+        })
+        .await
+        .map_err(ContentError::Task)?
+    }
 }
 
 fn publish_modpack(

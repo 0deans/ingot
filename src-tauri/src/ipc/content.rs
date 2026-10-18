@@ -1,5 +1,6 @@
+use crate::app::content;
 use crate::ipc::ApiError;
-use crate::minecraft::content::{self, ContentSearchResult, UnifiedContentDetails};
+use crate::minecraft::content::{ContentSearchResult, UnifiedContentDetails};
 use crate::minecraft::instance::InstanceConfig;
 use tauri::Runtime;
 
@@ -8,6 +9,7 @@ use tauri::Runtime;
 pub trait ContentApi {
     #[allow(clippy::too_many_arguments)]
     async fn search_content(
+        app_handle: tauri::AppHandle<impl Runtime>,
         source: String,
         project_type: String,
         query: Option<String>,
@@ -19,6 +21,7 @@ pub trait ContentApi {
     ) -> Result<ContentSearchResult, ApiError>;
 
     async fn get_content_details(
+        app_handle: tauri::AppHandle<impl Runtime>,
         source: String,
         project_id: String,
     ) -> Result<UnifiedContentDetails, ApiError>;
@@ -47,6 +50,7 @@ pub struct ContentApiImpl;
 impl ContentApi for ContentApiImpl {
     async fn search_content(
         self,
+        app_handle: tauri::AppHandle<impl Runtime>,
         source: String,
         project_type: String,
         query: Option<String>,
@@ -56,26 +60,29 @@ impl ContentApi for ContentApiImpl {
         page: u32,
         page_size: u32,
     ) -> Result<ContentSearchResult, ApiError> {
-        content::search_content(
-            source,
-            project_type,
-            query,
-            game_version,
-            loader,
-            sort,
-            page,
-            page_size,
-        )
-        .await
-        .map_err(ApiError::from)
+        content::service(&app_handle)
+            .search_content(crate::minecraft::content::service::ContentSearchRequest {
+                source,
+                project_type,
+                query,
+                game_version,
+                loader,
+                sort,
+                page,
+                page_size,
+            })
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn get_content_details(
         self,
+        app_handle: tauri::AppHandle<impl Runtime>,
         source: String,
         project_id: String,
     ) -> Result<UnifiedContentDetails, ApiError> {
-        content::get_content_details(&source, &project_id)
+        content::service(&app_handle)
+            .get_content_details(&source, &project_id)
             .await
             .map_err(ApiError::from)
     }
