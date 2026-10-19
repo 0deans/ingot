@@ -43,7 +43,7 @@ where
     let data_dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| LaunchError::AppDataDir(format!("Failed to get app data directory: {e}")))?;
+        .map_err(|source| LaunchError::AppDataDir(std::io::Error::other(source)))?;
 
     let cache_dir = data_dir.join("cache");
     let assets_dir = data_dir.join("assets");
@@ -75,8 +75,7 @@ where
     )
     .await?;
 
-    let global_settings =
-        system::load_settings(&app).map_err(|error| LaunchError::Settings(error.to_string()))?;
+    let global_settings = system::load_settings(&app).map_err(LaunchError::Settings)?;
     let context = CommandContext {
         instance: &instance,
         settings: &global_settings,

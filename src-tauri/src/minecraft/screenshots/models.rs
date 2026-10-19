@@ -48,5 +48,8 @@ pub enum ScreenshotError {
     LoadInstances(#[source] crate::minecraft::instance::InstanceError),
 
     #[error("Cache directory resolution error: {0}")]
-    CacheDir(String),
+    CacheDir(#[source] std::io::Error),
+
+    #[error("Thumbnail destination has no parent directory: {}", .0.display())]
+    MissingCacheParent(std::path::PathBuf),
 }

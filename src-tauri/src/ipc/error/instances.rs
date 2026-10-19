@@ -71,7 +71,8 @@ impl From<crate::minecraft::screenshots::ScreenshotError> for ApiError {
             }
             ScreenshotError::Io(_)
             | ScreenshotError::Image { .. }
-            | ScreenshotError::CacheDir(_) => Self::storage_failure(error.to_string()),
+            | ScreenshotError::CacheDir(_)
+            | ScreenshotError::MissingCacheParent(_) => Self::storage_failure(error.to_string()),
         }
     }
 }
@@ -218,8 +219,8 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
                 Self::invalid_input("Loader version not selected")
             }
             crate::minecraft::launcher::LaunchError::InstanceDir(source) => Self::from(source),
-            crate::minecraft::launcher::LaunchError::AppDataDir(msg) => {
-                Self::storage_failure(msg)
+            crate::minecraft::launcher::LaunchError::AppDataDir(source) => {
+                Self::storage_failure(source.to_string())
             }
             crate::minecraft::launcher::LaunchError::IncompleteTransaction(msg) => {
                 Self::incomplete_recovery(format!(
@@ -238,12 +239,14 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::JavaRuntime(err) => {
                 Self::from(err)
             }
-            crate::minecraft::launcher::LaunchError::Account(msg) => {
-                Self::invalid_input(msg)
+            crate::minecraft::launcher::LaunchError::Account(error) => {
+                use crate::minecraft::launcher::models::LaunchAccountCause;
+                match *error.source {
+                    LaunchAccountCause::Recovery(source) => Self::from(source),
+                    LaunchAccountCause::Session(source) => Self::from(source),
+                }
             }
-            crate::minecraft::launcher::LaunchError::Settings(msg) => {
-                Self::storage_failure(msg)
-            }
+            crate::minecraft::launcher::LaunchError::Settings(source) => Self::from(source),
             crate::minecraft::launcher::LaunchError::ProcessSpawn(err) => {
                 Self::internal(format!("Failed to spawn Minecraft process: {err}"))
             }

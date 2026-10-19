@@ -39,7 +39,9 @@ impl PreparationEffects for FakePreparation {
         Box::pin(async move {
             self.auth_calls.fetch_add(1, Ordering::SeqCst);
             if matches!(self.failure, Failure::Authentication) {
-                return Err(LaunchError::Account("unavailable".into()));
+                return Err(LaunchError::Account(
+                    crate::account::session::SessionError::AccountNotFound.into(),
+                ));
             }
             Ok(ResolvedAuth {
                 player_name: "fixture-player".into(),

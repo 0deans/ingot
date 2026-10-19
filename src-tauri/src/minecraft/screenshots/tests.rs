@@ -232,3 +232,17 @@ fn thumbnail_cache_directory_is_not_reported_as_an_existing_image() {
     assert!(matches!(result, Err(ScreenshotError::Io(_))));
     assert!(destination.is_dir());
 }
+
+#[test]
+fn thumbnail_destination_without_a_parent_is_an_explicit_path_failure() {
+    let temp = tempfile::tempdir().unwrap();
+    let source = temp.path().join("capture.png");
+    ImageBuffer::<Rgb<u8>, Vec<u8>>::new(1, 1)
+        .save(&source)
+        .unwrap();
+    let result = create_thumbnail(&source, std::path::Path::new(""));
+    assert!(
+        matches!(result, Err(ScreenshotError::MissingCacheParent(path)) if path.as_os_str().is_empty())
+    );
+    assert!(source.is_file());
+}

@@ -1,3 +1,4 @@
+use crate::account::{recovery::RecoveryError, session::SessionError};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -58,7 +59,7 @@ pub enum LaunchError {
     LoaderVersionNotSelected,
 
     #[error("Failed to get app data directory: {0}")]
-    AppDataDir(String),
+    AppDataDir(#[source] std::io::Error),
 
     #[error("Instance directory error: {0}")]
     InstanceDir(#[source] crate::minecraft::instance::InstanceError),
@@ -76,10 +77,10 @@ pub enum LaunchError {
     Download(#[from] crate::minecraft::downloader::DownloadError),
 
     #[error("Account error: {0}")]
-    Account(String),
+    Account(#[source] LaunchAccountError),
 
     #[error("Settings error: {0}")]
-    Settings(String),
+    Settings(#[source] crate::settings::SettingsError),
 
     #[error("Failed to spawn Minecraft process: {0}")]
     ProcessSpawn(#[source] std::io::Error),
@@ -92,4 +93,35 @@ pub enum LaunchError {
 
     #[error("{0}")]
     Other(String),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("{source}")]
+pub struct LaunchAccountError {
+    #[source]
+    pub(crate) source: Box<LaunchAccountCause>,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum LaunchAccountCause {
+    #[error("Account loading failed: {0}")]
+    Recovery(#[source] RecoveryError),
+    #[error("Account authentication failed: {0}")]
+    Session(#[source] SessionError),
+}
+
+impl From<RecoveryError> for LaunchAccountError {
+    fn from(source: RecoveryError) -> Self {
+        Self {
+            source: Box::new(LaunchAccountCause::Recovery(source)),
+        }
+    }
+}
+
+impl From<SessionError> for LaunchAccountError {
+    fn from(source: SessionError) -> Self {
+        Self {
+            source: Box::new(LaunchAccountCause::Session(source)),
+        }
+    }
 }

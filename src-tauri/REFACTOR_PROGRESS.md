@@ -1378,3 +1378,17 @@ Scope: launcher, screenshot and importer instance-error wrappers, their native a
 Verification: 15 focused error-mapping tests and the full all-target suite passed (691 passed, zero failures, 17 ignored); binding freshness/procedure inventory, Clippy with warnings denied, rustfmt, TypeScript, all 14 IPC tests and diff checks passed.
 
 This closes the launcher/screenshot/importer instance-error wrapper follow-up from the preceding checkpoint. Other unrelated string-bearing feature errors were outside this slice. Coverage was not remeasured; the preceding 57.82% measurement remains historical. Linux/macOS and real application smoke checks were not run for this slice. No staging, unstaging or commits were performed.
+
+
+### Launcher and screenshot typed failure follow-up — 2026-10-19
+
+Scope: remaining launcher settings/account/app-data-path failures and screenshot cache-path failures (Phase 5).
+
+- Launcher settings failures retain `SettingsError` and delegate to its IPC categories, including invalid settings and unavailable application state.
+- Account loading retains `RecoveryError`; token retrieval retains `SessionError`. A public launcher error wrapper keeps these internal service types private while preserving sourced, typed causes. IPC delegates to the existing account mappings, retaining cancellation, missing-account, provider, conflict, storage and incomplete-recovery categories instead of treating all account failures as invalid input.
+- Native launcher app-data and screenshot cache resolution use sourced I/O wrappers that retain the original native error, without adding Tauri types to feature errors. Thumbnail destinations without a parent have an explicit path-bearing variant rather than a string failure.
+- Regressions cover account/settings categories and cause chains, native path cause retention, and a valid source image with an invalid thumbnail destination. Existing authentication preparation fixtures now return typed session failures.
+
+Verification: 18 focused IPC error tests, the thumbnail path regression and three launcher preparation tests passed. The full all-target suite passed (695 passed, zero failures, 17 ignored), including binding freshness/procedure inventory. TypeScript and all 14 IPC tests passed. Clippy with warnings denied, rustfmt and final diff checks passed.
+
+Public IPC types, procedure names, arguments, generated bindings and persisted formats are unchanged. Other launcher transaction/other contextual strings were outside this bounded follow-up. Coverage was not remeasured; Linux/macOS execution and real application smoke checks remain unverified for this slice. No staging, unstaging or commits were performed.

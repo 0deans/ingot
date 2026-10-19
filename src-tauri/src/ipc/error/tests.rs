@@ -140,7 +140,9 @@ fn test_launch_error_boundary_mappings() {
         ApiError::InvalidInput { .. }
     ));
     assert!(matches!(
-        ApiError::from(LaunchError::AppDataDir("permission".into())),
+        ApiError::from(LaunchError::AppDataDir(
+            std::io::ErrorKind::PermissionDenied.into()
+        )),
         ApiError::StorageFailure { .. }
     ));
 }
@@ -405,5 +407,133 @@ fn native_boundary_failures_keep_actionable_api_categories() {
     assert!(matches!(
         ApiError::from(SandboxError::InvalidRootfs),
         ApiError::ProviderUnavailable { .. }
+    ));
+}
+
+#[test]
+fn launcher_account_failures_preserve_causes_and_categories() {
+    use crate::account::{
+        operations::OperationError,
+        provider::{ProviderError, ProviderOperation},
+    };
+    use std::error::Error;
+
+    let sessions = [
+        SessionError::AccountNotFound,
+        SessionError::Cancelled,
+        SessionError::Ownership(OperationError),
+        SessionError::Provider(ProviderError::Rejected {
+            operation: ProviderOperation::ElyRefresh,
+            status: reqwest::StatusCode::SERVICE_UNAVAILABLE,
+        }),
+        SessionError::RotationCheckpoint(RecoveryError::Invalid),
+    ];
+    for session in sessions {
+        let launch = LaunchError::Account(session.into());
+        let account = launch.source().unwrap();
+        let cause = account.source().unwrap().source().unwrap();
+        let session = cause.downcast_ref::<SessionError>().unwrap();
+        let expected = match session {
+            SessionError::AccountNotFound => ApiError::from(SessionError::AccountNotFound),
+            SessionError::Cancelled => ApiError::from(SessionError::Cancelled),
+            SessionError::Ownership(_) => ApiError::from(SessionError::Ownership(OperationError)),
+            SessionError::Provider(_) => {
+                ApiError::from(SessionError::Provider(ProviderError::Rejected {
+                    operation: ProviderOperation::ElyRefresh,
+                    status: reqwest::StatusCode::SERVICE_UNAVAILABLE,
+                }))
+            }
+            SessionError::RotationCheckpoint(_) => {
+                ApiError::from(SessionError::RotationCheckpoint(RecoveryError::Invalid))
+            }
+            other => panic!("Unexpected fixture: {other}"),
+        };
+        assert_eq!(ApiError::from(launch), expected);
+    }
+    let recovery = LaunchError::Account(RecoveryError::Profile(AccountError::LockPoisoned).into());
+    assert!(recovery
+        .source()
+        .unwrap()
+        .source()
+        .unwrap()
+        .source()
+        .unwrap()
+        .downcast_ref::<RecoveryError>()
+        .is_some());
+    assert!(matches!(
+        ApiError::from(recovery),
+        ApiError::IncompleteRecovery { .. }
+    ));
+}
+
+#[test]
+fn launcher_settings_failures_preserve_causes_and_categories() {
+    use crate::settings::SettingsError;
+    use std::error::Error;
+
+    let failures = [
+        SettingsError::InvalidMemory {
+            min_mb: 4096,
+            max_mb: 1024,
+        },
+        SettingsError::StateUnavailable,
+        SettingsError::Io {
+            operation: "read",
+            path: "settings.json".into(),
+            source: std::io::ErrorKind::PermissionDenied.into(),
+        },
+    ];
+    for source in failures {
+        let error = LaunchError::Settings(source);
+        let source = error
+            .source()
+            .unwrap()
+            .downcast_ref::<SettingsError>()
+            .unwrap();
+        let api = match source {
+            SettingsError::InvalidMemory { .. } => ApiError::invalid_input(source.to_string()),
+            SettingsError::StateUnavailable => ApiError::internal(source.to_string()),
+            SettingsError::Io { .. } => ApiError::storage_failure(source.to_string()),
+            other => panic!("Unexpected fixture: {other}"),
+        };
+        assert_eq!(ApiError::from(error), api);
+    }
+}
+
+#[test]
+fn launcher_and_screenshot_native_paths_retain_original_errors() {
+    use crate::minecraft::screenshots::ScreenshotError;
+    use std::error::Error;
+
+    fn native_failure() -> std::io::Error {
+        std::io::Error::other(tauri::Error::Io(
+            std::io::ErrorKind::PermissionDenied.into(),
+        ))
+    }
+    fn check(error: &dyn Error) {
+        let io = error
+            .source()
+            .unwrap()
+            .downcast_ref::<std::io::Error>()
+            .unwrap();
+        let native = io
+            .get_ref()
+            .unwrap()
+            .downcast_ref::<tauri::Error>()
+            .unwrap();
+        assert!(matches!(native, tauri::Error::Io(source)
+            if source.kind() == std::io::ErrorKind::PermissionDenied));
+    }
+    let launch = LaunchError::AppDataDir(native_failure());
+    let screenshot = ScreenshotError::CacheDir(native_failure());
+    check(&launch);
+    check(&screenshot);
+    assert!(matches!(
+        ApiError::from(launch),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(screenshot),
+        ApiError::StorageFailure { .. }
     ));
 }

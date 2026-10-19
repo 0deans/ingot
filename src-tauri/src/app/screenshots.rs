@@ -36,7 +36,7 @@ fn cache_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, Screensho
     let root = app
         .path()
         .app_cache_dir()
-        .map_err(|error| ScreenshotError::CacheDir(error.to_string()))?;
+        .map_err(|source| ScreenshotError::CacheDir(std::io::Error::other(source)))?;
     screenshots::get_thumbnail_cache_dir(&root)
 }
 

@@ -39,7 +39,7 @@ pub fn create_thumbnail(source_path: &Path, dest_path: &Path) -> Result<(), Scre
 
     let parent = dest_path
         .parent()
-        .ok_or_else(|| ScreenshotError::CacheDir("Thumbnail has no parent directory".into()))?;
+        .ok_or_else(|| ScreenshotError::MissingCacheParent(dest_path.to_path_buf()))?;
     fs::create_dir_all(parent).map_err(ScreenshotError::Io)?;
     let mut staged = tempfile::NamedTempFile::new_in(parent).map_err(ScreenshotError::Io)?;
     thumb
