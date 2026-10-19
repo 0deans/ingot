@@ -256,7 +256,9 @@ fn test_server_domain_error_boundary_mappings() {
         ApiError::ProviderUnavailable { .. }
     ));
     assert!(matches!(
-        ApiError::from(TransferError::InvalidZip),
+        ApiError::from(TransferError::InvalidZip(
+            zip::result::ZipError::InvalidArchive("not a zip".into())
+        )),
         ApiError::InvalidInput { .. }
     ));
     assert!(matches!(
@@ -304,4 +306,35 @@ fn server_port_collision_is_a_conflict() {
             suggested: 25566,
         });
     assert!(matches!(ApiError::from(error), ApiError::Conflict { .. }));
+}
+
+#[test]
+fn native_boundary_failures_keep_actionable_api_categories() {
+    use crate::server::{sandbox::SandboxError, transfer::TransferError};
+    assert!(matches!(
+        ApiError::from(TransferError::UnsupportedManifestFormat(99)),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(TransferError::InvalidUploadId),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(TransferError::UploadFinalized),
+        ApiError::Conflict { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(TransferError::Process(
+            crate::server::process::models::ProcessError::AlreadyStarting
+        )),
+        ApiError::Conflict { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(SandboxError::RecoveryBlocked("unfinished publication")),
+        ApiError::IncompleteRecovery { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(SandboxError::InvalidRootfs),
+        ApiError::ProviderUnavailable { .. }
+    ));
 }

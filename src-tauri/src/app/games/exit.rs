@@ -1,4 +1,5 @@
-use crate::minecraft::instance::{get_instance_dir, update_last_played, InstanceConfig};
+use crate::app::instances::{ensure_instance_dir, update_last_played};
+use crate::minecraft::instance::InstanceConfig;
 use crate::minecraft::launcher::models::{InstanceStatusEvent, StatusFn};
 use crate::minecraft::launcher::process::ProcessManager;
 use crate::minecraft::launcher::quick_play::cleanup_quick_play_junction;
@@ -53,7 +54,7 @@ pub async fn finish_game<R: Runtime>(
     };
     crate::running::remove(app, crate::running::Kind::Game, &instance_id, pid);
 
-    if let Ok(instance_dir) = get_instance_dir(app, &instance_id) {
+    if let Ok(instance_dir) = ensure_instance_dir(app, &instance_id) {
         cleanup_quick_play_junction(&instance_dir);
 
         if let Err(e) = crate::app::sync::sync_after_exit(app, instance, &instance_dir) {
@@ -116,7 +117,7 @@ pub async fn adopt_running<R: Runtime>(app: AppHandle<R>, pm: ProcessManager, on
     if entries.is_empty() {
         return;
     }
-    let instances = match crate::minecraft::instance::load_instances(&app) {
+    let instances = match crate::app::instances::load_instances(&app) {
         Ok(instances) => instances,
         Err(error) => {
             eprintln!("[Launcher] Cannot inspect running games: {error}");
@@ -133,7 +134,7 @@ pub async fn adopt_running<R: Runtime>(app: AppHandle<R>, pm: ProcessManager, on
             continue;
         }
         if !crate::running::is_alive(&entry) {
-            let ended = get_instance_dir(&app, &entry.id)
+            let ended = ensure_instance_dir(&app, &entry.id)
                 .ok()
                 .and_then(|dir| fs::metadata(dir.join("logs").join("latest.log")).ok())
                 .and_then(|m| m.modified().ok())

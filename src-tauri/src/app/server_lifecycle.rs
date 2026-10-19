@@ -43,7 +43,15 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// Default implementation building the native command (Pumpkin, Bedrock, or Java).
-pub struct DefaultServerCommandBuilder;
+pub struct DefaultServerCommandBuilder {
+    sandbox: crate::server::sandbox::SandboxSetup,
+}
+
+impl DefaultServerCommandBuilder {
+    pub fn new(sandbox: crate::server::sandbox::SandboxSetup) -> Self {
+        Self { sandbox }
+    }
+}
 
 impl ServerCommandBuilder for DefaultServerCommandBuilder {
     fn build_command(
@@ -56,6 +64,7 @@ impl ServerCommandBuilder for DefaultServerCommandBuilder {
     ) -> std::pin::Pin<
         Box<dyn std::future::Future<Output = Result<tokio::process::Command, ProcessError>> + Send>,
     > {
+        let sandbox = self.sandbox.clone();
         let data_dir = data_dir.to_path_buf();
         let client = client.clone();
         let config = config.clone();
@@ -70,9 +79,14 @@ impl ServerCommandBuilder for DefaultServerCommandBuilder {
                 config.build_number.as_deref(),
             )
             .await?;
-            build_server_command(&data_dir, &client, &config, &server_dir, move |msg| {
-                step(msg)
-            })
+            build_server_command(
+                &sandbox,
+                &data_dir,
+                &client,
+                &config,
+                &server_dir,
+                move |msg| step(msg),
+            )
             .await
         })
     }
@@ -80,6 +94,7 @@ impl ServerCommandBuilder for DefaultServerCommandBuilder {
 
 /// Builds execution command for the server process (Pumpkin, Bedrock, or Java)
 async fn build_server_command<FStep>(
+    sandbox_setup: &crate::server::sandbox::SandboxSetup,
     data_dir: &Path,
     client: &reqwest::Client,
     config: &ServerConfig,
@@ -98,12 +113,9 @@ where
         let sandbox = if crate::server::sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
             Some(
-                crate::server::sandbox::ensure_base_rootfs_in_dir(
-                    data_dir,
-                    client,
-                    sandbox_progress(&step),
-                )
-                .await?,
+                sandbox_setup
+                    .ensure_base_rootfs(data_dir, client, sandbox_progress(&step))
+                    .await?,
             )
         } else {
             None
@@ -154,13 +166,8 @@ where
 
         let (sandbox, java_bin) = if crate::server::sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
-            let (sandbox_dir, rootfs, guest_java) =
-                crate::server::sandbox::ensure_sandbox_rootfs_in_dir(
-                    data_dir,
-                    client,
-                    required_java,
-                    sandbox_progress(&step),
-                )
+            let (sandbox_dir, rootfs, guest_java) = sandbox_setup
+                .ensure_java(data_dir, client, required_java, sandbox_progress(&step))
                 .await?;
             (Some((sandbox_dir, rootfs)), PathBuf::from(guest_java))
         } else if let Some(ref path) = config.java_path {

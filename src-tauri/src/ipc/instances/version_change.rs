@@ -1,6 +1,6 @@
 use super::{find_instance, get_http_client, is_downgrade};
 use crate::ipc::ApiError;
-use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
+use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
 use crate::version_change::targets::{self as change_targets, loader_id};
 use crate::version_change::{self, PlanRequest, TargetKind, VersionBackup, VersionPlan};
 use tauri::Runtime;
@@ -75,8 +75,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
             )));
         }
         let downgrade = is_downgrade(&app_handle, &instance.game_version, &game_version).await?;
-        let instance_dir =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         let (from, to) = (loader_id(&instance.loader), loader_id(&loader));
         let target = change_targets::instance(&instance_dir, &from, &to);
         let request = PlanRequest {
@@ -101,8 +101,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         plan: VersionPlan,
         backup_worlds: bool,
     ) -> Result<InstanceConfig, ApiError> {
-        let directory =
-            instance::get_instance_dir(&app_handle, &plan.target_id).map_err(ApiError::from)?;
+        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &plan.target_id)
+            .map_err(ApiError::from)?;
         let state = crate::app::state(&app_handle);
         version_change::service::apply_instance(
             &state.instances,
@@ -121,8 +121,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<Option<VersionBackup>, ApiError> {
-        let instance_dir =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         version_change::last_backup(&instance_dir).map_err(ApiError::from)
     }
 
@@ -131,8 +131,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, ApiError> {
-        let directory =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         let state = crate::app::state(&app_handle);
         version_change::service::restore_instance(
             &state.instances,
@@ -155,8 +155,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
             .reserve_maintenance(&instance_id)
             .map_err(|_| ApiError::conflict("Instance is busy"))?;
         find_instance(&app_handle, &instance_id)?;
-        let directory =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         version_change::discard_backup_typed(&directory).map_err(ApiError::from)
     }
 
@@ -165,8 +165,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, ApiError> {
-        let directory =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         let state = crate::app::state(&app_handle);
         version_change::service::restore_instance(
             &state.instances,
@@ -183,8 +183,8 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<version_change::VersionTransactionStatus, ApiError> {
-        let instance_dir =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         Ok(version_change::transaction_status(&instance_dir))
     }
 }

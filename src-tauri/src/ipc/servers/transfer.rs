@@ -1,7 +1,5 @@
 //! IPC procedures for server export, import, and duplication.
-use super::{
-    get_server_process_manager, import_upload_path, is_server_running, server_with_config,
-};
+use super::server_with_config;
 use crate::ipc::ApiError;
 use crate::server::transfer::{ExportMode, ImportedServer};
 use crate::server::{self, ServerConfig};
@@ -80,24 +78,22 @@ impl ServerTransferApi for ServerTransferApiImpl {
         first: bool,
     ) -> Result<(), ApiError> {
         use base64::Engine;
-        use std::io::Write;
-        let path = import_upload_path(&app_handle, &upload_id)?;
         let bytes = base64::engine::general_purpose::STANDARD
             .decode(data_base64)
-            .map_err(|e| ApiError::invalid_input(format!("Invalid upload chunk: {e}")))?;
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| ApiError::storage_failure(e.to_string()))?;
-        }
-        let mut file = std::fs::OpenOptions::new()
-            .create(true)
-            .write(true)
-            .append(!first)
-            .truncate(first)
-            .open(&path)
-            .map_err(|e| ApiError::storage_failure(format!("Failed to store upload: {e}")))?;
-        file.write_all(&bytes)
-            .map_err(|e| ApiError::storage_failure(format!("Failed to store upload: {e}")))
+            .map_err(|error| ApiError::invalid_input(format!("Invalid upload chunk: {error}")))?;
+        let ownership = crate::app::state(&app_handle)
+            .server_uploads
+            .claim(&upload_id)
+            .await
+            .map_err(ApiError::from)?;
+        let path = crate::app::server_transfer::upload_path(&app_handle, &upload_id)
+            .map_err(ApiError::from)?;
+        tokio::task::spawn_blocking(move || {
+            server::transfer::uploads::write_chunk(ownership, &path, &bytes, first)
+        })
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .map_err(ApiError::from)
     }
 
     async fn import_server(
@@ -105,15 +101,9 @@ impl ServerTransferApi for ServerTransferApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         upload_id: String,
     ) -> Result<ImportedServer, ApiError> {
-        let path = import_upload_path(&app_handle, &upload_id)?;
-        let app = app_handle.clone();
-        let archive = path.clone();
-        let result =
-            tauri::async_runtime::spawn_blocking(move || server::transfer::import(&app, &archive))
-                .await
-                .map_err(|e| ApiError::internal(e.to_string()))?;
-        let _ = std::fs::remove_file(&path);
-        let created = result.map_err(ApiError::from)?;
+        let created = crate::app::server_transfer::import(&app_handle, &upload_id)
+            .await
+            .map_err(ApiError::from)?;
         let dir = server::get_server_dir(&app_handle, &created.id).map_err(ApiError::from)?;
         let warnings =
             server::plugins::restore_missing(&dir, &created.core, &created.game_version).await;
@@ -131,16 +121,14 @@ impl ServerTransferApi for ServerTransferApiImpl {
         game_version: Option<String>,
         build_number: Option<String>,
     ) -> Result<ServerConfig, ApiError> {
-        if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-            return Err(ApiError::conflict("Stop the server before copying it"));
-        }
-        let (_, config) = server_with_config(&app_handle, &server_id)?;
-        let app = app_handle.clone();
-        tauri::async_runtime::spawn_blocking(move || {
-            server::transfer::duplicate(&app, &config, &name, game_version.as_deref(), build_number)
-        })
+        crate::app::server_transfer::duplicate(
+            &app_handle,
+            server_id,
+            name,
+            game_version,
+            build_number,
+        )
         .await
-        .map_err(|e| ApiError::internal(e.to_string()))?
         .map_err(ApiError::from)
     }
 }

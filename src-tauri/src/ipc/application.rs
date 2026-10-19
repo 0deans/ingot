@@ -91,7 +91,7 @@ impl ApplicationApi for ApplicationApiImpl {
                 {
                     return Err(ApiError::conflict("Close the game first"));
                 }
-                crate::minecraft::instance::get_instance_dir(&app_handle, &target_id)?
+                crate::app::instances::ensure_instance_dir(&app_handle, &target_id)?
             }
             crate::version_change::TargetKind::Server => {
                 if crate::app::state(&app_handle)

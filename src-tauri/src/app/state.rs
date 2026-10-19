@@ -15,6 +15,8 @@ pub(crate) struct AppState {
     pub(crate) games: ProcessManager,
     pub(crate) servers: ServerProcessManager,
     pub(crate) supervisor: ServerSupervisorManager,
+    pub(crate) sandbox_setup: crate::server::sandbox::SandboxSetup,
+    pub(crate) server_uploads: crate::server::transfer::uploads::UploadManager,
     pub(crate) playit: PlayitManager,
     pub(crate) http: reqwest::Client,
     pub(crate) lifecycle: LifecycleState,
@@ -51,6 +53,8 @@ impl AppState {
             games: ProcessManager::new(),
             servers: ServerProcessManager::new(),
             supervisor: ServerSupervisorManager::new(),
+            sandbox_setup: crate::server::sandbox::SandboxSetup::default(),
+            server_uploads: crate::server::transfer::uploads::UploadManager::default(),
             playit: PlayitManager::new(),
             session_provider: Box::new(crate::auth::session_provider::NativeSessionProvider::new(
                 http.clone(),

@@ -26,7 +26,7 @@ pub(super) fn find_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
 ) -> Result<InstanceConfig, ApiError> {
-    instance::load_instances(app)
+    crate::app::instances::load_instances(app)
         .map_err(ApiError::from)?
         .into_iter()
         .find(|i| i.id == instance_id)
@@ -126,7 +126,9 @@ impl InstancesApi for InstancesApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<InstanceConfig>, ApiError> {
-        instance::load_instances(&app_handle).map_err(ApiError::from)
+        crate::app::instances::read_instances(&app_handle)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn create_instance(
@@ -137,8 +139,15 @@ impl InstancesApi for InstancesApiImpl {
         loader: ModLoaderType,
         loader_version: Option<String>,
     ) -> Result<InstanceConfig, ApiError> {
-        instance::create_instance(&app_handle, name, game_version, loader, loader_version)
-            .map_err(ApiError::from)
+        crate::app::instances::create_instance(
+            &app_handle,
+            name,
+            game_version,
+            loader,
+            loader_version,
+        )
+        .await
+        .map_err(ApiError::from)
     }
 
     async fn delete_instance(
@@ -150,12 +159,10 @@ impl InstancesApi for InstancesApiImpl {
         let ownership = get_process_manager(&app_handle)
             .reserve_maintenance(&instance_id)
             .map_err(ApiError::from)?;
-        tokio::task::spawn_blocking(move || {
-            let _ownership = ownership;
-            instance::delete_instance(&app_handle, &instance_id)
+        crate::app::instances::run_maintenance(ownership, move || {
+            crate::app::instances::delete_instance(&app_handle, &instance_id)
         })
         .await
-        .map_err(ApiError::from_display)?
         .map_err(ApiError::from)
     }
 
@@ -168,12 +175,10 @@ impl InstancesApi for InstancesApiImpl {
         let ownership = get_process_manager(&app_handle)
             .reserve_maintenance(&instance.id)
             .map_err(ApiError::from)?;
-        tokio::task::spawn_blocking(move || {
-            let _ownership = ownership;
-            instance::update_instance(&app_handle, instance)
+        crate::app::instances::run_maintenance(ownership, move || {
+            crate::app::instances::update_instance(&app_handle, instance)
         })
         .await
-        .map_err(ApiError::from_display)?
         .map_err(ApiError::from)
     }
 
@@ -188,12 +193,15 @@ impl InstancesApi for InstancesApiImpl {
         let ownership = get_process_manager(&app_handle)
             .reserve_maintenance(&instance_id)
             .map_err(ApiError::from)?;
-        tauri::async_runtime::spawn_blocking(move || {
-            let _ownership = ownership;
-            instance::duplicate_instance(&app_handle, &instance_id, name, include_worlds)
+        crate::app::instances::run_maintenance(ownership, move || {
+            crate::app::instances::duplicate_instance(
+                &app_handle,
+                &instance_id,
+                name,
+                include_worlds,
+            )
         })
         .await
-        .map_err(ApiError::from_display)?
         .map_err(ApiError::from)
     }
 
@@ -202,7 +210,8 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<(), ApiError> {
-        let dir = instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
+            .map_err(ApiError::from)?;
         crate::app::platform::open_directory(&dir).map_err(ApiError::from)
     }
 
@@ -251,9 +260,9 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<Vec<instance::InstanceWorldSummary>, ApiError> {
-        let instance_dir =
-            instance::get_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
-        instance::get_instance_worlds(&instance_dir).map_err(ApiError::from)
+        crate::app::instances::read_worlds(&app_handle, instance_id)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn kill_instance(

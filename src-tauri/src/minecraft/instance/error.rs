@@ -7,8 +7,10 @@ pub enum InstanceError {
     Metadata(#[from] MetadataError),
     #[error("Instance file operation failed: {0}")]
     Io(#[from] std::io::Error),
-    #[error("Instance path resolution failed: {0}")]
-    Directory(String),
+    #[error("Instance clock failed: {0}")]
+    Clock(#[from] std::time::SystemTimeError),
+    #[error("Instance worker failed: {0}")]
+    Task(#[from] tokio::task::JoinError),
     #[error("Invalid instance identifier")]
     InvalidId,
     #[error("Give the instance a name")]

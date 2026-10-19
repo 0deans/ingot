@@ -274,11 +274,19 @@ impl From<crate::server::transfer::TransferError> for ApiError {
     fn from(error: crate::server::transfer::TransferError) -> Self {
         use crate::server::transfer::TransferError;
         match error {
-            TransferError::InvalidZip
+            TransferError::InvalidZip(_)
             | TransferError::NotAnIngotExport
             | TransferError::InvalidManifest(_)
+            | TransferError::UnsupportedManifestFormat(_)
+            | TransferError::InvalidUploadId
             | TransferError::UnsupportedEntry
             | TransferError::InvalidPathEncoding => Self::invalid_input(error.to_string()),
+            TransferError::Process(source) => Self::from(source),
+            TransferError::Task(_) => Self::internal(error.to_string()),
+            TransferError::UploadFinalized => Self::conflict(error.to_string()),
+            TransferError::UploadCleanup { .. } | TransferError::StagingCleanup { .. } => {
+                Self::incomplete_recovery(error.to_string())
+            }
             TransferError::Config(err) => Self::from(err),
             TransferError::File(err) => Self::from(err),
             TransferError::Installer(err) => Self::from(err),
@@ -334,9 +342,13 @@ impl From<crate::server::sandbox::SandboxError> for ApiError {
     fn from(error: crate::server::sandbox::SandboxError) -> Self {
         use crate::server::sandbox::SandboxError;
         match error {
-            SandboxError::Io(_) | SandboxError::AppDataDir(_) => {
-                Self::storage_failure(error.to_string())
-            }
+            SandboxError::Io(_) => Self::storage_failure(error.to_string()),
+            SandboxError::PublicationPending(_)
+            | SandboxError::RecoveryBlocked(_)
+            | SandboxError::Receipt(_)
+            | SandboxError::Cleanup { .. }
+            | SandboxError::ProcessCleanup { .. } => Self::incomplete_recovery(error.to_string()),
+            SandboxError::InvalidRootfs => Self::provider_unavailable(error.to_string()),
             SandboxError::Network(_) | SandboxError::DownloadStatus { .. } => {
                 Self::provider_unavailable(error.to_string())
             }
@@ -344,7 +356,9 @@ impl From<crate::server::sandbox::SandboxError> for ApiError {
             | SandboxError::LoaderNotFound(_)
             | SandboxError::RootfsRequired
             | SandboxError::JavaBinaryNotFound { .. } => Self::not_found(error.to_string()),
-            SandboxError::Task(_)
+            SandboxError::ExecutionTimeout
+            | SandboxError::WorkerStopped
+            | SandboxError::Task(_)
             | SandboxError::JoinPaths(_)
             | SandboxError::JavaInstallFailed { .. }
             | SandboxError::Other(_) => Self::internal(error.to_string()),

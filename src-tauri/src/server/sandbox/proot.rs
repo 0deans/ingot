@@ -143,7 +143,7 @@ pub fn proot_command(
         cmd.arg("/usr/bin/env");
         cmd.arg("-u");
         cmd.arg("LD_LIBRARY_PATH");
-        if install_stack_guard(rootfs) {
+        if install_stack_guard(rootfs)? {
             cmd.arg(format!("LD_PRELOAD={STACK_GUARD_GUEST_PATH}"));
         }
     }
@@ -158,15 +158,26 @@ const STACK_GUARD_SO: &[u8] = include_bytes!("stackguard-aarch64.so");
 const STACK_GUARD_GUEST_PATH: &str = "/usr/lib/ingot-stackguard.so";
 
 /// Writes the stack guard shim into the rootfs (aarch64 only); returns whether it's usable
-fn install_stack_guard(rootfs: &Path) -> bool {
+fn install_stack_guard(rootfs: &Path) -> Result<bool, SandboxError> {
     if !cfg!(target_arch = "aarch64") {
-        return false;
+        return Ok(false);
     }
-    let host_path = rootfs.join(STACK_GUARD_GUEST_PATH.trim_start_matches('/'));
-    if std::fs::read(&host_path).is_ok_and(|b| b == STACK_GUARD_SO) {
-        return true;
+    write_stack_guard(rootfs)?;
+    Ok(true)
+}
+
+fn write_stack_guard(rootfs: &Path) -> Result<(), SandboxError> {
+    let relative = STACK_GUARD_GUEST_PATH.trim_start_matches('/');
+    let host_path =
+        crate::app::safe_enclosed_path(rootfs, relative).ok_or(SandboxError::InvalidRootfs)?;
+    match std::fs::read(&host_path) {
+        Ok(bytes) if bytes == STACK_GUARD_SO => return Ok(()),
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error.into()),
     }
-    std::fs::write(&host_path, STACK_GUARD_SO).is_ok()
+    std::fs::write(&host_path, STACK_GUARD_SO)?;
+    Ok(())
 }
 
 /// Arguments for running inside a full Linux rootfs: the host pseudo-filesystems,
@@ -223,4 +234,42 @@ pub fn build_server_command(
     cmd.args(jvm_args);
     cmd.current_dir(server_dir);
     Ok(cmd)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stack_guard_write_failure_is_reported() {
+        let rootfs = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(rootfs.path().join("usr/lib/ingot-stackguard.so")).unwrap();
+        assert!(write_stack_guard(rootfs.path()).is_err());
+    }
+
+    #[test]
+    fn stack_guard_can_be_written_and_reused() {
+        let rootfs = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(rootfs.path().join("usr/lib")).unwrap();
+        write_stack_guard(rootfs.path()).unwrap();
+        write_stack_guard(rootfs.path()).unwrap();
+        assert_eq!(
+            std::fs::read(rootfs.path().join("usr/lib/ingot-stackguard.so")).unwrap(),
+            STACK_GUARD_SO
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn stack_guard_never_follows_guest_library_link_into_host() {
+        let rootfs = tempfile::tempdir().unwrap();
+        let external = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(rootfs.path().join("usr")).unwrap();
+        std::os::unix::fs::symlink(external.path(), rootfs.path().join("usr/lib")).unwrap();
+        assert!(matches!(
+            write_stack_guard(rootfs.path()),
+            Err(SandboxError::InvalidRootfs)
+        ));
+        assert!(!external.path().join("ingot-stackguard.so").exists());
+    }
 }

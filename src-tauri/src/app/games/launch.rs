@@ -1,6 +1,7 @@
 use super::exit::{finish_game, handle_launcher_behavior_on_launch};
 use super::preparation::NativePreparation;
-use crate::minecraft::instance::{get_instance_dir, InstanceConfig};
+use crate::app::instances::ensure_instance_dir;
+use crate::minecraft::instance::InstanceConfig;
 use crate::minecraft::launcher::models::{
     InstanceStatusEvent, LaunchError, LaunchProgressEvent, QuickPlayOptions, StatusFn,
 };
@@ -47,7 +48,7 @@ where
     let cache_dir = data_dir.join("cache");
     let assets_dir = data_dir.join("assets");
     let libraries_dir = data_dir.join("libraries");
-    let instance_dir = get_instance_dir(&app, &instance_id)
+    let instance_dir = ensure_instance_dir(&app, &instance_id)
         .map_err(|e| LaunchError::InstanceDir(e.to_string()))?;
     match crate::version_change::detect_incomplete_transaction(&instance_dir) {
         Ok(Some(incomplete)) => {

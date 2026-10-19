@@ -14,8 +14,30 @@ pub enum SandboxError {
     #[error("Invalid library path: {0}")]
     JoinPaths(#[from] std::env::JoinPathsError),
 
-    #[error("Failed to get app data directory: {0}")]
-    AppDataDir(String),
+    #[error("Sandbox setup worker stopped before reporting its result")]
+    WorkerStopped,
+    #[error("Sandbox archive is missing required rootfs files")]
+    InvalidRootfs,
+    #[error("Sandbox recovery is blocked: {0}")]
+    RecoveryBlocked(&'static str),
+    #[error("Sandbox recovery receipt is invalid")]
+    Receipt(#[source] serde_json::Error),
+    #[error("Sandbox rootfs publication requires recovery: {0}")]
+    PublicationPending(#[source] Box<SandboxError>),
+    #[error("Sandbox package installation timed out")]
+    ExecutionTimeout,
+    #[error("Sandbox cleanup failed after {primary}: {source}")]
+    Cleanup {
+        primary: Box<SandboxError>,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Sandbox process cleanup failed after {primary}: {source}")]
+    ProcessCleanup {
+        primary: Box<SandboxError>,
+        #[source]
+        source: std::io::Error,
+    },
 
     #[error(
         "Linux rootfs download failed (HTTP {status}). On mobile, you can use PumpkinMC (Rust) which runs natively without requiring Java or rootfs."

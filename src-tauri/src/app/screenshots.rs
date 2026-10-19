@@ -1,5 +1,4 @@
 //! Native path and repository integration for screenshot operations.
-use crate::minecraft::instance;
 use crate::minecraft::screenshots::service::{self, ScreenshotKind, ScreenshotSource};
 use crate::minecraft::screenshots::{self, ScreenshotError, ScreenshotInfo};
 use std::path::{Path, PathBuf};
@@ -9,10 +8,10 @@ fn sources<R: Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<Vec<ScreenshotSource>, ScreenshotError> {
     let mut sources = Vec::new();
-    for instance in
-        instance::load_instances(app).map_err(|e| ScreenshotError::LoadInstances(e.to_string()))?
+    for instance in crate::app::instances::load_instances(app)
+        .map_err(|e| ScreenshotError::LoadInstances(e.to_string()))?
     {
-        let directory = instance::get_instance_dir(app, &instance.id)
+        let directory = crate::app::instances::ensure_instance_dir(app, &instance.id)
             .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?
             .join("screenshots");
         sources.push(ScreenshotSource {
@@ -105,10 +104,10 @@ pub(crate) fn open_screenshots_folder<R: Runtime>(
 ) -> Result<(), ScreenshotActionError> {
     let directory = match instance_id {
         Some("bedrock") => screenshots::get_primary_bedrock_screenshots_folder(),
-        Some(id) if !id.is_empty() => instance::get_instance_dir(app, id)
+        Some(id) if !id.is_empty() => crate::app::instances::ensure_instance_dir(app, id)
             .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?
             .join("screenshots"),
-        _ => instance::get_instances_dir(app)
+        _ => crate::app::instances::ensure_instances_dir(app)
             .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?,
     };
     std::fs::create_dir_all(&directory).map_err(ScreenshotError::Io)?;

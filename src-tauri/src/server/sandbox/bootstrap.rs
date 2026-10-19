@@ -1,60 +1,34 @@
 use super::error::SandboxError;
-use flate2::read::GzDecoder;
-use std::fs::{self, File};
+use super::{package, publication};
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
-use tar::Archive;
-use tauri::{Manager, Runtime};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
-/// Alpine release used for the sandbox. Its community repo ships OpenJDK 8/11/17/21/25.
-const ALPINE_BRANCH: &str = "v3.24";
-const ALPINE_VERSION: &str = "3.24.2";
+pub(super) const ALPINE_BRANCH: &str = "v3.24";
+pub(super) const ALPINE_VERSION: &str = "3.24.2";
+pub(super) const BASE_MARKER: &str = ".ingot-rootfs";
 
-/// Written after the base rootfs is fully extracted, so partial extractions get redone
-const BASE_MARKER: &str = ".ingot-rootfs";
-
-fn alpine_rootfs_url() -> String {
-    format!(
-        "https://dl-cdn.alpinelinux.org/alpine/{ALPINE_BRANCH}/releases/aarch64/alpine-minirootfs-{ALPINE_VERSION}-aarch64.tar.gz"
-    )
-}
-
-/// Resolves the sandbox directory inside app data
 pub fn get_sandbox_dir_in(data_dir: &Path) -> Result<PathBuf, SandboxError> {
     let sandbox_dir = data_dir.join("sandbox");
-    if !sandbox_dir.exists() {
-        fs::create_dir_all(&sandbox_dir)?;
-    }
+    std::fs::create_dir_all(&sandbox_dir)?;
     Ok(sandbox_dir)
 }
 
-/// Resolves the rootfs directory
-pub fn get_rootfs_dir_in(data_dir: &Path) -> Result<PathBuf, SandboxError> {
-    let sandbox_dir = get_sandbox_dir_in(data_dir)?;
-    Ok(sandbox_dir.join("rootfs"))
+pub fn is_rootfs_installed(rootfs_dir: &Path) -> Result<bool, SandboxError> {
+    for relative in [BASE_MARKER, "sbin/apk"] {
+        let path = crate::app::safe_enclosed_path(rootfs_dir, relative)
+            .ok_or(SandboxError::InvalidRootfs)?;
+        match std::fs::metadata(path) {
+            Ok(metadata) if metadata.is_file() => {}
+            Ok(_) => return Err(SandboxError::InvalidRootfs),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(true)
 }
 
-/// Resolves the sandbox directory inside app data
-pub fn get_sandbox_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, SandboxError> {
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
-    get_sandbox_dir_in(&data_dir)
-}
-
-/// Resolves the rootfs directory
-pub fn get_rootfs_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, SandboxError> {
-    let sandbox_dir = get_sandbox_dir(app)?;
-    Ok(sandbox_dir.join("rootfs"))
-}
-
-/// Checks if the base Alpine rootfs is fully extracted and ready
-pub fn is_rootfs_installed(rootfs_dir: &Path) -> bool {
-    rootfs_dir.join(BASE_MARKER).exists() && rootfs_dir.join("sbin").join("apk").exists()
-}
-
-/// Maps a required Java major version to the closest Alpine package that satisfies it
 fn java_package(major: u32) -> (u32, &'static str) {
     match major {
         0..=8 => (8, "openjdk8-jre"),
@@ -65,227 +39,137 @@ fn java_package(major: u32) -> (u32, &'static str) {
     }
 }
 
-/// Guest paths where Alpine installs the java binary for a given major version
-fn guest_java_candidates(major: u32) -> Vec<String> {
-    if major == 8 {
+fn find_guest_java(rootfs: &Path, major: u32) -> Result<Option<String>, SandboxError> {
+    let candidates = if major == 8 {
         vec![
             "/usr/lib/jvm/java-1.8-openjdk/bin/java".into(),
             "/usr/lib/jvm/java-1.8-openjdk/jre/bin/java".into(),
         ]
     } else {
         vec![format!("/usr/lib/jvm/java-{major}-openjdk/bin/java")]
+    };
+    for candidate in candidates {
+        // Absolute guest symlinks need not resolve on the host.
+        match std::fs::symlink_metadata(rootfs.join(candidate.trim_start_matches('/'))) {
+            Ok(metadata) if metadata.is_file() || metadata.file_type().is_symlink() => {
+                return Ok(Some(candidate))
+            }
+            Ok(_) => return Err(SandboxError::InvalidRootfs),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error.into()),
+        }
     }
+    Ok(None)
+}
+/// Owns setup through completion even when a launch awaiting it is cancelled.
+#[derive(Clone, Default)]
+pub struct SandboxSetup {
+    gate: Arc<Mutex<()>>,
+    process_cleanup_failed: Arc<AtomicBool>,
 }
 
-fn find_guest_java(rootfs_dir: &Path, major: u32) -> Option<String> {
-    guest_java_candidates(major)
-        .into_iter()
-        // symlink_metadata: absolute symlinks inside the rootfs don't resolve on the host
-        .find(|p| fs::symlink_metadata(rootfs_dir.join(p.trim_start_matches('/'))).is_ok())
-}
+impl SandboxSetup {
+    pub async fn ensure_base_rootfs<F>(
+        &self,
+        data_dir: &Path,
+        client: &reqwest::Client,
+        progress: F,
+    ) -> Result<(PathBuf, PathBuf), SandboxError>
+    where
+        F: Fn(&str, f32) + Send + Sync + 'static,
+    {
+        let data_dir = data_dir.to_path_buf();
+        let client = client.clone();
+        self.run_owned(async move { prepare_rootfs(&data_dir, &client, &progress).await })
+            .await
+    }
 
-/// Downloads and extracts the Alpine base rootfs
-async fn install_base_rootfs<FProgress>(
-    client: &reqwest::Client,
-    sandbox_dir: &Path,
-    rootfs_dir: &Path,
-    on_progress: &FProgress,
-) -> Result<(), SandboxError>
-where
-    FProgress: Fn(&str, f32) + Send + Sync + 'static,
-{
-    let archive_path = sandbox_dir.join("rootfs.tar.gz");
+    pub async fn ensure_java<F>(
+        &self,
+        data_dir: &Path,
+        client: &reqwest::Client,
+        java_major: u32,
+        progress: F,
+    ) -> Result<(PathBuf, PathBuf, String), SandboxError>
+    where
+        F: Fn(&str, f32) + Send + Sync + 'static,
+    {
+        let data_dir = data_dir.to_path_buf();
+        let client = client.clone();
+        self.run_owned(async move {
+            let (sandbox, rootfs) = prepare_rootfs(&data_dir, &client, &progress).await?;
+            let (major, package) = java_package(java_major);
+            if let Some(java) = find_guest_java(&rootfs, major)? {
+                return Ok((sandbox, rootfs, java));
+            }
+            progress(&format!("Installing Java {major} in sandbox..."), 0.30);
+            package::install_java(&sandbox, &rootfs, package).await?;
+            let java = find_guest_java(&rootfs, major)?.ok_or_else(|| {
+                SandboxError::JavaBinaryNotFound {
+                    package: package.to_string(),
+                }
+            })?;
+            progress("Sandbox initialization complete!", 1.0);
+            Ok((sandbox, rootfs, java))
+        })
+        .await
+    }
 
-    on_progress("Downloading Linux sandbox...", 0.05);
-
-    let mut response = client.get(alpine_rootfs_url()).send().await?;
-
-    if !response.status().is_success() {
-        return Err(SandboxError::DownloadStatus {
-            status: response.status(),
+    async fn run_owned<T, F>(&self, operation: F) -> Result<T, SandboxError>
+    where
+        T: Send + 'static,
+        F: std::future::Future<Output = Result<T, SandboxError>> + Send + 'static,
+    {
+        let gate = self.gate.clone();
+        let blocked = self.process_cleanup_failed.clone();
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        tokio::spawn(async move {
+            let _guard = gate.lock().await;
+            if sender.is_closed() {
+                return;
+            }
+            if blocked.load(Ordering::Acquire) {
+                let _ = sender.send(Err(SandboxError::RecoveryBlocked(
+                    "package process cleanup was not confirmed; new sandbox setup is blocked",
+                )));
+                return;
+            }
+            let result = operation.await;
+            if matches!(&result, Err(SandboxError::ProcessCleanup { .. })) {
+                blocked.store(true, Ordering::Release);
+            }
+            if let Err(Err(error)) = sender.send(result) {
+                eprintln!("[Sandbox] Setup completed after caller cancellation: {error}");
+            }
         });
+        receiver.await.map_err(|_| SandboxError::WorkerStopped)?
     }
+}
 
-    let total_size = response.content_length().unwrap_or(4 * 1024 * 1024);
-    let mut downloaded = 0u64;
-
-    let mut file = File::create(&archive_path)?;
-
-    while let Some(chunk) = response.chunk().await? {
-        use std::io::Write;
-        file.write_all(&chunk)?;
-
-        downloaded += chunk.len() as u64;
-        let progress = 0.05 + ((downloaded as f32 / total_size as f32) * 0.15);
-        on_progress("Downloading Linux sandbox...", progress.min(0.20));
-    }
-
-    drop(file);
-
-    on_progress("Extracting sandbox filesystem...", 0.20);
-
-    // Start from a clean directory so a previously interrupted extraction can't linger
-    if rootfs_dir.exists() {
-        let _ = fs::remove_dir_all(rootfs_dir);
-    }
-    fs::create_dir_all(rootfs_dir)?;
-
-    let archive_path_clone = archive_path.clone();
-    let rootfs_clone = rootfs_dir.to_path_buf();
-    tokio::task::spawn_blocking(move || -> Result<(), SandboxError> {
-        let tar_file = File::open(&archive_path_clone)?;
-        let mut archive = Archive::new(GzDecoder::new(tar_file));
-        archive.unpack(&rootfs_clone).map_err(SandboxError::from)
+async fn prepare_rootfs<F>(
+    data_dir: &Path,
+    client: &reqwest::Client,
+    progress: &F,
+) -> Result<(PathBuf, PathBuf), SandboxError>
+where
+    F: Fn(&str, f32) + Send + Sync + 'static,
+{
+    let data_dir = data_dir.to_path_buf();
+    let sandbox = tokio::task::spawn_blocking(move || {
+        let sandbox = get_sandbox_dir_in(&data_dir)?;
+        publication::recover(&sandbox)?;
+        Ok::<_, SandboxError>(sandbox)
     })
     .await??;
-
-    let _ = fs::remove_file(archive_path);
-
-    // Android has no /etc/resolv.conf, so the guest needs its own DNS config
-    let etc = rootfs_dir.join("etc");
-    fs::write(
-        etc.join("resolv.conf"),
-        "nameserver 1.1.1.1\nnameserver 8.8.8.8\n",
-    )?;
-    fs::write(
-        etc.join("hosts"),
-        "127.0.0.1 localhost\n::1 localhost ip6-localhost\n",
-    )?;
-    fs::write(
-        etc.join("apk").join("repositories"),
-        format!(
-            "https://dl-cdn.alpinelinux.org/alpine/{ALPINE_BRANCH}/main\nhttps://dl-cdn.alpinelinux.org/alpine/{ALPINE_BRANCH}/community\n"
-        ),
-    )?;
-
-    fs::write(rootfs_dir.join(BASE_MARKER), ALPINE_VERSION)?;
-    Ok(())
-}
-
-/// Installs an OpenJDK package inside the sandbox using apk (run through PRoot)
-async fn install_java(
-    sandbox_dir: &Path,
-    rootfs_dir: &Path,
-    package: &str,
-) -> Result<(), SandboxError> {
-    let mut cmd = super::proot::proot_command(sandbox_dir, Some(rootfs_dir), true, &[], "/root")?;
-    cmd.args(["/sbin/apk", "add", "--no-cache", "--no-progress", package]);
-    cmd.stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-
-    let output = cmd.output().await?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    eprintln!("[Sandbox] apk add {package}:\n{stdout}{stderr}");
-
-    if !output.status.success() {
-        let tail: Vec<&str> = stderr
-            .lines()
-            .chain(stdout.lines())
-            .rev()
-            .take(15)
-            .collect();
-        let tail: Vec<&str> = tail.into_iter().rev().collect();
-        return Err(SandboxError::JavaInstallFailed {
-            package: package.to_string(),
-            status: output.status,
-            details: tail.join("\n"),
-        });
+    let rootfs = sandbox.join("rootfs");
+    if !is_rootfs_installed(&rootfs)? {
+        let endpoint = format!(
+            "https://dl-cdn.alpinelinux.org/alpine/{ALPINE_BRANCH}/releases/aarch64/alpine-minirootfs-{ALPINE_VERSION}-aarch64.tar.gz"
+        );
+        publication::install(client, &sandbox, &endpoint, progress).await?;
     }
-    Ok(())
+    Ok((sandbox, rootfs))
 }
 
-/// Ensures the Linux rootfs and a matching Java runtime are installed.
-/// Returns `(sandbox_dir, rootfs_dir, guest_java_path)`.
-/// Serializes sandbox setup: concurrent starts would race on extraction and apk's db lock
-static SETUP_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
-
-pub async fn ensure_base_rootfs_in_dir<FProgress>(
-    data_dir: &Path,
-    client: &reqwest::Client,
-    on_progress: FProgress,
-) -> Result<(PathBuf, PathBuf), SandboxError>
-where
-    FProgress: Fn(&str, f32) + Send + Sync + 'static,
-{
-    let _setup_guard = SETUP_LOCK.lock().await;
-    base_rootfs_in_dir(data_dir, client, &on_progress).await
-}
-
-pub async fn ensure_base_rootfs<R: Runtime, FProgress>(
-    app: &tauri::AppHandle<R>,
-    client: &reqwest::Client,
-    on_progress: FProgress,
-) -> Result<(PathBuf, PathBuf), SandboxError>
-where
-    FProgress: Fn(&str, f32) + Send + Sync + 'static,
-{
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
-    ensure_base_rootfs_in_dir(&data_dir, client, on_progress).await
-}
-
-async fn base_rootfs_in_dir<FProgress>(
-    data_dir: &Path,
-    client: &reqwest::Client,
-    on_progress: &FProgress,
-) -> Result<(PathBuf, PathBuf), SandboxError>
-where
-    FProgress: Fn(&str, f32) + Send + Sync + 'static,
-{
-    let sandbox_dir = get_sandbox_dir_in(data_dir)?;
-    let rootfs_dir = get_rootfs_dir_in(data_dir)?;
-    if !is_rootfs_installed(&rootfs_dir) {
-        install_base_rootfs(client, &sandbox_dir, &rootfs_dir, on_progress).await?;
-    }
-    Ok((sandbox_dir, rootfs_dir))
-}
-
-pub async fn ensure_sandbox_rootfs_in_dir<FProgress>(
-    data_dir: &Path,
-    client: &reqwest::Client,
-    java_major: u32,
-    on_progress: FProgress,
-) -> Result<(PathBuf, PathBuf, String), SandboxError>
-where
-    FProgress: Fn(&str, f32) + Send + Sync + 'static,
-{
-    let _setup_guard = SETUP_LOCK.lock().await;
-    let (sandbox_dir, rootfs_dir) = base_rootfs_in_dir(data_dir, client, &on_progress).await?;
-
-    let (major, package) = java_package(java_major);
-    if let Some(java) = find_guest_java(&rootfs_dir, major) {
-        return Ok((sandbox_dir, rootfs_dir, java));
-    }
-
-    on_progress(&format!("Installing Java {major} in sandbox..."), 0.30);
-    install_java(&sandbox_dir, &rootfs_dir, package).await?;
-
-    let java =
-        find_guest_java(&rootfs_dir, major).ok_or_else(|| SandboxError::JavaBinaryNotFound {
-            package: package.to_string(),
-        })?;
-
-    on_progress("Sandbox initialization complete!", 1.0);
-    Ok((sandbox_dir, rootfs_dir, java))
-}
-
-pub async fn ensure_sandbox_rootfs<R: Runtime, FProgress>(
-    app: &tauri::AppHandle<R>,
-    client: &reqwest::Client,
-    java_major: u32,
-    on_progress: FProgress,
-) -> Result<(PathBuf, PathBuf, String), SandboxError>
-where
-    FProgress: Fn(&str, f32) + Send + Sync + 'static,
-{
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| SandboxError::AppDataDir(e.to_string()))?;
-    ensure_sandbox_rootfs_in_dir(&data_dir, client, java_major, on_progress).await
-}
+#[cfg(test)]
+mod tests;

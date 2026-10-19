@@ -94,30 +94,6 @@ fn prepare_server<R: Runtime>(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn build_unpublished_server<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    name: String,
-    core: ServerCoreType,
-    game_version: String,
-    build_number: Option<String>,
-    memory_min_mb: Option<u32>,
-    memory_max_mb: Option<u32>,
-) -> Result<ServerConfig, ConfigError> {
-    prepare_server(
-        app,
-        ServerCreation {
-            name,
-            core,
-            game_version,
-            build_number,
-            port: None,
-            memory_min_mb,
-            memory_max_mb,
-        },
-    )
-}
-
-#[allow(clippy::too_many_arguments)]
 pub fn create_server<R: Runtime>(
     app: &tauri::AppHandle<R>,
     name: String,

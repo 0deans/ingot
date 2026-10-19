@@ -6,6 +6,7 @@ pub(crate) mod content;
 pub(crate) mod events;
 pub(crate) mod games;
 pub(crate) mod importer;
+pub(crate) mod instances;
 pub(crate) mod java;
 pub(crate) mod lifecycle;
 mod paths;
@@ -13,6 +14,7 @@ pub(crate) mod platform;
 pub(crate) mod screenshots;
 pub(crate) mod server_config;
 pub(crate) mod server_lifecycle;
+pub(crate) mod server_transfer;
 mod state;
 pub(crate) mod sync;
 

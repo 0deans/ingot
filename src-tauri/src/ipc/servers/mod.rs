@@ -262,7 +262,9 @@ impl ServersApi for ServersApiImpl {
                     client,
                     hooks,
                     command_builder: std::sync::Arc::new(
-                        crate::app::server_lifecycle::DefaultServerCommandBuilder,
+                        crate::app::server_lifecycle::DefaultServerCommandBuilder::new(
+                            crate::app::state(&app_handle).sandbox_setup.clone(),
+                        ),
                     ),
                     on_log: std::sync::Arc::new(on_log),
                     on_status: std::sync::Arc::new(on_status),

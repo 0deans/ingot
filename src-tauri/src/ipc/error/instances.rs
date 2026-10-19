@@ -5,12 +5,13 @@ impl From<crate::minecraft::instance::InstanceError> for ApiError {
         use crate::minecraft::instance::InstanceError;
         match error {
             InstanceError::Metadata(error) => Self::from(error),
-            InstanceError::Io(_) | InstanceError::Directory(_) => {
+            InstanceError::Io(_) | InstanceError::Clock(_) => {
                 Self::storage_failure(error.to_string())
             }
             InstanceError::InvalidId | InstanceError::EmptyName => {
                 Self::invalid_input(error.to_string())
             }
+            InstanceError::Task(_) => Self::internal(error.to_string()),
             InstanceError::NotFound(_) => Self::not_found(error.to_string()),
             InstanceError::Cleanup { .. } | InstanceError::FilesCleanupCommitted { .. } => {
                 Self::incomplete_recovery(error.to_string())

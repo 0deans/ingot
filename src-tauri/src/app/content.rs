@@ -1,6 +1,6 @@
 use crate::minecraft::{
     content::{self, ContentError},
-    instance::{self, InstanceConfig},
+    instance::InstanceConfig,
 };
 use tauri::{AppHandle, Runtime};
 
@@ -17,10 +17,12 @@ pub(crate) async fn install_content_file<R: Runtime>(
 ) -> Result<String, ContentError> {
     let handle = app.clone();
     let id = instance_id.to_owned();
-    let directory = tokio::task::spawn_blocking(move || instance::get_instance_dir(&handle, &id))
-        .await
-        .map_err(ContentError::Task)?
-        .map_err(ContentError::Instance)?;
+    let directory = tokio::task::spawn_blocking(move || {
+        crate::app::instances::ensure_instance_dir(&handle, &id)
+    })
+    .await
+    .map_err(ContentError::Task)?
+    .map_err(ContentError::Instance)?;
     content::install::install_content_file(
         &super::state(app).http,
         &directory,
@@ -39,10 +41,11 @@ pub(crate) async fn install_modpack_instance<R: Runtime>(
     filename: &str,
 ) -> Result<InstanceConfig, ContentError> {
     let handle = app.clone();
-    let root = tokio::task::spawn_blocking(move || instance::get_instances_dir(&handle))
-        .await
-        .map_err(ContentError::Task)?
-        .map_err(ContentError::Instance)?;
+    let root =
+        tokio::task::spawn_blocking(move || crate::app::instances::ensure_instances_dir(&handle))
+            .await
+            .map_err(ContentError::Task)?
+            .map_err(ContentError::Instance)?;
     let state = super::state(app);
     let installer = content::install::ModpackInstaller {
         client: state.http.clone(),

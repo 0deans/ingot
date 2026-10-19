@@ -1,4 +1,5 @@
-use crate::minecraft::instance::{get_instance_dir, InstanceConfig};
+use crate::app::instances::ensure_instance_dir;
+use crate::minecraft::instance::InstanceConfig;
 use crate::minecraft::sync::{
     execute::{ensure_shared_directories, file_exists, inspect_shared_status},
     models::{
@@ -42,7 +43,7 @@ pub fn mark_instance_synced<R: Runtime>(
         .duration_since(UNIX_EPOCH)
         .map_err(|error| SyncError::Io(std::io::Error::other(error)))?
         .as_secs();
-    crate::minecraft::instance::patch_instance(app, instance_id, |instance| {
+    crate::app::instances::patch_instance(app, instance_id, |instance| {
         instance.last_synced_at = Some(now);
     })
     .map_err(SyncError::Instances)?;
@@ -81,7 +82,7 @@ pub fn export_instance_category_to_shared<R: Runtime>(
     let cat = SyncCategory::parse(category)
         .ok_or_else(|| SyncError::InvalidCategory(category.to_string()))?;
     let shared = get_shared_dir(app)?;
-    let instance_dir = get_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
+    let instance_dir = ensure_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
     let report = export_instance_category_files(&shared, &instance_dir, cat)?;
     mark_instance_synced(app, instance_id)?;
     Ok(report)
@@ -99,7 +100,7 @@ pub fn import_shared_to_instance<R: Runtime>(
     instance_id: &str,
 ) -> Result<SyncReport, SyncError> {
     let shared = get_shared_dir(app)?;
-    let instance_dir = get_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
+    let instance_dir = ensure_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
     let report = import_shared_files_to_instance(&shared, &instance_dir)?;
     mark_instance_synced(app, instance_id)?;
     Ok(report)
@@ -116,8 +117,7 @@ pub fn check_sync_conflict<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
 ) -> Result<Option<SyncConflictInfo>, SyncError> {
-    let instances =
-        crate::minecraft::instance::load_instances(app).map_err(SyncError::Instances)?;
+    let instances = crate::app::instances::load_instances(app).map_err(SyncError::Instances)?;
     let instance = instances
         .iter()
         .find(|i| i.id == instance_id)
@@ -125,7 +125,7 @@ pub fn check_sync_conflict<R: Runtime>(
 
     let eff = get_effective_sync(app, instance)?;
     let shared = get_shared_dir(app)?;
-    let instance_dir = get_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
+    let instance_dir = ensure_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
 
     let has_instance_options = file_exists(&instance_dir.join("options.txt"))?;
     let has_instance_servers = file_exists(&instance_dir.join("servers.dat"))?;
@@ -175,7 +175,7 @@ pub fn resolve_sync_conflict<R: Runtime>(
             Ok(report)
         }
         ConflictResolution::DisableSync => {
-            crate::minecraft::instance::patch_instance(app, instance_id, |instance| {
+            crate::app::instances::patch_instance(app, instance_id, |instance| {
                 instance.sync_options = Some(false);
                 instance.sync_servers = Some(false);
                 instance.sync_resource_packs = Some(false);

@@ -169,7 +169,7 @@ impl PlayitManager {
         let data_dir = app.path().app_data_dir().map_err(PlayitError::AppData)?;
         let playit_dir = data_dir.join("playit");
         let sandbox_dir = if cfg!(target_os = "android") {
-            Some(crate::server::sandbox::get_sandbox_dir(app)?)
+            Some(crate::server::sandbox::get_sandbox_dir_in(&data_dir)?)
         } else {
             None
         };

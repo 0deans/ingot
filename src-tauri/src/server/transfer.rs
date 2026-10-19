@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use tauri::Runtime;
 
 use super::config::{self, ServerConfig, ServerCoreType};
 use super::files::PropertyEntry;
@@ -59,13 +58,35 @@ pub enum TransferError {
     InvalidPathEncoding,
 
     #[error("This is not a valid zip file")]
-    InvalidZip,
+    InvalidZip(#[source] zip::result::ZipError),
 
     #[error("This zip wasn't exported from Ingot (no ingot-server.json)")]
     NotAnIngotExport,
 
     #[error("Invalid ingot-server.json: {0}")]
-    InvalidManifest(String),
+    InvalidManifest(#[source] serde_json::Error),
+    #[error("Unsupported server export format: {0}")]
+    UnsupportedManifestFormat(u32),
+    #[error("Transfer staging cleanup failed: {source}")]
+    StagingCleanup {
+        primary: Option<Box<TransferError>>,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Invalid upload identifier")]
+    InvalidUploadId,
+    #[error("Upload has already been imported")]
+    UploadFinalized,
+    #[error("Server imported, but upload cleanup failed: {source}")]
+    UploadCleanup {
+        server: Box<ServerConfig>,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error(transparent)]
+    Process(#[from] super::process::ProcessError),
+    #[error("Transfer task failed: {0}")]
+    Task(#[from] tokio::task::JoinError),
 
     #[error("Archive destination has no parent")]
     MissingParent,
@@ -304,47 +325,6 @@ fn set_port(server_dir: &Path, port: u16) -> Result<(), TransferError> {
     Ok(())
 }
 
-/// Creates a new server from an exported archive
-pub fn import<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    archive: &Path,
-) -> Result<ServerConfig, TransferError> {
-    let file = File::open(archive)?;
-    let mut zip = zip::ZipArchive::new(file).map_err(|_| TransferError::InvalidZip)?;
-    let manifest: Manifest = {
-        let mut entry = zip
-            .by_name(MANIFEST)
-            .map_err(|_| TransferError::NotAnIngotExport)?;
-        let mut raw = String::new();
-        entry.read_to_string(&mut raw)?;
-        serde_json::from_str(&raw).map_err(|e| TransferError::InvalidManifest(e.to_string()))?
-    };
-
-    // Keep names distinguishable when importing a server that already exists here
-    let taken = config::load_servers(app)?
-        .iter()
-        .any(|s| s.name == manifest.name);
-    let name = if taken {
-        format!("{} (imported)", manifest.name)
-    } else {
-        manifest.name.clone()
-    };
-    let created = config::build_unpublished_server(
-        app,
-        name,
-        manifest.core.clone(),
-        manifest.game_version.clone(),
-        manifest.build_number.clone(),
-        Some(manifest.memory_min_mb),
-        Some(manifest.memory_max_mb),
-    )?;
-    let servers_dir = config::get_servers_dir(app)?;
-    let staging = tempfile::tempdir_in(&servers_dir)?;
-    crate::app::extract_zip_entries(&mut zip, staging.path(), "", Some(MANIFEST))?;
-    set_port(staging.path(), created.port)?;
-    Ok(config::publish_staged_server(app, created, staging.path())?)
-}
-
 fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), TransferError> {
     fs::create_dir_all(to)?;
     for entry in fs::read_dir(from)? {
@@ -383,46 +363,9 @@ fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), TransferError>
     Ok(())
 }
 
-/// Copies a server (worlds, plugins, configs) into a new one, optionally on another
-/// Minecraft version so the original stays untouched as a fallback
-pub fn duplicate<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    source: &ServerConfig,
-    name: &str,
-    game_version: Option<&str>,
-    build_number: Option<String>,
-) -> Result<ServerConfig, TransferError> {
-    let version_changes = game_version.is_some_and(|v| v != source.game_version);
-    let mut created = config::build_unpublished_server(
-        app,
-        name.to_string(),
-        source.core.clone(),
-        game_version.unwrap_or(&source.game_version).to_string(),
-        if version_changes {
-            build_number
-        } else {
-            source.build_number.clone()
-        },
-        Some(source.memory_min_mb),
-        Some(source.memory_max_mb),
-    )?;
-    let from = config::get_server_dir(app, &source.id)?;
-    let parent = config::get_servers_dir(app)?;
-    let staging = tempfile::tempdir_in(parent)?;
-    let to = staging.path();
-    copy_dir(&from, to, version_changes)?;
-    if version_changes {
-        // Forge, NeoForge and Quilt install themselves again for the new version
-        super::installer::uninstall(to, &created.core)?;
-    }
-    set_port(to, created.port)?;
-
-    created.jvm_args = source.jvm_args.clone();
-    created.java_path = source.java_path.clone();
-    created.sleep_enabled = source.sleep_enabled;
-    created.idle_timeout_seconds = source.idle_timeout_seconds;
-    Ok(config::publish_staged_server(app, created, staging.path())?)
-}
+pub(crate) mod service;
+pub(crate) mod uploads;
+pub(crate) use service::TransferService;
 
 #[cfg(test)]
 mod tests;

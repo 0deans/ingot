@@ -107,26 +107,6 @@ pub(crate) async fn resolve_profile(
     (name.to_string(), server::config::offline_uuid_for(name))
 }
 
-pub(crate) fn import_upload_path<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    upload_id: &str,
-) -> Result<std::path::PathBuf, ApiError> {
-    if upload_id.is_empty()
-        || upload_id.len() > 64
-        || !upload_id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-')
-    {
-        return Err(ApiError::invalid_input("Invalid upload id"));
-    }
-    Ok(app
-        .path()
-        .app_cache_dir()
-        .map_err(|e| ApiError::storage_failure(e.to_string()))?
-        .join("imports")
-        .join(format!("{upload_id}.zip")))
-}
-
 pub(crate) async fn validate_pre_launch<R: Runtime>(
     app: &tauri::AppHandle<R>,
     config: &ServerConfig,
