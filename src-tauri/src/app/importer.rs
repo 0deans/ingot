@@ -15,7 +15,7 @@ fn roots<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<DiscoveryRoots, Import
             let directory = app
                 .path()
                 .app_data_dir()
-                .map_err(|error| ImportError::InstanceDir(error.to_string()))?;
+                .map_err(|error| ImportError::NativePath(std::io::Error::other(error)))?;
             directory.parent().map(|parent| parent.to_path_buf())
         }
     };
@@ -24,7 +24,7 @@ fn roots<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<DiscoveryRoots, Import
         None => Some(
             app.path()
                 .home_dir()
-                .map_err(|error| ImportError::InstanceDir(error.to_string()))?,
+                .map_err(|error| ImportError::NativePath(std::io::Error::other(error)))?,
         ),
     };
     Ok(DiscoveryRoots { app_data, home })
@@ -61,8 +61,8 @@ pub(crate) async fn import_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     options: ImportInstanceOptions,
 ) -> Result<ImportReport, ImportError> {
-    let parent = crate::app::instances::ensure_instances_dir(app)
-        .map_err(|e| ImportError::InstanceDir(e.to_string()))?;
+    let parent =
+        crate::app::instances::ensure_instances_dir(app).map_err(ImportError::InstanceDir)?;
     let app = app.clone();
     tokio::task::spawn_blocking(move || {
         execute_import_instance(&parent, options, |stage, instance| {

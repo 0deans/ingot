@@ -8,11 +8,11 @@ fn sources<R: Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<Vec<ScreenshotSource>, ScreenshotError> {
     let mut sources = Vec::new();
-    for instance in crate::app::instances::load_instances(app)
-        .map_err(|e| ScreenshotError::LoadInstances(e.to_string()))?
+    for instance in
+        crate::app::instances::load_instances(app).map_err(ScreenshotError::LoadInstances)?
     {
         let directory = crate::app::instances::ensure_instance_dir(app, &instance.id)
-            .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?
+            .map_err(ScreenshotError::InstanceDir)?
             .join("screenshots");
         sources.push(ScreenshotSource {
             instance_id: instance.id,
@@ -105,10 +105,10 @@ pub(crate) fn open_screenshots_folder<R: Runtime>(
     let directory = match instance_id {
         Some("bedrock") => screenshots::get_primary_bedrock_screenshots_folder(),
         Some(id) if !id.is_empty() => crate::app::instances::ensure_instance_dir(app, id)
-            .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?
+            .map_err(ScreenshotError::InstanceDir)?
             .join("screenshots"),
         _ => crate::app::instances::ensure_instances_dir(app)
-            .map_err(|e| ScreenshotError::InstanceDir(e.to_string()))?,
+            .map_err(ScreenshotError::InstanceDir)?,
     };
     std::fs::create_dir_all(&directory).map_err(ScreenshotError::Io)?;
     super::platform::open_directory(&directory).map_err(ScreenshotActionError::FileManager)

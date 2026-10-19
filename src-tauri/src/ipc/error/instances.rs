@@ -31,8 +31,10 @@ impl From<crate::minecraft::importer::models::ImportError> for ApiError {
             ImportError::Metadata(error) => Self::from(error),
             ImportError::Cleanup { .. } => Self::incomplete_recovery(error.to_string()),
             ImportError::Task(_) => Self::internal(error.to_string()),
-            ImportError::InstanceCreate(err) => Self::from(err),
-            ImportError::Io(_) | ImportError::InstanceDir(_) => {
+            ImportError::InstanceCreate(source) | ImportError::InstanceDir(source) => {
+                Self::from(source)
+            }
+            ImportError::Io(_) | ImportError::NativePath(_) => {
                 Self::storage_failure(error.to_string())
             }
         }
@@ -64,7 +66,12 @@ impl From<crate::minecraft::screenshots::ScreenshotError> for ApiError {
                 Self::conflict(error.to_string())
             }
             ScreenshotError::Task(_) => Self::internal(error.to_string()),
-            _ => Self::storage_failure(error.to_string()),
+            ScreenshotError::InstanceDir(source) | ScreenshotError::LoadInstances(source) => {
+                Self::from(source)
+            }
+            ScreenshotError::Io(_)
+            | ScreenshotError::Image { .. }
+            | ScreenshotError::CacheDir(_) => Self::storage_failure(error.to_string()),
         }
     }
 }
@@ -210,8 +217,8 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::LoaderVersionNotSelected => {
                 Self::invalid_input("Loader version not selected")
             }
-            crate::minecraft::launcher::LaunchError::AppDataDir(msg)
-            | crate::minecraft::launcher::LaunchError::InstanceDir(msg) => {
+            crate::minecraft::launcher::LaunchError::InstanceDir(source) => Self::from(source),
+            crate::minecraft::launcher::LaunchError::AppDataDir(msg) => {
                 Self::storage_failure(msg)
             }
             crate::minecraft::launcher::LaunchError::IncompleteTransaction(msg) => {

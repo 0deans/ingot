@@ -1364,3 +1364,17 @@ Verification: both the regular all-target suite and a fresh instrumented all-tar
 Windows maintained-source aggregation: **16,441 / 28,435 lines = 57.82%**, across 246 sources. All six new production modules are included, no earlier source inventory entries were removed, and the minimum rises from 56.51% to **57.81%**. The existing standalone-test exclusions are unchanged; inline test counters are included, so this is not a production-only coverage claim. No staging, unstaging or commits were performed.
 
 Remaining scope: Linux/macOS execution and real Minecraft/server/PRoot/file-manager smoke tests are not verified by the hermetic suite. Windows directory power-loss durability is not claimed. Existing launcher/screenshot/importer consumers still have separately tracked legacy string error wrappers around instance failures; this slice preserves causes inside the instance API and removes Tauri from the three reviewed feature boundaries. Higher feature/pure-rule coverage targets remain open.
+
+
+### Legacy instance-error consumers — 2026-10-19
+
+Scope: launcher, screenshot and importer instance-error wrappers, their native adapters and IPC category mappings (Phase 5).
+
+- Replaced `InstanceDir(String)` and `LoadInstances(String)` payloads with sourced `InstanceError` values. Native calls now pass errors directly without string conversion; operation-specific context remains on each wrapper.
+- Instance failures delegate to the existing typed IPC mapping, preserving invalid-input, missing-resource, conflict, storage, internal-worker and incomplete-recovery categories rather than reporting all failures as storage errors. Public IPC shapes and stored formats are unchanged.
+- Import discovery's native path-resolution failures have a separate `NativePath` variant. Its I/O wrapper retains the native cause while keeping Tauri types out of the importer feature.
+- Regressions check cause downcasting, permission-error details and category preservation across launcher, screenshot directory/listing and importer directory/creation wrappers, including cleanup and committed-cleanup failures. A native path regression checks retention of the original Tauri/I/O cause.
+
+Verification: 15 focused error-mapping tests and the full all-target suite passed (691 passed, zero failures, 17 ignored); binding freshness/procedure inventory, Clippy with warnings denied, rustfmt, TypeScript, all 14 IPC tests and diff checks passed.
+
+This closes the launcher/screenshot/importer instance-error wrapper follow-up from the preceding checkpoint. Other unrelated string-bearing feature errors were outside this slice. Coverage was not remeasured; the preceding 57.82% measurement remains historical. Linux/macOS and real application smoke checks were not run for this slice. No staging, unstaging or commits were performed.

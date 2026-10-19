@@ -7,6 +7,75 @@ use crate::minecraft::launcher::LaunchError;
 use crate::version_change::VersionChangeError;
 
 #[test]
+fn instance_adapters_preserve_causes_and_api_categories() {
+    use crate::minecraft::{
+        importer::models::ImportError, instance::InstanceError, metadata::MetadataError,
+        screenshots::ScreenshotError,
+    };
+    use std::error::Error;
+
+    fn failures() -> Vec<InstanceError> {
+        vec![
+            InstanceError::InvalidId,
+            InstanceError::NotFound("missing-instance".into()),
+            InstanceError::Io(std::io::ErrorKind::PermissionDenied.into()),
+            InstanceError::Metadata(MetadataError::Conflict("busy instance".into())),
+            InstanceError::FilesCleanupCommitted {
+                path: "retained-instance".into(),
+                source: std::io::ErrorKind::PermissionDenied.into(),
+            },
+            InstanceError::Cleanup {
+                primary: Box::new(InstanceError::InvalidId),
+                cleanup: std::io::ErrorKind::PermissionDenied.into(),
+            },
+        ]
+    }
+
+    fn check<E: Error + Into<ApiError>>(wrap: impl Fn(InstanceError) -> E) {
+        for (original, expected) in failures().into_iter().zip(failures()) {
+            let wrapped = wrap(original);
+            let source = wrapped.source().unwrap();
+            let instance = source.downcast_ref::<InstanceError>().unwrap();
+            if let InstanceError::Io(io) = instance {
+                assert_eq!(io.kind(), std::io::ErrorKind::PermissionDenied);
+            }
+            assert_eq!(ApiError::from(expected), wrapped.into());
+        }
+    }
+
+    check(LaunchError::InstanceDir);
+    check(ScreenshotError::InstanceDir);
+    check(ScreenshotError::LoadInstances);
+    check(ImportError::InstanceDir);
+    check(ImportError::InstanceCreate);
+}
+
+#[test]
+fn importer_native_path_failure_preserves_its_source() {
+    use crate::minecraft::importer::models::ImportError;
+    use std::error::Error;
+
+    let native_error = tauri::Error::Io(std::io::ErrorKind::PermissionDenied.into());
+    let error = ImportError::NativePath(std::io::Error::other(native_error));
+    let io = error
+        .source()
+        .unwrap()
+        .downcast_ref::<std::io::Error>()
+        .unwrap();
+    let native = io
+        .get_ref()
+        .unwrap()
+        .downcast_ref::<tauri::Error>()
+        .unwrap();
+    assert!(matches!(native, tauri::Error::Io(source)
+        if source.kind() == std::io::ErrorKind::PermissionDenied));
+    assert!(matches!(
+        ApiError::from(error),
+        ApiError::StorageFailure { .. }
+    ));
+}
+
+#[test]
 fn provider_payload_failure_is_not_reported_as_invalid_user_input() {
     use crate::version_change::sources::{Source, SourceError};
 

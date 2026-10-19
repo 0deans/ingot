@@ -85,7 +85,10 @@ pub(crate) enum ImportError {
     InstanceCreate(#[source] crate::minecraft::instance::InstanceError),
 
     #[error("Failed to resolve instance directory: {0}")]
-    InstanceDir(String),
+    InstanceDir(#[source] crate::minecraft::instance::InstanceError),
+
+    #[error("Failed to resolve native import paths: {0}")]
+    NativePath(#[source] std::io::Error),
 
     #[error("I/O error during import: {0}")]
     Io(#[source] std::io::Error),

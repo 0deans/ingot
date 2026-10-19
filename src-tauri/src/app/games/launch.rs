@@ -48,8 +48,7 @@ where
     let cache_dir = data_dir.join("cache");
     let assets_dir = data_dir.join("assets");
     let libraries_dir = data_dir.join("libraries");
-    let instance_dir = ensure_instance_dir(&app, &instance_id)
-        .map_err(|e| LaunchError::InstanceDir(e.to_string()))?;
+    let instance_dir = ensure_instance_dir(&app, &instance_id).map_err(LaunchError::InstanceDir)?;
     match crate::version_change::detect_incomplete_transaction(&instance_dir) {
         Ok(Some(incomplete)) => {
             return Err(LaunchError::IncompleteTransaction(format!(

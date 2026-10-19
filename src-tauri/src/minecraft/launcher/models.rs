@@ -61,7 +61,7 @@ pub enum LaunchError {
     AppDataDir(String),
 
     #[error("Instance directory error: {0}")]
-    InstanceDir(String),
+    InstanceDir(#[source] crate::minecraft::instance::InstanceError),
 
     #[error("Version package error: {0}")]
     VersionPackage(#[source] crate::minecraft::version::VersionError),
