@@ -8,6 +8,7 @@ pub mod progress;
 pub mod quick_play;
 pub mod rules;
 pub mod service;
+pub mod termination;
 
 #[cfg(test)]
 mod tests;

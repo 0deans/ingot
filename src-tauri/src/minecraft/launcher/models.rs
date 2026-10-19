@@ -85,14 +85,26 @@ pub enum LaunchError {
     #[error("Failed to spawn Minecraft process: {0}")]
     ProcessSpawn(#[source] std::io::Error),
 
-    #[error("Version change transaction is in incomplete state: {0}. Please recover or revert it first.")]
-    IncompleteTransaction(String),
+    #[error("Version change transaction is in incomplete state: {0:?}. Please recover or revert it first.")]
+    IncompleteTransaction(crate::version_change::TransactionPhase),
+
+    #[error("Cannot inspect version change recovery state: {0}")]
+    TransactionInspection(#[source] Box<crate::version_change::VersionChangeError>),
 
     #[error("I/O error during launch: {0}")]
     Io(#[from] std::io::Error),
 
-    #[error("{0}")]
-    Other(String),
+    #[error("Game process registry is poisoned")]
+    RegistryPoisoned,
+
+    #[error("Launch reservation was cancelled or replaced")]
+    ReservationCancelled,
+
+    #[error("Game termination failed: {0}")]
+    Termination(#[from] super::termination::TerminationError),
+
+    #[error("Game process worker failed: {0}")]
+    Task(#[from] tokio::task::JoinError),
 }
 
 #[derive(Debug, thiserror::Error)]

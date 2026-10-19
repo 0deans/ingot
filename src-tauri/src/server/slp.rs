@@ -44,6 +44,10 @@ pub enum PingError {
     Timeout,
     #[error("Invalid server ping response: {0}")]
     InvalidResponse(String),
+    #[error("Invalid UTF-8 in server ping response: {0}")]
+    Utf8(#[from] std::string::FromUtf8Error),
+    #[error("Invalid VarInt in server ping response: {0}")]
+    InvalidVarInt(#[source] std::io::Error),
     #[error("Failed to parse server ping response: {0}")]
     Json(#[from] serde_json::Error),
 }
@@ -64,7 +68,7 @@ async fn read_varint<R: AsyncReadExt + Unpin>(reader: &mut R) -> Result<i32, Pin
         .await
         .map_err(|error| {
             if error.kind() == std::io::ErrorKind::InvalidData {
-                return PingError::InvalidResponse("VarInt is too big".to_string());
+                return PingError::InvalidVarInt(error);
             }
             PingError::Io(error)
         })
@@ -151,9 +155,7 @@ pub async fn ping_server(host: &str, port: u16) -> Result<ServerPingResponse, Pi
 
     let ping_ms = start.elapsed().as_millis() as u64;
 
-    let raw_str = String::from_utf8(json_bytes).map_err(|e| {
-        PingError::InvalidResponse(format!("Invalid UTF-8 in status response: {e}"))
-    })?;
+    let raw_str = String::from_utf8(json_bytes)?;
 
     let json_val: serde_json::Value = serde_json::from_str(&raw_str)?;
 
@@ -295,3 +297,6 @@ pub async fn ping_bedrock(host: &str, port: u16) -> Result<ServerPingResponse, P
         ping_ms,
     })
 }
+
+#[cfg(test)]
+mod tests;

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 use thiserror::Error;
 
@@ -32,14 +32,32 @@ pub enum Kind {
 
 #[derive(Debug, Error)]
 pub enum MapError {
-    #[error("Failed to read region file: {0}")]
-    RegionRead(String),
-    #[error("Failed to read map tile: {0}")]
-    TileRead(String),
-    #[error("Bedrock world error: {0}")]
-    Bedrock(String),
+    #[error("Failed to read region file {path}: {source}")]
+    RegionRead {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Failed to read map tile {path}: {source}")]
+    TileRead {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Failed to open Bedrock world {path}: {source}")]
+    BedrockOpen {
+        path: PathBuf,
+        #[source]
+        source: bedrock_world::BedrockWorldError,
+    },
+    #[error("Failed to query Bedrock chunks in {path}: {source}")]
+    BedrockQuery {
+        path: PathBuf,
+        #[source]
+        source: bedrock_world::BedrockWorldError,
+    },
     #[error("Failed to encode map tile PNG: {0}")]
-    PngEncoding(String),
+    PngEncoding(#[from] png::EncodingError),
 }
 
 /// Name of the world folder (`level-name` in server.properties)

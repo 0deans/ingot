@@ -138,8 +138,12 @@ pub fn tile_typed(
     let cache_path = cache_dir.join(format!("r.{x}.{z}.png"));
     let source_time = region_path.as_deref().and_then(modified).max(live_time);
     let png = match (modified(&cache_path), source_time) {
-        (Some(cached), Some(source)) if cached >= source => std::fs::read(&cache_path)
-            .map_err(|e| MapError::TileRead(format!("Failed to read map tile: {e}")))?,
+        (Some(cached), Some(source)) if cached >= source => {
+            std::fs::read(&cache_path).map_err(|source| MapError::TileRead {
+                path: cache_path.clone(),
+                source,
+            })?
+        }
         _ => {
             let ceiling = dimension == "minecraft:the_nether";
             let mut raster = match &region_path {

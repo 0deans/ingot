@@ -91,16 +91,18 @@ impl ServerProcessManager {
     }
 
     pub fn try_claim_starting(&self, server_id: &str) -> Result<StartingGuard, ProcessError> {
-        let mut starting = self
-            .starting_servers
-            .lock()
-            .map_err(|_| ProcessError::AlreadyStarting)?;
+        let mut starting =
+            self.starting_servers
+                .lock()
+                .map_err(|_| ProcessError::StatePoisoned {
+                    state: "start reservations",
+                })?;
         if self
             .paused_starts
             .load(std::sync::atomic::Ordering::Acquire)
             > 0
         {
-            return Err(ProcessError::ServerStopped);
+            return Err(ProcessError::StartAdmissionPaused);
         }
         if starting.contains_key(server_id) {
             return Err(ProcessError::AlreadyStarting);
@@ -405,6 +407,59 @@ impl ServerProcessManager {
         });
 
         Ok(())
+    }
+
+    pub(crate) async fn stop_owned_and_wait(
+        &self,
+        server_id: &str,
+        pid: u32,
+        grace_period: Duration,
+    ) -> Result<(), ProcessError> {
+        let stdin = {
+            let mut servers = self.servers.lock().await;
+            let Some(server) = servers
+                .get_mut(server_id)
+                .filter(|server| server.pid == pid)
+            else {
+                return Ok(());
+            };
+            server.status = ServerStatus::Stopping;
+            server.stdin.clone()
+        };
+        let server_id_owned = server_id.to_string();
+        let servers = self.servers.clone();
+        // The force-stop owner survives cancellation and checks the original PID.
+        tokio::spawn(async move {
+            force_stop_after_timeout(&servers, &server_id_owned, pid, grace_period, |pid| {
+                crate::running::kill_tree(pid);
+            })
+            .await;
+        });
+        let confirmation_timeout = grace_period + Duration::from_secs(3);
+        let mut graceful_failure = None;
+        let confirmation = tokio::time::timeout(confirmation_timeout, async {
+            {
+                let mut stdin = stdin.lock().await;
+                graceful_failure = match stdin.write_all(b"stop\n").await {
+                    Ok(()) => stdin.flush().await.err().map(ProcessError::StdinFlush),
+                    Err(error) => Some(ProcessError::StdinWrite(error)),
+                };
+            }
+            while self.owns(server_id, pid).await {
+                tokio::time::sleep(Duration::from_millis(250)).await;
+            }
+        })
+        .await;
+        if confirmation.is_ok() {
+            // Failed graceful writes are recovered only after exit is confirmed.
+            return Ok(());
+        }
+        Err(
+            graceful_failure.unwrap_or_else(|| ProcessError::ShutdownTimeout {
+                server_id: server_id.to_string(),
+                timeout: confirmation_timeout,
+            }),
+        )
     }
 
     /// Waits until the server's process has exited, up to `timeout`

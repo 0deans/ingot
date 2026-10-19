@@ -7,6 +7,8 @@ use std::sync::{Arc, Mutex};
 pub(crate) struct ActiveChild {
     pub(crate) pid: u32,
     pub(crate) started_at: u64,
+    // Launch timestamps are display data; only the OS birth identity authorizes termination.
+    pub(crate) proc_start: Option<u64>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,39 +37,40 @@ impl StartingGuard {
         let lock = self
             .running
             .lock()
-            .map_err(|e| LaunchError::Other(e.to_string()))?;
+            .map_err(|_| LaunchError::RegistryPoisoned)?;
         match lock.get(&self.instance_id) {
             Some(ProcessEntry::Starting { reservation_id })
                 if *reservation_id == self.reservation_id =>
             {
                 Ok(())
             }
-            _ => Err(LaunchError::Other(
-                "Launch reservation was cancelled".to_string(),
-            )),
+            _ => Err(LaunchError::ReservationCancelled),
         }
     }
 
     /// Commits the starting process to the Running state, matching the exact reservation identity.
     pub fn commit(mut self, pid: u32, started_at: u64) -> Result<(), LaunchError> {
         self.committed = true;
+        let proc_start = crate::running::process_start(pid);
         let mut lock = self
             .running
             .lock()
-            .map_err(|e| LaunchError::Other(e.to_string()))?;
+            .map_err(|_| LaunchError::RegistryPoisoned)?;
         match lock.get(&self.instance_id) {
             Some(ProcessEntry::Starting { reservation_id })
                 if *reservation_id == self.reservation_id =>
             {
                 lock.insert(
                     self.instance_id.clone(),
-                    ProcessEntry::Running(ActiveChild { pid, started_at }),
+                    ProcessEntry::Running(ActiveChild {
+                        pid,
+                        started_at,
+                        proc_start,
+                    }),
                 );
                 Ok(())
             }
-            _ => Err(LaunchError::Other(
-                "Launch reservation is no longer active; cannot commit".to_string(),
-            )),
+            _ => Err(LaunchError::ReservationCancelled),
         }
     }
 }
@@ -105,7 +108,7 @@ impl ProcessManager {
         let mut lock = self
             .running
             .lock()
-            .map_err(|e| LaunchError::Other(e.to_string()))?;
+            .map_err(|_| LaunchError::RegistryPoisoned)?;
         if lock.contains_key(instance_id) {
             return Err(LaunchError::AlreadyRunning);
         }
@@ -131,7 +134,7 @@ impl ProcessManager {
         let mut entries = self
             .running
             .lock()
-            .map_err(|error| LaunchError::Other(error.to_string()))?;
+            .map_err(|_| LaunchError::RegistryPoisoned)?;
         if entries.contains_key(instance_id) {
             return Err(LaunchError::AlreadyRunning);
         }
@@ -180,14 +183,35 @@ impl ProcessManager {
     }
 
     pub async fn register(&self, instance_id: &str, pid: u32, started_at: u64) {
+        let proc_start = crate::running::process_start(pid);
         let mut lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
         lock.insert(
             instance_id.to_string(),
-            ProcessEntry::Running(ActiveChild { pid, started_at }),
+            ProcessEntry::Running(ActiveChild {
+                pid,
+                started_at,
+                proc_start,
+            }),
         );
     }
 
+    #[cfg(test)]
     pub(crate) fn register_if_vacant(&self, instance_id: &str, pid: u32, started_at: u64) -> bool {
+        self.adopt_if_vacant(
+            instance_id,
+            pid,
+            started_at,
+            crate::running::process_start(pid),
+        )
+    }
+
+    pub(crate) fn adopt_if_vacant(
+        &self,
+        instance_id: &str,
+        pid: u32,
+        started_at: u64,
+        proc_start: Option<u64>,
+    ) -> bool {
         let mut entries = self
             .running
             .lock()
@@ -197,7 +221,11 @@ impl ProcessManager {
         }
         entries.insert(
             instance_id.to_owned(),
-            ProcessEntry::Running(ActiveChild { pid, started_at }),
+            ProcessEntry::Running(ActiveChild {
+                pid,
+                started_at,
+                proc_start,
+            }),
         );
         true
     }
@@ -239,12 +267,42 @@ impl ProcessManager {
         (removed, is_empty)
     }
 
+    fn check_running_identity(
+        &self,
+        instance_id: &str,
+        child: ActiveChild,
+    ) -> Result<(), LaunchError> {
+        let entries = self
+            .running
+            .lock()
+            .map_err(|_| LaunchError::RegistryPoisoned)?;
+        if entries.get(instance_id) != Some(&ProcessEntry::Running(child)) {
+            return Err(LaunchError::ReservationCancelled);
+        }
+        Ok(())
+    }
+
     pub async fn kill_instance(&self, instance_id: &str) -> Result<(), LaunchError> {
-        let child_pid = {
+        self.kill_instance_with(instance_id, super::termination::terminate)
+            .await
+    }
+
+    async fn kill_instance_with<F, Fut>(
+        &self,
+        instance_id: &str,
+        terminate: F,
+    ) -> Result<(), LaunchError>
+    where
+        F: FnOnce(ActiveChild) -> Fut + Send + 'static,
+        Fut: std::future::Future<Output = Result<(), super::termination::TerminationError>>
+            + Send
+            + 'static,
+    {
+        let active_child = {
             let mut lock = self
                 .running
                 .lock()
-                .map_err(|e| LaunchError::Other(e.to_string()))?;
+                .map_err(|_| LaunchError::RegistryPoisoned)?;
             if matches!(
                 lock.get(instance_id),
                 Some(ProcessEntry::Maintenance { .. })
@@ -252,7 +310,7 @@ impl ProcessManager {
                 return Err(LaunchError::Maintenance);
             }
             match lock.get(instance_id).copied() {
-                Some(ProcessEntry::Running(child)) => Some(child.pid),
+                Some(ProcessEntry::Running(child)) => Some(child),
                 Some(ProcessEntry::Starting { .. }) => {
                     lock.remove(instance_id);
                     None
@@ -261,19 +319,19 @@ impl ProcessManager {
                 Some(ProcessEntry::Maintenance { .. }) => return Err(LaunchError::Maintenance),
             }
         };
-        if let Some(pid) = child_pid {
-            #[cfg(target_os = "windows")]
-            {
-                let _ = std::process::Command::new("taskkill")
-                    .args(["/F", "/T", "/PID", &pid.to_string()])
-                    .output();
-            }
-            #[cfg(not(target_os = "windows"))]
-            {
-                let _ = std::process::Command::new("kill")
-                    .args(["-9", &pid.to_string()])
-                    .output();
-            }
+        if let Some(child) = active_child {
+            let manager = self.clone();
+            let instance_id = instance_id.to_owned();
+            // The worker owns termination if the caller stops waiting for it.
+            tokio::spawn(async move {
+                manager.check_running_identity(&instance_id, child)?;
+                let result = terminate(child).await;
+                if let Err(error) = &result {
+                    eprintln!("[Launcher] Game termination failed: {error}");
+                }
+                result.map_err(LaunchError::Termination)
+            })
+            .await??;
         }
         Ok(())
     }
@@ -329,3 +387,7 @@ mod maintenance_tests {
         assert!(manager.reserve_starting("instance").await.is_ok());
     }
 }
+
+#[cfg(test)]
+#[path = "process_tests.rs"]
+mod error_tests;

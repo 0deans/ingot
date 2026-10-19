@@ -49,20 +49,7 @@ where
     let assets_dir = data_dir.join("assets");
     let libraries_dir = data_dir.join("libraries");
     let instance_dir = ensure_instance_dir(&app, &instance_id).map_err(LaunchError::InstanceDir)?;
-    match crate::version_change::detect_incomplete_transaction(&instance_dir) {
-        Ok(Some(incomplete)) => {
-            return Err(LaunchError::IncompleteTransaction(format!(
-                "{:?}",
-                incomplete.phase
-            )));
-        }
-        Err(err) => {
-            return Err(LaunchError::IncompleteTransaction(format!(
-                "{err}. Please recover or inspect the instance backup first."
-            )));
-        }
-        Ok(None) => {}
-    }
+    ensure_transaction_ready(&instance_dir)?;
 
     let prep = prepare_launch_environment(
         &NativePreparation::new(&app),
@@ -155,6 +142,15 @@ where
     Ok(pid)
 }
 
+fn ensure_transaction_ready(instance_dir: &std::path::Path) -> Result<(), LaunchError> {
+    let incomplete = crate::version_change::detect_incomplete_transaction(instance_dir)
+        .map_err(|source| LaunchError::TransactionInspection(Box::new(source)))?;
+    if let Some(transaction) = incomplete {
+        return Err(LaunchError::IncompleteTransaction(transaction.phase));
+    }
+    Ok(())
+}
+
 struct InstanceLaunchReservation {
     ownership: crate::minecraft::launcher::process::StartingGuard,
     instance: InstanceConfig,
@@ -184,6 +180,42 @@ mod tests {
         instance::{prepare_instance, ModLoaderType},
         metadata::MetadataRepository,
     };
+
+    #[test]
+    fn transaction_inspection_preserves_decode_cause_and_blocks_launch() {
+        use std::error::Error;
+        let directory = tempfile::tempdir().unwrap();
+        let backup = crate::version_change::models::backup_dir(directory.path());
+        std::fs::create_dir_all(&backup).unwrap();
+        std::fs::write(backup.join("journal.json"), b"malformed").unwrap();
+        let error = ensure_transaction_ready(directory.path()).unwrap_err();
+        assert!(matches!(error, LaunchError::TransactionInspection(_)));
+        let source = error.source().unwrap();
+        assert!(source.is::<Box<crate::version_change::VersionChangeError>>());
+        assert!(source.source().unwrap().is::<serde_json::Error>());
+    }
+
+    #[test]
+    fn incomplete_transaction_retains_its_phase() {
+        let directory = tempfile::tempdir().unwrap();
+        let backup = crate::version_change::models::backup_dir(directory.path());
+        std::fs::create_dir_all(&backup).unwrap();
+        let journal = crate::version_change::journal::Journal {
+            phase: crate::version_change::TransactionPhase::Swapping,
+            ..Default::default()
+        };
+        std::fs::write(
+            backup.join("journal.json"),
+            serde_json::to_vec(&journal).unwrap(),
+        )
+        .unwrap();
+        assert!(matches!(
+            ensure_transaction_ready(directory.path()),
+            Err(LaunchError::IncompleteTransaction(
+                crate::version_change::TransactionPhase::Swapping
+            ))
+        ));
+    }
 
     #[tokio::test]
     async fn launch_reservation_reads_latest_metadata_and_releases_missing_targets() {

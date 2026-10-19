@@ -71,7 +71,7 @@ impl ApplicationApi for ApplicationApiImpl {
     ) -> Result<(), ApiError> {
         lifecycle::stop_leftover_server(&app_handle, server_id)
             .await
-            .map_err(ApiError::from_display)
+            .map_err(ApiError::from)
     }
 
     async fn turn_off_after_version_change(

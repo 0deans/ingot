@@ -38,6 +38,8 @@ pub enum MetadataError {
     Encode(#[from] serde_json::Error),
     #[error("{0}")]
     Conflict(String),
+    #[error("Metadata validation failed: {0}")]
+    Validation(#[source] Box<dyn std::error::Error + Send + Sync>),
     #[error("{primary}; publication cleanup also failed: {cleanup}")]
     Cleanup {
         #[source]

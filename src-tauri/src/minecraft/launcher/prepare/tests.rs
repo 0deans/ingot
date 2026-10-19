@@ -139,3 +139,87 @@ async fn authentication_failure_is_not_converted_to_offline_credentials() {
         Err(LaunchError::Account(_))
     ));
 }
+
+#[test]
+fn asset_task_rejects_invalid_hashes_before_constructing_paths_or_requests() {
+    let directory = tempfile::tempdir().unwrap();
+    for hash in ["", "a", "../unsafe", &"z".repeat(40), &"é".repeat(20)] {
+        let object = crate::minecraft::version::AssetObject {
+            hash: hash.into(),
+            size: 1,
+        };
+        assert!(matches!(
+            prepare_asset_task(directory.path(), object),
+            Err(DownloadError::InvalidAssetHash)
+        ));
+    }
+    assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 0);
+}
+
+#[test]
+fn asset_task_preserves_valid_hash_url_path_and_integrity_metadata() {
+    let directory = tempfile::tempdir().unwrap();
+    let hash = "ab01234567890123456789012345678901234567";
+    let object = crate::minecraft::version::AssetObject {
+        hash: hash.into(),
+        size: 12,
+    };
+    let task = prepare_asset_task(directory.path(), object).unwrap();
+    assert_eq!(
+        task.url,
+        format!("https://resources.download.minecraft.net/ab/{hash}")
+    );
+    assert_eq!(task.dest, directory.path().join("objects/ab").join(hash));
+    assert_eq!(task.sha1.as_deref(), Some(hash));
+    assert_eq!(task.size, Some(12));
+}
+
+#[tokio::test]
+async fn invalid_cached_asset_stops_preparation_without_network_or_authentication() {
+    let (directory, instance) = fixture();
+    let package_path = directory.path().join("cache/versions/fixture/fixture.json");
+    let mut package: serde_json::Value =
+        serde_json::from_slice(&fs::read(&package_path).unwrap()).unwrap();
+    package["assetIndex"] = serde_json::json!({"id": "fixture", "sha1": "", "size": 0, "url": "invalid://not-requested"});
+    fs::write(package_path, serde_json::to_vec(&package).unwrap()).unwrap();
+    let indexes = directory.path().join("assets/indexes");
+    fs::create_dir_all(&indexes).unwrap();
+    let index = serde_json::json!({"objects": {"invalid": {"hash": "../unsafe", "size": 1}}});
+    fs::write(
+        indexes.join("fixture.json"),
+        serde_json::to_vec(&index).unwrap(),
+    )
+    .unwrap();
+    let effects = FakePreparation {
+        failure: Failure::None,
+        java_calls: AtomicUsize::new(0),
+        auth_calls: AtomicUsize::new(0),
+    };
+    // Route any accidental external request to an observable loopback listener.
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let proxy = reqwest::Proxy::all(format!("http://{}", listener.local_addr().unwrap())).unwrap();
+    let client = reqwest::Client::builder()
+        .proxy(proxy)
+        .timeout(std::time::Duration::from_secs(2))
+        .build()
+        .unwrap();
+    let result = prepare_launch_environment(
+        &effects,
+        &client,
+        &instance,
+        &directory.path().join("cache"),
+        &directory.path().join("assets"),
+        &directory.path().join("libraries"),
+        Arc::new(|_, _, _, _| {}),
+    )
+    .await;
+    assert!(matches!(
+        result,
+        Err(LaunchError::Download(DownloadError::InvalidAssetHash))
+    ));
+    assert_eq!(effects.auth_calls.load(Ordering::SeqCst), 0);
+    assert!(!directory.path().join("assets/objects").exists());
+    assert!(
+        matches!(listener.into_std().unwrap().accept(), Err(error) if error.kind() == std::io::ErrorKind::WouldBlock)
+    );
+}

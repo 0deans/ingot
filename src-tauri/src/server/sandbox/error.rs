@@ -62,7 +62,4 @@ pub enum SandboxError {
         status: std::process::ExitStatus,
         details: String,
     },
-
-    #[error("{0}")]
-    Other(String),
 }

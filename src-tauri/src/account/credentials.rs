@@ -2,9 +2,61 @@
 use super::operations::AccountOperation;
 use super::AccountSecrets;
 
+pub(crate) struct VaultFailure {
+    cause: VaultCause,
+}
+
+enum VaultCause {
+    Native(crate::keyring_store::KeyringError),
+    #[cfg(test)]
+    Injected(InjectedVaultFailure),
+}
+
+impl From<crate::keyring_store::KeyringError> for VaultFailure {
+    fn from(source: crate::keyring_store::KeyringError) -> Self {
+        Self {
+            cause: VaultCause::Native(source),
+        }
+    }
+}
+
+impl std::fmt::Display for VaultFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("OS credential vault operation failed")
+    }
+}
+
+impl std::fmt::Debug for VaultFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("VaultFailure")
+            .finish_non_exhaustive()
+    }
+}
+
+impl std::error::Error for VaultFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self.cause {
+            VaultCause::Native(source) => Some(source),
+            #[cfg(test)]
+            VaultCause::Injected(source) => Some(source),
+        }
+    }
+}
+
+#[cfg(test)]
 #[derive(Debug, thiserror::Error)]
-#[error("{0}")]
-pub(crate) struct VaultFailure(pub(crate) String);
+#[error("Injected credential vault failure")]
+struct InjectedVaultFailure;
+
+#[cfg(test)]
+impl VaultFailure {
+    pub(crate) fn injected() -> Self {
+        Self {
+            cause: VaultCause::Injected(InjectedVaultFailure),
+        }
+    }
+}
 
 #[derive(thiserror::Error)]
 pub(crate) enum CredentialError {

@@ -38,7 +38,7 @@ impl TransferService {
                     }
                     config::ports::check_port(records, &candidate.id, candidate.port).map_err(
                         |error| {
-                            crate::minecraft::metadata::MetadataError::Conflict(error.to_string())
+                            crate::minecraft::metadata::MetadataError::Validation(Box::new(error))
                         },
                     )
                 },
@@ -182,5 +182,48 @@ mod tests {
             matches!(result, Err(TransferError::StagingCleanup { primary: Some(primary), .. }) if matches!(*primary, TransferError::Io(_)))
         );
         assert_eq!(fs::read(path).unwrap(), b"unexpected replacement");
+    }
+
+    #[test]
+    fn publication_checks_fresh_ports_and_preserves_typed_conflict() {
+        use crate::server::config::{ConfigError, PortError};
+        let root = tempfile::tempdir().unwrap();
+        let service = super::super::tests::service(root.path());
+        let candidate = service
+            .prepare(ServerCreation {
+                name: "Pending import".into(),
+                core: ServerCoreType::Paper,
+                game_version: "1.20.1".into(),
+                build_number: None,
+                port: None,
+                memory_min_mb: None,
+                memory_max_mb: None,
+            })
+            .unwrap();
+        let owner = super::super::tests::config();
+        service
+            .repository
+            .update(|records| {
+                records.push(owner);
+                Ok(())
+            })
+            .unwrap();
+        let stage = tempfile::tempdir_in(&service.servers_dir).unwrap();
+        fs::write(stage.path().join("world.dat"), b"staged world").unwrap();
+        let destination = service.servers_dir.join(&candidate.id);
+        let result = service.publish(candidate, stage.path());
+        assert!(
+            matches!(result, Err(TransferError::Config(ConfigError::Port(PortError::PortInUse {
+            port: 25565, owner, suggested: 25566,
+        }))) if owner == "Source")
+        );
+        assert_eq!(
+            fs::read(stage.path().join("world.dat")).unwrap(),
+            b"staged world"
+        );
+        assert!(!destination.exists());
+        let records = service.repository.load().unwrap();
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].id, "source");
     }
 }

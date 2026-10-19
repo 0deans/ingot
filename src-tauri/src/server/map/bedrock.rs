@@ -217,9 +217,10 @@ pub fn bedrock_tile(
                     base64::engine::general_purpose::STANDARD.encode(bytes)
                 )));
             }
-            return Err(MapError::Bedrock(format!(
-                "Could not open Bedrock world: {e}"
-            )));
+            return Err(MapError::BedrockOpen {
+                path: world_dir.to_path_buf(),
+                source: e,
+            });
         }
     };
 
@@ -242,7 +243,10 @@ pub fn bedrock_tile(
 
     let chunks = world
         .query_chunk_data_many_blocking(positions, load_options)
-        .map_err(|e| MapError::Bedrock(format!("Failed to read Bedrock chunk data: {e}")))?;
+        .map_err(|source| MapError::BedrockQuery {
+            path: world_dir.to_path_buf(),
+            source,
+        })?;
 
     let non_empty = chunks.iter().any(|c| c.column_samples.is_some());
     if !non_empty {

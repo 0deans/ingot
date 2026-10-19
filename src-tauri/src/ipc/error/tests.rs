@@ -126,7 +126,9 @@ fn test_launch_error_boundary_mappings() {
         ApiError::NotFound { .. }
     ));
     assert!(matches!(
-        ApiError::from(LaunchError::IncompleteTransaction("test".into())),
+        ApiError::from(LaunchError::IncompleteTransaction(
+            crate::version_change::TransactionPhase::Swapping
+        )),
         ApiError::IncompleteRecovery { .. }
     ));
     assert!(matches!(
@@ -206,7 +208,7 @@ fn test_credential_error_boundary_mappings() {
     assert!(matches!(
         ApiError::from(CredentialError::Vault {
             operation: "read",
-            source: crate::account::credentials::VaultFailure("os keyring failed".into()),
+            source: crate::account::credentials::VaultFailure::injected(),
         }),
         ApiError::ProviderUnavailable { .. }
     ));
@@ -290,12 +292,15 @@ fn test_process_error_boundary_mappings() {
     assert!(matches!(
         ApiError::from(ProcessError::PortInUse {
             port: 25565,
-            details: "busy".into()
+            source: std::io::ErrorKind::AddrInUse.into()
         }),
         ApiError::Conflict { .. }
     ));
     assert!(matches!(
-        ApiError::from(ProcessError::JarDownload("failed".into())),
+        ApiError::from(ProcessError::ShutdownTimeout {
+            server_id: "srv1".into(),
+            timeout: std::time::Duration::from_secs(30),
+        }),
         ApiError::ProviderUnavailable { .. }
     ));
     assert!(matches!(
@@ -319,7 +324,10 @@ fn test_server_domain_error_boundary_mappings() {
         ApiError::InvalidInput { .. }
     ));
     assert!(matches!(
-        ApiError::from(MapError::RegionRead("corrupt".into())),
+        ApiError::from(MapError::RegionRead {
+            path: "region/r.0.0.mca".into(),
+            source: std::io::ErrorKind::PermissionDenied.into(),
+        }),
         ApiError::StorageFailure { .. }
     ));
     assert!(matches!(
@@ -536,4 +544,172 @@ fn launcher_and_screenshot_native_paths_retain_original_errors() {
         ApiError::from(screenshot),
         ApiError::StorageFailure { .. }
     ));
+}
+
+#[test]
+fn lifecycle_and_tracking_boundaries_preserve_missing_and_recovery_categories() {
+    use crate::server::plugins::{tracking::TrackingError, PluginError};
+    let missing = crate::app::lifecycle::LifecycleError::LeftoverServerMissing;
+    assert!(matches!(ApiError::from(missing), ApiError::NotFound { .. }));
+    let recovery = TrackingError::Recovery(Box::new(PluginError::RecoveryBlocked(
+        "pending publication",
+    )));
+    assert!(matches!(
+        ApiError::from(recovery),
+        ApiError::IncompleteRecovery { .. }
+    ));
+}
+
+#[test]
+fn launcher_recovery_inspection_and_cancellation_keep_their_categories() {
+    let inspection =
+        LaunchError::TransactionInspection(Box::new(VersionChangeError::JournalDecode(
+            serde_json::from_str::<serde_json::Value>("{").unwrap_err(),
+        )));
+    let transaction = std::error::Error::source(&inspection)
+        .unwrap()
+        .downcast_ref::<Box<VersionChangeError>>()
+        .unwrap();
+    assert!(std::error::Error::source(transaction.as_ref())
+        .unwrap()
+        .downcast_ref::<serde_json::Error>()
+        .is_some());
+    assert!(matches!(
+        ApiError::from(inspection),
+        ApiError::IncompleteRecovery { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(LaunchError::ReservationCancelled),
+        ApiError::Cancelled { .. }
+    ));
+}
+
+#[test]
+fn server_start_failure_and_cleanup_keep_distinct_categories() {
+    use crate::server::process::ProcessError;
+    let startup = ProcessError::ProxyStartup {
+        port: 25565,
+        source: std::io::ErrorKind::PermissionDenied.into(),
+    };
+    assert!(matches!(ApiError::from(startup), ApiError::Internal { .. }));
+    let cleanup = ProcessError::ProxyStartupCleanup {
+        primary: Box::new(ProcessError::PortInUse {
+            port: 25565,
+            source: std::io::ErrorKind::AddrInUse.into(),
+        }),
+        cleanup: Box::new(ProcessError::ShutdownTimeout {
+            server_id: "srv1".into(),
+            timeout: std::time::Duration::from_secs(30),
+        }),
+    };
+    assert!(matches!(
+        ApiError::from(cleanup),
+        ApiError::IncompleteRecovery { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::LaunchCancelled),
+        ApiError::Cancelled { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(ProcessError::StartAdmissionPaused),
+        ApiError::Conflict { .. }
+    ));
+}
+
+#[tokio::test]
+async fn download_validation_and_admission_errors_remain_internal() {
+    use crate::minecraft::downloader::{error::ContentRangeError, DownloadError};
+    for error in [
+        DownloadError::InvalidAssetHash,
+        DownloadError::ContentRange(ContentRangeError::MissingHeader),
+    ] {
+        assert!(matches!(ApiError::from(error), ApiError::Internal { .. }));
+    }
+    let semaphore = tokio::sync::Semaphore::new(1);
+    semaphore.close();
+    let source = semaphore.acquire().await.err().unwrap();
+    assert!(matches!(
+        ApiError::from(DownloadError::Semaphore(source)),
+        ApiError::Internal { .. }
+    ));
+}
+
+#[test]
+fn live_queries_delegate_process_failure_categories() {
+    use crate::server::{live::LiveError, process::ProcessError};
+    let stopped = LiveError::Query(Box::new(ProcessError::NotRunning("srv1".into())));
+    assert!(matches!(ApiError::from(stopped), ApiError::NotFound { .. }));
+    let timeout = LiveError::Query(Box::new(ProcessError::NoReply("list".into())));
+    assert!(matches!(
+        ApiError::from(timeout),
+        ApiError::ProviderUnavailable { .. }
+    ));
+    let storage = LiveError::Query(Box::new(ProcessError::StdinWrite(
+        std::io::ErrorKind::BrokenPipe.into(),
+    )));
+    assert!(matches!(
+        ApiError::from(storage),
+        ApiError::StorageFailure { .. }
+    ));
+}
+
+#[test]
+fn sync_settings_delegate_validation_and_state_categories() {
+    use crate::{minecraft::sync::SyncError, settings::SettingsError};
+    let invalid = SyncError::Settings(SettingsError::InvalidMemory {
+        min_mb: 4096,
+        max_mb: 1024,
+    });
+    assert!(matches!(
+        ApiError::from(invalid),
+        ApiError::InvalidInput { .. }
+    ));
+    let unavailable = SyncError::Settings(SettingsError::StateUnavailable);
+    assert!(matches!(
+        ApiError::from(unavailable),
+        ApiError::Internal { .. }
+    ));
+    let path = SyncError::AppDataDir(std::io::ErrorKind::PermissionDenied.into());
+    assert!(matches!(
+        ApiError::from(path),
+        ApiError::StorageFailure { .. }
+    ));
+}
+
+#[test]
+fn bedrock_archive_and_protocol_errors_keep_categories() {
+    use crate::{
+        app::ArchiveError,
+        server::{
+            bedrock::BedrockServerError, bedrock_packs::BedrockPackError, files::ServerFileError,
+            slp::PingError,
+        },
+    };
+    let unsafe_archive = BedrockServerError::Archive(ArchiveError::UnsafeEntry);
+    assert!(matches!(
+        ApiError::from(unsafe_archive),
+        ApiError::InvalidInput { .. }
+    ));
+    let unreadable_archive = BedrockServerError::Archive(ArchiveError::Io(
+        std::io::ErrorKind::PermissionDenied.into(),
+    ));
+    assert!(matches!(
+        ApiError::from(unreadable_archive),
+        ApiError::StorageFailure { .. }
+    ));
+    let malformed_manifest =
+        BedrockPackError::ManifestJson(serde_json::from_str::<serde_json::Value>("{").unwrap_err());
+    assert!(matches!(
+        ApiError::from(malformed_manifest),
+        ApiError::InvalidInput { .. }
+    ));
+    let icon = ServerFileError::InvalidIconEncoding(base64::DecodeError::InvalidByte(0, b'!'));
+    assert!(matches!(
+        ApiError::from(icon),
+        ApiError::InvalidInput { .. }
+    ));
+    let utf8 = PingError::Utf8(String::from_utf8(vec![0xff]).unwrap_err());
+    assert!(matches!(ApiError::from(utf8), ApiError::Internal { .. }));
+    let varint = PingError::InvalidVarInt(std::io::ErrorKind::InvalidData.into());
+    assert!(matches!(ApiError::from(varint), ApiError::Internal { .. }));
 }

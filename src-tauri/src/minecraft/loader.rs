@@ -76,9 +76,6 @@ pub enum LoaderError {
 
     #[error("Vanilla has no loader profile")]
     VanillaNotSupported,
-
-    #[error("{0}")]
-    Other(String),
 }
 
 /// Fetches available loader versions for a specific Minecraft version

@@ -11,7 +11,7 @@ pub fn save_server_icon(server_dir: &Path, base64_data: &str) -> Result<(), Serv
     };
     let bytes = base64::engine::general_purpose::STANDARD
         .decode(clean_b64)
-        .map_err(|e| ServerFileError::InvalidProperty(format!("Invalid base64 icon data: {e}")))?;
+        .map_err(ServerFileError::InvalidIconEncoding)?;
     let icon_path = server_dir.join("server-icon.png");
     fs::write(icon_path, bytes).map_err(ServerFileError::Io)
 }
@@ -26,4 +26,34 @@ pub fn get_server_icon_base64(server_dir: &Path) -> Option<String> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn invalid_icon_encoding_preserves_cause_and_existing_icon() {
+        let directory = tempfile::tempdir().unwrap();
+        let icon_path = directory.path().join("server-icon.png");
+        fs::write(&icon_path, b"original icon").unwrap();
+
+        let error = save_server_icon(directory.path(), "data:image/png;base64,%%%").unwrap_err();
+
+        assert!(matches!(error, ServerFileError::InvalidIconEncoding(_)));
+        let cause = error.source().unwrap();
+        assert!(cause.downcast_ref::<base64::DecodeError>().is_some());
+        assert_eq!(fs::read(icon_path).unwrap(), b"original icon");
+    }
+
+    #[test]
+    fn invalid_icon_encoding_does_not_create_icon() {
+        let directory = tempfile::tempdir().unwrap();
+
+        let error = save_server_icon(directory.path(), "%%%").unwrap_err();
+
+        assert!(matches!(error, ServerFileError::InvalidIconEncoding(_)));
+        assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 0);
+    }
 }

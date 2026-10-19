@@ -120,7 +120,7 @@ impl CredentialStore for CleanupFailure {
         if self.fail_delete.load(Ordering::SeqCst) {
             return Err(CredentialError::Vault {
                 operation: "delete",
-                source: VaultFailure("injected cleanup failure".into()),
+                source: VaultFailure::injected(),
             });
         }
         self.store.delete(id)

@@ -4,6 +4,52 @@ use super::players::player_from_nbt;
 use super::query::parse_list_reply;
 use super::snbt::parse_snbt;
 
+#[tokio::test]
+async fn listing_stopped_server_preserves_process_failure() {
+    use crate::server::process::{ProcessError, ServerProcessManager};
+    use std::error::Error;
+
+    let manager = ServerProcessManager::new();
+    let error = super::query::list_online(&manager, "stopped-server")
+        .await
+        .unwrap_err();
+    let source = error
+        .source()
+        .unwrap()
+        .downcast_ref::<Box<ProcessError>>()
+        .unwrap();
+    assert!(matches!(source.as_ref(), ProcessError::NotRunning(id) if id == "stopped-server"));
+}
+
+#[tokio::test]
+async fn querying_player_on_stopped_server_preserves_process_failure() {
+    use crate::server::process::{ProcessError, ServerProcessManager};
+    use std::error::Error;
+
+    let manager = ServerProcessManager::new();
+    let error = super::query::query_player(&manager, "stopped-server", "Alex")
+        .await
+        .unwrap_err();
+    let source = error
+        .source()
+        .unwrap()
+        .downcast_ref::<Box<ProcessError>>()
+        .unwrap();
+    assert!(matches!(source.as_ref(), ProcessError::NotRunning(id) if id == "stopped-server"));
+}
+
+#[tokio::test]
+async fn invalid_player_name_is_rejected_before_querying_stopped_server() {
+    let manager = crate::server::process::ServerProcessManager::new();
+    let error = super::query::query_player(&manager, "stopped-server", "invalid player")
+        .await
+        .unwrap_err();
+    assert!(matches!(
+        error,
+        super::models::LiveError::InvalidPlayerName(name) if name == "invalid player"
+    ));
+}
+
 #[test]
 fn parses_entity_data() {
     let snbt = r#"{Health: 18.5f, foodLevel: 17, XpLevel: 3, XpP: 0.25f, playerGameType: 1, Pos: [12.5d, 64.0d, -3.25d], Rotation: [90.0f, 0.0f], Dimension: "minecraft:the_nether", UUID: [I; 1890347958, 1883389375, -2127149065, -1740645789], SelectedItemSlot: 2, Inventory: [{Slot: 0b, id: "minecraft:diamond_sword", count: 1, components: {"minecraft:damage": 12, "minecraft:enchantments": {"minecraft:sharpness": 5}, "minecraft:custom_name": 'Blade'}}, {Slot: 1b, id: "minecraft:cobblestone", count: 64}], equipment: {head: {id: "minecraft:iron_helmet", count: 1}}, active_effects: [{id: "minecraft:speed", amplifier: 1b, duration: 200, show_particles: true}], attributes: [{id: "minecraft:max_health", base: 20.0d}]}"#;

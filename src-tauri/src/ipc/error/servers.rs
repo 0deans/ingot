@@ -47,9 +47,9 @@ impl From<crate::server::files::ServerFileError> for ApiError {
     fn from(error: crate::server::files::ServerFileError) -> Self {
         use crate::server::files::ServerFileError;
         match error {
-            ServerFileError::InvalidProperty(_) | ServerFileError::InvalidPath(_) => {
-                Self::invalid_input(error.to_string())
-            }
+            ServerFileError::InvalidProperty(_)
+            | ServerFileError::InvalidPath(_)
+            | ServerFileError::InvalidIconEncoding(_) => Self::invalid_input(error.to_string()),
             ServerFileError::MissingConfig(_) => Self::not_found(error.to_string()),
             ServerFileError::Io(_)
             | ServerFileError::Json(_)
@@ -71,17 +71,22 @@ impl From<crate::server::process::models::ProcessError> for ApiError {
     fn from(error: crate::server::process::models::ProcessError) -> Self {
         use crate::server::process::models::ProcessError;
         match error {
-            ProcessError::NotRunning(_) | ProcessError::ServerNotFound(_) => {
-                Self::not_found(error.to_string())
-            }
+            ProcessError::NotRunning(_)
+            | ProcessError::ServerNotFound(_)
+            | ProcessError::MissingJavaConsoleBinary { .. } => Self::not_found(error.to_string()),
             ProcessError::AlreadyRunning
             | ProcessError::AlreadyStarting
             | ProcessError::StillStarting
             | ProcessError::ServerStopped
             | ProcessError::MustBeRunningToSleep
-            | ProcessError::PortInUse { .. } => Self::conflict(error.to_string()),
-            ProcessError::JarDownload(_) | ProcessError::NoReply(_) => {
+            | ProcessError::PortInUse { .. }
+            | ProcessError::StartAdmissionPaused => Self::conflict(error.to_string()),
+            ProcessError::NoReply(_) | ProcessError::ShutdownTimeout { .. } => {
                 Self::provider_unavailable(error.to_string())
+            }
+            ProcessError::LaunchCancelled => Self::cancelled(error.to_string()),
+            ProcessError::ProxyStartupCleanup { .. } => {
+                Self::incomplete_recovery(error.to_string())
             }
             ProcessError::Config(error) => Self::from(error),
             ProcessError::Metadata(error) => Self::from(error),
@@ -153,9 +158,15 @@ impl From<crate::server::bedrock::BedrockServerError> for ApiError {
             }
             BedrockServerError::BinaryNotFound(_) => Self::not_found(error.to_string()),
             BedrockServerError::Io(_) => Self::storage_failure(error.to_string()),
+            BedrockServerError::Archive(source) => Self::from(source),
+            BedrockServerError::InvalidBinaryPath(_)
+            | BedrockServerError::InvalidArchivePath(_)
+            | BedrockServerError::UnsafeDestination(_)
+            | BedrockServerError::InvalidStagingRoot(_)
+            | BedrockServerError::UnsupportedEntry(_) => Self::invalid_input(error.to_string()),
             BedrockServerError::Zip(_)
             | BedrockServerError::Task(_)
-            | BedrockServerError::Extraction(_) => Self::internal(error.to_string()),
+            | BedrockServerError::RelativePath { .. } => Self::internal(error.to_string()),
         }
     }
 }
@@ -215,7 +226,8 @@ impl From<crate::server::bedrock_packs::BedrockPackError> for ApiError {
             BedrockPackError::SystemPack
             | BedrockPackError::InvalidFolderName
             | BedrockPackError::MissingManifest
-            | BedrockPackError::InvalidManifest => Self::invalid_input(error.to_string()),
+            | BedrockPackError::InvalidManifest
+            | BedrockPackError::ManifestJson(_) => Self::invalid_input(error.to_string()),
             BedrockPackError::NotFound(_) => Self::not_found(error.to_string()),
             BedrockPackError::AlreadyExists(_) => Self::conflict(error.to_string()),
             BedrockPackError::HttpStatus(_) | BedrockPackError::Network(_) => {
@@ -248,10 +260,12 @@ impl From<crate::server::map::MapError> for ApiError {
     fn from(error: crate::server::map::MapError) -> Self {
         use crate::server::map::MapError;
         match error {
-            MapError::RegionRead(_) | MapError::TileRead(_) => {
+            MapError::RegionRead { .. } | MapError::TileRead { .. } => {
                 Self::storage_failure(error.to_string())
             }
-            MapError::Bedrock(_) | MapError::PngEncoding(_) => Self::internal(error.to_string()),
+            MapError::BedrockOpen { .. }
+            | MapError::BedrockQuery { .. }
+            | MapError::PngEncoding(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -264,8 +278,8 @@ impl From<crate::server::live::LiveError> for ApiError {
             LiveError::PlayerNotOnline(_) => Self::conflict(error.to_string()),
             LiveError::NoSavedData(_) => Self::not_found(error.to_string()),
             LiveError::Io(_) => Self::storage_failure(error.to_string()),
-            LiveError::Query(_) => Self::provider_unavailable(error.to_string()),
-            LiveError::Snbt(_) | LiveError::Other(_) => Self::internal(error.to_string()),
+            LiveError::Query(source) => Self::from(*source),
+            LiveError::Snbt(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -333,7 +347,10 @@ impl From<crate::server::slp::PingError> for ApiError {
         match error {
             PingError::Timeout => Self::provider_unavailable("Server ping timed out"),
             PingError::Io(_) => Self::provider_unavailable(error.to_string()),
-            PingError::InvalidResponse(_) | PingError::Json(_) => Self::internal(error.to_string()),
+            PingError::InvalidResponse(_)
+            | PingError::Utf8(_)
+            | PingError::InvalidVarInt(_)
+            | PingError::Json(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -360,8 +377,17 @@ impl From<crate::server::sandbox::SandboxError> for ApiError {
             | SandboxError::WorkerStopped
             | SandboxError::Task(_)
             | SandboxError::JoinPaths(_)
-            | SandboxError::JavaInstallFailed { .. }
-            | SandboxError::Other(_) => Self::internal(error.to_string()),
+            | SandboxError::JavaInstallFailed { .. } => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::app::lifecycle::LifecycleError> for ApiError {
+    fn from(error: crate::app::lifecycle::LifecycleError) -> Self {
+        match error {
+            crate::app::lifecycle::LifecycleError::LeftoverServerMissing => {
+                Self::not_found(error.to_string())
+            }
         }
     }
 }

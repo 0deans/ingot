@@ -104,6 +104,11 @@ pub(super) async fn download_file_chunked_with_chunk_listener(
     enum ChunkResult {
         Success,
         RangeNotSupported,
+    }
+
+    enum ChunkCompletion {
+        Complete,
+        Fallback,
         Failed(DownloadError),
     }
 
@@ -153,10 +158,7 @@ pub(super) async fn download_file_chunked_with_chunk_listener(
             let chunk_written_cb = on_chunk_written.clone();
 
             tasks.spawn(async move {
-                let _permit = sem
-                    .acquire()
-                    .await
-                    .map_err(|e| DownloadError::Other(e.to_string()))?;
+                let _permit = acquire_chunk_permit(&sem).await?;
                 let range_header = format!("bytes={}-{}", start, end);
                 let response = client
                     .get(&url)
@@ -170,27 +172,19 @@ pub(super) async fn download_file_chunked_with_chunk_listener(
                 }
 
                 if status != reqwest::StatusCode::PARTIAL_CONTENT {
-                    return Ok::<ChunkResult, DownloadError>(ChunkResult::Failed(
-                        DownloadError::HttpStatus { status },
-                    ));
+                    return Err(DownloadError::HttpStatus { status });
                 }
 
-                if let Err(e) =
-                    validate_content_range(response.headers(), start, end, content_length)
-                {
-                    return Ok::<ChunkResult, DownloadError>(ChunkResult::Failed(e));
-                }
+                validate_content_range(response.headers(), start, end, content_length)?;
 
                 let chunk_bytes = response.bytes().await?;
 
                 let expected_len = end - start + 1;
                 if chunk_bytes.len() as u64 != expected_len {
-                    return Ok::<ChunkResult, DownloadError>(ChunkResult::Failed(
-                        DownloadError::ChunkLengthMismatch {
-                            expected: expected_len,
-                            actual: chunk_bytes.len() as u64,
-                        },
-                    ));
+                    return Err(DownloadError::ChunkLengthMismatch {
+                        expected: expected_len,
+                        actual: chunk_bytes.len() as u64,
+                    });
                 }
 
                 {
@@ -210,56 +204,35 @@ pub(super) async fn download_file_chunked_with_chunk_listener(
             });
         }
 
-        let mut fallback = false;
-        let mut chunk_err = None;
-
-        while let Some(task_res) = tasks.set.join_next().await {
-            match task_res {
-                Ok(Ok(ChunkResult::Success)) => {}
-                Ok(Ok(ChunkResult::RangeNotSupported)) => {
-                    fallback = true;
-                    tasks.abort_all();
-                    break;
-                }
-                Ok(Ok(ChunkResult::Failed(e))) => {
-                    chunk_err = Some(e);
-                    tasks.abort_all();
-                    break;
-                }
-                Ok(Err(e)) => {
-                    chunk_err = Some(e);
-                    tasks.abort_all();
-                    break;
-                }
-                Err(e) => {
-                    if !e.is_cancelled() {
-                        chunk_err = Some(DownloadError::Task(e));
-                    }
-                    tasks.abort_all();
-                    break;
-                }
+        let completion = loop {
+            match tasks.set.join_next().await {
+                None => break ChunkCompletion::Complete,
+                Some(Ok(Ok(ChunkResult::Success))) => {}
+                Some(Ok(Ok(ChunkResult::RangeNotSupported))) => break ChunkCompletion::Fallback,
+                Some(Ok(Err(error))) => break ChunkCompletion::Failed(error),
+                Some(Err(error)) => break ChunkCompletion::Failed(DownloadError::Task(error)),
             }
-        }
+        };
 
-        if fallback || chunk_err.is_some() {
-            tasks.shutdown().await;
-            tasks.disarm();
-            drop(shared_file);
-            let _ = tokio::fs::remove_file(&staging_dest).await;
-
-            if fallback {
+        tasks.shutdown().await;
+        tasks.disarm();
+        match completion {
+            ChunkCompletion::Complete => {
+                report_throttled(content_length, content_length, true);
+                let mut file = shared_file.lock().await;
+                file.flush().await?;
+                file.sync_all().await?;
+            }
+            ChunkCompletion::Fallback => {
+                drop(shared_file);
+                let _ = tokio::fs::remove_file(&staging_dest).await;
                 use_streaming = true;
-            } else {
-                return Err(
-                    chunk_err.unwrap_or_else(|| DownloadError::Other("Unknown chunk error".into()))
-                );
             }
-        } else {
-            tasks.disarm();
-            report_throttled(content_length, content_length, true);
-            let mut file = shared_file.lock().await;
-            file.flush().await?;
-            file.sync_all().await?;
+            ChunkCompletion::Failed(error) => {
+                drop(shared_file);
+                let _ = tokio::fs::remove_file(&staging_dest).await;
+                return Err(error);
+            }
         }
     }
 
@@ -325,4 +298,25 @@ pub(super) async fn download_file_chunked_with_chunk_listener(
 
     staging_guard.committed = true;
     Ok(())
+}
+
+async fn acquire_chunk_permit(
+    semaphore: &Semaphore,
+) -> Result<tokio::sync::SemaphorePermit<'_>, DownloadError> {
+    Ok(semaphore.acquire().await?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[tokio::test]
+    async fn closed_concurrency_limit_preserves_acquisition_failure() {
+        let semaphore = Semaphore::new(1);
+        semaphore.close();
+        let error = acquire_chunk_permit(&semaphore).await.unwrap_err();
+        assert!(matches!(error, DownloadError::Semaphore(_)));
+        assert!(error.source().unwrap().is::<tokio::sync::AcquireError>());
+    }
 }

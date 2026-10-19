@@ -559,7 +559,7 @@ async fn stop_during_preparation_prevents_late_process_publication() {
     resume.notify_one();
     assert!(matches!(
         launch.await.unwrap(),
-        Err(ProcessError::ServerStopped)
+        Err(ProcessError::LaunchCancelled)
     ));
     assert!(fixture.context.processes.process_ids().await.is_empty());
     assert!(!fixture.context.processes.is_starting("server"));
@@ -586,7 +586,7 @@ async fn invalidated_supervisor_generation_blocks_a_prepared_spawn() {
     resume.notify_one();
     assert!(matches!(
         launch.await.unwrap(),
-        Err(ProcessError::ServerStopped)
+        Err(ProcessError::LaunchCancelled)
     ));
     assert!(fixture.context.processes.process_ids().await.is_empty());
     assert!(fixture.hooks.transitions.lock().unwrap().is_empty());

@@ -61,8 +61,10 @@ impl ResolvedSection {
 
 /// Chunks of a region file with their stored generation step and save time
 pub fn read_chunks(region_path: &Path) -> Result<Vec<(usize, usize, Chunk, u32)>, MapError> {
-    let bytes = std::fs::read(region_path)
-        .map_err(|e| MapError::RegionRead(format!("Failed to read region: {e}")))?;
+    let bytes = std::fs::read(region_path).map_err(|source| MapError::RegionRead {
+        path: region_path.to_path_buf(),
+        source,
+    })?;
     if bytes.len() < 8192 {
         return Ok(Vec::new());
     }

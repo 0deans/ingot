@@ -70,7 +70,7 @@ impl CredentialStore for FakeCredentialStore {
 fn failure(operation: &'static str) -> CredentialError {
     CredentialError::Vault {
         operation,
-        source: VaultFailure("private vault diagnostic".to_owned()),
+        source: VaultFailure::injected(),
     }
 }
 
@@ -95,4 +95,59 @@ fn missing_corrupt_and_unavailable_credentials_are_distinct_and_errors_hide_valu
             ..
         })
     ));
+}
+
+#[test]
+fn vault_failure_preserves_native_categories_and_redacts_outer_diagnostics() {
+    let native = crate::keyring_store::KeyringError::Read(keyring::Error::Invalid(
+        "private-access-token".to_owned(),
+        "private-refresh-token".to_owned(),
+    ));
+    let failure = VaultFailure::from(native);
+    let native = failure
+        .source()
+        .unwrap()
+        .downcast_ref::<crate::keyring_store::KeyringError>()
+        .unwrap();
+    assert!(matches!(
+        native,
+        crate::keyring_store::KeyringError::Read(_)
+    ));
+    assert!(matches!(
+        native.source().unwrap().downcast_ref::<keyring::Error>(),
+        Some(keyring::Error::Invalid(_, _))
+    ));
+    let failure_diagnostics = format!("{failure} {failure:?}");
+    let credentials = CredentialError::Vault {
+        operation: "read",
+        source: failure,
+    };
+    let credential_diagnostics = format!("{credentials} {credentials:?}");
+    let recovery = crate::account::recovery::RecoveryError::Credentials(credentials);
+    let recovery_diagnostics = format!("{recovery} {recovery:?}");
+    for diagnostics in [
+        failure_diagnostics,
+        credential_diagnostics,
+        recovery_diagnostics,
+    ] {
+        assert!(!diagnostics.contains("private-access-token"));
+        assert!(!diagnostics.contains("private-refresh-token"));
+    }
+}
+
+#[test]
+fn fake_vault_failures_keep_a_typed_source() {
+    let store = FakeCredentialStore::default();
+    store.fail_reads();
+    let error = load(&store, "account").unwrap_err();
+    let failure = error
+        .source()
+        .unwrap()
+        .downcast_ref::<VaultFailure>()
+        .unwrap();
+    assert!(failure
+        .source()
+        .unwrap()
+        .downcast_ref::<InjectedVaultFailure>()
+        .is_some());
 }

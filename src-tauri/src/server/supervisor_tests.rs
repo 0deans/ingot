@@ -93,3 +93,90 @@ async fn wake_reads_fresh_settings_and_release_cancels_its_registered_task() {
     assert!(fixture.context.processes.process_ids().await.is_empty());
     assert!(!wake().await.unwrap());
 }
+
+#[tokio::test]
+async fn proxy_address_conflict_preserves_bind_cause() {
+    use crate::server::process::ProcessError;
+    use std::error::Error;
+    let failure = super::proxy_start_failure(
+        25565,
+        std::io::Error::new(std::io::ErrorKind::AddrInUse, "injected bind conflict"),
+        async { Ok(()) },
+    )
+    .await;
+    assert!(matches!(
+        failure,
+        ProcessError::PortInUse { port: 25565, .. }
+    ));
+    let source = failure
+        .source()
+        .unwrap()
+        .downcast_ref::<std::io::Error>()
+        .unwrap();
+    assert_eq!(source.kind(), std::io::ErrorKind::AddrInUse);
+}
+
+#[tokio::test]
+async fn proxy_permission_failure_is_not_a_port_conflict() {
+    use crate::server::process::ProcessError;
+    use std::error::Error;
+    let failure = super::proxy_start_failure(
+        25565,
+        std::io::Error::new(std::io::ErrorKind::PermissionDenied, "injected permissions"),
+        async { Ok(()) },
+    )
+    .await;
+    assert!(matches!(
+        failure,
+        ProcessError::ProxyStartup { port: 25565, .. }
+    ));
+    let source = failure
+        .source()
+        .unwrap()
+        .downcast_ref::<std::io::Error>()
+        .unwrap();
+    assert_eq!(source.kind(), std::io::ErrorKind::PermissionDenied);
+}
+
+#[tokio::test]
+async fn proxy_cleanup_failure_preserves_primary_and_secondary_causes() {
+    use crate::server::process::ProcessError;
+    use std::error::Error;
+    let failure = super::proxy_start_failure(
+        25565,
+        std::io::Error::new(std::io::ErrorKind::AddrInUse, "injected bind conflict"),
+        async {
+            Err(ProcessError::StdinWrite(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                "injected stop failure",
+            )))
+        },
+    )
+    .await;
+    let ProcessError::ProxyStartupCleanup { primary, cleanup } = failure else {
+        panic!("expected incomplete startup cleanup");
+    };
+    assert!(matches!(
+        *primary,
+        ProcessError::PortInUse { port: 25565, .. }
+    ));
+    assert!(matches!(*cleanup, ProcessError::StdinWrite(_)));
+    assert_eq!(
+        primary
+            .source()
+            .unwrap()
+            .downcast_ref::<std::io::Error>()
+            .unwrap()
+            .kind(),
+        std::io::ErrorKind::AddrInUse
+    );
+    assert_eq!(
+        cleanup
+            .source()
+            .unwrap()
+            .downcast_ref::<std::io::Error>()
+            .unwrap()
+            .kind(),
+        std::io::ErrorKind::BrokenPipe
+    );
+}

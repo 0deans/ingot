@@ -10,6 +10,8 @@ pub enum ServerFileError {
     Io(#[from] std::io::Error),
     #[error("Invalid server JSON: {0}")]
     Json(#[from] serde_json::Error),
+    #[error("Invalid base64 icon data: {0}")]
+    InvalidIconEncoding(#[source] base64::DecodeError),
     #[error("Invalid property key: {0}")]
     InvalidProperty(String),
     #[error("Not an editable config path: {0}")]

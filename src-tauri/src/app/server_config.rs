@@ -15,7 +15,7 @@ pub fn get_servers_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf,
     let data_dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| ConfigError::Directory(format!("Failed to get app data directory: {e}")))?;
+        .map_err(|error| ConfigError::Directory(std::io::Error::other(error)))?;
 
     let servers_dir = data_dir.join("servers");
     crate::app::state(app)
@@ -73,8 +73,9 @@ pub(crate) fn publish_staged_server<R: Runtime>(
                     "Server already exists".into(),
                 ));
             }
-            check_port(records, &candidate.id, candidate.port)
-                .map_err(|e| crate::minecraft::metadata::MetadataError::Conflict(e.to_string()))?;
+            check_port(records, &candidate.id, candidate.port).map_err(|error| {
+                crate::minecraft::metadata::MetadataError::Validation(Box::new(error))
+            })?;
             Ok(())
         },
     )?;

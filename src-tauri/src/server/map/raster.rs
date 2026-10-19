@@ -64,12 +64,8 @@ impl Raster {
             encoder.set_color(png::ColorType::Rgba);
             encoder.set_depth(png::BitDepth::Eight);
             encoder.set_compression(png::Compression::Fast);
-            let mut writer = encoder
-                .write_header()
-                .map_err(|e| MapError::PngEncoding(e.to_string()))?;
-            writer
-                .write_image_data(&pixels)
-                .map_err(|e| MapError::PngEncoding(e.to_string()))?;
+            let mut writer = encoder.write_header()?;
+            writer.write_image_data(&pixels)?;
         }
         Ok(out)
     }

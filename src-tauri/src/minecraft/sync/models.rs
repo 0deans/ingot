@@ -94,7 +94,7 @@ pub enum SyncError {
     Task(#[from] tokio::task::JoinError),
 
     #[error("Failed to get app data directory: {0}")]
-    AppDataDir(String),
+    AppDataDir(#[source] std::io::Error),
 
     #[error("Failed to create shared sync directory: {0}")]
     SharedDirCreation(#[source] std::io::Error),
@@ -103,7 +103,7 @@ pub enum SyncError {
     InstanceNotFound(String),
 
     #[error("Settings error: {0}")]
-    Settings(String),
+    Settings(#[source] crate::settings::SettingsError),
 
     #[error("Instances error: {0}")]
     Instances(#[source] crate::minecraft::instance::InstanceError),

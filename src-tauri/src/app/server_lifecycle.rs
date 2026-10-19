@@ -184,10 +184,9 @@ where
             .await
             .map_err(ProcessError::Java)?;
             let bin = find_java_console_bin(&resolved).ok_or_else(|| {
-                ProcessError::Other(format!(
-                    "Could not find java console binary in {}",
-                    resolved.display()
-                ))
+                ProcessError::MissingJavaConsoleBinary {
+                    runtime_dir: resolved.clone(),
+                }
             })?;
             (None, bin)
         };

@@ -1,5 +1,6 @@
 use crate::minecraft::downloader::{
-    download_file_chunked, download_files_concurrent, is_download_task_cached, DownloadTask,
+    download_file_chunked, download_files_concurrent, is_download_task_cached, DownloadError,
+    DownloadTask,
 };
 use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
 use crate::minecraft::loader::{resolve_loader_profile, LoaderProfile};
@@ -260,26 +261,7 @@ pub async fn prepare_launch_environment(
 
         let mut asset_tasks = Vec::new();
         for (_, obj) in asset_index.objects {
-            let prefix = obj
-                .hash
-                .get(..2)
-                .filter(|_| {
-                    obj.hash.len() == 40 && obj.hash.bytes().all(|byte| byte.is_ascii_hexdigit())
-                })
-                .ok_or_else(|| {
-                    crate::minecraft::downloader::DownloadError::Other("Invalid asset hash".into())
-                })?;
-            let dest = assets_dir.join("objects").join(prefix).join(&obj.hash);
-            let url = format!(
-                "https://resources.download.minecraft.net/{}/{}",
-                prefix, obj.hash
-            );
-            asset_tasks.push(DownloadTask {
-                url,
-                dest,
-                sha1: Some(obj.hash),
-                size: Some(obj.size),
-            });
+            asset_tasks.push(prepare_asset_task(assets_dir, obj)?);
         }
 
         let missing_assets: Vec<DownloadTask> = asset_tasks
@@ -322,6 +304,33 @@ pub async fn prepare_launch_environment(
         client_jar_dest,
         classpath_entries,
         auth,
+    })
+}
+
+fn prepare_asset_task(
+    assets_dir: &Path,
+    object: crate::minecraft::version::AssetObject,
+) -> Result<DownloadTask, DownloadError> {
+    if object.hash.len() != 40 {
+        return Err(DownloadError::InvalidAssetHash);
+    }
+    if !object.hash.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(DownloadError::InvalidAssetHash);
+    }
+    let prefix = object
+        .hash
+        .get(..2)
+        .ok_or(DownloadError::InvalidAssetHash)?;
+    let destination = assets_dir.join("objects").join(prefix).join(&object.hash);
+    let url = format!(
+        "https://resources.download.minecraft.net/{}/{}",
+        prefix, object.hash
+    );
+    Ok(DownloadTask {
+        url,
+        dest: destination,
+        sha1: Some(object.hash),
+        size: Some(object.size),
     })
 }
 

@@ -1,4 +1,4 @@
-use super::{parse_manifest, set_pack_enabled, BedrockPackError};
+use super::{parse_manifest, set_pack_enabled, BedrockPackError, ParsedPackManifest};
 use std::fs;
 use std::io::{Cursor, Read};
 use std::path::{Path, PathBuf};
@@ -115,8 +115,13 @@ fn prepare_single_pack<R: Read + std::io::Seek>(
         return Err(BedrockPackError::MissingManifest);
     };
 
-    let (uuid, name, _, _, pack_type) =
-        parse_manifest(&m_bytes).ok_or(BedrockPackError::InvalidManifest)?;
+    let manifest = parse_manifest(&m_bytes).map_err(BedrockPackError::ManifestJson)?;
+    let ParsedPackManifest {
+        uuid,
+        name,
+        pack_type,
+        ..
+    } = manifest.ok_or(BedrockPackError::InvalidManifest)?;
 
     let sub = if pack_type == "resource" {
         "resource_packs"
@@ -155,6 +160,14 @@ fn prepare_single_pack<R: Read + std::io::Seek>(
 }
 
 fn publish_pack(server_dir: &Path, pack: PreparedPack) -> Result<String, BedrockPackError> {
+    publish_pack_with_cleanup(server_dir, pack, |path| fs::remove_dir_all(path))
+}
+
+fn publish_pack_with_cleanup(
+    server_dir: &Path,
+    pack: PreparedPack,
+    cleanup: impl FnOnce(&Path) -> std::io::Result<()>,
+) -> Result<String, BedrockPackError> {
     let PreparedPack {
         staging,
         destination: out_dir,
@@ -165,11 +178,11 @@ fn publish_pack(server_dir: &Path, pack: PreparedPack) -> Result<String, Bedrock
     // Publication contains no await, so cancelling extraction cannot publish later.
     fs::rename(staging.path(), &out_dir)?;
     if let Err(error) = set_pack_enabled(server_dir, &uuid, &pack_type, true) {
-        return match fs::remove_dir_all(&out_dir) {
+        return match cleanup(&out_dir) {
             Ok(()) => Err(error),
             Err(cleanup) => Err(BedrockPackError::CleanupFailed {
-                primary: error.to_string(),
-                cleanup: cleanup.to_string(),
+                primary: Box::new(error),
+                cleanup,
                 path: out_dir,
             }),
         };
@@ -189,6 +202,15 @@ mod integrity_tests {
         writer.write_all(br#"{"header":{"name":"Pack","uuid":"test-id","version":[1,0,0]},"modules":[{"type":"resources"}]}"#).unwrap();
         writer.start_file(extra, options).unwrap();
         writer.write_all(b"pack data").unwrap();
+        writer.finish().unwrap().into_inner()
+    }
+
+    fn manifest_archive(manifest: &[u8]) -> Vec<u8> {
+        let mut writer = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        writer
+            .start_file("manifest.json", zip::write::SimpleFileOptions::default())
+            .unwrap();
+        writer.write_all(manifest).unwrap();
         writer.finish().unwrap().into_inner()
     }
 
@@ -232,5 +254,92 @@ mod integrity_tests {
         assert!(publish_pack(temp.path(), packs.remove(0)).is_err());
         assert_eq!(fs::read(refs).unwrap(), b"invalid references");
         assert!(!temp.path().join("resource_packs/pack").exists());
+    }
+
+    #[test]
+    fn failed_publication_cleanup_preserves_both_causes_and_pack_material() {
+        use std::error::Error;
+
+        let temp = tempfile::tempdir().unwrap();
+        let world = temp.path().join("worlds/Bedrock level");
+        fs::create_dir_all(&world).unwrap();
+        let refs = world.join("world_resource_packs.json");
+        fs::write(&refs, b"invalid references").unwrap();
+        let mut packs =
+            prepare_pack_bytes(temp.path(), &pack_archive("textures/test.txt"), "pack").unwrap();
+        let result = publish_pack_with_cleanup(temp.path(), packs.remove(0), |_| {
+            Err(std::io::Error::from(std::io::ErrorKind::PermissionDenied))
+        });
+        let error = result.unwrap_err();
+        let primary_source = error
+            .source()
+            .unwrap()
+            .downcast_ref::<Box<BedrockPackError>>()
+            .unwrap();
+        assert!(matches!(primary_source.as_ref(), BedrockPackError::Json(_)));
+        let json_source = primary_source.source().unwrap();
+        assert!(json_source.downcast_ref::<serde_json::Error>().is_some());
+        let BedrockPackError::CleanupFailed {
+            primary,
+            cleanup,
+            path,
+        } = error
+        else {
+            panic!("expected failed rollback cleanup");
+        };
+        assert!(matches!(*primary, BedrockPackError::Json(_)));
+        assert_eq!(cleanup.kind(), std::io::ErrorKind::PermissionDenied);
+        assert_eq!(path, temp.path().join("resource_packs/pack"));
+        assert_eq!(
+            fs::read(path.join("textures/test.txt")).unwrap(),
+            b"pack data"
+        );
+        assert!(path.join("manifest.json").is_file());
+        assert_eq!(fs::read(refs).unwrap(), b"invalid references");
+    }
+
+    #[test]
+    fn malformed_pack_manifest_retains_json_cause_without_publication() {
+        use std::error::Error;
+
+        let temp = tempfile::tempdir().unwrap();
+        let bytes = manifest_archive(br#"{"header": "#);
+        let result = prepare_pack_bytes(temp.path(), &bytes, "pack");
+        let error = result.err().unwrap();
+        assert!(matches!(error, BedrockPackError::ManifestJson(_)));
+        let source = error.source().unwrap();
+        let json = source.downcast_ref::<serde_json::Error>().unwrap();
+        assert!(json.is_eof());
+        assert!(!temp.path().join("behavior_packs").exists());
+        assert!(!temp.path().join("resource_packs").exists());
+        assert!(!temp.path().join("worlds").exists());
+    }
+
+    #[test]
+    fn missing_manifest_identity_remains_validation_failure() {
+        let temp = tempfile::tempdir().unwrap();
+        let bytes = manifest_archive(br#"{"header":{"name":"Pack"}}"#);
+        let result = prepare_pack_bytes(temp.path(), &bytes, "pack");
+        assert!(matches!(result, Err(BedrockPackError::InvalidManifest)));
+        assert!(!temp.path().join("behavior_packs").exists());
+    }
+
+    #[test]
+    fn optional_scan_keeps_valid_packs_when_other_manifests_are_invalid() {
+        let temp = tempfile::tempdir().unwrap();
+        let mut packs =
+            prepare_pack_bytes(temp.path(), &pack_archive("textures/test.txt"), "valid").unwrap();
+        publish_pack(temp.path(), packs.remove(0)).unwrap();
+        let invalid = temp.path().join("resource_packs/invalid");
+        fs::create_dir_all(&invalid).unwrap();
+        fs::write(invalid.join("manifest.json"), b"invalid manifest").unwrap();
+        let missing_identity = temp.path().join("resource_packs/missing_identity");
+        fs::create_dir_all(&missing_identity).unwrap();
+        fs::write(missing_identity.join("manifest.json"), br#"{}"#).unwrap();
+
+        let installed = super::super::list_installed_packs(temp.path()).unwrap();
+        assert_eq!(installed.len(), 1);
+        assert_eq!(installed[0].id, "test-id");
+        assert!(installed[0].enabled);
     }
 }

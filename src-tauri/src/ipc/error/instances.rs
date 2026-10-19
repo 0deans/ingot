@@ -51,6 +51,7 @@ impl From<crate::minecraft::sync::SyncError> for ApiError {
             }
             SyncError::Task(_) => Self::internal(error.to_string()),
             SyncError::Instances(err) => Self::from(err),
+            SyncError::Settings(source) => Self::from(source),
             _ => Self::storage_failure(error.to_string()),
         }
     }
@@ -109,6 +110,7 @@ impl From<crate::minecraft::metadata::MetadataError> for ApiError {
         use crate::minecraft::metadata::MetadataError;
         match error {
             MetadataError::Conflict(message) => Self::conflict(message),
+            MetadataError::Validation(_) => Self::internal(error.to_string()),
             MetadataError::Cleanup { .. }
             | MetadataError::Rollback { .. }
             | MetadataError::RecoveryBlocked(_)
@@ -224,7 +226,7 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             }
             crate::minecraft::launcher::LaunchError::IncompleteTransaction(msg) => {
                 Self::incomplete_recovery(format!(
-                    "Cannot launch instance: version change transaction is in incomplete state ({msg}). Please recover or revert it first."
+                    "Cannot launch instance: version change transaction is in incomplete state ({msg:?}). Please recover or revert it first."
                 ))
             }
             crate::minecraft::launcher::LaunchError::VersionPackage(err) => {
@@ -253,9 +255,15 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::Io(err) => {
                 Self::storage_failure(err.to_string())
             }
-            crate::minecraft::launcher::LaunchError::Other(msg) => {
-                Self::internal(msg)
+            crate::minecraft::launcher::LaunchError::TransactionInspection(_) => {
+                Self::incomplete_recovery(error.to_string())
             }
+            crate::minecraft::launcher::LaunchError::ReservationCancelled => {
+                Self::cancelled(error.to_string())
+            }
+            crate::minecraft::launcher::LaunchError::RegistryPoisoned
+            | crate::minecraft::launcher::LaunchError::Termination(_)
+            | crate::minecraft::launcher::LaunchError::Task(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -288,7 +296,7 @@ impl From<crate::minecraft::loader::LoaderError> for ApiError {
         match error {
             LoaderError::Network(_) => Self::provider_unavailable(error.to_string()),
             LoaderError::VanillaNotSupported => Self::invalid_input(error.to_string()),
-            LoaderError::Json(_) | LoaderError::Other(_) => Self::internal(error.to_string()),
+            LoaderError::Json(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -307,7 +315,8 @@ impl From<crate::minecraft::downloader::DownloadError> for ApiError {
             | DownloadError::ChunkLengthMismatch { .. }
             | DownloadError::ContentRange(_)
             | DownloadError::Task(_)
-            | DownloadError::Other(_) => Self::internal(error.to_string()),
+            | DownloadError::Semaphore(_)
+            | DownloadError::InvalidAssetHash => Self::internal(error.to_string()),
         }
     }
 }

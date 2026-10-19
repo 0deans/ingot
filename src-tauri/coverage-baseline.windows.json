@@ -1,11 +1,11 @@
 {
 	"platform": "windows-x86_64",
-	"measuredOn": "2026-10-18",
+	"measuredOn": "2026-10-19",
 	"sourceRoot": "src-tauri/src/",
-	"minimumLinePercent": 57.81,
+	"minimumLinePercent": 60.22,
 	"measuredLines": {
-		"count": 28435,
-		"covered": 16441
+		"count": 29108,
+		"covered": 17534
 	},
 	"files": [
 		"src-tauri/src/account/credentials.rs",
@@ -138,12 +138,14 @@
 		"src-tauri/src/minecraft/launcher/arguments.rs",
 		"src-tauri/src/minecraft/launcher/authlib.rs",
 		"src-tauri/src/minecraft/launcher/classpath.rs",
+		"src-tauri/src/minecraft/launcher/models.rs",
 		"src-tauri/src/minecraft/launcher/prepare.rs",
 		"src-tauri/src/minecraft/launcher/process.rs",
 		"src-tauri/src/minecraft/launcher/progress.rs",
 		"src-tauri/src/minecraft/launcher/quick_play.rs",
 		"src-tauri/src/minecraft/launcher/rules.rs",
 		"src-tauri/src/minecraft/launcher/service.rs",
+		"src-tauri/src/minecraft/launcher/termination.rs",
 		"src-tauri/src/minecraft/loader.rs",
 		"src-tauri/src/minecraft/metadata.rs",
 		"src-tauri/src/minecraft/metadata/deletion.rs",
@@ -164,6 +166,7 @@
 		"src-tauri/src/server/config/access.rs",
 		"src-tauri/src/server/config/creation.rs",
 		"src-tauri/src/server/config/deletion.rs",
+		"src-tauri/src/server/config/error.rs",
 		"src-tauri/src/server/config/icons.rs",
 		"src-tauri/src/server/config/models.rs",
 		"src-tauri/src/server/config/ports.rs",

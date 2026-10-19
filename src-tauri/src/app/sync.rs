@@ -19,7 +19,7 @@ pub fn get_shared_dir<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, 
     let data_dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| SyncError::AppDataDir(e.to_string()))?;
+        .map_err(|source| SyncError::AppDataDir(std::io::Error::other(source)))?;
     let shared = data_dir.join("shared");
     ensure_shared_directories(&shared).map_err(SyncError::SharedDirCreation)?;
     Ok(shared)
@@ -29,9 +29,7 @@ pub fn get_effective_sync<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance: &InstanceConfig,
 ) -> Result<EffectiveSync, SyncError> {
-    let global = load_settings(app)
-        .map_err(|e| SyncError::Settings(e.to_string()))?
-        .sync;
+    let global = load_settings(app).map_err(SyncError::Settings)?.sync;
     Ok(resolve_effective_sync(instance, &global))
 }
 
@@ -192,5 +190,97 @@ pub fn resolve_sync_conflict<R: Runtime>(
                 message: "Sync disabled for this instance.".to_string(),
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::{AppPaths, AppState};
+    use crate::minecraft::instance::{prepare_instance, ModLoaderType};
+    use crate::settings::SettingsError;
+    use std::error::Error;
+
+    fn instance() -> InstanceConfig {
+        prepare_instance(
+            "Sync test".to_owned(),
+            "1.21".to_owned(),
+            ModLoaderType::Vanilla,
+            None,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn missing_settings_state_does_not_become_default_sync_preferences() {
+        let app = tauri::test::mock_builder()
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
+
+        let error = get_effective_sync(app.handle(), &instance()).unwrap_err();
+
+        assert!(matches!(
+            error,
+            SyncError::Settings(SettingsError::StateUnavailable)
+        ));
+        assert!(error
+            .source()
+            .unwrap()
+            .downcast_ref::<SettingsError>()
+            .is_some());
+    }
+
+    #[test]
+    fn corrupt_settings_keep_path_and_decode_cause_without_replacing_file() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("settings.json");
+        let original = b"{ invalid settings";
+        std::fs::write(&path, original).unwrap();
+        let state = AppState::new(AppPaths::new(directory.path().to_owned())).unwrap();
+        let app = tauri::test::mock_builder()
+            .manage(state)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
+
+        let error = get_effective_sync(app.handle(), &instance()).unwrap_err();
+
+        let SyncError::Settings(SettingsError::Decode {
+            path: failed_path,
+            source,
+        }) = &error
+        else {
+            panic!("expected sourced settings decode failure: {error:?}");
+        };
+        assert_eq!(failed_path, &path);
+        assert!(source.is_syntax());
+        assert!(error
+            .source()
+            .unwrap()
+            .source()
+            .unwrap()
+            .downcast_ref::<serde_json::Error>()
+            .is_some());
+        assert_eq!(std::fs::read(path).unwrap(), original);
+    }
+
+    #[test]
+    fn native_directory_failure_keeps_underlying_native_cause() {
+        let native = tauri::Error::Io(std::io::Error::from(std::io::ErrorKind::PermissionDenied));
+        let error = SyncError::AppDataDir(std::io::Error::other(native));
+
+        let source = error
+            .source()
+            .unwrap()
+            .downcast_ref::<std::io::Error>()
+            .unwrap();
+        let native = source
+            .get_ref()
+            .unwrap()
+            .downcast_ref::<tauri::Error>()
+            .unwrap();
+        assert!(matches!(
+            native,
+            tauri::Error::Io(source) if source.kind() == std::io::ErrorKind::PermissionDenied
+        ));
     }
 }

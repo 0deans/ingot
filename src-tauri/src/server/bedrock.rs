@@ -64,8 +64,31 @@ pub enum BedrockServerError {
     #[error("Task join error: {0}")]
     Task(#[from] tokio::task::JoinError),
 
-    #[error("Extraction error: {0}")]
-    Extraction(String),
+    #[error("Bedrock archive extraction failed: {0}")]
+    Archive(#[from] crate::app::ArchiveError),
+
+    #[error("Invalid Bedrock executable path: {0}")]
+    InvalidBinaryPath(PathBuf),
+
+    #[error("Bedrock archive path is not valid Unicode: {0}")]
+    InvalidArchivePath(PathBuf),
+
+    #[error("Unsafe Bedrock destination: {0}")]
+    UnsafeDestination(PathBuf),
+
+    #[error("Bedrock staging root has no parent: {0}")]
+    InvalidStagingRoot(PathBuf),
+
+    #[error("Bedrock entry {path} is outside staging root {root}")]
+    RelativePath {
+        path: PathBuf,
+        root: PathBuf,
+        #[source]
+        source: std::path::StripPrefixError,
+    },
+
+    #[error("Unsupported Bedrock archive entry: {0}")]
+    UnsupportedEntry(PathBuf),
 
     #[error("Extracted Bedrock server files, but executable {0} was not found")]
     BinaryNotFound(PathBuf),
@@ -211,33 +234,17 @@ pub async fn ensure_bedrock_server_binary(
     let parent = server_dir.to_path_buf();
     let binary_name = bin_path
         .file_name()
-        .ok_or_else(|| BedrockServerError::Extraction("Invalid Bedrock binary name".to_string()))?
+        .ok_or_else(|| BedrockServerError::InvalidBinaryPath(bin_path.clone()))?
         .to_os_string();
-    let (staging, mut prepared) =
-        tokio::task::spawn_blocking(move || -> Result<_, BedrockServerError> {
-            let staging = tempfile::tempdir_in(&parent)?;
-            let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes))?;
-            crate::app::extract_zip_entries(&mut archive, staging.path(), "", None)
-                .map_err(|error| BedrockServerError::Extraction(error.to_string()))?;
-            if !staging.path().join(&binary_name).is_file() {
-                return Err(BedrockServerError::Extraction(
-                    "Bedrock archive contains no server executable".to_string(),
-                ));
-            }
-            let mut prepared = Vec::new();
-            prepare_files(staging.path(), staging.path(), &mut prepared)?;
-            // Publish the executable last: a partial installation never looks ready.
-            prepared.sort_by_key(|(relative, _)| relative.as_os_str() == binary_name);
-            Ok((staging, prepared))
-        })
-        .await??;
-    for (relative, file) in prepared.drain(..) {
-        let name = relative.to_str().ok_or_else(|| {
-            BedrockServerError::Extraction("Invalid archive path encoding".to_string())
-        })?;
-        let output = crate::app::safe_enclosed_path(server_dir, name).ok_or_else(|| {
-            BedrockServerError::Extraction("Unsafe Bedrock destination".to_string())
-        })?;
+    let PreparedArchive { staging, mut files } =
+        tokio::task::spawn_blocking(move || prepare_archive(&parent, bytes.as_ref(), &binary_name))
+            .await??;
+    for (relative, file) in files.drain(..) {
+        let name = relative
+            .to_str()
+            .ok_or_else(|| BedrockServerError::InvalidArchivePath(relative.clone()))?;
+        let output = crate::app::safe_enclosed_path(server_dir, name)
+            .ok_or_else(|| BedrockServerError::UnsafeDestination(server_dir.join(&relative)))?;
         let filename = output
             .file_name()
             .and_then(|name| name.to_str())
@@ -270,6 +277,33 @@ pub async fn ensure_bedrock_server_binary(
     Ok(bin_path)
 }
 
+struct PreparedArchive {
+    staging: tempfile::TempDir,
+    files: Vec<(PathBuf, tempfile::NamedTempFile)>,
+}
+
+fn prepare_archive(
+    parent: &Path,
+    bytes: &[u8],
+    binary_name: &std::ffi::OsStr,
+) -> Result<PreparedArchive, BedrockServerError> {
+    let staging = tempfile::tempdir_in(parent)?;
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes))?;
+    crate::app::extract_zip_entries(&mut archive, staging.path(), "", None)?;
+    let binary_path = staging.path().join(binary_name);
+    if !binary_path.is_file() {
+        return Err(BedrockServerError::BinaryNotFound(binary_path));
+    }
+    let mut prepared = Vec::new();
+    prepare_files(staging.path(), staging.path(), &mut prepared)?;
+    // Publish the executable last: a partial installation never looks ready.
+    prepared.sort_by_key(|(relative, _)| relative.as_os_str() == binary_name);
+    Ok(PreparedArchive {
+        staging,
+        files: prepared,
+    })
+}
+
 fn prepare_files(
     root: &Path,
     directory: &Path,
@@ -283,22 +317,24 @@ fn prepare_files(
         } else if kind.is_file() {
             let mut source = std::fs::File::open(entry.path())?;
             // Tempfiles stay beside the staging root, outside the traversed tree.
-            let parent = root.parent().ok_or_else(|| {
-                BedrockServerError::Extraction("Invalid staging root".to_string())
-            })?;
+            let parent = root
+                .parent()
+                .ok_or_else(|| BedrockServerError::InvalidStagingRoot(root.to_path_buf()))?;
             let mut output = tempfile::NamedTempFile::new_in(parent)?;
             std::io::copy(&mut source, &mut output)?;
             output.as_file().sync_all()?;
-            let relative = entry
-                .path()
+            let path = entry.path();
+            let relative = path
                 .strip_prefix(root)
-                .map_err(|error| BedrockServerError::Extraction(error.to_string()))?
+                .map_err(|source| BedrockServerError::RelativePath {
+                    path: path.clone(),
+                    root: root.to_path_buf(),
+                    source,
+                })?
                 .to_path_buf();
             prepared.push((relative, output));
         } else {
-            return Err(BedrockServerError::Extraction(
-                "Unsupported Bedrock archive entry".to_string(),
-            ));
+            return Err(BedrockServerError::UnsupportedEntry(entry.path()));
         }
     }
     Ok(())
@@ -361,3 +397,7 @@ pub fn configure_bedrock_properties(
 
     std::fs::write(props_path, out)
 }
+
+#[cfg(test)]
+#[path = "bedrock/tests.rs"]
+mod tests;

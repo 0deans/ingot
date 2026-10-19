@@ -59,7 +59,7 @@ pub async fn list_online(
             Duration::from_secs(3),
         )
         .await
-        .map_err(|e| LiveError::Query(e.to_string()))?;
+        .map_err(|error| LiveError::Query(Box::new(error)))?;
     Ok(parse_list_reply(&line))
 }
 
@@ -83,7 +83,7 @@ pub async fn query_player(
             Duration::from_secs(3),
         )
         .await
-        .map_err(|e| LiveError::Query(e.to_string()))?;
+        .map_err(|error| LiveError::Query(Box::new(error)))?;
     let snbt = line
         .split_once(ENTITY_DATA_MARKER)
         .map(|(_, data)| data)

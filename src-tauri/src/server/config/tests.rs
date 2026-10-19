@@ -372,3 +372,126 @@ fn invalid_server_update_preserves_metadata_and_properties() {
         "server-port=25565\ncustom=keep\n"
     );
 }
+
+#[test]
+fn port_conflicts_at_record_and_property_commit_keep_details_and_previous_data() {
+    use super::{error::ConfigError, models::PortError, service};
+    use crate::minecraft::metadata::MetadataRepository;
+    use crate::server::files::PropertyEntry;
+    let root = tempfile::tempdir().unwrap();
+    let metadata = root.path().join("servers.json");
+    let repository = MetadataRepository::new(metadata.clone());
+    let original = make_server("changed", 25565, Some(35565));
+    repository
+        .update(|records| {
+            records.push(original.clone());
+            Ok(())
+        })
+        .unwrap();
+    let mut pending = original;
+    pending.port = 25566;
+    check_port(&repository.load().unwrap(), &pending.id, pending.port).unwrap();
+    repository
+        .update(|records| {
+            records.push(make_server("new-owner", 25566, Some(35566)));
+            Ok(())
+        })
+        .unwrap();
+    let previous_metadata = std::fs::read(&metadata).unwrap();
+    let properties = root.path().join("server.properties");
+    std::fs::write(&properties, "server-port=25565\ncustom=keep\n").unwrap();
+    let result = service::update_server_record(&repository, pending, root.path());
+    let property_result = service::update_properties(
+        &repository,
+        "changed",
+        root.path(),
+        &[PropertyEntry {
+            key: "server-port".into(),
+            value: "25566".into(),
+        }],
+    );
+    for result in [result, property_result] {
+        assert!(
+            matches!(result, Err(ConfigError::Port(PortError::PortInUse {
+            port: 25566, owner, suggested: 25565,
+        })) if owner == "Server new-owner")
+        );
+    }
+    assert_eq!(std::fs::read(metadata).unwrap(), previous_metadata);
+    assert_eq!(
+        std::fs::read_to_string(properties).unwrap(),
+        "server-port=25565\ncustom=keep\n"
+    );
+}
+
+#[test]
+fn property_port_range_failure_remains_typed_inside_metadata_transaction() {
+    use super::{error::ConfigError, models::PortError, service};
+    use crate::minecraft::metadata::MetadataRepository;
+    use crate::server::files::PropertyEntry;
+    let root = tempfile::tempdir().unwrap();
+    let repository = MetadataRepository::new(root.path().join("servers.json"));
+    repository
+        .update(|records| {
+            records.push(make_server("changed", 25565, Some(35565)));
+            Ok(())
+        })
+        .unwrap();
+    let result = service::update_properties(
+        &repository,
+        "changed",
+        root.path(),
+        &[PropertyEntry {
+            key: "server-port".into(),
+            value: "80".into(),
+        }],
+    );
+    assert!(matches!(
+        result,
+        Err(ConfigError::Port(PortError::InvalidPortRange))
+    ));
+    assert_eq!(repository.load().unwrap()[0].port, 25565);
+    assert!(!root.path().join("server.properties").exists());
+}
+
+#[test]
+fn unknown_metadata_validation_causes_survive_config_conversion() {
+    use super::error::ConfigError;
+    use crate::minecraft::metadata::MetadataError;
+    use std::error::Error;
+    let original = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "validation denied");
+    let error = ConfigError::from(MetadataError::Validation(Box::new(original)));
+    let ConfigError::Metadata(metadata) = error else {
+        panic!("unexpected validation errors must stay metadata errors");
+    };
+    let source = metadata
+        .source()
+        .unwrap()
+        .downcast_ref::<std::io::Error>()
+        .unwrap();
+    assert_eq!(source.kind(), std::io::ErrorKind::PermissionDenied);
+}
+
+#[test]
+fn directory_errors_retain_original_native_error() {
+    use super::error::ConfigError;
+    use std::error::Error;
+    let original = tauri::Error::Io(std::io::Error::new(
+        std::io::ErrorKind::PermissionDenied,
+        "native path denied",
+    ));
+    let error = ConfigError::Directory(std::io::Error::other(original));
+    let wrapper = error
+        .source()
+        .unwrap()
+        .downcast_ref::<std::io::Error>()
+        .unwrap();
+    let original = wrapper
+        .get_ref()
+        .unwrap()
+        .downcast_ref::<tauri::Error>()
+        .unwrap();
+    assert!(
+        matches!(original, tauri::Error::Io(source) if source.kind() == std::io::ErrorKind::PermissionDenied)
+    );
+}

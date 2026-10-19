@@ -102,6 +102,6 @@ impl ServerPacksApi for ServerPacksApiImpl {
             .ok_or_else(|| ApiError::invalid_input("Invalid server subfolder"))?;
         std::fs::create_dir_all(&directory)
             .map_err(|error| ApiError::storage_failure(error.to_string()))?;
-        crate::app::platform::open_directory(&directory).map_err(ApiError::from_display)
+        crate::app::platform::open_directory(&directory).map_err(ApiError::from)
     }
 }

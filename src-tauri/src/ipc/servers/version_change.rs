@@ -74,8 +74,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
             )));
         }
         let downgrade = is_downgrade(&app_handle, &config.game_version, &game_version).await?;
-        let target = change_targets::server(&dir, &core)
-            .map_err(|error| ApiError::storage_failure(error.to_string()))?;
+        let target = change_targets::server(&dir, &core).map_err(ApiError::from)?;
         let request = PlanRequest {
             target_kind: TargetKind::Server,
             target_id: server_id,

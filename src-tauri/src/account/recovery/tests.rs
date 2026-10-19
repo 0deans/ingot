@@ -65,7 +65,7 @@ mod handoff_concurrency_tests;
 fn failure(operation: &'static str) -> CredentialError {
     CredentialError::Vault {
         operation,
-        source: VaultFailure("private diagnostic".to_owned()),
+        source: VaultFailure::injected(),
     }
 }
 fn profile(id: &str) -> AccountProfile {

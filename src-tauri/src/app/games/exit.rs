@@ -130,7 +130,12 @@ pub async fn adopt_running<R: Runtime>(app: AppHandle<R>, pm: ProcessManager, on
             continue;
         };
 
-        if !pm.register_if_vacant(&entry.id, entry.pid, entry.started_at) {
+        if !pm.adopt_if_vacant(
+            &entry.id,
+            entry.pid,
+            entry.started_at,
+            Some(entry.proc_start),
+        ) {
             continue;
         }
         if !crate::running::is_alive(&entry) {

@@ -8,7 +8,9 @@ pub(crate) fn service<R: Runtime>(
     let parent = app
         .path()
         .app_data_dir()
-        .map_err(|error| crate::server::config::ConfigError::Directory(error.to_string()))?
+        .map_err(|error| {
+            crate::server::config::ConfigError::Directory(std::io::Error::other(error))
+        })?
         .join("servers");
     Ok(TransferService {
         repository: crate::app::state(app).server_configs.clone(),
@@ -20,10 +22,9 @@ pub(crate) fn upload_path<R: Runtime>(
     app: &tauri::AppHandle<R>,
     id: &str,
 ) -> Result<std::path::PathBuf, TransferError> {
-    let cache = app
-        .path()
-        .app_cache_dir()
-        .map_err(|error| crate::server::config::ConfigError::Directory(error.to_string()))?;
+    let cache = app.path().app_cache_dir().map_err(|error| {
+        crate::server::config::ConfigError::Directory(std::io::Error::other(error))
+    })?;
     Ok(cache.join("imports").join(format!("{id}.zip")))
 }
 

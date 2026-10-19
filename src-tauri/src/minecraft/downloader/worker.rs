@@ -37,10 +37,6 @@ impl<T: Send + 'static> WorkerTaskGuard<T> {
         self.set.spawn(task);
     }
 
-    pub(crate) fn abort_all(&mut self) {
-        self.set.abort_all();
-    }
-
     pub(crate) async fn shutdown(&mut self) {
         self.set.shutdown().await;
     }

@@ -27,7 +27,7 @@ impl LoginAttempts {
         let grant = load()?;
         let previous = self
             .generation
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
                 id.checked_add(1).filter(|next| *next < u64::MAX)
             })
             .map_err(|_| LoginError::Exhausted)?;
@@ -51,7 +51,7 @@ impl LoginAttempts {
         let checked = check()?;
         let _ = self
             .generation
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
                 Some(id.saturating_add(1))
             });
         *issued = None;

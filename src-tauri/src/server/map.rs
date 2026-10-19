@@ -10,6 +10,8 @@ pub mod palette;
 pub mod raster;
 
 #[cfg(test)]
+mod error_tests;
+#[cfg(test)]
 mod tests;
 
 pub use discovery::{dimensions, region_dirs, tile, tile_typed};

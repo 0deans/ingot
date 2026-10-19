@@ -112,7 +112,7 @@ impl LoginAttempts {
         // MAX is an exhausted, cancelled generation; never reuse an issued ID.
         let previous = self
             .generation
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
                 id.checked_add(1).filter(|next| *next < u64::MAX)
             })
             .map_err(|_| LoginError::Exhausted)?;
@@ -202,7 +202,7 @@ impl LoginAttempts {
             .unwrap_or_else(|poison| poison.into_inner());
         let _ = self
             .generation
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |id| {
                 Some(id.saturating_add(1))
             });
         *issued = None;

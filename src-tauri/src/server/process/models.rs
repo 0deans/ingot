@@ -72,9 +72,11 @@ impl ServerLaunchGeneration {
     }
 
     pub(super) fn enter(&self) -> Result<std::sync::MutexGuard<'_, bool>, ProcessError> {
-        let active = self.0.lock().map_err(|_| ProcessError::ServerStopped)?;
+        let active = self.0.lock().map_err(|_| ProcessError::StatePoisoned {
+            state: "launch generation",
+        })?;
         if !*active {
-            return Err(ProcessError::ServerStopped);
+            return Err(ProcessError::LaunchCancelled);
         }
         Ok(active)
     }
@@ -154,8 +156,6 @@ pub enum ProcessError {
     StdinWrite(#[source] std::io::Error),
     #[error("Failed to flush server stdin: {0}")]
     StdinFlush(#[source] std::io::Error),
-    #[error("Failed to download server jar: {0}")]
-    JarDownload(String),
     #[error("Failed to spawn server process: {0}")]
     SpawnFailed(#[source] std::io::Error),
     #[error("Failed to get server PID")]
@@ -166,8 +166,37 @@ pub enum ProcessError {
     MissingStdout,
     #[error("Failed to attach stderr")]
     MissingStderr,
-    #[error("Port {port} is already in use ({details}). Close whatever uses it, or give this server another port in Settings.")]
-    PortInUse { port: u16, details: String },
+    #[error("Port {port} is already in use ({source}). Close whatever uses it, or give this server another port in Settings.")]
+    PortInUse {
+        port: u16,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("Failed to start proxy on port {port}: {source}")]
+    ProxyStartup {
+        port: u16,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("{primary}; server cleanup also failed: {cleanup}")]
+    ProxyStartupCleanup {
+        #[source]
+        primary: Box<ProcessError>,
+        cleanup: Box<ProcessError>,
+    },
+    #[error("Could not find Java console binary in {}", runtime_dir.display())]
+    MissingJavaConsoleBinary { runtime_dir: std::path::PathBuf },
+    #[error("Server {server_id} did not stop within {timeout:?}")]
+    ShutdownTimeout {
+        server_id: String,
+        timeout: std::time::Duration,
+    },
+    #[error("Server {state} lock is poisoned")]
+    StatePoisoned { state: &'static str },
+    #[error("Server starts are temporarily paused")]
+    StartAdmissionPaused,
+    #[error("Server launch was cancelled")]
+    LaunchCancelled,
     #[error("Server configuration or directory error: {0}")]
     Config(#[from] crate::server::config::ConfigError),
     #[error("Server metadata failed: {0}")]
@@ -188,6 +217,4 @@ pub enum ProcessError {
     Sandbox(#[from] crate::server::sandbox::SandboxError),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
-    #[error("{0}")]
-    Other(String),
 }

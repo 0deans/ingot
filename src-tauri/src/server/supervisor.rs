@@ -145,6 +145,25 @@ fn wake_callback(
     }
 }
 
+async fn proxy_start_failure(
+    port: u16,
+    source: std::io::Error,
+    cleanup: impl std::future::Future<Output = Result<(), ProcessError>>,
+) -> ProcessError {
+    let primary = if source.kind() == std::io::ErrorKind::AddrInUse {
+        ProcessError::PortInUse { port, source }
+    } else {
+        ProcessError::ProxyStartup { port, source }
+    };
+    match cleanup.await {
+        Ok(()) => primary,
+        Err(cleanup) => ProcessError::ProxyStartupCleanup {
+            primary: Box::new(primary),
+            cleanup: Box::new(cleanup),
+        },
+    }
+}
+
 static GENERATION: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Clone, Default)]
@@ -235,15 +254,15 @@ impl ServerSupervisorManager {
         let proxy_handle =
             match start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn).await {
                 Ok(handle) => handle,
-                Err(e) => {
-                    // Don't leave the game server running without its public port
-                    let _ = pm
-                        .stop_server_within_typed(&server_id, Duration::from_secs(10))
-                        .await;
-                    return Err(ProcessError::PortInUse {
-                        port: public_port,
-                        details: e.to_string(),
-                    });
+                Err(source) => {
+                    let error = proxy_start_failure(public_port, source, async {
+                        pm.stop_owned_and_wait(&server_id, pid, Duration::from_secs(10))
+                            .await?;
+                        startup.complete = true;
+                        Ok(())
+                    })
+                    .await;
+                    return Err(error);
                 }
             };
 
@@ -387,9 +406,10 @@ impl ServerSupervisorManager {
         }
 
         if pm.get_server_status(server_id).await != ServerStatus::Stopped {
-            return Err(ProcessError::Other(
-                "Server did not stop before the sleep deadline".into(),
-            ));
+            return Err(ProcessError::ShutdownTimeout {
+                server_id: server_id.to_string(),
+                timeout: Duration::from_secs(10),
+            });
         }
         pm.set_server_status(server_id, ServerStatus::Sleeping)
             .await;

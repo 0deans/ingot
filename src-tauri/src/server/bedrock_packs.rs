@@ -56,13 +56,17 @@ pub enum BedrockPackError {
     #[error("Failed to parse pack manifest.json")]
     InvalidManifest,
 
+    #[error("Failed to parse pack manifest.json: {0}")]
+    ManifestJson(#[source] serde_json::Error),
+
     #[error("Pack folder '{0}' already exists; remove it explicitly before installing")]
     AlreadyExists(String),
 
     #[error("{primary}; removing unpublished pack failed: {cleanup}; retained at {}", path.display())]
     CleanupFailed {
-        primary: String,
-        cleanup: String,
+        #[source]
+        primary: Box<BedrockPackError>,
+        cleanup: std::io::Error,
         path: std::path::PathBuf,
     },
 }
@@ -179,12 +183,22 @@ fn format_version(v: Option<&serde_json::Value>) -> String {
     "1.0.0".to_string()
 }
 
-fn parse_manifest(
-    manifest_bytes: &[u8],
-) -> Option<(String, String, String, Option<String>, String)> {
-    let manifest: PackManifest = serde_json::from_slice(manifest_bytes).ok()?;
-    let header = manifest.header?;
-    let uuid = header.uuid?;
+struct ParsedPackManifest {
+    uuid: String,
+    name: String,
+    version: String,
+    description: Option<String>,
+    pack_type: String,
+}
+
+fn parse_manifest(manifest_bytes: &[u8]) -> Result<Option<ParsedPackManifest>, serde_json::Error> {
+    let manifest: PackManifest = serde_json::from_slice(manifest_bytes)?;
+    let Some(header) = manifest.header else {
+        return Ok(None);
+    };
+    let Some(uuid) = header.uuid else {
+        return Ok(None);
+    };
     let name = header.name.unwrap_or_else(|| "Unnamed Pack".to_string());
     let version = format_version(header.version.as_ref());
     let desc = header.description;
@@ -200,7 +214,13 @@ fn parse_manifest(
             }
         }
     }
-    Some((uuid, name, version, desc, pack_type))
+    Ok(Some(ParsedPackManifest {
+        uuid,
+        name,
+        version,
+        description: desc,
+        pack_type,
+    }))
 }
 
 fn is_system_pack(folder_name: &str, name: &str, description: Option<&str>) -> bool {
@@ -259,7 +279,14 @@ pub fn list_installed_packs(server_dir: &Path) -> Result<Vec<BedrockPackInfo>, B
                 continue;
             };
 
-            if let Some((uuid, name, version, description, _)) = parse_manifest(&bytes) {
+            if let Ok(Some(manifest)) = parse_manifest(&bytes) {
+                let ParsedPackManifest {
+                    uuid,
+                    name,
+                    version,
+                    description,
+                    ..
+                } = manifest;
                 if is_system_pack(&folder_name, &name, description.as_deref()) {
                     continue;
                 }
@@ -374,8 +401,8 @@ pub fn delete_pack(
 
     // Read manifest to unregister from world
     if let Ok(bytes) = fs::read(target.join("manifest.json")) {
-        if let Some((uuid, _, _, _, _)) = parse_manifest(&bytes) {
-            set_pack_enabled(server_dir, &uuid, pack_type, false)?;
+        if let Ok(Some(manifest)) = parse_manifest(&bytes) {
+            set_pack_enabled(server_dir, &manifest.uuid, pack_type, false)?;
         }
     }
 

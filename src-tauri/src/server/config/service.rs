@@ -32,7 +32,7 @@ pub(crate) fn update_server_record(
                 .ok_or_else(|| MetadataError::Conflict("Server not found".into()))?;
             let previous = if records[index].port != config.port {
                 check_port(records, &config.id, config.port)
-                    .map_err(|e| MetadataError::Conflict(e.to_string()))?;
+                    .map_err(|error| MetadataError::Validation(Box::new(error)))?;
                 let path = directory.join("server.properties");
                 let bytes = match fs::read(&path) {
                     Ok(bytes) => Some(bytes),
@@ -122,7 +122,7 @@ pub(crate) fn update_properties(
                 .ok_or_else(|| MetadataError::Conflict("Server not found".into()))?;
             if let Some(port) = port {
                 check_port(servers, server_id, port)
-                    .map_err(|e| MetadataError::Conflict(e.to_string()))?;
+                    .map_err(|error| MetadataError::Validation(Box::new(error)))?;
             }
             let path = directory.join("server.properties");
             let previous = match fs::read(&path) {

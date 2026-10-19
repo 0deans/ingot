@@ -18,12 +18,18 @@ async fn stop_all_admission_cancels_pending_starts_and_reopens_after_last_owner(
     let first = manager.pause_starts();
     assert!(matches!(
         pending.generation.enter(),
-        Err(ProcessError::ServerStopped)
+        Err(ProcessError::LaunchCancelled)
     ));
-    assert!(manager.try_claim_starting("new").is_err());
+    assert!(matches!(
+        manager.try_claim_starting("new"),
+        Err(ProcessError::StartAdmissionPaused)
+    ));
     let second = manager.pause_starts();
     drop(first);
-    assert!(manager.try_claim_starting("new").is_err());
+    assert!(matches!(
+        manager.try_claim_starting("new"),
+        Err(ProcessError::StartAdmissionPaused)
+    ));
     drop(second);
     let next = manager.try_claim_starting("new").unwrap();
     assert!(next.generation.enter().is_ok());
@@ -132,7 +138,7 @@ fn stale_start_guard_cannot_release_a_newer_reservation() {
     manager.cancel_start("server");
     assert!(matches!(
         replacement.enter(),
-        Err(super::models::ProcessError::ServerStopped)
+        Err(super::models::ProcessError::LaunchCancelled)
     ));
 }
 
@@ -375,4 +381,88 @@ async fn stop_timeout_kills_only_the_original_process_at_deadline() {
     tokio::time::advance(Duration::from_millis(1)).await;
     timeout.await;
     assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 10);
+}
+
+#[test]
+fn poisoned_start_registry_is_not_reported_as_an_existing_start() {
+    use super::models::ProcessError;
+    let manager = ServerProcessManager::new();
+    let result = std::panic::catch_unwind(|| {
+        let _guard = manager.starting_servers.lock().unwrap();
+        panic!("injected registry poison");
+    });
+    assert!(result.is_err());
+    assert!(matches!(
+        manager.try_claim_starting("new"),
+        Err(ProcessError::StatePoisoned {
+            state: "start reservations"
+        })
+    ));
+}
+
+#[test]
+fn poisoned_generation_is_not_reported_as_a_stopped_server() {
+    use super::models::{ProcessError, ServerLaunchGeneration};
+    let generation = ServerLaunchGeneration::default();
+    let result = std::panic::catch_unwind(|| {
+        let _guard = generation.enter().unwrap();
+        panic!("injected generation poison");
+    });
+    assert!(result.is_err());
+    assert!(matches!(
+        generation.enter(),
+        Err(ProcessError::StatePoisoned {
+            state: "launch generation"
+        })
+    ));
+}
+
+#[tokio::test(start_paused = true)]
+async fn startup_cleanup_does_not_send_stop_to_an_existing_replacement() {
+    let replacement = server_fixture(20).await;
+    let stdin = replacement.stdin.clone();
+    let _held_stdin = stdin.lock().await;
+    let manager = ServerProcessManager::new();
+    manager.insert_server(replacement).await;
+    tokio::time::timeout(
+        Duration::from_secs(1),
+        manager.stop_owned_and_wait("server", 10, Duration::from_secs(10)),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert!(manager.owns("server", 20).await);
+    assert_eq!(
+        manager.get_server_status("server").await,
+        ServerStatus::Running
+    );
+}
+
+#[tokio::test(start_paused = true)]
+async fn startup_cleanup_does_not_wait_for_a_replacement_published_during_stop() {
+    use std::future::Future;
+    use std::task::Poll;
+    let original = server_fixture(10).await;
+    let stdin = original.stdin.clone();
+    let held_stdin = stdin.lock().await;
+    let manager = ServerProcessManager::new();
+    manager.insert_server(original).await;
+    let replacement = server_fixture(20).await;
+    let mut cleanup = Box::pin(manager.stop_owned_and_wait("server", 10, Duration::from_secs(10)));
+    std::future::poll_fn(|context| {
+        assert!(cleanup.as_mut().poll(context).is_pending());
+        Poll::Ready(())
+    })
+    .await;
+    manager.insert_server(replacement).await;
+    drop(held_stdin);
+    tokio::time::timeout(Duration::from_secs(1), cleanup)
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(manager.owns("server", 20).await);
+    assert_eq!(
+        manager.get_server_status("server").await,
+        ServerStatus::Running
+    );
 }
