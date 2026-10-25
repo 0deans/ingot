@@ -12,9 +12,12 @@ pub(super) fn capture(pid: u32) -> Option<ProcessIdentity> {
     system.refresh_processes_specifics(
         ProcessesToUpdate::Some(&[native_pid]),
         true,
-        ProcessRefreshKind::nothing(),
+        ProcessRefreshKind::nothing().without_tasks(),
     );
     system.process(native_pid).and_then(|process| {
+        if process.thread_kind().is_some() {
+            return None;
+        }
         let start = process.start_time();
         if start == 0 {
             return None;
@@ -48,7 +51,12 @@ impl Effects for Native {
 
 fn snapshot(root: ProcessIdentity) -> Result<Vec<ProcessIdentity>, TerminationError> {
     let mut system = System::new();
-    system.refresh_processes_specifics(ProcessesToUpdate::All, true, ProcessRefreshKind::nothing());
+    // Linux tasks are threads, not child processes; signaling one can end the entire group.
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::nothing().without_tasks(),
+    );
     let Some(process) = system.process(Pid::from_u32(root.pid)) else {
         return Ok(Vec::new());
     };
@@ -59,6 +67,7 @@ fn snapshot(root: ProcessIdentity) -> Result<Vec<ProcessIdentity>, TerminationEr
         let nodes = system
             .processes()
             .iter()
+            .filter(|(_, process)| process.thread_kind().is_none())
             .map(|(pid, process)| Node {
                 identity: ProcessIdentity::new(pid.as_u32(), process.start_time()),
                 parent: process.parent().map(Pid::as_u32),

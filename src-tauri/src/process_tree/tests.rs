@@ -379,3 +379,32 @@ async fn delayed_polling_does_not_renew_the_command_cleanup_budget() {
     );
     assert_eq!(command.signals, 1);
 }
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn native_tree_snapshot_never_targets_threads_as_child_processes() {
+    let root_pid = std::process::id();
+    let thread_path = std::fs::read_link("/proc/thread-self").unwrap();
+    let thread_id = thread_path
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .parse::<u32>()
+        .unwrap();
+    assert_ne!(thread_id, root_pid);
+    let root = capture(root_pid).unwrap();
+    let targets = inspection::Native.snapshot(root).await.unwrap();
+
+    // This current-thread runtime keeps the observed thread alive across the snapshot.
+    assert!(targets.contains(&root));
+    assert!(
+        targets.iter().all(|target| target.pid() != thread_id),
+        "The process tree must not contain its test thread"
+    );
+    assert_eq!(
+        capture(thread_id),
+        None,
+        "A thread must not become a process capability"
+    );
+}
