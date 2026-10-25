@@ -245,10 +245,14 @@ fn fixture_child() {
     use std::io::{BufRead, Write};
     println!("[Server thread/INFO]: Done (1.0s)! For help, type help");
     std::io::stdout().flush().unwrap();
-    for line in std::io::stdin().lock().lines() {
-        if line.unwrap().trim() == "stop" {
-            break;
+    for line in std::io::stdin().lock().lines().map_while(Result::ok) {
+        if line.trim() == "stop" {
+            return;
         }
+    }
+    // If stdin closes or reaches EOF without a stop command, remain running until killed.
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(60));
     }
 }
 
