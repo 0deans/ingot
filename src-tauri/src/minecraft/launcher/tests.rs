@@ -360,6 +360,16 @@ fn test_quick_play_cleanup() {
 
     cleanup_quick_play_junction(temp.path());
     assert!(!qp_junction.exists());
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let target = saves.join("target_world");
+        fs::create_dir(&target).unwrap();
+        std::os::unix::fs::symlink(&target, &qp_junction).unwrap();
+        assert!(std::fs::symlink_metadata(&qp_junction).is_ok());
+        cleanup_quick_play_junction(temp.path());
+        assert!(std::fs::symlink_metadata(&qp_junction).is_err());
+    }
 }
 
 #[tokio::test]

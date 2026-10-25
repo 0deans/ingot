@@ -361,6 +361,9 @@ async fn readiness_graceful_exit_and_restart_preserve_event_order() {
         ]
     );
     fixture.launch().await;
+    tokio::time::timeout(Duration::from_secs(10), fixture.ready.notified())
+        .await
+        .unwrap();
     manager.kill_server_typed("server").await.unwrap();
     fixture.await_stopped().await;
 }
@@ -369,6 +372,9 @@ async fn readiness_graceful_exit_and_restart_preserve_event_order() {
 async fn force_kill_keeps_exit_owner_alive_and_allows_restart() {
     let fixture = Fixture::new();
     fixture.launch().await;
+    tokio::time::timeout(Duration::from_secs(10), fixture.ready.notified())
+        .await
+        .unwrap();
     fixture
         .context
         .processes
@@ -381,6 +387,9 @@ async fn force_kill_keeps_exit_owner_alive_and_allows_restart() {
         vec!["started", "exited"]
     );
     fixture.launch().await;
+    tokio::time::timeout(Duration::from_secs(10), fixture.ready.notified())
+        .await
+        .unwrap();
     fixture
         .context
         .processes

@@ -47,7 +47,7 @@ async fn server_mutations_reject_busy_owners_before_touching_files_or_metadata()
                     cmd: command.to_owned(),
                     callback: tauri::ipc::CallbackFn(0),
                     error: tauri::ipc::CallbackFn(1),
-                    url: "http://tauri.localhost".parse().unwrap(),
+                    url: crate::ipc::test_invoke_url(),
                     body: InvokeBody::Json(arguments),
                     headers: Default::default(),
                     invoke_key: tauri::test::INVOKE_KEY.to_owned(),

@@ -59,7 +59,7 @@ fn invoke(
             cmd: command.to_owned(),
             callback: tauri::ipc::CallbackFn(0),
             error: tauri::ipc::CallbackFn(1),
-            url: "http://tauri.localhost".parse().unwrap(),
+            url: super::test_invoke_url(),
             body: InvokeBody::Json(body),
             headers: Default::default(),
             invoke_key: tauri::test::INVOKE_KEY.to_owned(),

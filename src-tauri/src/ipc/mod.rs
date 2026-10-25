@@ -97,4 +97,15 @@ pub(crate) fn contract() -> impl taurpc::Exportable {
 }
 
 #[cfg(test)]
+pub(crate) fn test_invoke_url() -> tauri::Url {
+    if cfg!(any(windows, target_os = "android")) {
+        "http://tauri.localhost"
+    } else {
+        "tauri://localhost"
+    }
+    .parse()
+    .unwrap()
+}
+
+#[cfg(test)]
 mod tests;

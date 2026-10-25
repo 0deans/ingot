@@ -82,10 +82,14 @@ pub fn apply_quick_play_arguments(
 
 pub fn cleanup_quick_play_junction(instance_dir: &Path) {
     let qp_junction = instance_dir.join("saves").join("qp_world");
+    #[cfg(target_os = "windows")]
     if qp_junction.exists() {
-        #[cfg(target_os = "windows")]
         let _ = std::fs::remove_dir(&qp_junction);
-        #[cfg(not(target_os = "windows"))]
-        let _ = std::fs::remove_file(&qp_junction);
+    }
+    #[cfg(not(target_os = "windows"))]
+    if std::fs::symlink_metadata(&qp_junction).is_ok() {
+        if std::fs::remove_file(&qp_junction).is_err() {
+            let _ = std::fs::remove_dir(&qp_junction);
+        }
     }
 }
