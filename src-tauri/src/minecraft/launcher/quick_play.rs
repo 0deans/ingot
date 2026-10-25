@@ -87,9 +87,9 @@ pub fn cleanup_quick_play_junction(instance_dir: &Path) {
         let _ = std::fs::remove_dir(&qp_junction);
     }
     #[cfg(not(target_os = "windows"))]
-    if std::fs::symlink_metadata(&qp_junction).is_ok() {
-        if std::fs::remove_file(&qp_junction).is_err() {
-            let _ = std::fs::remove_dir(&qp_junction);
-        }
+    if std::fs::symlink_metadata(&qp_junction).is_ok()
+        && std::fs::remove_file(&qp_junction).is_err()
+    {
+        let _ = std::fs::remove_dir(&qp_junction);
     }
 }
