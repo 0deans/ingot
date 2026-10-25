@@ -713,3 +713,29 @@ fn bedrock_archive_and_protocol_errors_keep_categories() {
     let varint = PingError::InvalidVarInt(std::io::ErrorKind::InvalidData.into());
     assert!(matches!(ApiError::from(varint), ApiError::Internal { .. }));
 }
+
+#[test]
+fn process_tree_failures_keep_cleanup_distinct_from_command_failures() {
+    use crate::app::lifecycle::LifecycleError;
+    use crate::process_tree::TerminationError;
+
+    let command = LifecycleError::Termination(TerminationError::Spawn {
+        pid: 10,
+        source: std::io::ErrorKind::PermissionDenied.into(),
+    });
+    assert!(matches!(ApiError::from(command), ApiError::Internal { .. }));
+    let cleanup = LifecycleError::Termination(TerminationError::Cleanup {
+        primary: Box::new(TerminationError::CommandTimeout(10)),
+        signal: Some(std::io::ErrorKind::PermissionDenied.into()),
+        reap: Some(std::io::ErrorKind::TimedOut.into()),
+    });
+    assert!(matches!(
+        ApiError::from(cleanup),
+        ApiError::IncompleteRecovery { .. }
+    ));
+    let unconfirmed = LifecycleError::Termination(TerminationError::ExitUnconfirmed(10));
+    assert!(matches!(
+        ApiError::from(unconfirmed),
+        ApiError::IncompleteRecovery { .. }
+    ));
+}

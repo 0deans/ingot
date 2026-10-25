@@ -5,7 +5,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Mutex;
-use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
 use tauri::{AppHandle, Manager, Runtime};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -138,14 +137,7 @@ pub fn load<R: Runtime>(app: &AppHandle<R>, kind: Kind) -> Vec<Entry> {
 
 /// When the OS says a process started (unix seconds), if it is running
 pub fn process_start(pid: u32) -> Option<u64> {
-    let pid = Pid::from_u32(pid);
-    let mut sys = System::new();
-    sys.refresh_processes_specifics(
-        ProcessesToUpdate::Some(&[pid]),
-        true,
-        ProcessRefreshKind::nothing(),
-    );
-    sys.process(pid).map(|p| p.start_time())
+    crate::process_tree::capture(pid).map(crate::process_tree::ProcessIdentity::start)
 }
 
 /// Whether the process in the entry is still running (and is still that process)
@@ -153,27 +145,45 @@ pub fn is_alive(entry: &Entry) -> bool {
     process_start(entry.pid).is_some_and(|start| start.abs_diff(entry.proc_start) <= 2)
 }
 
-/// Ends a process and everything it started, without waiting for it to save
-pub fn kill_tree(pid: u32) {
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        let _ = std::process::Command::new("taskkill")
-            .args(["/F", "/T", "/PID", &pid.to_string()])
-            .creation_flags(0x08000000) // CREATE_NO_WINDOW
-            .output();
-    }
-    #[cfg(not(target_os = "windows"))]
-    {
-        let _ = std::process::Command::new("kill")
-            .args(["-9", &pid.to_string()])
-            .output();
-    }
+/// A completed stop may only acknowledge the saved incarnation that it owned.
+pub(crate) fn remove_original<R: Runtime>(app: &AppHandle<R>, kind: Kind, original: &Entry) {
+    update(app, |registry| {
+        remove_original_entry(registry.list(kind), original)
+    });
+}
+
+fn remove_original_entry(entries: &mut Vec<Entry>, original: &Entry) {
+    entries.retain(|entry| {
+        entry.id != original.id
+            || entry.pid != original.pid
+            || entry.proc_start != original.proc_start
+    });
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn acknowledging_termination_preserves_reused_pid_and_replacement_server() {
+        let original = Entry {
+            id: "server".into(),
+            pid: 10,
+            started_at: 20,
+            proc_start: 30,
+        };
+        let reused = Entry {
+            proc_start: 31,
+            ..original.clone()
+        };
+        let replacement = Entry {
+            pid: 11,
+            ..original.clone()
+        };
+        let mut entries = vec![original.clone(), reused.clone(), replacement.clone()];
+        remove_original_entry(&mut entries, &original);
+        assert_eq!(entries, vec![reused, replacement]);
+    }
 
     #[test]
     fn knows_its_own_process() {

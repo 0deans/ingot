@@ -7,28 +7,33 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
-import { quitService, useQuitPrompt } from "@/services/quit-service"
+import { getRpcErrorMessage } from "@/lib/rpc"
+import { stopServersAndExit } from "@/services/quit-flow"
+import { type QuitPrompt, quitService, useQuitPrompt } from "@/services/quit-service"
 import { rpc } from "@/services/server-service"
+
+interface QuitDialogFailure {
+	prompt: QuitPrompt
+	message: string
+}
 
 /**
  * Asked when Ingot would close while servers run: their consoles live in Ingot, so
  * quitting would leave them running with no way to control them.
  */
-export default function QuitDialog() {
+const QuitDialog = () => {
 	const { t } = useTranslation()
 	const prompt = useQuitPrompt()
 	const [stopping, setStopping] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-
-	// A new prompt starts without the previous one's error
-	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on every new prompt
-	useEffect(() => setError(null), [prompt])
+	const [failure, setFailure] = useState<QuitDialogFailure | null>(null)
 
 	useEffect(() => {
 		let unlisten: (() => void) | undefined
 		let cancelled = false
 		rpc.events.on_quit_requested
-			.on((request: QuitRequest) => quitService.ask({ mode: "quit", request }))
+			.on((request: QuitRequest) => {
+				quitService.ask({ mode: "quit", request })
+			})
 			.then((stop) => {
 				if (cancelled) stop()
 				else unlisten = stop
@@ -42,22 +47,30 @@ export default function QuitDialog() {
 
 	if (!prompt) return null
 	const { mode, request } = prompt
-	const running = request.servers.filter((s) => !s.sleeping)
+	const error = failure?.prompt === prompt ? failure.message : null
+	const running = request.servers.filter((server) => {
+		return !server.sleeping
+	})
 	const count = request.servers.length
 
 	const stopAndGo = async () => {
 		setStopping(true)
-		setError(null)
+		setFailure(null)
 		try {
-			await rpc.app.stop_all_servers()
-			if (mode === "quit") {
-				await rpc.app.quit_app()
-			} else {
-				quitService.dismiss()
-				await prompt.proceed?.()
-			}
+			await stopServersAndExit(prompt, {
+				stopServers: () => {
+					return rpc.app.stop_all_servers()
+				},
+				quit: () => {
+					return rpc.app.quit_app()
+				},
+				dismiss: () => {
+					quitService.dismissCurrent(prompt)
+				},
+			})
 		} catch (e) {
-			setError(String(e))
+			const message = getRpcErrorMessage(e)
+			setFailure({ prompt, message })
 		} finally {
 			setStopping(false)
 		}
@@ -68,12 +81,20 @@ export default function QuitDialog() {
 			await getCurrentWindow().hide()
 			quitService.dismiss()
 		} catch (e) {
-			setError(String(e))
+			const message = getRpcErrorMessage(e)
+			setFailure({ prompt, message })
 		}
 	}
 
 	return (
-		<Dialog open onOpenChange={(open) => !open && !stopping && quitService.dismiss()}>
+		<Dialog
+			open
+			onOpenChange={(open) => {
+				if (open) return
+				if (stopping) return
+				quitService.dismiss()
+			}}
+		>
 			<DialogContent className="flex max-h-[90vh] flex-col gap-4 p-5 sm:max-w-md">
 				<div className="flex items-start gap-3">
 					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
@@ -88,24 +109,26 @@ export default function QuitDialog() {
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					{request.servers.map((server) => (
-						<div
-							key={server.serverId}
-							className="flex items-center gap-3 rounded-xl border border-border bg-card/40 px-3 py-2"
-						>
-							{server.sleeping ? (
-								<Moon className="size-4 shrink-0 text-muted-foreground" />
-							) : (
-								<Server className="size-4 shrink-0 text-primary" />
-							)}
-							<p className="min-w-0 flex-1 truncate font-medium text-foreground text-sm">
-								{server.name}
-							</p>
-							<span className="shrink-0 text-2xs text-muted-foreground">
-								{server.sleeping ? t("serverStatus.sleeping") : t("serverStatus.running")}
-							</span>
-						</div>
-					))}
+					{request.servers.map((server) => {
+						return (
+							<div
+								key={server.serverId}
+								className="flex items-center gap-3 rounded-xl border border-border bg-card/40 px-3 py-2"
+							>
+								{server.sleeping ? (
+									<Moon className="size-4 shrink-0 text-muted-foreground" />
+								) : (
+									<Server className="size-4 shrink-0 text-primary" />
+								)}
+								<p className="min-w-0 flex-1 truncate font-medium text-foreground text-sm">
+									{server.name}
+								</p>
+								<span className="shrink-0 text-2xs text-muted-foreground">
+									{server.sleeping ? t("serverStatus.sleeping") : t("serverStatus.running")}
+								</span>
+							</div>
+						)
+					})}
 				</div>
 
 				{stopping ? (
@@ -135,7 +158,9 @@ export default function QuitDialog() {
 					<Button
 						variant="ghost"
 						disabled={stopping}
-						onClick={() => quitService.dismiss()}
+						onClick={() => {
+							quitService.dismiss()
+						}}
 						className="rounded-xl"
 					>
 						{t("common.cancel")}
@@ -159,3 +184,5 @@ export default function QuitDialog() {
 		</Dialog>
 	)
 }
+
+export default QuitDialog

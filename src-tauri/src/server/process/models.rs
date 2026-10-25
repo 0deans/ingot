@@ -16,10 +16,12 @@ pub(crate) struct ActiveServer {
     pub(crate) server_id: String,
     pub(crate) core: ServerCoreType,
     pub(crate) pid: u32,
+    pub(crate) generation: ServerLaunchGeneration,
     pub(crate) port: u16,
     pub(crate) started_at: u64,
     pub(crate) status: ServerStatus,
     pub(crate) stdin: Arc<Mutex<ChildStdin>>,
+    pub(crate) termination: Arc<super::shutdown::ServerTermination>,
     pub(crate) log_history: Arc<Mutex<Vec<String>>>,
     pub(crate) online_players: Arc<Mutex<Vec<String>>>,
     pub(crate) player_xuids: Arc<Mutex<HashMap<String, String>>>,
@@ -60,7 +62,7 @@ impl Default for ServerLaunchGeneration {
 }
 
 impl ServerLaunchGeneration {
-    fn matches(&self, other: &Self) -> bool {
+    pub(super) fn matches(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
     }
 
@@ -135,7 +137,30 @@ impl Drop for PendingQueryGuard {
 }
 
 #[derive(Debug, thiserror::Error)]
+#[error("{source}")]
+pub struct ServerTerminationError {
+    #[source]
+    pub(super) source: Arc<crate::process_tree::TerminationError>,
+}
+
+impl ServerTerminationError {
+    pub(crate) fn cause(&self) -> &crate::process_tree::TerminationError {
+        &self.source
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum ProcessError {
+    #[error("Server process-tree termination failed: {0}")]
+    Termination(#[source] ServerTerminationError),
+    #[error("Server shutdown worker failed: {0}")]
+    ShutdownWorker(#[source] tokio::task::JoinError),
+    #[error("Graceful shutdown failed: {graceful}; forced termination also failed: {termination}")]
+    ShutdownFailed {
+        #[source]
+        graceful: Box<ProcessError>,
+        termination: Box<ProcessError>,
+    },
     #[error("Server is not running: {0}")]
     NotRunning(String),
     #[error("Server not found: {0}")]

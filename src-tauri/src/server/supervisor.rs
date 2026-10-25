@@ -56,14 +56,21 @@ struct StartupProcessGuard {
     manager: ServerProcessManager,
     server_id: String,
     pid: u32,
+    launch_generation: crate::server::process::ServerLaunchGeneration,
     complete: bool,
 }
 impl StartupProcessGuard {
-    fn new(manager: ServerProcessManager, server_id: String, pid: u32) -> Self {
+    fn new(
+        manager: ServerProcessManager,
+        server_id: String,
+        pid: u32,
+        launch_generation: crate::server::process::ServerLaunchGeneration,
+    ) -> Self {
         Self {
             manager,
             server_id,
             pid,
+            launch_generation,
             complete: false,
         }
     }
@@ -76,8 +83,14 @@ impl Drop for StartupProcessGuard {
         let manager = self.manager.clone();
         let server_id = self.server_id.clone();
         let pid = self.pid;
+        let launch_generation = self.launch_generation.clone();
         tokio::spawn(async move {
-            manager.kill_if_owned(&server_id, pid).await;
+            if let Err(error) = manager
+                .kill_if_owned(&server_id, pid, &launch_generation)
+                .await
+            {
+                eprintln!("Failed to terminate abandoned startup {server_id}: {error}");
+            }
         });
     }
 }
@@ -221,7 +234,8 @@ impl ServerSupervisorManager {
             return Ok(pid);
         }
 
-        let mut startup = StartupProcessGuard::new(pm.clone(), server_id.clone(), pid);
+        let mut startup =
+            StartupProcessGuard::new(pm.clone(), server_id.clone(), pid, claimed.generation());
 
         let wake_task = Arc::new(std::sync::Mutex::new(WakeControl::default()));
 
@@ -256,8 +270,13 @@ impl ServerSupervisorManager {
                 Ok(handle) => handle,
                 Err(source) => {
                     let error = proxy_start_failure(public_port, source, async {
-                        pm.stop_owned_and_wait(&server_id, pid, Duration::from_secs(10))
-                            .await?;
+                        pm.stop_owned_and_wait(
+                            &server_id,
+                            pid,
+                            &startup.launch_generation,
+                            Duration::from_secs(10),
+                        )
+                        .await?;
                         startup.complete = true;
                         Ok(())
                     })

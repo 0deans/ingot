@@ -48,8 +48,9 @@ impl ApplicationApi for ApplicationApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<(), ApiError> {
-        lifecycle::stop_all_servers(&app_handle).await;
-        Ok(())
+        lifecycle::stop_all_servers(&app_handle)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn quit_app(self, app_handle: tauri::AppHandle<impl Runtime>) -> Result<(), ApiError> {

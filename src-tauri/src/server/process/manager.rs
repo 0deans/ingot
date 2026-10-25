@@ -358,110 +358,6 @@ impl ServerProcessManager {
             .await
     }
 
-    pub async fn stop_server(&self, server_id: &str) -> Result<(), ProcessError> {
-        self.stop_server_within(server_id, Duration::from_secs(10))
-            .await
-    }
-
-    /// Asks the server to stop (it saves its worlds first) and ends it if it hasn't
-    /// exited after `timeout`
-    pub async fn stop_server_within(
-        &self,
-        server_id: &str,
-        timeout: Duration,
-    ) -> Result<(), ProcessError> {
-        self.stop_server_within_typed(server_id, timeout).await
-    }
-
-    pub async fn stop_server_within_typed(
-        &self,
-        server_id: &str,
-        timeout: Duration,
-    ) -> Result<(), ProcessError> {
-        let (stdin_arc, pid) = {
-            let mut guard = self.servers.lock().await;
-            if let Some(s) = guard.get_mut(server_id) {
-                s.status = ServerStatus::Stopping;
-                (s.stdin.clone(), s.pid)
-            } else {
-                return Err(ProcessError::NotRunning(server_id.to_string()));
-            }
-        };
-
-        // Send "stop" command to server
-        {
-            let mut stdin = stdin_arc.lock().await;
-            let _ = stdin.write_all(b"stop\n").await;
-            let _ = stdin.flush().await;
-        }
-
-        // The exit task (which holds the child while it waits) removes the server once
-        // the process is gone
-        let server_id_clone = server_id.to_string();
-        let servers_map = self.servers.clone();
-        tokio::spawn(async move {
-            force_stop_after_timeout(&servers_map, &server_id_clone, pid, timeout, |pid| {
-                eprintln!("[ServerManager] Graceful stop timed out for {server_id_clone}, killing process...");
-                crate::running::kill_tree(pid);
-            }).await;
-        });
-
-        Ok(())
-    }
-
-    pub(crate) async fn stop_owned_and_wait(
-        &self,
-        server_id: &str,
-        pid: u32,
-        grace_period: Duration,
-    ) -> Result<(), ProcessError> {
-        let stdin = {
-            let mut servers = self.servers.lock().await;
-            let Some(server) = servers
-                .get_mut(server_id)
-                .filter(|server| server.pid == pid)
-            else {
-                return Ok(());
-            };
-            server.status = ServerStatus::Stopping;
-            server.stdin.clone()
-        };
-        let server_id_owned = server_id.to_string();
-        let servers = self.servers.clone();
-        // The force-stop owner survives cancellation and checks the original PID.
-        tokio::spawn(async move {
-            force_stop_after_timeout(&servers, &server_id_owned, pid, grace_period, |pid| {
-                crate::running::kill_tree(pid);
-            })
-            .await;
-        });
-        let confirmation_timeout = grace_period + Duration::from_secs(3);
-        let mut graceful_failure = None;
-        let confirmation = tokio::time::timeout(confirmation_timeout, async {
-            {
-                let mut stdin = stdin.lock().await;
-                graceful_failure = match stdin.write_all(b"stop\n").await {
-                    Ok(()) => stdin.flush().await.err().map(ProcessError::StdinFlush),
-                    Err(error) => Some(ProcessError::StdinWrite(error)),
-                };
-            }
-            while self.owns(server_id, pid).await {
-                tokio::time::sleep(Duration::from_millis(250)).await;
-            }
-        })
-        .await;
-        if confirmation.is_ok() {
-            // Failed graceful writes are recovered only after exit is confirmed.
-            return Ok(());
-        }
-        Err(
-            graceful_failure.unwrap_or_else(|| ProcessError::ShutdownTimeout {
-                server_id: server_id.to_string(),
-                timeout: confirmation_timeout,
-            }),
-        )
-    }
-
     /// Waits until the server's process has exited, up to `timeout`
     pub async fn wait_stopped(&self, server_id: &str, timeout: Duration) -> bool {
         let deadline = tokio::time::Instant::now() + timeout;
@@ -489,32 +385,6 @@ impl ServerProcessManager {
     pub async fn owns(&self, server_id: &str, pid: u32) -> bool {
         has_process(&self.servers, server_id, pid).await
     }
-
-    pub(crate) async fn kill_if_owned(&self, server_id: &str, pid: u32) {
-        let mut servers = self.servers.lock().await;
-        if let Some(server) = servers
-            .get_mut(server_id)
-            .filter(|server| server.pid == pid)
-        {
-            server.status = ServerStatus::Stopping;
-            crate::running::kill_tree(pid);
-        }
-    }
-
-    pub async fn kill_server(&self, server_id: &str) -> Result<(), ProcessError> {
-        self.kill_server_typed(server_id).await
-    }
-
-    pub async fn kill_server_typed(&self, server_id: &str) -> Result<(), ProcessError> {
-        let mut servers = self.servers.lock().await;
-        let server = servers
-            .get_mut(server_id)
-            .ok_or_else(|| ProcessError::NotRunning(server_id.to_string()))?;
-        server.status = ServerStatus::Stopping;
-        // The monitor remains the owner of reaping and registry cleanup.
-        crate::running::kill_tree(server.pid);
-        Ok(())
-    }
 }
 
 async fn has_process(
@@ -526,32 +396,5 @@ async fn has_process(
         .lock()
         .await
         .get(server_id)
-        .is_some_and(|s| s.pid == pid)
-}
-
-pub(super) async fn force_stop_after_timeout(
-    servers: &Mutex<HashMap<String, ActiveServer>>,
-    server_id: &str,
-    pid: u32,
-    timeout: Duration,
-    kill: impl FnOnce(u32),
-) {
-    let deadline = tokio::time::Instant::now() + timeout;
-    while tokio::time::Instant::now() < deadline {
-        tokio::time::sleep_until(
-            deadline.min(tokio::time::Instant::now() + Duration::from_millis(500)),
-        )
-        .await;
-        if !has_process(servers, server_id, pid).await {
-            return;
-        }
-    }
-    // Keep replacement publication serialized with the final identity check and kill.
-    let entries = servers.lock().await;
-    if entries
-        .get(server_id)
         .is_some_and(|server| server.pid == pid)
-    {
-        kill(pid);
-    }
 }

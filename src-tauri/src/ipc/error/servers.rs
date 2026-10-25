@@ -88,6 +88,9 @@ impl From<crate::server::process::models::ProcessError> for ApiError {
             ProcessError::ProxyStartupCleanup { .. } => {
                 Self::incomplete_recovery(error.to_string())
             }
+            ProcessError::Termination(source) => tree_termination_error(source.cause()),
+            ProcessError::ShutdownWorker(_) => Self::internal(error.to_string()),
+            ProcessError::ShutdownFailed { .. } => Self::incomplete_recovery(error.to_string()),
             ProcessError::Config(error) => Self::from(error),
             ProcessError::Metadata(error) => Self::from(error),
             ProcessError::File(error) => Self::from(error),
@@ -388,6 +391,25 @@ impl From<crate::app::lifecycle::LifecycleError> for ApiError {
             crate::app::lifecycle::LifecycleError::LeftoverServerMissing => {
                 Self::not_found(error.to_string())
             }
+            crate::app::lifecycle::LifecycleError::Servers(_) => {
+                Self::incomplete_recovery(error.to_string())
+            }
+            crate::app::lifecycle::LifecycleError::Termination(source) => {
+                tree_termination_error(&source)
+            }
+            crate::app::lifecycle::LifecycleError::ShutdownWorker(_) => {
+                Self::internal(error.to_string())
+            }
         }
+    }
+}
+
+fn tree_termination_error(error: &crate::process_tree::TerminationError) -> ApiError {
+    use crate::process_tree::TerminationError;
+    match error {
+        TerminationError::Cleanup { .. }
+        | TerminationError::Failures { .. }
+        | TerminationError::ExitUnconfirmed(_) => ApiError::incomplete_recovery(error.to_string()),
+        _ => ApiError::internal(error.to_string()),
     }
 }

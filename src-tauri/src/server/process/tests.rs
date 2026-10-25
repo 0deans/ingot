@@ -240,10 +240,12 @@ pub(super) async fn server_fixture(pid: u32) -> super::models::ActiveServer {
         server_id: "server".into(),
         core: crate::server::ServerCoreType::Paper,
         pid,
+        generation: super::models::ServerLaunchGeneration::default(),
         port: 25565,
         started_at: 0,
         status: ServerStatus::Running,
         stdin: Arc::new(Mutex::new(stdin)),
+        termination: super::shutdown::ServerTermination::capture(pid),
         log_history: Arc::new(Mutex::new(Vec::new())),
         online_players: Arc::new(Mutex::new(Vec::new())),
         player_xuids: Arc::new(Mutex::new(std::collections::HashMap::new())),
@@ -334,55 +336,6 @@ async fn server_claim_reads_latest_metadata_and_releases_missing_target() {
     assert!(!manager.is_starting("server"));
 }
 
-#[tokio::test(start_paused = true)]
-async fn stop_timeout_does_not_kill_a_replacement_process() {
-    use std::future::{poll_fn, Future};
-    use std::task::Poll;
-    let manager = ServerProcessManager::new();
-    manager.insert_server(server_fixture(10).await).await;
-    let killed = std::sync::atomic::AtomicU32::new(0);
-    let mut timeout = Box::pin(super::manager::force_stop_after_timeout(
-        &manager.servers,
-        "server",
-        10,
-        Duration::from_secs(1),
-        |pid| {
-            killed.store(pid, std::sync::atomic::Ordering::SeqCst);
-        },
-    ));
-    assert!(poll_fn(|cx| Poll::Ready(timeout.as_mut().poll(cx).is_pending())).await);
-    manager.servers.lock().await.get_mut("server").unwrap().pid = 20;
-    tokio::time::advance(Duration::from_secs(1)).await;
-    timeout.await;
-    assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 0);
-    assert!(manager.owns("server", 20).await);
-}
-
-#[tokio::test(start_paused = true)]
-async fn stop_timeout_kills_only_the_original_process_at_deadline() {
-    use std::future::{poll_fn, Future};
-    use std::task::Poll;
-    let manager = ServerProcessManager::new();
-    manager.insert_server(server_fixture(10).await).await;
-    let killed = std::sync::atomic::AtomicU32::new(0);
-    let mut timeout = Box::pin(super::manager::force_stop_after_timeout(
-        &manager.servers,
-        "server",
-        10,
-        Duration::from_secs(1),
-        |pid| {
-            killed.store(pid, std::sync::atomic::Ordering::SeqCst);
-        },
-    ));
-    assert!(poll_fn(|cx| Poll::Ready(timeout.as_mut().poll(cx).is_pending())).await);
-    tokio::time::advance(Duration::from_millis(999)).await;
-    assert!(poll_fn(|cx| Poll::Ready(timeout.as_mut().poll(cx).is_pending())).await);
-    assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 0);
-    tokio::time::advance(Duration::from_millis(1)).await;
-    timeout.await;
-    assert_eq!(killed.load(std::sync::atomic::Ordering::SeqCst), 10);
-}
-
 #[test]
 fn poisoned_start_registry_is_not_reported_as_an_existing_start() {
     use super::models::ProcessError;
@@ -426,7 +379,12 @@ async fn startup_cleanup_does_not_send_stop_to_an_existing_replacement() {
     manager.insert_server(replacement).await;
     tokio::time::timeout(
         Duration::from_secs(1),
-        manager.stop_owned_and_wait("server", 10, Duration::from_secs(10)),
+        manager.stop_owned_and_wait(
+            "server",
+            10,
+            &super::models::ServerLaunchGeneration::default(),
+            Duration::from_secs(10),
+        ),
     )
     .await
     .unwrap()
@@ -444,11 +402,13 @@ async fn startup_cleanup_does_not_wait_for_a_replacement_published_during_stop()
     use std::task::Poll;
     let original = server_fixture(10).await;
     let stdin = original.stdin.clone();
+    let generation = original.generation.clone();
     let held_stdin = stdin.lock().await;
     let manager = ServerProcessManager::new();
     manager.insert_server(original).await;
     let replacement = server_fixture(20).await;
-    let mut cleanup = Box::pin(manager.stop_owned_and_wait("server", 10, Duration::from_secs(10)));
+    let mut cleanup =
+        Box::pin(manager.stop_owned_and_wait("server", 10, &generation, Duration::from_secs(10)));
     std::future::poll_fn(|context| {
         assert!(cleanup.as_mut().poll(context).is_pending());
         Poll::Ready(())

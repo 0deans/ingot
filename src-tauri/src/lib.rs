@@ -14,6 +14,7 @@ pub const USER_AGENT: &str = concat!(
 pub mod ipc;
 pub mod keyring_store;
 pub mod minecraft;
+pub(crate) mod process_tree;
 pub mod running;
 pub mod server;
 pub mod system;

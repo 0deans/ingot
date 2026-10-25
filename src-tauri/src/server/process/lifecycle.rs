@@ -42,6 +42,12 @@ pub struct ClaimedServerLaunch {
     ownership: StartingGuard,
 }
 
+impl ClaimedServerLaunch {
+    pub(crate) fn generation(&self) -> ServerLaunchGeneration {
+        self.ownership.generation.clone()
+    }
+}
+
 pub(crate) async fn claim_server_launch(
     repository: &crate::minecraft::metadata::MetadataRepository<ServerConfig>,
     processes: &ServerProcessManager,
@@ -258,10 +264,12 @@ async fn launch_server_inner(
             server_id: server_id.clone(),
             core: config.core.clone(),
             pid,
+            generation: generation.clone(),
             port: config.port,
             started_at: now,
             status: ServerStatus::Running,
             stdin: stdin_arc.clone(),
+            termination: super::shutdown::ServerTermination::capture(pid),
             log_history: log_history.clone(),
             online_players: online_players.clone(),
             player_xuids: player_xuids.clone(),

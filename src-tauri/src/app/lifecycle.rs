@@ -103,38 +103,99 @@ pub(crate) async fn quit_request<R: Runtime>(app: &tauri::AppHandle<R>) -> QuitR
 
 /// Stops every server and waits for them: each gets 30 seconds to save its worlds
 /// before it's ended
-pub(crate) async fn stop_all_servers<R: Runtime>(app: &tauri::AppHandle<R>) {
-    let pm = get_server_process_manager(app);
-    let _admission = pm.pause_starts();
-    let supervisor = get_server_supervisor_manager(app);
-    // Sleeping ones only have a proxy; stop those too so nothing wakes up meanwhile
-    for id in pm.sleeping_ids().await {
-        supervisor.release(&id).await;
-        pm.set_server_status(&id, server::ServerStatus::Stopped)
-            .await;
-    }
-    // A server still starting may get its process meanwhile: look again after each round
-    for _ in 0..3 {
-        let ids = pm.process_ids().await;
-        if ids.is_empty() {
-            break;
-        }
-        let mut waits = Vec::new();
-        for id in ids {
+pub(crate) async fn stop_all_servers<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> Result<(), LifecycleError> {
+    let app = app.clone();
+    tokio::spawn(async move {
+        let pm = get_server_process_manager(&app);
+        let _admission = pm.pause_starts();
+        let supervisor = get_server_supervisor_manager(&app);
+        for id in pm.sleeping_ids().await {
             supervisor.release(&id).await;
-            let _ = pm
-                .stop_server_within(&id, std::time::Duration::from_secs(30))
+            pm.set_server_status(&id, server::ServerStatus::Stopped)
                 .await;
-            let pm = pm.clone();
-            waits.push(tokio::spawn(async move {
-                pm.wait_stopped(&id, std::time::Duration::from_secs(35))
-                    .await
-            }));
         }
-        for wait in waits {
-            let _ = wait.await;
+        let mut jobs = Vec::new();
+        for id in pm.process_ids().await {
+            supervisor.release(&id).await;
+            let manager = pm.clone();
+            let server_id = id.clone();
+            let work = tokio::spawn(async move {
+                match manager
+                    .stop_server_and_wait(&server_id, std::time::Duration::from_secs(30))
+                    .await
+                {
+                    // A process may exit normally before this worker claims its shutdown.
+                    Err(server::process::ProcessError::NotRunning(_)) => Ok(()),
+                    result => result,
+                }
+            });
+            jobs.push(ShutdownJob {
+                server_id: id,
+                work,
+            });
+        }
+        collect_shutdowns(jobs).await
+    })
+    .await
+    .map_err(LifecycleError::ShutdownWorker)?
+}
+
+struct ShutdownJob {
+    server_id: String,
+    work: tokio::task::JoinHandle<Result<(), server::process::ProcessError>>,
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("Server {server_id} could not be stopped: {source}")]
+pub(crate) struct ServerShutdownFailure {
+    server_id: String,
+    #[source]
+    source: server::process::ProcessError,
+}
+
+#[derive(Debug)]
+pub(crate) struct ShutdownFailures(Vec<ServerShutdownFailure>);
+
+impl std::fmt::Display for ShutdownFailures {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (index, failure) in self.0.iter().enumerate() {
+            if index > 0 {
+                write!(formatter, "; ")?;
+            }
+            write!(formatter, "{failure}")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::error::Error for ShutdownFailures {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0
+            .first()
+            .map(|failure| failure as &dyn std::error::Error)
+    }
+}
+
+async fn collect_shutdowns(jobs: Vec<ShutdownJob>) -> Result<(), LifecycleError> {
+    let mut failures = Vec::new();
+    for job in jobs {
+        let result = match job.work.await {
+            Ok(result) => result,
+            Err(source) => Err(server::process::ProcessError::ShutdownWorker(source)),
+        };
+        if let Err(source) = result {
+            failures.push(ServerShutdownFailure {
+                server_id: job.server_id,
+                source,
+            });
         }
     }
+    if failures.is_empty() {
+        return Ok(());
+    }
+    Err(LifecycleError::Servers(ShutdownFailures(failures)))
 }
 
 /// Quits for real, past the checks
@@ -162,8 +223,14 @@ pub(crate) fn request_quit<R: Runtime>(app: &tauri::AppHandle<R>) {
         if let Err(e) = events::quit_requested(&app, request) {
             eprintln!("[IPC] Failed to emit on_quit_requested: {e}");
             // Nobody to ask: never leave a server behind without its console
-            stop_all_servers(&app).await;
-            quit_now(&app);
+            match stop_all_servers(&app).await {
+                Ok(()) => quit_now(&app),
+                Err(error) => {
+                    eprintln!("Application remains open because server shutdown failed: {error}");
+                    #[cfg(desktop)]
+                    crate::tray::restore_main_window(&app);
+                }
+            }
         }
     });
 }
@@ -200,27 +267,62 @@ pub(crate) async fn leftover_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> V
 pub(crate) enum LifecycleError {
     #[error("That server isn't running any more")]
     LeftoverServerMissing,
+    #[error("Failed to terminate leftover server: {0}")]
+    Termination(#[source] crate::process_tree::TerminationError),
+    #[error("Leftover server shutdown worker failed: {0}")]
+    ShutdownWorker(#[source] tokio::task::JoinError),
+    #[error("Some servers remain unconfirmed: {0}")]
+    Servers(#[source] ShutdownFailures),
 }
 
 pub(crate) async fn stop_leftover_server<R: Runtime>(
     app: &tauri::AppHandle<R>,
     server_id: String,
 ) -> Result<(), LifecycleError> {
-    let leftover = leftover_servers(app)
-        .await
+    let entry = crate::running::load(app, crate::running::Kind::Server)
         .into_iter()
-        .find(|l| l.server_id == server_id)
+        .find(|entry| entry.id == server_id)
         .ok_or(LifecycleError::LeftoverServerMissing)?;
-    crate::running::kill_tree(leftover.pid);
-    // Wait for it to be gone, so the port and the world are free for a start
-    for _ in 0..20 {
-        if crate::running::process_start(leftover.pid).is_none() {
-            break;
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+    if get_server_process_manager(app)
+        .owns(&entry.id, entry.pid)
+        .await
+    {
+        return Err(LifecycleError::LeftoverServerMissing);
     }
-    crate::running::remove(app, crate::running::Kind::Server, &server_id, leftover.pid);
-    Ok(())
+    let app = app.clone();
+    stop_leftover_owned(entry, crate::process_tree::terminate, move |original| {
+        crate::running::remove_original(&app, crate::running::Kind::Server, &original)
+    })
+    .await
+}
+
+async fn stop_leftover_owned<F, Fut, A>(
+    original: crate::running::Entry,
+    terminate: F,
+    acknowledge: A,
+) -> Result<(), LifecycleError>
+where
+    F: FnOnce(crate::process_tree::ProcessIdentity) -> Fut + Send + 'static,
+    Fut: std::future::Future<Output = Result<(), crate::process_tree::TerminationError>>
+        + Send
+        + 'static,
+    A: FnOnce(crate::running::Entry) + Send + 'static,
+{
+    // The worker owns both termination and acknowledgement after a caller disconnects.
+    tokio::spawn(async move {
+        let identity = crate::process_tree::ProcessIdentity::new(original.pid, original.proc_start);
+        if let Err(error) = terminate(identity).await {
+            eprintln!(
+                "Leftover server {} termination failed: {error}",
+                original.id
+            );
+            return Err(LifecycleError::Termination(error));
+        }
+        acknowledge(original);
+        Ok(())
+    })
+    .await
+    .map_err(LifecycleError::ShutdownWorker)?
 }
 
 #[cfg(test)]

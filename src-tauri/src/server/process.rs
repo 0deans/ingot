@@ -4,6 +4,7 @@ pub mod lifecycle;
 pub mod manager;
 pub mod models;
 pub(crate) mod monitoring;
+pub(crate) mod shutdown;
 
 #[cfg(test)]
 pub(crate) mod lifecycle_tests;
