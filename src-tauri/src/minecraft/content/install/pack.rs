@@ -6,7 +6,6 @@ use crate::minecraft::{
     content::{curseforge::CURSEFORGE_API_KEY, error::ContentError},
     instance::ModLoaderType,
 };
-use md5::Digest as _;
 use serde::Deserialize;
 use sha1::Digest;
 use std::{
@@ -167,7 +166,7 @@ pub(super) fn verify(bytes: &[u8], integrity: &Integrity) -> Result<(), ContentE
             "sha1" => hex_digest(sha1::Sha1::digest(bytes)),
             "sha256" => hex_digest(sha2::Sha256::digest(bytes)),
             "sha512" => hex_digest(sha2::Sha512::digest(bytes)),
-            "md5" => format!("{:x}", md5::Md5::digest(bytes)),
+            "md5" => hex_digest(md5::Md5::digest(bytes)),
             _ => return Err(ContentError::Integrity("unsupported hash algorithm")),
         };
         if !actual.eq_ignore_ascii_case(expected) {

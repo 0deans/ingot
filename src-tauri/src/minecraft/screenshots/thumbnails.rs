@@ -20,7 +20,10 @@ pub fn get_thumbnail_file_path(
     modified_at: u64,
 ) -> PathBuf {
     let key = format!("{instance_id}:{file_name}:{modified_at}");
-    let hash = format!("{:x}", md5::Md5::digest(key.as_bytes()));
+    let hash: String = md5::Md5::digest(key.as_bytes())
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
     cache_dir.join(format!("{hash}.jpg"))
 }
 

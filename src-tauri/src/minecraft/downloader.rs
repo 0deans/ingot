@@ -50,7 +50,11 @@ pub fn verify_file_sha1(path: &Path, expected_sha1: &str) -> bool {
             Err(_) => return false,
         }
     }
-    let hash = format!("{:x}", hasher.finalize());
+    let hash: String = hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
     hash.eq_ignore_ascii_case(expected_sha1)
 }
 

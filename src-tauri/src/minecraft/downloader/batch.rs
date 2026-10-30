@@ -8,7 +8,10 @@ use std::sync::Arc;
 pub type BatchProgressCallback = Arc<dyn Fn(usize, usize, &str) + Send + Sync>;
 
 fn sha1_hex(bytes: &[u8]) -> String {
-    format!("{:x}", Sha1::digest(bytes))
+    Sha1::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 async fn download_one(
