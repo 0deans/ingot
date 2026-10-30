@@ -65,7 +65,7 @@ function AddressRow({
 		<div className="flex min-w-0 items-center gap-3 rounded-xl bg-background/60 py-2 pr-2 pl-3">
 			<Icon className="size-4 shrink-0 text-muted-foreground" />
 			<div className="min-w-0 flex-1">
-				<p className="text-3xs text-muted-foreground uppercase tracking-wider">{label}</p>
+				<p className="text-3xs tracking-wider text-muted-foreground uppercase">{label}</p>
 				{children}
 			</div>
 		</div>
@@ -99,15 +99,15 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					<Globe className="size-4" />
 				</div>
 				<div className="min-w-0">
-					<h3 className="font-semibold text-foreground text-sm">{t("join.title")}</h3>
-					<p className="text-muted-foreground text-xs">{t("join.description")}</p>
+					<h3 className="text-sm font-semibold text-foreground">{t("join.title")}</h3>
+					<p className="text-xs text-muted-foreground">{t("join.description")}</p>
 				</div>
 			</div>
 
 			{lanAddress && (
 				<AddressRow icon={Wifi} label={t("join.sameWifi")}>
 					<div className="flex items-center justify-between gap-2">
-						<code className="truncate font-mono text-foreground text-sm">{lanAddress}</code>
+						<code className="truncate font-mono text-sm text-foreground">{lanAddress}</code>
 						<CopyButton text={lanAddress} label={t("join.copyLocal")} />
 					</div>
 				</AddressRow>
@@ -116,7 +116,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 			<AddressRow icon={Globe} label={t("join.anywhere")}>
 				{tunnel.isRunning && tunnel.publicAddress ? (
 					<div className="flex items-center justify-between gap-1">
-						<code className="truncate font-mono font-semibold text-primary text-sm">
+						<code className="truncate font-mono text-sm font-semibold text-primary">
 							{tunnel.publicAddress}
 						</code>
 						<div className="flex shrink-0">
@@ -136,12 +136,12 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 						href={tunnel.claimUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="inline-flex items-center gap-1 font-medium text-info text-sm hover:underline"
+						className="inline-flex items-center gap-1 text-sm font-medium text-info hover:underline"
 					>
 						{t("join.linkPlayit")} <ExternalLink className="size-3" />
 					</a>
 				) : tunnel.isRunning && tunnel.status === "no_tunnel" ? (
-					<p className="text-warning text-xs leading-relaxed">
+					<p className="text-xs leading-relaxed text-warning">
 						<Trans
 							i18nKey="join.noTunnel"
 							values={{ port: server.port }}
@@ -159,12 +159,12 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 						/>
 					</p>
 				) : tunnel.isRunning ? (
-					<p className="flex items-center gap-1.5 text-muted-foreground text-sm">
+					<p className="flex items-center gap-1.5 text-sm text-muted-foreground">
 						<Spinner className="size-3.5 text-info" />
 						{tunnel.message ?? t("join.connecting")}
 					</p>
 				) : (
-					<p className="text-muted-foreground text-sm">{t("join.notConnected")}</p>
+					<p className="text-sm text-muted-foreground">{t("join.notConnected")}</p>
 				)}
 			</AddressRow>
 
@@ -175,7 +175,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 					variant="outline"
 					disabled={isBusy}
 					onClick={() => toggle(server.playitSecretKey)}
-					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl py-2 text-center leading-tight"
+					className="h-auto min-h-10 min-w-0 gap-1.5 rounded-xl py-2 text-center leading-tight whitespace-normal"
 				>
 					{isBusy && <Spinner className="size-4" />}
 					{tunnel.isRunning ? t("join.stopPlayit") : t("join.goPublic")}
@@ -183,7 +183,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 				<Button
 					onClick={share}
 					disabled={!bestAddress}
-					className="h-auto min-h-10 min-w-0 gap-1.5 whitespace-normal rounded-xl bg-info py-2 text-center text-info-foreground leading-tight hover:bg-info/80"
+					className="h-auto min-h-10 min-w-0 gap-1.5 rounded-xl bg-info py-2 text-center leading-tight whitespace-normal text-info-foreground hover:bg-info/80"
 				>
 					{shared === "copied" ? <Check className="size-4" /> : <Share2 className="size-4" />}
 					{shared === "copied" ? t("skinPreview.copied") : t("join.share")}
@@ -200,7 +200,7 @@ export function JoinCard({ server }: { server: ServerConfig }) {
 							className="size-48"
 						/>
 					</div>
-					<code className="font-mono font-semibold text-primary text-sm">
+					<code className="font-mono text-sm font-semibold text-primary">
 						{tunnel.publicAddress}
 					</code>
 				</DialogContent>
@@ -387,7 +387,7 @@ function Chart({
 				))}
 				{dot && (
 					<span
-						className="-translate-1/2 pointer-events-none absolute size-2 rounded-full ring-2 ring-border"
+						className="pointer-events-none absolute size-2 -translate-1/2 rounded-full ring-2 ring-border"
 						style={{
 							left: `${(dot[0] / w) * 100}%`,
 							top: `${(dot[1] / h) * 100}%`,
@@ -398,7 +398,7 @@ function Chart({
 				{hover !== null && dot && (
 					<span
 						className={cn(
-							"pointer-events-none absolute top-0 ml-1.5 whitespace-nowrap rounded-md border border-border bg-card px-1.5 py-0.5 text-3xs text-foreground tabular-nums shadow-lg",
+							"pointer-events-none absolute top-0 ml-1.5 rounded-md border border-border bg-card px-1.5 py-0.5 text-3xs whitespace-nowrap text-foreground tabular-nums shadow-lg",
 							dot[0] / w > 0.6 && "-ml-1.5 -translate-x-full",
 						)}
 						style={{ left: `${(dot[0] / w) * 100}%` }}
@@ -411,7 +411,7 @@ function Chart({
 					</span>
 				)}
 			</div>
-			<div className="flex justify-between text-3xs text-muted-foreground/60 leading-none">
+			<div className="flex justify-between text-3xs leading-none text-muted-foreground/60">
 				<span>{t("stats.ago", { time: formatAgo(HISTORY * SAMPLE_SECONDS) })}</span>
 				<span>{t("stats.now")}</span>
 			</div>
@@ -456,19 +456,19 @@ function Metric({
 				}
 			: null
 	return (
-		<div className="flex min-w-0 select-none flex-col gap-3 rounded-xl bg-background/60 p-3">
+		<div className="flex min-w-0 flex-col gap-3 rounded-xl bg-background/60 p-3 select-none">
 			<div className="flex min-w-0 items-baseline justify-between gap-3">
-				<p className="flex shrink-0 items-center gap-1.5 text-2xs text-muted-foreground uppercase tracking-wider">
+				<p className="flex shrink-0 items-center gap-1.5 text-2xs tracking-wider text-muted-foreground uppercase">
 					<Icon className="size-3.5 self-center" style={{ color }} /> {label}
 				</p>
-				<p className="min-w-0 truncate text-right font-semibold text-base text-foreground tabular-nums">
+				<p className="min-w-0 truncate text-right text-base font-semibold text-foreground tabular-nums">
 					{value}
-					{sub && <span className="font-normal text-muted-foreground text-xs"> {sub}</span>}
+					{sub && <span className="text-xs font-normal text-muted-foreground"> {sub}</span>}
 				</p>
 			</div>
 			<Chart values={values} max={max} color={color} format={format} markers={markers} />
 			{summary && (
-				<dl className="grid grid-cols-3 gap-2 border-border border-t pt-2.5 text-2xs">
+				<dl className="grid grid-cols-3 gap-2 border-t border-border pt-2.5 text-2xs">
 					{(["min", "avg", "peak"] as const).map((k) => (
 						<div key={k} className="min-w-0">
 							<dt className="text-muted-foreground/60">{t(`stats.${k}`)}</dt>
@@ -504,7 +504,7 @@ export function PerformanceCard({ server }: { server: ServerConfig }) {
 		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-center gap-2">
 				<Activity className="size-4 text-muted-foreground" />
-				<h3 className="font-semibold text-foreground text-sm">{t("stats.performance")}</h3>
+				<h3 className="text-sm font-semibold text-foreground">{t("stats.performance")}</h3>
 				{!latest && <Spinner className="size-3.5 text-muted-foreground" />}
 				<span className="ml-auto text-2xs text-muted-foreground/60">{t("stats.touchHint")}</span>
 			</div>
@@ -640,10 +640,10 @@ export function StorageCard({ server }: { server: ServerConfig }) {
 		<Card className="min-w-0 gap-3 p-4">
 			<div className="flex items-center gap-2">
 				<HardDrive className="size-4 text-muted-foreground" />
-				<h3 className="font-semibold text-foreground text-sm">{t("storage.title")}</h3>
+				<h3 className="text-sm font-semibold text-foreground">{t("storage.title")}</h3>
 				{isLoading && <Spinner className="size-3.5 text-muted-foreground" />}
 				{data && (
-					<span className="ml-auto font-semibold text-foreground text-sm tabular-nums">
+					<span className="ml-auto text-sm font-semibold text-foreground tabular-nums">
 						{formatBytes(total)}
 					</span>
 				)}

@@ -183,10 +183,10 @@ const MemoryAllocation = () => {
 				<div className="grid grid-cols-1 gap-4 pt-1 sm:grid-cols-2">
 					<div className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-background/40 p-3">
 						<div className="flex items-center justify-between">
-							<Label htmlFor="min-ram-input" className="font-medium text-foreground text-xs">
+							<Label htmlFor="min-ram-input" className="text-xs font-medium text-foreground">
 								{t("settings.memory.minMemoryLabel")}
 							</Label>
-							<span className="font-mono text-muted-foreground text-xs">
+							<span className="font-mono text-xs text-muted-foreground">
 								{formatMegabytes(minRam)}
 							</span>
 						</div>
@@ -201,16 +201,16 @@ const MemoryAllocation = () => {
 								onChange={(e) => handleMinInputChange(Number(e.target.value))}
 								className="font-mono text-xs"
 							/>
-							<span className="text-muted-foreground text-xs">{t("settings.memory.mb")}</span>
+							<span className="text-xs text-muted-foreground">{t("settings.memory.mb")}</span>
 						</div>
 					</div>
 
 					<div className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-background/40 p-3">
 						<div className="flex items-center justify-between">
-							<Label htmlFor="max-ram-input" className="font-medium text-foreground text-xs">
+							<Label htmlFor="max-ram-input" className="text-xs font-medium text-foreground">
 								{t("settings.memory.maxMemoryLabel")}
 							</Label>
-							<span className="font-mono text-muted-foreground text-xs">
+							<span className="font-mono text-xs text-muted-foreground">
 								{formatMegabytes(maxRam)}
 							</span>
 						</div>
@@ -225,7 +225,7 @@ const MemoryAllocation = () => {
 								onChange={(e) => handleMaxInputChange(Number(e.target.value))}
 								className="font-mono text-xs"
 							/>
-							<span className="text-muted-foreground text-xs">{t("settings.memory.mb")}</span>
+							<span className="text-xs text-muted-foreground">{t("settings.memory.mb")}</span>
 						</div>
 					</div>
 				</div>
@@ -258,7 +258,7 @@ const MemoryAllocation = () => {
 
 				{/* Quick Presets */}
 				<div className="flex flex-col gap-2 pt-1">
-					<div className="flex items-center gap-1 text-muted-foreground text-xs">
+					<div className="flex items-center gap-1 text-xs text-muted-foreground">
 						<Sparkles className="size-3.5 text-primary" />
 						<span className="font-medium text-foreground">
 							{t("settings.memory.recommendedPresets")}
@@ -271,7 +271,7 @@ const MemoryAllocation = () => {
 							onClick={() => applyPreset(1024, 3072)}
 							className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 						>
-							<span className="font-semibold text-xs">{t("settings.memory.presets.vanilla")}</span>
+							<span className="text-xs font-semibold">{t("settings.memory.presets.vanilla")}</span>
 							<span className="text-3xs text-muted-foreground">
 								{formatMegabytes(1024)} &ndash; {formatMegabytes(3072)}
 							</span>
@@ -282,7 +282,7 @@ const MemoryAllocation = () => {
 							onClick={() => applyPreset(2048, 6144)}
 							className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 						>
-							<span className="font-semibold text-xs">{t("settings.memory.presets.modded")}</span>
+							<span className="text-xs font-semibold">{t("settings.memory.presets.modded")}</span>
 							<span className="text-3xs text-muted-foreground">
 								{formatMegabytes(2048)} &ndash; {formatMegabytes(6144)}
 							</span>
@@ -293,7 +293,7 @@ const MemoryAllocation = () => {
 							onClick={() => applyPreset(4096, 8192)}
 							className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 						>
-							<span className="font-semibold text-xs">{t("settings.memory.presets.heavy")}</span>
+							<span className="text-xs font-semibold">{t("settings.memory.presets.heavy")}</span>
 							<span className="text-3xs text-muted-foreground">
 								{formatMegabytes(4096)} &ndash; {formatMegabytes(8192)}
 							</span>
@@ -304,7 +304,7 @@ const MemoryAllocation = () => {
 							onClick={() => applyPreset(2048, Math.floor((totalRamMb * 0.75) / 512) * 512)}
 							className="flex h-auto flex-col items-start gap-0.5 py-1.5 text-left"
 						>
-							<span className="font-semibold text-xs">{t("settings.memory.presets.safeMax")}</span>
+							<span className="text-xs font-semibold">{t("settings.memory.presets.safeMax")}</span>
 							<span className="text-3xs text-muted-foreground">
 								{formatMegabytes(2048)} &ndash;{" "}
 								{formatMegabytes(Math.floor((totalRamMb * 0.75) / 512) * 512)}

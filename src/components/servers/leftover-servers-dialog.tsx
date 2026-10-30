@@ -79,7 +79,7 @@ export default function LeftoverServersDialog() {
 						<DialogTitle className="text-base">
 							{t("leftoverServers.title", { count: servers.length })}
 						</DialogTitle>
-						<DialogDescription className="text-muted-foreground text-sm leading-relaxed">
+						<DialogDescription className="text-sm leading-relaxed text-muted-foreground">
 							{t("leftoverServers.description", { count: servers.length })}
 						</DialogDescription>
 					</div>
@@ -95,7 +95,7 @@ export default function LeftoverServersDialog() {
 							>
 								<Server className="size-4 shrink-0 text-muted-foreground" />
 								<div className="min-w-0 flex-1">
-									<p className="truncate font-medium text-foreground text-sm">{server.name}</p>
+									<p className="truncate text-sm font-medium text-foreground">{server.name}</p>
 									<p className="truncate text-2xs text-muted-foreground">
 										{t("leftoverServers.runningSince", { time: since(server.startedAt) })}
 									</p>
@@ -120,7 +120,7 @@ export default function LeftoverServersDialog() {
 				</div>
 
 				{!allStopped && (
-					<p className="text-muted-foreground text-xs leading-relaxed">
+					<p className="text-xs leading-relaxed text-muted-foreground">
 						{t("leftoverServers.stopNote")}
 					</p>
 				)}

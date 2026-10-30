@@ -171,7 +171,7 @@ export function WorldMap({
 			ref={containerRef}
 			role="application"
 			aria-label={t("map.ariaLabel")}
-			className="relative size-full touch-none select-none overflow-hidden"
+			className="relative size-full touch-none overflow-hidden select-none"
 			style={{ background: voidColor, cursor: gesture.current ? "grabbing" : "grab" }}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
@@ -224,7 +224,7 @@ export function WorldMap({
 						type="button"
 						onPointerDown={(e) => e.stopPropagation()}
 						onClick={() => onSelectPlayer(p.name)}
-						className="group -translate-1/2 pointer-events-auto absolute flex flex-col items-center gap-1"
+						className="group pointer-events-auto absolute flex -translate-1/2 flex-col items-center gap-1"
 						style={{
 							left: p.x * view.scale,
 							top: p.z * view.scale,
@@ -237,7 +237,7 @@ export function WorldMap({
 						<img
 							src={avatarUrl(p.name, 48)}
 							alt={p.name}
-							className="size-7 rounded-md shadow-black/50 shadow-lg ring-2 ring-white transition-transform [image-rendering:pixelated] group-hover:scale-110"
+							className="size-7 rounded-md shadow-lg ring-2 shadow-black/50 ring-white transition-transform [image-rendering:pixelated] group-hover:scale-110"
 						/>
 						<Badge variant="secondary" className="backdrop-blur-sm">
 							{p.name}

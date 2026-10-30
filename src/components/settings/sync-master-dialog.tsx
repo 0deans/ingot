@@ -102,9 +102,9 @@ export const SyncMasterDialog = ({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2 text-primary">
 						<UploadCloud className="size-5" />
-						<DialogTitle className="font-semibold text-foreground text-lg">{title}</DialogTitle>
+						<DialogTitle className="text-lg font-semibold text-foreground">{title}</DialogTitle>
 					</div>
-					<DialogDescription className="text-muted-foreground text-xs leading-relaxed">
+					<DialogDescription className="text-xs leading-relaxed text-muted-foreground">
 						{description}
 					</DialogDescription>
 				</DialogHeader>
@@ -118,7 +118,7 @@ export const SyncMasterDialog = ({
 									<Database className="size-4" />
 								</div>
 								<div>
-									<div className="font-medium text-foreground text-xs">
+									<div className="text-xs font-medium text-foreground">
 										{t("syncMaster.useExisting")}
 									</div>
 									<div className="text-2xs text-muted-foreground">
@@ -148,14 +148,14 @@ export const SyncMasterDialog = ({
 
 					{/* Instances selection */}
 					<div className="flex flex-col gap-1.5">
-						<span className="font-medium text-2xs text-muted-foreground">
+						<span className="text-2xs font-medium text-muted-foreground">
 							{category?.hasSharedData ? t("syncMaster.orCopyFrom") : t("syncMaster.copyFrom")}
 						</span>
 
-						<ScrollArea className="scroll-fade-y max-h-[36vh] pr-2">
+						<ScrollArea className="max-h-[36vh] scroll-fade-y pr-2">
 							<div className="flex flex-col gap-2 py-1">
 								{instances.length === 0 ? (
-									<div className="py-4 text-center text-muted-foreground text-xs">
+									<div className="py-4 text-center text-xs text-muted-foreground">
 										{t("syncMaster.noInstances")}
 									</div>
 								) : (
@@ -173,7 +173,7 @@ export const SyncMasterDialog = ({
 												<div className="flex items-center gap-2.5">
 													<LoaderIcon loader={inst.loader} size={20} />
 													<div>
-														<div className="font-medium text-foreground text-xs">{inst.name}</div>
+														<div className="text-xs font-medium text-foreground">{inst.name}</div>
 														<div className="text-3xs text-muted-foreground">
 															MC {inst.gameVersion} • {inst.loader}
 														</div>
@@ -204,7 +204,7 @@ export const SyncMasterDialog = ({
 
 					{/* Option 3: Start Empty */}
 					{category && (
-						<div className="flex items-center justify-between border-border/30 border-t pt-2">
+						<div className="flex items-center justify-between border-t border-border/30 pt-2">
 							<span className="text-2xs text-muted-foreground">{t("syncMaster.noCopy")}</span>
 							<Button
 								type="button"
@@ -212,7 +212,7 @@ export const SyncMasterDialog = ({
 								size="sm"
 								disabled={isSubmitting}
 								onClick={() => handleChoice({ type: "empty" })}
-								className="h-7 gap-1.5 text-muted-foreground text-xs"
+								className="h-7 gap-1.5 text-xs text-muted-foreground"
 							>
 								<FolderX className="size-3.5" />
 								{t("syncMaster.startFresh")}

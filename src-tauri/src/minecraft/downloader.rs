@@ -37,20 +37,20 @@ pub fn is_download_task_cached(task: &DownloadTask) -> bool {
 }
 
 pub fn verify_file_sha1(path: &Path, expected_sha1: &str) -> bool {
-    if !path.exists() {
-        return false;
-    }
-    let data = match fs::read(path) {
-        Ok(d) => d,
+    let mut file = match fs::File::open(path) {
+        Ok(f) => f,
         Err(_) => return false,
     };
     let mut hasher = Sha1::new();
-    hasher.update(&data);
-    let hash: String = hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect();
+    let mut buf = [0u8; 64 * 1024];
+    loop {
+        match std::io::Read::read(&mut file, &mut buf) {
+            Ok(0) => break,
+            Ok(n) => hasher.update(&buf[..n]),
+            Err(_) => return false,
+        }
+    }
+    let hash = format!("{:x}", hasher.finalize());
     hash.eq_ignore_ascii_case(expected_sha1)
 }
 

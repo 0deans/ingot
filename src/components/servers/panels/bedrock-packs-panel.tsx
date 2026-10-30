@@ -215,7 +215,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 							<DropdownMenuItem onClick={() => openFolder("behavior_packs")}>
 								<FolderOpen className="mr-2 size-4 text-muted-foreground" />
 								<div className="flex flex-col">
-									<span className="font-medium text-xs">behavior_packs</span>
+									<span className="text-xs font-medium">behavior_packs</span>
 									<span className="text-3xs text-muted-foreground">
 										{t("plugins.behaviorPacks")}
 									</span>
@@ -224,7 +224,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 							<DropdownMenuItem onClick={() => openFolder("resource_packs")}>
 								<FolderOpen className="mr-2 size-4 text-muted-foreground" />
 								<div className="flex flex-col">
-									<span className="font-medium text-xs">resource_packs</span>
+									<span className="text-xs font-medium">resource_packs</span>
 									<span className="text-3xs text-muted-foreground">
 										{t("plugins.resourcePacks")}
 									</span>
@@ -278,7 +278,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 										</div>
 										<div className="min-w-0">
 											<div className="flex flex-wrap items-center gap-2">
-												<span className="truncate font-medium text-foreground text-sm">
+												<span className="truncate text-sm font-medium text-foreground">
 													{pack.name}
 												</span>
 												<Badge variant="secondary" className="px-1.5 py-0 font-mono text-3xs">
@@ -293,7 +293,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 														: t("plugins.behaviorPacks")}
 												</Badge>
 											</div>
-											<p className="line-clamp-1 text-muted-foreground text-xs">
+											<p className="line-clamp-1 text-xs text-muted-foreground">
 												{pack.description || pack.folderName}
 											</p>
 										</div>
@@ -301,7 +301,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 
 									<div className="flex shrink-0 items-center gap-3">
 										<div className="flex items-center gap-2">
-											<span className="hidden text-muted-foreground text-xs sm:inline">
+											<span className="hidden text-xs text-muted-foreground sm:inline">
 												{pack.enabled ? t("plugins.activeInWorld") : t("plugins.inactiveInWorld")}
 											</span>
 											<Switch
@@ -441,27 +441,27 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 												{/* Pack Information */}
 												<div className="min-w-0 flex-1">
 													<div className="flex items-center justify-between gap-2">
-														<h4 className="truncate font-semibold text-foreground text-sm">
+														<h4 className="truncate text-sm font-semibold text-foreground">
 															{item.title}
 														</h4>
 													</div>
 													<p className="text-2xs text-muted-foreground">
 														{item.author} • {formatCount(item.downloads)} downloads
 													</p>
-													<p className="mt-1 line-clamp-2 text-muted-foreground text-xs">
+													<p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
 														{item.description}
 													</p>
 												</div>
 											</div>
 
 											{/* Bottom Action Footer */}
-											<div className="flex items-center justify-between border-border/40 border-t pt-2.5">
+											<div className="flex items-center justify-between border-t border-border/40 pt-2.5">
 												<div className="flex flex-wrap items-center gap-1">
 													{item.categories.slice(0, 2).map((cat) => (
 														<Badge
 															key={cat}
 															variant="secondary"
-															className="px-1.5 py-0 font-normal text-3xs"
+															className="px-1.5 py-0 text-3xs font-normal"
 														>
 															{cat}
 														</Badge>
@@ -488,7 +488,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 													{installed ? (
 														<Badge
 															variant="outline"
-															className="gap-1 px-2 py-1 text-primary text-xs"
+															className="gap-1 px-2 py-1 text-xs text-primary"
 														>
 															<Check className="size-3" />
 															{t("plugins.installedPacks")}
@@ -526,7 +526,7 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 								>
 									{t("common.previous")}
 								</Button>
-								<span className="font-mono text-muted-foreground text-xs">Page {page + 1}</span>
+								<span className="font-mono text-xs text-muted-foreground">Page {page + 1}</span>
 								<Button
 									variant="outline"
 									size="sm"

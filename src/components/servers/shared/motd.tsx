@@ -69,7 +69,7 @@ export function parseMotd(motd: string): MotdSpan[][] {
 export function MotdText({ motd, className }: { motd: string; className?: string }) {
 	const lines = parseMotd(motd).slice(0, 2)
 	return (
-		<div className={cn("wrap-anywhere font-mono leading-snug", className)}>
+		<div className={cn("font-mono leading-snug wrap-anywhere", className)}>
 			{lines.map((line, i) => (
 				// biome-ignore lint/suspicious/noArrayIndexKey: lines have no identity besides order
 				<div key={i} className={cn("truncate", line.length === 0 && "h-[1.2em]")}>
@@ -122,7 +122,7 @@ export function ServerListPreview({
 			</div>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<div className="flex items-center justify-between gap-2">
-					<span className="truncate font-medium text-foreground text-sm">{name}</span>
+					<span className="truncate text-sm font-medium text-foreground">{name}</span>
 					<span className="flex shrink-0 items-center gap-1.5 font-mono text-2xs text-muted-foreground">
 						{online}/{max}
 						<Signal

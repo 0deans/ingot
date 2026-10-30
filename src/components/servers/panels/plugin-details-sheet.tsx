@@ -42,7 +42,7 @@ export function PluginIcon({
 					className="size-full object-cover"
 				/>
 			) : (
-				<span className="font-bold text-muted-foreground text-sm">
+				<span className="text-sm font-bold text-muted-foreground">
 					{name.slice(0, 1).toUpperCase()}
 				</span>
 			)}
@@ -89,25 +89,25 @@ export function PluginDetailsSheet({
 			<DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
 				{shown && (
 					<>
-						<div className="flex flex-col gap-4 border-border/80 border-b p-4 pt-3 sm:p-5">
+						<div className="flex flex-col gap-4 border-b border-border/80 p-4 pt-3 sm:p-5">
 							<div className="flex items-start gap-3.5 pr-8">
 								<PluginIcon url={shown.iconUrl} name={shown.title} className="size-14" />
 								<div className="min-w-0 flex-1">
-									<DialogTitle className="truncate font-bold text-foreground text-lg">
+									<DialogTitle className="truncate text-lg font-bold text-foreground">
 										{shown.title}
 									</DialogTitle>
-									<p className="text-muted-foreground text-xs">
+									<p className="text-xs text-muted-foreground">
 										{t("pluginDetails.byline", {
 											author: shown.author,
 											downloads: formatCount(shown.downloads),
 										})}{" "}
 										· {shown.source === "hangar" ? "Hangar" : "Modrinth"}
 									</p>
-									<p className="mt-1.5 text-foreground/80 text-sm leading-relaxed">
+									<p className="mt-1.5 text-sm leading-relaxed text-foreground/80">
 										{shown.description}
 									</p>
 									{shown.playersNeedIt && (
-										<p className="mt-2 rounded-xl bg-warning/10 px-3 py-2 text-warning text-xs leading-relaxed">
+										<p className="mt-2 rounded-xl bg-warning/10 px-3 py-2 text-xs leading-relaxed text-warning">
 											{t("pluginDetails.playersNeedIt")}
 										</p>
 									)}
@@ -145,13 +145,13 @@ export function PluginDetailsSheet({
 									href={shown.pageUrl}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex h-11 items-center gap-1.5 rounded-xl border border-border px-4 font-medium text-foreground/80 text-sm hover:bg-card"
+									className="flex h-11 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-medium text-foreground/80 hover:bg-card"
 								>
 									<ExternalLink className="size-4" /> {t("pluginDetails.page")}
 								</a>
 							</div>
 							{versions.isSuccess && !hasCompatible && (
-								<p className="text-warning text-xs">
+								<p className="text-xs text-warning">
 									{t("pluginDetails.noCompatible", { version: gameVersion })}
 								</p>
 							)}
@@ -176,12 +176,12 @@ export function PluginDetailsSheet({
 									</div>
 								) : html ? (
 									<div
-										className="plugin-page text-foreground/80 text-sm leading-relaxed"
+										className="plugin-page text-sm leading-relaxed text-foreground/80"
 										// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with sanitizeHtml
 										dangerouslySetInnerHTML={{ __html: html }}
 									/>
 								) : (
-									<p className="text-muted-foreground text-sm">
+									<p className="text-sm text-muted-foreground">
 										{t("pluginDetails.noDescription")}
 									</p>
 								))}
@@ -227,7 +227,7 @@ function VersionList({
 	const { t } = useTranslation()
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="flex items-center justify-between gap-3 px-1 text-muted-foreground text-xs">
+			<div className="flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
 				{t("pluginDetails.onlyFor", { version: gameVersion })}
 				<Switch
 					checked={compatibleOnly}
@@ -251,7 +251,7 @@ function VersionList({
 					{versions.slice(0, 40).map((v) => (
 						<li key={v.id} className="flex items-center gap-3 px-3 py-2.5">
 							<div className="min-w-0 flex-1">
-								<p className="flex items-center gap-2 truncate font-medium text-foreground text-sm">
+								<p className="flex items-center gap-2 truncate text-sm font-medium text-foreground">
 									{v.versionNumber}
 									{v.channel !== "release" && (
 										<Badge variant="outline" className="border-warning/30 text-warning">
@@ -281,7 +281,7 @@ function VersionList({
 										href={v.externalUrl}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="text-primary text-xs hover:underline"
+										className="text-xs text-primary hover:underline"
 									>
 										{t("pluginDetails.website")}
 									</a>

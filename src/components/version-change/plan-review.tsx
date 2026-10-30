@@ -161,7 +161,7 @@ export function PlanReview({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-wrap items-center gap-2">
-				<span className="font-semibold text-foreground text-sm">
+				<span className="text-sm font-semibold text-foreground">
 					{planSide(plan, "from")} → {planSide(plan, "to")}
 				</span>
 				{groups.map(({ status, entries }) => (
@@ -181,7 +181,7 @@ export function PlanReview({
 			{plan.downgrade && (
 				<div
 					className={cn(
-						"flex flex-col gap-2 border border-destructive/30 bg-destructive/10 p-3 text-destructive text-xs",
+						"flex flex-col gap-2 border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive",
 						box,
 					)}
 				>
@@ -192,7 +192,7 @@ export function PlanReview({
 							from: plan.fromGameVersion,
 						})}
 					</p>
-					<p className="text-destructive/80 leading-relaxed">
+					<p className="leading-relaxed text-destructive/80">
 						{t("versionChange.downgradeWarning")}
 					</p>
 					<Label htmlFor="downgrade-ok" className="flex cursor-pointer items-center gap-2">
@@ -227,7 +227,7 @@ export function PlanReview({
 								size: formatBytes(worldsBytes),
 							})}
 						</span>
-						<span className="text-muted-foreground leading-relaxed">
+						<span className="leading-relaxed text-muted-foreground">
 							{t("versionChange.backupWorldsHint")}
 						</span>
 					</span>
@@ -237,7 +237,7 @@ export function PlanReview({
 			{plan.items.length === 0 && (
 				<p
 					className={cn(
-						"border border-border bg-card/40 p-4 text-center text-muted-foreground text-xs",
+						"border border-border bg-card/40 p-4 text-center text-xs text-muted-foreground",
 						box,
 					)}
 				>
@@ -251,7 +251,7 @@ export function PlanReview({
 					<section key={status} className="flex flex-col gap-1.5">
 						<h3
 							className={cn(
-								"flex items-center gap-1.5 font-semibold text-xs",
+								"flex items-center gap-1.5 text-xs font-semibold",
 								STATUS[status].className,
 							)}
 						>
@@ -316,10 +316,10 @@ function PlanRow({
 				</div>
 			)}
 			<div className="min-w-0 flex-1">
-				<p className="flex items-center gap-1.5 truncate font-medium text-foreground text-xs">
+				<p className="flex items-center gap-1.5 truncate text-xs font-medium text-foreground">
 					<span className="truncate">{item.title}</span>
 					{kind && (
-						<span className="shrink-0 bg-muted px-1.5 py-px font-normal text-3xs text-muted-foreground">
+						<span className="shrink-0 bg-muted px-1.5 py-px text-3xs font-normal text-muted-foreground">
 							{kind}
 						</span>
 					)}
@@ -331,7 +331,7 @@ function PlanRow({
 										variant="link"
 										size="xs"
 										onClick={() => openUrl(pageUrl).catch(console.error)}
-										className="h-auto gap-0.5 p-0 font-normal text-3xs text-muted-foreground"
+										className="h-auto gap-0.5 p-0 text-3xs font-normal text-muted-foreground"
 										aria-label={t("versionChange.openOn", { site: SOURCE_LABEL[item.source] })}
 									/>
 								}

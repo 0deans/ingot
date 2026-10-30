@@ -165,10 +165,10 @@ export const InstanceCard = ({
 						<LoaderIcon loader={loaderType} size={22} />
 					</div>
 					<div className="flex flex-col">
-						<span className="font-semibold text-2xs text-muted-foreground uppercase tracking-wider">
+						<span className="text-2xs font-semibold tracking-wider text-muted-foreground uppercase">
 							{loaderName}
 						</span>
-						<span className="font-mono text-foreground/80 text-xs">{versionStr}</span>
+						<span className="font-mono text-xs text-foreground/80">{versionStr}</span>
 					</div>
 				</div>
 
@@ -197,7 +197,7 @@ export const InstanceCard = ({
 			{/* Main Info */}
 			<div className="my-4 flex flex-col gap-2">
 				<h3
-					className="truncate font-semibold text-base text-foreground tracking-tight"
+					className="truncate text-base font-semibold tracking-tight text-foreground"
 					title={instance.name}
 				>
 					{instance.name}
@@ -216,7 +216,7 @@ export const InstanceCard = ({
 						<span>
 							{t("instances.card.ram", { size: formatMegabytes(effectiveRamMb) })}
 							{hasCustomRam && (
-								<span className="ml-1 font-medium text-3xs text-info">
+								<span className="ml-1 text-3xs font-medium text-info">
 									{t("instances.card.customRam")}
 								</span>
 							)}
@@ -253,7 +253,7 @@ export const InstanceCard = ({
 			</div>
 
 			{/* Actions Footer */}
-			<div className="flex items-center justify-between border-border/40 border-t pt-3.5">
+			<div className="flex items-center justify-between border-t border-border/40 pt-3.5">
 				{/* Primary Launch Action */}
 				<div>
 					{isRunning ? (
@@ -261,7 +261,7 @@ export const InstanceCard = ({
 							size="sm"
 							variant="destructive"
 							onClick={onStop}
-							className="h-8 gap-1.5 px-3.5 font-medium text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+							className="h-8 gap-1.5 px-3.5 text-xs font-medium shadow-sm hover:scale-[1.02] active:scale-[0.98]"
 						>
 							<Square className="size-3.5 fill-current" />
 							<span>{t("instances.card.stop")}</span>
@@ -270,7 +270,7 @@ export const InstanceCard = ({
 						<Button
 							size="sm"
 							disabled
-							className="h-8 gap-1.5 px-3.5 font-medium text-xs opacity-75"
+							className="h-8 gap-1.5 px-3.5 text-xs font-medium opacity-75"
 						>
 							<Spinner className="size-3.5" />
 							<span>{t("instances.card.preparingBtn")}</span>
@@ -280,7 +280,7 @@ export const InstanceCard = ({
 							<Button
 								size="sm"
 								onClick={() => onPlay()}
-								className="h-8 gap-1.5 rounded-r-none border-primary/60 border-r px-3.5 font-semibold text-xs active:scale-[0.98]"
+								className="h-8 gap-1.5 rounded-r-none border-r border-primary/60 px-3.5 text-xs font-semibold active:scale-[0.98]"
 							>
 								<Play className="size-3.5 fill-current" />
 								<span>{t("instances.card.play")}</span>
@@ -310,7 +310,7 @@ export const InstanceCard = ({
 								</Tooltip>
 								<DropdownMenuContent align="start" className="w-56">
 									<DropdownMenuGroup>
-										<DropdownMenuLabel className="font-semibold text-3xs text-muted-foreground uppercase tracking-wider">
+										<DropdownMenuLabel className="text-3xs font-semibold tracking-wider text-muted-foreground uppercase">
 											{t("instances.card.quickPlay")}
 										</DropdownMenuLabel>
 										<DropdownMenuItem
@@ -319,7 +319,7 @@ export const InstanceCard = ({
 										>
 											<Globe className="size-4 text-primary" />
 											<div className="flex flex-col">
-												<span className="font-medium text-xs">
+												<span className="text-xs font-medium">
 													{t("instances.card.directConnect")}
 												</span>
 												<span className="text-3xs text-muted-foreground">
@@ -333,7 +333,7 @@ export const InstanceCard = ({
 												<DropdownMenuSubTrigger className="cursor-pointer gap-2">
 													<Compass className="size-4 text-info" />
 													<div className="flex flex-col text-left">
-														<span className="font-medium text-xs">
+														<span className="text-xs font-medium">
 															{t("instances.card.quickLoadWorld")}
 														</span>
 														<span className="text-3xs text-muted-foreground">
@@ -343,16 +343,16 @@ export const InstanceCard = ({
 												</DropdownMenuSubTrigger>
 												<DropdownMenuSubContent className="max-h-72 w-64 overflow-y-auto">
 													<DropdownMenuGroup>
-														<DropdownMenuLabel className="font-semibold text-3xs text-muted-foreground uppercase tracking-wider">
+														<DropdownMenuLabel className="text-3xs font-semibold tracking-wider text-muted-foreground uppercase">
 															{t("instances.card.singleplayerSaves")}
 														</DropdownMenuLabel>
 														{loadingWorlds ? (
-															<div className="flex items-center gap-2 p-2.5 text-muted-foreground text-xs">
+															<div className="flex items-center gap-2 p-2.5 text-xs text-muted-foreground">
 																<Spinner className="size-3.5" />
 																<span>{t("instances.card.scanningWorlds")}</span>
 															</div>
 														) : worlds.length === 0 ? (
-															<div className="p-2.5 text-muted-foreground text-xs">
+															<div className="p-2.5 text-xs text-muted-foreground">
 																{t("instances.card.noSavedWorlds")}
 															</div>
 														) : (
@@ -374,7 +374,7 @@ export const InstanceCard = ({
 																		</div>
 																	)}
 																	<div className="flex min-w-0 flex-col truncate">
-																		<span className="truncate font-medium text-foreground text-xs">
+																		<span className="truncate text-xs font-medium text-foreground">
 																			{w.displayName}
 																		</span>
 																		<span className="truncate text-3xs text-muted-foreground">
@@ -391,7 +391,7 @@ export const InstanceCard = ({
 											<DropdownMenuItem disabled className="gap-2 opacity-50">
 												<Compass className="size-4 text-muted-foreground" />
 												<div className="flex flex-col">
-													<span className="font-medium text-xs">
+													<span className="text-xs font-medium">
 														{t("instances.card.quickLoadWorld")}
 													</span>
 													<span className="text-3xs text-muted-foreground">

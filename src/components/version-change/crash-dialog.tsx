@@ -138,7 +138,7 @@ export default function VersionChangeCrashDialog() {
 						<DialogTitle className="text-base">
 							{t("crashDialog.title", { name: crash.name, version: crash.toGameVersion })}
 						</DialogTitle>
-						<DialogDescription className="text-muted-foreground text-sm leading-relaxed">
+						<DialogDescription className="text-sm leading-relaxed text-muted-foreground">
 							{crash.suspects.length > 0
 								? t("crashDialog.suspects", { context: addon })
 								: t("crashDialog.noSuspects", { context: addon })}
@@ -157,7 +157,7 @@ export default function VersionChangeCrashDialog() {
 								>
 									<Package className="size-4 shrink-0 text-muted-foreground" />
 									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-foreground text-sm">{suspect.title}</p>
+										<p className="truncate text-sm font-medium text-foreground">{suspect.title}</p>
 										<p className="truncate text-2xs text-muted-foreground">{suspect.fileName}</p>
 									</div>
 									<Button
@@ -178,7 +178,7 @@ export default function VersionChangeCrashDialog() {
 							)
 						})}
 						{turnedOff.length > 0 && !undone && (
-							<p className="text-muted-foreground text-xs">
+							<p className="text-xs text-muted-foreground">
 								{t("crashDialog.tryAgain", { context: target, count: turnedOff.length })}
 							</p>
 						)}
@@ -190,7 +190,7 @@ export default function VersionChangeCrashDialog() {
 						<summary className="cursor-pointer px-3 py-2 text-muted-foreground">
 							{t("crashDialog.details")}
 						</summary>
-						<pre className="scroll-fade-y max-h-48 overflow-auto whitespace-pre-wrap px-3 pb-3 font-mono text-2xs text-muted-foreground">
+						<pre className="max-h-48 scroll-fade-y overflow-auto px-3 pb-3 font-mono text-2xs whitespace-pre-wrap text-muted-foreground">
 							{crash.excerpt}
 						</pre>
 					</details>
@@ -200,8 +200,8 @@ export default function VersionChangeCrashDialog() {
 					<p
 						className={
 							message.ok
-								? "rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-primary text-xs"
-								: "rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs"
+								? "rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary"
+								: "rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
 						}
 					>
 						{message.text}

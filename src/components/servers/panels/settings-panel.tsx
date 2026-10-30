@@ -186,7 +186,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 						type="button"
 						onClick={() => fileRef.current?.click()}
 						disabled={iconBusy}
-						className="group relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-input border-dashed bg-card transition-colors hover:border-primary/60"
+						className="group relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-input bg-card transition-colors hover:border-primary/60"
 					>
 						{icon ? (
 							<img
@@ -218,7 +218,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 						onChange={(e) => onIcon(e.target.files?.[0])}
 					/>
 					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
-						<Label htmlFor={`name-${server.id}`} className="text-muted-foreground text-xs">
+						<Label htmlFor={`name-${server.id}`} className="text-xs text-muted-foreground">
 							{t("serverSettings.name")}
 						</Label>
 						<Input
@@ -231,7 +231,7 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					<Label htmlFor={`motd-${server.id}`} className="text-muted-foreground text-xs">
+					<Label htmlFor={`motd-${server.id}`} className="text-xs text-muted-foreground">
 						{t("serverSettings.motd")}
 					</Label>
 					<Textarea
@@ -347,7 +347,7 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 				title={t("serverSettings.memory")}
 				description={mobile ? t("serverSettings.memoryMobile") : t("serverSettings.memoryDesktop")}
 				action={
-					<span className="font-mono font-semibold text-primary text-sm">
+					<span className="font-mono text-sm font-semibold text-primary">
 						{formatMegabytes(ram)}
 					</span>
 				}
@@ -442,7 +442,7 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 				<CardContent className="flex flex-col gap-5">
 					{groups.map((group) => (
 						<div key={group.id} className="flex flex-col">
-							<h4 className="mb-1 font-semibold text-2xs text-muted-foreground uppercase tracking-wider">
+							<h4 className="mb-1 text-2xs font-semibold tracking-wider text-muted-foreground uppercase">
 								{group.title}
 							</h4>
 							<div className="divide-y divide-border/60">
@@ -504,10 +504,10 @@ function PropertiesCard({ server }: { server: ServerConfig }) {
 					{(changed.length > 0 || status !== "idle") && (
 						// Solid bar across the card, in the card's own color, so settings scrolling
 						// underneath never show through
-						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-border/80 border-t bg-card px-4 py-3">
+						<div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-end gap-3 border-t border-border/80 bg-card px-4 py-3">
 							{changed.length > 0 && (
 								<>
-									<span className="text-muted-foreground text-xs">
+									<span className="text-xs text-muted-foreground">
 										{t("serverSettings.changed", { count: changed.length })}
 									</span>
 									<Button variant="ghost" onClick={() => setDraft({})} className="h-10 rounded-xl">
@@ -539,11 +539,11 @@ function PropertyRow({
 	return (
 		<div className="flex items-center justify-between gap-4 py-3">
 			<div className="min-w-0">
-				<p className="flex items-center gap-1.5 font-medium text-foreground text-sm">
+				<p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
 					{def.label}
 					{changed && <span className="size-1.5 rounded-full bg-primary" />}
 				</p>
-				<p className="text-muted-foreground text-xs leading-relaxed">{def.description}</p>
+				<p className="text-xs leading-relaxed text-muted-foreground">{def.description}</p>
 			</div>
 			<div className="shrink-0">
 				{control.type === "boolean" && (
@@ -606,7 +606,7 @@ function ConfigFilesCard({ serverId }: { serverId: string }) {
 				title={t("serverSettings.configFiles")}
 				description={t("serverSettings.configFilesDesc")}
 			/>
-			<ul className="divide-y divide-border/60 border-border/60 border-t">
+			<ul className="divide-y divide-border/60 border-t border-border/60">
 				{files.map((f) => (
 					<li key={f.path}>
 						<Item

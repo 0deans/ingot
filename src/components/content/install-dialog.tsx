@@ -283,14 +283,14 @@ export const InstallDialog = memo(
 					</DialogHeader>
 
 					{isLoadingData ? (
-						<div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground text-xs">
+						<div className="flex flex-col items-center justify-center gap-3 py-10 text-xs text-muted-foreground">
 							<Spinner className="size-6 text-primary" />
 							<span>{t("install.loading")}</span>
 						</div>
 					) : errorMessage && versions.length === 0 ? (
 						<div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
 							<AlertCircle className="size-8 text-destructive" />
-							<p className="font-medium text-destructive text-sm">{errorMessage}</p>
+							<p className="text-sm font-medium text-destructive">{errorMessage}</p>
 							<Button
 								size="sm"
 								variant="outline"
@@ -325,13 +325,13 @@ export const InstallDialog = memo(
 										className="size-10 shrink-0 rounded-lg bg-muted object-cover"
 									/>
 								) : (
-									<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted font-bold text-xs">
+									<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-bold">
 										{item.title.charAt(0).toUpperCase()}
 									</div>
 								)}
 								<div className="flex min-w-0 flex-1 flex-col">
-									<h4 className="truncate font-semibold text-foreground text-sm">{item.title}</h4>
-									<span className="text-muted-foreground text-xs">
+									<h4 className="truncate text-sm font-semibold text-foreground">{item.title}</h4>
+									<span className="text-xs text-muted-foreground">
 										{t("modpacks.byAuthor", { author: item.author })} • {item.source}
 									</span>
 								</div>
@@ -341,7 +341,7 @@ export const InstallDialog = memo(
 								/* Modpack Flow: Instance Name + Version Selection */
 								<div className="flex flex-col gap-3">
 									<div className="flex flex-col gap-1.5">
-										<Label htmlFor="modpack-name" className="font-medium text-foreground text-xs">
+										<Label htmlFor="modpack-name" className="text-xs font-medium text-foreground">
 											{t("newInstance.name")}
 										</Label>
 										<Input
@@ -354,7 +354,7 @@ export const InstallDialog = memo(
 									</div>
 
 									<div className="flex flex-col gap-1.5">
-										<span className="font-medium text-foreground text-xs">
+										<span className="text-xs font-medium text-foreground">
 											{t("install.modpackVersion")}
 										</span>
 										<SearchableSelect
@@ -367,7 +367,7 @@ export const InstallDialog = memo(
 									</div>
 
 									{selectedVersion && (
-										<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-background/40 p-2.5 text-muted-foreground text-xs">
+										<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-background/40 p-2.5 text-xs text-muted-foreground">
 											<span>{t("install.loaders")}</span>
 											{selectedVersion.loaders.map((l) => (
 												<Badge key={l} variant="secondary" className="font-mono capitalize">
@@ -389,7 +389,7 @@ export const InstallDialog = memo(
 									{instances.length === 0 ? (
 										<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 p-4 text-center">
 											<AlertCircle className="size-6 text-warning" />
-											<p className="font-medium text-warning text-xs">
+											<p className="text-xs font-medium text-warning">
 												{t("quickJoin.noInstances")}
 											</p>
 											<p className="text-2xs text-muted-foreground">
@@ -399,7 +399,7 @@ export const InstallDialog = memo(
 									) : (
 										<>
 											<div className="flex flex-col gap-1.5">
-												<span className="font-medium text-foreground text-xs">
+												<span className="text-xs font-medium text-foreground">
 													{t("install.target")}
 												</span>
 												<SearchableSelect
@@ -414,7 +414,7 @@ export const InstallDialog = memo(
 											{/* Select Version */}
 											<div className="flex flex-col gap-1.5">
 												<div className="flex items-center justify-between">
-													<span className="font-medium text-foreground text-xs">
+													<span className="text-xs font-medium text-foreground">
 														{t("install.fileVersion")}
 													</span>
 													{compatibleVersions.length > 0 && (
@@ -434,7 +434,7 @@ export const InstallDialog = memo(
 											</div>
 
 											{selectedVersion && (
-												<div className="flex flex-col gap-1 rounded-lg border border-border/30 bg-background/40 p-2.5 text-muted-foreground text-xs">
+												<div className="flex flex-col gap-1 rounded-lg border border-border/30 bg-background/40 p-2.5 text-xs text-muted-foreground">
 													<div className="flex items-center justify-between">
 														<span className="font-mono text-2xs text-foreground">
 															{selectedVersion.filename}
@@ -488,7 +488,7 @@ export const InstallDialog = memo(
 								!selectedVersion
 							}
 							onClick={handleInstall}
-							className="gap-1.5 font-semibold text-xs"
+							className="gap-1.5 text-xs font-semibold"
 						>
 							{isSubmitting ? (
 								<>

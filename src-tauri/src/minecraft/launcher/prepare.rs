@@ -225,11 +225,7 @@ pub async fn prepare_launch_environment(
         }
     }
 
-    let missing_libs: Vec<DownloadTask> = library_tasks
-        .iter()
-        .filter(|t| !is_download_task_cached(t))
-        .cloned()
-        .collect();
+    let missing_libs: Vec<DownloadTask> = filter_uncached_tasks(library_tasks).await;
 
     if !missing_libs.is_empty() {
         let count = missing_libs.len();
@@ -264,10 +260,7 @@ pub async fn prepare_launch_environment(
             asset_tasks.push(prepare_asset_task(assets_dir, obj)?);
         }
 
-        let missing_assets: Vec<DownloadTask> = asset_tasks
-            .into_iter()
-            .filter(|t| !is_download_task_cached(t))
-            .collect();
+        let missing_assets: Vec<DownloadTask> = filter_uncached_tasks(asset_tasks).await;
 
         if !missing_assets.is_empty() {
             let count = missing_assets.len();
@@ -332,6 +325,45 @@ fn prepare_asset_task(
         sha1: Some(object.hash),
         size: Some(object.size),
     })
+}
+
+async fn filter_uncached_tasks(tasks: Vec<DownloadTask>) -> Vec<DownloadTask> {
+    if tasks.is_empty() {
+        return Vec::new();
+    }
+    if tasks.len() <= 32 {
+        return tasks
+            .into_iter()
+            .filter(|t| !is_download_task_cached(t))
+            .collect();
+    }
+    let worker_count = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .clamp(2, 16);
+    let chunk_size = (tasks.len() / worker_count).max(32);
+    let chunks: Vec<Vec<DownloadTask>> = tasks
+        .chunks(chunk_size)
+        .map(|chunk| chunk.to_vec())
+        .collect();
+
+    let mut handles = Vec::with_capacity(chunks.len());
+    for chunk in chunks {
+        handles.push(tokio::task::spawn_blocking(move || {
+            chunk
+                .into_iter()
+                .filter(|t| !is_download_task_cached(t))
+                .collect::<Vec<_>>()
+        }));
+    }
+
+    let mut missing = Vec::new();
+    for handle in handles {
+        if let Ok(chunk_missing) = handle.await {
+            missing.extend(chunk_missing);
+        }
+    }
+    missing
 }
 
 #[cfg(test)]

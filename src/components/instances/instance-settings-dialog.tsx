@@ -339,11 +339,11 @@ export const InstanceSettingsDialog = ({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={24} />
-						<DialogTitle className="font-semibold text-foreground text-lg">
+						<DialogTitle className="text-lg font-semibold text-foreground">
 							{t("instanceSettings.title")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-muted-foreground text-xs">
+					<DialogDescription className="text-xs text-muted-foreground">
 						<Trans
 							i18nKey="instanceSettings.description"
 							values={{ name: instance.name }}
@@ -352,11 +352,11 @@ export const InstanceSettingsDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="scroll-fade-y -mr-2 max-h-[68vh] pr-2">
+				<ScrollArea className="-mr-2 max-h-[68vh] scroll-fade-y pr-2">
 					<div className="flex flex-col gap-4 py-1 pr-1">
 						{/* Instance Name */}
 						<div className="flex flex-col gap-2">
-							<Label htmlFor="instance-name-input" className="font-medium text-foreground text-xs">
+							<Label htmlFor="instance-name-input" className="text-xs font-medium text-foreground">
 								{t("newInstance.name")}
 							</Label>
 							<Input
@@ -374,7 +374,7 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<ArrowUpDown className="size-4 text-primary" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">
+										<h4 className="text-xs font-medium text-foreground">
 											{t("wizard.minecraftVersion")}
 										</h4>
 										<p className="text-2xs text-muted-foreground">
@@ -399,7 +399,7 @@ export const InstanceSettingsDialog = ({
 								<div className="flex flex-col gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3">
 									<div className="flex items-center gap-2 text-destructive">
 										<AlertTriangle className="size-4 shrink-0" />
-										<p className="font-medium text-xs">
+										<p className="text-xs font-medium">
 											{versionTransactionStatus.error || t("instanceSettings.recoveryRequired")}
 										</p>
 									</div>
@@ -422,7 +422,7 @@ export const InstanceSettingsDialog = ({
 								</div>
 							)}
 							{versionBackup && !versionTransactionStatus?.canRecover && (
-								<div className="flex flex-wrap items-center justify-between gap-2 border-border/80 border-t pt-3">
+								<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/80 pt-3">
 									<p className="text-2xs text-muted-foreground">
 										{t(
 											versionBackup.worldsBackedUp
@@ -508,7 +508,7 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<HardDrive className="size-4 text-info" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">
+										<h4 className="text-xs font-medium text-foreground">
 											{t("settings.memory.title")}
 										</h4>
 										<p className="text-2xs text-muted-foreground">
@@ -552,7 +552,7 @@ export const InstanceSettingsDialog = ({
 											<span className="text-muted-foreground">
 												{t("instanceSettings.minMemory")}
 											</span>
-											<span className="font-medium font-mono text-foreground">
+											<span className="font-mono font-medium text-foreground">
 												{formatMegabytes(minRamMb)}
 											</span>
 										</div>
@@ -571,7 +571,7 @@ export const InstanceSettingsDialog = ({
 											<span className="text-muted-foreground">
 												{t("instanceSettings.maxMemory")}
 											</span>
-											<span className="font-medium font-mono text-foreground">
+											<span className="font-mono font-medium text-foreground">
 												{formatMegabytes(maxRamMb)}
 											</span>
 										</div>
@@ -606,7 +606,7 @@ export const InstanceSettingsDialog = ({
 							<div className="flex items-center gap-2">
 								<Terminal className="size-4 text-primary" />
 								<div>
-									<h4 className="font-medium text-foreground text-xs">
+									<h4 className="text-xs font-medium text-foreground">
 										{t("instanceSettings.jvmArgs")}
 									</h4>
 									<p className="text-2xs text-muted-foreground">
@@ -628,7 +628,7 @@ export const InstanceSettingsDialog = ({
 							<div className="flex items-center gap-2">
 								<Cpu className="size-4 text-warning" />
 								<div>
-									<h4 className="font-medium text-foreground text-xs">
+									<h4 className="text-xs font-medium text-foreground">
 										{t("instanceSettings.java")}
 									</h4>
 									<p className="text-2xs text-muted-foreground">{t("instanceSettings.javaHint")}</p>
@@ -649,7 +649,7 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<Monitor className="size-4 text-info" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">
+										<h4 className="text-xs font-medium text-foreground">
 											{t("settings.window.title")}
 										</h4>
 										<p className="text-2xs text-muted-foreground">
@@ -665,7 +665,7 @@ export const InstanceSettingsDialog = ({
 								<div className="mt-2 flex flex-col gap-3 pt-1">
 									<div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/60 p-3">
 										<div>
-											<span className="font-medium text-foreground text-xs">
+											<span className="text-xs font-medium text-foreground">
 												{t("settings.window.fullscreenTitle")}
 											</span>
 											<p className="text-2xs text-muted-foreground">
@@ -678,7 +678,7 @@ export const InstanceSettingsDialog = ({
 									{!instanceFullscreen && (
 										<div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-background/60 p-3">
 											<div className="flex items-center justify-between">
-												<span className="text-muted-foreground text-xs">
+												<span className="text-xs text-muted-foreground">
 													{t("instanceSettings.resolution")}
 												</span>
 												<div className="flex items-center gap-1.5">
@@ -688,7 +688,7 @@ export const InstanceSettingsDialog = ({
 														onChange={(e) => setInstanceWidth(Number(e.target.value) || 854)}
 														className="h-7 w-16 px-1 text-center font-mono text-xs"
 													/>
-													<span className="text-muted-foreground text-xs">×</span>
+													<span className="text-xs text-muted-foreground">×</span>
 													<Input
 														type="number"
 														value={instanceHeight}
@@ -743,7 +743,7 @@ export const InstanceSettingsDialog = ({
 								<div className="flex items-center gap-2">
 									<RefreshCw className="size-4 text-primary" />
 									<div>
-										<h4 className="font-medium text-foreground text-xs">
+										<h4 className="text-xs font-medium text-foreground">
 											{t("settings.sync.title")}
 										</h4>
 										<p className="text-2xs text-muted-foreground">
@@ -758,7 +758,7 @@ export const InstanceSettingsDialog = ({
 							{/* Manual Sync Actions */}
 							<div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
 								<div>
-									<div className="font-medium text-foreground text-xs">
+									<div className="text-xs font-medium text-foreground">
 										{t("instanceSettings.manualSync")}
 									</div>
 									<div className="text-2xs text-muted-foreground">
@@ -773,7 +773,7 @@ export const InstanceSettingsDialog = ({
 										size="sm"
 										onClick={handlePushSync}
 										disabled={isSyncing}
-										className="h-8 gap-1.5 border-primary/30 bg-primary/10 text-primary text-xs hover:bg-primary/10"
+										className="h-8 gap-1.5 border-primary/30 bg-primary/10 text-xs text-primary hover:bg-primary/10"
 									>
 										{isSyncing ? (
 											<Spinner className="size-3.5" />
@@ -789,7 +789,7 @@ export const InstanceSettingsDialog = ({
 										size="sm"
 										onClick={handlePullSync}
 										disabled={isSyncing}
-										className="h-8 gap-1.5 border-info/30 bg-info/10 text-info text-xs hover:bg-info/10"
+										className="h-8 gap-1.5 border-info/30 bg-info/10 text-xs text-info hover:bg-info/10"
 									>
 										{isSyncing ? (
 											<Spinner className="size-3.5" />
@@ -853,7 +853,7 @@ export const InstanceSettingsDialog = ({
 										},
 									].map((item) => (
 										<div key={item.key} className="flex items-center justify-between p-2.5">
-											<span className="text-foreground text-xs">{item.label}</span>
+											<span className="text-xs text-foreground">{item.label}</span>
 											<Switch checked={item.checked} onCheckedChange={item.setChecked} />
 										</div>
 									))}
@@ -873,7 +873,7 @@ export const InstanceSettingsDialog = ({
 						variant="ghost"
 						size="sm"
 						onClick={() => instanceService.openInstanceFolder(instance.id)}
-						className="gap-1.5 text-muted-foreground text-xs"
+						className="gap-1.5 text-xs text-muted-foreground"
 					>
 						<FolderOpen className="size-3.5" />
 						{t("common.openFolder")}

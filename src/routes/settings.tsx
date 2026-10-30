@@ -182,13 +182,13 @@ const SettingsPage = () => {
 	}
 
 	return (
-		<ScrollArea className="scroll-fade-y size-full flex-1">
+		<ScrollArea className="size-full flex-1 scroll-fade-y">
 			<div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 p-4 pb-12 sm:p-5 lg:p-6">
 				<div>
-					<h1 className="font-bold text-2xl text-foreground tracking-tight">
+					<h1 className="text-2xl font-bold tracking-tight text-foreground">
 						{t("settings.title")}
 					</h1>
-					<p className="text-muted-foreground text-sm">{t("settings.subtitle")}</p>
+					<p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
 				</div>
 
 				<div className="flex flex-col gap-6">
@@ -241,7 +241,7 @@ const SettingsPage = () => {
 										)}
 									>
 										{accounts.length === 0 ? (
-											<div className="p-4 text-center text-muted-foreground text-xs">
+											<div className="p-4 text-center text-xs text-muted-foreground">
 												{t("settings.accounts.empty")}
 											</div>
 										) : (

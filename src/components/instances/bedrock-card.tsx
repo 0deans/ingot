@@ -73,13 +73,13 @@ export function BedrockCard({ className }: { className?: string }) {
 					</div>
 					<div className="min-w-0">
 						<div className="flex items-center gap-2">
-							<h3 className="truncate font-semibold text-foreground text-sm sm:text-base">
+							<h3 className="truncate text-sm font-semibold text-foreground sm:text-base">
 								{t("bedrock.title", { defaultValue: "Minecraft: Bedrock Edition" })}
 							</h3>
 							<Badge
 								variant={isInstalled ? "default" : "secondary"}
 								className={cn(
-									"text-3xs uppercase tracking-wider",
+									"text-3xs tracking-wider uppercase",
 									isInstalled
 										? "border-primary/20 bg-primary/15 text-primary"
 										: "bg-muted text-muted-foreground",
@@ -175,7 +175,7 @@ export function BedrockCard({ className }: { className?: string }) {
 
 			{/* Center description when not installed */}
 			{!isInstalled && (
-				<p className="my-3 line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+				<p className="my-3 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
 					{t("bedrock.description", {
 						defaultValue:
 							"Minecraft Bedrock Edition is available through the Microsoft Store. Install it directly from the Store or launch it from Ingot.",
@@ -184,7 +184,7 @@ export function BedrockCard({ className }: { className?: string }) {
 			)}
 
 			{/* Bottom Action Footer */}
-			<div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-border/40 border-t pt-3">
+			<div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-3">
 				{isInstalled ? (
 					<>
 						<div className="flex items-center gap-1.5 text-2xs text-muted-foreground">
@@ -196,7 +196,7 @@ export function BedrockCard({ className }: { className?: string }) {
 							<Button
 								onClick={launch}
 								disabled={isLaunching}
-								className="h-9 gap-2 rounded-xl px-4 font-semibold text-xs shadow-sm"
+								className="h-9 gap-2 rounded-xl px-4 text-xs font-semibold shadow-sm"
 							>
 								{isLaunching ? (
 									<>
@@ -222,7 +222,7 @@ export function BedrockCard({ className }: { className?: string }) {
 						<Button
 							onClick={install}
 							variant="default"
-							className="h-9 gap-2 rounded-xl px-4 font-semibold text-xs shadow-sm"
+							className="h-9 gap-2 rounded-xl px-4 text-xs font-semibold shadow-sm"
 						>
 							<Download className="size-3.5" />
 							{t("bedrock.installStore", { defaultValue: "Install via Microsoft Store" })}

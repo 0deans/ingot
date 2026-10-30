@@ -170,7 +170,7 @@ export default function ServerCard({
 				<div className="flex items-center gap-2">
 					<Badge
 						variant="outline"
-						className={cn("uppercase tracking-wider", getCoreBadgeStyle(server.core))}
+						className={cn("tracking-wider uppercase", getCoreBadgeStyle(server.core))}
 					>
 						{server.core}
 					</Badge>
@@ -220,7 +220,7 @@ export default function ServerCard({
 								<button
 									type="button"
 									onClick={() => onOpen?.(server)}
-									className="truncate text-left font-semibold text-base text-foreground transition-colors hover:text-primary"
+									className="truncate text-left text-base font-semibold text-foreground transition-colors hover:text-primary"
 								/>
 							}
 						>
@@ -229,7 +229,7 @@ export default function ServerCard({
 						<TooltipContent>{t("serverCard.openPage")}</TooltipContent>
 					</Tooltip>
 
-					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
 						{/* Address / Port with Click-to-copy */}
 						<Tooltip>
 							<TooltipTrigger
@@ -286,7 +286,7 @@ export default function ServerCard({
 			</div>
 
 			{/* Bottom Action Controls */}
-			<div className="flex items-center justify-between border-border/30 border-t pt-3">
+			<div className="flex items-center justify-between border-t border-border/30 pt-3">
 				{/* Primary Run / Console Action */}
 				<div className="flex items-center gap-2">
 					{isRunning ? (
@@ -297,7 +297,7 @@ export default function ServerCard({
 										<Button
 											size="sm"
 											onClick={() => onJoinServer?.(server)}
-											className="h-8 gap-1.5 font-medium text-xs"
+											className="h-8 gap-1.5 text-xs font-medium"
 										/>
 									}
 								>
@@ -310,7 +310,7 @@ export default function ServerCard({
 								size="sm"
 								variant="secondary"
 								onClick={() => onOpenConsole(server)}
-								className="h-8 gap-1.5 font-medium text-xs"
+								className="h-8 gap-1.5 text-xs font-medium"
 							>
 								<Terminal className="size-3.5" />
 								<span>{t("serverTabs.console")}</span>
@@ -322,7 +322,7 @@ export default function ServerCard({
 											variant="outline"
 											size="sm"
 											onClick={() => onStop(server.id)}
-											className="h-8 gap-1 border-destructive/30 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
+											className="h-8 gap-1 border-destructive/30 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
 										/>
 									}
 								>
@@ -337,7 +337,7 @@ export default function ServerCard({
 							size="sm"
 							onClick={() => onStart(server.id)}
 							disabled={isStarting || isStopping}
-							className="h-8 gap-1.5 font-medium text-xs"
+							className="h-8 gap-1.5 text-xs font-medium"
 						>
 							{isStarting ? (
 								<Spinner className="size-3.5" />

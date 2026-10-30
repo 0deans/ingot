@@ -81,7 +81,7 @@ export const WindowSettings = () => {
 							<Maximize2 className="size-4" />
 						</div>
 						<div>
-							<div className="font-medium text-foreground text-xs sm:text-sm">
+							<div className="text-xs font-medium text-foreground sm:text-sm">
 								{t("settings.window.fullscreenTitle")}
 							</div>
 							<div className="text-2xs text-muted-foreground">
@@ -101,7 +101,7 @@ export const WindowSettings = () => {
 								<Sparkles className="size-4" />
 							</div>
 							<div>
-								<div className="font-medium text-foreground text-xs sm:text-sm">
+								<div className="text-xs font-medium text-foreground sm:text-sm">
 									Page Navigation Animation
 								</div>
 								<div className="text-2xs text-muted-foreground">
@@ -130,7 +130,7 @@ export const WindowSettings = () => {
 					<div className="flex flex-col gap-3 rounded-lg border border-border/30 bg-background/60 p-3.5">
 						<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 							<div>
-								<div className="font-medium text-foreground text-xs sm:text-sm">
+								<div className="text-xs font-medium text-foreground sm:text-sm">
 									{t("settings.window.resolutionTitle")}
 								</div>
 								<div className="text-2xs text-muted-foreground">
@@ -153,7 +153,7 @@ export const WindowSettings = () => {
 										className="h-8 w-20 px-2 text-center font-mono text-xs"
 									/>
 								</div>
-								<span className="text-muted-foreground text-xs">×</span>
+								<span className="text-xs text-muted-foreground">×</span>
 								<div className="flex items-center gap-1.5">
 									<span className="text-2xs text-muted-foreground">H:</span>
 									<Input

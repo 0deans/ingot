@@ -140,7 +140,7 @@ export function LicensesDialog({
 			<DialogContent className="flex max-h-[85vh] flex-col gap-3 p-0 sm:max-w-lg">
 				<div className="px-5 pt-5">
 					<DialogTitle className="text-base">{t("settings.licenses.title")}</DialogTitle>
-					<p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+					<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
 						{t("settings.licenses.dialogSubtitle")}
 					</p>
 				</div>
@@ -149,7 +149,7 @@ export function LicensesDialog({
 						{GROUPS.map((group) => (
 							<section key={group.title} className="flex flex-col gap-2">
 								<div>
-									<h3 className="font-semibold text-foreground text-sm">{t(group.title)}</h3>
+									<h3 className="text-sm font-semibold text-foreground">{t(group.title)}</h3>
 									<p className="text-2xs text-muted-foreground">{t(group.note)}</p>
 								</div>
 								<ul className="flex flex-col divide-y divide-border/70 border border-border/70">
@@ -180,7 +180,7 @@ export function LicensesDialog({
 								</ul>
 							</section>
 						))}
-						<p className="text-2xs text-muted-foreground/60 leading-relaxed">
+						<p className="text-2xs leading-relaxed text-muted-foreground/60">
 							{t("settings.licenses.trademark")}
 						</p>
 					</div>

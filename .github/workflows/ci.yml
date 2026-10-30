@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   frontend:
-    name: TypeScript and Biome
+    name: TypeScript and OXC
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
@@ -49,9 +49,11 @@ jobs:
       - name: Test generated IPC routing
         run: pnpm test:ipc
 
-      # `biome ci` checks formatting and lint without changing files
-      - name: Lint and format check
-        run: pnpm exec biome ci
+      - name: Lint check
+        run: pnpm exec oxlint
+
+      - name: Format check
+        run: pnpm exec oxfmt --check
 
   rust:
     name: Rust tests (${{ matrix.platform }})

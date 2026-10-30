@@ -298,7 +298,7 @@ export const ContentDetailsDialog = memo(
 						className="flex h-[88vh] max-h-[88vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
 					>
 						{/* Header bar */}
-						<div className="flex items-center justify-between border-border/40 border-b bg-background/60 p-5">
+						<div className="flex items-center justify-between border-b border-border/40 bg-background/60 p-5">
 							<div className="mr-4 flex min-w-0 flex-1 items-center gap-4">
 								{item.iconUrl ? (
 									<img
@@ -307,7 +307,7 @@ export const ContentDetailsDialog = memo(
 										className="size-14 shrink-0 rounded-xl border border-border/40 bg-card object-cover"
 									/>
 								) : (
-									<div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border/40 bg-card font-bold text-lg text-muted-foreground">
+									<div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border/40 bg-card text-lg font-bold text-muted-foreground">
 										{item.title.charAt(0).toUpperCase()}
 									</div>
 								)}
@@ -315,7 +315,7 @@ export const ContentDetailsDialog = memo(
 								<div className="flex min-w-0 flex-1 flex-col gap-1">
 									<div className="flex items-center gap-2">
 										<span
-											className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-2xs ${
+											className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-2xs font-medium ${
 												item.source === "modrinth"
 													? "border border-primary/20 bg-primary/15 text-primary"
 													: "border border-warning/20 bg-warning/15 text-warning"
@@ -329,16 +329,16 @@ export const ContentDetailsDialog = memo(
 											{contentType(t, item.projectType)}
 										</span>
 
-										<span className="text-muted-foreground text-xs">
+										<span className="text-xs text-muted-foreground">
 											{t("modpacks.byAuthor", { author: item.author })}
 										</span>
 									</div>
 
-									<h2 className="truncate font-bold text-foreground text-xl tracking-tight">
+									<h2 className="truncate text-xl font-bold tracking-tight text-foreground">
 										{item.title}
 									</h2>
 
-									<div className="flex items-center gap-3 text-muted-foreground text-xs">
+									<div className="flex items-center gap-3 text-xs text-muted-foreground">
 										<div className="flex items-center gap-1">
 											<Download className="size-3.5" />
 											<span>
@@ -364,7 +364,7 @@ export const ContentDetailsDialog = memo(
 								<Button
 									size="sm"
 									onClick={() => onInstall(item)}
-									className="gap-1.5 font-semibold text-xs"
+									className="gap-1.5 text-xs font-semibold"
 								>
 									<Download className="size-3.5" />
 									{item.projectType === "modpack"
@@ -399,7 +399,7 @@ export const ContentDetailsDialog = memo(
 						<Tabs
 							value={activeTab}
 							onValueChange={(tab) => setActiveTab(tab as typeof activeTab)}
-							className="border-border/40 border-b px-5 pt-2"
+							className="border-b border-border/40 px-5 pt-2"
 						>
 							<TabsList variant="line">
 								<TabsTrigger value="overview">{t("serverTabs.overview")}</TabsTrigger>
@@ -414,13 +414,13 @@ export const ContentDetailsDialog = memo(
 						{/* Tab Content */}
 						<div className="flex min-h-0 flex-1 flex-col bg-background/50">
 							{isLoading ? (
-								<div className="flex flex-1 items-center justify-center gap-2 text-muted-foreground text-sm">
+								<div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
 									<Spinner className="size-5 text-primary" />
 									<span>{t("contentDetails.loading")}</span>
 								</div>
 							) : error ? (
 								<div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-									<p className="font-medium text-destructive text-sm">{error}</p>
+									<p className="text-sm font-medium text-destructive">{error}</p>
 									<Button
 										size="sm"
 										variant="outline"
@@ -439,13 +439,13 @@ export const ContentDetailsDialog = memo(
 									</Button>
 								</div>
 							) : activeTab === "overview" ? (
-								<ScrollArea className="scroll-fade-y flex-1">
+								<ScrollArea className="flex-1 scroll-fade-y">
 									<div className="flex flex-col gap-6 p-6">
 										{/* Gallery: Featured Large Preview + Scrollable Thumbnail Strip */}
 										{details?.screenshots && details.screenshots.length > 0 && (
-											<div className="flex w-full min-w-0 max-w-full flex-col gap-3">
+											<div className="flex w-full max-w-full min-w-0 flex-col gap-3">
 												<div className="flex items-center justify-between">
-													<h3 className="font-semibold text-foreground text-sm">
+													<h3 className="text-sm font-semibold text-foreground">
 														{t("contentDetails.gallery", { count: details.screenshots.length })}
 													</h3>
 													<span className="text-2xs text-muted-foreground">
@@ -482,7 +482,7 @@ export const ContentDetailsDialog = memo(
 														className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
 														aria-label={t("contentDetails.viewFullscreen")}
 													>
-														<div className="flex items-center gap-2 rounded-lg bg-black/80 px-4 py-2 font-medium text-white text-xs shadow-xl backdrop-blur-xs transition-transform duration-200 hover:scale-105">
+														<div className="flex items-center gap-2 rounded-lg bg-black/80 px-4 py-2 text-xs font-medium text-white shadow-xl backdrop-blur-xs transition-transform duration-200 hover:scale-105">
 															<Maximize2 className="size-4" />
 															<span>{t("contentDetails.viewFullscreen")}</span>
 														</div>
@@ -490,7 +490,7 @@ export const ContentDetailsDialog = memo(
 
 													{/* Bottom Caption Overlay */}
 													<div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-linear-to-t from-black/80 via-black/40 to-transparent p-3 text-white">
-														<span className="truncate font-medium text-xs">
+														<span className="truncate text-xs font-medium">
 															{details.screenshots[
 																activePhotoIndex < details.screenshots.length ? activePhotoIndex : 0
 															].title || item.title}
@@ -503,7 +503,7 @@ export const ContentDetailsDialog = memo(
 
 												{/* Horizontal Scrollable Thumbnails with Chevrons */}
 												{details.screenshots.length > 1 && (
-													<div className="relative flex w-full min-w-0 max-w-full items-center gap-1.5">
+													<div className="relative flex w-full max-w-full min-w-0 items-center gap-1.5">
 														<Button
 															type="button"
 															size="icon-sm"
@@ -517,7 +517,7 @@ export const ContentDetailsDialog = memo(
 
 														<div
 															ref={galleryScrollRef}
-															className="scrollbar-none flex min-w-0 flex-1 gap-2.5 overflow-x-auto overflow-y-hidden overscroll-contain py-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+															className="flex min-w-0 flex-1 scrollbar-none gap-2.5 overflow-x-auto overflow-y-hidden overscroll-contain py-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 														>
 															{details.screenshots.map((s, idx) => (
 																<button
@@ -601,12 +601,12 @@ export const ContentDetailsDialog = memo(
 
 										{/* Rich Description (Markdown & HTML Supported) */}
 										<div className="flex flex-col gap-2">
-											<h3 className="font-semibold text-foreground text-sm">
+											<h3 className="text-sm font-semibold text-foreground">
 												{t("contentDetails.description")}
 											</h3>
 											{details?.body ? (
 												<section
-													className="prose prose-invert prose-sm max-w-none space-y-3 text-muted-foreground text-xs leading-relaxed [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-primary/70 [&_blockquote]:border-l-4 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-muted/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-2xs [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-card/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:text-lg [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:text-sm [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-card/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-muted/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
+													className="prose prose-invert prose-sm max-w-none space-y-3 text-xs leading-relaxed text-muted-foreground [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-3 [&_blockquote]:rounded-r-lg [&_blockquote]:border-l-4 [&_blockquote]:border-primary/70 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-muted/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-2xs [&_code]:text-primary-foreground [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-card/50 [&_details]:p-3 [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-foreground [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-foreground [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/40 [&_li]:my-1 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-card/90 [&_pre]:p-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-2.5 [&_th]:border [&_th]:border-border [&_th]:bg-muted/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold"
 													onClick={handleDescriptionClick}
 													onKeyDown={(e) => {
 														if (e.key === "Enter") {
@@ -622,7 +622,7 @@ export const ContentDetailsDialog = memo(
 													dangerouslySetInnerHTML={{ __html: descriptionHtml }}
 												/>
 											) : (
-												<p className="text-muted-foreground text-xs">
+												<p className="text-xs text-muted-foreground">
 													{details?.description || t("modpacks.noDescription")}
 												</p>
 											)}
@@ -633,9 +633,9 @@ export const ContentDetailsDialog = memo(
 								/* Versions & Files Tab */
 								<div className="flex min-h-0 flex-1 flex-col">
 									{/* Modern Version filters with Select components */}
-									<div className="flex flex-wrap items-center gap-3 border-border/40 border-b bg-background/20 px-6 py-3">
+									<div className="flex flex-wrap items-center gap-3 border-b border-border/40 bg-background/20 px-6 py-3">
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">
+											<span className="text-xs text-muted-foreground">
 												{t("modpacks.filters.loader")}
 											</span>
 											<Select
@@ -659,7 +659,7 @@ export const ContentDetailsDialog = memo(
 										</div>
 
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">
+											<span className="text-xs text-muted-foreground">
 												{t("contentDetails.gameVersion")}
 											</span>
 											<Select
@@ -690,14 +690,14 @@ export const ContentDetailsDialog = memo(
 													setVersionLoaderFilter("")
 													setVersionGameVerFilter("")
 												}}
-												className="h-8 gap-1 text-muted-foreground text-xs"
+												className="h-8 gap-1 text-xs text-muted-foreground"
 											>
 												<X className="size-3" />
 												{t("console.clear")}
 											</Button>
 										)}
 
-										<span className="ml-auto text-muted-foreground text-xs">
+										<span className="ml-auto text-xs text-muted-foreground">
 											{t("contentDetails.showing", {
 												shown: filteredVersions.length,
 												count: details?.versions.length ?? 0,
@@ -705,10 +705,10 @@ export const ContentDetailsDialog = memo(
 										</span>
 									</div>
 
-									<ScrollArea className="scroll-fade-y flex-1">
+									<ScrollArea className="flex-1 scroll-fade-y">
 										<div className="flex flex-col gap-3 p-6">
 											{filteredVersions.length === 0 ? (
-												<div className="py-12 text-center text-muted-foreground text-xs">
+												<div className="py-12 text-center text-xs text-muted-foreground">
 													{t("contentDetails.noMatch")}
 												</div>
 											) : (
@@ -733,12 +733,12 @@ export const ContentDetailsDialog = memo(
 																	>
 																		{releaseType(t, ver.versionType)}
 																	</Badge>
-																	<h4 className="truncate font-semibold text-foreground text-sm">
+																	<h4 className="truncate text-sm font-semibold text-foreground">
 																		{ver.name}
 																	</h4>
 																</div>
 
-																<div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
+																<div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
 																	<span className="font-mono text-muted-foreground">
 																		{ver.filename}
 																	</span>
@@ -768,7 +768,7 @@ export const ContentDetailsDialog = memo(
 															</Button>
 														</div>
 
-														<div className="mt-1 flex flex-wrap items-center gap-1.5 border-border/20 border-t pt-2">
+														<div className="mt-1 flex flex-wrap items-center gap-1.5 border-t border-border/20 pt-2">
 															{ver.loaders.map((l) => (
 																<Badge key={l} variant="secondary" className="font-mono capitalize">
 																	{l}
@@ -796,14 +796,14 @@ export const ContentDetailsDialog = memo(
 					details?.screenshots?.[lightboxIndex] &&
 					typeof document !== "undefined" &&
 					createPortal(
-						<div className="dark fade-in-0 fixed inset-x-0 top-10 bottom-0 z-60 flex animate-in flex-col justify-between bg-black/95 p-4 backdrop-blur-md duration-200">
+						<div className="dark fixed inset-x-0 top-10 bottom-0 z-60 flex animate-in flex-col justify-between bg-black/95 p-4 backdrop-blur-md duration-200 fade-in-0">
 							{/* Top Bar */}
 							<div className="flex items-center justify-between text-foreground">
 								<div className="flex items-center gap-3">
-									<span className="rounded-md bg-foreground/10 px-2.5 py-1 font-medium text-xs">
+									<span className="rounded-md bg-foreground/10 px-2.5 py-1 text-xs font-medium">
 										{lightboxIndex + 1} / {details.screenshots.length}
 									</span>
-									<span className="truncate font-medium text-foreground/80 text-sm">
+									<span className="truncate text-sm font-medium text-foreground/80">
 										{details.screenshots[lightboxIndex].title || item.title}
 									</span>
 								</div>
@@ -812,7 +812,7 @@ export const ContentDetailsDialog = memo(
 										size="sm"
 										variant="ghost"
 										onClick={() => handleOpenUrl(details.screenshots[lightboxIndex].url)}
-										className="h-8 gap-1.5 text-foreground/80 text-xs"
+										className="h-8 gap-1.5 text-xs text-foreground/80"
 									>
 										<ExternalLink className="size-3.5" />
 										{t("contentDetails.openOriginal")}
@@ -860,7 +860,7 @@ export const ContentDetailsDialog = memo(
 							</div>
 
 							{/* Bottom Thumbnails Strip */}
-							<div className="scrollbar-none flex justify-center gap-2 overflow-x-auto py-2">
+							<div className="flex scrollbar-none justify-center gap-2 overflow-x-auto py-2">
 								{details.screenshots.map((s, idx) => (
 									<button
 										// biome-ignore lint/suspicious/noArrayIndexKey: Thumbnail gallery index

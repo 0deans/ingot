@@ -169,7 +169,7 @@ const ContentCard = memo(function ContentCard({
 							}}
 						/>
 					) : (
-						<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted font-bold text-muted-foreground text-sm">
+						<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted text-sm font-bold text-muted-foreground">
 							{item.title.charAt(0).toUpperCase()}
 						</div>
 					)}
@@ -195,17 +195,17 @@ const ContentCard = memo(function ContentCard({
 							</Badge>
 						</div>
 
-						<h3 className="mt-1 truncate font-semibold text-foreground text-sm transition-colors group-hover:text-primary">
+						<h3 className="mt-1 truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
 							{item.title}
 						</h3>
-						<span className="truncate text-muted-foreground text-xs">
+						<span className="truncate text-xs text-muted-foreground">
 							{t("modpacks.byAuthor", { author: item.author })}
 						</span>
 					</div>
 				</div>
 
 				{/* Description */}
-				<p className="line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+				<p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
 					{item.description || t("modpacks.noDescription")}
 				</p>
 
@@ -225,8 +225,8 @@ const ContentCard = memo(function ContentCard({
 			</div>
 
 			{/* Card Footer */}
-			<div className="relative z-20 mt-4 flex items-center justify-between border-border/30 border-t pt-3">
-				<div className="flex items-center gap-1 text-muted-foreground text-xs">
+			<div className="relative z-20 mt-4 flex items-center justify-between border-t border-border/30 pt-3">
+				<div className="flex items-center gap-1 text-xs text-muted-foreground">
 					<Download className="size-3.5" />
 					<span>{formatDownloads(item.downloads)}</span>
 				</div>
@@ -239,7 +239,7 @@ const ContentCard = memo(function ContentCard({
 							e.stopPropagation()
 							onOpenDetails(item)
 						}}
-						className="h-7 px-2 text-muted-foreground text-xs"
+						className="h-7 px-2 text-xs text-muted-foreground"
 					>
 						<Info className="size-3" />
 						{t("modpacks.details")}
@@ -252,7 +252,7 @@ const ContentCard = memo(function ContentCard({
 							e.stopPropagation()
 							onStartInstall(item)
 						}}
-						className="h-7 gap-1 px-2.5 font-semibold text-xs"
+						className="h-7 gap-1 px-2.5 text-xs font-semibold"
 					>
 						<Download className="size-3" />
 						{t("common.install")}
@@ -440,7 +440,7 @@ const ModpacksPage = () => {
 	const isBusy = isLoading || isFetching
 
 	return (
-		<ScrollArea className="scroll-fade-y size-full flex-1">
+		<ScrollArea className="size-full flex-1 scroll-fade-y">
 			<div className="flex flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Notification Banner */}
 
@@ -448,11 +448,11 @@ const ModpacksPage = () => {
 				<div className="flex flex-col gap-2">
 					<div className="flex items-center gap-2">
 						<Sparkles className="size-6 text-primary" />
-						<h1 className="font-bold text-2xl text-foreground tracking-tight">
+						<h1 className="text-2xl font-bold tracking-tight text-foreground">
 							{t("modpacks.title")}
 						</h1>
 					</div>
-					<p className="text-muted-foreground text-sm">{t("modpacks.subtitle")}</p>
+					<p className="text-sm text-muted-foreground">{t("modpacks.subtitle")}</p>
 				</div>
 
 				{/* Search & Category Tabs */}
@@ -518,7 +518,7 @@ const ModpacksPage = () => {
 					>
 						<TabsList
 							variant="line"
-							className="scrollbar-none max-w-full overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
+							className="max-w-full scrollbar-none overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
 						>
 							{CATEGORIES.map(({ id, icon: Icon }) => (
 								<TabsTrigger key={id} value={id}>
@@ -533,7 +533,7 @@ const ModpacksPage = () => {
 					<div className="flex flex-wrap items-center gap-3">
 						{/* Loader Selector */}
 						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground text-xs">{t("modpacks.filters.loader")}</span>
+							<span className="text-xs text-muted-foreground">{t("modpacks.filters.loader")}</span>
 							<Select
 								items={LOADERS.map((ldr) => ({
 									value: ldr.id || "all",
@@ -557,7 +557,7 @@ const ModpacksPage = () => {
 
 						{/* Version Selector */}
 						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground text-xs">{t("modpacks.filters.version")}</span>
+							<span className="text-xs text-muted-foreground">{t("modpacks.filters.version")}</span>
 							<Select
 								items={POPULAR_VERSIONS.map((v) => ({
 									value: v.id || "all",
@@ -581,7 +581,7 @@ const ModpacksPage = () => {
 
 						{/* Sort Selector */}
 						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground text-xs">{t("modpacks.filters.sort")}</span>
+							<span className="text-xs text-muted-foreground">{t("modpacks.filters.sort")}</span>
 							<Select
 								items={SORTS.map((s) => ({ value: s.id, label: t(`modpacks.sorts.${s.id}`) }))}
 								value={activeSort}
@@ -612,7 +612,7 @@ const ModpacksPage = () => {
 								size="sm"
 								variant="ghost"
 								onClick={handleClearFilters}
-								className="h-8 gap-1 px-2.5 text-muted-foreground text-xs"
+								className="h-8 gap-1 px-2.5 text-xs text-muted-foreground"
 							>
 								<X className="size-3" />
 								{t("common.resetFilters")}
@@ -625,7 +625,7 @@ const ModpacksPage = () => {
 							variant="ghost"
 							disabled={isBusy}
 							onClick={() => refetch()}
-							className="ml-auto h-8 gap-1 text-muted-foreground text-xs"
+							className="ml-auto h-8 gap-1 text-xs text-muted-foreground"
 						>
 							<RefreshCw className={`size-3.5 ${isBusy ? "animate-spin" : ""}`} />
 							{t("common.refresh")}
@@ -635,7 +635,7 @@ const ModpacksPage = () => {
 
 				{/* Results Meta */}
 				<div className="flex items-center justify-between">
-					<span className="text-muted-foreground text-xs">
+					<span className="text-xs text-muted-foreground">
 						{isLoading
 							? t("modpacks.searching")
 							: totalHits > 0
@@ -654,7 +654,7 @@ const ModpacksPage = () => {
 							>
 								<ChevronLeft className="size-3.5" />
 							</Button>
-							<span className="text-muted-foreground text-xs">
+							<span className="text-xs text-muted-foreground">
 								{t("modpacks.pageOf", { page: page + 1, total: Math.max(1, totalPages) })}
 							</span>
 							<Button
@@ -710,8 +710,8 @@ const ModpacksPage = () => {
 					<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border/40 bg-card/20 py-16 text-center">
 						<Sparkles className="size-10 text-muted-foreground/40" />
 						<div className="flex flex-col gap-1">
-							<p className="font-semibold text-foreground text-sm">{t("modpacks.noMatchTitle")}</p>
-							<p className="text-muted-foreground text-xs">{t("modpacks.noMatchSubtitle")}</p>
+							<p className="text-sm font-semibold text-foreground">{t("modpacks.noMatchTitle")}</p>
+							<p className="text-xs text-muted-foreground">{t("modpacks.noMatchSubtitle")}</p>
 						</div>
 						<Button
 							size="sm"
@@ -747,7 +747,7 @@ const ModpacksPage = () => {
 						>
 							<ChevronLeft className="size-3.5" />
 						</Button>
-						<span className="text-muted-foreground text-xs">
+						<span className="text-xs text-muted-foreground">
 							{t("modpacks.pageOf", { page: page + 1, total: Math.max(1, totalPages) })}
 						</span>
 						<Button

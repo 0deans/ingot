@@ -159,17 +159,17 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[90vh] sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle className="font-semibold text-lg">{t("newInstance.title")}</DialogTitle>
-					<DialogDescription className="text-muted-foreground text-xs">
+					<DialogTitle className="text-lg font-semibold">{t("newInstance.title")}</DialogTitle>
+					<DialogDescription className="text-xs text-muted-foreground">
 						{t("newInstance.description")}
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="scroll-fade-y -mx-1 max-h-[65vh] px-1">
+				<ScrollArea className="-mx-1 max-h-[65vh] scroll-fade-y px-1">
 					<div className="grid gap-4 p-1">
 						{/* Mod Loader Selector */}
 						<div className="grid gap-1.5">
-							<div className="font-medium text-muted-foreground text-xs">
+							<div className="text-xs font-medium text-muted-foreground">
 								{t("newInstance.modLoader")}
 							</div>
 							<ToggleGroup
@@ -200,13 +200,13 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 								<div className="flex items-center justify-between">
 									<Label
 										htmlFor="game-version"
-										className="font-medium text-muted-foreground text-xs"
+										className="text-xs font-medium text-muted-foreground"
 									>
 										{t("newInstance.minecraftVersion")}
 									</Label>
 									<Label
 										htmlFor="snapshots-toggle"
-										className="flex cursor-pointer select-none items-center gap-1.5 font-normal text-muted-foreground text-xs transition-colors hover:text-foreground"
+										className="flex cursor-pointer items-center gap-1.5 text-xs font-normal text-muted-foreground transition-colors select-none hover:text-foreground"
 									>
 										<Checkbox
 											id="snapshots-toggle"
@@ -237,7 +237,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 								<div className="grid gap-1.5">
 									<Label
 										htmlFor="loader-version"
-										className="font-medium text-muted-foreground text-xs"
+										className="text-xs font-medium text-muted-foreground"
 									>
 										{t("newInstance.loaderVersion")}
 									</Label>
@@ -263,7 +263,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 
 						{/* Instance Name */}
 						<div className="grid gap-1.5">
-							<Label htmlFor="instance-name" className="font-medium text-muted-foreground text-xs">
+							<Label htmlFor="instance-name" className="text-xs font-medium text-muted-foreground">
 								{t("newInstance.name")}
 							</Label>
 							<Input
@@ -277,7 +277,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 								onKeyDown={(e) => {
 									if (e.key === "Enter") handleCreate()
 								}}
-								className="font-medium text-xs"
+								className="text-xs font-medium"
 							/>
 						</div>
 					</div>

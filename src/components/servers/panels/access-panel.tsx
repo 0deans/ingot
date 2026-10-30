@@ -80,10 +80,10 @@ function WhitelistToggle({ server }: { server: ServerConfig }) {
 	return (
 		<Card className="flex-row items-center justify-between gap-3 px-4 py-3.5">
 			<div>
-				<p className="font-medium text-foreground text-sm">
+				<p className="text-sm font-medium text-foreground">
 					{enabled ? t("access.whitelistOn") : t("access.whitelistOff")}
 				</p>
-				<p className="text-muted-foreground text-xs">
+				<p className="text-xs text-muted-foreground">
 					{enabled ? t("access.onlyListed") : t("access.anyone")}
 				</p>
 			</div>
@@ -164,12 +164,12 @@ function AccessList({
 			) : data.length === 0 ? (
 				<EmptyState icon={meta.icon} title={t(`access.${kind}.empty`)} className="pt-4" />
 			) : (
-				<ul className="divide-y divide-border/70 border-border/70 border-t">
+				<ul className="divide-y divide-border/70 border-t border-border/70">
 					{data.map((entry) => (
 						<li key={entry.uuid || entry.name} className="flex items-center gap-3 px-4 py-2.5">
 							<PlayerAvatar name={entry.name} size={32} />
 							<div className="min-w-0 flex-1">
-								<p className="truncate font-medium text-foreground text-sm">{entry.name}</p>
+								<p className="truncate text-sm font-medium text-foreground">{entry.name}</p>
 								<p className="truncate text-2xs text-muted-foreground">
 									{kind === "ops"
 										? t("access.permissionLevel", { level: entry.level ?? 4 })

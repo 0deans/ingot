@@ -185,7 +185,7 @@ function SkinPreviewCanvas({
 
 	return (
 		<div
-			className={`relative flex select-none items-center justify-center overflow-hidden ${className}`}
+			className={`relative flex items-center justify-center overflow-hidden select-none ${className}`}
 			style={{ width, height }}
 		>
 			{renderedUrl ? (
@@ -194,7 +194,7 @@ function SkinPreviewCanvas({
 					alt=""
 					width={width}
 					height={height}
-					className="size-full select-none object-contain [image-rendering:pixelated]"
+					className="size-full object-contain select-none [image-rendering:pixelated]"
 				/>
 			) : (
 				<canvas

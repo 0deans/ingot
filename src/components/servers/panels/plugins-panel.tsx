@@ -249,7 +249,7 @@ function InstalledList({
 	if (plugins.length === 0 && hasSystem) {
 		return (
 			<Card className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
-				<p className="min-w-40 flex-1 text-muted-foreground text-sm">
+				<p className="min-w-40 flex-1 text-sm text-muted-foreground">
 					{t("plugins.noOther", { context: kind.kind })}
 				</p>
 				<Button
@@ -303,13 +303,13 @@ function InstalledList({
 								<div className="min-w-0 flex-1">
 									<p
 										className={cn(
-											"truncate font-medium text-sm",
+											"truncate text-sm font-medium",
 											p.enabled ? "text-foreground" : "text-muted-foreground",
 										)}
 									>
 										{p.name}
 										{p.version && (
-											<span className="ml-1.5 font-normal text-muted-foreground text-xs">
+											<span className="ml-1.5 text-xs font-normal text-muted-foreground">
 												{p.version}
 											</span>
 										)}
@@ -415,7 +415,7 @@ function InstalledDetails({
 				<PluginIcon url={plugin.iconUrl} name={plugin.name} className="size-12" />
 				<div className="min-w-0">
 					<DialogTitle className="truncate text-base">{plugin.name}</DialogTitle>
-					<p className="text-muted-foreground text-xs">
+					<p className="text-xs text-muted-foreground">
 						{plugin.version ?? t("plugins.unknownVersion")}
 						{plugin.authors.length > 0 &&
 							` · ${t("plugins.byAuthors", { authors: plugin.authors.join(", ") })}`}
@@ -423,7 +423,7 @@ function InstalledDetails({
 				</div>
 			</div>
 			{plugin.description && (
-				<p className="text-foreground/80 text-sm leading-relaxed">{plugin.description}</p>
+				<p className="text-sm leading-relaxed text-foreground/80">{plugin.description}</p>
 			)}
 			<dl className="grid grid-cols-2 gap-2 text-xs">
 				<div className="rounded-xl bg-card/60 p-2.5">
@@ -452,7 +452,7 @@ function InstalledDetails({
 						href={pageUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-border text-foreground/80 text-sm hover:bg-card"
+						className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-border text-sm text-foreground/80 hover:bg-card"
 					>
 						<ExternalLink className="size-4" /> {t("pluginDetails.page")}
 					</a>
@@ -561,7 +561,7 @@ function BrowseView({
 						))}
 					</SelectContent>
 				</Select>
-				<div className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card/60 px-3 text-foreground/80 text-xs">
+				<div className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card/60 px-3 text-xs text-foreground/80">
 					<Switch
 						checked={compatibleOnly}
 						onCheckedChange={setCompatibleOnly}
@@ -657,12 +657,12 @@ function ResultCard({
 			>
 				<PluginIcon url={project.iconUrl} name={project.title} className="size-12" />
 				<div className="min-w-0 flex-1">
-					<p className="truncate font-semibold text-foreground text-sm">{project.title}</p>
+					<p className="truncate text-sm font-semibold text-foreground">{project.title}</p>
 					<p className="truncate text-2xs text-muted-foreground">
 						{project.author} · <Download className="inline size-3" />{" "}
 						{formatCount(project.downloads)}
 					</p>
-					<p className="mt-1 line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+					<p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
 						{project.description}
 					</p>
 					{project.playersNeedIt && (

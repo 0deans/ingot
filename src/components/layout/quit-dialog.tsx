@@ -100,7 +100,7 @@ const QuitDialog = () => {
 					<TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
 					<div className="flex flex-col gap-1">
 						<DialogTitle className="text-base">{t(`quitDialog.title_${mode}`)}</DialogTitle>
-						<DialogDescription className="text-muted-foreground text-sm leading-relaxed">
+						<DialogDescription className="text-sm leading-relaxed text-muted-foreground">
 							{running.length === 0
 								? t("quitDialog.asleep", { count })
 								: t("quitDialog.consoles", { count })}
@@ -120,7 +120,7 @@ const QuitDialog = () => {
 								) : (
 									<Server className="size-4 shrink-0 text-primary" />
 								)}
-								<p className="min-w-0 flex-1 truncate font-medium text-foreground text-sm">
+								<p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
 									{server.name}
 								</p>
 								<span className="shrink-0 text-2xs text-muted-foreground">
@@ -132,7 +132,7 @@ const QuitDialog = () => {
 				</div>
 
 				{stopping ? (
-					<p className="flex items-center gap-2 text-muted-foreground text-xs">
+					<p className="flex items-center gap-2 text-xs text-muted-foreground">
 						<Spinner className="size-3.5 shrink-0" />
 						{running.length > 0
 							? t("quitDialog.saving", { count: running.length })
@@ -141,7 +141,7 @@ const QuitDialog = () => {
 				) : (
 					mode === "quit" &&
 					request.games > 0 && (
-						<p className="flex items-start gap-2 text-muted-foreground text-xs leading-relaxed">
+						<p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
 							<Gamepad2 className="mt-px size-3.5 shrink-0" />
 							{t("quitDialog.games", { count: request.games })}
 						</p>

@@ -32,7 +32,7 @@ export const UpdateBanner = () => {
 	const isReady = status === "ready"
 
 	return (
-		<div className="relative z-50 w-full border-border/40 border-b bg-linear-to-r from-primary/40 via-card/60 to-primary/30 px-4 py-2 text-foreground backdrop-blur-md transition-all">
+		<div className="relative z-50 w-full border-b border-border/40 bg-linear-to-r from-primary/40 via-card/60 to-primary/30 px-4 py-2 text-foreground backdrop-blur-md transition-all">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex items-center gap-2.5">
 					<div
@@ -55,7 +55,7 @@ export const UpdateBanner = () => {
 					</div>
 
 					<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-						<span className="font-medium text-xs">
+						<span className="text-xs font-medium">
 							{isReady
 								? t("updateBanner.readyToInstall", { version: updateInfo.version })
 								: isDownloading
@@ -78,7 +78,7 @@ export const UpdateBanner = () => {
 						<Button
 							size="sm"
 							onClick={() => relaunchApp()}
-							className="h-7 gap-1.5 px-3 font-medium text-xs"
+							className="h-7 gap-1.5 px-3 text-xs font-medium"
 						>
 							<RefreshCw className="size-3" />
 							<span>{t("updateBanner.restartNow")}</span>
@@ -92,7 +92,7 @@ export const UpdateBanner = () => {
 						<Button
 							size="sm"
 							onClick={() => downloadAndInstall()}
-							className="h-7 gap-1.5 px-3 font-medium text-xs"
+							className="h-7 gap-1.5 px-3 text-xs font-medium"
 						>
 							<Download className="size-3" />
 							<span>{t("updateBanner.updateNow")}</span>

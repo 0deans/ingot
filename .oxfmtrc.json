@@ -1,0 +1,29 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"useTabs": true,
+	"tabWidth": 2,
+	"printWidth": 100,
+	"semi": false,
+	"singleQuote": false,
+	"jsxSingleQuote": false,
+	"ignorePatterns": [
+		"dist/**",
+		"node_modules/**",
+		"src-tauri/**",
+		"public/**",
+		"src/routeTree.gen.ts",
+		"src/bindings.ts",
+		"src/components/ui/**",
+		"**/*.md"
+	],
+	"sortTailwindcss": {
+		"stylesheet": "./src/index.css",
+		"attributes": ["classList"],
+		"functions": ["cn", "cva", "clsx", "twMerge", "tw"]
+	},
+	"sortImports": {
+		"internalPattern": ["@/"],
+		"groups": ["builtin", "external", "internal", ["parent", "sibling", "index"], "style"],
+		"newlinesBetween": false
+	}
+}

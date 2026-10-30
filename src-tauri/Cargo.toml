@@ -9,11 +9,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "ingot_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Use ["rlib"] for fast desktop dev/test linking; add "staticlib", "cdylib" only when building for Android/iOS
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -28,7 +26,7 @@ serde_json = "1"
 thiserror = "2"
 tempfile = "3"
 keyring = "4.2.0"
-reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "cookies", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "cookies", "rustls-tls", "http2", "stream"] }
 uuid = { version = "1", features = ["v4", "v3"] }
 taurpc = "0.8.2"
 specta = { version = "=2.0.0-rc.25", features = ["derive"] }
@@ -38,14 +36,14 @@ base64 = "0.23.1"
 tauri-plugin-dialog = "2"
 sha1 = "0.11.0"
 toml_edit = "0.25"
-zip = { version = "8", default-features = false, features = ["deflate"] }
-flate2 = "1"
+zip = { version = "8", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
 indexmap = { version = "2", features = ["serde"] }
 tar = "0.4"
 fastnbt = "2"
 png = "0.18"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
-md5 = { version = "0.10", package = "md-5" }
+md5 = { version = "0.11", package = "md-5" }
 if-addrs = "0.15.0"
 sha2 = "0.11.0"
 bedrock-world = "0.3.5"
@@ -61,22 +59,27 @@ tokio = { version = "1", features = ["test-util"] }
 tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
 
-
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
-[profile.dev.package.image]
-opt-level = 3
+[profile.dev]
+debug = 1
 
-[profile.dev.package.png]
-opt-level = 3
+[profile.test]
+debug = 1
 
-[profile.dev.package.zune-jpeg]
-opt-level = 3
+[profile.dev.package."*"]
+opt-level = 2
+debug = 0
 
-[profile.dev.package.zune-core]
-opt-level = 3
+[profile.test.package."*"]
+opt-level = 2
+debug = 0
+
+[profile.dev.build-override]
+opt-level = 0
+debug = 0
 
 [profile.release]
-codegen-units = 16
+codegen-units = 1
 lto = "thin"
 opt-level = 3
 panic = "abort"

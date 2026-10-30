@@ -61,7 +61,7 @@ const AccountSwitcher = ({
 							render={
 								<DropdownMenuTrigger
 									aria-label={t("accounts.userProfile")}
-									className="group relative flex size-10 items-center justify-center rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary/40"
+									className="group relative flex size-10 items-center justify-center rounded-lg transition-transform outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary/40"
 								>
 									<SkinAvatar
 										username={activeAccount ? activeAccount.username : t("accounts.player")}
@@ -98,7 +98,7 @@ const AccountSwitcher = ({
 						/>
 						<div className="flex min-w-0 flex-1 flex-col">
 							<div className="flex items-center gap-1.5">
-								<span className="truncate font-semibold text-foreground text-xs">
+								<span className="truncate text-xs font-semibold text-foreground">
 									{activeAccount ? activeAccount.username : t("accounts.noAccount")}
 								</span>
 								{activeAccount && <AccountTypeBadge type={activeAccount.accountType} />}
@@ -125,20 +125,20 @@ const AccountSwitcher = ({
 					className="w-60 border-border/60 bg-background/95 p-1.5 shadow-xl backdrop-blur-md"
 				>
 					{loadError && (
-						<p role="alert" className="p-2 text-destructive text-xs">
+						<p role="alert" className="p-2 text-xs text-destructive">
 							{loadError}
 						</p>
 					)}
 					<DropdownMenuGroup>
 						<DropdownMenuLabel className="flex items-center justify-between text-2xs">
 							<span>{t("accounts.minecraftAccounts")}</span>
-							<span className="font-normal text-3xs text-muted-foreground">
+							<span className="text-3xs font-normal text-muted-foreground">
 								{t("accounts.linkedCount", { count: accounts.length })}
 							</span>
 						</DropdownMenuLabel>
 
 						{accounts.length === 0 ? (
-							<div className="p-2 text-center text-muted-foreground text-xs">
+							<div className="p-2 text-center text-xs text-muted-foreground">
 								{t("accounts.noAccountsYet")}
 							</div>
 						) : (
@@ -153,7 +153,7 @@ const AccountSwitcher = ({
 										<div className="flex items-center gap-2">
 											<SkinAvatar username={acc.username} skinUrl={acc.skinUrl} size={24} />
 											<div className="flex flex-col">
-												<span className="font-medium text-xs">{acc.username}</span>
+												<span className="text-xs font-medium">{acc.username}</span>
 												<div className="flex items-center gap-1">
 													<span className="text-3xs text-muted-foreground capitalize">
 														{acc.accountType}
@@ -172,7 +172,7 @@ const AccountSwitcher = ({
 														<Button
 															variant="ghost"
 															size="icon-xs"
-															className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
+															className="opacity-0 transition-opacity group-hover/item:opacity-100 group-data-highlighted/item:opacity-100 hover:text-primary focus-visible:opacity-100 any-pointer-coarse:opacity-100"
 															onClick={(e) => {
 																e.stopPropagation()
 																setPreviewAccount(acc)
@@ -192,7 +192,7 @@ const AccountSwitcher = ({
 														<Button
 															variant="ghost"
 															size="icon-xs"
-															className="any-pointer-coarse:opacity-100 opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover/item:opacity-100 group-data-highlighted/item:opacity-100"
+															className="opacity-0 transition-opacity group-hover/item:opacity-100 group-data-highlighted/item:opacity-100 hover:text-destructive focus-visible:opacity-100 any-pointer-coarse:opacity-100"
 															onClick={(e) => handleRemoveAccount(e, acc.id)}
 															aria-label={t("accounts.removeAccount")}
 														/>

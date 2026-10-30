@@ -162,7 +162,7 @@ export function MapPanel({
 						setDimension(next.id)
 						initialized.current = null
 					}}
-					className="scrollbar-none pointer-events-auto max-w-full overflow-x-auto border bg-background/80 p-1 backdrop-blur-md"
+					className="pointer-events-auto max-w-full scrollbar-none overflow-x-auto border bg-background/80 p-1 backdrop-blur-md"
 				>
 					{dimensions?.map((d) => (
 						<ToggleGroupItem key={d.id} value={d.id}>

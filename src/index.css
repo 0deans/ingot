@@ -632,7 +632,7 @@
 		@apply bg-transparent p-0;
 	}
 	.plugin-page blockquote {
-		@apply border-zinc-700 border-l-2 pl-3 text-zinc-400;
+		@apply border-l-2 border-zinc-700 pl-3 text-zinc-400;
 	}
 	.plugin-page table {
 		@apply block overflow-x-auto;

@@ -115,7 +115,7 @@ export function ServerWorkspace({
 
 	return (
 		<div className="flex size-full min-h-0 flex-col">
-			<header className="flex shrink-0 flex-col gap-3 border-border/60 border-b px-5 pt-4 lg:px-6">
+			<header className="flex shrink-0 flex-col gap-3 border-b border-border/60 px-5 pt-4 lg:px-6">
 				<div className="flex items-center gap-3">
 					<Button
 						variant="ghost"
@@ -139,7 +139,7 @@ export function ServerWorkspace({
 					</div>
 					<div className="min-w-0">
 						<div className="flex items-center gap-2">
-							<h1 className="truncate font-semibold text-base text-foreground">{server.name}</h1>
+							<h1 className="truncate text-base font-semibold text-foreground">{server.name}</h1>
 							<StatusPill status={status} />
 						</div>
 						<p className="text-2xs text-muted-foreground capitalize">
@@ -165,7 +165,7 @@ export function ServerWorkspace({
 			{fill ? (
 				<div className="min-h-0 flex-1">{content}</div>
 			) : (
-				<ScrollArea className="scroll-fade-y min-h-0 flex-1">
+				<ScrollArea className="min-h-0 flex-1 scroll-fade-y">
 					<div className="mx-auto w-full max-w-5xl p-5 pb-12 lg:p-6">{content}</div>
 				</ScrollArea>
 			)}

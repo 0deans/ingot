@@ -70,7 +70,7 @@ export function Segmented<T extends string>({
 					<TabsTrigger
 						key={v}
 						value={v}
-						className="h-full min-w-max whitespace-nowrap px-3 py-1 text-xs leading-tight"
+						className="h-full min-w-max px-3 py-1 text-xs leading-tight whitespace-nowrap"
 					>
 						{Icon && <Icon />}
 						{label}
@@ -97,7 +97,7 @@ export function PlayerAvatar({
 	return (
 		<div className={cn("relative shrink-0", className)} style={{ width: size, height: size }}>
 			{failed ? (
-				<div className="flex size-full items-center justify-center rounded-lg bg-muted font-semibold text-muted-foreground text-xs">
+				<div className="flex size-full items-center justify-center rounded-lg bg-muted text-xs font-semibold text-muted-foreground">
 					{name.slice(0, 2).toUpperCase()}
 				</div>
 			) : (
@@ -127,7 +127,7 @@ export function ItemIcon({ id, className }: { id: string; className?: string }) 
 	const [index, setIndex] = useState(0)
 	if (index >= urls.length) {
 		return (
-			<span className={cn("font-bold text-3xs text-muted-foreground uppercase", className)}>
+			<span className={cn("text-3xs font-bold text-muted-foreground uppercase", className)}>
 				{prettyId(id).slice(0, 3)}
 			</span>
 		)
@@ -180,7 +180,7 @@ export function ItemSlot({
 						className={cn("size-full", item.enchanted && "drop-shadow-[0_0_4px_#c084fc]")}
 					/>
 					{item.count > 1 && (
-						<span className="absolute right-0.5 bottom-0 font-bold text-3xs text-white [text-shadow:1px_1px_0_#000]">
+						<span className="absolute right-0.5 bottom-0 text-3xs font-bold text-white [text-shadow:1px_1px_0_#000]">
 							{item.count}
 						</span>
 					)}
@@ -225,7 +225,7 @@ export function StatBar({
 					<Icon className="size-3.5" style={{ color }} />
 					{label}
 				</span>
-				<span className="font-medium font-mono text-foreground">
+				<span className="font-mono font-medium text-foreground">
 					{Math.round(value * 10) / 10}
 					<span className="text-muted-foreground/60">/{max}</span>
 				</span>
@@ -265,7 +265,7 @@ export function FadeScroll({
 	...props
 }: React.ComponentProps<typeof ScrollArea>) {
 	return (
-		<ScrollArea className={cn("scroll-fade-y min-h-0 flex-1", className)} {...props}>
+		<ScrollArea className={cn("min-h-0 flex-1 scroll-fade-y", className)} {...props}>
 			{children}
 		</ScrollArea>
 	)

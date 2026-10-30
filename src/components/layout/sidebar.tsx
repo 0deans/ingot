@@ -128,7 +128,7 @@ const Sidebar = () => {
 	}, [router, currentPathname])
 
 	return (
-		<aside className="flex w-16 flex-col items-center justify-between border-border/40 border-r bg-background/40 py-4 backdrop-blur-sm">
+		<aside className="flex w-16 flex-col items-center justify-between border-r border-border/40 bg-background/40 py-4 backdrop-blur-sm">
 			<div className="relative flex flex-col items-center gap-3">
 				{/* GPU-accelerated gliding active pill indicator */}
 				<div

@@ -59,7 +59,7 @@ export const UpdateSettings = () => {
 							</div>
 							<div>
 								<div className="flex items-center gap-2">
-									<span className="font-medium text-foreground text-xs sm:text-sm">
+									<span className="text-xs font-medium text-foreground sm:text-sm">
 										Ingot v{updateInfo?.currentVersion || APP_VERSION}
 									</span>
 									<Badge variant="secondary" className="font-mono">
@@ -94,7 +94,7 @@ export const UpdateSettings = () => {
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
 									<Sparkles className="size-4 text-primary" />
-									<span className="font-medium text-primary text-xs">
+									<span className="text-xs font-medium text-primary">
 										{t("settings.updates.versionAvailable", { version: updateInfo.version })}
 									</span>
 								</div>
@@ -110,7 +110,7 @@ export const UpdateSettings = () => {
 							</div>
 
 							{updateInfo.body && (
-								<p className="line-clamp-3 whitespace-pre-line font-sans text-2xs text-foreground/80">
+								<p className="line-clamp-3 font-sans text-2xs whitespace-pre-line text-foreground/80">
 									{updateInfo.body}
 								</p>
 							)}
@@ -119,7 +119,7 @@ export const UpdateSettings = () => {
 								<Button
 									size="sm"
 									onClick={() => downloadAndInstall()}
-									className="h-8 gap-1.5 font-medium text-xs"
+									className="h-8 gap-1.5 text-xs font-medium"
 								>
 									<Download className="size-3.5" />
 									<span>{t("settings.updates.downloadAndInstall")}</span>
@@ -138,7 +138,7 @@ export const UpdateSettings = () => {
 										{t("settings.updates.downloading", { version: updateInfo?.version })}
 									</span>
 								</div>
-								<span className="font-mono text-info text-xs">{downloadProgress}%</span>
+								<span className="font-mono text-xs text-info">{downloadProgress}%</span>
 							</div>
 							<Progress value={downloadProgress} />
 						</div>
@@ -150,7 +150,7 @@ export const UpdateSettings = () => {
 							<div className="flex items-center gap-2.5">
 								<CheckCircle2 className="size-4 text-primary" />
 								<div>
-									<div className="font-medium text-primary text-xs">
+									<div className="text-xs font-medium text-primary">
 										{t("settings.updates.installedTitle")}
 									</div>
 									<div className="text-2xs text-muted-foreground">
@@ -161,7 +161,7 @@ export const UpdateSettings = () => {
 							<Button
 								size="sm"
 								onClick={() => relaunchApp()}
-								className="h-8 gap-1.5 font-medium text-xs"
+								className="h-8 gap-1.5 text-xs font-medium"
 							>
 								<RefreshCw className="size-3.5" />
 								<span>{t("settings.updates.restartIngot")}</span>
@@ -171,7 +171,7 @@ export const UpdateSettings = () => {
 
 					{/* Up to Date confirmation */}
 					{status === "up-to-date" && (
-						<div className="mt-1 flex items-center gap-2 text-primary/90 text-xs">
+						<div className="mt-1 flex items-center gap-2 text-xs text-primary/90">
 							<CheckCircle2 className="size-3.5 shrink-0" />
 							<span>{t("settings.updates.upToDate")}</span>
 						</div>

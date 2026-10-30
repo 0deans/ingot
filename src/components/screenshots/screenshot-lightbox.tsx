@@ -91,21 +91,21 @@ const ScreenshotLightbox = ({
 	const imageUrl = screenshotService.getImageUrl(screenshot.filePath)
 
 	return createPortal(
-		<div className="dark fixed inset-x-0 top-10 bottom-0 z-40 flex animate-in select-none items-center justify-center p-3 duration-200">
+		<div className="dark fixed inset-x-0 top-10 bottom-0 z-40 flex animate-in items-center justify-center p-3 duration-200 select-none">
 			{/* Backdrop overlay button - clicking outside image closes lightbox */}
 			<button
 				type="button"
 				aria-label={t("screenshots.lightbox.close")}
 				tabIndex={-1}
 				onClick={onClose}
-				className="absolute inset-0 size-full cursor-default border-none bg-black/92 outline-none backdrop-blur-2xl transition-all"
+				className="absolute inset-0 size-full cursor-default border-none bg-black/92 backdrop-blur-2xl transition-all outline-none"
 			/>
 
 			{/* Floating Top Controls */}
 			<div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4">
 				{/* Top-Left: Instance & Name pill */}
 				<div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-border/80 bg-background/80 px-3.5 py-1.5 shadow-2xl backdrop-blur-md">
-					<span className="flex items-center gap-1.5 font-medium text-foreground/80 text-xs">
+					<span className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
 						{screenshot.instanceId === "bedrock" ? (
 							<LoaderIcon loader="bedrock" size={14} className="shrink-0" />
 						) : (
@@ -116,7 +116,7 @@ const ScreenshotLightbox = ({
 					<span className="text-muted-foreground/60">•</span>
 					<span
 						title={screenshot.fileName}
-						className="max-w-[240px] truncate font-medium text-foreground text-xs"
+						className="max-w-[240px] truncate text-xs font-medium text-foreground"
 					>
 						{screenshot.fileName}
 					</span>
@@ -125,7 +125,7 @@ const ScreenshotLightbox = ({
 				{/* Top-Right: Counter & Action buttons pill */}
 				<div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border/80 bg-background/80 p-1 pl-3 shadow-2xl backdrop-blur-md">
 					{currentIndex >= 0 && (
-						<span className="mr-1.5 font-mono text-muted-foreground text-xs">
+						<span className="mr-1.5 font-mono text-xs text-muted-foreground">
 							{currentIndex + 1} / {allScreenshots.length}
 						</span>
 					)}
@@ -200,7 +200,7 @@ const ScreenshotLightbox = ({
 				<img
 					src={imageUrl}
 					alt={screenshot.fileName}
-					className="pointer-events-auto max-h-[86vh] max-w-[92vw] select-none rounded-xl object-contain shadow-2xl shadow-black ring-1 ring-border/10 transition-all duration-200"
+					className="pointer-events-auto max-h-[86vh] max-w-[92vw] rounded-xl object-contain shadow-2xl ring-1 shadow-black ring-border/10 transition-all duration-200 select-none"
 				/>
 			</div>
 
@@ -219,7 +219,7 @@ const ScreenshotLightbox = ({
 
 			{/* Floating Bottom Metadata Pill */}
 			<div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
-				<div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border/80 bg-background/80 px-4 py-1.5 text-muted-foreground text-xs shadow-2xl backdrop-blur-md">
+				<div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border/80 bg-background/80 px-4 py-1.5 text-xs text-muted-foreground shadow-2xl backdrop-blur-md">
 					<span className="font-mono text-2xs text-foreground/80">
 						{formatBytes(screenshot.fileSizeBytes)}
 					</span>

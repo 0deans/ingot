@@ -48,7 +48,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 				isOverlay
 					? "cursor-grabbing rounded-lg bg-card shadow-2xl ring-2 ring-primary/60"
 					: isDragging
-						? "bg-card/40 opacity-25 ring-1 ring-dashed ring-primary/40 ring-inset"
+						? "ring-dashed bg-card/40 opacity-25 ring-1 ring-primary/40 ring-inset"
 						: "hover:bg-card/30",
 			)}
 		>
@@ -62,7 +62,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 								aria-label={t("accounts.reorder", { name: account.username })}
 								{...dragHandleProps}
 								className={cn(
-									"flex size-8 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary active:cursor-grabbing",
+									"flex size-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground/30 transition-colors select-none hover:bg-muted/80 hover:text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-hidden active:cursor-grabbing",
 									(isDragging || isOverlay) && "cursor-grabbing bg-muted/80 text-primary",
 								)}
 							/>
@@ -80,7 +80,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 							<button
 								type="button"
 								onClick={() => onPreviewSkin(account)}
-								className="group/avatar relative shrink-0 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+								className="group/avatar relative shrink-0 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-hidden"
 								aria-label={t("accounts.clickToPreview")}
 							/>
 						}
@@ -100,7 +100,7 @@ export const AccountCardContent = memo(function AccountCardContent({
 
 				<div className="flex min-w-0 flex-col">
 					<div className="flex flex-wrap items-center gap-2">
-						<span className="truncate font-semibold text-foreground text-sm">
+						<span className="truncate text-sm font-semibold text-foreground">
 							{account.username}
 						</span>
 						<AccountTypeBadge type={account.accountType} />

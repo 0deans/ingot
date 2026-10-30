@@ -168,11 +168,11 @@ export default function ChangeVersionDialog({
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
 						<LoaderIcon loader={instance.loader} size={22} />
-						<DialogTitle className="font-semibold text-foreground text-lg">
+						<DialogTitle className="text-lg font-semibold text-foreground">
 							{t("versionChange.title")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-muted-foreground text-xs">
+					<DialogDescription className="text-xs text-muted-foreground">
 						{t("versionChange.instanceDescription")}
 					</DialogDescription>
 				</DialogHeader>
@@ -180,7 +180,7 @@ export default function ChangeVersionDialog({
 				{(stage === "pick" || stage === "checking") && (
 					<div className="flex flex-col gap-4">
 						<div className="grid gap-1.5">
-							<span className="font-medium text-muted-foreground text-xs">
+							<span className="text-xs font-medium text-muted-foreground">
 								{t("newInstance.modLoader")}
 							</span>
 							<ToggleGroup
@@ -212,13 +212,13 @@ export default function ChangeVersionDialog({
 						</div>
 						<div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
 							<div className="grid gap-1.5">
-								<span className="font-medium text-muted-foreground text-xs">
+								<span className="text-xs font-medium text-muted-foreground">
 									{t("versionChange.nowLabel")}
 								</span>
-								<div className="flex h-9 items-center gap-2 border border-border bg-card/50 px-3 text-foreground/80 text-sm">
+								<div className="flex h-9 items-center gap-2 border border-border bg-card/50 px-3 text-sm text-foreground/80">
 									{instance.gameVersion}
 									{instance.loaderVersion && (
-										<span className="truncate text-muted-foreground text-xs">
+										<span className="truncate text-xs text-muted-foreground">
 											· {loaderName(instance.loader)} {instance.loaderVersion}
 										</span>
 									)}
@@ -228,7 +228,7 @@ export default function ChangeVersionDialog({
 							<div className="grid gap-1.5">
 								<Label
 									htmlFor="target-version"
-									className="font-medium text-muted-foreground text-xs"
+									className="text-xs font-medium text-muted-foreground"
 								>
 									{t("versionChange.moveTo")}
 								</Label>
@@ -255,7 +255,7 @@ export default function ChangeVersionDialog({
 							<div className="grid gap-1.5">
 								<Label
 									htmlFor="target-loader"
-									className="font-medium text-muted-foreground text-xs"
+									className="text-xs font-medium text-muted-foreground"
 								>
 									{t("versionChange.loaderVersion", { loader: loaderName(loader) })}
 								</Label>
@@ -296,7 +296,7 @@ export default function ChangeVersionDialog({
 				)}
 
 				{stage === "review" && plan && (
-					<ScrollArea className="scroll-fade-y -mr-2 max-h-[60vh] pr-2">
+					<ScrollArea className="-mr-2 max-h-[60vh] scroll-fade-y pr-2">
 						<div className="pr-1 pb-1">
 							<PlanReview
 								plan={plan}
@@ -317,8 +317,8 @@ export default function ChangeVersionDialog({
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-10 text-center">
 						<Spinner className="size-7 text-primary" />
-						<p className="font-medium text-foreground text-sm">{t("versionChange.applying")}</p>
-						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
+						<p className="text-sm font-medium text-foreground">{t("versionChange.applying")}</p>
+						<p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
 							{backupWorlds && (plan?.worlds.length ?? 0) > 0
 								? t("versionChange.applyingWithWorlds")
 								: t("versionChange.applyingHint")}
@@ -329,10 +329,10 @@ export default function ChangeVersionDialog({
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
 						<CheckCircle2 className="size-8 text-primary" />
-						<p className="font-semibold text-foreground text-sm">
+						<p className="text-sm font-semibold text-foreground">
 							{t("versionChange.nowOn", { version: planSide(plan, "to") })}
 						</p>
-						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
+						<p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
 							{t("versionChange.instanceDone", { version: planSide(plan, "from") })}
 						</p>
 					</div>

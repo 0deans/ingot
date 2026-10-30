@@ -96,7 +96,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 					className={`absolute top-1.5 right-1.5 z-20 transition-opacity duration-150 ${
 						menuOpen
 							? "opacity-100"
-							: "any-pointer-coarse:opacity-100 opacity-0 focus-within:opacity-100 group-hover:opacity-100"
+							: "opacity-0 group-hover:opacity-100 focus-within:opacity-100 any-pointer-coarse:opacity-100"
 					}`}
 				>
 					<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
@@ -136,7 +136,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
-									className="gap-2 text-destructive text-xs focus:text-destructive"
+									className="gap-2 text-xs text-destructive focus:text-destructive"
 									onClick={() => {
 										setMenuOpen(false)
 										onDelete(screenshot)
@@ -156,7 +156,7 @@ const ScreenshotCard = ({ screenshot, onClick, onDelete, onReveal }: ScreenshotC
 				<div className="flex items-center justify-between gap-2">
 					<span
 						title={screenshot.fileName}
-						className="truncate font-medium text-foreground text-xs transition-colors group-hover:text-primary"
+						className="truncate text-xs font-medium text-foreground transition-colors group-hover:text-primary"
 					>
 						{screenshot.fileName}
 					</span>

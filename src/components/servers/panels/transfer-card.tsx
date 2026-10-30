@@ -225,7 +225,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 					<div className="flex flex-col gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3">
 						<div className="flex items-center gap-2 text-destructive">
 							<AlertTriangle className="size-4 shrink-0" />
-							<p className="font-medium text-xs">
+							<p className="text-xs font-medium">
 								{transactionStatus.error || t("transfer.recoveryRequired")}
 							</p>
 						</div>
@@ -250,7 +250,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 				)}
 				{versionBackup && !transactionStatus?.canRecover && (
 					<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-background/60 p-3">
-						<p className="min-w-0 flex-1 text-muted-foreground text-xs">
+						<p className="min-w-0 flex-1 text-xs text-muted-foreground">
 							{t(versionBackup.worldsBackedUp ? "transfer.backupWithWorlds" : "transfer.backup", {
 								version:
 									versionBackup.fromLoader === versionBackup.toLoader
@@ -265,7 +265,7 @@ export function TransferCard({ server }: { server: ServerConfig }) {
 								size="sm"
 								onClick={discardBackup}
 								disabled={busy !== null}
-								className="h-8 rounded-lg text-muted-foreground text-xs"
+								className="h-8 rounded-lg text-xs text-muted-foreground"
 							>
 								{t("transfer.deleteBackup")}
 							</Button>
@@ -481,14 +481,14 @@ function ChangeVersionDialog({
 
 				{(stage === "pick" || stage === "checking") && (
 					<>
-						<p className="text-muted-foreground text-sm leading-relaxed">
+						<p className="text-sm leading-relaxed text-muted-foreground">
 							{t("transfer.changeDescription", {
 								context: cores.includes("paper") ? "plugin" : "mod",
 							})}
 						</p>
 						{cores.length > 1 && (
 							<div className="grid gap-1.5">
-								<span className="font-medium text-muted-foreground text-xs">
+								<span className="text-xs font-medium text-muted-foreground">
 									{t("transfer.serverType")}
 								</span>
 								<div className="flex flex-wrap gap-1.5">
@@ -503,8 +503,8 @@ function ChangeVersionDialog({
 											}}
 											className={
 												core === id
-													? "rounded-lg border border-primary/60 bg-primary/10 px-3 py-1.5 text-foreground text-sm"
-													: "rounded-lg border border-border bg-background/60 px-3 py-1.5 text-muted-foreground text-sm hover:text-foreground"
+													? "rounded-lg border border-primary/60 bg-primary/10 px-3 py-1.5 text-sm text-foreground"
+													: "rounded-lg border border-border bg-background/60 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
 											}
 										>
 											{loaderName(id)}
@@ -540,7 +540,7 @@ function ChangeVersionDialog({
 				)}
 
 				{stage === "review" && plan && (
-					<ScrollArea className="scroll-fade-y -mr-2 min-h-0 flex-1 pr-2">
+					<ScrollArea className="-mr-2 min-h-0 flex-1 scroll-fade-y pr-2">
 						<PlanReview
 							plan={plan}
 							choices={choices}
@@ -560,8 +560,8 @@ function ChangeVersionDialog({
 				{stage === "applying" && (
 					<div className="flex flex-col items-center gap-3 py-8 text-center">
 						<Spinner className="size-7 text-primary" />
-						<p className="font-medium text-foreground text-sm">{t("versionChange.applying")}</p>
-						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
+						<p className="text-sm font-medium text-foreground">{t("versionChange.applying")}</p>
+						<p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
 							{t("versionChange.applyingHint")}
 						</p>
 					</div>
@@ -570,10 +570,10 @@ function ChangeVersionDialog({
 				{stage === "done" && plan && (
 					<div className="flex flex-col items-center gap-3 py-6 text-center">
 						<CheckCircle2 className="size-8 text-primary" />
-						<p className="font-semibold text-foreground text-sm">
+						<p className="text-sm font-semibold text-foreground">
 							{t("transfer.readyFor", { version: planSide(plan, "to") })}
 						</p>
-						<p className="max-w-sm text-muted-foreground text-xs leading-relaxed">
+						<p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
 							{t("transfer.doneNote")}
 						</p>
 					</div>

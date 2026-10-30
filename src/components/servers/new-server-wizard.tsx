@@ -261,7 +261,7 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 					<ArrowLeft className="size-5" />
 				</Button>
 				<div className="flex flex-1 flex-col gap-0.5">
-					<p className="font-semibold text-foreground text-sm">
+					<p className="text-sm font-semibold text-foreground">
 						{step === 0
 							? t("wizard.stepEngine")
 							: step === 1
@@ -313,17 +313,17 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 			</FadeScroll>
 
 			{/* ── Footer ── */}
-			<div className="flex shrink-0 flex-col gap-2.5 border-border border-t p-4 sm:px-6">
+			<div className="flex shrink-0 flex-col gap-2.5 border-t border-border p-4 sm:px-6">
 				{step === 0 && importSlot}
 				{step < 2 ? (
-					<Button onClick={goNext} className="h-12 w-full rounded-2xl font-semibold text-sm">
+					<Button onClick={goNext} className="h-12 w-full rounded-2xl text-sm font-semibold">
 						{t("common.continue")}
 					</Button>
 				) : (
 					<Button
 						onClick={handleCreate}
 						disabled={isSubmitting || !name.trim() || !selectedVersion}
-						className="h-12 w-full rounded-2xl font-semibold text-sm disabled:opacity-50"
+						className="h-12 w-full rounded-2xl text-sm font-semibold disabled:opacity-50"
 					>
 						{isSubmitting ? (
 							<>
@@ -420,14 +420,14 @@ function StepDetails({
 					<LoaderIcon loader={core} size={20} />
 				</div>
 				<div>
-					<p className="font-medium text-foreground text-sm">{coreObj?.name}</p>
+					<p className="text-sm font-medium text-foreground">{coreObj?.name}</p>
 					<p className="text-2xs text-muted-foreground">{t(`serverCores.${core}.badge`)}</p>
 				</div>
 			</div>
 
 			{/* Server name */}
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="wiz-name" className="font-medium text-foreground/80 text-xs">
+				<Label htmlFor="wiz-name" className="text-xs font-medium text-foreground/80">
 					{t("wizard.serverName")}
 				</Label>
 				<Input
@@ -442,11 +442,11 @@ function StepDetails({
 
 			{/* Version */}
 			<div className="flex flex-col gap-1.5">
-				<span className="font-medium text-foreground/80 text-xs">
+				<span className="text-xs font-medium text-foreground/80">
 					{t("wizard.minecraftVersion")}
 				</span>
 				{isLoadingVersions ? (
-					<div className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground text-xs">
+					<div className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs text-muted-foreground">
 						<Spinner className="size-3.5 text-primary" />
 						{t("newInstance.loadingVersions")}
 					</div>
@@ -470,11 +470,11 @@ function StepDetails({
 			{!isMobile && (
 				<div className="flex flex-col gap-1.5">
 					<div className="flex items-center justify-between">
-						<Label htmlFor="wiz-port" className="font-medium text-foreground/80 text-xs">
+						<Label htmlFor="wiz-port" className="text-xs font-medium text-foreground/80">
 							{t("wizard.serverPort")}
 						</Label>
 						{isPortConflict && (
-							<span className="font-medium text-2xs text-destructive">
+							<span className="text-2xs font-medium text-destructive">
 								{t("wizard.portInUseShort")}
 							</span>
 						)}
@@ -532,7 +532,7 @@ function StepRam({
 		<div className="flex flex-col gap-4 pt-2">
 			{/* Summary card */}
 			<div className="rounded-2xl border border-border bg-card/60 p-4">
-				<p className="mb-3 font-semibold text-foreground text-sm">{t("wizard.ready")}</p>
+				<p className="mb-3 text-sm font-semibold text-foreground">{t("wizard.ready")}</p>
 				<div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
 					<div>
 						<p className="text-muted-foreground">{t("serverSettings.name")}</p>
@@ -555,7 +555,7 @@ function StepRam({
 
 			{/* RAM slider or Native info */}
 			{isNative ? (
-				<div className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 text-muted-foreground text-xs">
+				<div className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 text-xs text-muted-foreground">
 					<div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary">
 						<Cpu className="size-4" />
 					</div>
@@ -576,9 +576,9 @@ function StepRam({
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-1.5">
 							<Cpu className="size-3.5 text-primary" />
-							<span className="font-medium text-foreground text-sm">{t("wizard.memory")}</span>
+							<span className="text-sm font-medium text-foreground">{t("wizard.memory")}</span>
 						</div>
-						<span className="font-bold font-mono text-primary text-sm">{ramLabel}</span>
+						<span className="font-mono text-sm font-bold text-primary">{ramLabel}</span>
 					</div>
 					<Slider
 						min={minRam}
@@ -621,12 +621,12 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 				</div>
 
 				<div>
-					<h1 className="font-bold text-2xl text-foreground leading-tight">
+					<h1 className="text-2xl leading-tight font-bold text-foreground">
 						{t("wizard.heroLine1")}
 						<br />
 						{t("wizard.heroLine2")}
 					</h1>
-					<p className="mt-2 max-w-xs text-muted-foreground text-sm leading-relaxed">
+					<p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
 						{t("wizard.heroText")}
 					</p>
 				</div>
@@ -643,7 +643,7 @@ export function NoServersState({ onCreate, importSlot }: EmptyStateProps) {
 						<Server className="size-5" />
 					</div>
 					<div>
-						<p className="font-semibold text-foreground text-sm">{t("wizard.createAServer")}</p>
+						<p className="text-sm font-semibold text-foreground">{t("wizard.createAServer")}</p>
 						<p className="text-2xs text-muted-foreground">{t("wizard.createAServerHint")}</p>
 					</div>
 					<Plus className="ml-auto size-5 shrink-0 text-primary" />

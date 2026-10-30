@@ -77,7 +77,7 @@ const SkinAvatar = ({ skinUrl, username, size = 36, className = "" }: SkinAvatar
 
 	return (
 		<div
-			className={`relative flex select-none items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-muted font-bold text-foreground text-xs shadow-inner ${className}`}
+			className={`relative flex items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-muted text-xs font-bold text-foreground shadow-inner select-none ${className}`}
 			style={{ width: size, height: size }}
 		>
 			<canvas
@@ -88,7 +88,7 @@ const SkinAvatar = ({ skinUrl, username, size = 36, className = "" }: SkinAvatar
 			/>
 
 			{(hasError || isLoading || !skinUrl) && (
-				<span className="text-foreground/80 tracking-wider">{initials}</span>
+				<span className="tracking-wider text-foreground/80">{initials}</span>
 			)}
 		</div>
 	)

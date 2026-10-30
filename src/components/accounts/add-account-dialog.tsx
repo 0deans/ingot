@@ -109,7 +109,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 					<DialogDescription>{t("addAccount.description")}</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="scroll-fade-y min-h-0 w-full flex-1 pr-1">
+				<ScrollArea className="min-h-0 w-full flex-1 scroll-fade-y pr-1">
 					<div className="flex flex-col gap-4 py-1">
 						{/* Account Type Selector */}
 						<Tabs
@@ -137,7 +137,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								<div className="grid gap-1.5">
 									<Label
 										htmlFor="ely-username"
-										className="font-medium text-muted-foreground text-xs"
+										className="text-xs font-medium text-muted-foreground"
 									>
 										{t("addAccount.usernameOrEmail")}
 									</Label>
@@ -154,7 +154,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								<div className="grid gap-1.5">
 									<Label
 										htmlFor="ely-password"
-										className="font-medium text-muted-foreground text-xs"
+										className="text-xs font-medium text-muted-foreground"
 									>
 										{t("addAccount.password")}
 									</Label>
@@ -192,7 +192,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 						{/* Offline Form */}
 						{activeTab === "offline" && (
 							<div className="grid gap-3.5 py-1">
-								<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-card/40 px-3 py-2 text-muted-foreground text-xs">
+								<div className="flex items-center gap-2 rounded-lg border border-border/40 bg-card/40 px-3 py-2 text-xs text-muted-foreground">
 									<User className="size-4 shrink-0" />
 									<span>{t("addAccount.offlineNote")}</span>
 								</div>
@@ -200,7 +200,7 @@ const AddAccountDialog = ({ open, onOpenChange, onAccountAdded }: AddAccountDial
 								<div className="grid gap-1.5">
 									<Label
 										htmlFor="offline-name"
-										className="font-medium text-muted-foreground text-xs"
+										className="text-xs font-medium text-muted-foreground"
 									>
 										{t("addAccount.nickname")}
 									</Label>

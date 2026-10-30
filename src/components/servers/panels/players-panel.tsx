@@ -166,14 +166,14 @@ function OnlinePlayerCard({
 			<PlayerAvatar name={player.name} size={44} online />
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center justify-between gap-2">
-					<span className="truncate font-semibold text-foreground text-sm">{player.name}</span>
+					<span className="truncate text-sm font-semibold text-foreground">{player.name}</span>
 					<Badge variant="outline" className={cn("shrink-0", dim.badge)}>
 						{dim.label}
 					</Badge>
 				</div>
 				{isBedrock ? (
 					<div className="mt-2">
-						<span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-medium text-3xs text-primary">
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-3xs font-medium text-primary">
 							<span className="size-1.5 rounded-full bg-current" />
 							{t("players.connected")}
 						</span>

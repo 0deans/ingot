@@ -37,7 +37,7 @@ export function MicrosoftLoginPanel({
 			</Alert>
 			{login.pending && !login.deviceCode && (
 				<div className="grid gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-4">
-					<p className="text-muted-foreground text-sm">
+					<p className="text-sm text-muted-foreground">
 						{t(pendingMessages[login.pending.status])}
 					</p>
 					<div className="flex gap-2">
@@ -54,15 +54,15 @@ export function MicrosoftLoginPanel({
 			)}
 			{login.deviceCode ? (
 				<div className="flex flex-col items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-4 text-center">
-					<p className="text-muted-foreground text-xs">{t("addAccount.microsoftEnterCode")}</p>
-					<p className="select-all font-bold font-mono text-2xl text-foreground tracking-[0.2em]">
+					<p className="text-xs text-muted-foreground">{t("addAccount.microsoftEnterCode")}</p>
+					<p className="font-mono text-2xl font-bold tracking-[0.2em] text-foreground select-all">
 						{login.deviceCode.userCode}
 					</p>
 					<Button onClick={login.openPage} className="w-full gap-1.5">
 						<ExternalLink className="size-3.5" />
 						{t("addAccount.microsoftOpenPage")}
 					</Button>
-					<p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+					<p className="flex items-center gap-1.5 text-xs text-muted-foreground">
 						<Spinner className="size-3.5" />
 						{t("addAccount.microsoftWaiting")}
 					</p>

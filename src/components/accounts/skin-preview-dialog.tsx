@@ -97,7 +97,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 						/>
 						<div className="flex flex-col text-left">
 							<div className="flex items-center gap-2">
-								<DialogTitle className="font-semibold text-base text-foreground">
+								<DialogTitle className="text-base font-semibold text-foreground">
 									{account.username}
 								</DialogTitle>
 								<AccountTypeBadge type={account.accountType} />
@@ -145,7 +145,7 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 										onOpenChange(false)
 										navigate({ to: "/skins" })
 									}}
-									className="gap-1.5 font-medium text-xs"
+									className="gap-1.5 text-xs font-medium"
 								>
 									<Sparkles className="size-3" />
 									{t("skinPreview.changeSkin")}

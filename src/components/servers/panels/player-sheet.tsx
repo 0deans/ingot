@@ -89,7 +89,7 @@ export function PlayerSheet({
 			<DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
 				<DialogTitle className="sr-only">{shownName}</DialogTitle>
 				{isLoading && !player ? (
-					<div className="flex items-center justify-center gap-2 py-16 text-muted-foreground text-sm">
+					<div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
 						<Spinner className="size-4" /> {t("playerSheet.loading")}
 					</div>
 				) : !player ? (
@@ -104,7 +104,7 @@ export function PlayerSheet({
 							<div className="p-4 sm:p-5">
 								<Card className="flex flex-col items-center justify-center p-6 text-center">
 									<Shield className="mb-2 size-8 text-primary/70" />
-									<p className="max-w-md text-muted-foreground text-sm">
+									<p className="max-w-md text-sm text-muted-foreground">
 										{t("playerSheet.bedrockNote")}
 									</p>
 								</Card>
@@ -142,7 +142,7 @@ export function PlayerSheet({
 													<Sparkles className="size-3.5 text-lime-400" />
 													{t("playerSheet.experience")}
 												</span>
-												<span className="font-medium font-mono text-lime-300">
+												<span className="font-mono font-medium text-lime-300">
 													{t("playerSheet.level", { level: player.xpLevel })}
 												</span>
 											</div>
@@ -156,7 +156,7 @@ export function PlayerSheet({
 									</div>
 
 									<div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/40 p-4">
-										<span className="text-2xs text-muted-foreground uppercase tracking-wider">
+										<span className="text-2xs tracking-wider text-muted-foreground uppercase">
 											{t("playerSheet.equipment")}
 										</span>
 										<div className="grid grid-cols-5 gap-1.5">
@@ -285,7 +285,7 @@ function PlayerHeader({ player, core }: { player: PlayerDetails; core?: ServerCo
 		<div className="flex items-center gap-3.5 px-4 pt-2 pb-4 sm:px-5 sm:pt-5">
 			<PlayerAvatar name={player.name} size={56} online={player.online} />
 			<div className="min-w-0 flex-1">
-				<h2 className="truncate font-bold text-foreground text-lg">{player.name}</h2>
+				<h2 className="truncate text-lg font-bold text-foreground">{player.name}</h2>
 				<div className="mt-1 flex flex-wrap items-center gap-1.5 text-2xs">
 					{core !== "bedrock" && (
 						<span className="rounded-full border border-input bg-muted/60 px-2 py-0.5 text-foreground/80">
@@ -387,16 +387,16 @@ function ItemDetails({ item }: { item: ItemStack }) {
 				<div className="min-w-0 flex-1">
 					<p
 						className={cn(
-							"font-medium text-sm",
+							"text-sm font-medium",
 							item.enchanted ? "text-violet-300" : "text-foreground",
 						)}
 					>
 						{item.customName ?? prettyId(item.id)}
 					</p>
-					{item.customName && <p className="text-muted-foreground text-xs">{prettyId(item.id)}</p>}
-					<p className="break-all font-mono text-2xs text-muted-foreground">{item.id}</p>
+					{item.customName && <p className="text-xs text-muted-foreground">{prettyId(item.id)}</p>}
+					<p className="font-mono text-2xs break-all text-muted-foreground">{item.id}</p>
 				</div>
-				<span className="shrink-0 rounded-md bg-muted px-2 py-0.5 font-mono text-foreground/80 text-xs">
+				<span className="shrink-0 rounded-md bg-muted px-2 py-0.5 font-mono text-xs text-foreground/80">
 					×{item.count}
 				</span>
 			</div>
@@ -416,19 +416,19 @@ function ItemDetails({ item }: { item: ItemStack }) {
 			)}
 
 			{item.lore.length > 0 && (
-				<div className="whitespace-pre-line border-border border-t pt-3 text-muted-foreground text-xs italic">
+				<div className="border-t border-border pt-3 text-xs whitespace-pre-line text-muted-foreground italic">
 					{item.lore.join("\n")}
 				</div>
 			)}
 
 			{item.enchantments.length > 0 ? (
-				<div className="border-border border-t pt-3">
+				<div className="border-t border-border pt-3">
 					<p className="mb-2 text-2xs text-violet-300">{t("playerSheet.enchanted")}</p>
 					<div className="grid gap-1.5 sm:grid-cols-2">
 						{item.enchantments.map((enchantment) => (
 							<div
 								key={enchantment.id}
-								className="flex min-w-0 items-center gap-2 text-foreground text-xs"
+								className="flex min-w-0 items-center gap-2 text-xs text-foreground"
 							>
 								<EnchantmentIcon id={enchantment.id} />
 								<span className="min-w-0 flex-1 truncate" title={enchantment.id}>
@@ -443,7 +443,7 @@ function ItemDetails({ item }: { item: ItemStack }) {
 				</div>
 			) : (
 				item.enchanted && (
-					<p className="border-border border-t pt-3 text-2xs text-violet-300">
+					<p className="border-t border-border pt-3 text-2xs text-violet-300">
 						{t("playerSheet.enchanted")}
 					</p>
 				)
@@ -511,7 +511,7 @@ function PlayerActions({
 	}
 
 	return (
-		<div className="flex flex-col gap-3 border-border/80 border-t bg-background/60 p-4 sm:px-5">
+		<div className="flex flex-col gap-3 border-t border-border/80 bg-background/60 p-4 sm:px-5">
 			<ToggleGroup
 				variant="outline"
 				size="sm"
@@ -651,7 +651,7 @@ function ActionButton({
 			onClick={onClick}
 			disabled={busy}
 			// Long translations wrap instead of overflowing the grid cell
-			className="h-auto min-h-10 min-w-0 whitespace-normal px-2 py-1.5 text-xs leading-tight"
+			className="h-auto min-h-10 min-w-0 px-2 py-1.5 text-xs leading-tight whitespace-normal"
 		>
 			{busy ? <Spinner /> : <Icon />}
 			{label}

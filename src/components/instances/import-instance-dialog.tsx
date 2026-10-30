@@ -261,14 +261,14 @@ export const ImportInstanceDialog = ({
 				<DialogHeader className="gap-1">
 					<div className="flex items-center gap-2 text-primary">
 						<FolderOpen className="size-5 shrink-0" />
-						<DialogTitle className="truncate font-semibold text-foreground text-lg">
+						<DialogTitle className="truncate text-lg font-semibold text-foreground">
 							{step === "launchers" && t("importInstance.title")}
 							{step === "instances" &&
 								t("importInstance.selectInstance", { launcher: selectedLauncher?.name ?? "" })}
 							{step === "options" && t("importInstance.configure")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-muted-foreground text-xs">
+					<DialogDescription className="text-xs text-muted-foreground">
 						{step === "launchers" && t("importInstance.description")}
 						{step === "instances" &&
 							t("importInstance.found", {
@@ -281,9 +281,9 @@ export const ImportInstanceDialog = ({
 
 				{/* STEP 1: Launcher Selection */}
 				{step === "launchers" && (
-					<ScrollArea className="scroll-fade-y -mr-2 max-h-[min(520px,70vh)] py-1 pr-2">
+					<ScrollArea className="-mr-2 max-h-[min(520px,70vh)] scroll-fade-y py-1 pr-2">
 						{isLoadingLaunchers ? (
-							<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
+							<div className="flex flex-col items-center justify-center gap-2 py-12 text-xs text-muted-foreground">
 								<Spinner className="size-6 text-primary" />
 								<span>{t("importInstance.detecting")}</span>
 							</div>
@@ -378,7 +378,7 @@ export const ImportInstanceDialog = ({
 									variant="ghost"
 									size="sm"
 									onClick={() => setStep("launchers")}
-									className="h-8 gap-1 text-muted-foreground text-xs"
+									className="h-8 gap-1 text-xs text-muted-foreground"
 								>
 									<ArrowLeft className="size-3.5" />
 									<span>{t("importInstance.backToLaunchers")}</span>
@@ -390,7 +390,7 @@ export const ImportInstanceDialog = ({
 										variant="ghost"
 										size="sm"
 										onClick={() => handleBrowseLauncherFolder(selectedLauncher)}
-										className="h-8 gap-1 text-muted-foreground text-xs"
+										className="h-8 gap-1 text-xs text-muted-foreground"
 									>
 										<FolderSearch className="size-3.5" />
 										<span>{t("importInstance.changeFolder")}</span>
@@ -413,15 +413,15 @@ export const ImportInstanceDialog = ({
 							)}
 						</div>
 
-						<ScrollArea className="scroll-fade-y max-h-[50vh] pr-2">
+						<ScrollArea className="max-h-[50vh] scroll-fade-y pr-2">
 							<div className="flex flex-col gap-2 py-1">
 								{isLoadingInstances ? (
-									<div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground text-xs">
+									<div className="flex flex-col items-center justify-center gap-2 py-12 text-xs text-muted-foreground">
 										<Spinner className="size-6 text-primary" />
 										<span>{t("importInstance.loadingInstances")}</span>
 									</div>
 								) : filteredInstances.length === 0 ? (
-									<div className="py-10 text-center text-muted-foreground text-xs">
+									<div className="py-10 text-center text-xs text-muted-foreground">
 										{t("importInstance.noneFound")}
 									</div>
 								) : (
@@ -435,7 +435,7 @@ export const ImportInstanceDialog = ({
 													<LoaderIcon loader={inst.loader} size={22} />
 												</div>
 												<div className="min-w-0 flex-1">
-													<div className="truncate font-semibold text-foreground text-xs sm:text-sm">
+													<div className="truncate text-xs font-semibold text-foreground sm:text-sm">
 														{inst.name}
 													</div>
 													<div className="flex flex-wrap items-center gap-2 pt-0.5 text-3xs text-muted-foreground">
@@ -481,7 +481,7 @@ export const ImportInstanceDialog = ({
 
 				{/* STEP 3: Options & Confirmation */}
 				{step === "options" && selectedInstance && (
-					<ScrollArea className="scroll-fade-y -mr-2 max-h-[min(540px,65vh)] py-1 pr-2">
+					<ScrollArea className="-mr-2 max-h-[min(540px,65vh)] scroll-fade-y py-1 pr-2">
 						<div className="flex flex-col gap-4 py-1">
 							<div className="flex items-center justify-between">
 								<Button
@@ -489,7 +489,7 @@ export const ImportInstanceDialog = ({
 									variant="ghost"
 									size="sm"
 									onClick={() => setStep(selectedLauncher ? "instances" : "launchers")}
-									className="h-8 gap-1 text-muted-foreground text-xs"
+									className="h-8 gap-1 text-xs text-muted-foreground"
 								>
 									<ArrowLeft className="size-3.5" />
 									<span>{t("versionChange.back")}</span>
@@ -508,7 +508,7 @@ export const ImportInstanceDialog = ({
 											id="import-name"
 											value={instanceName}
 											onChange={(e) => setInstanceName(e.target.value)}
-											className="mt-1 h-8 font-medium text-xs"
+											className="mt-1 h-8 text-xs font-medium"
 											placeholder={t("importInstance.namePlaceholder")}
 										/>
 									</div>
@@ -530,7 +530,7 @@ export const ImportInstanceDialog = ({
 
 							{/* Transfer components checkboxes */}
 							<div className="flex flex-col gap-2">
-								<span className="font-medium text-2xs text-muted-foreground">
+								<span className="text-2xs font-medium text-muted-foreground">
 									{t("importInstance.components")}
 								</span>
 
@@ -542,7 +542,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Layers className="size-4 shrink-0 text-info" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.mods")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -565,7 +565,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Sliders className="size-4 shrink-0 text-warning" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.configs")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -588,7 +588,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<HardDrive className="size-4 shrink-0 text-primary" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.worlds")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -613,7 +613,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Box className="size-4 shrink-0 text-pink-400" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.packs")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -636,7 +636,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Camera className="size-4 shrink-0 text-cyan-400" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("screenshots.title")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -663,7 +663,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Sparkles className="size-4 shrink-0 text-teal-400" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.modData")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -686,7 +686,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Sliders className="size-4 shrink-0 text-purple-400" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.options")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -709,7 +709,7 @@ export const ImportInstanceDialog = ({
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<Server className="size-4 shrink-0 text-primary" />
 											<div className="min-w-0 flex-1">
-												<div className="truncate font-medium text-foreground text-xs">
+												<div className="truncate text-xs font-medium text-foreground">
 													{t("importInstance.servers")}
 												</div>
 												<div className="truncate text-3xs text-muted-foreground">
@@ -727,9 +727,9 @@ export const ImportInstanceDialog = ({
 								</div>
 
 								{/* Info notice */}
-								<div className="mt-1 flex items-start gap-2.5 rounded-lg border border-border/40 bg-card/20 p-2.5 text-muted-foreground text-xs">
+								<div className="mt-1 flex items-start gap-2.5 rounded-lg border border-border/40 bg-card/20 p-2.5 text-xs text-muted-foreground">
 									<Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-									<span className="text-2xs text-muted-foreground leading-relaxed">
+									<span className="text-2xs leading-relaxed text-muted-foreground">
 										<Trans
 											i18nKey="importInstance.note"
 											components={{ b: <strong className="text-foreground" /> }}

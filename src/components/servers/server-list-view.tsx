@@ -192,7 +192,7 @@ export default function ServerListView() {
 	}
 
 	return (
-		<ScrollArea className="scroll-fade-y size-full flex-1">
+		<ScrollArea className="size-full flex-1 scroll-fade-y">
 			<div className="flex flex-1 flex-col gap-6 p-4 pb-12 sm:p-5 lg:p-6">
 				{/* Top Header */}
 				<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -201,11 +201,11 @@ export default function ServerListView() {
 							<div className="flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
 								<Server className="size-5" />
 							</div>
-							<h1 className="font-bold text-2xl text-foreground tracking-tight">
+							<h1 className="text-2xl font-bold tracking-tight text-foreground">
 								{t("servers.title")}
 							</h1>
 						</div>
-						<p className="mt-1 text-muted-foreground text-xs">{t("servers.subtitle")}</p>
+						<p className="mt-1 text-xs text-muted-foreground">{t("servers.subtitle")}</p>
 					</div>
 
 					<div className="flex items-center gap-2">
@@ -227,7 +227,7 @@ export default function ServerListView() {
 									search: (prev) => ({ ...prev, action: "new" }),
 								})
 							}
-							className="h-9 gap-1.5 font-semibold text-xs"
+							className="h-9 gap-1.5 text-xs font-semibold"
 						>
 							<Plus className="size-4" />
 							<span>{t("servers.createServer")}</span>
@@ -242,7 +242,7 @@ export default function ServerListView() {
 				{/* Active Running Servers Multi-Banner */}
 				{runningList.length > 0 && (
 					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 shadow-lg backdrop-blur-md">
-						<div className="flex items-center gap-2 font-medium text-primary text-xs">
+						<div className="flex items-center gap-2 text-xs font-medium text-primary">
 							<span className="size-2 animate-ping rounded-full bg-primary" />
 							{t("servers.activeServers", { count: runningList.length })}
 						</div>
@@ -253,7 +253,7 @@ export default function ServerListView() {
 								return (
 									<div
 										key={proc.serverId}
-										className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 font-medium text-primary text-xs shadow-sm"
+										className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary shadow-sm"
 									>
 										<span>
 											{t("servers.activeEntry", { name: srv?.name ?? "", port: proc.port })}
@@ -298,8 +298,8 @@ export default function ServerListView() {
 				)}
 
 				{/* Search & Core Filter Bar */}
-				<div className="flex flex-wrap items-center justify-between gap-3 border-border/30 border-b pb-3">
-					<InputGroup className="min-w-[220px] max-w-sm flex-1">
+				<div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/30 pb-3">
+					<InputGroup className="max-w-sm min-w-[220px] flex-1">
 						<InputGroupAddon>
 							<Search />
 						</InputGroupAddon>
@@ -352,14 +352,14 @@ export default function ServerListView() {
 
 				{/* Servers Grid or Empty State */}
 				{servers.length === 0 ? (
-					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
+					<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border/40 bg-card/10 p-12 text-center">
 						<div className="flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/5 text-primary shadow-inner">
 							<Server className="size-7" />
 						</div>
-						<h3 className="mt-4 font-semibold text-base text-foreground">
+						<h3 className="mt-4 text-base font-semibold text-foreground">
 							{t("servers.emptyTitle")}
 						</h3>
-						<p className="mt-1.5 max-w-md text-muted-foreground text-xs leading-relaxed">
+						<p className="mt-1.5 max-w-md text-xs leading-relaxed text-muted-foreground">
 							{t("servers.emptySubtitle")}
 						</p>
 						<Button
@@ -405,13 +405,13 @@ export default function ServerListView() {
 									search: (prev) => ({ ...prev, action: "new" }),
 								})
 							}
-							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
+							className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/50 bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
 						>
 							<div className="flex size-11 items-center justify-center rounded-xl border border-border bg-card shadow-inner transition-transform group-hover:scale-110">
 								<Plus className="size-5 text-muted-foreground group-hover:text-primary" />
 							</div>
 							<div className="flex flex-col items-center gap-0.5 text-center">
-								<span className="font-semibold text-foreground/80 text-xs group-hover:text-foreground">
+								<span className="text-xs font-semibold text-foreground/80 group-hover:text-foreground">
 									{t("servers.createCardTitle")}
 								</span>
 								<span className="text-2xs text-muted-foreground">
@@ -421,9 +421,9 @@ export default function ServerListView() {
 						</button>
 					</div>
 				) : (
-					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/40 border-dashed bg-card/10 p-12 text-center">
-						<p className="font-medium text-foreground text-sm">{t("servers.noMatchTitle")}</p>
-						<p className="mt-1 text-muted-foreground text-xs">{t("servers.noMatchSubtitle")}</p>
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/40 bg-card/10 p-12 text-center">
+						<p className="text-sm font-medium text-foreground">{t("servers.noMatchTitle")}</p>
+						<p className="mt-1 text-xs text-muted-foreground">{t("servers.noMatchSubtitle")}</p>
 						<Button
 							variant="outline"
 							size="sm"

@@ -200,7 +200,7 @@ export const SyncSettings = () => {
 									</div>
 									<div>
 										<div className="flex items-center gap-2">
-											<span className="font-medium text-foreground text-xs sm:text-sm">
+											<span className="text-xs font-medium text-foreground sm:text-sm">
 												{itemTitle}
 											</span>
 											<code className="rounded bg-card px-1.5 py-0.5 font-mono text-3xs text-muted-foreground">

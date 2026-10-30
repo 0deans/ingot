@@ -1,37 +1,38 @@
 <!doctype html>
-<html lang="en" class="dark" style="background-color: #09090b; color-scheme: dark;">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/ingot.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ingot</title>
-    <script>
-      (() => {
-        try {
-          const mode = localStorage.getItem("ingot:theme") || "auto"
-          const isLight =
-            mode === "light" ||
-            (mode === "auto" &&
-              window.matchMedia &&
-              window.matchMedia("(prefers-color-scheme: light)").matches)
-          const root = document.documentElement
-          root.classList.toggle("dark", !isLight)
-          root.classList.toggle("light", isLight)
-          root.style.backgroundColor = isLight ? "#fafafa" : "#09090b"
-          root.style.colorScheme = isLight ? "light" : "dark"
-        } catch {}
-      })()
-    </script>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-  </head>
+<html lang="en" class="dark" style="background-color: #09090b; color-scheme: dark">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/ingot.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Ingot</title>
+		<script>
+			;(() => {
+				try {
+					const mode = localStorage.getItem("ingot:theme") || "auto"
+					const isLight =
+						mode === "light" ||
+						(mode === "auto" &&
+							window.matchMedia &&
+							window.matchMedia("(prefers-color-scheme: light)").matches)
+					const root = document.documentElement
+					root.classList.toggle("dark", !isLight)
+					root.classList.toggle("light", isLight)
+					root.style.backgroundColor = isLight ? "#fafafa" : "#09090b"
+					root.style.colorScheme = isLight ? "light" : "dark"
+				} catch {}
+			})()
+		</script>
+		<style>
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	</head>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+	<body>
+		<div id="root"></div>
+		<script type="module" src="/src/main.tsx"></script>
+	</body>
 </html>

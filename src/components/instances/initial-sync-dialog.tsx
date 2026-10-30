@@ -51,11 +51,11 @@ export const InitialSyncDialog = ({
 						<div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
 							<RefreshCw className="size-5" />
 						</div>
-						<DialogTitle className="font-semibold text-foreground text-lg">
+						<DialogTitle className="text-lg font-semibold text-foreground">
 							{t("initialSync.title")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-foreground/80 text-xs leading-relaxed">
+					<DialogDescription className="text-xs leading-relaxed text-foreground/80">
 						<Trans
 							i18nKey="initialSync.description"
 							values={{ name: instanceName }}

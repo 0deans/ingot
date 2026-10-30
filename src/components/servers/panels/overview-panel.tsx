@@ -66,7 +66,7 @@ export function StatusPill({ status }: { status: ServerStatus }) {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-medium text-2xs",
+				"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-2xs font-medium",
 				styles[status],
 			)}
 		>
@@ -115,7 +115,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 
 	return (
 		<Card className="gap-3 p-3 sm:p-4">
-			<p className="px-1 text-3xs text-muted-foreground uppercase tracking-wider">
+			<p className="px-1 text-3xs tracking-wider text-muted-foreground uppercase">
 				{t("overview.howPlayersSee")}
 			</p>
 			<div className="dark flex items-center gap-3 rounded-xl bg-background p-2.5 ring-1 ring-border/5">
@@ -128,7 +128,7 @@ function ServerHero({ server }: { server: ServerConfig }) {
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<div className="flex items-center gap-2">
-						<p className="min-w-0 flex-1 truncate font-semibold text-foreground text-sm">
+						<p className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
 							{server.name}
 						</p>
 						<span className="flex shrink-0 items-center gap-1.5 font-mono text-2xs text-muted-foreground">
@@ -153,13 +153,13 @@ function ServerHero({ server }: { server: ServerConfig }) {
 			{shownStatus === "starting" && (
 				<div className="flex items-center gap-2.5 rounded-xl bg-info/[0.07] px-3 py-2.5 ring-1 ring-info/20">
 					<Spinner className="size-4 shrink-0 text-info" />
-					<span className="truncate text-info text-xs">
+					<span className="truncate text-xs text-info">
 						{step ? translateStep(step) : t("overview.preparing")}
 					</span>
 				</div>
 			)}
 			{shownStatus === "sleeping" && (
-				<div className="rounded-xl bg-violet-500/[0.07] px-3 py-2.5 text-violet-200 text-xs ring-1 ring-violet-500/20">
+				<div className="rounded-xl bg-violet-500/[0.07] px-3 py-2.5 text-xs text-violet-200 ring-1 ring-violet-500/20">
 					{t("overview.sleepingNote")}
 				</div>
 			)}
@@ -238,12 +238,12 @@ function StatTiles({
 				className="col-span-2 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card/40 p-3.5 text-left transition-colors hover:bg-card/70 sm:col-span-2"
 			>
 				<div>
-					<p className="flex items-center gap-1.5 text-2xs text-muted-foreground uppercase tracking-wider">
+					<p className="flex items-center gap-1.5 text-2xs tracking-wider text-muted-foreground uppercase">
 						<Users className="size-3" /> {t("serverTabs.players")}
 					</p>
-					<p className="mt-1 font-semibold text-foreground text-lg">
+					<p className="mt-1 text-lg font-semibold text-foreground">
 						{isRunning ? players.length : 0}
-						<span className="text-muted-foreground/60 text-sm"> / {max}</span>
+						<span className="text-sm text-muted-foreground/60"> / {max}</span>
 					</p>
 				</div>
 				<div className="flex -space-x-2">
@@ -279,10 +279,10 @@ function StatTiles({
 function Tile({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
 	return (
 		<div className="rounded-2xl border border-border/80 bg-card/40 p-3.5">
-			<p className="flex items-center gap-1.5 text-2xs text-muted-foreground uppercase tracking-wider">
+			<p className="flex items-center gap-1.5 text-2xs tracking-wider text-muted-foreground uppercase">
 				<Icon className="size-3" /> {label}
 			</p>
-			<p className="mt-1 font-semibold text-foreground text-lg">{value}</p>
+			<p className="mt-1 text-lg font-semibold text-foreground">{value}</p>
 		</div>
 	)
 }
@@ -298,19 +298,19 @@ function ConsolePeek({ server, onOpen }: { server: ServerConfig; onOpen: () => v
 			className="flex min-w-0 flex-col rounded-2xl border border-border/80 bg-background text-left transition-colors hover:border-input"
 		>
 			<div className="flex items-center justify-between px-4 pt-4 pb-2">
-				<span className="flex items-center gap-2 font-semibold text-foreground text-sm">
+				<span className="flex items-center gap-2 text-sm font-semibold text-foreground">
 					<Terminal className="size-3.5 text-muted-foreground" /> {t("serverTabs.console")}
 				</span>
 				<ChevronRight className="size-4 text-muted-foreground/60" />
 			</div>
 			<div
 				className={cn(
-					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-3xs text-muted-foreground leading-relaxed",
+					"flex min-h-24 flex-1 flex-col px-4 pb-4 font-mono text-3xs leading-relaxed text-muted-foreground",
 					lines.length === 0 ? "items-center justify-center" : "justify-end",
 				)}
 			>
 				{lines.length === 0 ? (
-					<span className="font-sans text-muted-foreground/60 text-xs">
+					<span className="font-sans text-xs text-muted-foreground/60">
 						{t("overview.noOutput")}
 					</span>
 				) : (

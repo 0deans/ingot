@@ -127,7 +127,7 @@ export function QuickJoinDialog({
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
+							<span className="text-2xs font-medium tracking-wider text-muted-foreground uppercase">
 								{t("quickJoin.choose")}
 							</span>
 							{onCreateInstance && (
@@ -151,9 +151,9 @@ export function QuickJoinDialog({
 								<Spinner className="size-5" />
 							</div>
 						) : instances.length === 0 ? (
-							<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border border-dashed p-6 text-center">
+							<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border p-6 text-center">
 								<AlertCircle className="size-6 text-warning" />
-								<p className="font-medium text-foreground/80 text-xs">
+								<p className="text-xs font-medium text-foreground/80">
 									{t("quickJoin.noInstances")}
 								</p>
 								<p className="text-2xs text-muted-foreground">{t("quickJoin.noInstancesHint")}</p>
@@ -172,7 +172,7 @@ export function QuickJoinDialog({
 								)}
 							</div>
 						) : (
-							<ScrollArea className="scroll-fade-y max-h-56 pr-1">
+							<ScrollArea className="max-h-56 scroll-fade-y pr-1">
 								<RadioGroup value={selectedId} onValueChange={(id) => setSelectedId(id as string)}>
 									{instances.map((inst) => (
 										<FieldLabel key={inst.id} htmlFor={`quick-join-${inst.id}`}>
@@ -213,7 +213,7 @@ export function QuickJoinDialog({
 							size="sm"
 							disabled={!selectedId}
 							onClick={handleJoin}
-							className="gap-1.5 font-medium text-xs"
+							className="gap-1.5 text-xs font-medium"
 						>
 							<Play className="size-3.5 fill-current" />
 							<span>{t("quickJoin.launch")}</span>

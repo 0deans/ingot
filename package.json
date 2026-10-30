@@ -1,22 +1,21 @@
 {
 	"name": "ingot",
-	"private": true,
 	"version": "0.5.8",
-	"packageManager": "pnpm@12.4.1",
+	"private": true,
 	"description": "Fast, lightweight Minecraft launcher built with Tauri and React",
-	"author": "0deans <https://github.com/0deans>",
 	"license": "GPL-3.0-only",
+	"author": "0deans <https://github.com/0deans>",
 	"type": "module",
 	"scripts": {
 		"test:ipc": "node --test tests/ipc-routing.test.mjs tests/rpc-result.test.mjs tests/coverage-ratchet.test.mjs",
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"check": "biome check",
-		"check:write": "biome check --write",
+		"check": "oxlint && oxfmt --check",
+		"check:write": "oxlint --fix && oxfmt",
 		"check:tailwind": "npx @tailwindcss/upgrade --dry-run --force",
 		"fix:tailwind": "npx @tailwindcss/upgrade --force",
-		"format": "biome format --write",
-		"lint": "biome lint",
+		"format": "oxfmt",
+		"lint": "oxlint",
 		"preview": "vite preview",
 		"bump": "bumpp",
 		"tauri": "tauri",
@@ -58,7 +57,6 @@
 		"zustand": "^5.0.15"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.13",
 		"@tanstack/router-plugin": "^1.168.37",
 		"@tauri-apps/cli": "^2",
 		"@types/node": "^22.20.2",
@@ -66,7 +64,10 @@
 		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react": "^6.0.2",
 		"bumpp": "^12.3.0",
-		"typescript": "~6.0.3",
+		"oxfmt": "^0.75.0",
+		"oxlint": "^1.90.0",
+		"typescript": "~7.0.2",
 		"vite": "^8.0.16"
-	}
+	},
+	"packageManager": "pnpm@12.4.1"
 }

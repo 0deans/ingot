@@ -708,7 +708,7 @@ const SkinViewer3D = ({
 						<div
 							className={cn(
 								"flex items-center justify-between gap-2",
-								showToolbar && "border-border/30 border-t pt-2",
+								showToolbar && "border-t border-border/30 pt-2",
 							)}
 						>
 							{footerActions}

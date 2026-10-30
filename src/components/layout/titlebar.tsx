@@ -202,12 +202,12 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 			onPointerMove={onTouchPointerMove}
 			onPointerUp={onTouchPointerUp}
 			onPointerCancel={onTouchPointerUp}
-			className="relative z-100 flex h-10 w-full touch-none select-none items-center justify-between border-border/40 border-b bg-background/85 px-3 backdrop-blur-md"
+			className="relative z-100 flex h-10 w-full touch-none items-center justify-between border-b border-border/40 bg-background/85 px-3 backdrop-blur-md select-none"
 		>
 			{/* Left branding */}
 			<div data-tauri-drag-region className="pointer-events-none flex items-center gap-2">
 				<img src="/ingot.svg" alt="Ingot" className="size-4.5 rounded-sm object-contain" />
-				<span className="font-semibold text-foreground text-xs tracking-wide">{title}</span>
+				<span className="text-xs font-semibold tracking-wide text-foreground">{title}</span>
 				<Badge variant="secondary">v{APP_VERSION}</Badge>
 			</div>
 
@@ -241,7 +241,7 @@ const Titlebar = ({ title = "Ingot" }: TitlebarProps) => {
 					size="icon-sm"
 					onClick={handleClose}
 					aria-label={t("common.close")}
-					className="text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+					className="hover:text-destructive-foreground text-muted-foreground hover:bg-destructive"
 				>
 					<X className="size-3.5" />
 				</Button>

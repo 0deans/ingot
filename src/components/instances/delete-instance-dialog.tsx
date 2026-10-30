@@ -50,10 +50,10 @@ export const DeleteInstanceDialog = ({
 					<div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive">
 						<AlertTriangle className="size-5" />
 					</div>
-					<DialogTitle className="font-semibold text-foreground text-lg">
+					<DialogTitle className="text-lg font-semibold text-foreground">
 						{t("deleteInstance.title")}
 					</DialogTitle>
-					<DialogDescription className="text-muted-foreground text-xs">
+					<DialogDescription className="text-xs text-muted-foreground">
 						{t("deleteInstance.description")}
 					</DialogDescription>
 				</DialogHeader>
@@ -63,7 +63,7 @@ export const DeleteInstanceDialog = ({
 						<LoaderIcon loader={instance.loader} size={22} />
 					</div>
 					<div className="flex min-w-0 flex-col">
-						<span className="truncate font-semibold text-foreground text-sm">{instance.name}</span>
+						<span className="truncate text-sm font-semibold text-foreground">{instance.name}</span>
 						<span className="text-2xs text-muted-foreground">
 							{String(instance.loader).toUpperCase()} • {instance.gameVersion}
 						</span>

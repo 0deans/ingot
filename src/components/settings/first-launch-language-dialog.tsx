@@ -65,16 +65,16 @@ export const FirstLaunchLanguageDialog = () => {
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
 							<Globe className="size-5" />
 						</div>
-						<DialogTitle className="font-semibold text-foreground text-lg">
+						<DialogTitle className="text-lg font-semibold text-foreground">
 							{t("onboarding.selectLanguageTitle")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-muted-foreground text-xs leading-relaxed">
+					<DialogDescription className="text-xs leading-relaxed text-muted-foreground">
 						{t("onboarding.selectLanguageSubtitle")}
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="scroll-fade-y -mx-1 min-h-0 flex-1">
+				<ScrollArea className="-mx-1 min-h-0 flex-1 scroll-fade-y">
 					<RadioGroup
 						value={language}
 						onValueChange={(code) => previewLanguage(code as string)}

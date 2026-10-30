@@ -57,11 +57,11 @@ export const SyncConflictDialog = ({
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">
 							<ShieldAlert className="size-5" />
 						</div>
-						<DialogTitle className="font-semibold text-base text-foreground sm:text-lg">
+						<DialogTitle className="text-base font-semibold text-foreground sm:text-lg">
 							{t("syncConflict.title")}
 						</DialogTitle>
 					</div>
-					<DialogDescription className="text-foreground/80 text-xs leading-relaxed">
+					<DialogDescription className="text-xs leading-relaxed text-foreground/80">
 						<Trans
 							i18nKey="syncConflict.description"
 							values={{ name: conflict.instanceName }}
@@ -89,11 +89,11 @@ export const SyncConflictDialog = ({
 				</Alert>
 
 				<div className="flex min-h-0 flex-1 flex-col gap-1.5">
-					<div className="shrink-0 font-medium text-2xs text-muted-foreground">
+					<div className="shrink-0 text-2xs font-medium text-muted-foreground">
 						{t("syncConflict.choose")}
 					</div>
 
-					<ScrollArea className="scroll-fade-y -mr-2 max-h-[min(380px,50vh)] p-0.5 pr-2">
+					<ScrollArea className="-mr-2 max-h-[min(380px,50vh)] scroll-fade-y p-0.5 pr-2">
 						<div className="flex flex-col gap-2">
 							{/* Option 1: Use Shared Data */}
 							<Item

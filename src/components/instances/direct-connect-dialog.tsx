@@ -107,7 +107,7 @@ export function DirectConnectDialog({
 					className="space-y-4 pt-1"
 				>
 					<div className="space-y-1.5">
-						<Label htmlFor="server-address" className="font-medium text-foreground/80 text-xs">
+						<Label htmlFor="server-address" className="text-xs font-medium text-foreground/80">
 							{t("directConnect.address")}
 						</Label>
 						<div className="relative flex items-center">
@@ -125,10 +125,10 @@ export function DirectConnectDialog({
 					{/* Local Servers Section if any configured */}
 					{servers.length > 0 && (
 						<div className="space-y-1.5">
-							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
+							<span className="text-2xs font-medium tracking-wider text-muted-foreground uppercase">
 								{t("directConnect.localServers")}
 							</span>
-							<ScrollArea className="scroll-fade-y max-h-32 pr-1">
+							<ScrollArea className="max-h-32 scroll-fade-y pr-1">
 								<div className="grid grid-cols-1 gap-1.5">
 									{servers.map((srv) => (
 										<Item
@@ -153,7 +153,7 @@ export function DirectConnectDialog({
 											<ItemContent className="min-w-0">
 												<ItemTitle className="truncate">
 													{srv.name}
-													<span className="font-mono font-normal text-2xs text-muted-foreground">
+													<span className="font-mono text-2xs font-normal text-muted-foreground">
 														:{srv.port}
 													</span>
 												</ItemTitle>
@@ -169,7 +169,7 @@ export function DirectConnectDialog({
 					{/* Recent Servers Section */}
 					{recentServers.length > 0 && (
 						<div className="space-y-1.5">
-							<span className="font-medium text-2xs text-muted-foreground uppercase tracking-wider">
+							<span className="text-2xs font-medium tracking-wider text-muted-foreground uppercase">
 								{t("directConnect.recent")}
 							</span>
 							<div className="flex flex-wrap gap-1.5">
@@ -223,7 +223,7 @@ export function DirectConnectDialog({
 							type="submit"
 							size="sm"
 							disabled={!address.trim()}
-							className="gap-1.5 font-medium text-xs"
+							className="gap-1.5 text-xs font-medium"
 						>
 							<Play className="size-3.5 fill-current" />
 							<span>{t("directConnect.launch")}</span>

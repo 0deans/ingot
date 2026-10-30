@@ -147,7 +147,7 @@ export const MobileServerDashboard = memo(() => {
 
 	return (
 		<div className="flex h-dvh flex-col bg-background text-foreground">
-			<header className="flex shrink-0 items-center gap-2 border-border border-b px-3 py-2.5">
+			<header className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2.5">
 				<ServerSwitcherButton server={server} onClick={() => setSwitcherOpen(true)} />
 				<Button
 					variant={tab === "settings" ? "secondary" : "ghost"}
@@ -173,7 +173,7 @@ export const MobileServerDashboard = memo(() => {
 				</FadeScroll>
 			)}
 
-			<nav className="grid shrink-0 grid-cols-5 border-border border-t bg-background pb-[env(safe-area-inset-bottom)]">
+			<nav className="grid shrink-0 grid-cols-5 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
 				{/* Settings lives behind the gear in the top bar, keeping five tabs here */}
 				{WORKSPACE_TABS.filter((t) => t.id !== "settings").map(({ id, label, icon: Icon }) => (
 					<button
@@ -181,7 +181,7 @@ export const MobileServerDashboard = memo(() => {
 						type="button"
 						onClick={() => setTab(id)}
 						className={cn(
-							"flex min-w-0 flex-col items-center gap-1 px-0.5 pt-2.5 pb-2 font-medium text-3xs transition-colors",
+							"flex min-w-0 flex-col items-center gap-1 px-0.5 pt-2.5 pb-2 text-3xs font-medium transition-colors",
 							tab === id ? "text-primary" : "text-muted-foreground active:text-foreground/80",
 						)}
 					>

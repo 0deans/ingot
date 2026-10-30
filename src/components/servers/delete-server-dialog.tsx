@@ -55,7 +55,7 @@ export default function DeleteServerDialog({
 							<AlertTriangle className="size-5" />
 						</div>
 						<div>
-							<DialogTitle className="font-semibold text-base text-foreground">
+							<DialogTitle className="text-base font-semibold text-foreground">
 								{t("deleteServer.title")}
 							</DialogTitle>
 							<DialogDescription className="text-xs">
@@ -92,7 +92,7 @@ export default function DeleteServerDialog({
 							className="mt-0.5"
 						/>
 						<div className="flex flex-col gap-0.5">
-							<span className="font-medium text-foreground text-xs">
+							<span className="text-xs font-medium text-foreground">
 								{t("deleteServer.deleteFiles")}
 							</span>
 							<span className="text-2xs text-muted-foreground">

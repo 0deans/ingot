@@ -225,19 +225,19 @@ const ScreenshotsView = () => {
 	return (
 		<div className="flex size-full flex-col overflow-hidden bg-background text-foreground">
 			{/* Top Header */}
-			<header className="flex shrink-0 items-center justify-between border-border/40 border-b bg-background/40 px-6 py-4 backdrop-blur-sm">
+			<header className="flex shrink-0 items-center justify-between border-b border-border/40 bg-background/40 px-6 py-4 backdrop-blur-sm">
 				<div className="flex items-center gap-3">
 					<div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 						<Camera className="size-5" />
 					</div>
 					<div>
 						<div className="flex items-center gap-2">
-							<h1 className="font-semibold text-lg tracking-tight">{t("screenshots.title")}</h1>
-							<span className="rounded-full bg-muted/80 px-2 py-0.5 font-medium text-muted-foreground text-xs">
+							<h1 className="text-lg font-semibold tracking-tight">{t("screenshots.title")}</h1>
+							<span className="rounded-full bg-muted/80 px-2 py-0.5 text-xs font-medium text-muted-foreground">
 								{screenshots.length}
 							</span>
 						</div>
-						<p className="text-muted-foreground text-xs">{t("screenshots.subtitle")}</p>
+						<p className="text-xs text-muted-foreground">{t("screenshots.subtitle")}</p>
 					</div>
 				</div>
 
@@ -275,8 +275,8 @@ const ScreenshotsView = () => {
 			</header>
 
 			{/* Filter & Toolbar */}
-			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-border/40 border-b bg-background/20 px-6 py-3">
-				<div className="flex min-w-[200px] max-w-sm flex-1 items-center gap-2.5">
+			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-background/20 px-6 py-3">
+				<div className="flex max-w-sm min-w-[200px] flex-1 items-center gap-2.5">
 					<InputGroup className="w-full">
 						<InputGroupAddon>
 							<Search />
@@ -382,7 +382,7 @@ const ScreenshotsView = () => {
 			</div>
 
 			{/* Main Gallery Area */}
-			<ScrollArea className="scroll-fade-y min-h-0 flex-1">
+			<ScrollArea className="min-h-0 flex-1 scroll-fade-y">
 				{filteredScreenshots.length > 0 ? (
 					<div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
 						{filteredScreenshots.map((item) => (
@@ -402,10 +402,10 @@ const ScreenshotsView = () => {
 							<Camera className="size-7" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="font-semibold text-base text-foreground">
+							<h3 className="text-base font-semibold text-foreground">
 								{t("screenshots.emptyTitle")}
 							</h3>
-							<p className="max-w-md text-muted-foreground text-xs">
+							<p className="max-w-md text-xs text-muted-foreground">
 								{t("screenshots.emptySubtitlePrefix")} <Kbd>F2</Kbd>
 								{t("screenshots.emptySubtitleSuffix")}
 							</p>
@@ -422,10 +422,10 @@ const ScreenshotsView = () => {
 							<ImageOff className="size-7" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="font-semibold text-base text-foreground">
+							<h3 className="text-base font-semibold text-foreground">
 								{t("screenshots.noMatchTitle")}
 							</h3>
-							<p className="max-w-md text-muted-foreground text-xs">
+							<p className="max-w-md text-xs text-muted-foreground">
 								{t("screenshots.noMatchSubtitle")}
 							</p>
 						</div>
@@ -494,7 +494,7 @@ const ScreenshotsView = () => {
 									className="size-full object-cover"
 								/>
 							</div>
-							<div className="flex items-center justify-between text-muted-foreground text-xs">
+							<div className="flex items-center justify-between text-xs text-muted-foreground">
 								<span className="truncate font-medium text-foreground">
 									{screenshotToDelete.fileName}
 								</span>

@@ -203,7 +203,7 @@ function UiTestPage() {
 	const fieldInputId = useId()
 
 	return (
-		<ScrollArea className="scroll-fade-y size-full flex-1">
+		<ScrollArea className="size-full flex-1 scroll-fade-y">
 			<div className="mx-auto flex max-w-7xl flex-col gap-8 p-4 pb-24 sm:p-6 lg:p-8">
 				{/* Top Hero Header */}
 				<div className="flex flex-col justify-between gap-4 rounded-2xl border border-border/60 bg-linear-to-r from-card/80 via-card/50 to-primary/5 p-6 shadow-sm backdrop-blur-md sm:flex-row sm:items-center">
@@ -213,14 +213,14 @@ function UiTestPage() {
 						</div>
 						<div>
 							<div className="flex items-center gap-2">
-								<h1 className="font-bold text-foreground text-xl sm:text-2xl">
+								<h1 className="text-xl font-bold text-foreground sm:text-2xl">
 									Design System & UI Components Showcase
 								</h1>
 								<Badge variant="outline" className="font-mono text-2xs">
 									React 19 + Base UI
 								</Badge>
 							</div>
-							<p className="mt-1 text-muted-foreground text-xs sm:text-sm">
+							<p className="mt-1 text-xs text-muted-foreground sm:text-sm">
 								Interactive preview of all buttons, inputs, dialogs, drawers, dropdowns, and custom
 								Minecraft widgets.
 							</p>
@@ -262,7 +262,7 @@ function UiTestPage() {
 				</div>
 
 				{/* Category Filter Tabs */}
-				<div className="flex items-center justify-between border-border/40 border-b pb-3">
+				<div className="flex items-center justify-between border-b border-border/40 pb-3">
 					<Tabs value={filterTab} onValueChange={setFilterTab}>
 						<TabsList variant="line">
 							<TabsTrigger value="all">All Components</TabsTrigger>
@@ -281,7 +281,7 @@ function UiTestPage() {
 					<section className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<div className="size-2 rounded-full bg-primary" />
-							<h2 className="font-semibold text-base text-foreground">Buttons & Toggles</h2>
+							<h2 className="text-base font-semibold text-foreground">Buttons & Toggles</h2>
 						</div>
 
 						<Card>
@@ -293,7 +293,7 @@ function UiTestPage() {
 							<CardContent className="flex flex-col gap-6">
 								{/* Variants */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Variants
 									</span>
 									<div className="flex flex-wrap items-center gap-2.5">
@@ -318,7 +318,7 @@ function UiTestPage() {
 
 								{/* Sizes */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Sizes & Icon Buttons
 									</span>
 									<div className="flex flex-wrap items-center gap-3">
@@ -346,7 +346,7 @@ function UiTestPage() {
 								{/* Toggles & Toggle Groups */}
 								<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Single Toggle
 										</span>
 										<div className="flex items-center gap-3">
@@ -358,14 +358,14 @@ function UiTestPage() {
 											>
 												<Bold className="size-4" />
 											</Toggle>
-											<span className="text-muted-foreground text-xs">
+											<span className="text-xs text-muted-foreground">
 												State: {toggleState ? "Active (On)" : "Inactive (Off)"}
 											</span>
 										</div>
 									</div>
 
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Toggle Group (Single Choice)
 										</span>
 										<ToggleGroup
@@ -386,7 +386,7 @@ function UiTestPage() {
 									</div>
 
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Toggle Group (Multi-select)
 										</span>
 										<ToggleGroup
@@ -411,30 +411,30 @@ function UiTestPage() {
 
 								{/* Keyboard Shortcuts */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Keyboard Badges (`Kbd` & `KbdGroup`)
 									</span>
 									<div className="flex flex-wrap items-center gap-4">
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">Command Palette:</span>
+											<span className="text-xs text-muted-foreground">Command Palette:</span>
 											<KbdGroup>
 												<Kbd>Ctrl</Kbd>
 												<Kbd>K</Kbd>
 											</KbdGroup>
 										</div>
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">Quick Save:</span>
+											<span className="text-xs text-muted-foreground">Quick Save:</span>
 											<KbdGroup>
 												<Kbd>Ctrl</Kbd>
 												<Kbd>S</Kbd>
 											</KbdGroup>
 										</div>
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">Execute:</span>
+											<span className="text-xs text-muted-foreground">Execute:</span>
 											<Kbd>Enter ↵</Kbd>
 										</div>
 										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-xs">Close:</span>
+											<span className="text-xs text-muted-foreground">Close:</span>
 											<Kbd>Esc</Kbd>
 										</div>
 									</div>
@@ -449,7 +449,7 @@ function UiTestPage() {
 					<section className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<div className="size-2 rounded-full bg-primary" />
-							<h2 className="font-semibold text-base text-foreground">Forms, Fields & Inputs</h2>
+							<h2 className="text-base font-semibold text-foreground">Forms, Fields & Inputs</h2>
 						</div>
 
 						<Card>
@@ -479,7 +479,7 @@ function UiTestPage() {
 
 								{/* InputGroup Examples */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Composite Input Groups
 									</span>
 									<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -552,11 +552,11 @@ function UiTestPage() {
 
 								{/* The Field Component System */}
 								<div className="flex flex-col gap-3">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Field & FieldSet Abstractions
 									</span>
 									<FieldSet className="mt-1 rounded-xl border border-border/60 bg-muted/20 p-4 pt-2">
-										<FieldLegend className="rounded bg-card px-2 font-semibold text-foreground text-sm">
+										<FieldLegend className="rounded bg-card px-2 text-sm font-semibold text-foreground">
 											Server Process Configuration
 										</FieldLegend>
 										<FieldGroup className="gap-4">
@@ -593,7 +593,7 @@ function UiTestPage() {
 								<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 									{/* Switch */}
 									<div className="flex flex-col gap-3">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Switch
 										</span>
 										<div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ function UiTestPage() {
 
 									{/* Checkbox */}
 									<div className="flex flex-col gap-3">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Checkbox
 										</span>
 										<div className="flex items-center gap-2">
@@ -633,7 +633,7 @@ function UiTestPage() {
 
 									{/* Radio Group */}
 									<div className="flex flex-col gap-3">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Radio Group
 										</span>
 										<RadioGroup value={radioVal} onValueChange={setRadioVal}>
@@ -655,10 +655,10 @@ function UiTestPage() {
 									{/* Slider */}
 									<div className="flex flex-col gap-3">
 										<div className="flex items-center justify-between">
-											<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+											<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 												RAM Slider
 											</span>
-											<span className="font-mono font-semibold text-primary text-xs">
+											<span className="font-mono text-xs font-semibold text-primary">
 												{sliderVal * 128} MB
 											</span>
 										</div>
@@ -748,7 +748,7 @@ function UiTestPage() {
 					<section className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<div className="size-2 rounded-full bg-primary" />
-							<h2 className="font-semibold text-base text-foreground">Data Display & Feedback</h2>
+							<h2 className="text-base font-semibold text-foreground">Data Display & Feedback</h2>
 						</div>
 
 						<Card>
@@ -760,7 +760,7 @@ function UiTestPage() {
 							<CardContent className="flex flex-col gap-6">
 								{/* Badges */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Badges
 									</span>
 									<div className="flex flex-wrap items-center gap-2">
@@ -780,7 +780,7 @@ function UiTestPage() {
 
 								{/* Alerts */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Alert Notifications
 									</span>
 									<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -823,7 +823,7 @@ function UiTestPage() {
 
 								{/* Item Rows Abstraction */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Item & ItemGroup Component (Server / Mod Lists)
 									</span>
 									<ItemGroup className="rounded-xl border border-border/50 bg-background/50 p-2">
@@ -878,7 +878,7 @@ function UiTestPage() {
 								<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 									{/* Avatars */}
 									<div className="flex flex-col gap-3">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Avatars & Badges
 										</span>
 										<div className="flex items-center gap-4">
@@ -904,7 +904,7 @@ function UiTestPage() {
 
 									{/* Progress Bar */}
 									<div className="flex flex-col gap-3">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Progress Tracker
 										</span>
 										<Progress value={72}>
@@ -917,7 +917,7 @@ function UiTestPage() {
 
 									{/* Spinners */}
 									<div className="flex flex-col gap-3">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Spinners
 										</span>
 										<div className="flex items-center gap-4">
@@ -933,7 +933,7 @@ function UiTestPage() {
 								{/* Skeleton Preview Toggle */}
 								<div className="flex flex-col gap-3">
 									<div className="flex items-center justify-between">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Skeleton Loading Placeholder
 										</span>
 										<Button
@@ -960,8 +960,8 @@ function UiTestPage() {
 												<Package className="size-6" />
 											</div>
 											<div className="flex-1">
-												<h4 className="font-medium text-foreground text-sm">Iris Shaders</h4>
-												<p className="text-muted-foreground text-xs">
+												<h4 className="text-sm font-medium text-foreground">Iris Shaders</h4>
+												<p className="text-xs text-muted-foreground">
 													A modern shader mod for Minecraft compatible with Sodium.
 												</p>
 											</div>
@@ -974,7 +974,7 @@ function UiTestPage() {
 
 								{/* Empty State Component */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Empty State Component (`Empty`)
 									</span>
 									<Empty className="border border-border/60 bg-background/20 py-8">
@@ -1005,7 +1005,7 @@ function UiTestPage() {
 					<section className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<div className="size-2 rounded-full bg-primary" />
-							<h2 className="font-semibold text-base text-foreground">
+							<h2 className="text-base font-semibold text-foreground">
 								Modals, Drawers & Overlays
 							</h2>
 						</div>
@@ -1020,7 +1020,7 @@ function UiTestPage() {
 								<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 									{/* Modal Dialog */}
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Dialog Modal
 										</span>
 										<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -1061,7 +1061,7 @@ function UiTestPage() {
 
 									{/* Sliding Sheet / Drawer */}
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Sheet / Drawer (Side Panel)
 										</span>
 										<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -1101,7 +1101,7 @@ function UiTestPage() {
 
 									{/* Rich Dropdown Menu */}
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Dropdown Menu
 										</span>
 										<DropdownMenu>
@@ -1176,7 +1176,7 @@ function UiTestPage() {
 
 									{/* Tooltips */}
 									<div className="flex flex-col gap-2">
-										<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 											Tooltips
 										</span>
 										<div className="flex items-center gap-2">
@@ -1211,7 +1211,7 @@ function UiTestPage() {
 
 								{/* Collapsible Accordion */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Collapsible Section
 									</span>
 									<Collapsible
@@ -1222,7 +1222,7 @@ function UiTestPage() {
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<Settings className="size-4 text-primary" />
-												<h4 className="font-medium text-foreground text-sm">
+												<h4 className="text-sm font-medium text-foreground">
 													Advanced JVM Parameters
 												</h4>
 											</div>
@@ -1238,7 +1238,7 @@ function UiTestPage() {
 												}
 											/>
 										</div>
-										<CollapsibleContent className="mt-3 space-y-2 border-border/40 border-t pt-3 text-muted-foreground text-xs">
+										<CollapsibleContent className="mt-3 space-y-2 border-t border-border/40 pt-3 text-xs text-muted-foreground">
 											<p>
 												Configured flags:{" "}
 												<code>
@@ -1259,7 +1259,7 @@ function UiTestPage() {
 					<section className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<div className="size-2 rounded-full bg-primary" />
-							<h2 className="font-semibold text-base text-foreground">
+							<h2 className="text-base font-semibold text-foreground">
 								Minecraft & Ingot Custom Widgets
 							</h2>
 						</div>
@@ -1273,7 +1273,7 @@ function UiTestPage() {
 							<CardContent className="flex flex-col gap-6">
 								{/* Loader Icons */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Mod Loader & Server Core Icons (`LoaderIcon`)
 									</span>
 									<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -1294,7 +1294,7 @@ function UiTestPage() {
 												className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-background/40 p-2.5"
 											>
 												<LoaderIcon loader={loader.id} size={24} />
-												<span className="font-medium text-foreground text-xs">{loader.name}</span>
+												<span className="text-xs font-medium text-foreground">{loader.name}</span>
 											</div>
 										))}
 									</div>
@@ -1304,7 +1304,7 @@ function UiTestPage() {
 
 								{/* Skin Avatars */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										2D Skin Avatar Rendering (`SkinAvatar`)
 									</span>
 									<div className="flex items-center gap-4">
@@ -1312,7 +1312,7 @@ function UiTestPage() {
 										<SkinAvatar username="Alex" size={40} />
 										<SkinAvatar username="Custom" size={48} />
 										<div className="flex flex-col">
-											<span className="font-medium text-foreground text-xs">
+											<span className="text-xs font-medium text-foreground">
 												Pixelated Skin Head Canvas
 											</span>
 											<span className="text-3xs text-muted-foreground">
@@ -1331,7 +1331,7 @@ function UiTestPage() {
 					<section className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<div className="size-2 rounded-full bg-primary" />
-							<h2 className="font-semibold text-base text-foreground">
+							<h2 className="text-base font-semibold text-foreground">
 								Motion & Physics (motion/react)
 							</h2>
 						</div>
@@ -1345,7 +1345,7 @@ function UiTestPage() {
 							<CardContent className="flex flex-col gap-6">
 								{/* Shared Layout Pill Selector */}
 								<div className="flex flex-col gap-2">
-									<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 										Shared Layout Pill (`layoutId`)
 									</span>
 									<div className="inline-flex w-fit items-center gap-1 rounded-xl border border-border/50 bg-background/60 p-1">
@@ -1358,7 +1358,7 @@ function UiTestPage() {
 												key={tab.id}
 												type="button"
 												onClick={() => setMotionTab(tab.id)}
-												className={`relative rounded-lg px-3 py-1.5 font-medium text-xs transition-colors ${
+												className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
 													motionTab === tab.id
 														? "text-primary"
 														: "text-muted-foreground hover:text-foreground"
@@ -1383,7 +1383,7 @@ function UiTestPage() {
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 									{/* Tap scaling button */}
 									<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4">
-										<span className="font-medium text-foreground text-xs">
+										<span className="text-xs font-medium text-foreground">
 											Tactile Press (`whileTap`)
 										</span>
 										<p className="text-3xs text-muted-foreground">
@@ -1393,7 +1393,7 @@ function UiTestPage() {
 											type="button"
 											whileTap={{ scale: 0.92 }}
 											whileHover={{ scale: 1.02 }}
-											className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-primary font-medium text-primary-foreground text-xs shadow-sm transition-colors"
+											className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-primary text-xs font-medium text-primary-foreground shadow-sm transition-colors"
 										>
 											Click or Press Me
 										</motion.button>
@@ -1404,13 +1404,13 @@ function UiTestPage() {
 										whileHover={{ y: -4, transition: { duration: 0.15 } }}
 										className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4 shadow-sm"
 									>
-										<span className="font-medium text-foreground text-xs">
+										<span className="text-xs font-medium text-foreground">
 											Hover Lift (`whileHover`)
 										</span>
 										<p className="text-3xs text-muted-foreground">
 											Card elevates by 4px on mouse hover with spring ease.
 										</p>
-										<div className="mt-2 rounded-lg border border-primary/20 bg-primary/10 p-2 text-center font-mono text-primary text-xs">
+										<div className="mt-2 rounded-lg border border-primary/20 bg-primary/10 p-2 text-center font-mono text-xs text-primary">
 											Hover this Card
 										</div>
 									</motion.div>
@@ -1418,7 +1418,7 @@ function UiTestPage() {
 									{/* AnimatePresence Toggle */}
 									<div className="flex flex-col gap-2 rounded-xl border border-border/40 bg-card/40 p-4">
 										<div className="flex items-center justify-between">
-											<span className="font-medium text-foreground text-xs">
+											<span className="text-xs font-medium text-foreground">
 												Exit Animation (`AnimatePresence`)
 											</span>
 											<Button size="xs" variant="outline" onClick={() => setMotionBox(!motionBox)}>
@@ -1437,7 +1437,7 @@ function UiTestPage() {
 														animate={{ opacity: 1, scale: 1 }}
 														exit={{ opacity: 0, scale: 0.85 }}
 														transition={{ duration: 0.15 }}
-														className="w-full rounded-lg bg-emerald-500/20 p-2 text-center font-medium text-emerald-400 text-xs"
+														className="w-full rounded-lg bg-emerald-500/20 p-2 text-center text-xs font-medium text-emerald-400"
 													>
 														Visible Component
 													</motion.div>

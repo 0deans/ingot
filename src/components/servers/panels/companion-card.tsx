@@ -71,9 +71,9 @@ export function CompanionCard({
 				/>
 			</div>
 			<div className="min-w-0 flex-1">
-				<p className="flex items-baseline gap-1.5 truncate font-medium text-foreground text-sm">
+				<p className="flex items-baseline gap-1.5 truncate text-sm font-medium text-foreground">
 					Ingot
-					<span className="font-normal text-3xs text-muted-foreground uppercase tracking-wider">
+					<span className="text-3xs font-normal tracking-wider text-muted-foreground uppercase">
 						{t("companion.system")}
 					</span>
 				</p>
