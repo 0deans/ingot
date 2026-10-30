@@ -124,10 +124,7 @@ jobs:
           Write-Host "Uploading $exeName and $zipName to release $tag..."
           gh release upload $tag $exeName $zipName --clobber
 
-  release-android:
-    needs: release
-    permissions:
-      contents: write
+  build-android:
     runs-on: ubuntu-22.04
 
     steps:
@@ -145,7 +142,7 @@ jobs:
           fi
 
       - name: Setup Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: "temurin"
           java-version: "21"
@@ -158,10 +155,15 @@ jobs:
           NDK_BASE="/usr/local/lib/android/sdk/ndk"
           if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
             SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
+          elif [ -n "$ANDROID_NDK_LATEST_HOME" ] && [ -d "$ANDROID_NDK_LATEST_HOME" ]; then
+            SELECTED_NDK="$ANDROID_NDK_LATEST_HOME"
+          elif [ -n "$ANDROID_NDK_HOME" ] && [ -d "$ANDROID_NDK_HOME" ]; then
+            SELECTED_NDK="$ANDROID_NDK_HOME"
           else
             /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
             SELECTED_NDK="$NDK_BASE/26.1.10909125"
           fi
+          echo "Using Android NDK at: $SELECTED_NDK"
           echo "NDK_HOME=$SELECTED_NDK" >> $GITHUB_ENV
           echo "$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
           echo "TARGET_AR=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
@@ -187,7 +189,7 @@ jobs:
           workspaces: "./src-tauri -> target"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Initialize Tauri Android project
         run: pnpm tauri android init --ci
@@ -198,9 +200,8 @@ jobs:
           INGOT_MSA_CLIENT_ID: ${{ vars.INGOT_MSA_CLIENT_ID }}
         run: pnpm tauri android build --apk --target aarch64
 
-      - name: Sign APK with the release key and attach to the GitHub release
+      - name: Sign APK with the release key
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -214,8 +215,35 @@ jobs:
           bash scripts/sign-android-apk.sh "$RAW_APK" "$FINAL_APK"
           ls -lh output-apks/
 
-          # Same tag as the desktop release: the pushed tag, or v<version> for manual runs
+      - name: Upload signed Android APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ingot-android-release-apk
+          path: output-apks/*.apk
+
+  publish-android:
+    needs: [release, build-android]
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download signed Android APK artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: ingot-android-release-apk
+          path: output-apks
+
+      - name: Attach APK to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(jq -r .version src-tauri/tauri.conf.json)
           TAG="${{ github.ref_type == 'tag' && github.ref_name || '' }}"
           TAG="${TAG:-v$VERSION}"
+          FINAL_APK=$(find output-apks -type f -name "*.apk" | head -n 1)
           echo "Uploading $FINAL_APK to release $TAG..."
           gh release upload "$TAG" "$FINAL_APK" --clobber

@@ -1,13 +1,23 @@
 name: CI
 
-# Fast checks on every push and pull request, so breakage shows up before a release
+# Fast checks on every push to main and all pull requests, so breakage shows up before a release
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
   pull_request:
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
 
-# A newer push to the same branch makes the older run pointless
+# A newer push to the same branch or PR makes the older run pointless
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -59,7 +69,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
             libwebkit2gtk-4.1-dev \
             build-essential \
             libxdo-dev \
@@ -86,7 +96,9 @@ jobs:
           mkdir -p dist
           [ -f dist/index.html ] || echo '<!doctype html><title>Ingot</title>' > dist/index.html
 
+      # Rust formatting is platform-independent; run only once on Linux
       - name: Check formatting
+        if: runner.os == 'Linux'
         working-directory: src-tauri
         run: cargo fmt --all -- --check
 
@@ -94,23 +106,22 @@ jobs:
         working-directory: src-tauri
         run: cargo clippy --all-targets --locked -- -D warnings
 
+      # Non-Windows runs the full test suite directly
       - name: Run tests
+        if: runner.os != 'Windows'
         working-directory: src-tauri
         run: cargo test --all-targets --locked
 
-      - name: Verify IPC binding contract freshness
-        working-directory: src-tauri
-        run: cargo test --lib --locked ipc_contract::generated_bindings_match_the_committed_contract
-
+      # Windows measures coverage for the ratchet baseline; llvm-cov already executes all targets
       - name: Install cargo-llvm-cov
-        if: runner.os != 'macOS'
+        if: runner.os == 'Windows'
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov@0.9.1
 
-      - name: Measure test coverage
+      - name: Run tests and measure coverage
+        if: runner.os == 'Windows'
         working-directory: src-tauri
-        if: runner.os != 'macOS'
         run: cargo llvm-cov --all-targets --locked --json --summary-only --output-path target/coverage.json
 
       - name: Enforce measured Windows coverage baseline
@@ -118,10 +129,10 @@ jobs:
         run: node scripts/coverage-ratchet.mjs src-tauri/target/coverage.json src-tauri/coverage-baseline.windows.json
 
       - name: Upload coverage report
-        if: always() && runner.os != 'macOS'
-        uses: actions/upload-artifact@v4
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
         with:
-          name: rust-coverage-${{ runner.os }}
+          name: rust-coverage-Windows
           path: src-tauri/target/coverage.json
           if-no-files-found: warn
 
@@ -152,10 +163,15 @@ jobs:
           NDK_BASE="/usr/local/lib/android/sdk/ndk"
           if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
             SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
+          elif [ -n "$ANDROID_NDK_LATEST_HOME" ] && [ -d "$ANDROID_NDK_LATEST_HOME" ]; then
+            SELECTED_NDK="$ANDROID_NDK_LATEST_HOME"
+          elif [ -n "$ANDROID_NDK_HOME" ] && [ -d "$ANDROID_NDK_HOME" ]; then
+            SELECTED_NDK="$ANDROID_NDK_HOME"
           else
             /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
             SELECTED_NDK="$NDK_BASE/26.1.10909125"
           fi
+          echo "Using Android NDK at: $SELECTED_NDK"
           echo "NDK_HOME=$SELECTED_NDK" >> $GITHUB_ENV
           echo "$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
           echo "TARGET_AR=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV

@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: "temurin"
           java-version: "21"
@@ -51,6 +51,12 @@ jobs:
           if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
             SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
             echo "Using pre-installed NDK at: $SELECTED_NDK"
+          elif [ -n "$ANDROID_NDK_LATEST_HOME" ] && [ -d "$ANDROID_NDK_LATEST_HOME" ]; then
+            SELECTED_NDK="$ANDROID_NDK_LATEST_HOME"
+            echo "Using ANDROID_NDK_LATEST_HOME at: $SELECTED_NDK"
+          elif [ -n "$ANDROID_NDK_HOME" ] && [ -d "$ANDROID_NDK_HOME" ]; then
+            SELECTED_NDK="$ANDROID_NDK_HOME"
+            echo "Using ANDROID_NDK_HOME at: $SELECTED_NDK"
           else
             echo "Installing NDK 26.1.10909125..."
             /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
@@ -81,7 +87,7 @@ jobs:
           workspaces: "./src-tauri -> target"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Initialize Tauri Android project
         run: pnpm tauri android init --ci
