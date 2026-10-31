@@ -3,6 +3,8 @@ import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/rea
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import React from "react"
 import ReactDOM from "react-dom/client"
+import RootErrorBoundary from "@/components/layout/root-error-boundary"
+import RouteErrorView from "@/components/layout/route-error-view"
 import "@/i18n"
 import "@/lib/theme"
 import "./index.css"
@@ -34,6 +36,7 @@ export const router = createRouter({
 	defaultPreload: "intent",
 	defaultPreloadDelay: 50,
 	defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
+	defaultErrorComponent: RouteErrorView,
 	context: {
 		queryClient,
 	},
@@ -55,9 +58,11 @@ const rootElement = document.getElementById("root")
 if (rootElement) {
 	ReactDOM.createRoot(rootElement).render(
 		<React.StrictMode>
-			<QueryClientProvider client={queryClient}>
-				<RouterProvider router={router} />
-			</QueryClientProvider>
+			<RootErrorBoundary>
+				<QueryClientProvider client={queryClient}>
+					<RouterProvider router={router} />
+				</QueryClientProvider>
+			</RootErrorBoundary>
 		</React.StrictMode>,
 	)
 }

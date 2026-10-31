@@ -8,6 +8,7 @@ import {
 import { memo, useEffect } from "react"
 import { PageTransition } from "@/components/layout/page-transition"
 import QuitDialog from "@/components/layout/quit-dialog"
+import RootErrorView from "@/components/layout/root-error-view"
 import Sidebar from "@/components/layout/sidebar"
 import UpdateBanner from "@/components/layout/update-banner"
 import WindowFrame from "@/components/layout/window-frame"
@@ -85,4 +86,5 @@ const MemoizedRootLayout = memo(RootLayout)
 
 export const Route = createRootRouteWithContext<RouterContext>()({
 	component: MemoizedRootLayout,
+	errorComponent: RootErrorView,
 })
