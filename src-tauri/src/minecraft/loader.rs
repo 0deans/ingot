@@ -166,6 +166,7 @@ pub async fn fetch_loader_versions(
 
             Ok(matching)
         }
+        ModLoaderType::Horizon => Ok(Vec::new()),
     }
 }
 
@@ -194,7 +195,7 @@ pub async fn resolve_loader_profile(
     }
 
     match loader {
-        ModLoaderType::Vanilla => Err(LoaderError::VanillaNotSupported),
+        ModLoaderType::Vanilla | ModLoaderType::Horizon => Err(LoaderError::VanillaNotSupported),
         ModLoaderType::Fabric => {
             let url = format!(
                 "https://meta.fabricmc.net/v2/versions/loader/{}/{}/profile/json",

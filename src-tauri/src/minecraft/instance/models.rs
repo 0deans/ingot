@@ -9,6 +9,7 @@ pub enum ModLoaderType {
     Quilt,
     NeoForge,
     Forge,
+    Horizon,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

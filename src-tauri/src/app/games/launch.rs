@@ -51,28 +51,45 @@ where
     let instance_dir = ensure_instance_dir(&app, &instance_id).map_err(LaunchError::InstanceDir)?;
     ensure_transaction_ready(&instance_dir)?;
 
-    let prep = prepare_launch_environment(
-        &NativePreparation::new(&app),
-        &client,
-        &instance,
-        &cache_dir,
-        &assets_dir,
-        &libraries_dir,
-        report_prog.clone(),
-    )
-    .await?;
-
     let global_settings = system::load_settings(&app).map_err(LaunchError::Settings)?;
-    let context = CommandContext {
-        instance: &instance,
-        settings: &global_settings,
-        instance_dir: &instance_dir,
-        cache_dir: &cache_dir,
-        assets_dir: &assets_dir,
-        libraries_dir: &libraries_dir,
-        quick_play: quick_play.as_ref(),
-    };
-    let command = prepare_game_command(&client, &prep, context, &report_prog).await?;
+
+    let (command, _session_guard) =
+        if instance.loader == crate::minecraft::instance::ModLoaderType::Horizon {
+            super::horizon::prepare_horizon_game_command(
+                &app,
+                &client,
+                &instance,
+                &instance_dir,
+                &data_dir,
+                &report_prog,
+            )
+            .await?
+        } else {
+            let prep = prepare_launch_environment(
+                &NativePreparation::new(&app),
+                &client,
+                &instance,
+                &cache_dir,
+                &assets_dir,
+                &libraries_dir,
+                report_prog.clone(),
+            )
+            .await?;
+
+            let context = CommandContext {
+                instance: &instance,
+                settings: &global_settings,
+                instance_dir: &instance_dir,
+                cache_dir: &cache_dir,
+                assets_dir: &assets_dir,
+                libraries_dir: &libraries_dir,
+                quick_play: quick_play.as_ref(),
+            };
+            (
+                prepare_game_command(&client, &prep, context, &report_prog).await?,
+                None,
+            )
+        };
 
     // Run pre-launch synchronization
     if let Err(e) = crate::app::sync::sync_before_launch(&app, &instance, &instance_dir) {
@@ -109,6 +126,7 @@ where
     let inst_clone = instance.clone();
 
     tokio::spawn(async move {
+        let _guard = _session_guard;
         let clean = match child.wait().await {
             Ok(status) => {
                 println!(

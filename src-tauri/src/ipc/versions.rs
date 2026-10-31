@@ -25,6 +25,10 @@ pub trait VersionsApi {
         app_handle: tauri::AppHandle<impl Runtime>,
         core: ServerCoreType,
     ) -> Result<Vec<String>, ApiError>;
+
+    async fn get_available_horizon_releases(
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<crate::minecraft::horizon::HorizonRelease>, ApiError>;
 }
 
 #[derive(Clone)]
@@ -52,6 +56,19 @@ impl VersionsApi for VersionsApiImpl {
         game_version: String,
         loader: ModLoaderType,
     ) -> Result<Vec<String>, ApiError> {
+        if loader == ModLoaderType::Horizon {
+            let data_dir = app_handle.path().app_data_dir().map_err(|e| {
+                ApiError::storage_failure(format!("Failed to get app data directory: {e}"))
+            })?;
+            let cache_dir = data_dir.join("cache");
+            let releases = crate::minecraft::horizon::fetch_horizon_releases(
+                get_http_client(&app_handle),
+                &cache_dir,
+            )
+            .await
+            .map_err(ApiError::from)?;
+            return Ok(releases.into_iter().map(|r| r.tag).collect());
+        }
         loader::fetch_loader_versions(get_http_client(&app_handle), &loader, &game_version)
             .await
             .map_err(ApiError::from)
@@ -63,6 +80,19 @@ impl VersionsApi for VersionsApiImpl {
         core: ServerCoreType,
     ) -> Result<Vec<String>, ApiError> {
         server::fetch_core_versions(get_http_client(&app_handle), &core)
+            .await
+            .map_err(ApiError::from)
+    }
+
+    async fn get_available_horizon_releases(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+    ) -> Result<Vec<crate::minecraft::horizon::HorizonRelease>, ApiError> {
+        let data_dir = app_handle.path().app_data_dir().map_err(|e| {
+            ApiError::storage_failure(format!("Failed to get app data directory: {e}"))
+        })?;
+        let cache_dir = data_dir.join("cache");
+        crate::minecraft::horizon::fetch_horizon_releases(get_http_client(&app_handle), &cache_dir)
             .await
             .map_err(ApiError::from)
     }

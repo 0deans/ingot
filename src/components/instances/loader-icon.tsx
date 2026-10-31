@@ -4,6 +4,7 @@ import bedrockIcon from "@/assets/loaders/bedrock.svg"
 import fabricIcon from "@/assets/loaders/fabric.svg"
 import foliaIcon from "@/assets/loaders/folia.svg"
 import forgeIcon from "@/assets/loaders/forge.png"
+import horizonIcon from "@/assets/loaders/horizon.svg"
 import neoforgeIcon from "@/assets/loaders/neoforge.svg"
 import paperIcon from "@/assets/loaders/paper.svg"
 import pumpkinIcon from "@/assets/loaders/pumpkin.png"
@@ -57,6 +58,9 @@ export const LoaderIcon: React.FC<LoaderIconProps> = ({
 	} else if (normalized === "bedrock") {
 		src = bedrockIcon
 		defaultAlt = "Bedrock Edition"
+	} else if (normalized === "horizon") {
+		src = horizonIcon
+		defaultAlt = "Horizon"
 	}
 
 	return (

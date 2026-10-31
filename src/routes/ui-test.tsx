@@ -1288,6 +1288,7 @@ function UiTestPage() {
 											{ id: "folia", name: "Folia" },
 											{ id: "pumpkin", name: "PumpkinMC" },
 											{ id: "bedrock", name: "Bedrock" },
+											{ id: "horizon", name: "Horizon" },
 										].map((loader) => (
 											<div
 												key={loader.id}

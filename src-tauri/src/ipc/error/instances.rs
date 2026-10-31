@@ -264,6 +264,7 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::RegistryPoisoned
             | crate::minecraft::launcher::LaunchError::Termination(_)
             | crate::minecraft::launcher::LaunchError::Task(_) => Self::internal(error.to_string()),
+            crate::minecraft::launcher::LaunchError::Horizon(source) => Self::from(source),
         }
     }
 }
@@ -330,6 +331,22 @@ impl From<crate::app::screenshots::ScreenshotActionError> for ApiError {
             crate::app::screenshots::ScreenshotActionError::FileManager(source) => {
                 Self::from(source)
             }
+        }
+    }
+}
+
+impl From<crate::minecraft::horizon::HorizonError> for ApiError {
+    fn from(error: crate::minecraft::horizon::HorizonError) -> Self {
+        use crate::minecraft::horizon::HorizonError;
+        match error {
+            HorizonError::Transport(_) => Self::provider_unavailable(error.to_string()),
+            HorizonError::Io(_) => Self::storage_failure(error.to_string()),
+            HorizonError::AssetNotFound(_) => Self::not_found(error.to_string()),
+            HorizonError::Json(_)
+            | HorizonError::Extraction(_)
+            | HorizonError::ExecutableNotFound(_)
+            | HorizonError::Session(_)
+            | HorizonError::Preparation(_) => Self::internal(error.to_string()),
         }
     }
 }

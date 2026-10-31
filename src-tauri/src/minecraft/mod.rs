@@ -1,6 +1,7 @@
 pub mod bedrock;
 pub mod content;
 pub mod downloader;
+pub mod horizon;
 pub mod importer;
 pub mod instance;
 pub mod java;

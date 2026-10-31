@@ -2,6 +2,7 @@ import i18n from "i18next"
 import { useEffect, useState } from "react"
 import { create } from "zustand"
 import type {
+	HorizonRelease,
 	InstanceConfig,
 	InstanceStatusEvent,
 	InstanceWorldSummary,
@@ -214,6 +215,10 @@ export const instanceService = {
 
 	async getAvailableLoaderVersions(gameVersion: string, loader: ModLoaderType): Promise<string[]> {
 		return unwrapRpc(rpc.versions.get_available_loader_versions(gameVersion, loader))
+	},
+
+	async getAvailableHorizonReleases(): Promise<HorizonRelease[]> {
+		return unwrapRpc(rpc.versions.get_available_horizon_releases())
 	},
 }
 

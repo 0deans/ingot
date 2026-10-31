@@ -105,6 +105,9 @@ pub enum LaunchError {
 
     #[error("Game process worker failed: {0}")]
     Task(#[from] tokio::task::JoinError),
+
+    #[error("Horizon engine error: {0}")]
+    Horizon(#[from] crate::minecraft::horizon::HorizonError),
 }
 
 #[derive(Debug, thiserror::Error)]

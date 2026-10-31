@@ -502,146 +502,178 @@ export const InstanceSettingsDialog = ({
 							)}
 						</div>
 
-						{/* Memory Override */}
-						<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2">
-									<HardDrive className="size-4 text-info" />
+						{/* Memory & JVM vs Native Engine Settings */}
+						{instance.loader === "horizon" ? (
+							<div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
+								<div className="flex items-center gap-2.5">
+									<LoaderIcon loader="horizon" size={24} />
 									<div>
-										<h4 className="text-xs font-medium text-foreground">
-											{t("settings.memory.title")}
+										<h4 className="text-xs font-semibold text-foreground">
+											{t("instanceSettings.horizonEngineTitle", {
+												defaultValue: "Horizon Native Engine (Rust)",
+											})}
 										</h4>
 										<p className="text-2xs text-muted-foreground">
-											{t("instanceSettings.memoryOverride")}
+											{t("instanceSettings.horizonEngineDesc", {
+												defaultValue:
+													"Horizon runs natively as a compiled binary without Java Virtual Machine overhead.",
+											})}
 										</p>
 									</div>
 								</div>
-
-								<Switch
-									checked={useCustomRam}
-									onCheckedChange={setUseCustomRam}
-									aria-label={t("instanceSettings.memoryOverride")}
-								/>
-							</div>
-
-							{useCustomRam ? (
-								<div className="mt-2 flex flex-col gap-3 pt-2">
-									{/* Preset Buttons */}
-									<div className="flex flex-wrap gap-1.5">
-										{[
-											{ min: 2048, max: 4096 },
-											{ min: 4096, max: 6144 },
-											{ min: 6144, max: 8192 },
-											{ min: 8192, max: 12288 },
-										].map((p) => (
-											<Button
-												key={p.min}
-												type="button"
-												variant="outline"
-												size="xs"
-												onClick={() => applyPreset(p.min, p.max)}
-											>
-												{formatMegabytes(p.min)} – {formatMegabytes(p.max)}
-											</Button>
-										))}
-									</div>
-
-									{/* RAM Sliders */}
-									<div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background/60 p-3">
-										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">
-												{t("instanceSettings.minMemory")}
-											</span>
-											<span className="font-mono font-medium text-foreground">
-												{formatMegabytes(minRamMb)}
-											</span>
-										</div>
-										<Slider
-											min={MIN_RAM_LIMIT_MB}
-											max={totalRamMb}
-											step={STEP_MB}
-											value={[minRamMb]}
-											onValueChange={(val) => {
-												const n = Array.isArray(val) ? val[0] : val
-												setMinRamMb(Math.min(n, maxRamMb))
-											}}
-										/>
-
-										<div className="mt-2 flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">
-												{t("instanceSettings.maxMemory")}
-											</span>
-											<span className="font-mono font-medium text-foreground">
-												{formatMegabytes(maxRamMb)}
-											</span>
-										</div>
-										<Slider
-											min={MIN_RAM_LIMIT_MB}
-											max={totalRamMb}
-											step={STEP_MB}
-											value={[maxRamMb]}
-											onValueChange={(val) => {
-												const n = Array.isArray(val) ? val[0] : val
-												setMaxRamMb(Math.max(n, minRamMb))
-											}}
-										/>
-									</div>
+								<div className="rounded-lg border border-border/60 bg-background/60 p-3 text-2xs text-muted-foreground">
+									{t("instanceSettings.horizonEngineNote", {
+										defaultValue:
+											"JVM memory allocation, garbage collector flags, and Java paths do not apply to Horizon instances. Window geometry, resolution, and world synchronization options below remain fully supported.",
+									})}
 								</div>
-							) : (
-								<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-2xs text-muted-foreground">
-									<Trans
-										i18nKey="instanceSettings.inheritMemory"
-										values={{
-											min: formatMegabytes(globalMemory.minRamMb),
-											max: formatMegabytes(globalMemory.maxRamMb),
-										}}
-										components={{ b: <strong className="text-foreground" /> }}
+							</div>
+						) : (
+							<>
+								{/* Memory Override */}
+								<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<HardDrive className="size-4 text-info" />
+											<div>
+												<h4 className="text-xs font-medium text-foreground">
+													{t("settings.memory.title")}
+												</h4>
+												<p className="text-2xs text-muted-foreground">
+													{t("instanceSettings.memoryOverride")}
+												</p>
+											</div>
+										</div>
+
+										<Switch
+											checked={useCustomRam}
+											onCheckedChange={setUseCustomRam}
+											aria-label={t("instanceSettings.memoryOverride")}
+										/>
+									</div>
+
+									{useCustomRam ? (
+										<div className="mt-2 flex flex-col gap-3 pt-2">
+											{/* Preset Buttons */}
+											<div className="flex flex-wrap gap-1.5">
+												{[
+													{ min: 2048, max: 4096 },
+													{ min: 4096, max: 6144 },
+													{ min: 6144, max: 8192 },
+													{ min: 8192, max: 12288 },
+												].map((p) => (
+													<Button
+														key={p.min}
+														type="button"
+														variant="outline"
+														size="xs"
+														onClick={() => applyPreset(p.min, p.max)}
+													>
+														{formatMegabytes(p.min)} – {formatMegabytes(p.max)}
+													</Button>
+												))}
+											</div>
+
+											{/* RAM Sliders */}
+											<div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background/60 p-3">
+												<div className="flex items-center justify-between text-xs">
+													<span className="text-muted-foreground">
+														{t("instanceSettings.minMemory")}
+													</span>
+													<span className="font-mono font-medium text-foreground">
+														{formatMegabytes(minRamMb)}
+													</span>
+												</div>
+												<Slider
+													min={MIN_RAM_LIMIT_MB}
+													max={totalRamMb}
+													step={STEP_MB}
+													value={[minRamMb]}
+													onValueChange={(val) => {
+														const n = Array.isArray(val) ? val[0] : val
+														setMinRamMb(Math.min(n, maxRamMb))
+													}}
+												/>
+
+												<div className="mt-2 flex items-center justify-between text-xs">
+													<span className="text-muted-foreground">
+														{t("instanceSettings.maxMemory")}
+													</span>
+													<span className="font-mono font-medium text-foreground">
+														{formatMegabytes(maxRamMb)}
+													</span>
+												</div>
+												<Slider
+													min={MIN_RAM_LIMIT_MB}
+													max={totalRamMb}
+													step={STEP_MB}
+													value={[maxRamMb]}
+													onValueChange={(val) => {
+														const n = Array.isArray(val) ? val[0] : val
+														setMaxRamMb(Math.max(n, minRamMb))
+													}}
+												/>
+											</div>
+										</div>
+									) : (
+										<div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-2xs text-muted-foreground">
+											<Trans
+												i18nKey="instanceSettings.inheritMemory"
+												values={{
+													min: formatMegabytes(globalMemory.minRamMb),
+													max: formatMegabytes(globalMemory.maxRamMb),
+												}}
+												components={{ b: <strong className="text-foreground" /> }}
+											/>
+										</div>
+									)}
+								</div>
+
+								{/* Custom JVM Arguments */}
+								<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
+									<div className="flex items-center gap-2">
+										<Terminal className="size-4 text-primary" />
+										<div>
+											<h4 className="text-xs font-medium text-foreground">
+												{t("instanceSettings.jvmArgs")}
+											</h4>
+											<p className="text-2xs text-muted-foreground">
+												{t("instanceSettings.jvmArgsHint")}
+											</p>
+										</div>
+									</div>
+
+									<Input
+										value={jvmArgsStr}
+										onChange={(e) => setJvmArgsStr(e.target.value)}
+										placeholder="-XX:+UseG1GC -Dminecraft.custom=true"
+										className="mt-1 h-9 font-mono text-xs"
 									/>
 								</div>
-							)}
-						</div>
 
-						{/* Custom JVM Arguments */}
-						<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
-							<div className="flex items-center gap-2">
-								<Terminal className="size-4 text-primary" />
-								<div>
-									<h4 className="text-xs font-medium text-foreground">
-										{t("instanceSettings.jvmArgs")}
-									</h4>
-									<p className="text-2xs text-muted-foreground">
-										{t("instanceSettings.jvmArgsHint")}
-									</p>
+								{/* Custom Java Binary */}
+								<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
+									<div className="flex items-center gap-2">
+										<Cpu className="size-4 text-warning" />
+										<div>
+											<h4 className="text-xs font-medium text-foreground">
+												{t("instanceSettings.java")}
+											</h4>
+											<p className="text-2xs text-muted-foreground">
+												{t("instanceSettings.javaHint")}
+											</p>
+										</div>
+									</div>
+
+									<Input
+										value={javaPath}
+										onChange={(e) => setJavaPath(e.target.value)}
+										placeholder="C:\Program Files\Java\jdk-21\bin\javaw.exe"
+										className="mt-1 h-9 font-mono text-xs"
+									/>
 								</div>
-							</div>
-
-							<Input
-								value={jvmArgsStr}
-								onChange={(e) => setJvmArgsStr(e.target.value)}
-								placeholder="-XX:+UseG1GC -Dminecraft.custom=true"
-								className="mt-1 h-9 font-mono text-xs"
-							/>
-						</div>
-
-						{/* Custom Java Binary */}
-						<div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/30 p-4">
-							<div className="flex items-center gap-2">
-								<Cpu className="size-4 text-warning" />
-								<div>
-									<h4 className="text-xs font-medium text-foreground">
-										{t("instanceSettings.java")}
-									</h4>
-									<p className="text-2xs text-muted-foreground">{t("instanceSettings.javaHint")}</p>
-								</div>
-							</div>
-
-							<Input
-								value={javaPath}
-								onChange={(e) => setJavaPath(e.target.value)}
-								placeholder="C:\Program Files\Java\jdk-21\bin\javaw.exe"
-								className="mt-1 h-9 font-mono text-xs"
-							/>
-						</div>
+							</>
+						)}
 
 						{/* Window & Display Override */}
 						<div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/30 p-4">

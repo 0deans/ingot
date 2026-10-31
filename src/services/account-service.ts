@@ -15,14 +15,15 @@ const useAccountStore = create<{
 		loadError: null,
 	}
 })
-const current = () => {
-	return useAccountStore.getState().accounts
+const current = (): AccountProfile[] => {
+	const accounts = useAccountStore.getState().accounts
+	return Array.isArray(accounts) ? accounts : []
 }
 const skinCache = new Map<string, string>()
 
 function notify(accounts: AccountProfile[]) {
 	loadAccounts.invalidate()
-	useAccountStore.setState({ accounts })
+	useAccountStore.setState({ accounts: Array.isArray(accounts) ? accounts : [] })
 }
 
 const loadAccounts = createAccountLoader(
@@ -30,7 +31,11 @@ const loadAccounts = createAccountLoader(
 		return unwrapRpc(rpc.accounts.get_accounts())
 	},
 	(accounts) => {
-		useAccountStore.setState({ accounts, fetched: true, loadError: null })
+		useAccountStore.setState({
+			accounts: Array.isArray(accounts) ? accounts : [],
+			fetched: true,
+			loadError: null,
+		})
 	},
 	(failure) => {
 		useAccountStore.setState({ loadError: getRpcErrorMessage(failure) })
@@ -440,9 +445,10 @@ export function useAccounts() {
 	const loadError = useAccountStore((state) => {
 		return state.loadError
 	})
-	const accounts = useAccountStore((s) => {
+	const rawAccounts = useAccountStore((s) => {
 		return s.accounts
 	})
+	const accounts = Array.isArray(rawAccounts) ? rawAccounts : []
 
 	useEffect(() => {
 		if (!accountService.isFetched()) {

@@ -36,6 +36,13 @@ export const getRpcErrorMessage = (error: unknown): string => {
 	return String(error)
 }
 
+const unwrapResult = <T>(res: TauRpcResult<T, ApiError>): T => {
+	if (res.status === "error") {
+		throw new RpcError(res.error)
+	}
+	return res.data
+}
+
 export function unwrapRpc<T>(result: TauRpcResult<T, ApiError>): T
 export function unwrapRpc<T>(promise: Promise<TauRpcResult<T, ApiError>>): Promise<T>
 export function unwrapRpc<T>(
@@ -43,14 +50,8 @@ export function unwrapRpc<T>(
 ): T | Promise<T> {
 	if (input instanceof Promise) {
 		return input.then((res) => {
-			if (res.status === "error") {
-				throw new RpcError(res.error)
-			}
-			return res.data
+			return unwrapResult(res)
 		})
 	}
-	if (input.status === "error") {
-		throw new RpcError(input.error)
-	}
-	return input.data
+	return unwrapResult(input)
 }

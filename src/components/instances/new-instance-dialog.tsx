@@ -37,6 +37,7 @@ const LOADERS: { id: ModLoaderType; label: string; badge?: string }[] = [
 	{ id: "quilt", label: "Quilt" },
 	{ id: "neoforge", label: "NeoForge" },
 	{ id: "forge", label: "Forge" },
+	{ id: "horizon", label: "Horizon", badge: "Rust" },
 ]
 
 const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstanceDialogProps) => {
@@ -65,14 +66,21 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 			.then((list) => {
 				if (cancelled) return
 				setVersions(list)
-				const releases = list.filter((v) => v.type === "release")
+				const releases = list.filter((v) => {
+					return v.type === "release"
+				})
 				if (releases.length > 0) {
-					setGameVersion((current) =>
-						releases.some((r) => r.id === current) ? current : releases[0].id,
-					)
+					setGameVersion((current) => {
+						const hasCurrent = releases.some((r) => {
+							return r.id === current
+						})
+						return hasCurrent ? current : releases[0].id
+					})
 				}
 			})
-			.catch((e) => console.error("Failed to load versions:", e))
+			.catch((e) => {
+				console.error("Failed to load versions:", e)
+			})
 			.finally(() => {
 				if (!cancelled) setIsLoadingVersions(false)
 			})
@@ -100,7 +108,9 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 				setLoaderVersions(vers)
 				setLoaderVersion(vers[0] || "")
 			})
-			.catch((e) => console.error("Failed to fetch loader versions:", e))
+			.catch((e) => {
+				console.error("Failed to fetch loader versions:", e)
+			})
 			.finally(() => {
 				if (!cancelled) setIsLoadingLoaderVersions(false)
 			})
@@ -113,26 +123,51 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 	// Auto-generate name if user hasn't entered a custom name
 	useEffect(() => {
 		if (isCustomName) return
-		const loaderLabel = LOADERS.find((l) => l.id === loader)?.label || "Vanilla"
+		const loaderLabel =
+			LOADERS.find((l) => {
+				return l.id === loader
+			})?.label || "Vanilla"
 		setInstanceName(`${loaderLabel} ${gameVersion}`)
 	}, [loader, gameVersion, isCustomName])
 
-	const filteredVersions = versions.filter((v) => (showSnapshots ? true : v.type === "release"))
+	const filteredVersions = versions.filter((v) => {
+		return showSnapshots ? true : v.type === "release"
+	})
 
 	const gameVersionOptions = useMemo(() => {
-		return filteredVersions.map((v) => ({
-			value: v.id,
-			label: v.id,
-			badge: v.type === "snapshot" ? t("newInstance.snapshotBadge") : undefined,
-		}))
-	}, [filteredVersions, t])
+		const options = filteredVersions.map((v) => {
+			return {
+				value: v.id,
+				label: v.id,
+				badge: v.type === "snapshot" ? t("newInstance.snapshotBadge") : undefined,
+			}
+		})
+		if (
+			loader === "horizon" &&
+			!options.some((o) => {
+				return o.value === "26.3"
+			})
+		) {
+			return [
+				{
+					value: "26.3",
+					label: "26.3",
+					badge: "Horizon",
+				},
+				...options,
+			]
+		}
+		return options
+	}, [filteredVersions, loader, t])
 
 	const loaderVersionOptions = useMemo(() => {
-		return loaderVersions.map((v, i) => ({
-			value: v,
-			label: v,
-			badge: i === 0 ? t("newInstance.latestBadge") : undefined,
-		}))
+		return loaderVersions.map((v, i) => {
+			return {
+				value: v,
+				label: v,
+				badge: i === 0 ? t("newInstance.latestBadge") : undefined,
+			}
+		})
 	}, [loaderVersions, t])
 
 	const handleCreate = async () => {
@@ -175,46 +210,64 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 							<ToggleGroup
 								variant="outline"
 								value={[loader]}
-								onValueChange={(value) => value[0] && setLoader(value[0] as ModLoaderType)}
-								className="grid w-full grid-cols-5"
+								onValueChange={(value) => {
+									if (value[0]) {
+										const next = value[0] as ModLoaderType
+										setLoader(next)
+										if (next === "horizon") {
+											setGameVersion("26.3")
+										}
+									}
+								}}
+								className="grid w-full grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2"
 							>
-								{LOADERS.map((item) => (
-									<ToggleGroupItem
-										key={item.id}
-										value={item.id}
-										className="h-auto flex-col gap-2 p-2.5 text-xs"
-									>
-										<LoaderIcon loader={item.id} size={22} />
-										<span>{item.label}</span>
-									</ToggleGroupItem>
-								))}
+								{LOADERS.map((item) => {
+									return (
+										<ToggleGroupItem
+											key={item.id}
+											value={item.id}
+											className="h-auto w-full flex-col gap-2 p-2.5 text-xs"
+										>
+											<LoaderIcon loader={item.id} size={22} />
+											<span>{item.label}</span>
+										</ToggleGroupItem>
+									)
+								})}
 							</ToggleGroup>
 						</div>
 
 						{/* Version Row */}
 						<div
-							className={loader === "vanilla" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}
+							className={
+								loader === "vanilla"
+									? "grid grid-cols-1 items-start gap-3"
+									: "grid grid-cols-2 items-start gap-3"
+							}
 						>
 							{/* Game Version */}
-							<div className="grid gap-1.5">
-								<div className="flex items-center justify-between">
+							<div className="flex flex-col gap-1.5">
+								<div className="flex h-5 items-center justify-between">
 									<Label
 										htmlFor="game-version"
 										className="text-xs font-medium text-muted-foreground"
 									>
 										{t("newInstance.minecraftVersion")}
 									</Label>
-									<Label
-										htmlFor="snapshots-toggle"
-										className="flex cursor-pointer items-center gap-1.5 text-xs font-normal text-muted-foreground transition-colors select-none hover:text-foreground"
-									>
-										<Checkbox
-											id="snapshots-toggle"
-											checked={showSnapshots}
-											onCheckedChange={(checked) => setShowSnapshots(Boolean(checked))}
-										/>
-										<span>{t("newInstance.snapshots")}</span>
-									</Label>
+									{loader !== "horizon" && (
+										<Label
+											htmlFor="snapshots-toggle"
+											className="flex cursor-pointer items-center gap-1.5 text-xs font-normal text-muted-foreground transition-colors select-none hover:text-foreground"
+										>
+											<Checkbox
+												id="snapshots-toggle"
+												checked={showSnapshots}
+												onCheckedChange={(checked) => {
+													setShowSnapshots(Boolean(checked))
+												}}
+											/>
+											<span>{t("newInstance.snapshots")}</span>
+										</Label>
+									)}
 								</div>
 
 								<SearchableSelect
@@ -228,19 +281,23 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 											: t("newInstance.selectVersion")
 									}
 									searchPlaceholder={t("newInstance.searchVersion")}
-									disabled={isLoadingVersions}
+									disabled={isLoadingVersions || loader === "horizon"}
 								/>
 							</div>
 
 							{/* Loader Version - Only visible when a loader is selected */}
 							{loader !== "vanilla" && (
-								<div className="grid gap-1.5">
-									<Label
-										htmlFor="loader-version"
-										className="text-xs font-medium text-muted-foreground"
-									>
-										{t("newInstance.loaderVersion")}
-									</Label>
+								<div className="flex flex-col gap-1.5">
+									<div className="flex h-5 items-center">
+										<Label
+											htmlFor="loader-version"
+											className="text-xs font-medium text-muted-foreground"
+										>
+											{loader === "horizon"
+												? t("newInstance.horizonRelease", { defaultValue: "Horizon Release" })
+												: t("newInstance.loaderVersion")}
+										</Label>
+									</div>
 
 									<SearchableSelect
 										id="loader-version"
@@ -260,6 +317,14 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 								</div>
 							)}
 						</div>
+
+						{loader === "horizon" && (
+							<p className="-mt-1 text-2xs text-muted-foreground">
+								{t("newInstance.horizonVersionNotice", {
+									defaultValue: "Horizon Rust engine runs Minecraft 26.3",
+								})}
+							</p>
+						)}
 
 						{/* Instance Name */}
 						<div className="grid gap-1.5">

@@ -44,7 +44,7 @@ interface ChangeVersionDialogProps {
 
 type Stage = "pick" | "checking" | "review" | "applying" | "done"
 
-const LOADERS: ModLoaderType[] = ["vanilla", "fabric", "quilt", "neoforge", "forge"]
+const LOADERS: ModLoaderType[] = ["vanilla", "fabric", "quilt", "neoforge", "forge", "horizon"]
 
 export default function ChangeVersionDialog({
 	instance,
@@ -82,7 +82,9 @@ export default function ChangeVersionDialog({
 					(current) => current || releases.find((v) => v.id !== instance.gameVersion)?.id || "",
 				)
 			})
-			.catch((e) => setError(String(e)))
+			.catch((e) => {
+				setError(String(e))
+			})
 	}, [open, instance.gameVersion])
 
 	useEffect(() => {
@@ -100,8 +102,16 @@ export default function ChangeVersionDialog({
 				setLoaderVersions(list)
 				setLoaderVersion(list[0] ?? "")
 			})
-			.catch(() => !cancelled && setLoaderVersions([]))
-			.finally(() => !cancelled && setLoadingLoaders(false))
+			.catch(() => {
+				if (!cancelled) {
+					setLoaderVersions([])
+				}
+			})
+			.finally(() => {
+				if (!cancelled) {
+					setLoadingLoaders(false)
+				}
+			})
 		return () => {
 			cancelled = true
 		}
@@ -188,26 +198,35 @@ export default function ChangeVersionDialog({
 								disabled={busy}
 								value={[loader]}
 								onValueChange={(value) => {
-									const next = LOADERS.find((id) => id === value[0])
-									if (next) setLoader(next)
+									const next = LOADERS.find((id) => {
+										return id === value[0]
+									})
+									if (next) {
+										setLoader(next)
+										if (next === "horizon") {
+											setTarget("26.3")
+										}
+									}
 								}}
-								className="grid w-full grid-cols-5"
+								className="grid w-full grid-cols-3 gap-1 sm:grid-cols-6"
 							>
-								{LOADERS.map((id) => (
-									<ToggleGroupItem
-										key={id}
-										value={id}
-										className="h-auto flex-col gap-1 p-2 text-2xs"
-									>
-										<LoaderIcon loader={id} size={18} />
-										{loaderName(id)}
-										{id === instance.loader && (
-											<span className="text-3xs text-muted-foreground">
-												{t("versionChange.now")}
-											</span>
-										)}
-									</ToggleGroupItem>
-								))}
+								{LOADERS.map((id) => {
+									return (
+										<ToggleGroupItem
+											key={id}
+											value={id}
+											className="h-auto flex-col gap-1 p-2 text-2xs"
+										>
+											<LoaderIcon loader={id} size={18} />
+											{loaderName(id)}
+											{id === instance.loader && (
+												<span className="text-3xs text-muted-foreground">
+													{t("versionChange.now")}
+												</span>
+											)}
+										</ToggleGroupItem>
+									)
+								})}
 							</ToggleGroup>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
@@ -236,18 +255,40 @@ export default function ChangeVersionDialog({
 									id="target-version"
 									value={target}
 									onValueChange={setTarget}
-									options={versions.map((v) => ({
-										value: v.id,
-										label: v.id,
-										badge: v.id === instance.gameVersion ? t("versionChange.now") : undefined,
-									}))}
+									options={(() => {
+										const opts = versions.map((v) => {
+											return {
+												value: v.id,
+												label: v.id,
+												badge: v.id === instance.gameVersion ? t("versionChange.now") : undefined,
+											}
+										})
+										if (
+											loader === "horizon" &&
+											!opts.some((o) => {
+												return o.value === "26.3"
+											})
+										) {
+											return [
+												{
+													value: "26.3",
+													label: "26.3",
+													badge: "Horizon",
+												},
+												...opts,
+											]
+										}
+										return opts
+									})()}
 									placeholder={
 										versions.length
 											? t("versionChange.pickVersion")
 											: t("newInstance.loadingVersions")
 									}
 									searchPlaceholder={t("versionChange.searchVersion")}
-									disabled={busy || versions.length === 0}
+									disabled={
+										busy || (versions.length === 0 && loader !== "horizon") || loader === "horizon"
+									}
 								/>
 							</div>
 						</div>
@@ -257,17 +298,21 @@ export default function ChangeVersionDialog({
 									htmlFor="target-loader"
 									className="text-xs font-medium text-muted-foreground"
 								>
-									{t("versionChange.loaderVersion", { loader: loaderName(loader) })}
+									{loader === "horizon"
+										? t("newInstance.horizonRelease", { defaultValue: "Horizon Release" })
+										: t("versionChange.loaderVersion", { loader: loaderName(loader) })}
 								</Label>
 								<SearchableSelect
 									id="target-loader"
 									value={loaderVersion}
 									onValueChange={setLoaderVersion}
-									options={loaderVersions.map((v, i) => ({
-										value: v,
-										label: v,
-										badge: i === 0 ? t("newInstance.latestBadge") : undefined,
-									}))}
+									options={loaderVersions.map((v, i) => {
+										return {
+											value: v,
+											label: v,
+											badge: i === 0 ? t("newInstance.latestBadge") : undefined,
+										}
+									})}
 									placeholder={
 										loadingLoaders
 											? t("newInstance.loadingVersions")

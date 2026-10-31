@@ -69,7 +69,7 @@ pub async fn prepare_launch_environment(
 
     // Step 2: Loader Profile (if modded)
     let loader_profile: Option<LoaderProfile> = match instance.loader {
-        ModLoaderType::Vanilla => None,
+        ModLoaderType::Vanilla | ModLoaderType::Horizon => None,
         ref loader => {
             let loader_ver = instance
                 .loader_version

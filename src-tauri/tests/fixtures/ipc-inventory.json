@@ -227,6 +227,13 @@
 			"destination": "versions"
 		},
 		{
+			"name": "get_available_horizon_releases",
+			"currentPath": "versions",
+			"kind": "command",
+			"arguments": [],
+			"destination": "versions"
+		},
+		{
 			"name": "get_available_loader_versions",
 			"currentPath": "versions",
 			"kind": "command",
