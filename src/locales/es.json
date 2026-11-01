@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instancias",
 		"discover": "Explorar",
+		"news": "Noticias",
 		"skins": "Catálogo de skins",
 		"screenshots": "Capturas",
 		"servers": "Servidores dedicados",
 		"settings": "Configuración"
+	},
+	"news": {
+		"title": "Noticias y actualizaciones de Mojang",
+		"subtitle": "Anuncios oficiales de lanzamientos de Minecraft, blogs de desarrollo de snapshots y artículos",
+		"searchPlaceholder": "Buscar actualizaciones, snapshots, correcciones...",
+		"filters": {
+			"all": "Todas las actualizaciones",
+			"releases": "Lanzamientos",
+			"snapshots": "Snapshots",
+			"blogs": "Artículos y blogs"
+		},
+		"badges": {
+			"release": "Lanzamiento",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Leer notas",
+			"readArticle": "Leer artículo",
+			"createInstance": "Crear instancia",
+			"createInstanceFull": "Crear instancia con esta versión",
+			"openExternal": "Abrir en Minecraft.net",
+			"openInBrowser": "Abrir en el navegador",
+			"refresh": "Actualizar noticias",
+			"back": "Volver a actualizaciones"
+		},
+		"empty": {
+			"title": "No se encontraron noticias",
+			"description": "Intenta ajustar tus términos de búsqueda o selección de filtros.",
+			"offlineTitle": "No se pudo cargar el feed de noticias",
+			"offlineDescription": "Comprueba tu conexión de red. Las noticias en caché aparecerán cuando estén disponibles."
+		},
+		"sections": {
+			"patchNotes": "Notas de la versión y snapshots",
+			"patchNotesCount": "{{count}} actualizaciones",
+			"articles": "Artículos y blogs de la comunidad",
+			"articlesCount": "{{count}} artículos"
+		},
+		"detail": {
+			"loadError": "Error al cargar los detalles",
+			"loadErrorDescription": "No se pudo recuperar el artículo completo de los servidores de Mojang. Comprueba tu conexión e inténtalo de nuevo.",
+			"experiencePrompt": "¿Listo para probar esta actualización?",
+			"experienceDescription": "Crea una instancia con un solo clic o lee el artículo completo en Minecraft.net.",
+			"enjoyedPrompt": "¿Te gustó este artículo?",
+			"enjoyedDescription": "Lee el artículo completo y participa en las conversaciones de la comunidad en el sitio web oficial de Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "¡Ingot v{{version}} está listo para instalar!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Ajustes de la instancia (RAM, argumentos JVM)",
 			"duplicateTooltip": "Duplicar",
 			"deleteTooltip": "Eliminar instancia",
-			"ram": "{{size}} de RAM"
+			"ram": "{{size}} de RAM",
+			"createShortcutTooltip": "Crear acceso directo",
+			"createShortcut": "Crear acceso directo",
+			"desktopShortcut": "Acceso directo en el escritorio",
+			"appMenuShortcut": "Acceso directo en el menú de aplicaciones",
+			"shortcutCreatedDesktop": "Acceso directo en el escritorio creado para {{name}}",
+			"shortcutCreatedAppMenu": "Acceso directo en el menú de aplicaciones creado para {{name}}",
+			"shortcutFailed": "Error al crear el acceso directo: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1444,7 +1497,11 @@
 		"syncHistory": "Sincronizar historial de comandos (command_history.txt)",
 		"syncHotbars": "Sincronizar barras de creativo (hotbar.nbt)",
 		"inheritSync": "Usa las preferencias globales de sincronización. Sincroniza antes de iniciar y al salir.",
-		"recoveryRequired": "Se detectó un cambio de versión incompleto o fallido"
+		"recoveryRequired": "Se detectó un cambio de versión incompleto o fallido",
+		"shortcutsTitle": "Accesos directos del sistema",
+		"shortcutsDesc": "Genera accesos directos en tu escritorio o en el menú de aplicaciones para iniciar esta instancia directamente.",
+		"createDesktopShortcut": "Crear acceso directo en el escritorio",
+		"createAppMenuShortcut": "Crear acceso directo en el menú de aplicaciones"
 	},
 	"install": {
 		"loadFailed": "No se pudieron cargar las opciones de instalación",

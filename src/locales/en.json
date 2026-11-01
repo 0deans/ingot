@@ -64,9 +64,11 @@
 		},
 		"actions": {
 			"readNotes": "Read Notes",
+			"readArticle": "Read Article",
 			"createInstance": "Create Instance",
 			"createInstanceFull": "Create Instance with this Version",
 			"openExternal": "Open on Minecraft.net",
+			"openInBrowser": "Open in Browser",
 			"refresh": "Refresh News",
 			"back": "Back to Updates"
 		},
@@ -75,6 +77,20 @@
 			"description": "Try adjusting your search terms or filter selection.",
 			"offlineTitle": "Unable to load news feed",
 			"offlineDescription": "Check your network connection. Cached news will appear when available."
+		},
+		"sections": {
+			"patchNotes": "Release Notes & Snapshots",
+			"patchNotesCount": "{{count}} updates",
+			"articles": "Articles & Community Blogs",
+			"articlesCount": "{{count}} articles"
+		},
+		"detail": {
+			"loadError": "Failed to load details",
+			"loadErrorDescription": "Unable to retrieve the full article from Mojang servers. Please check your connection and try again.",
+			"experiencePrompt": "Ready to experience this update?",
+			"experienceDescription": "Create a dedicated instance in one click, or read the full article on Minecraft.net.",
+			"enjoyedPrompt": "Enjoyed reading this article?",
+			"enjoyedDescription": "Read the full article and join the community discussions on the official Minecraft website."
 		}
 	},
 	"updateBanner": {
@@ -147,6 +163,13 @@
 			"settingsTooltip": "Instance Settings (RAM, JVM args)",
 			"duplicateTooltip": "Duplicate",
 			"deleteTooltip": "Delete Instance",
+			"createShortcutTooltip": "Create shortcut",
+			"createShortcut": "Create Shortcut",
+			"desktopShortcut": "Desktop Shortcut",
+			"appMenuShortcut": "Application Menu Shortcut",
+			"shortcutCreatedDesktop": "Desktop shortcut created for {{name}}",
+			"shortcutCreatedAppMenu": "Application menu shortcut created for {{name}}",
+			"shortcutFailed": "Failed to create shortcut: {{error}}",
 			"ram": "{{size}} RAM"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
@@ -1454,6 +1477,10 @@
 		"pullFailed": "Pull failed: {{error}}",
 		"saveFailed": "Failed to save settings: {{error}}",
 		"title": "Instance Settings",
+		"shortcutsTitle": "OS Shortcuts",
+		"shortcutsDesc": "Generate direct shortcuts to launch this instance from your desktop or application menu.",
+		"createDesktopShortcut": "Create Desktop Shortcut",
+		"createAppMenuShortcut": "Create Application Menu Shortcut",
 		"description": "Configure execution parameters and memory limits for <b>{{name}}</b>.",
 		"namePlaceholder": "My Minecraft Instance",
 		"loader": "loader {{version}}",

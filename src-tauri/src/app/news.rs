@@ -1,4 +1,6 @@
-use crate::minecraft::news::{self, NewsError, NewsFeedResponse, PatchNoteDetails};
+use crate::minecraft::news::{
+    self, NewsArticleDetails, NewsError, NewsFeedResponse, PatchNoteDetails,
+};
 use tauri::{AppHandle, Runtime};
 
 pub(crate) fn service<R: Runtime>(app: &AppHandle<R>) -> news::NewsService {
@@ -18,4 +20,11 @@ pub(crate) async fn get_patch_note_details<R: Runtime>(
     content_path: &str,
 ) -> Result<PatchNoteDetails, NewsError> {
     service(app).get_patch_note_details(content_path).await
+}
+
+pub(crate) async fn get_article_details<R: Runtime>(
+    app: &AppHandle<R>,
+    article_id: &str,
+) -> Result<NewsArticleDetails, NewsError> {
+    service(app).get_article_details(article_id).await
 }

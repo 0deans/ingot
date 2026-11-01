@@ -6,20 +6,25 @@ import {
 	FolderOpen,
 	Globe,
 	HardDrive,
+	LayoutGrid,
+	Monitor,
 	Play,
 	Settings,
+	Share2,
 	Square,
 	Trash2,
 } from "lucide-react"
 import { motion } from "motion/react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import type {
 	InstanceConfig,
 	InstanceWorldSummary,
 	LaunchProgressEvent,
 	QuickPlayOptions,
 	RunningInstanceSummary,
+	ShortcutLocation,
 } from "@/bindings"
 import { DirectConnectDialog } from "@/components/instances/direct-connect-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
@@ -119,6 +124,23 @@ export const InstanceCard = ({
 			console.error("Failed to load instance worlds:", e)
 		} finally {
 			setLoadingWorlds(false)
+		}
+	}
+
+	const handleCreateShortcut = async (location: ShortcutLocation) => {
+		try {
+			await instanceService.createShortcut(instance.id, location)
+			toast.success(
+				location === "desktop"
+					? t("instances.card.shortcutCreatedDesktop", { name: instance.name })
+					: t("instances.card.shortcutCreatedAppMenu", { name: instance.name }),
+			)
+		} catch (error) {
+			toast.error(
+				t("instances.card.shortcutFailed", {
+					error: error instanceof Error ? error.message : String(error),
+				}),
+			)
 		}
 	}
 
@@ -461,6 +483,53 @@ export const InstanceCard = ({
 						</TooltipTrigger>
 						<TooltipContent>{t("instances.card.settingsTooltip")}</TooltipContent>
 					</Tooltip>
+
+					<DropdownMenu>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<DropdownMenuTrigger
+										render={
+											<Button
+												variant="ghost"
+												size="icon"
+												className="size-8 text-muted-foreground"
+												aria-label={t("instances.card.createShortcutTooltip")}
+											>
+												<Share2 className="size-3.5" />
+											</Button>
+										}
+									/>
+								}
+							/>
+							<TooltipContent>{t("instances.card.createShortcutTooltip")}</TooltipContent>
+						</Tooltip>
+						<DropdownMenuContent align="end" className="w-52">
+							<DropdownMenuGroup>
+								<DropdownMenuLabel className="text-3xs font-semibold tracking-wider text-muted-foreground uppercase">
+									{t("instances.card.createShortcut")}
+								</DropdownMenuLabel>
+								<DropdownMenuItem
+									onClick={() => {
+										return handleCreateShortcut("desktop")
+									}}
+									className="cursor-pointer gap-2"
+								>
+									<Monitor className="size-4 text-primary" />
+									<span className="text-xs">{t("instances.card.desktopShortcut")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => {
+										return handleCreateShortcut("applicationsMenu")
+									}}
+									className="cursor-pointer gap-2"
+								>
+									<LayoutGrid className="size-4 text-primary" />
+									<span className="text-xs">{t("instances.card.appMenuShortcut")}</span>
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</DropdownMenuContent>
+					</DropdownMenu>
 
 					{!isRunning && !isDownloading && (
 						<Tooltip>

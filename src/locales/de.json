@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instanzen",
 		"discover": "Entdecken",
+		"news": "Neuigkeiten",
 		"skins": "Skin-Katalog",
 		"screenshots": "Screenshots",
 		"servers": "Dedizierte Server",
 		"settings": "Einstellungen"
+	},
+	"news": {
+		"title": "Mojang Neuigkeiten & Updates",
+		"subtitle": "Offizielle Minecraft-Veröffentlichungsankündigungen, Snapshot-Entwicklerblogs und Artikel",
+		"searchPlaceholder": "Updates, Snapshots, Fehlerbehebungen suchen...",
+		"filters": {
+			"all": "Alle Updates",
+			"releases": "Vollversionen",
+			"snapshots": "Snapshots",
+			"blogs": "Artikel & Blogs"
+		},
+		"badges": {
+			"release": "Vollversion",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Patchnotizen lesen",
+			"readArticle": "Artikel lesen",
+			"createInstance": "Instanz erstellen",
+			"createInstanceFull": "Instanz mit dieser Version erstellen",
+			"openExternal": "Auf Minecraft.net öffnen",
+			"openInBrowser": "Im Browser öffnen",
+			"refresh": "Neuigkeiten aktualisieren",
+			"back": "Zurück zu Updates"
+		},
+		"empty": {
+			"title": "Keine Neuigkeiten gefunden",
+			"description": "Versuche deine Suchbegriffe oder Filtereinstellungen anzupassen.",
+			"offlineTitle": "Neuigkeiten-Feed konnte nicht geladen werden",
+			"offlineDescription": "Prüfe deine Internetverbindung. Zwischengespeicherte Nachrichten werden angezeigt, sobald verfügbar."
+		},
+		"sections": {
+			"patchNotes": "Patchnotizen & Snapshots",
+			"patchNotesCount": "{{count}} Updates",
+			"articles": "Artikel & Community-Blogs",
+			"articlesCount": "{{count}} Artikel"
+		},
+		"detail": {
+			"loadError": "Details konnten nicht geladen werden",
+			"loadErrorDescription": "Der vollständige Artikel konnte nicht von den Mojang-Servern abgerufen werden. Bitte Verbindung prüfen und erneut versuchen.",
+			"experiencePrompt": "Bereit für dieses Update?",
+			"experienceDescription": "Erstelle mit einem Klick eine Instanz oder lies den vollständigen Artikel auf Minecraft.net.",
+			"enjoyedPrompt": "Hat dir der Artikel gefallen?",
+			"enjoyedDescription": "Lies den ganzen Artikel und diskutiere auf der offiziellen Minecraft-Website mit."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} ist bereit zur Installation!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Instanz-Einstellungen (RAM, JVM-Argumente)",
 			"duplicateTooltip": "Duplizieren",
 			"deleteTooltip": "Instanz löschen",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Verknüpfung erstellen",
+			"createShortcut": "Verknüpfung erstellen",
+			"desktopShortcut": "Desktop-Verknüpfung",
+			"appMenuShortcut": "Anwendungsmenü-Verknüpfung",
+			"shortcutCreatedDesktop": "Desktop-Verknüpfung für {{name}} erstellt",
+			"shortcutCreatedAppMenu": "Anwendungsmenü-Verknüpfung für {{name}} erstellt",
+			"shortcutFailed": "Fehler beim Erstellen der Verknüpfung: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Befehlsverlauf synchronisieren (command_history.txt)",
 		"syncHotbars": "Kreativ-Schnellleisten synchronisieren (hotbar.nbt)",
 		"inheritSync": "Übernimmt globale Sync-Einstellungen. Synchronisiert vor dem Start und nach dem Beenden.",
-		"recoveryRequired": "Unvollständiger oder fehlgeschlagener Versionswechsel erkannt"
+		"recoveryRequired": "Unvollständiger oder fehlgeschlagener Versionswechsel erkannt",
+		"shortcutsTitle": "Betriebssystem-Verknüpfungen",
+		"shortcutsDesc": "Erstellen Sie direkte Verknüpfungen auf Ihrem Desktop oder im Anwendungsmenü, um diese Instanz direkt zu starten.",
+		"createDesktopShortcut": "Desktop-Verknüpfung erstellen",
+		"createAppMenuShortcut": "Anwendungsmenü-Verknüpfung erstellen"
 	},
 	"install": {
 		"loadFailed": "Installationsoptionen konnten nicht geladen werden",

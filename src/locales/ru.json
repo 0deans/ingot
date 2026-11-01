@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Сборки",
 		"discover": "Каталог",
+		"news": "Новости",
 		"skins": "Каталог скинов",
 		"screenshots": "Скриншоты",
 		"servers": "Серверы",
 		"settings": "Настройки"
+	},
+	"news": {
+		"title": "Новости и обновления Mojang",
+		"subtitle": "Официальные анонсы релизов Minecraft, блоги о разработке снапшотов и статьи",
+		"searchPlaceholder": "Поиск обновлений, снапшотов, исправлений...",
+		"filters": {
+			"all": "Все обновления",
+			"releases": "Релизы",
+			"snapshots": "Снапшоты",
+			"blogs": "Статьи и блоги"
+		},
+		"badges": {
+			"release": "Релиз",
+			"snapshot": "Снапшот"
+		},
+		"actions": {
+			"readNotes": "Список изменений",
+			"readArticle": "Читать статью",
+			"createInstance": "Создать сборку",
+			"createInstanceFull": "Создать сборку с этой версией",
+			"openExternal": "Открыть на Minecraft.net",
+			"openInBrowser": "Открыть в браузере",
+			"refresh": "Обновить новости",
+			"back": "Назад к обновлениям"
+		},
+		"empty": {
+			"title": "Новости не найдены",
+			"description": "Попробуйте изменить поисковый запрос или фильтры.",
+			"offlineTitle": "Не удалось загрузить ленту новостей",
+			"offlineDescription": "Проверьте подключение к сети. Сохранённые новости появятся при наличии."
+		},
+		"sections": {
+			"patchNotes": "Примечания к выпускам и снапшоты",
+			"patchNotesCount": "{{count}} обновлений",
+			"articles": "Статьи и блоги сообщества",
+			"articlesCount": "{{count}} статей"
+		},
+		"detail": {
+			"loadError": "Не удалось загрузить подробности",
+			"loadErrorDescription": "Не удалось получить статью с серверов Mojang. Проверьте подключение и повторите попытку.",
+			"experiencePrompt": "Готовы опробовать это обновление?",
+			"experienceDescription": "Создайте сборку в один клик или прочтите полную статью на Minecraft.net.",
+			"enjoyedPrompt": "Понравилась статья?",
+			"enjoyedDescription": "Прочтите полную версию и присоединяйтесь к обсуждению на официальном сайте Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} готов к установке!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Настройки сборки (ОЗУ, аргументы JVM)",
 			"duplicateTooltip": "Дублировать",
 			"deleteTooltip": "Удалить сборку",
-			"ram": "{{size}} ОЗУ"
+			"ram": "{{size}} ОЗУ",
+			"createShortcutTooltip": "Создать ярлык",
+			"createShortcut": "Создать ярлык",
+			"desktopShortcut": "Ярлык на рабочем столе",
+			"appMenuShortcut": "Ярлык в меню приложений",
+			"shortcutCreatedDesktop": "Ярлык на рабочем столе создан для {{name}}",
+			"shortcutCreatedAppMenu": "Ярлык в меню приложений создан для {{name}}",
+			"shortcutFailed": "Не удалось создать ярлык: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1483,7 +1536,11 @@
 		"syncHistory": "Синхронизировать историю команд (command_history.txt)",
 		"syncHotbars": "Синхронизировать хотбары творческого режима (hotbar.nbt)",
 		"inheritSync": "Берутся общие настройки синхронизации. Синхронизирует перед запуском и после выхода.",
-		"recoveryRequired": "Обнаружена незавершенная или сбойная смена версии"
+		"recoveryRequired": "Обнаружена незавершенная или сбойная смена версии",
+		"shortcutsTitle": "Ярлыки системы",
+		"shortcutsDesc": "Создавайте ярлыки на рабочем столе или в меню приложений для прямого запуска этой сборки.",
+		"createDesktopShortcut": "Создать ярлык на рабочем столе",
+		"createAppMenuShortcut": "Создать ярлык в меню приложений"
 	},
 	"install": {
 		"loadFailed": "Не удалось загрузить варианты установки",

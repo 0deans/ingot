@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instanser",
 		"discover": "Upptäck",
+		"news": "Nyheter",
 		"skins": "Skinkatalog",
 		"screenshots": "Skärmbilder",
 		"servers": "Dedikerade servrar",
 		"settings": "Inställningar"
+	},
+	"news": {
+		"title": "Mojang Nyheter & Uppdateringar",
+		"subtitle": "Officiella Minecraft-lanseringsmeddelanden, utvecklingsbloggar för snapshots och artiklar",
+		"searchPlaceholder": "Sök uppdateringar, snapshots, buggfixar...",
+		"filters": {
+			"all": "Alla uppdateringar",
+			"releases": "Lanseringar",
+			"snapshots": "Snapshots",
+			"blogs": "Artiklar & Bloggar"
+		},
+		"badges": {
+			"release": "Lansering",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Läs ändringslogg",
+			"readArticle": "Läs artikel",
+			"createInstance": "Skapa instans",
+			"createInstanceFull": "Skapa instans med denna version",
+			"openExternal": "Öppna på Minecraft.net",
+			"openInBrowser": "Öppna i webbläsare",
+			"refresh": "Uppdatera nyheter",
+			"back": "Tillbaka till uppdateringar"
+		},
+		"empty": {
+			"title": "Inga nyheter hittades",
+			"description": "Prova att justera dina sökord eller filter.",
+			"offlineTitle": "Kunde inte läsa in nyhetsflödet",
+			"offlineDescription": "Kontrollera din nätverksanslutning. Sparade nyheter visas när de är tillgängliga."
+		},
+		"sections": {
+			"patchNotes": "Versionsanteckningar & Snapshots",
+			"patchNotesCount": "{{count}} uppdateringar",
+			"articles": "Artiklar & Gemenskapsbloggar",
+			"articlesCount": "{{count}} artiklar"
+		},
+		"detail": {
+			"loadError": "Kunde inte läsa in detaljer",
+			"loadErrorDescription": "Kunde inte hämta artikeln från Mojangs servrar. Kontrollera anslutningen och försök igen.",
+			"experiencePrompt": "Redo att uppleva den här uppdateringen?",
+			"experienceDescription": "Skapa en instans med ett klick eller läs hela artikeln på Minecraft.net.",
+			"enjoyedPrompt": "Gillade du den här artikeln?",
+			"enjoyedDescription": "Läs hela artikeln och delta i diskussionerna på Minecrafts officiella webbplats."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} är redo att installeras!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Instansinställningar (RAM, JVM-argument)",
 			"duplicateTooltip": "Duplicera",
 			"deleteTooltip": "Ta bort instans",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Skapa genväg",
+			"createShortcut": "Skapa genväg",
+			"desktopShortcut": "Skrivbordsgenväg",
+			"appMenuShortcut": "Applikationsmenygenväg",
+			"shortcutCreatedDesktop": "Skrivbordsgenväg skapad för {{name}}",
+			"shortcutCreatedAppMenu": "Applikationsmenygenväg skapad för {{name}}",
+			"shortcutFailed": "Kunde inte skapa genväg: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Synka kommandohistorik (command_history.txt)",
 		"syncHotbars": "Synka kreativa snabbfält (hotbar.nbt)",
 		"inheritSync": "Följer de globala synkinställningarna. Synkar före start och efter avslut.",
-		"recoveryRequired": "Ofullständigt eller misslyckat versionsbyte upptäcktes"
+		"recoveryRequired": "Ofullständigt eller misslyckat versionsbyte upptäcktes",
+		"shortcutsTitle": "Systemgenvägar",
+		"shortcutsDesc": "Generera genvägar på skrivbordet eller i programmenyn för att starta den här instansen direkt.",
+		"createDesktopShortcut": "Skapa skrivbordsgenväg",
+		"createAppMenuShortcut": "Skapa genväg i programmenyn"
 	},
 	"install": {
 		"loadFailed": "Det gick inte att läsa in installationsalternativen",

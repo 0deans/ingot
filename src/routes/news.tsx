@@ -5,9 +5,10 @@ import { memo, useCallback, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import * as v from "valibot"
-import type { ModLoaderType, PatchNoteSummary } from "@/bindings"
+import type { ModLoaderType, NewsArticle, PatchNoteSummary } from "@/bindings"
 import NewInstanceDialog from "@/components/instances/new-instance-dialog"
 import NewsArticleCard from "@/components/news/news-article-card"
+import NewsArticleDetailView from "@/components/news/news-article-detail-view"
 import NewsHeader, { type NewsFilterCategory } from "@/components/news/news-header"
 import NewsSkeletonGrid from "@/components/news/news-skeleton"
 import PatchNoteCard from "@/components/news/patch-note-card"
@@ -30,6 +31,7 @@ export const newsSearchSchema = v.object({
 	query: v.optional(v.fallback(v.string(), ""), ""),
 	filter: v.optional(v.fallback(newsFilterSchema, "all"), "all"),
 	details: v.optional(v.string()),
+	articleId: v.optional(v.string()),
 })
 
 export type NewsSearchParams = v.InferOutput<typeof newsSearchSchema>
@@ -45,6 +47,7 @@ const NewsPage = () => {
 	const [isCreatingInstance, setIsCreatingInstance] = useState(false)
 	const [createVersion, setCreateVersion] = useState<string | undefined>()
 	const [selectedNote, setSelectedNote] = useState<PatchNoteSummary | null>(null)
+	const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null)
 	const [isManualRefreshing, setIsManualRefreshing] = useState(false)
 
 	const { data: feed, isLoading, isError, refetch } = useQuery(newsQueries.feed(false))
@@ -171,6 +174,27 @@ const NewsPage = () => {
 		})
 	}, [navigate])
 
+	const handleReadArticle = useCallback(
+		(article: NewsArticle) => {
+			setSelectedArticle(article)
+			navigate({
+				search: (prev) => {
+					return { ...prev, articleId: article.id }
+				},
+			})
+		},
+		[navigate],
+	)
+
+	const handleBackFromArticle = useCallback(() => {
+		setSelectedArticle(null)
+		navigate({
+			search: (prev) => {
+				return { ...prev, articleId: undefined }
+			},
+		})
+	}, [navigate])
+
 	const handleCreateInstance = useCallback((version: string) => {
 		setCreateVersion(version)
 		setIsCreatingInstance(true)
@@ -217,6 +241,24 @@ const NewsPage = () => {
 					onOpenChange={setIsCreatingInstance}
 					onCreateInstance={handleConfirmCreateInstance}
 					initialVersion={createVersion}
+				/>
+			</div>
+		)
+	}
+
+	if (search.articleId) {
+		const matchedArticle =
+			selectedArticle ??
+			feed?.articles.find((a: NewsArticle) => {
+				return a.id === search.articleId
+			})
+
+		return (
+			<div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-background">
+				<NewsArticleDetailView
+					articleId={search.articleId}
+					initialArticle={matchedArticle}
+					onBack={handleBackFromArticle}
 				/>
 			</div>
 		)
@@ -281,10 +323,12 @@ const NewsPage = () => {
 								<section className="flex flex-col gap-4">
 									<div className="flex items-center justify-between">
 										<h2 className="text-lg font-bold tracking-tight text-foreground">
-											Release Notes & Snapshots
+											{t("news.sections.patchNotes")}
 										</h2>
 										<span className="text-xs text-muted-foreground">
-											{filteredPatchNotes.length} updates
+											{t("news.sections.patchNotesCount", {
+												count: filteredPatchNotes.length,
+											})}
 										</span>
 									</div>
 									<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -306,15 +350,21 @@ const NewsPage = () => {
 								<section className="flex flex-col gap-4">
 									<div className="flex items-center justify-between">
 										<h2 className="text-lg font-bold tracking-tight text-foreground">
-											Articles & Community Blogs
+											{t("news.sections.articles")}
 										</h2>
 										<span className="text-xs text-muted-foreground">
-											{filteredArticles.length} articles
+											{t("news.sections.articlesCount", { count: filteredArticles.length })}
 										</span>
 									</div>
 									<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
 										{filteredArticles.map((article) => {
-											return <NewsArticleCard key={article.id} article={article} />
+											return (
+												<NewsArticleCard
+													key={article.id}
+													article={article}
+													onReadArticle={handleReadArticle}
+												/>
+											)
 										})}
 									</div>
 								</section>

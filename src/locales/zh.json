@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "实例列表",
 		"discover": "发现内容",
+		"news": "新闻",
 		"skins": "皮肤目录",
 		"screenshots": "游戏截图",
 		"servers": "独立服务器",
 		"settings": "设置"
+	},
+	"news": {
+		"title": "Mojang 新闻与更新",
+		"subtitle": "Minecraft 官方发布公告、快照开发日志与专题文章",
+		"searchPlaceholder": "搜索更新、快照、问题修复...",
+		"filters": {
+			"all": "全部更新",
+			"releases": "正式版",
+			"snapshots": "快照",
+			"blogs": "文章与博客"
+		},
+		"badges": {
+			"release": "正式版",
+			"snapshot": "快照"
+		},
+		"actions": {
+			"readNotes": "阅读更新日志",
+			"readArticle": "阅读文章",
+			"createInstance": "创建实例",
+			"createInstanceFull": "以此版本创建实例",
+			"openExternal": "在 Minecraft.net 打开",
+			"openInBrowser": "在浏览器中打开",
+			"refresh": "刷新新闻",
+			"back": "返回更新列表"
+		},
+		"empty": {
+			"title": "未找到新闻文章",
+			"description": "请尝试调整搜索词或筛选条件。",
+			"offlineTitle": "无法加载新闻动态",
+			"offlineDescription": "请检查网络连接。若有缓存内容，将自动显示。"
+		},
+		"sections": {
+			"patchNotes": "更新日志与快照",
+			"patchNotesCount": "{{count}} 个更新",
+			"articles": "文章与社区博客",
+			"articlesCount": "{{count}} 篇文章"
+		},
+		"detail": {
+			"loadError": "加载详情失败",
+			"loadErrorDescription": "无法从 Mojang 服务器获取完整文章。请检查网络并重试。",
+			"experiencePrompt": "准备好体验这次更新了吗？",
+			"experienceDescription": "一键创建专属实例，或在 Minecraft.net 阅读完整文章。",
+			"enjoyedPrompt": "喜欢这篇文章吗？",
+			"enjoyedDescription": "访问 Minecraft 官方网站阅读完整文章并参与社区讨论。"
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} 已准备好安装！",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "实例设置（内存、JVM 参数）",
 			"duplicateTooltip": "复制",
 			"deleteTooltip": "删除实例",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "创建快捷方式",
+			"createShortcut": "创建快捷方式",
+			"desktopShortcut": "桌面快捷方式",
+			"appMenuShortcut": "应用菜单快捷方式",
+			"shortcutCreatedDesktop": "已为 {{name}} 创建桌面快捷方式",
+			"shortcutCreatedAppMenu": "已为 {{name}} 创建应用菜单快捷方式",
+			"shortcutFailed": "创建快捷方式失败: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "同步命令历史记录(command_history.txt)",
 		"syncHotbars": "同步创意热栏 (hotbar.nbt)",
 		"inheritSync": "继承全局同步首选项。将在启动前和退出后同步。",
-		"recoveryRequired": "检测到未完成或失败的版本更改"
+		"recoveryRequired": "检测到未完成或失败的版本更改",
+		"shortcutsTitle": "系统快捷方式",
+		"shortcutsDesc": "在桌面或应用程序菜单中生成快捷方式，以便直接启动此实例。",
+		"createDesktopShortcut": "创建桌面快捷方式",
+		"createAppMenuShortcut": "创建应用菜单快捷方式"
 	},
 	"install": {
 		"loadFailed": "无法加载安装选项",

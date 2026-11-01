@@ -1,6 +1,6 @@
 //! Map lifecycle notifications to the frontend's transport at the native boundary.
 use crate::ipc::events::TauRpcEventsApiEventTrigger;
-use crate::minecraft::launcher::InstanceStatusEvent;
+use crate::minecraft::launcher::{InstanceStatusEvent, LaunchProgressEvent};
 use crate::running::QuitRequest;
 use crate::version_change::crash::VersionChangeCrash;
 use tauri::Runtime;
@@ -10,6 +10,12 @@ pub(crate) fn instance_status<R: Runtime>(app: &tauri::AppHandle<R>, event: Inst
         TauRpcEventsApiEventTrigger::new(app.clone()).on_instance_status_changed(event)
     {
         eprintln!("[Events] Failed to emit instance status: {error}");
+    }
+}
+
+pub(crate) fn launch_progress<R: Runtime>(app: &tauri::AppHandle<R>, event: LaunchProgressEvent) {
+    if let Err(error) = TauRpcEventsApiEventTrigger::new(app.clone()).on_launch_progress(event) {
+        eprintln!("[Events] Failed to emit launch progress: {error}");
     }
 }
 

@@ -147,8 +147,13 @@ test("instance and server commands route through their namespaces", async () => 
 	})
 	const rpc = createTauRPCProxy()
 	assert.equal(await rpc.instances.kill_instance("instance-id"), null)
+	assert.equal(await rpc.instances.create_instance_shortcut("instance-id", "desktop"), null)
 	assert.deepEqual(calls, [
 		{ command: "TauRPC__instances.kill_instance", args: { instance_id: "instance-id" } },
+		{
+			command: "TauRPC__instances.create_instance_shortcut",
+			args: { instance_id: "instance-id", location: "desktop" },
+		},
 	])
 	assert.throws(() => {
 		return rpc.kill_instance

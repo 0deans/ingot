@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Збірки",
 		"discover": "Каталог",
+		"news": "Новини",
 		"skins": "Каталог скінів",
 		"screenshots": "Знімки екрана",
 		"servers": "Виділені сервери",
 		"settings": "Налаштування"
+	},
+	"news": {
+		"title": "Новини та оновлення Mojang",
+		"subtitle": "Офіційні анонси релізів Minecraft, блоги розробки снапшотів та статті",
+		"searchPlaceholder": "Пошук оновлень, снапшотів, виправлень...",
+		"filters": {
+			"all": "Усі оновлення",
+			"releases": "Релізи",
+			"snapshots": "Снапшоти",
+			"blogs": "Статті та блоги"
+		},
+		"badges": {
+			"release": "Реліз",
+			"snapshot": "Снапшот"
+		},
+		"actions": {
+			"readNotes": "Список змін",
+			"readArticle": "Читати статтю",
+			"createInstance": "Створити збірку",
+			"createInstanceFull": "Створити збірку з цією версією",
+			"openExternal": "Відкрити на Minecraft.net",
+			"openInBrowser": "Відкрити в браузері",
+			"refresh": "Оновити новини",
+			"back": "Назад до оновлень"
+		},
+		"empty": {
+			"title": "Новин не знайдено",
+			"description": "Спробуйте змінити пошуковий запит або фільтри.",
+			"offlineTitle": "Не вдалося завантажити стрічку новин",
+			"offlineDescription": "Перевірте підключення до мережі. Збережені новини з'являться за наявності."
+		},
+		"sections": {
+			"patchNotes": "Примітки до випусків та снапшоти",
+			"patchNotesCount": "{{count}} оновлень",
+			"articles": "Статті та блоги спільноти",
+			"articlesCount": "{{count}} статей"
+		},
+		"detail": {
+			"loadError": "Не вдалося завантажити подробиці",
+			"loadErrorDescription": "Не вдалося отримати статтю із серверів Mojang. Перевірте підключення та спробуйте знову.",
+			"experiencePrompt": "Готові випробувати це оновлення?",
+			"experienceDescription": "Створіть збірку в один клік або прочитайте повну статтю на Minecraft.net.",
+			"enjoyedPrompt": "Сподобалася стаття?",
+			"enjoyedDescription": "Прочитайте повну версію та приєднуйтесь до обговорення на офіційному сайті Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} готовий до встановлення!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Налаштування збірки (ОЗП, аргументи JVM)",
 			"duplicateTooltip": "Дублювати",
 			"deleteTooltip": "Видалити збірку",
-			"ram": "{{size}} ОЗП"
+			"ram": "{{size}} ОЗП",
+			"createShortcutTooltip": "Створити ярлик",
+			"createShortcut": "Створити ярлик",
+			"desktopShortcut": "Ярлик на робочому столі",
+			"appMenuShortcut": "Ярлик у меню програм",
+			"shortcutCreatedDesktop": "Ярлик на робочому столі створено для {{name}}",
+			"shortcutCreatedAppMenu": "Ярлик у меню програм створено для {{name}}",
+			"shortcutFailed": "Не вдалося створити ярлик: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1464,7 +1517,11 @@
 		"syncHistory": "Синхронізувати історію команд (command_history.txt)",
 		"syncHotbars": "Синхронізувати хотбари творчого режиму (hotbar.nbt)",
 		"inheritSync": "Беруться загальні налаштування синхронізації. Синхронізує перед запуском і після виходу.",
-		"recoveryRequired": "Виявлено незавершену або невдалу зміну версії"
+		"recoveryRequired": "Виявлено незавершену або невдалу зміну версії",
+		"shortcutsTitle": "Системні ярлики",
+		"shortcutsDesc": "Створюйте ярлыки на робочому столі або в меню програм для безпосереднього запуску цього екземпляра.",
+		"createDesktopShortcut": "Створити ярлик на робочому столі",
+		"createAppMenuShortcut": "Створити ярлик у меню програм"
 	},
 	"install": {
 		"loadFailed": "Не вдалося завантажити варіанти встановлення",

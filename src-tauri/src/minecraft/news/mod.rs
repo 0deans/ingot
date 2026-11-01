@@ -6,5 +6,7 @@ pub mod service;
 mod tests;
 
 pub use error::NewsError;
-pub use models::{NewsArticle, NewsFeedResponse, PatchNoteDetails, PatchNoteSummary};
+pub use models::{
+    NewsArticle, NewsArticleDetails, NewsFeedResponse, PatchNoteDetails, PatchNoteSummary,
+};
 pub use service::NewsService;

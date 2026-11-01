@@ -10,6 +10,8 @@ import type {
 	ModLoaderType,
 	QuickPlayOptions,
 	RunningInstanceSummary,
+	ShortcutLocation,
+	ShortcutResult,
 	VersionManifestEntry,
 } from "@/bindings"
 import { rpc, unwrapRpc } from "@/lib/rpc"
@@ -207,6 +209,10 @@ export const instanceService = {
 		setProgress((progress) => {
 			progress.delete(instanceId)
 		})
+	},
+
+	async createShortcut(instanceId: string, location: ShortcutLocation): Promise<ShortcutResult> {
+		return unwrapRpc(rpc.instances.create_instance_shortcut(instanceId, location))
 	},
 
 	async getAvailableGameVersions(): Promise<VersionManifestEntry[]> {

@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "インスタンス",
 		"discover": "コンテンツを探す",
+		"news": "ニュース",
 		"skins": "スキンカタログ",
 		"screenshots": "スクリーンショット",
 		"servers": "専用サーバー",
 		"settings": "設定"
+	},
+	"news": {
+		"title": "Mojang ニュース & アップデート",
+		"subtitle": "Minecraft 公式リリース発表、スナップショット開発ブログ、記事",
+		"searchPlaceholder": "アップデート、スナップショット、修正を検索...",
+		"filters": {
+			"all": "すべての更新",
+			"releases": "リリース",
+			"snapshots": "スナップショット",
+			"blogs": "記事 & ブログ"
+		},
+		"badges": {
+			"release": "リリース",
+			"snapshot": "スナップショット"
+		},
+		"actions": {
+			"readNotes": "更新履歴を読む",
+			"readArticle": "記事を読む",
+			"createInstance": "インスタンス作成",
+			"createInstanceFull": "このバージョンでインスタンス作成",
+			"openExternal": "Minecraft.net で開く",
+			"openInBrowser": "ブラウザで開く",
+			"refresh": "ニュースを更新",
+			"back": "アップデート一覧へ戻る"
+		},
+		"empty": {
+			"title": "ニュースが見つかりません",
+			"description": "検索ワードやフィルター条件を変更してお試しください。",
+			"offlineTitle": "ニュースフィードを読み込めません",
+			"offlineDescription": "ネットワーク接続をご確認ください。利用可能な場合はキャッシュが表示されます。"
+		},
+		"sections": {
+			"patchNotes": "リリースノート & スナップショット",
+			"patchNotesCount": "{{count}} 件の更新",
+			"articles": "記事 & コミュニティブログ",
+			"articlesCount": "{{count}} 件の記事"
+		},
+		"detail": {
+			"loadError": "詳細の読み込みに失敗しました",
+			"loadErrorDescription": "Mojang サーバーから記事を取得できませんでした。接続を確認して再試行してください。",
+			"experiencePrompt": "このアップデートを試してみますか？",
+			"experienceDescription": "ワンクリックで専用インスタンスを作成するか、Minecraft.net で全文をご覧ください。",
+			"enjoyedPrompt": "この記事はいかがでしたか？",
+			"enjoyedDescription": "Minecraft 公式サイトで全文を読んで、コミュニティの会話に参加しましょう。"
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} のインストール準備ができました！",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "インスタンス設定 (RAM、JVM 引数)",
 			"duplicateTooltip": "複製",
 			"deleteTooltip": "インスタンスを削除",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "ショートカットを作成",
+			"createShortcut": "ショートカットを作成",
+			"desktopShortcut": "デスクトップショートカット",
+			"appMenuShortcut": "アプリケーションメニューショートカット",
+			"shortcutCreatedDesktop": "{{name}} のデスクトップショートカットを作成しました",
+			"shortcutCreatedAppMenu": "{{name}} のアプリケーションメニューショートカットを作成しました",
+			"shortcutFailed": "ショートカットの作成に失敗しました: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "同期コマンド履歴(command_history.txt)",
 		"syncHotbars": "クリエイティブ ホットバーの同期 (hotbar.nbt)",
 		"inheritSync": "グローバル同期設定を継承しています。起動前と終了後に同期されます。",
-		"recoveryRequired": "不完全または失敗したバージョンの変更が検出されました"
+		"recoveryRequired": "不完全または失敗したバージョンの変更が検出されました",
+		"shortcutsTitle": "OSショートカット",
+		"shortcutsDesc": "デスクトップまたはアプリケーションメニューにこのインスタンスを直接起動するショートカットを生成します。",
+		"createDesktopShortcut": "デスクトップショートカットを作成",
+		"createAppMenuShortcut": "アプリメニューショートカットを作成"
 	},
 	"install": {
 		"loadFailed": "インストール オプションのロードに失敗しました",

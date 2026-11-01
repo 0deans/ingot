@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Profiller",
 		"discover": "Keşfet",
+		"news": "Haberler",
 		"skins": "Skin Kataloğu",
 		"screenshots": "Ekran Görüntüleri",
 		"servers": "Özel Sunucular",
 		"settings": "Ayarlar"
+	},
+	"news": {
+		"title": "Mojang Haberleri ve Güncellemeleri",
+		"subtitle": "Resmi Minecraft sürüm duyuruları, snapshot geliştirici blogları ve makaleler",
+		"searchPlaceholder": "Güncellemeleri, snapshot'ları, hata düzeltmelerini ara...",
+		"filters": {
+			"all": "Tüm Güncellemeler",
+			"releases": "Sürümler",
+			"snapshots": "Snapshot'lar",
+			"blogs": "Makaleler ve Bloglar"
+		},
+		"badges": {
+			"release": "Sürüm",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Sürüm Notlarını Oku",
+			"readArticle": "Makaleyi Oku",
+			"createInstance": "Örnek Oluştur",
+			"createInstanceFull": "Bu Sürümle Örnek Oluştur",
+			"openExternal": "Minecraft.net'te Aç",
+			"openInBrowser": "Tarayıcıda Aç",
+			"refresh": "Haberleri Yenile",
+			"back": "Güncellemelere Dön"
+		},
+		"empty": {
+			"title": "Haber bulunamadı",
+			"description": "Arama terimlerinizi veya filtrelerinizi ayarlamayı deneyin.",
+			"offlineTitle": "Haber akışı yüklenemedi",
+			"offlineDescription": "Ağ bağlantınızı kontrol edin. Varsa önbelleğe alınan haberler görünecektir."
+		},
+		"sections": {
+			"patchNotes": "Sürüm Notları ve Snapshot'lar",
+			"patchNotesCount": "{{count}} güncelleme",
+			"articles": "Makaleler ve Topluluk Blogları",
+			"articlesCount": "{{count}} makale"
+		},
+		"detail": {
+			"loadError": "Ayrıntılar yüklenemedi",
+			"loadErrorDescription": "Makale Mojang sunucularından alınamadı. Lütfen bağlantınızı kontrol edip tekrar deneyin.",
+			"experiencePrompt": "Bu güncellemeyi denemeye hazır mısınız?",
+			"experienceDescription": "Tek tıkla bir örnek oluşturun veya Minecraft.net'teki makalenin tamamını okuyun.",
+			"enjoyedPrompt": "Bu makaleyi beğendiniz mi?",
+			"enjoyedDescription": "Resmi Minecraft web sitesinde makalenin tamamını okuyun ve topluluk tartışmalarına katılın."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} kuruluma hazır!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Profil Ayarları (RAM, JVM argümanları)",
 			"duplicateTooltip": "Çoğalt",
 			"deleteTooltip": "Profili Sil",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Kısayol oluştur",
+			"createShortcut": "Kısayol Oluştur",
+			"desktopShortcut": "Masaüstü Kısayolu",
+			"appMenuShortcut": "Uygulama Menüsü Kısayolu",
+			"shortcutCreatedDesktop": "{{name}} için masaüstü kısayolu oluşturuldu",
+			"shortcutCreatedAppMenu": "{{name}} için uygulama menüsü kısayolu oluşturuldu",
+			"shortcutFailed": "Kısayol oluşturulamadı: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Senkronizasyon Komut Geçmişi (command_history.txt)",
 		"syncHotbars": "Senkronizasyon Yaratıcı Erişim Çubukları (hotbar.nbt)",
 		"inheritSync": "Genel senkronizasyon tercihlerini devralma. Başlatmadan önce ve çıkıştan sonra senkronize edilecek.",
-		"recoveryRequired": "Tamamlanmamış veya başarısız sürüm değişikliği algılandı"
+		"recoveryRequired": "Tamamlanmamış veya başarısız sürüm değişikliği algılandı",
+		"shortcutsTitle": "Sistem Kısayolları",
+		"shortcutsDesc": "Bu örneği doğrudan başlatmak için masaüstünüzde veya uygulama menünüzde kısayollar oluşturun.",
+		"createDesktopShortcut": "Masaüstü Kısayolu Oluştur",
+		"createAppMenuShortcut": "Uygulama Menüsü Kısayolu Oluştur"
 	},
 	"install": {
 		"loadFailed": "Kurulum seçenekleri yüklenemedi",

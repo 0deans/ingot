@@ -1,5 +1,11 @@
 import { queryOptions } from "@tanstack/react-query"
-import type { NewsArticle, NewsFeedResponse, PatchNoteDetails, PatchNoteSummary } from "@/bindings"
+import type {
+	NewsArticle,
+	NewsArticleDetails,
+	NewsFeedResponse,
+	PatchNoteDetails,
+	PatchNoteSummary,
+} from "@/bindings"
 import { rpc, unwrapRpc } from "@/lib/rpc"
 
 export const newsService = {
@@ -9,6 +15,10 @@ export const newsService = {
 
 	async getPatchNoteDetails(contentPath: string): Promise<PatchNoteDetails> {
 		return await unwrapRpc(rpc.news.get_patch_note_details(contentPath))
+	},
+
+	async getArticleDetails(articleId: string): Promise<NewsArticleDetails> {
+		return await unwrapRpc(rpc.news.get_article_details(articleId))
 	},
 }
 
@@ -54,6 +64,25 @@ export const newsQueries = {
 			staleTime: Infinity,
 		})
 	},
+	article: (articleId: string | undefined) => {
+		return queryOptions({
+			queryKey: ["news", "article", articleId],
+			queryFn: () => {
+				if (!articleId) {
+					throw new Error("Missing articleId for news article")
+				}
+				return newsService.getArticleDetails(articleId)
+			},
+			enabled: Boolean(articleId),
+			staleTime: Infinity,
+		})
+	},
 }
 
-export type { NewsArticle, NewsFeedResponse, PatchNoteDetails, PatchNoteSummary }
+export type {
+	NewsArticle,
+	NewsArticleDetails,
+	NewsFeedResponse,
+	PatchNoteDetails,
+	PatchNoteSummary,
+}

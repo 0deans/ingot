@@ -191,6 +191,28 @@ async fn reserve_instance_launch(
     })
 }
 
+pub(crate) async fn launch_instance_with_events<R: Runtime>(
+    app: AppHandle<R>,
+    instance_id: String,
+    quick_play: Option<QuickPlayOptions>,
+) -> Result<u32, LaunchError> {
+    crate::app::lifecycle::adopt_running_games(&app).await;
+    let pm = crate::app::state(&app).games.clone();
+    let client = crate::app::state(&app).http.clone();
+
+    let app_prog = app.clone();
+    let on_prog = move |ev: LaunchProgressEvent| {
+        crate::app::events::launch_progress(&app_prog, ev);
+    };
+
+    let app_stat = app.clone();
+    let on_status = move |ev: InstanceStatusEvent| {
+        crate::app::events::instance_status(&app_stat, ev);
+    };
+
+    launch_minecraft(app, pm, client, instance_id, quick_play, on_prog, on_status).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

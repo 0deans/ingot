@@ -1,5 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener"
-import { Calendar, ExternalLink, Newspaper, Tag } from "lucide-react"
+import { Calendar, ExternalLink, FileText, Newspaper, Tag } from "lucide-react"
 import { motion } from "motion/react"
 import { memo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 
 export interface NewsArticleCardProps {
 	article: NewsArticle
+	onReadArticle: (article: NewsArticle) => void
 }
 
 const formatDate = (dateString: string): string => {
@@ -27,17 +28,25 @@ const formatDate = (dateString: string): string => {
 	}
 }
 
-const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
+const NewsArticleCard = ({ article, onReadArticle }: NewsArticleCardProps) => {
 	const { t } = useTranslation()
 	const formattedDate = formatDate(article.date)
 
-	const handleOpen = useCallback(() => {
-		if (article.readMoreUrl) {
-			openUrl(article.readMoreUrl).catch((err) => {
-				console.error("Failed to open article link:", err)
-			})
-		}
-	}, [article.readMoreUrl])
+	const handleRead = useCallback(() => {
+		onReadArticle(article)
+	}, [article, onReadArticle])
+
+	const handleOpenExternal = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation()
+			if (article.readMoreUrl) {
+				openUrl(article.readMoreUrl).catch((err) => {
+					console.error("Failed to open article link:", err)
+				})
+			}
+		},
+		[article.readMoreUrl],
+	)
 
 	return (
 		<motion.div
@@ -45,7 +54,7 @@ const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
 			initial={{ opacity: 0, y: 12 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.2 }}
-			onClick={handleOpen}
+			onClick={handleRead}
 			className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/60 transition-all duration-200 hover:border-primary/40 hover:bg-card/90 hover:shadow-lg"
 		>
 			{article.imageUrl ? (
@@ -95,16 +104,29 @@ const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
 					)}
 				</div>
 
-				<div className="mt-4 flex items-center justify-end border-t border-border/40 pt-3">
+				<div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
 					<Button
 						variant="ghost"
 						size="sm"
-						onClick={handleOpen}
-						className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground group-hover:text-primary"
+						onClick={handleRead}
+						className="h-8 gap-1.5 px-2 text-xs text-muted-foreground group-hover:text-foreground"
 					>
-						<span>{t("news.actions.openExternal")}</span>
-						<ExternalLink className="size-3" />
+						<FileText className="size-3.5 shrink-0" />
+						<span>{t("news.actions.readArticle")}</span>
 					</Button>
+
+					{article.readMoreUrl && (
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							onClick={handleOpenExternal}
+							title={t("news.actions.openInBrowser")}
+							className="size-8 shrink-0 text-muted-foreground hover:text-foreground"
+							aria-label={t("news.actions.openInBrowser")}
+						>
+							<ExternalLink className="size-3.5" />
+						</Button>
+					)}
 				</div>
 			</div>
 		</motion.div>

@@ -5,12 +5,9 @@ pub(crate) mod sync;
 pub(crate) mod version_change;
 
 use crate::app::lifecycle::adopt_running_games;
-use crate::ipc::events::TauRpcEventsApiEventTrigger;
 use crate::ipc::ApiError;
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
-use crate::minecraft::launcher::{
-    self, InstanceStatusEvent, LaunchProgressEvent, ProcessManager, RunningInstanceSummary,
-};
+use crate::minecraft::launcher::{self, ProcessManager, RunningInstanceSummary};
 use crate::minecraft::version;
 use tauri::{Manager, Runtime};
 
@@ -115,6 +112,12 @@ pub trait InstancesApi {
     async fn get_running_instances(
         app_handle: tauri::AppHandle<impl Runtime>,
     ) -> Result<Vec<RunningInstanceSummary>, ApiError>;
+
+    async fn create_instance_shortcut(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        location: instance::ShortcutLocation,
+    ) -> Result<instance::ShortcutResult, ApiError>;
 }
 
 #[derive(Clone)]
@@ -221,38 +224,9 @@ impl InstancesApi for InstancesApiImpl {
         instance_id: String,
         quick_play: Option<launcher::QuickPlayOptions>,
     ) -> Result<u32, ApiError> {
-        adopt_running_games(&app_handle).await;
-        let pm = get_process_manager(&app_handle).clone();
-        let client = get_http_client(&app_handle).clone();
-        let app = app_handle.clone();
-
-        let app_prog = app_handle.clone();
-        let on_prog = move |ev: LaunchProgressEvent| {
-            let trigger = TauRpcEventsApiEventTrigger::new(app_prog.clone());
-            if let Err(e) = trigger.on_launch_progress(ev) {
-                eprintln!("[IPC] Failed to emit on_launch_progress: {e}");
-            }
-        };
-
-        let app_stat = app_handle.clone();
-        let on_status = move |ev: InstanceStatusEvent| {
-            let trigger = TauRpcEventsApiEventTrigger::new(app_stat.clone());
-            if let Err(e) = trigger.on_instance_status_changed(ev) {
-                eprintln!("[IPC] Failed to emit on_instance_status_changed: {e}");
-            }
-        };
-
-        crate::app::games::launch_minecraft(
-            app,
-            pm,
-            client,
-            instance_id,
-            quick_play,
-            on_prog,
-            on_status,
-        )
-        .await
-        .map_err(ApiError::from)
+        crate::app::games::launch_instance_with_events(app_handle, instance_id, quick_play)
+            .await
+            .map_err(ApiError::from)
     }
 
     async fn get_instance_worlds(
@@ -284,5 +258,16 @@ impl InstancesApi for InstancesApiImpl {
         Ok(get_process_manager(&app_handle)
             .get_running_instances()
             .await)
+    }
+
+    async fn create_instance_shortcut(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        location: instance::ShortcutLocation,
+    ) -> Result<instance::ShortcutResult, ApiError> {
+        crate::app::instances::create_instance_shortcut(&app_handle, instance_id, location)
+            .await
+            .map_err(ApiError::from)
     }
 }

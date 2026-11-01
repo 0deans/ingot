@@ -16,6 +16,16 @@ impl From<crate::minecraft::instance::InstanceError> for ApiError {
             InstanceError::Cleanup { .. } | InstanceError::FilesCleanupCommitted { .. } => {
                 Self::incomplete_recovery(error.to_string())
             }
+            InstanceError::Shortcut(ref source) => match source {
+                crate::minecraft::instance::ShortcutError::DirectoryNotFound(_)
+                | crate::minecraft::instance::ShortcutError::Executable(_)
+                | crate::minecraft::instance::ShortcutError::Io(_) => {
+                    Self::storage_failure(source.to_string())
+                }
+                crate::minecraft::instance::ShortcutError::UnsupportedPlatform(_) => {
+                    Self::invalid_input(source.to_string())
+                }
+            },
         }
     }
 }
@@ -359,6 +369,7 @@ impl From<crate::minecraft::news::NewsError> for ApiError {
                 Self::provider_unavailable(error.to_string())
             }
             NewsError::InvalidContentPath(_) => Self::invalid_input(error.to_string()),
+            NewsError::ArticleNotFound(_) => Self::not_found(error.to_string()),
             NewsError::Io(_) => Self::storage_failure(error.to_string()),
             NewsError::Parse(_) | NewsError::Task(_) => Self::internal(error.to_string()),
         }

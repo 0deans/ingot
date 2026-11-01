@@ -1,6 +1,6 @@
 use crate::app::news;
 use crate::ipc::ApiError;
-use crate::minecraft::news::{NewsFeedResponse, PatchNoteDetails};
+use crate::minecraft::news::{NewsArticleDetails, NewsFeedResponse, PatchNoteDetails};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "news")]
@@ -14,6 +14,11 @@ pub trait NewsApi {
         app_handle: tauri::AppHandle<impl Runtime>,
         content_path: String,
     ) -> Result<PatchNoteDetails, ApiError>;
+
+    async fn get_article_details(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        article_id: String,
+    ) -> Result<NewsArticleDetails, ApiError>;
 }
 
 #[derive(Clone)]
@@ -37,6 +42,16 @@ impl NewsApi for NewsApiImpl {
         content_path: String,
     ) -> Result<PatchNoteDetails, ApiError> {
         news::get_patch_note_details(&app_handle, &content_path)
+            .await
+            .map_err(ApiError::from)
+    }
+
+    async fn get_article_details(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        article_id: String,
+    ) -> Result<NewsArticleDetails, ApiError> {
+        news::get_article_details(&app_handle, &article_id)
             .await
             .map_err(ApiError::from)
     }

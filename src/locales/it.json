@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Istanze",
 		"discover": "Esplora",
+		"news": "Notizie",
 		"skins": "Catalogo skin",
 		"screenshots": "Screenshot",
 		"servers": "Server dedicati",
 		"settings": "Impostazioni"
+	},
+	"news": {
+		"title": "Notizie e aggiornamenti Mojang",
+		"subtitle": "Annunci ufficiali sui rilasci di Minecraft, blog di sviluppo degli snapshot e articoli",
+		"searchPlaceholder": "Cerca aggiornamenti, snapshot, correzioni...",
+		"filters": {
+			"all": "Tutti gli aggiornamenti",
+			"releases": "Rilasci",
+			"snapshots": "Snapshot",
+			"blogs": "Articoli e blog"
+		},
+		"badges": {
+			"release": "Rilascio",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Leggi le note",
+			"readArticle": "Leggi articolo",
+			"createInstance": "Crea istanza",
+			"createInstanceFull": "Crea istanza con questa versione",
+			"openExternal": "Apri su Minecraft.net",
+			"openInBrowser": "Apri nel browser",
+			"refresh": "Aggiorna notizie",
+			"back": "Torna agli aggiornamenti"
+		},
+		"empty": {
+			"title": "Nessuna notizia trovata",
+			"description": "Prova a modificare i termini di ricerca o i filtri.",
+			"offlineTitle": "Impossibile caricare le notizie",
+			"offlineDescription": "Controlla la connessione di rete. Le notizie memorizzate nella cache appariranno se disponibili."
+		},
+		"sections": {
+			"patchNotes": "Note di rilascio e snapshot",
+			"patchNotesCount": "{{count}} aggiornamenti",
+			"articles": "Articoli e blog della community",
+			"articlesCount": "{{count}} articoli"
+		},
+		"detail": {
+			"loadError": "Impossibile caricare i dettagli",
+			"loadErrorDescription": "Impossibile recuperare l'articolo dai server Mojang. Controlla la connessione e riprova.",
+			"experiencePrompt": "Pronto a provare questo aggiornamento?",
+			"experienceDescription": "Crea un'istanza con un clic o leggi l'articolo completo su Minecraft.net.",
+			"enjoyedPrompt": "Ti è piaciuto questo articolo?",
+			"enjoyedDescription": "Leggi l'articolo completo e partecipa alle discussioni sul sito ufficiale di Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} è pronto per l'installazione!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Impostazioni istanza (RAM, argomenti JVM)",
 			"duplicateTooltip": "Duplica",
 			"deleteTooltip": "Elimina istanza",
-			"ram": "{{size}} di RAM"
+			"ram": "{{size}} di RAM",
+			"createShortcutTooltip": "Crea collegamento",
+			"createShortcut": "Crea collegamento",
+			"desktopShortcut": "Collegamento sul desktop",
+			"appMenuShortcut": "Collegamento nel menu applicazioni",
+			"shortcutCreatedDesktop": "Collegamento sul desktop creato per {{name}}",
+			"shortcutCreatedAppMenu": "Collegamento nel menu applicazioni creato per {{name}}",
+			"shortcutFailed": "Impossibile creare il collegamento: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1444,7 +1497,11 @@
 		"syncHistory": "Sincronizza la cronologia dei comandi (command_history.txt)",
 		"syncHotbars": "Sincronizza le barre della creativa (hotbar.nbt)",
 		"inheritSync": "Usa le preferenze di sincronizzazione globali. Sincronizza prima dell'avvio e dopo l'uscita.",
-		"recoveryRequired": "Rilevato cambio di versione incompleto o non riuscito"
+		"recoveryRequired": "Rilevato cambio di versione incompleto o non riuscito",
+		"shortcutsTitle": "Collegamenti del sistema",
+		"shortcutsDesc": "Genera collegamenti sul desktop o nel menu delle applicazioni per avviare direttamente questa istanza.",
+		"createDesktopShortcut": "Crea collegamento sul desktop",
+		"createAppMenuShortcut": "Crea collegamento nel menu applicazioni"
 	},
 	"install": {
 		"loadFailed": "Impossibile caricare le opzioni di installazione",

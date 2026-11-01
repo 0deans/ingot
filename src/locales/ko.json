@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "인스턴스",
 		"discover": "콘텐츠 탐색",
+		"news": "소식",
 		"skins": "스킨 카탈로그",
 		"screenshots": "스크린샷",
 		"servers": "전용 서버",
 		"settings": "설정"
+	},
+	"news": {
+		"title": "Mojang 소식 및 업데이트",
+		"subtitle": "Minecraft 공식 출시 발표, 스냅샷 개발 블로그 및 기사",
+		"searchPlaceholder": "업데이트, 스냅샷, 버그 수정 검색...",
+		"filters": {
+			"all": "모든 업데이트",
+			"releases": "정식 버전",
+			"snapshots": "스냅샷",
+			"blogs": "기사 및 블로그"
+		},
+		"badges": {
+			"release": "정식 버전",
+			"snapshot": "스냅샷"
+		},
+		"actions": {
+			"readNotes": "패치 노트 읽기",
+			"readArticle": "기사 읽기",
+			"createInstance": "인스턴스 생성",
+			"createInstanceFull": "이 버전으로 인스턴스 생성",
+			"openExternal": "Minecraft.net에서 열기",
+			"openInBrowser": "브라우저에서 열기",
+			"refresh": "소식 새로고침",
+			"back": "업데이트 목록으로"
+		},
+		"empty": {
+			"title": "소식을 찾을 수 없습니다",
+			"description": "검색어나 필터 조건을 변경해 보세요.",
+			"offlineTitle": "소식 피드를 불러올 수 없습니다",
+			"offlineDescription": "네트워크 연결을 확인하세요. 캐시된 소식이 있으면 표시됩니다."
+		},
+		"sections": {
+			"patchNotes": "릴리스 노트 및 스냅샷",
+			"patchNotesCount": "{{count}}개 업데이트",
+			"articles": "기사 및 커뮤니티 블로그",
+			"articlesCount": "{{count}}개 기사"
+		},
+		"detail": {
+			"loadError": "세부 정보를 불러오지 못했습니다",
+			"loadErrorDescription": "Mojang 서버에서 기사를 가져올 수 없습니다. 연결 상태를 확인하고 다시 시도하세요.",
+			"experiencePrompt": "이번 업데이트를 체험해 보시겠습니까?",
+			"experienceDescription": "원클릭으로 인스턴스를 생성하거나 Minecraft.net에서 전체 기사를 확인하세요.",
+			"enjoyedPrompt": "이 기사가 마음에 드셨나요?",
+			"enjoyedDescription": "Minecraft 공식 웹사이트에서 전체 기사를 읽고 커뮤니티 토론에 참여해 보세요."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} 설치 준비가 완료되었습니다!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "인스턴스 설정 (RAM, JVM 인수)",
 			"duplicateTooltip": "복제",
 			"deleteTooltip": "인스턴스 삭제",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "바로가기 만들기",
+			"createShortcut": "바로가기 만들기",
+			"desktopShortcut": "바탕화면 바로가기",
+			"appMenuShortcut": "애플리케이션 메뉴 바로가기",
+			"shortcutCreatedDesktop": "{{name}}의 바탕화면 바로가기를 생성했습니다",
+			"shortcutCreatedAppMenu": "{{name}}의 애플리케이션 메뉴 바로가기를 생성했습니다",
+			"shortcutFailed": "바로가기 생성 실패: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "동기화 명령 기록(command_history.txt)",
 		"syncHotbars": "크리에이티브 Hotbars 동기화(hotbar.nbt)",
 		"inheritSync": "글로벌 동기화 기본 설정을 상속합니다. 시작 전과 종료 후에 동기화됩니다.",
-		"recoveryRequired": "완료되지 않았거나 실패한 버전 변경이 감지되었습니다."
+		"recoveryRequired": "완료되지 않았거나 실패한 버전 변경이 감지되었습니다.",
+		"shortcutsTitle": "OS 바로가기",
+		"shortcutsDesc": "바탕화면 또는 애플리케이션 메뉴에서 이 인스턴스를 직접 실행할 수 있는 바로가기를 생성합니다.",
+		"createDesktopShortcut": "바탕화면 바로가기 만들기",
+		"createAppMenuShortcut": "앱 메뉴 바로가기 만들기"
 	},
 	"install": {
 		"loadFailed": "설치 옵션을 로드하지 못했습니다.",

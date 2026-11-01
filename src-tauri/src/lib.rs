@@ -49,12 +49,13 @@ pub fn run() {
 
     #[cfg(desktop)]
     {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
                 let _ = window.unminimize();
                 let _ = window.set_focus();
             }
+            app::cli::handle_cli_args(app, &args);
         }));
     }
 
@@ -80,7 +81,9 @@ pub fn run() {
             // Games still running from last time show as running again
             let handle = _app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                app::lifecycle::adopt_running_games(&handle).await
+                app::lifecycle::adopt_running_games(&handle).await;
+                let args: Vec<String> = std::env::args().collect();
+                app::cli::handle_cli_args(&handle, &args);
             });
             Ok(())
         })

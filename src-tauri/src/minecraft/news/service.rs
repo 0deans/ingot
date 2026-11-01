@@ -3,8 +3,9 @@ use std::time::{Duration, SystemTime};
 
 use super::error::NewsError;
 use super::models::{
-    resolve_mojang_url, validate_content_path, NewsArticle, NewsFeedResponse, PatchNoteDetails,
-    PatchNoteSummary, RawNewsFeed, RawPatchNoteDetail, RawPatchNotesFeed, MOJANG_CONTENT_BASE,
+    extract_article_content_html, is_safe_article_url, resolve_mojang_url, validate_content_path,
+    NewsArticle, NewsArticleDetails, NewsFeedResponse, PatchNoteDetails, PatchNoteSummary,
+    RawNewsFeed, RawPatchNoteDetail, RawPatchNotesFeed, MOJANG_CONTENT_BASE,
 };
 
 const FEED_CACHE_TTL: Duration = Duration::from_secs(15 * 60);
@@ -93,6 +94,65 @@ impl NewsService {
         if let Ok(json) = serde_json::to_string(&details) {
             let _ = std::fs::create_dir_all(&note_cache_dir);
             let _ = std::fs::write(&note_cache_path, json);
+        }
+
+        Ok(details)
+    }
+
+    pub async fn get_article_details(
+        &self,
+        article_id: &str,
+    ) -> Result<NewsArticleDetails, NewsError> {
+        let safe_id = article_id
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_')
+            .collect::<String>();
+        if safe_id.is_empty() {
+            return Err(NewsError::InvalidContentPath(article_id.to_string()));
+        }
+
+        let article_cache_dir = self.cache_dir.join("articles");
+        let article_cache_path = article_cache_dir.join(format!("{safe_id}.json"));
+
+        if let Ok(content) = std::fs::read_to_string(&article_cache_path) {
+            if let Ok(details) = serde_json::from_str::<NewsArticleDetails>(&content) {
+                return Ok(details);
+            }
+        }
+
+        let feed = self.get_news_feed(false).await?;
+        let article = feed
+            .articles
+            .into_iter()
+            .find(|a| a.id == article_id)
+            .ok_or_else(|| NewsError::ArticleNotFound(article_id.to_string()))?;
+
+        let mut body_html = None;
+        if !article.read_more_url.is_empty() && is_safe_article_url(&article.read_more_url) {
+            if let Ok(resp) = self.client.get(&article.read_more_url).send().await {
+                if resp.status().is_success() {
+                    if let Ok(raw_html) = resp.text().await {
+                        body_html = extract_article_content_html(&raw_html);
+                    }
+                }
+            }
+        }
+
+        let details = NewsArticleDetails {
+            id: article.id,
+            title: article.title,
+            tag: article.tag,
+            category: article.category,
+            date: article.date,
+            text: article.text,
+            image_url: article.image_url,
+            read_more_url: article.read_more_url,
+            body_html,
+        };
+
+        if let Ok(json) = serde_json::to_string(&details) {
+            let _ = std::fs::create_dir_all(&article_cache_dir);
+            let _ = std::fs::write(&article_cache_path, json);
         }
 
         Ok(details)

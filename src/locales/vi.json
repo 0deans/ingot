@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Phiên bản",
 		"discover": "Khám phá",
+		"news": "Tin tức",
 		"skins": "Kho Skin",
 		"screenshots": "Ảnh chụp màn hình",
 		"servers": "Máy chủ riêng",
 		"settings": "Cài đặt"
+	},
+	"news": {
+		"title": "Tin tức & Cập nhật Mojang",
+		"subtitle": "Thông báo phát hành Minecraft chính thức, blog phát triển snapshot và bài viết",
+		"searchPlaceholder": "Tìm kiếm bản cập nhật, snapshot, sửa lỗi...",
+		"filters": {
+			"all": "Tất cả cập nhật",
+			"releases": "Bản phát hành",
+			"snapshots": "Bản thử nghiệm",
+			"blogs": "Bài viết & Blog"
+		},
+		"badges": {
+			"release": "Bản phát hành",
+			"snapshot": "Bản thử nghiệm"
+		},
+		"actions": {
+			"readNotes": "Đọc ghi chú",
+			"readArticle": "Đọc bài viết",
+			"createInstance": "Tạo phiên bản",
+			"createInstanceFull": "Tạo phiên bản với bản phát hành này",
+			"openExternal": "Mở trên Minecraft.net",
+			"openInBrowser": "Mở trong trình duyệt",
+			"refresh": "Làm mới tin tức",
+			"back": "Quay lại cập nhật"
+		},
+		"empty": {
+			"title": "Không tìm thấy bài viết tin tức nào",
+			"description": "Hãy thử thay đổi cụm từ tìm kiếm hoặc bộ lọc.",
+			"offlineTitle": "Không thể tải nguồn cấp tin tức",
+			"offlineDescription": "Kiểm tra kết nối mạng của bạn. Tin tức đã lưu vào bộ nhớ đệm sẽ xuất hiện khi có sẵn."
+		},
+		"sections": {
+			"patchNotes": "Ghi chú phát hành & Bản thử nghiệm",
+			"patchNotesCount": "{{count}} bản cập nhật",
+			"articles": "Bài viết & Blog cộng đồng",
+			"articlesCount": "{{count}} bài viết"
+		},
+		"detail": {
+			"loadError": "Không thể tải chi tiết",
+			"loadErrorDescription": "Không thể lấy bài viết đầy đủ từ máy chủ Mojang. Vui lòng kiểm tra kết nối và thử lại.",
+			"experiencePrompt": "Sẵn sàng trải nghiệm bản cập nhật này?",
+			"experienceDescription": "Tạo một phiên bản chỉ bằng một cú nhấp chuột hoặc đọc toàn bộ bài viết trên Minecraft.net.",
+			"enjoyedPrompt": "Bạn thích bài viết này chứ?",
+			"enjoyedDescription": "Đọc toàn bộ bài viết và tham gia thảo luận cùng cộng đồng trên trang web chính thức của Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} đã sẵn sàng để cài đặt!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Cài đặt phiên bản (RAM, tham số JVM)",
 			"duplicateTooltip": "Nhân bản",
 			"deleteTooltip": "Xóa phiên bản",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Tạo lối tắt",
+			"createShortcut": "Tạo lối tắt",
+			"desktopShortcut": "Lối tắt trên màn hình nền",
+			"appMenuShortcut": "Lối tắt trong menu ứng dụng",
+			"shortcutCreatedDesktop": "Đã tạo lối tắt trên màn hình nền cho {{name}}",
+			"shortcutCreatedAppMenu": "Đã tạo lối tắt trong menu ứng dụng cho {{name}}",
+			"shortcutFailed": "Không thể tạo lối tắt: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "(command_history.txt)",
 		"syncHotbars": "Thanh nóng sáng tạo đồng bộ hóa (hotbar.nbt)",
 		"inheritSync": "Kế thừa các tùy chọn đồng bộ hóa toàn cầu. Sẽ đồng bộ hóa trước khi khởi chạy và sau khi thoát.",
-		"recoveryRequired": "Phát hiện thay đổi phiên bản chưa hoàn tất hoặc thất bại"
+		"recoveryRequired": "Phát hiện thay đổi phiên bản chưa hoàn tất hoặc thất bại",
+		"shortcutsTitle": "Lối tắt hệ thống",
+		"shortcutsDesc": "Tạo lối tắt trên màn hình nền hoặc menu ứng dụng để khởi chạy trực tiếp phiên bản này.",
+		"createDesktopShortcut": "Tạo lối tắt màn hình nền",
+		"createAppMenuShortcut": "Tạo lối tắt menu ứng dụng"
 	},
 	"install": {
 		"loadFailed": "Không tải được các tùy chọn cài đặt",

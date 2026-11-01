@@ -86,6 +86,13 @@
 			"destination": "instances"
 		},
 		{
+			"name": "create_instance_shortcut",
+			"currentPath": "instances",
+			"kind": "command",
+			"arguments": ["instance_id", "location"],
+			"destination": "instances"
+		},
+		{
 			"name": "create_server",
 			"currentPath": "servers",
 			"kind": "command",
@@ -218,6 +225,13 @@
 			"kind": "command",
 			"arguments": [],
 			"destination": "instances.screenshots"
+		},
+		{
+			"name": "get_article_details",
+			"currentPath": "news",
+			"kind": "command",
+			"arguments": ["article_id"],
+			"destination": "news"
 		},
 		{
 			"name": "get_available_game_versions",

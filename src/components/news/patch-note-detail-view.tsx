@@ -174,13 +174,10 @@ const PatchNoteDetailView = ({
 								<AlertCircle className="size-10 text-destructive/80" />
 							</EmptyMedia>
 							<EmptyHeader>
-								<h2 className="text-lg font-semibold">Failed to load patch note details</h2>
+								<h2 className="text-lg font-semibold">{t("news.detail.loadError")}</h2>
 							</EmptyHeader>
 							<EmptyContent>
-								<EmptyDescription>
-									Unable to retrieve the full article from Mojang servers. Please check your
-									connection and try again.
-								</EmptyDescription>
+								<EmptyDescription>{t("news.detail.loadErrorDescription")}</EmptyDescription>
 								<div className="mt-4 flex items-center justify-center gap-3">
 									<Button
 										variant="outline"
@@ -243,18 +240,17 @@ const PatchNoteDetailView = ({
 							<div
 								onClick={handleHtmlClick}
 								dangerouslySetInnerHTML={{ __html: renderedBodyHtml }}
-								className="prose prose-invert prose-sm mt-6 max-w-none space-y-4 border-t border-border/40 pt-6 text-sm leading-relaxed text-muted-foreground [&_a]:cursor-pointer [&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 [&_blockquote]:my-4 [&_blockquote]:rounded-r-lg [&_blockquote]:border-l-4 [&_blockquote]:border-primary/70 [&_blockquote]:bg-primary/5 [&_blockquote]:py-1.5 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-muted/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs [&_code]:text-primary [&_details]:my-3 [&_details]:rounded-lg [&_details]:border [&_details]:border-border/40 [&_details]:bg-card/50 [&_details]:p-3 [&_h1]:mt-8 [&_h1]:mb-4 [&_h1]:border-b [&_h1]:border-border/30 [&_h1]:pb-2 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h4]:mt-3 [&_h4]:mb-1 [&_h4]:text-base [&_h4]:font-semibold [&_h4]:text-foreground [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border [&_img]:border-border/40 [&_li]:my-1.5 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-card/90 [&_pre]:p-4 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:text-foreground hover:[&_summary]:text-primary [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border/60 [&_td]:p-3 [&_th]:border [&_th]:border-border [&_th]:bg-muted/80 [&_th]:p-3 [&_th]:text-left [&_th]:font-semibold"
+								className="news-prose mt-6 max-w-none border-t border-border/40 pt-6"
 							/>
 
 							{/* Bottom Action Card */}
 							<div className="mt-12 flex flex-col items-center justify-between gap-4 rounded-2xl border border-border/40 bg-card/60 p-6 sm:flex-row">
 								<div className="flex flex-col gap-1 text-center sm:text-left">
 									<h3 className="text-base font-semibold text-foreground">
-										Ready to experience this update?
+										{t("news.detail.experiencePrompt")}
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										Create a dedicated instance with {version || title} in one click, or read the
-										full article on Minecraft.net.
+										{t("news.detail.experienceDescription")}
 									</p>
 								</div>
 								<div className="flex flex-wrap items-center gap-2.5">

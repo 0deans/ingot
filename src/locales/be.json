@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Зборкі",
 		"discover": "Каталог",
+		"news": "Навіны",
 		"skins": "Каталог скінаў",
 		"screenshots": "Здымкі экрана",
 		"servers": "Выдзеленыя серверы",
 		"settings": "Налады"
+	},
+	"news": {
+		"title": "Навіны і абнаўленні Mojang",
+		"subtitle": "Афіцыйныя анонсы рэлізаў Minecraft, блогі распрацоўкі снапшотаў і артыкулы",
+		"searchPlaceholder": "Пошук абнаўленняў, снапшотаў, выпраўленняў...",
+		"filters": {
+			"all": "Усе абнаўленні",
+			"releases": "Рэлізы",
+			"snapshots": "Снапшоты",
+			"blogs": "Артыкулы і блогі"
+		},
+		"badges": {
+			"release": "Рэліз",
+			"snapshot": "Снапшот"
+		},
+		"actions": {
+			"readNotes": "Спіс змяненняў",
+			"readArticle": "Чытаць артыкул",
+			"createInstance": "Стварыць зборку",
+			"createInstanceFull": "Стварыць зборку з гэтай версіяй",
+			"openExternal": "Адкрыць на Minecraft.net",
+			"openInBrowser": "Адкрыць у браўзеры",
+			"refresh": "Абнавіць навіны",
+			"back": "Назад да абнаўленняў"
+		},
+		"empty": {
+			"title": "Навін не знойдзена",
+			"description": "Паспрабуйце змяніць пошукавы запыт або фільтры.",
+			"offlineTitle": "Не ўдалося загрузіць стужку навін",
+			"offlineDescription": "Праверце падключэнне да сеткі. Захаваныя навіны з'явяцца пры наяўнасці."
+		},
+		"sections": {
+			"patchNotes": "Заўвагі да выпускаў і снапшоты",
+			"patchNotesCount": "{{count}} абнаўленняў",
+			"articles": "Артыкулы і блогі супольнасці",
+			"articlesCount": "{{count}} артыкулаў"
+		},
+		"detail": {
+			"loadError": "Не ўдалося загрузіць падрабязнасці",
+			"loadErrorDescription": "Не ўдалося атрымаць артыкул з сервераў Mojang. Праверце падключэнне і паспрабуйце зноў.",
+			"experiencePrompt": "Гатовы выпрабаваць гэта абнаўленне?",
+			"experienceDescription": "Стварыце зборку ў адзін клік або прачытайце поўны артыкул на Minecraft.net.",
+			"enjoyedPrompt": "Спадабаўся артыкул?",
+			"enjoyedDescription": "Прачытайце поўную версію і далучайцеся да абмеркавання на афіцыйным сайце Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} гатовы да ўсталявання!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Налады зборкі (АЗП, аргументы JVM)",
 			"duplicateTooltip": "Дубляваць",
 			"deleteTooltip": "Выдаліць зборку",
-			"ram": "{{size}} АЗП"
+			"ram": "{{size}} АЗП",
+			"createShortcutTooltip": "Стварыць ярлык",
+			"createShortcut": "Стварыць ярлык",
+			"desktopShortcut": "Ярлык на працоўным стале",
+			"appMenuShortcut": "Ярлык у меню праграм",
+			"shortcutCreatedDesktop": "Ярлык на працоўным стале створаны для {{name}}",
+			"shortcutCreatedAppMenu": "Ярлык у меню праграм створаны для {{name}}",
+			"shortcutFailed": "Не ўдалося стварыць ярлык: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1459,7 +1512,11 @@
 		"syncHistory": "Сінхранізаваць гісторыю каманд (command_history.txt)",
 		"syncHotbars": "Сінхранізаваць хотбары творчага рэжыму (hotbar.nbt)",
 		"inheritSync": "Бяруцца агульныя налады сінхранізацыі. Сінхранізуе перад запускам і пасля выхаду.",
-		"recoveryRequired": "Выяўлена незавершаная або збойная змена версіі"
+		"recoveryRequired": "Выяўлена незавершаная або збойная змена версіі",
+		"shortcutsTitle": "Ярлыкі сістэмы",
+		"shortcutsDesc": "Стварайце ярлыкі на працоўным стале або ў меню праграм для прамога запуску гэтага асобніка.",
+		"createDesktopShortcut": "Стварыць ярлык на працоўным стале",
+		"createAppMenuShortcut": "Стварыць ярлык у меню праграм"
 	},
 	"install": {
 		"loadFailed": "Не ўдалося загрузіць варыянты ўсталявання",

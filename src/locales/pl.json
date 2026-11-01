@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instancje",
 		"discover": "Odkrywaj",
+		"news": "Nowości",
 		"skins": "Katalog skórek",
 		"screenshots": "Zrzuty ekranu",
 		"servers": "Serwery dedykowane",
 		"settings": "Ustawienia"
+	},
+	"news": {
+		"title": "Wiadomości i aktualizacje Mojang",
+		"subtitle": "Oficjalne zapowiedzi wydań Minecrafta, blogi deweloperskie snapshotów i artykuły",
+		"searchPlaceholder": "Szukaj aktualizacji, snapshotów, poprawek...",
+		"filters": {
+			"all": "Wszystkie aktualizacje",
+			"releases": "Wydania",
+			"snapshots": "Snapshoty",
+			"blogs": "Artykuły i blogi"
+		},
+		"badges": {
+			"release": "Wydanie",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Czytaj listę zmian",
+			"readArticle": "Czytaj artykuł",
+			"createInstance": "Utwórz instancję",
+			"createInstanceFull": "Utwórz instancję z tą wersją",
+			"openExternal": "Otwórz na Minecraft.net",
+			"openInBrowser": "Otwórz w przeglądarce",
+			"refresh": "Odśwież wiadomości",
+			"back": "Wróć do aktualizacji"
+		},
+		"empty": {
+			"title": "Nie znaleziono wiadomości",
+			"description": "Spróbuj zmienić wyszukiwane hasło lub filtry.",
+			"offlineTitle": "Nie udało się załadować wiadomości",
+			"offlineDescription": "Sprawdź połączenie z siecią. Zapisane wiadomości pojawią się, gdy będą dostępne."
+		},
+		"sections": {
+			"patchNotes": "Informacje o wydaniach i snapshoty",
+			"patchNotesCount": "{{count}} aktualizacji",
+			"articles": "Artykuły i blogi społeczności",
+			"articlesCount": "{{count}} artykułów"
+		},
+		"detail": {
+			"loadError": "Nie udało się załadować szczegółów",
+			"loadErrorDescription": "Nie udało się pobrać pełnego artykułu z serwerów Mojang. Sprawdź połączenie i spróbuj ponownie.",
+			"experiencePrompt": "Gotowy na tę aktualizację?",
+			"experienceDescription": "Utwórz instancję jednym kliknięciem lub przeczytaj pełny artykuł na Minecraft.net.",
+			"enjoyedPrompt": "Podobał Ci się ten artykuł?",
+			"enjoyedDescription": "Przeczytaj pełny artykuł i dołącz do dyskusji na oficjalnej stronie Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} jest gotowy do instalacji!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Ustawienia instancji (RAM, argumenty JVM)",
 			"duplicateTooltip": "Duplikuj",
 			"deleteTooltip": "Usuń instancję",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Utwórz skrót",
+			"createShortcut": "Utwórz skrót",
+			"desktopShortcut": "Skrót na pulpicie",
+			"appMenuShortcut": "Skrót w menu aplikacji",
+			"shortcutCreatedDesktop": "Utworzono skrót na pulpicie dla {{name}}",
+			"shortcutCreatedAppMenu": "Utworzono skrót w menu aplikacji dla {{name}}",
+			"shortcutFailed": "Nie udało się utworzyć skrótu: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1459,7 +1512,11 @@
 		"syncHistory": "Synchronizuj historię komend (command_history.txt)",
 		"syncHotbars": "Synchronizuj paski trybu kreatywnego (hotbar.nbt)",
 		"inheritSync": "Używane są globalne ustawienia synchronizacji. Synchronizuje przed uruchomieniem i po wyjściu.",
-		"recoveryRequired": "Wykryto niekompletną lub nieudaną zmianę wersji"
+		"recoveryRequired": "Wykryto niekompletną lub nieudaną zmianę wersji",
+		"shortcutsTitle": "Skróty systemowe",
+		"shortcutsDesc": "Generuj skróty na pulpicie lub w menu aplikacji, aby bezpośrednio uruchamiać tę instancję.",
+		"createDesktopShortcut": "Utwórz skrót na pulpicie",
+		"createAppMenuShortcut": "Utwórz skrót w menu aplikacji"
 	},
 	"install": {
 		"loadFailed": "Nie udało się wczytać opcji instalacji",

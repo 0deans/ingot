@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instanties",
 		"discover": "Ontdekken",
+		"news": "Nieuws",
 		"skins": "Skincatalogus",
 		"screenshots": "Screenshots",
 		"servers": "Dedicated servers",
 		"settings": "Instellingen"
+	},
+	"news": {
+		"title": "Mojang Nieuws & Updates",
+		"subtitle": "Officiële Minecraft-releaseaankondigingen, snapshot-ontwikkelingsblogs en artikelen",
+		"searchPlaceholder": "Zoek updates, snapshots, probleemoplossingen...",
+		"filters": {
+			"all": "Alle updates",
+			"releases": "Releases",
+			"snapshots": "Snapshots",
+			"blogs": "Artikelen & Blogs"
+		},
+		"badges": {
+			"release": "Release",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Lees patchnotities",
+			"readArticle": "Lees artikel",
+			"createInstance": "Instantie maken",
+			"createInstanceFull": "Instantie met deze versie maken",
+			"openExternal": "Openen op Minecraft.net",
+			"openInBrowser": "Openen in browser",
+			"refresh": "Nieuws vernieuwen",
+			"back": "Terug naar updates"
+		},
+		"empty": {
+			"title": "Geen nieuwsartikelen gevonden",
+			"description": "Probeer je zoekopdracht of filterselectie aan te passen.",
+			"offlineTitle": "Kan nieuwsfeed niet laden",
+			"offlineDescription": "Controleer je netwerkverbinding. Opgeslagen nieuws wordt getoond zodra beschikbaar."
+		},
+		"sections": {
+			"patchNotes": "Release-opmerkingen & Snapshots",
+			"patchNotesCount": "{{count}} updates",
+			"articles": "Artikelen & Community-blogs",
+			"articlesCount": "{{count}} artikelen"
+		},
+		"detail": {
+			"loadError": "Kan details niet laden",
+			"loadErrorDescription": "Kon het artikel niet ophalen van Mojang-servers. Controleer je verbinding en probeer opnieuw.",
+			"experiencePrompt": "Klaar om deze update te proberen?",
+			"experienceDescription": "Maak met één klik een instantie of lees het volledige artikel op Minecraft.net.",
+			"enjoyedPrompt": "Vond je dit artikel leuk?",
+			"enjoyedDescription": "Lees het volledige artikel en praat mee op de officiële Minecraft-website."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} is klaar om te installeren!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Instantie-instellingen (RAM, JVM-argumenten)",
 			"duplicateTooltip": "Dupliceren",
 			"deleteTooltip": "Instantie verwijderen",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Snelkoppeling maken",
+			"createShortcut": "Snelkoppeling maken",
+			"desktopShortcut": "Bureaubladsnelkoppeling",
+			"appMenuShortcut": "Applicatiemenusnelkoppeling",
+			"shortcutCreatedDesktop": "Bureaubladsnelkoppeling gemaakt voor {{name}}",
+			"shortcutCreatedAppMenu": "Applicatiemenusnelkoppeling gemaakt voor {{name}}",
+			"shortcutFailed": "Maken van snelkoppeling mislukt: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Commandogeschiedenis synchroniseren (command_history.txt)",
 		"syncHotbars": "Creatieve balken synchroniseren (hotbar.nbt)",
 		"inheritSync": "Neemt de algemene sync-voorkeuren over. Synchroniseert voor het starten en na het afsluiten.",
-		"recoveryRequired": "Onvolledige of mislukte versiewijziging gedetecteerd"
+		"recoveryRequired": "Onvolledige of mislukte versiewijziging gedetecteerd",
+		"shortcutsTitle": "Systeemsnelkoppelingen",
+		"shortcutsDesc": "Maak directe snelkoppelingen op uw bureaublad of applicatiemenu om deze instantie te starten.",
+		"createDesktopShortcut": "Bureaubladsnelkoppeling maken",
+		"createAppMenuShortcut": "Applicatiemenusnelkoppeling maken"
 	},
 	"install": {
 		"loadFailed": "Kan installatieopties niet laden",

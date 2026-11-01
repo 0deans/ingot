@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Жинақтар",
 		"discover": "Каталог",
+		"news": "Жаңалықтар",
 		"skins": "Скиндер каталогы",
 		"screenshots": "Скриншоттар",
 		"servers": "Арнайы серверлер",
 		"settings": "Баптаулар"
+	},
+	"news": {
+		"title": "Mojang жаңалықтары мен жаңартулары",
+		"subtitle": "Minecraft ресми релиз хабарландырулары, снапшот әзірлеу блогтары және мақалалар",
+		"searchPlaceholder": "Жаңартуларды, снапшоттарды, түзетулерді іздеу...",
+		"filters": {
+			"all": "Барлық жаңартулар",
+			"releases": "Релиздер",
+			"snapshots": "Снапшоттар",
+			"blogs": "Мақалалар мен блогтар"
+		},
+		"badges": {
+			"release": "Релиз",
+			"snapshot": "Снапшот"
+		},
+		"actions": {
+			"readNotes": "Өзгерістер тізімі",
+			"readArticle": "Мақаланы оқу",
+			"createInstance": "Нұсқа жасау",
+			"createInstanceFull": "Осы нұсқамен жасау",
+			"openExternal": "Minecraft.net сайтында ашу",
+			"openInBrowser": "Браузерде ашу",
+			"refresh": "Жаңалықтарды жаңарту",
+			"back": "Жаңартуларға қайту"
+		},
+		"empty": {
+			"title": "Жаңалықтар табылмады",
+			"description": "Іздеу сөздерін немесе сүзгілерді өзгертіп көріңіз.",
+			"offlineTitle": "Жаңалықтар таспасын жүктеу мүмкін болмады",
+			"offlineDescription": "Желі байланысын тексеріңіз. Кэштелген жаңалықтар қолжетімді болғанда пайда болады."
+		},
+		"sections": {
+			"patchNotes": "Шығарылым жазбалары мен снапшоттар",
+			"patchNotesCount": "{{count}} жаңарту",
+			"articles": "Мақалалар мен қауымдастық блогтары",
+			"articlesCount": "{{count}} мақала"
+		},
+		"detail": {
+			"loadError": "Мәліметтерді жүктеу сәтсіз аяқталды",
+			"loadErrorDescription": "Mojang серверлерінен мақаланы алу мүмкін болмады. Байланысты тексеріп, қайталап көріңіз.",
+			"experiencePrompt": "Бұл жаңартуды сынап көруге дайынсыз ба?",
+			"experienceDescription": "Бір рет басу арқылы нұсқа жасаңыз немесе Minecraft.net сайтынан толық мақаланы оқыңыз.",
+			"enjoyedPrompt": "Бұл мақала ұнады ма?",
+			"enjoyedDescription": "Толық нұсқасын оқып, Minecraft ресми сайтында талқылауға қосылыңыз."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} орнатуға дайын!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Жинақ баптаулары (ЖЖҚ, JVM аргументтері)",
 			"duplicateTooltip": "Көшірме жасау",
 			"deleteTooltip": "Жинақты жою",
-			"ram": "{{size}} ЖЖҚ"
+			"ram": "{{size}} ЖЖҚ",
+			"createShortcutTooltip": "Таңбаша жасау",
+			"createShortcut": "Таңбаша жасау",
+			"desktopShortcut": "Жұмыс үстеліндегі таңбаша",
+			"appMenuShortcut": "Қолданбалар мәзіріндегі таңбаша",
+			"shortcutCreatedDesktop": "{{name}} үшін жұмыс үстелінде таңбаша жасалды",
+			"shortcutCreatedAppMenu": "{{name}} үшін қолданбалар мәзірінде таңбаша жасалды",
+			"shortcutFailed": "Таңбаша жасау сәтсіз аяқталды: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Командалар тарихын синхрондау (command_history.txt)",
 		"syncHotbars": "Шығармашылық панельдерін синхрондау (hotbar.nbt)",
 		"inheritSync": "Жалпы синхрондау баптаулары қолданылады. Іске қосу алдында және шыққаннан кейін синхрондайды.",
-		"recoveryRequired": "Аяқталмаған немесе сәтсіз нұсқа өзгерісі анықталды"
+		"recoveryRequired": "Аяқталмаған немесе сәтсіз нұсқа өзгерісі анықталды",
+		"shortcutsTitle": "Жүйелік таңбашалар",
+		"shortcutsDesc": "Бұл инстанцияны тікелей іске қосу үшін жұмыс үстелінде немесе қолданбалар мәзірінде таңбашалар жасаңыз.",
+		"createDesktopShortcut": "Жұмыс үстелінде таңбаша жасау",
+		"createAppMenuShortcut": "Қолданбалар мәзірінде таңбаша жасау"
 	},
 	"install": {
 		"loadFailed": "Орнату опцияларын жүктеу мүмкін болмады",

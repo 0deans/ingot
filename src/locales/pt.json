@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instâncias",
 		"discover": "Descobrir",
+		"news": "Notícias",
 		"skins": "Catálogo de skins",
 		"screenshots": "Capturas de tela",
 		"servers": "Servidores dedicados",
 		"settings": "Configurações"
+	},
+	"news": {
+		"title": "Notícias e Atualizações da Mojang",
+		"subtitle": "Anúncios oficiais de lançamentos do Minecraft, blogs de desenvolvimento de snapshots e artigos",
+		"searchPlaceholder": "Pesquisar atualizações, snapshots, correções...",
+		"filters": {
+			"all": "Todas as atualizações",
+			"releases": "Lançamentos",
+			"snapshots": "Snapshots",
+			"blogs": "Artigos e Blogs"
+		},
+		"badges": {
+			"release": "Lançamento",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Ler notas",
+			"readArticle": "Ler artigo",
+			"createInstance": "Criar instância",
+			"createInstanceFull": "Criar instância com esta versão",
+			"openExternal": "Abrir no Minecraft.net",
+			"openInBrowser": "Abrir no navegador",
+			"refresh": "Atualizar notícias",
+			"back": "Voltar às atualizações"
+		},
+		"empty": {
+			"title": "Nenhuma notícia encontrada",
+			"description": "Tente ajustar os termos de pesquisa ou filtros.",
+			"offlineTitle": "Não foi possível carregar as notícias",
+			"offlineDescription": "Verifique sua conexão. Notícias em cache aparecerão quando disponíveis."
+		},
+		"sections": {
+			"patchNotes": "Notas de lançamento e snapshots",
+			"patchNotesCount": "{{count}} atualizações",
+			"articles": "Artigos e blogs da comunidade",
+			"articlesCount": "{{count}} artigos"
+		},
+		"detail": {
+			"loadError": "Falha ao carregar detalhes",
+			"loadErrorDescription": "Não foi possível obter o artigo dos servidores da Mojang. Verifique sua conexão e tente novamente.",
+			"experiencePrompt": "Pronto para experimentar esta atualização?",
+			"experienceDescription": "Crie uma instância com um clique ou leia o artigo completo no Minecraft.net.",
+			"enjoyedPrompt": "Gostou deste artigo?",
+			"enjoyedDescription": "Leia o artigo completo e participe das discussões no site oficial do Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "O Ingot v{{version}} está pronto para instalar!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Configurações da instância (RAM, argumentos JVM)",
 			"duplicateTooltip": "Duplicar",
 			"deleteTooltip": "Excluir instância",
-			"ram": "{{size}} de RAM"
+			"ram": "{{size}} de RAM",
+			"createShortcutTooltip": "Criar atalho",
+			"createShortcut": "Criar atalho",
+			"desktopShortcut": "Atalho na área de trabalho",
+			"appMenuShortcut": "Atalho no menu de aplicativos",
+			"shortcutCreatedDesktop": "Atalho na área de trabalho criado para {{name}}",
+			"shortcutCreatedAppMenu": "Atalho no menu de aplicativos criado para {{name}}",
+			"shortcutFailed": "Falha ao criar atalho: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1444,7 +1497,11 @@
 		"syncHistory": "Sincronizar histórico de comandos (command_history.txt)",
 		"syncHotbars": "Sincronizar barras do criativo (hotbar.nbt)",
 		"inheritSync": "Usando as preferências globais de sincronização. Sincroniza antes de iniciar e depois de sair.",
-		"recoveryRequired": "Mudança de versão incompleta ou com falha detectada"
+		"recoveryRequired": "Mudança de versão incompleta ou com falha detectada",
+		"shortcutsTitle": "Atalhos do sistema",
+		"shortcutsDesc": "Crie atalhos na sua área de trabalho ou menu de aplicativos para iniciar esta instância diretamente.",
+		"createDesktopShortcut": "Criar atalho na área de trabalho",
+		"createAppMenuShortcut": "Criar atalho no menu de aplicativos"
 	},
 	"install": {
 		"loadFailed": "Não foi possível carregar as opções de instalação",

@@ -125,5 +125,35 @@ pub(crate) async fn read_worlds<R: Runtime>(
     .await?
 }
 
+pub(crate) async fn create_instance_shortcut<R: Runtime>(
+    app: &AppHandle<R>,
+    instance_id: String,
+    location: instance::ShortcutLocation,
+) -> Result<instance::ShortcutResult, InstanceError> {
+    let handle = app.clone();
+    tokio::task::spawn_blocking(move || {
+        let instances = instance::load_instances(&super::state(&handle).instances)?;
+        let instance = instances
+            .into_iter()
+            .find(|i| i.id == instance_id)
+            .ok_or_else(|| InstanceError::NotFound(instance_id.clone()))?;
+
+        let destination_dir = instance::shortcut::resolve_shortcut_directory(&handle, location)?;
+        let target_exe = std::env::current_exe().map_err(instance::ShortcutError::Executable)?;
+
+        let path = instance::shortcut::create_platform_shortcut(
+            &destination_dir,
+            &target_exe,
+            &instance.id,
+            &instance.name,
+        )?;
+
+        Ok(instance::ShortcutResult {
+            path: path.to_string_lossy().into_owned(),
+        })
+    })
+    .await?
+}
+
 #[cfg(test)]
 mod tests;

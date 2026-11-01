@@ -14,6 +14,9 @@ pub enum NewsError {
     #[error("Invalid patch note content path: {0}")]
     InvalidContentPath(String),
 
+    #[error("Article '{0}' not found in news feed")]
+    ArticleNotFound(String),
+
     #[error("Mojang content service returned status {0}")]
     HttpStatus(reqwest::StatusCode),
 

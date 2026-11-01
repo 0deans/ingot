@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instansi",
 		"discover": "Jelajahi",
+		"news": "Berita",
 		"skins": "Katalog Skin",
 		"screenshots": "Tangkapan Layar",
 		"servers": "Server Khusus",
 		"settings": "Pengaturan"
+	},
+	"news": {
+		"title": "Berita & Pembaruan Mojang",
+		"subtitle": "Pengumuman rilis resmi Minecraft, blog pengembangan snapshot, dan artikel",
+		"searchPlaceholder": "Cari pembaruan, snapshot, perbaikan bug...",
+		"filters": {
+			"all": "Semua Pembaruan",
+			"releases": "Rilis",
+			"snapshots": "Snapshot",
+			"blogs": "Artikel & Blog"
+		},
+		"badges": {
+			"release": "Rilis",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Baca Catatan",
+			"readArticle": "Baca Artikel",
+			"createInstance": "Buat Instans",
+			"createInstanceFull": "Buat Instans dengan Versi Ini",
+			"openExternal": "Buka di Minecraft.net",
+			"openInBrowser": "Buka di Peramban",
+			"refresh": "Segarkan Berita",
+			"back": "Kembali ke Pembaruan"
+		},
+		"empty": {
+			"title": "Tidak ada berita ditemukan",
+			"description": "Coba sesuaikan kata kunci pencarian atau filter Anda.",
+			"offlineTitle": "Gagal memuat umpan berita",
+			"offlineDescription": "Periksa koneksi internet Anda. Berita dalam cache akan muncul jika tersedia."
+		},
+		"sections": {
+			"patchNotes": "Catatan Rilis & Snapshot",
+			"patchNotesCount": "{{count}} pembaruan",
+			"articles": "Artikel & Blog Komunitas",
+			"articlesCount": "{{count}} artikel"
+		},
+		"detail": {
+			"loadError": "Gagal memuat detail",
+			"loadErrorDescription": "Tidak dapat mengambil artikel lengkap dari server Mojang. Periksa koneksi Anda dan coba lagi.",
+			"experiencePrompt": "Siap mencoba pembaruan ini?",
+			"experienceDescription": "Buat instans dengan satu klik, atau baca artikel lengkap di Minecraft.net.",
+			"enjoyedPrompt": "Suka membaca artikel ini?",
+			"enjoyedDescription": "Baca artikel lengkap dan ikuti diskusi komunitas di situs resmi Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} siap dipasang!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Pengaturan Instansi (RAM, argumen JVM)",
 			"duplicateTooltip": "Duplikat",
 			"deleteTooltip": "Hapus Instansi",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Buat pintasan",
+			"createShortcut": "Buat Pintasan",
+			"desktopShortcut": "Pintasan Desktop",
+			"appMenuShortcut": "Pintasan Menu Aplikasi",
+			"shortcutCreatedDesktop": "Pintasan desktop dibuat untuk {{name}}",
+			"shortcutCreatedAppMenu": "Pintasan menu aplikasi dibuat untuk {{name}}",
+			"shortcutFailed": "Gagal membuat pintasan: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Riwayat Perintah Sinkronisasi (command_history.txt)",
 		"syncHotbars": "Sinkronisasi Hotbar Kreatif (hotbar.nbt)",
 		"inheritSync": "Mewarisi preferensi sinkronisasi global. Akan disinkronkan sebelum peluncuran dan setelah keluar.",
-		"recoveryRequired": "Perubahan versi yang tidak lengkap atau gagal terdeteksi"
+		"recoveryRequired": "Perubahan versi yang tidak lengkap atau gagal terdeteksi",
+		"shortcutsTitle": "Pintasan Sistem",
+		"shortcutsDesc": "Buat pintasan di Desktop atau Menu Aplikasi untuk meluncurkan instans ini secara langsung.",
+		"createDesktopShortcut": "Buat Pintasan Desktop",
+		"createAppMenuShortcut": "Buat Pintasan Menu Aplikasi"
 	},
 	"install": {
 		"loadFailed": "Gagal memuat opsi instalasi",

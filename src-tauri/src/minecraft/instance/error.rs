@@ -29,4 +29,6 @@ pub enum InstanceError {
         #[source]
         source: std::io::Error,
     },
+    #[error(transparent)]
+    Shortcut(#[from] super::shortcut::ShortcutError),
 }

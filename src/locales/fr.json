@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instances",
 		"discover": "Découvrir",
+		"news": "Actualités",
 		"skins": "Catalogue de skins",
 		"screenshots": "Captures d'écran",
 		"servers": "Serveurs dédiés",
 		"settings": "Paramètres"
+	},
+	"news": {
+		"title": "Actualités & Mises à jour Mojang",
+		"subtitle": "Annonces officielles des versions de Minecraft, blogs de développement des snapshots et articles",
+		"searchPlaceholder": "Rechercher des mises à jour, snapshots, correctifs...",
+		"filters": {
+			"all": "Toutes les mises à jour",
+			"releases": "Versions finales",
+			"snapshots": "Snapshots",
+			"blogs": "Articles & Blogs"
+		},
+		"badges": {
+			"release": "Version finale",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Lire les notes",
+			"readArticle": "Lire l'article",
+			"createInstance": "Créer une instance",
+			"createInstanceFull": "Créer une instance avec cette version",
+			"openExternal": "Ouvrir sur Minecraft.net",
+			"openInBrowser": "Ouvrir dans le navigateur",
+			"refresh": "Actualiser les actualités",
+			"back": "Retour aux mises à jour"
+		},
+		"empty": {
+			"title": "Aucune actualité trouvée",
+			"description": "Essayez d'ajuster vos termes de recherche ou vos filtres.",
+			"offlineTitle": "Impossible de charger le flux d'actualités",
+			"offlineDescription": "Vérifiez votre connexion réseau. Les actualités en cache apparaîtront si disponibles."
+		},
+		"sections": {
+			"patchNotes": "Notes de version & Snapshots",
+			"patchNotesCount": "{{count}} mises à jour",
+			"articles": "Articles & Blogs de la communauté",
+			"articlesCount": "{{count}} articles"
+		},
+		"detail": {
+			"loadError": "Échec du chargement des détails",
+			"loadErrorDescription": "Impossible de récupérer l'article complet depuis les serveurs Mojang. Veuillez vérifier votre connexion et réessayer.",
+			"experiencePrompt": "Prêt à découvrir cette mise à jour ?",
+			"experienceDescription": "Créez une instance en un clic ou lisez l'article complet sur Minecraft.net.",
+			"enjoyedPrompt": "Vous avez aimé cet article ?",
+			"enjoyedDescription": "Lisez l'article complet et rejoignez les discussions sur le site officiel de Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} est prêt à être installé !",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Paramètres de l'instance (RAM, arguments JVM)",
 			"duplicateTooltip": "Dupliquer",
 			"deleteTooltip": "Supprimer l'instance",
-			"ram": "{{size}} de RAM"
+			"ram": "{{size}} de RAM",
+			"createShortcutTooltip": "Créer un raccourci",
+			"createShortcut": "Créer un raccourci",
+			"desktopShortcut": "Raccourci de bureau",
+			"appMenuShortcut": "Raccourci du menu d'applications",
+			"shortcutCreatedDesktop": "Raccourci de bureau créé pour {{name}}",
+			"shortcutCreatedAppMenu": "Raccourci du menu d'applications créé pour {{name}}",
+			"shortcutFailed": "Échec de la création du raccourci : {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1444,7 +1497,11 @@
 		"syncHistory": "Synchroniser l'historique des commandes (command_history.txt)",
 		"syncHotbars": "Synchroniser les barres créatives (hotbar.nbt)",
 		"inheritSync": "Hérite des préférences de synchronisation globales. Synchronise avant le lancement et après la fermeture.",
-		"recoveryRequired": "Changement de version incomplet ou échoué détecté"
+		"recoveryRequired": "Changement de version incomplet ou échoué détecté",
+		"shortcutsTitle": "Raccourcis du système",
+		"shortcutsDesc": "Générez des raccourcis directs sur votre bureau ou dans le menu d'applications pour lancer cette instance.",
+		"createDesktopShortcut": "Créer un raccourci sur le bureau",
+		"createAppMenuShortcut": "Créer un raccourci dans le menu d'applications"
 	},
 	"install": {
 		"loadFailed": "Impossible de charger les options d'installation",

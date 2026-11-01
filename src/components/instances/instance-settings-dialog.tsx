@@ -7,15 +7,23 @@ import {
 	DownloadCloud,
 	FolderOpen,
 	HardDrive,
+	LayoutGrid,
 	Monitor,
 	RefreshCw,
+	Share2,
 	Terminal,
 	Undo2,
 	UploadCloud,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
-import type { InstanceConfig, VersionBackup, VersionTransactionStatus } from "@/bindings"
+import { toast } from "sonner"
+import type {
+	InstanceConfig,
+	ShortcutLocation,
+	VersionBackup,
+	VersionTransactionStatus,
+} from "@/bindings"
 import ChangeVersionDialog from "@/components/instances/change-version-dialog"
 import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
 import LoaderIcon from "@/components/instances/loader-icon"
@@ -111,6 +119,7 @@ export const InstanceSettingsDialog = ({
 	const [isSyncing, setIsSyncing] = useState(false)
 	const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null)
 	const [syncStatusType, setSyncStatusType] = useState<"success" | "error" | null>(null)
+	const [isCreatingShortcut, setIsCreatingShortcut] = useState(false)
 
 	const [prevInstance, setPrevInstance] = useState<InstanceConfig | null>(instance)
 	if (instance && instance !== prevInstance) {
@@ -287,6 +296,30 @@ export const InstanceSettingsDialog = ({
 			}
 		},
 		[instance, handlePushSync, handlePullSync],
+	)
+
+	const handleCreateShortcut = useCallback(
+		async (location: ShortcutLocation) => {
+			if (!instance) return
+			setIsCreatingShortcut(true)
+			try {
+				await instanceService.createShortcut(instance.id, location)
+				toast.success(
+					location === "desktop"
+						? t("instances.card.shortcutCreatedDesktop", { name: instance.name })
+						: t("instances.card.shortcutCreatedAppMenu", { name: instance.name }),
+				)
+			} catch (error) {
+				toast.error(
+					t("instances.card.shortcutFailed", {
+						error: error instanceof Error ? error.message : String(error),
+					}),
+				)
+			} finally {
+				setIsCreatingShortcut(false)
+			}
+		},
+		[instance, t],
 	)
 
 	const handleSave = async () => {
@@ -900,6 +933,51 @@ export const InstanceSettingsDialog = ({
 									{t("instanceSettings.inheritSync")}
 								</div>
 							)}
+						</div>
+
+						{/* OS Shortcuts */}
+						<div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card/60 p-4">
+							<div>
+								<div className="flex items-center gap-2">
+									<Share2 className="size-4 text-primary" />
+									<h4 className="text-xs font-medium text-foreground">
+										{t("instanceSettings.shortcutsTitle")}
+									</h4>
+								</div>
+								<p className="mt-1 text-2xs text-muted-foreground">
+									{t("instanceSettings.shortcutsDesc")}
+								</p>
+							</div>
+
+							<div className="flex flex-wrap gap-2 pt-1">
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										return handleCreateShortcut("desktop")
+									}}
+									disabled={isCreatingShortcut}
+									className="h-8 gap-1.5 text-xs"
+								>
+									<Monitor className="size-3.5 text-primary" />
+									{t("instanceSettings.createDesktopShortcut")}
+								</Button>
+
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										return handleCreateShortcut("applicationsMenu")
+									}}
+									disabled={isCreatingShortcut}
+									className="h-8 gap-1.5 text-xs"
+								>
+									<LayoutGrid className="size-3.5 text-primary" />
+									{t("instanceSettings.createAppMenuShortcut")}
+								</Button>
+							</div>
 						</div>
 					</div>
 				</ScrollArea>

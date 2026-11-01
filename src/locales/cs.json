@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instance",
 		"discover": "Objevovat",
+		"news": "Novinky",
 		"skins": "Katalog skinů",
 		"screenshots": "Snímky obrazovky",
 		"servers": "Dedikované servery",
 		"settings": "Nastavení"
+	},
+	"news": {
+		"title": "Novinky a aktualizace Mojang",
+		"subtitle": "Oficiální oznámení verzí Minecraftu, vývojářské blogy snapshotů a články",
+		"searchPlaceholder": "Hledat aktualizace, snapshoty, opravy...",
+		"filters": {
+			"all": "Všechny aktualizace",
+			"releases": "Vydání",
+			"snapshots": "Snapshoty",
+			"blogs": "Články a blogy"
+		},
+		"badges": {
+			"release": "Vydání",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Číst poznámky k verzi",
+			"readArticle": "Číst článek",
+			"createInstance": "Vytvořit instanci",
+			"createInstanceFull": "Vytvořit instanci s touto verzí",
+			"openExternal": "Otevřít na Minecraft.net",
+			"openInBrowser": "Otevřít v prohlížeči",
+			"refresh": "Obnovit novinky",
+			"back": "Zpět k aktualizacím"
+		},
+		"empty": {
+			"title": "Nenalezeny žádné novinky",
+			"description": "Zkuste upravit hledané výrazy nebo filtry.",
+			"offlineTitle": "Nelze načíst novinky",
+			"offlineDescription": "Zkontrolujte připojení k síti. Pokud jsou k dispozici data v mezipaměti, zobrazí se."
+		},
+		"sections": {
+			"patchNotes": "Poznámky k vydání a snapshoty",
+			"patchNotesCount": "{{count}} aktualizací",
+			"articles": "Články a komunitní blogy",
+			"articlesCount": "{{count}} článků"
+		},
+		"detail": {
+			"loadError": "Nepodařilo se načíst podrobnosti",
+			"loadErrorDescription": "Nelze načíst článek ze serverů Mojang. Zkontrolujte připojení a zkuste to znovu.",
+			"experiencePrompt": "Jste připraveni vyzkoušet tuto aktualizaci?",
+			"experienceDescription": "Vytvořte instanci jedním kliknutím nebo si přečtěte celý článek na Minecraft.net.",
+			"enjoyedPrompt": "Líbil se vám tento článek?",
+			"enjoyedDescription": "Přečtěte si celý článek a zapojte se do diskuze na oficiálním webu Minecraftu."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} je připraven k instalaci!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Nastavení instance (RAM, argumenty JVM)",
 			"duplicateTooltip": "Duplikovat",
 			"deleteTooltip": "Smazat instanci",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Vytvořit zástupce",
+			"createShortcut": "Vytvořit zástupce",
+			"desktopShortcut": "Zástupce na ploše",
+			"appMenuShortcut": "Zástupce v nabídce aplikací",
+			"shortcutCreatedDesktop": "Zástupce na ploše byl vytvořen pro {{name}}",
+			"shortcutCreatedAppMenu": "Zástupce v nabídce aplikací byl vytvořen pro {{name}}",
+			"shortcutFailed": "Vytvoření zástupce se nezdařilo: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1459,7 +1512,11 @@
 		"syncHistory": "Synchronizovat historii příkazů (command_history.txt)",
 		"syncHotbars": "Synchronizovat lišty tvořivého režimu (hotbar.nbt)",
 		"inheritSync": "Používá se globální nastavení synchronizace. Synchronizuje před spuštěním a po ukončení.",
-		"recoveryRequired": "Byla zjištěna neúplná nebo neúspěšná změna verze"
+		"recoveryRequired": "Byla zjištěna neúplná nebo neúspěšná změna verze",
+		"shortcutsTitle": "Systémoví zástupci",
+		"shortcutsDesc": "Vytvořte zástupce na ploše nebo v nabídce aplikací pro přímé spuštění této instance.",
+		"createDesktopShortcut": "Vytvořit zástupce na ploše",
+		"createAppMenuShortcut": "Vytvořit zástupce v nabídce aplikací"
 	},
 	"install": {
 		"loadFailed": "Možnosti instalace se nepodařilo načíst",

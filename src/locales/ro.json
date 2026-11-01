@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Instanțe",
 		"discover": "Descoperă",
+		"news": "Știri",
 		"skins": "Catalog de skinuri",
 		"screenshots": "Capturi de ecran",
 		"servers": "Servere dedicate",
 		"settings": "Setări"
+	},
+	"news": {
+		"title": "Știri și actualizări Mojang",
+		"subtitle": "Anunțuri oficiale de lansare Minecraft, bloguri de dezvoltare snapshot și articole",
+		"searchPlaceholder": "Caută actualizări, snapshot-uri, remedieri...",
+		"filters": {
+			"all": "Toate actualizările",
+			"releases": "Lansări",
+			"snapshots": "Snapshot-uri",
+			"blogs": "Articole și bloguri"
+		},
+		"badges": {
+			"release": "Lansare",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Citește notele",
+			"readArticle": "Citește articolul",
+			"createInstance": "Creează instanță",
+			"createInstanceFull": "Creează instanță cu această versiune",
+			"openExternal": "Deschide pe Minecraft.net",
+			"openInBrowser": "Deschide în browser",
+			"refresh": "Reîmprospătează știrile",
+			"back": "Înapoi la actualizări"
+		},
+		"empty": {
+			"title": "Nu s-au găsit știri",
+			"description": "Încearcă să ajustezi termenii de căutare sau filtrele.",
+			"offlineTitle": "Nu s-a putut încărca fluxul de știri",
+			"offlineDescription": "Verifică conexiunea la rețea. Știrile din cache vor apărea când sunt disponibile."
+		},
+		"sections": {
+			"patchNotes": "Note de lansare și snapshot-uri",
+			"patchNotesCount": "{{count}} actualizări",
+			"articles": "Articole și bloguri comunitare",
+			"articlesCount": "{{count}} articole"
+		},
+		"detail": {
+			"loadError": "Nu s-au putut încărca detaliile",
+			"loadErrorDescription": "Articolul nu a putut fi descărcat de pe serverele Mojang. Verifică conexiunea și încearcă din nou.",
+			"experiencePrompt": "Gata să încerci această actualizare?",
+			"experienceDescription": "Creează o instanță cu un singur clic sau citește articolul complet pe Minecraft.net.",
+			"enjoyedPrompt": "Ți-a plăcut acest articol?",
+			"enjoyedDescription": "Citește articolul complet și alătură-te discuțiilor de pe site-ul oficial Minecraft."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} este pregătit pentru instalare!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Setări instanță (RAM, argumente JVM)",
 			"duplicateTooltip": "Duplică",
 			"deleteTooltip": "Șterge instanța",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Creează comandă rapidă",
+			"createShortcut": "Creează comandă rapidă",
+			"desktopShortcut": "Comandă rapidă pe desktop",
+			"appMenuShortcut": "Comandă rapidă în meniul aplicațiilor",
+			"shortcutCreatedDesktop": "Comandă rapidă pe desktop creată pentru {{name}}",
+			"shortcutCreatedAppMenu": "Comandă rapidă în meniul aplicațiilor creată pentru {{name}}",
+			"shortcutFailed": "Nu s-a putut crea comanda rapidă: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1444,7 +1497,11 @@
 		"syncHistory": "Sincronizează istoricul comenzilor (command_history.txt)",
 		"syncHotbars": "Sincronizează barele rapide din creativ (hotbar.nbt)",
 		"inheritSync": "Moștenește preferințele globale de sincronizare. Se va sincroniza înainte de lansare și după ieșire.",
-		"recoveryRequired": "A fost detectată o schimbare de versiune incompletă sau eșuată"
+		"recoveryRequired": "A fost detectată o schimbare de versiune incompletă sau eșuată",
+		"shortcutsTitle": "Comenzi rapide de sistem",
+		"shortcutsDesc": "Generați comenzi rapide pe desktop sau în meniul de aplicații pentru a lansa direct această instanță.",
+		"createDesktopShortcut": "Creează comandă rapidă pe desktop",
+		"createAppMenuShortcut": "Creează comandă rapidă în meniul aplicațiilor"
 	},
 	"install": {
 		"loadFailed": "Încărcarea opțiunilor de instalare a eșuat",

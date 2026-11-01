@@ -42,10 +42,56 @@
 	"nav": {
 		"instances": "Példányok",
 		"discover": "Felfedezés",
+		"news": "Hírek",
 		"skins": "Skin katalógus",
 		"screenshots": "Képernyőképek",
 		"servers": "Dedikált szerverek",
 		"settings": "Beállítások"
+	},
+	"news": {
+		"title": "Mojang Hírek és Frissítések",
+		"subtitle": "Hivatalos Minecraft kiadási bejelentések, pillanatkép fejlesztői blogok és cikkek",
+		"searchPlaceholder": "Frissítések, pillanatképek, hibajavítások keresése...",
+		"filters": {
+			"all": "Minden frissítés",
+			"releases": "Kiadások",
+			"snapshots": "Pillanatképek",
+			"blogs": "Cikkek és Blogok"
+		},
+		"badges": {
+			"release": "Kiadás",
+			"snapshot": "Pillanatkép"
+		},
+		"actions": {
+			"readNotes": "Verziójegyzetek olvasása",
+			"readArticle": "Cikk elolvasása",
+			"createInstance": "Példány létrehozása",
+			"createInstanceFull": "Példány létrehozása ezzel a verzióval",
+			"openExternal": "Megnyitás a Minecraft.net-en",
+			"openInBrowser": "Megnyitás böngészőben",
+			"refresh": "Hírek frissítése",
+			"back": "Vissza a frissítésekhez"
+		},
+		"empty": {
+			"title": "Nem találhatók hírek",
+			"description": "Próbálja módosítani a keresési kifejezéseket vagy a szűrőket.",
+			"offlineTitle": "Nem sikerült betölteni a híreket",
+			"offlineDescription": "Ellenőrizze a hálózati kapcsolatot. A gyorsítótárazott hírek megjelennek, ha elérhetők."
+		},
+		"sections": {
+			"patchNotes": "Kiadási megjegyzések és pillanatképek",
+			"patchNotesCount": "{{count}} frissítés",
+			"articles": "Cikkek és közösségi blogok",
+			"articlesCount": "{{count}} cikk"
+		},
+		"detail": {
+			"loadError": "Nem sikerült betölteni a részleteket",
+			"loadErrorDescription": "Nem sikerült lekérni a cikket a Mojang szervereiről. Ellenőrizze a kapcsolatot és próbálja újra.",
+			"experiencePrompt": "Készen áll kipróbálni ezt a frissítést?",
+			"experienceDescription": "Hozzon létre egy példányt egyetlen kattintással, vagy olvassa el a teljes cikket a Minecraft.net-en.",
+			"enjoyedPrompt": "Tetszett a cikk?",
+			"enjoyedDescription": "Olvassa el a teljes cikket és csatlakozzon a beszélgetésekhez a hivatalos Minecraft weboldalon."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Az Ingot v{{version}} készen áll a telepítésre!",
@@ -117,7 +163,14 @@
 			"settingsTooltip": "Példány beállításai (RAM, JVM argumentumok)",
 			"duplicateTooltip": "Másolat készítése",
 			"deleteTooltip": "Példány törlése",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"createShortcutTooltip": "Parancsikon létrehozása",
+			"createShortcut": "Parancsikon létrehozása",
+			"desktopShortcut": "Asztali parancsikon",
+			"appMenuShortcut": "Alkalmazásmenü parancsikon",
+			"shortcutCreatedDesktop": "Asztali parancsikon létrehozva ehhez: {{name}}",
+			"shortcutCreatedAppMenu": "Alkalmazásmenü parancsikon létrehozva ehhez: {{name}}",
+			"shortcutFailed": "A parancsikon létrehozása sikertelen: {{error}}"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
@@ -1429,7 +1482,11 @@
 		"syncHistory": "Parancselőzmények szinkronizálása (command_history.txt)",
 		"syncHotbars": "Creative Hotbars szinkronizálása (hotbar.nbt)",
 		"inheritSync": "Globális szinkronizálási beállítások öröklése. Indítás előtt és kilépés után szinkronizálódik.",
-		"recoveryRequired": "Befejezetlen vagy sikertelen verzióváltás észlelhető"
+		"recoveryRequired": "Befejezetlen vagy sikertelen verzióváltás észlelhető",
+		"shortcutsTitle": "Rendszer parancsikonok",
+		"shortcutsDesc": "Hozzon létre parancsikonokat az asztalon vagy az alkalmazásmenüben a példány közvetlen indításához.",
+		"createDesktopShortcut": "Asztali parancsikon létrehozása",
+		"createAppMenuShortcut": "Alkalmazásmenü parancsikon létrehozása"
 	},
 	"install": {
 		"loadFailed": "Nem sikerült betölteni a telepítési opciókat",

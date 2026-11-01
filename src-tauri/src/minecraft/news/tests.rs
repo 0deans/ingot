@@ -1,5 +1,6 @@
 use super::models::{
-    resolve_mojang_url, validate_content_path, RawNewsFeed, RawPatchNoteDetail, RawPatchNotesFeed,
+    extract_article_content_html, is_safe_article_url, resolve_mojang_url, validate_content_path,
+    RawNewsFeed, RawPatchNoteDetail, RawPatchNotesFeed,
 };
 use super::service::NewsService;
 
@@ -152,4 +153,44 @@ async fn rejects_invalid_content_path_without_http_request() {
 
     let result = service.get_patch_note_details("../traversal.json").await;
     assert!(result.is_err());
+}
+
+#[test]
+fn validates_safe_article_urls() {
+    assert!(is_safe_article_url(
+        "https://www.minecraft.net/article/halloween-on-realms"
+    ));
+    assert!(is_safe_article_url(
+        "https://minecraft.net/en-us/article/deep-dark"
+    ));
+    assert!(is_safe_article_url(
+        "https://launchercontent.mojang.com/v2/news.json"
+    ));
+
+    assert!(!is_safe_article_url("https://attacker.com/article/fake"));
+    assert!(!is_safe_article_url("ftp://minecraft.net/file"));
+    assert!(!is_safe_article_url("/relative/path"));
+    assert!(!is_safe_article_url("javascript:alert(1)"));
+}
+
+#[test]
+fn extracts_article_content_html_and_rewrites_relative_links() {
+    let raw_html = r#"
+        <html><body>
+        <div class="MC_articleGridA_container MC_articleGridA_grid">
+            <p>Welcome to the update!</p>
+            <img src="/content/dam/minecraftnet/realms/image.jpg" />
+            <a href="/en-us/article/other-post">Other</a>
+            <a href="/article/direct-post">Direct</a>
+        </div>
+        </section>
+        </body></html>
+    "#;
+
+    let extracted = extract_article_content_html(raw_html).expect("should extract article grid");
+    assert!(extracted.contains("<p>Welcome to the update!</p>"));
+    assert!(extracted
+        .contains("src=\"https://www.minecraft.net/content/dam/minecraftnet/realms/image.jpg\""));
+    assert!(extracted.contains("href=\"https://www.minecraft.net/article/other-post\""));
+    assert!(extracted.contains("href=\"https://www.minecraft.net/article/direct-post\""));
 }

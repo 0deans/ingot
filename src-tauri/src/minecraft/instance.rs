@@ -6,12 +6,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 mod duplicate;
 mod error;
 mod models;
+pub mod shortcut;
 mod storage;
 #[cfg(test)]
 mod tests;
 pub use error::InstanceError;
 mod worlds;
 pub use models::{InstanceConfig, ModLoaderType};
+pub use shortcut::{ShortcutError, ShortcutLocation, ShortcutResult};
 pub use worlds::{get_instance_worlds, InstanceWorldSummary};
 
 pub(crate) fn ensure_instances_directory(
