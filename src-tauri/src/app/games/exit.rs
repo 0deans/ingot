@@ -95,11 +95,14 @@ pub async fn finish_game<R: Runtime>(
     };
 
     if no_more_running {
-        let should_restore = hide_to_tray
-            || app
-                .get_webview_window("main")
-                .map(|w| !w.is_visible().unwrap_or(true))
-                .unwrap_or(false);
+        let args: Vec<String> = std::env::args().collect();
+        let was_shortcut = crate::app::cli::parse_cli_launch_instance(&args).is_some();
+        let should_restore = !was_shortcut
+            && (hide_to_tray
+                || app
+                    .get_webview_window("main")
+                    .map(|w| !w.is_visible().unwrap_or(true))
+                    .unwrap_or(false));
         if should_restore {
             #[cfg(desktop)]
             crate::tray::restore_main_window(app);

@@ -6,6 +6,7 @@ import ReactDOM from "react-dom/client"
 import RootErrorBoundary from "@/components/layout/root-error-boundary"
 import RouteErrorView from "@/components/layout/route-error-view"
 import "@/i18n"
+import { rpc } from "@/lib/rpc"
 import "@/lib/theme"
 import "./index.css"
 import { isMobileEnvironment } from "./lib/platform"
@@ -67,7 +68,13 @@ if (rootElement) {
 	)
 }
 
-router.load().finally(() => {
+router.load().finally(async () => {
+	const shouldShow = await rpc.app.should_show_window_on_startup().catch(() => {
+		return true
+	})
+	if (!shouldShow) {
+		return
+	}
 	requestAnimationFrame(() => {
 		const appWindow = getCurrentWindow()
 		appWindow

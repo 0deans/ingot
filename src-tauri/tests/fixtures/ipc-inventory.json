@@ -1041,6 +1041,13 @@
 			"destination": "settings"
 		},
 		{
+			"name": "should_show_window_on_startup",
+			"currentPath": "app",
+			"kind": "command",
+			"arguments": [],
+			"destination": "app"
+		},
+		{
 			"name": "start_playit_tunnel",
 			"currentPath": "servers.tunnel",
 			"kind": "command",

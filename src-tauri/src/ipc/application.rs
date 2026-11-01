@@ -26,6 +26,9 @@ pub(super) trait ApplicationApi {
         folder: String,
         file_name: String,
     ) -> Result<(), ApiError>;
+    /// Returns true if the main window should be shown on startup.
+    /// When launched via a shortcut (e.g. `--launch-instance`), this returns false so Ingot stays in tray mode.
+    async fn should_show_window_on_startup() -> Result<bool, ApiError>;
 }
 
 #[derive(Clone)]
@@ -107,5 +110,11 @@ impl ApplicationApi for ApplicationApiImpl {
             }
         };
         crate::version_change::crash::disable(&root, &folder, &file_name).map_err(ApiError::from)
+    }
+
+    async fn should_show_window_on_startup(self) -> Result<bool, ApiError> {
+        let args: Vec<String> = std::env::args().collect();
+        let is_shortcut = crate::app::cli::parse_cli_launch_instance(&args).is_some();
+        Ok(!is_shortcut)
     }
 }
