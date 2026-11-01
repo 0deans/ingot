@@ -372,12 +372,8 @@ pub fn create_windows_shortcut(
     let icon_to_set = icon_path.filter(|p| p.exists());
 
     // Try Windows native Shell COM first for 100% Explorer compatibility
-    let com_result = create_windows_shortcut_com(
-        &shortcut_path,
-        target_exe,
-        instance_id,
-        icon_to_set,
-    );
+    let com_result =
+        create_windows_shortcut_com(&shortcut_path, target_exe, instance_id, icon_to_set);
 
     if com_result.is_err() {
         let mut link = mslnk::ShellLink::new(target_exe)
@@ -522,48 +518,52 @@ pub fn resolve_shortcut_directory<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     location: ShortcutLocation,
 ) -> Result<PathBuf, ShortcutError> {
-    use tauri::Manager;
-    match location {
-        ShortcutLocation::Desktop => app
-            .path()
-            .desktop_dir()
-            .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string())),
-        ShortcutLocation::ApplicationsMenu => {
-            #[cfg(windows)]
-            {
-                let data = app
-                    .path()
-                    .data_dir()
-                    .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string()))?;
-                let start_menu = data
-                    .join("Microsoft")
-                    .join("Windows")
-                    .join("Start Menu")
-                    .join("Programs")
-                    .join("Ingot");
-                Ok(start_menu)
-            }
-            #[cfg(target_os = "linux")]
-            {
-                let data = app
-                    .path()
-                    .data_dir()
-                    .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string()))?;
-                Ok(data.join("applications"))
-            }
-            #[cfg(target_os = "macos")]
-            {
-                let home = app
-                    .path()
-                    .home_dir()
-                    .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string()))?;
-                Ok(home.join("Applications"))
-            }
-            #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
-            {
-                Err(ShortcutError::UnsupportedPlatform(
-                    std::env::consts::OS.to_string(),
-                ))
+    #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
+    {
+        let _ = (app, location);
+        Err(ShortcutError::UnsupportedPlatform(
+            std::env::consts::OS.to_string(),
+        ))
+    }
+    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
+    {
+        use tauri::Manager;
+        match location {
+            ShortcutLocation::Desktop => app
+                .path()
+                .desktop_dir()
+                .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string())),
+            ShortcutLocation::ApplicationsMenu => {
+                #[cfg(windows)]
+                {
+                    let data = app
+                        .path()
+                        .data_dir()
+                        .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string()))?;
+                    let start_menu = data
+                        .join("Microsoft")
+                        .join("Windows")
+                        .join("Start Menu")
+                        .join("Programs")
+                        .join("Ingot");
+                    Ok(start_menu)
+                }
+                #[cfg(target_os = "linux")]
+                {
+                    let data = app
+                        .path()
+                        .data_dir()
+                        .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string()))?;
+                    Ok(data.join("applications"))
+                }
+                #[cfg(target_os = "macos")]
+                {
+                    let home = app
+                        .path()
+                        .home_dir()
+                        .map_err(|e| ShortcutError::DirectoryNotFound(e.to_string()))?;
+                    Ok(home.join("Applications"))
+                }
             }
         }
     }
