@@ -3,8 +3,8 @@ import type { QuitExitIntent } from "@/services/quit-service"
 import { unwrapRpc } from "../lib/rpc-result.ts"
 
 interface QuitExitEffects {
-	stopServers: () => Promise<TauRpcResult<null, ApiError>>
-	quit: () => Promise<TauRpcResult<null, ApiError>>
+	stopServers: () => Promise<TauRpcResult<null, ApiError>> | Promise<null>
+	quit: () => Promise<TauRpcResult<null, ApiError>> | Promise<null>
 	dismiss: () => void
 }
 

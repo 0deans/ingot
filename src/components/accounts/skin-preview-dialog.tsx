@@ -33,24 +33,30 @@ const SkinPreviewDialog = ({ account, open, onOpenChange }: SkinPreviewDialogPro
 	const [isSaving, setIsSaving] = useState(false)
 	const [accountCapeUrl, setAccountCapeUrl] = useState<string | null>(null)
 
-	useEffect(() => {
-		let isMounted = true
-		if (account?.username) {
-			accountService
-				.getPlayerSkin(account.username)
-				.then((res) => {
-					if (isMounted) setAccountCapeUrl(res?.capeUrl || null)
-				})
-				.catch(() => {
-					if (isMounted) setAccountCapeUrl(null)
-				})
-		} else {
+	const username = account?.username
+	const [prevUsername, setPrevUsername] = useState(username)
+	if (username !== prevUsername) {
+		setPrevUsername(username)
+		if (!username) {
 			setAccountCapeUrl(null)
 		}
+	}
+
+	useEffect(() => {
+		if (!username) return
+		let isMounted = true
+		accountService
+			.getPlayerSkin(username)
+			.then((res) => {
+				if (isMounted) setAccountCapeUrl(res?.capeUrl || null)
+			})
+			.catch(() => {
+				if (isMounted) setAccountCapeUrl(null)
+			})
 		return () => {
 			isMounted = false
 		}
-	}, [account?.username])
+	}, [username])
 
 	if (!account) return null
 

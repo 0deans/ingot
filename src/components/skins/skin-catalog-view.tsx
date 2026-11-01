@@ -93,7 +93,7 @@ const SORT_OPTIONS: { id: SkinSortOption }[] = [
 
 const MODEL_OPTIONS: readonly ("any" | "steve" | "slim")[] = ["any", "steve", "slim"]
 
-let lastKnownSkin: ElySkinItem | null = null
+const EMPTY_SKINS: ElySkinItem[] = []
 
 function formatNumber(num?: number | null): string {
 	if (num === undefined || num === null || Number.isNaN(num)) return formatCount(0)
@@ -336,7 +336,7 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		}),
 	)
 
-	const skins = data?.items ?? []
+	const skins = data?.items ?? EMPTY_SKINS
 	const totalItems = data?.totalItems ?? 0
 	const lastPage = data?.lastPage ?? 1
 	const catalogError = error
@@ -346,41 +346,65 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 		: null
 	const isLoadingCatalog = isLoading
 
-	// Keep input synced if URL search param changes
-	useEffect(() => {
+	const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery)
+	if (prevSearchQuery !== searchQuery) {
+		setPrevSearchQuery(searchQuery)
 		setSearchInput(searchQuery)
-	}, [searchQuery])
+	}
 
 	// Debounce search input to URL query
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			if (searchInput !== searchQuery) {
 				navigate({
-					search: (prev) => ({ ...prev, q: searchInput, page: 1 }),
+					search: (prev) => {
+						return { ...prev, q: searchInput, page: 1 }
+					},
 					replace: true,
 				})
 			}
 		}, 400)
-		return () => clearTimeout(timer)
+		return () => {
+			clearTimeout(timer)
+		}
 	}, [searchInput, searchQuery, navigate])
 
+	const targetUsername = targetAccount?.username
+	const [prevTargetUsername, setPrevTargetUsername] = useState(targetUsername)
 	const [activeAccountCapeUrl, setActiveAccountCapeUrl] = useState<string | null>(null)
-	useEffect(() => {
-		if (targetAccount?.username) {
-			accountService
-				.getPlayerSkin(targetAccount.username)
-				.then((res) => {
-					setActiveAccountCapeUrl(res?.capeUrl || null)
-				})
-				.catch(() => setActiveAccountCapeUrl(null))
-		} else {
+
+	if (prevTargetUsername !== targetUsername) {
+		setPrevTargetUsername(targetUsername)
+		if (!targetUsername) {
 			setActiveAccountCapeUrl(null)
 		}
-	}, [targetAccount?.username])
+	}
+
+	useEffect(() => {
+		if (!targetUsername) {
+			return
+		}
+		let cancelled = false
+		accountService
+			.getPlayerSkin(targetUsername)
+			.then((res) => {
+				if (!cancelled) {
+					setActiveAccountCapeUrl(res?.capeUrl || null)
+				}
+			})
+			.catch(() => {
+				if (!cancelled) {
+					setActiveAccountCapeUrl(null)
+				}
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [targetUsername])
 
 	// Fallback skin (active account skin or Steve) to guarantee a skin is ALWAYS visible in 3D
-	const fallbackSkin: ElySkinItem = useMemo(
-		() => ({
+	const fallbackSkin: ElySkinItem = useMemo(() => {
+		return {
 			id: 0,
 			skinUrl: targetAccount?.skinUrl || DEFAULT_STEVE_SKIN,
 			capeUrl: activeAccountCapeUrl,
@@ -389,34 +413,33 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 			countCubes: 0,
 			countViews: 0,
 			tags: targetAccount ? [targetAccount.username] : [t("skinsPage.defaultSteve")],
-		}),
-		[targetAccount, activeAccountCapeUrl, t],
-	)
+		}
+	}, [targetAccount, activeAccountCapeUrl, t])
 
 	const activeSkin = useMemo(() => {
 		if (selectedSkinId !== undefined) {
-			const match = skins.find((item) => item.id === selectedSkinId)
+			const match = skins.find((item) => {
+				return item.id === selectedSkinId
+			})
 			if (match) {
-				lastKnownSkin = match
 				return match
 			}
 		}
 		if (selectedSkin) {
-			const match = skins.find(
-				(item) =>
+			const match = skins.find((item) => {
+				return (
 					(selectedSkin.id !== 0 && item.id === selectedSkin.id) ||
-					(selectedSkin.id === 0 && item.skinUrl === selectedSkin.skinUrl),
-			)
+					(selectedSkin.id === 0 && item.skinUrl === selectedSkin.skinUrl)
+				)
+			})
 			if (match) {
-				lastKnownSkin = match
 				return match
 			}
 		}
 		if (skins[0]) {
-			lastKnownSkin = skins[0]
 			return skins[0]
 		}
-		return lastKnownSkin || fallbackSkin
+		return selectedSkin || fallbackSkin
 	}, [selectedSkinId, selectedSkin, skins, fallbackSkin])
 
 	// Action state
@@ -454,7 +477,6 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				}),
 			})
 			setSelectedSkin(null)
-			lastKnownSkin = null
 		},
 		[navigate],
 	)
@@ -471,7 +493,6 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 				}),
 			})
 			setSelectedSkin(null)
-			lastKnownSkin = null
 		},
 		[navigate],
 	)
@@ -1292,7 +1313,6 @@ export function SkinCatalogView({ initialAccount }: { initialAccount?: AccountPr
 															key={skin.id || skin.skinUrl}
 															type="button"
 															onClick={() => {
-																lastKnownSkin = skin
 																setSelectedSkin(skin)
 																navigate({
 																	search: (prev) => ({ ...prev, skinId: skin.id }),

@@ -1,5 +1,5 @@
 import { Maximize2, Monitor, RotateCcw, Sparkles } from "lucide-react"
-import { memo, useEffect, useState } from "react"
+import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SectionCardHeader } from "@/components/common/section-card"
 import { Button } from "@/components/ui/button"
@@ -29,11 +29,16 @@ export const WindowSettings = () => {
 	const transitionStyle = usePageTransitionStyle()
 	const [width, setWidth] = useState(windowSettings.width)
 	const [height, setHeight] = useState(windowSettings.height)
+	const [prevDims, setPrevDims] = useState({
+		w: windowSettings.width,
+		h: windowSettings.height,
+	})
 
-	useEffect(() => {
+	if (windowSettings.width !== prevDims.w || windowSettings.height !== prevDims.h) {
+		setPrevDims({ w: windowSettings.width, h: windowSettings.height })
 		setWidth(windowSettings.width)
 		setHeight(windowSettings.height)
-	}, [windowSettings.width, windowSettings.height])
+	}
 
 	const handleToggleFullscreen = async (checked: boolean) => {
 		try {

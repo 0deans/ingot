@@ -305,18 +305,23 @@ export function useRunningServers() {
 	}
 }
 
-export function useServerLogs(serverId: string | null) {
+export const useServerLogs = (serverId: string | null) => {
 	const [logs, setLogs] = useState<string[]>([])
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+	const [prevServerId, setPrevServerId] = useState(serverId)
+
+	if (serverId !== prevServerId) {
+		setPrevServerId(serverId)
+		setLogs([])
+		setIsLoadingHistory(Boolean(serverId))
+	}
 
 	useEffect(() => {
 		if (!serverId) {
-			setLogs([])
 			return
 		}
 
 		let isMounted = true
-		setIsLoadingHistory(true)
 
 		serverService
 			.getServerLogs(serverId)

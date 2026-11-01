@@ -55,11 +55,18 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isCustomName, setIsCustomName] = useState(false)
 
+	const [prevOpen, setPrevOpen] = useState(open)
+	if (open && !prevOpen) {
+		setPrevOpen(true)
+		setIsLoadingVersions(true)
+	} else if (!open && prevOpen) {
+		setPrevOpen(false)
+	}
+
 	// Fetch game versions when dialog opens
 	useEffect(() => {
 		if (!open) return
 		let cancelled = false
-		setIsLoadingVersions(true)
 
 		instanceService
 			.getAvailableGameVersions()
@@ -90,16 +97,29 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 		}
 	}, [open])
 
-	// Fetch loader versions when gameVersion or loader changes
-	useEffect(() => {
+	const [prevLoaderConfig, setPrevLoaderConfig] = useState({ open, loader, gameVersion })
+	if (
+		open !== prevLoaderConfig.open ||
+		loader !== prevLoaderConfig.loader ||
+		gameVersion !== prevLoaderConfig.gameVersion
+	) {
+		setPrevLoaderConfig({ open, loader, gameVersion })
 		if (!open || loader === "vanilla") {
 			setLoaderVersions([])
 			setLoaderVersion("")
+			setIsLoadingLoaderVersions(false)
+		} else {
+			setIsLoadingLoaderVersions(true)
+		}
+	}
+
+	// Fetch loader versions when gameVersion or loader changes
+	useEffect(() => {
+		if (!open || loader === "vanilla") {
 			return
 		}
 
 		let cancelled = false
-		setIsLoadingLoaderVersions(true)
 
 		instanceService
 			.getAvailableLoaderVersions(gameVersion, loader)
@@ -120,15 +140,22 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 		}
 	}, [open, loader, gameVersion])
 
-	// Auto-generate name if user hasn't entered a custom name
-	useEffect(() => {
-		if (isCustomName) return
+	const [prevNameConfig, setPrevNameConfig] = useState({ loader, gameVersion, isCustomName })
+	if (
+		!isCustomName &&
+		(loader !== prevNameConfig.loader ||
+			gameVersion !== prevNameConfig.gameVersion ||
+			isCustomName !== prevNameConfig.isCustomName)
+	) {
+		setPrevNameConfig({ loader, gameVersion, isCustomName })
 		const loaderLabel =
 			LOADERS.find((l) => {
 				return l.id === loader
 			})?.label || "Vanilla"
 		setInstanceName(`${loaderLabel} ${gameVersion}`)
-	}, [loader, gameVersion, isCustomName])
+	} else if (isCustomName !== prevNameConfig.isCustomName) {
+		setPrevNameConfig({ loader, gameVersion, isCustomName })
+	}
 
 	const filteredVersions = versions.filter((v) => {
 		return showSnapshots ? true : v.type === "release"

@@ -1,5 +1,5 @@
 import { ArrowRight, Clock, Globe, Play, Server, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,22 +50,26 @@ function saveRecentServer(address: string) {
 	}
 }
 
-export function DirectConnectDialog({
+export const DirectConnectDialog = ({
 	open,
 	onOpenChange,
 	instanceName,
 	onConnect,
-}: DirectConnectDialogProps) {
+}: DirectConnectDialogProps) => {
 	const { t } = useTranslation()
 	const [address, setAddress] = useState("")
-	const [recentServers, setRecentServers] = useState<string[]>([])
+	const [recentServers, setRecentServers] = useState<string[]>(() => {
+		return getRecentServers()
+	})
+	const [prevOpen, setPrevOpen] = useState(open)
 	const { servers } = useServers()
 
-	useEffect(() => {
-		if (open) {
-			setRecentServers(getRecentServers())
-		}
-	}, [open])
+	if (open && !prevOpen) {
+		setPrevOpen(true)
+		setRecentServers(getRecentServers())
+	} else if (!open && prevOpen) {
+		setPrevOpen(false)
+	}
 
 	const handleLaunch = (targetAddress?: string) => {
 		const finalAddress = (targetAddress || address).trim()

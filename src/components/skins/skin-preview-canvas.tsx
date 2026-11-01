@@ -12,40 +12,49 @@ interface SkinPreviewCanvasProps {
 
 const previewDataUrlCache = new Map<string, string>()
 
-function SkinPreviewCanvas({
+const SkinPreviewCanvas = ({
 	skinUrl,
 	isSlim = false,
 	width = 64,
 	height = 128,
 	className = "",
-}: SkinPreviewCanvasProps) {
+}: SkinPreviewCanvasProps) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const cacheKey = `${skinUrl ?? ""}_${isSlim ? "slim" : "classic"}_${width}_${height}`
 
 	const cachedUrl = skinUrl ? previewDataUrlCache.get(cacheKey) : undefined
 	const [renderedUrl, setRenderedUrl] = useState<string | undefined>(cachedUrl)
-	const [hasError, setHasError] = useState(false)
+	const [hasError, setHasError] = useState(!skinUrl)
 	const [isLoading, setIsLoading] = useState(!cachedUrl && Boolean(skinUrl))
+	const [prevCacheKey, setPrevCacheKey] = useState(cacheKey)
 
-	useEffect(() => {
+	if (cacheKey !== prevCacheKey) {
+		setPrevCacheKey(cacheKey)
 		if (!skinUrl) {
 			setIsLoading(false)
 			setHasError(true)
+		} else if (cachedUrl) {
+			setRenderedUrl(cachedUrl)
+			setIsLoading(false)
+			setHasError(false)
+		} else {
+			setIsLoading(true)
+			setHasError(false)
+		}
+	}
+
+	useEffect(() => {
+		if (!skinUrl) {
 			return
 		}
 
 		const key = `${skinUrl}_${isSlim ? "slim" : "classic"}_${width}_${height}`
 		const existing = previewDataUrlCache.get(key)
 		if (existing) {
-			setRenderedUrl(existing)
-			setIsLoading(false)
-			setHasError(false)
 			return
 		}
 
 		let isMounted = true
-		setIsLoading(true)
-		setHasError(false)
 
 		const drawSkinToCanvas = (sourceUrl: string) => {
 			const img = new Image()

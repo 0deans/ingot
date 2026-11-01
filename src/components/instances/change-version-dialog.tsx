@@ -87,14 +87,28 @@ export default function ChangeVersionDialog({
 			})
 	}, [open, instance.gameVersion])
 
-	useEffect(() => {
+	const [prevLoaderParams, setPrevLoaderParams] = useState({ open, modded, target, loader })
+	if (
+		open !== prevLoaderParams.open ||
+		modded !== prevLoaderParams.modded ||
+		target !== prevLoaderParams.target ||
+		loader !== prevLoaderParams.loader
+	) {
+		setPrevLoaderParams({ open, modded, target, loader })
 		if (!open || !modded || !target) {
 			setLoaderVersions([])
 			setLoaderVersion("")
+			setLoadingLoaders(false)
+		} else {
+			setLoadingLoaders(true)
+		}
+	}
+
+	useEffect(() => {
+		if (!open || !modded || !target) {
 			return
 		}
 		let cancelled = false
-		setLoadingLoaders(true)
 		instanceService
 			.getAvailableLoaderVersions(target, loader)
 			.then((list) => {

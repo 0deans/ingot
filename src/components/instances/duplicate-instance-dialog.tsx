@@ -50,21 +50,39 @@ export const DuplicateInstanceDialog = ({
 
 	const instanceId = instance?.id
 	const instanceName = instance?.name
-	useEffect(() => {
-		if (!open || !instanceId) return
+	const [prevOpen, setPrevOpen] = useState(open)
+	const [prevInstanceId, setPrevInstanceId] = useState(instanceId)
+
+	if ((open && !prevOpen) || (instanceId && instanceId !== prevInstanceId)) {
+		setPrevOpen(open)
+		setPrevInstanceId(instanceId)
 		setName(t("duplicateInstance.defaultName", { name: instanceName }))
 		setIncludeWorlds(true)
 		setError(null)
 		setWorldCount(null)
+	} else if (!open && prevOpen) {
+		setPrevOpen(false)
+	}
+
+	useEffect(() => {
+		if (!open || !instanceId) return
+		let cancelled = false
 		instanceService
 			.getInstanceWorlds(instanceId)
 			.then((worlds) => {
-				setWorldCount(worlds.length)
+				if (!cancelled) {
+					setWorldCount(worlds.length)
+				}
 			})
 			.catch(() => {
-				setWorldCount(null)
+				if (!cancelled) {
+					setWorldCount(null)
+				}
 			})
-	}, [open, instanceId, instanceName, t])
+		return () => {
+			cancelled = true
+		}
+	}, [open, instanceId])
 
 	if (!instance) return null
 

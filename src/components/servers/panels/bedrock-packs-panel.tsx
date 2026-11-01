@@ -70,12 +70,12 @@ export function BedrockPacksPanel({ server }: { server: ServerConfig }) {
 		},
 	})
 
-	const installed = installedQuery.data ?? []
 	const userPacks = useMemo(() => {
+		const installed = installedQuery.data ?? []
 		return installed.filter((p) => {
 			return !p.system
 		})
-	}, [installed])
+	}, [installedQuery.data])
 
 	// Public packs search query (CurseForge Bedrock gameId 78022)
 	const searchQuery = useQuery({

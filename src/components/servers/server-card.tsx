@@ -94,14 +94,26 @@ export default function ServerCard({
 	const isStopping = Boolean(runningInfo && runningInfo.status === "stopping")
 
 	const [copied, setCopied] = useState(false)
-	const [uptime, setUptime] = useState(runningInfo?.uptimeSeconds || 0)
+	const initialUptime = runningInfo?.uptimeSeconds || 0
+	const [uptime, setUptime] = useState(initialUptime)
+	const [prevUptime, setPrevUptime] = useState(initialUptime)
+	if (initialUptime !== prevUptime) {
+		setPrevUptime(initialUptime)
+		setUptime(initialUptime)
+	}
 	const [pingInfo, setPingInfo] = useState<ServerPingResponse | null>(null)
+	const [prevIsRunning, setPrevIsRunning] = useState(isRunning)
+	if (!isRunning && prevIsRunning) {
+		setPrevIsRunning(false)
+		setPingInfo(null)
+	} else if (isRunning && !prevIsRunning) {
+		setPrevIsRunning(true)
+	}
 	const [serverIcon, setServerIcon] = useState<string | null>(server.icon || null)
 
 	// Live ticker for uptime
 	useEffect(() => {
 		if (!isRunning) return
-		setUptime(runningInfo?.uptimeSeconds || 0)
 		const timer = setInterval(() => {
 			setUptime((u) => u + 1)
 		}, 1000)
@@ -125,7 +137,6 @@ export default function ServerCard({
 	// Query Server List Ping (SLP) when server is running
 	useEffect(() => {
 		if (!isRunning) {
-			setPingInfo(null)
 			return
 		}
 		let cancelled = false

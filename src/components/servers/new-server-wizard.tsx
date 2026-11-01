@@ -113,7 +113,11 @@ function Steps({ current, total }: { current: number; total: number }) {
 
 // ─── Main wizard ───────────────────────────────────────────────────────────────
 
-export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewServerWizardProps) {
+export const NewServerWizard = ({
+	onCancel,
+	onServerCreated,
+	importSlot,
+}: NewServerWizardProps) => {
 	const { t } = useTranslation()
 	const isMobile = isMobileEnvironment()
 	const TOTAL_STEPS = 3
@@ -127,8 +131,10 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 	const [name, setName] = useState("")
 	const [versions, setVersions] = useState<string[]>([])
 	const [selectedVersion, setSelectedVersion] = useState("")
-	const [port, setPort] = useState(25565)
-	const [isLoadingVersions, setIsLoadingVersions] = useState(false)
+	const [port, setPort] = useState(() => {
+		return serverService.getNextAvailablePort()
+	})
+	const [isLoadingVersions, setIsLoadingVersions] = useState(true)
 
 	// Step 2 state — RAM
 	const [ramMb, setRamMb] = useState(isMobile ? 1024 : 4096)
@@ -137,17 +143,16 @@ export function NewServerWizard({ onCancel, onServerCreated, importSlot }: NewSe
 	const [error, setError] = useState<string | null>(null)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	// Fetch available port once on mount
-	useEffect(() => {
-		const nextPort = serverService.getNextAvailablePort()
-		setPort(nextPort)
-	}, [])
+	const [prevCore, setPrevCore] = useState(core)
+	if (core !== prevCore) {
+		setPrevCore(core)
+		setIsLoadingVersions(true)
+		setError(null)
+	}
 
 	// Fetch versions whenever core changes
 	useEffect(() => {
 		let isMounted = true
-		setIsLoadingVersions(true)
-		setError(null)
 		serverService
 			.getAvailableServerCoreVersions(core)
 			.then((list) => {

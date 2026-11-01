@@ -125,22 +125,31 @@ export const ContentDetailsDialog = memo(
 		const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 		const galleryScrollRef = useRef<HTMLDivElement>(null)
 
+		const [prevItem, setPrevItem] = useState(item)
+		const [prevOpen, setPrevOpen] = useState(open)
+
+		if (item !== prevItem || (!open && prevOpen)) {
+			setPrevItem(item)
+			setPrevOpen(open)
+			setDetails(null)
+			setError(null)
+			setIsLoading(Boolean(open && item))
+			setActiveTab("overview")
+			setVersionLoaderFilter("")
+			setVersionGameVerFilter("")
+			setActivePhotoIndex(0)
+			setLightboxIndex(null)
+		} else if (open && !prevOpen) {
+			setPrevOpen(true)
+			setIsLoading(Boolean(item))
+		}
+
 		useEffect(() => {
 			if (!open || !item) {
-				setDetails(null)
-				setError(null)
-				setActiveTab("overview")
-				setVersionLoaderFilter("")
-				setVersionGameVerFilter("")
-				setActivePhotoIndex(0)
-				setLightboxIndex(null)
 				return
 			}
 
 			let cancelled = false
-			setIsLoading(true)
-			setError(null)
-			setActivePhotoIndex(0)
 
 			const cleanId = item.id.replace(/^(mr|cf|modrinth|curseforge):/, "")
 
@@ -187,16 +196,15 @@ export const ContentDetailsDialog = memo(
 
 		// Extract available game versions for dropdown
 		// Sanitizing parses the whole description; do it once per description, not per render
-		const descriptionHtml = useMemo(
-			() =>
-				details?.body
-					? renderDescriptionHtml(
-							details.body,
-							item?.source === "curseforge" || details.body.trim().startsWith("<"),
-						)
-					: "",
-			[details?.body, item?.source],
-		)
+		const descriptionHtml = useMemo(() => {
+			if (!details?.body) {
+				return ""
+			}
+			return renderDescriptionHtml(
+				details.body,
+				item?.source === "curseforge" || details.body.trim().startsWith("<"),
+			)
+		}, [details, item?.source])
 
 		const availableGameVersions = useMemo(() => {
 			if (!details) return []

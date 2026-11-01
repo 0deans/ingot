@@ -48,17 +48,17 @@ const InstancesPage = () => {
 	const duplicateId = search.duplicate
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
+	const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery)
+	if (searchQuery !== prevSearchQuery) {
+		setPrevSearchQuery(searchQuery)
+		setSearchInput(searchQuery)
+	}
 	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
 
 	const { instances, isLoading, refresh } = useInstances()
 	const { runningMap, runningList } = useRunningInstances()
 	const progressMap = useAllInstancesProgress()
 	const { memory } = useMemorySettings()
-
-	// Keep input synced if URL search param changes
-	useEffect(() => {
-		setSearchInput(searchQuery)
-	}, [searchQuery])
 
 	// Debounce search input to URL query
 	useEffect(() => {

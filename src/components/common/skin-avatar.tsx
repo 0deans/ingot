@@ -10,19 +10,27 @@ interface SkinAvatarProps {
 
 const SkinAvatar = ({ skinUrl, username, size = 36, className = "" }: SkinAvatarProps) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
-	const [hasError, setHasError] = useState(false)
+	const [hasError, setHasError] = useState(!skinUrl)
 	const [isLoading, setIsLoading] = useState(Boolean(skinUrl))
+	const [prevSkinUrl, setPrevSkinUrl] = useState(skinUrl)
 
-	useEffect(() => {
+	if (skinUrl !== prevSkinUrl) {
+		setPrevSkinUrl(skinUrl)
 		if (!skinUrl) {
 			setIsLoading(false)
 			setHasError(true)
+		} else {
+			setIsLoading(true)
+			setHasError(false)
+		}
+	}
+
+	useEffect(() => {
+		if (!skinUrl) {
 			return
 		}
 
 		let isMounted = true
-		setIsLoading(true)
-		setHasError(false)
 
 		accountService
 			.getSkinDataUrl(skinUrl)

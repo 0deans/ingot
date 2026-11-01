@@ -1,5 +1,5 @@
 import { AlertTriangle, Cpu, Info, Sparkles } from "lucide-react"
-import { memo, useEffect, useState } from "react"
+import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { alertTone } from "@/components/common/alert-tones"
 import { SectionCardHeader } from "@/components/common/section-card"
@@ -27,11 +27,16 @@ const MemoryAllocation = () => {
 
 	const [minRam, setMinRam] = useState(memory.minRamMb)
 	const [maxRam, setMaxRam] = useState(memory.maxRamMb)
+	const [prevMemory, setPrevMemory] = useState({
+		min: memory.minRamMb,
+		max: memory.maxRamMb,
+	})
 
-	useEffect(() => {
+	if (memory.minRamMb !== prevMemory.min || memory.maxRamMb !== prevMemory.max) {
+		setPrevMemory({ min: memory.minRamMb, max: memory.maxRamMb })
 		setMinRam(memory.minRamMb)
 		setMaxRam(memory.maxRamMb)
-	}, [memory.minRamMb, memory.maxRamMb])
+	}
 
 	const totalRamMb = systemMemory?.totalMb || 16384
 	const availableRamMb = systemMemory?.availableMb || 10240

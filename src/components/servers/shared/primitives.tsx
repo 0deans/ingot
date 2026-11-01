@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { type ReactNode, useRef, useState } from "react"
+import { type ReactNode, useState } from "react"
 import type { ItemStack } from "@/bindings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
@@ -252,10 +252,17 @@ export function ErrorNote({ children }: { children: ReactNode }) {
  * Last non-null value. Sheets are closed by clearing their subject (e.g. the selected
  * player); keeping the old value lets the close animation play with the content intact.
  */
-export function useSticky<T>(value: T | null | undefined): T | null {
-	const ref = useRef<T | null>(value ?? null)
-	if (value != null) ref.current = value
-	return ref.current
+export const useSticky = <T,>(value: T | null | undefined): T | null => {
+	const [stickyValue, setStickyValue] = useState<T | null>(() => {
+		return value ?? null
+	})
+
+	if (value != null && value !== stickyValue) {
+		setStickyValue(value)
+		return value
+	}
+
+	return stickyValue
 }
 
 /** Scrollable container whose top/bottom edges fade only while there's more content that way */

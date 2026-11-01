@@ -28,15 +28,13 @@ export function resetScroll(sectionOrKey: string): void {
  * Automatically captures and restores element scroll positions for pages using ScrollArea
  * across sidebar tab navigation and history navigation.
  */
-export function useScrollRestoration() {
+export const useScrollRestoration = () => {
 	const mainRef = useRef<HTMLElement | null>(null)
 	const pathname = useRouterState({ select: (s) => s.location.pathname })
 	const searchStr = useRouterState({ select: (s) => s.location.searchStr })
 	const currentKey = getScrollKey(pathname, searchStr)
 	const currentKeyRef = useRef(currentKey)
 	const isRestoringRef = useRef(false)
-
-	currentKeyRef.current = currentKey
 
 	// Capture scroll position on user scroll
 	useEffect(() => {
@@ -68,6 +66,7 @@ export function useScrollRestoration() {
 
 	// Restore scroll position when section / key changes
 	useLayoutEffect(() => {
+		currentKeyRef.current = currentKey
 		const main = mainRef.current
 		if (!main) return
 

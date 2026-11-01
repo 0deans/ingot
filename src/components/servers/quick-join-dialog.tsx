@@ -1,5 +1,5 @@
 import { AlertCircle, Play, Plus, Server } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
@@ -57,34 +57,58 @@ function setLastSelectedInstance(serverId: string, instanceId: string) {
 	}
 }
 
-export function QuickJoinDialog({
+export const QuickJoinDialog = ({
 	server,
 	open,
 	onOpenChange,
 	onLaunch,
 	onCreateInstance,
-}: QuickJoinDialogProps) {
+}: QuickJoinDialogProps) => {
 	const { t } = useTranslation()
 	const { instances, isLoading } = useInstances()
 	const [selectedId, setSelectedId] = useState<string | null>(null)
 
-	useEffect(() => {
-		if (!open || !server || instances.length === 0) return
+	const serverId = server?.id
+	const [prevOpen, setPrevOpen] = useState(open)
+	const [prevServerId, setPrevServerId] = useState(serverId)
 
+	if (open && (!prevOpen || serverId !== prevServerId)) {
+		setPrevOpen(true)
+		setPrevServerId(serverId)
+		if (server && instances.length > 0) {
+			const lastId = getLastSelectedInstance(server.id)
+			if (
+				lastId &&
+				instances.some((i) => {
+					return i.id === lastId
+				})
+			) {
+				setSelectedId(lastId)
+			} else {
+				const matching = instances.find((i) => {
+					return i.gameVersion === server.gameVersion
+				})
+				setSelectedId(matching ? matching.id : instances[0].id)
+			}
+		}
+	} else if (!open && prevOpen) {
+		setPrevOpen(false)
+	} else if (open && server && instances.length > 0 && selectedId === null) {
 		const lastId = getLastSelectedInstance(server.id)
-		if (lastId && instances.some((i) => i.id === lastId)) {
+		if (
+			lastId &&
+			instances.some((i) => {
+				return i.id === lastId
+			})
+		) {
 			setSelectedId(lastId)
-			return
-		}
-
-		// Otherwise prefer an instance matching the game version
-		const matching = instances.find((i) => i.gameVersion === server.gameVersion)
-		if (matching) {
-			setSelectedId(matching.id)
 		} else {
-			setSelectedId(instances[0].id)
+			const matching = instances.find((i) => {
+				return i.gameVersion === server.gameVersion
+			})
+			setSelectedId(matching ? matching.id : instances[0].id)
 		}
-	}, [open, server, instances])
+	}
 
 	if (!server) return null
 

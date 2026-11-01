@@ -126,19 +126,35 @@ export const ImportInstanceDialog = ({
 	const [isImporting, setIsImporting] = useState(false)
 	const [importStatus, setImportStatus] = useState<string | null>(null)
 
+	const [prevOpen, setPrevOpen] = useState(open)
+	if (open && !prevOpen) {
+		setPrevOpen(true)
+		setStep("launchers")
+		setSelectedLauncher(null)
+		setSelectedInstance(null)
+		setImportStatus(null)
+		setIsLoadingLaunchers(true)
+	} else if (!open && prevOpen) {
+		setPrevOpen(false)
+	}
+
 	// Fetch launchers on open
 	useEffect(() => {
-		if (open) {
-			setStep("launchers")
-			setSelectedLauncher(null)
-			setSelectedInstance(null)
-			setImportStatus(null)
-			setIsLoadingLaunchers(true)
-			importerService
-				.getDetectedLaunchers()
-				.then((list) => setLaunchers(list))
-				.catch((err) => console.error("Failed to detect launchers:", err))
-				.finally(() => setIsLoadingLaunchers(false))
+		if (!open) return
+		let cancelled = false
+		importerService
+			.getDetectedLaunchers()
+			.then((list) => {
+				if (!cancelled) setLaunchers(list)
+			})
+			.catch((err) => {
+				console.error("Failed to detect launchers:", err)
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoadingLaunchers(false)
+			})
+		return () => {
+			cancelled = true
 		}
 	}, [open])
 

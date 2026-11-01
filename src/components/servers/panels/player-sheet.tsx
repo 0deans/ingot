@@ -11,7 +11,7 @@ import {
 	Shield,
 	Sparkles,
 } from "lucide-react"
-import { useState } from "react"
+import { createElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemStack, PlayerDetails, ServerConfig } from "@/bindings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -452,14 +452,26 @@ function ItemDetails({ item }: { item: ItemStack }) {
 	)
 }
 
-function EnchantmentIcon({ id }: { id: string }) {
-	const Icon = enchantmentIcon(id)
-	return <Icon className="size-5 shrink-0 text-violet-400" aria-hidden="true" />
+interface EnchantmentIconProps {
+	id: string
 }
 
-function EffectIcon({ id }: { id: string }) {
-	const Icon = effectIcon(id)
-	return <Icon className="size-8 shrink-0 p-1 text-muted-foreground" aria-hidden="true" />
+const EnchantmentIcon = ({ id }: EnchantmentIconProps) => {
+	return createElement(enchantmentIcon(id), {
+		className: "size-5 shrink-0 text-violet-400",
+		"aria-hidden": "true",
+	})
+}
+
+interface EffectIconProps {
+	id: string
+}
+
+const EffectIcon = ({ id }: EffectIconProps) => {
+	return createElement(effectIcon(id), {
+		className: "size-8 shrink-0 p-1 text-muted-foreground",
+		"aria-hidden": "true",
+	})
 }
 
 function EffectsList({ player }: { player: PlayerDetails }) {

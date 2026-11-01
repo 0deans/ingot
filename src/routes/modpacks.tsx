@@ -306,11 +306,11 @@ const ModpacksPage = () => {
 	const detailsId = search.details
 
 	const [searchInput, setSearchInput] = useState(urlQuery)
-
-	// Keep input synced if URL search param changes (e.g. back/forward navigation)
-	useEffect(() => {
+	const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery)
+	if (urlQuery !== prevUrlQuery) {
+		setPrevUrlQuery(urlQuery)
 		setSearchInput(urlQuery)
-	}, [urlQuery])
+	}
 
 	// Debounce input to URL search parameters
 	useEffect(() => {

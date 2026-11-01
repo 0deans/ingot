@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { Check, Map as MapIcon, Radio, RefreshCw } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { Badge } from "@/components/ui/badge"
@@ -43,6 +43,17 @@ export function MapPanel({
 	const { data: dimensions, isLoading, refetch } = useMapDimensions(server.id)
 	const { data: online = [] } = useOnlinePlayers(server.id, isRunning, 1500)
 	const [dimension, setDimension] = useState(focus?.dimension ?? "minecraft:overworld")
+	const [prevFocus, setPrevFocus] = useState(focus)
+	const [initializedDim, setInitializedDim] = useState<string | null>(null)
+
+	if (focus && focus !== prevFocus) {
+		setPrevFocus(focus)
+		setDimension(focus.dimension)
+		setInitializedDim(null)
+	} else if (!focus && prevFocus) {
+		setPrevFocus(null)
+	}
+
 	const [view, setView] = useState<MapView | null>(null)
 	const [refreshing, setRefreshing] = useState(false)
 	/** What the last refresh found, shown briefly on the button */
@@ -54,37 +65,31 @@ export function MapPanel({
 	const [installedAt, setInstalledAt] = useState<string | null>(null)
 	const companionReady = companion?.fileName != null && companion.enabled
 
+	if ((!isRunning || server.core === "bedrock") && installedAt !== null) {
+		setInstalledAt(null)
+	}
+
 	const current = dimensions?.find((d) => d.id === dimension) ?? dimensions?.[0]
 	const players = useMemo(
 		() => (isRunning ? online.filter((p) => p.dimension === current?.id) : []),
 		[online, current?.id, isRunning],
 	)
 
-	// Initial view: the focused player, else the first player here, else the middle of the explored area
-	const initialized = useRef<string | null>(null)
-	useEffect(() => {
-		if (!current || initialized.current === current.id) return
-		initialized.current = current.id
+	if (current && initializedDim !== current.id) {
+		setInitializedDim(current.id)
 		const target = focus?.dimension === current.id ? focus : players[0]
 		if (target) {
 			setView({ x: target.x, z: target.z, scale: 2 })
-			return
+		} else if (current.regions.length > 0) {
+			const xs = current.regions.map((r) => r.x)
+			const zs = current.regions.map((r) => r.z)
+			setView({
+				x: ((Math.min(...xs) + Math.max(...xs) + 1) / 2) * 512,
+				z: ((Math.min(...zs) + Math.max(...zs) + 1) / 2) * 512,
+				scale: 0.5,
+			})
 		}
-		const xs = current.regions.map((r) => r.x)
-		const zs = current.regions.map((r) => r.z)
-		setView({
-			x: ((Math.min(...xs) + Math.max(...xs) + 1) / 2) * 512,
-			z: ((Math.min(...zs) + Math.max(...zs) + 1) / 2) * 512,
-			scale: 0.5,
-		})
-	}, [current, focus, players])
-
-	useEffect(() => {
-		if (focus) {
-			setDimension(focus.dimension)
-			initialized.current = null
-		}
-	}, [focus])
+	}
 
 	// The map never makes the server save. It re-lists regions now and then and redraws
 	// the ones that changed: live chunks Ingot's plugin (or Fabric mod) reads from memory, or whatever
@@ -92,7 +97,6 @@ export function MapPanel({
 	const live = isRunning && companionReady && installedAt !== server.id
 	useEffect(() => {
 		if (!isRunning || server.core === "bedrock") {
-			setInstalledAt(null)
 			return
 		}
 		const timer = setInterval(
@@ -157,10 +161,14 @@ export function MapPanel({
 					size="sm"
 					value={[current.id]}
 					onValueChange={(value) => {
-						const next = dimensions?.find((d) => d.id === value[0])
-						if (!next) return
+						const next = dimensions?.find((d) => {
+							return d.id === value[0]
+						})
+						if (!next) {
+							return
+						}
 						setDimension(next.id)
-						initialized.current = null
+						setInitializedDim(null)
 					}}
 					className="pointer-events-auto max-w-full scrollbar-none overflow-x-auto border bg-background/80 p-1 backdrop-blur-md"
 				>

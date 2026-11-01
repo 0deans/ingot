@@ -13,7 +13,7 @@ import {
 	Undo2,
 	UploadCloud,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import type { InstanceConfig, VersionBackup, VersionTransactionStatus } from "@/bindings"
 import ChangeVersionDialog from "@/components/instances/change-version-dialog"
@@ -112,41 +112,43 @@ export const InstanceSettingsDialog = ({
 	const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null)
 	const [syncStatusType, setSyncStatusType] = useState<"success" | "error" | null>(null)
 
-	useEffect(() => {
-		if (instance) {
-			setName(instance.name)
-			const hasCustom = instance.memoryMinMb != null || instance.memoryMaxMb != null
-			setUseCustomRam(hasCustom)
-			setMinRamMb(instance.memoryMinMb ?? globalMemory.minRamMb)
-			setMaxRamMb(instance.memoryMaxMb ?? globalMemory.maxRamMb)
-			setJvmArgsStr(instance.jvmArgs ? instance.jvmArgs.join(" ") : "")
-			setJavaPath(instance.javaPath || "")
+	const [prevInstance, setPrevInstance] = useState<InstanceConfig | null>(instance)
+	if (instance && instance !== prevInstance) {
+		setPrevInstance(instance)
+		setName(instance.name)
+		const hasCustom = instance.memoryMinMb != null || instance.memoryMaxMb != null
+		setUseCustomRam(hasCustom)
+		setMinRamMb(instance.memoryMinMb ?? globalMemory.minRamMb)
+		setMaxRamMb(instance.memoryMaxMb ?? globalMemory.maxRamMb)
+		setJvmArgsStr(instance.jvmArgs ? instance.jvmArgs.join(" ") : "")
+		setJavaPath(instance.javaPath || "")
 
-			const hasCustomWin =
-				instance.fullscreen != null || instance.windowWidth != null || instance.windowHeight != null
-			setUseCustomWindow(hasCustomWin)
-			setInstanceFullscreen(instance.fullscreen ?? globalWindow.fullscreen)
-			setInstanceWidth(instance.windowWidth ?? globalWindow.width)
-			setInstanceHeight(instance.windowHeight ?? globalWindow.height)
+		const hasCustomWin =
+			instance.fullscreen != null || instance.windowWidth != null || instance.windowHeight != null
+		setUseCustomWindow(hasCustomWin)
+		setInstanceFullscreen(instance.fullscreen ?? globalWindow.fullscreen)
+		setInstanceWidth(instance.windowWidth ?? globalWindow.width)
+		setInstanceHeight(instance.windowHeight ?? globalWindow.height)
 
-			const hasCustomSyncData =
-				instance.syncOptions != null ||
-				instance.syncServers != null ||
-				instance.syncResourcePacks != null ||
-				instance.syncCommandHistory != null ||
-				instance.syncCreativeHotbars != null
-			setUseCustomSync(hasCustomSyncData)
-			setSyncOptions(instance.syncOptions ?? globalSync.syncOptions)
-			setSyncServers(instance.syncServers ?? globalSync.syncServers)
-			setSyncResourcePacks(instance.syncResourcePacks ?? globalSync.syncResourcePacks)
-			setSyncCommandHistory(instance.syncCommandHistory ?? globalSync.syncCommandHistory)
-			setSyncCreativeHotbars(instance.syncCreativeHotbars ?? globalSync.syncCreativeHotbars)
-			setLastSyncedAt(instance.lastSyncedAt ?? null)
+		const hasCustomSyncData =
+			instance.syncOptions != null ||
+			instance.syncServers != null ||
+			instance.syncResourcePacks != null ||
+			instance.syncCommandHistory != null ||
+			instance.syncCreativeHotbars != null
+		setUseCustomSync(hasCustomSyncData)
+		setSyncOptions(instance.syncOptions ?? globalSync.syncOptions)
+		setSyncServers(instance.syncServers ?? globalSync.syncServers)
+		setSyncResourcePacks(instance.syncResourcePacks ?? globalSync.syncResourcePacks)
+		setSyncCommandHistory(instance.syncCommandHistory ?? globalSync.syncCommandHistory)
+		setSyncCreativeHotbars(instance.syncCreativeHotbars ?? globalSync.syncCreativeHotbars)
+		setLastSyncedAt(instance.lastSyncedAt ?? null)
 
-			setSyncStatusMsg(null)
-			setSyncStatusType(null)
-		}
-	}, [instance, globalMemory, globalWindow, globalSync])
+		setSyncStatusMsg(null)
+		setSyncStatusType(null)
+	} else if (!instance && prevInstance) {
+		setPrevInstance(null)
+	}
 
 	// By id: the instance object is replaced after a version change, and that must not
 	// clear the message about it
@@ -227,24 +229,7 @@ export const InstanceSettingsDialog = ({
 		setUseCustomSync(checked)
 	}
 
-	const handleInitialSyncChoice = async (source: "instance" | "shared") => {
-		if (!instance) return
-		try {
-			if (source === "instance") {
-				await handlePushSync()
-			} else {
-				await handlePullSync()
-			}
-			const now = Math.floor(Date.now() / 1000)
-			setLastSyncedAt(now)
-			setUseCustomSync(true)
-			setIsInitialSyncOpen(false)
-		} catch (e) {
-			console.error("Initial sync choice failed:", e)
-		}
-	}
-
-	const handlePushSync = async () => {
+	const handlePushSync = useCallback(async () => {
 		if (!instance) return
 		setIsSyncing(true)
 		setSyncStatusMsg(null)
@@ -266,9 +251,9 @@ export const InstanceSettingsDialog = ({
 		} finally {
 			setIsSyncing(false)
 		}
-	}
+	}, [instance, t])
 
-	const handlePullSync = async () => {
+	const handlePullSync = useCallback(async () => {
 		if (!instance) return
 		setIsSyncing(true)
 		setSyncStatusMsg(null)
@@ -282,7 +267,27 @@ export const InstanceSettingsDialog = ({
 		} finally {
 			setIsSyncing(false)
 		}
-	}
+	}, [instance, t])
+
+	const handleInitialSyncChoice = useCallback(
+		async (source: "instance" | "shared") => {
+			if (!instance) return
+			try {
+				if (source === "instance") {
+					await handlePushSync()
+				} else {
+					await handlePullSync()
+				}
+				const now = Math.floor(Date.now() / 1000)
+				setLastSyncedAt(now)
+				setUseCustomSync(true)
+				setIsInitialSyncOpen(false)
+			} catch (e) {
+				console.error("Initial sync choice failed:", e)
+			}
+		},
+		[instance, handlePushSync, handlePullSync],
+	)
 
 	const handleSave = async () => {
 		if (!instance) return

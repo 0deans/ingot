@@ -246,29 +246,31 @@ export function useServerIcon(serverId: string) {
 	})
 }
 
-/** When each running server started (ms); module-level so it survives remounts */
-const startTimes = new Map<string, number>()
-
 /** Seconds since the server started, ticking every second while it runs */
-export function useLiveUptime(serverId: string): number {
+export const useLiveUptime = (serverId: string): number => {
 	const { isRunning, uptimeSeconds } = useServerStatus(serverId)
-	const [now, setNow] = useState(Date.now())
+	const [prevUptime, setPrevUptime] = useState(uptimeSeconds)
+	const [elapsed, setElapsed] = useState(0)
 
-	if (!isRunning) startTimes.delete(serverId)
-	else if (!startTimes.has(serverId)) startTimes.set(serverId, Date.now() - uptimeSeconds * 1000)
+	if (prevUptime !== uptimeSeconds) {
+		setPrevUptime(uptimeSeconds)
+		setElapsed(0)
+	}
 
 	useEffect(() => {
 		if (!isRunning) return
 		const timer = setInterval(() => {
-			setNow(Date.now())
+			setElapsed((prev) => {
+				return prev + 1
+			})
 		}, 1000)
 		return () => {
 			clearInterval(timer)
 		}
 	}, [isRunning])
 
-	const startedAt = startTimes.get(serverId)
-	return startedAt === undefined ? 0 : Math.max(0, (now - startedAt) / 1000)
+	if (!isRunning) return 0
+	return prevUptime + elapsed
 }
 
 // ─── Plugins / mods ───────────────────────────────────────────────────────────

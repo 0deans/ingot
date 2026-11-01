@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { create } from "zustand"
 import type {
 	MemorySettings,
@@ -281,22 +281,36 @@ export function useMemorySettings() {
 }
 
 /** Subscribes to one settings slice and reloads it from the backend on mount. */
-function useLoadedSetting<K extends keyof SettingsState>(key: K, load: () => Promise<unknown>) {
-	const value = useSettingsStore((s) => s[key])
+const useLoadedSetting = <K extends keyof SettingsState>(key: K, load: () => Promise<unknown>) => {
+	const value = useSettingsStore((s) => {
+		return s[key]
+	})
+	const loadRef = useRef(load)
 	const [isLoading, setIsLoading] = useState(true)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: load once on mount
 	useEffect(() => {
-		load().finally(() => setIsLoading(false))
+		loadRef.current = load
+	}, [load])
+
+	useEffect(() => {
+		let cancelled = false
+		loadRef.current().finally(() => {
+			if (!cancelled) {
+				setIsLoading(false)
+			}
+		})
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	return [value, isLoading] as const
 }
 
-export function useLauncherBehavior() {
-	const [behavior, isLoading] = useLoadedSetting("behavior", () =>
-		settingsService.getLauncherBehavior(),
-	)
+export const useLauncherBehavior = () => {
+	const [behavior, isLoading] = useLoadedSetting("behavior", () => {
+		return settingsService.getLauncherBehavior()
+	})
 	return {
 		behavior,
 		isLoading,
@@ -304,10 +318,10 @@ export function useLauncherBehavior() {
 	}
 }
 
-export function useWindowSettings() {
-	const [windowSettings, isLoading] = useLoadedSetting("windowSettings", () =>
-		settingsService.getWindowSettings(),
-	)
+export const useWindowSettings = () => {
+	const [windowSettings, isLoading] = useLoadedSetting("windowSettings", () => {
+		return settingsService.getWindowSettings()
+	})
 	return {
 		windowSettings,
 		isLoading,
@@ -315,10 +329,10 @@ export function useWindowSettings() {
 	}
 }
 
-export function useSyncSettings() {
-	const [syncSettings, isLoading] = useLoadedSetting("syncSettings", () =>
-		settingsService.getSyncSettings(),
-	)
+export const useSyncSettings = () => {
+	const [syncSettings, isLoading] = useLoadedSetting("syncSettings", () => {
+		return settingsService.getSyncSettings()
+	})
 	return {
 		syncSettings,
 		isLoading,

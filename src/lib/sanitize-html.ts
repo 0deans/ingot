@@ -23,7 +23,7 @@ export function sanitizeHtml(html: string): string {
 
 	for (const el of doc.body.querySelectorAll("*")) {
 		const tag = el.tagName.toLowerCase()
-		for (const attr of [...el.attributes]) {
+		for (const attr of Array.from(el.attributes)) {
 			const name = attr.name.toLowerCase()
 			if (name.startsWith("on") || name === "style" || name === "srcdoc") {
 				el.removeAttribute(attr.name)

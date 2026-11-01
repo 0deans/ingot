@@ -11,6 +11,8 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"check": "oxlint && oxfmt --check",
+		"check:types": "tsc --noEmit",
+		"typecheck": "tsc --noEmit",
 		"check:write": "oxlint --fix && oxfmt",
 		"check:tailwind": "npx @tailwindcss/upgrade --dry-run --force",
 		"fix:tailwind": "npx @tailwindcss/upgrade --force",

@@ -67,17 +67,29 @@ export const InstallDialog = memo(
 
 		const isModpack = item?.projectType === "modpack"
 
+		const [prevOpen, setPrevOpen] = useState(open)
+		const [prevItem, setPrevItem] = useState(item)
+
+		if ((open && !prevOpen) || (item && item !== prevItem)) {
+			setPrevOpen(open)
+			setPrevItem(item)
+			setErrorMessage(null)
+			setIsSubmitting(false)
+			if (item) {
+				setModpackName(item.title)
+				setIsLoadingData(true)
+			}
+		} else if (!open && prevOpen) {
+			setPrevOpen(false)
+			setErrorMessage(null)
+			setIsSubmitting(false)
+		}
+
 		// Load instances & versions when dialog opens
 		useEffect(() => {
 			if (!open || !item) {
-				setErrorMessage(null)
-				setIsSubmitting(false)
 				return
 			}
-
-			setModpackName(item.title)
-			setIsLoadingData(true)
-			setErrorMessage(null)
 
 			let cancelled = false
 			const cleanId = item.id.replace(/^(mr|cf|modrinth|curseforge):/, "")
@@ -122,29 +134,31 @@ export const InstallDialog = memo(
 			}
 		}, [open, item, specificVersion])
 
-		// Auto-select best compatible instance when instances or versions are loaded
-		useEffect(() => {
-			if (isModpack || instances.length === 0) return
-
-			if (selectedInstanceId && instances.some((i) => i.id === selectedInstanceId)) {
-				return
+		if (!isModpack && instances.length > 0) {
+			const hasSelected =
+				selectedInstanceId &&
+				instances.some((i) => {
+					return i.id === selectedInstanceId
+				})
+			if (!hasSelected) {
+				if (versions.length > 0) {
+					const compInst = instances.find((inst) => {
+						return versions.some((v) => {
+							const matchVer = v.gameVersions.some((gv) => {
+								return gv.toLowerCase() === inst.gameVersion.toLowerCase()
+							})
+							const matchLdr = v.loaders.some((l) => {
+								return l.toLowerCase() === inst.loader.toLowerCase()
+							})
+							return matchVer && matchLdr
+						})
+					})
+					setSelectedInstanceId(compInst ? compInst.id : instances[0].id)
+				} else {
+					setSelectedInstanceId(instances[0].id)
+				}
 			}
-
-			if (versions.length > 0) {
-				const compInst = instances.find((inst) =>
-					versions.some((v) => {
-						const matchVer = v.gameVersions.some(
-							(gv) => gv.toLowerCase() === inst.gameVersion.toLowerCase(),
-						)
-						const matchLdr = v.loaders.some((l) => l.toLowerCase() === inst.loader.toLowerCase())
-						return matchVer && matchLdr
-					}),
-				)
-				setSelectedInstanceId(compInst ? compInst.id : instances[0].id)
-			} else {
-				setSelectedInstanceId(instances[0].id)
-			}
-		}, [instances, versions, isModpack, selectedInstanceId])
+		}
 
 		const selectedInstance = useMemo(() => {
 			return instances.find((i) => i.id === selectedInstanceId)
@@ -164,16 +178,14 @@ export const InstallDialog = memo(
 			})
 		}, [versions, selectedInstance, isModpack])
 
-		// Auto-select version when instance changes if current version is not compatible
-		useEffect(() => {
-			if (isModpack) return
-			if (compatibleVersions.length > 0) {
-				const currentIsComp = compatibleVersions.some((v) => v.id === selectedVersionId)
-				if (!currentIsComp) {
-					setSelectedVersionId(compatibleVersions[0].id)
-				}
+		if (!isModpack && compatibleVersions.length > 0) {
+			const currentIsComp = compatibleVersions.some((v) => {
+				return v.id === selectedVersionId
+			})
+			if (!currentIsComp) {
+				setSelectedVersionId(compatibleVersions[0].id)
 			}
-		}, [compatibleVersions, selectedVersionId, isModpack])
+		}
 
 		const selectedVersion = useMemo(() => {
 			return versions.find((v) => v.id === selectedVersionId) || versions[0]

@@ -1,5 +1,5 @@
 import { Crosshair, Minus, Plus } from "lucide-react"
-import { memo, useCallback, useEffect, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MapRegion, PlayerDetails } from "@/bindings"
 import { Badge } from "@/components/ui/badge"
@@ -26,16 +26,7 @@ export interface MapView {
 
 const clampScale = (s: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, s))
 
-export function WorldMap({
-	serverId,
-	dimension,
-	regions,
-	players,
-	view,
-	onViewChange,
-	onSelectPlayer,
-	voidColor,
-}: {
+export interface WorldMapProps {
 	serverId: string
 	dimension: string
 	regions: MapRegion[]
@@ -44,29 +35,49 @@ export function WorldMap({
 	onViewChange: (view: MapView) => void
 	onSelectPlayer: (name: string) => void
 	voidColor: string
-}) {
+}
+
+export const WorldMap = ({
+	serverId,
+	dimension,
+	regions,
+	players,
+	view,
+	onViewChange,
+	onSelectPlayer,
+	voidColor,
+}: WorldMapProps) => {
 	const { t } = useTranslation()
+
 	const containerRef = useRef<HTMLDivElement>(null)
-	const [size, setSize] = useState({ w: 0, h: 0 })
-	const [cursor, setCursor] = useState<{ x: number; z: number } | null>(null)
 	const pointers = useRef(new Map<number, { x: number; y: number }>())
 	const gesture = useRef<{ view: MapView; x: number; y: number; dist: number } | null>(null)
 	const viewRef = useRef(view)
-	viewRef.current = view
-	const lastScale = useRef(view.scale)
-	const zooming = lastScale.current !== view.scale
-	useEffect(() => {
-		lastScale.current = view.scale
-	})
+
+	const [size, setSize] = useState({ w: 0, h: 0 })
+	const [cursor, setCursor] = useState<{ x: number; z: number } | null>(null)
+	const [isGrabbing, setIsGrabbing] = useState(false)
+	const [prevScale, setPrevScale] = useState(view.scale)
+
+	const zooming = prevScale !== view.scale
+	if (zooming) {
+		setPrevScale(view.scale)
+	}
+
+	useLayoutEffect(() => {
+		viewRef.current = view
+	}, [view])
 
 	useEffect(() => {
 		const el = containerRef.current
 		if (!el) return
-		const observer = new ResizeObserver(([entry]) =>
-			setSize({ w: entry.contentRect.width, h: entry.contentRect.height }),
-		)
+		const observer = new ResizeObserver(([entry]) => {
+			setSize({ w: entry.contentRect.width, h: entry.contentRect.height })
+		})
 		observer.observe(el)
-		return () => observer.disconnect()
+		return () => {
+			observer.disconnect()
+		}
 	}, [])
 
 	/** Screen point (relative to the map) -> world coordinates */
@@ -122,6 +133,7 @@ export function WorldMap({
 		;(e.target as Element).setPointerCapture?.(e.pointerId)
 		pointers.current.set(e.pointerId, local(e))
 		startGesture()
+		setIsGrabbing(true)
 	}
 
 	const onPointerMove = (e: React.PointerEvent) => {
@@ -150,8 +162,12 @@ export function WorldMap({
 
 	const onPointerUp = (e: React.PointerEvent) => {
 		pointers.current.delete(e.pointerId)
-		if (pointers.current.size > 0) startGesture()
-		else gesture.current = null
+		if (pointers.current.size > 0) {
+			startGesture()
+		} else {
+			gesture.current = null
+			setIsGrabbing(false)
+		}
 	}
 
 	// Only mount tiles that intersect the viewport (plus a margin)
@@ -172,7 +188,7 @@ export function WorldMap({
 			role="application"
 			aria-label={t("map.ariaLabel")}
 			className="relative size-full touch-none overflow-hidden select-none"
-			style={{ background: voidColor, cursor: gesture.current ? "grabbing" : "grab" }}
+			style={{ background: voidColor, cursor: isGrabbing ? "grabbing" : "grab" }}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
 			onPointerUp={onPointerUp}

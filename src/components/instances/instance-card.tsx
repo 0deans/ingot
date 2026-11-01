@@ -124,17 +124,19 @@ export const InstanceCard = ({
 
 	useEffect(() => {
 		if (!isRunning || !runningInfo) {
-			setElapsedSeconds(0)
 			return
 		}
 
+		const startedAt = runningInfo.startedAt
 		const update = () => {
 			const now = Math.floor(Date.now() / 1000)
-			setElapsedSeconds(Math.max(0, now - runningInfo.startedAt))
+			setElapsedSeconds(Math.max(0, now - startedAt))
 		}
 		update()
 		const timer = setInterval(update, 1000)
-		return () => clearInterval(timer)
+		return () => {
+			clearInterval(timer)
+		}
 	}, [isRunning, runningInfo])
 
 	const loaderType = instance.loader || "vanilla"

@@ -5,7 +5,7 @@ import type { AccountProfile, MicrosoftDeviceCode, PendingMicrosoftLogin } from 
 import { getRpcErrorMessage, isRpcErrorKind } from "@/lib/rpc"
 import { accountService } from "@/services/account-service"
 
-export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) {
+export const useMicrosoftLogin = (onSuccess: (account: AccountProfile) => void) => {
 	const { t } = useTranslation()
 	const [deviceCode, setDeviceCode] = useState<MicrosoftDeviceCode | null>(null)
 	const [pending, setPending] = useState<PendingMicrosoftLogin | null>(null)
@@ -20,18 +20,19 @@ export function useMicrosoftLogin(onSuccess: (account: AccountProfile) => void) 
 	}, [t])
 
 	useEffect(() => {
-		const attempt = ++generation.current
+		let cancelled = false
 		accountService.getPendingMicrosoftLogin().then(
 			(value) => {
-				if (attempt === generation.current) setPending(value)
+				if (!cancelled) setPending(value)
 			},
 			(failure: unknown) => {
-				if (attempt === generation.current)
+				if (!cancelled) {
 					setError(getRpcErrorMessage(failure) || fallback.current)
+				}
 			},
 		)
 		return () => {
-			generation.current++
+			cancelled = true
 			if (active.current) {
 				active.current = false
 				accountService.cancelMicrosoftLogin().catch(console.error)

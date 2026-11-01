@@ -12,7 +12,7 @@ import {
 	SlidersHorizontal,
 	Trash2,
 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PropertyEntry, ServerConfig } from "@/bindings"
 import { alertTone } from "@/components/common/alert-tones"
@@ -109,6 +109,11 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 	const { data: icon } = useServerIcon(server.id)
 	const { values, save } = useServerPropertiesAll(server.id)
 	const [name, setName] = useState(server.name)
+	const [prevServerName, setPrevServerName] = useState(server.name)
+	if (server.name !== prevServerName) {
+		setPrevServerName(server.name)
+		setName(server.name)
+	}
 	const [motd, setMotd] = useState<string | null>(null)
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
 	const [error, setError] = useState<string | null>(null)
@@ -116,7 +121,6 @@ function IdentityCard({ server, isRunning }: { server: ServerConfig; isRunning: 
 	const fileRef = useRef<HTMLInputElement>(null)
 	const motdRef = useRef<HTMLTextAreaElement>(null)
 
-	useEffect(() => setName(server.name), [server.name])
 	const savedMotd = values.get("motd") ?? ""
 	const currentMotd = motd ?? savedMotd
 	const dirty = name.trim() !== server.name || (motd !== null && motd !== savedMotd)
@@ -317,6 +321,11 @@ function SaveButton({
 function MemoryCard({ server }: { server: ServerConfig }) {
 	const { t } = useTranslation()
 	const [ram, setRam] = useState(server.memoryMaxMb)
+	const [prevServerRam, setPrevServerRam] = useState(server.memoryMaxMb)
+	if (server.memoryMaxMb !== prevServerRam) {
+		setPrevServerRam(server.memoryMaxMb)
+		setRam(server.memoryMaxMb)
+	}
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
 	const { systemMemory } = useMemorySettings()
 	const mobile = isMobileEnvironment()
@@ -325,7 +334,6 @@ function MemoryCard({ server }: { server: ServerConfig }) {
 		: mobile
 			? 8192
 			: 16384
-	useEffect(() => setRam(server.memoryMaxMb), [server.memoryMaxMb])
 
 	if (server.core === "pumpkin" || server.core === "bedrock") return null
 
@@ -645,13 +653,13 @@ function ConfigFileEditor({
 	const [text, setText] = useState<string | null>(null)
 	const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle")
 	const [error, setError] = useState<string | null>(null)
+	const [prevPath, setPrevPath] = useState(path)
 
-	// Reset the draft whenever another file is opened
-	// biome-ignore lint/correctness/useExhaustiveDependencies: path is the trigger, not an input
-	useEffect(() => {
+	if (path !== prevPath) {
+		setPrevPath(path)
 		setText(null)
 		setError(null)
-	}, [path])
+	}
 
 	const current = text ?? data ?? ""
 	const onSave = async () => {

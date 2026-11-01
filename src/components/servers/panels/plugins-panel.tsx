@@ -68,16 +68,20 @@ export function PluginsPanel({ server }: { server: ServerConfig }) {
 	const kind = addonKind(server.core)
 	const { isRunning } = useServerStatus(server.id)
 	const [view, setView] = useState<"installed" | "browse">("installed")
-
 	const [needsRestart, setNeedsRestart] = useState(false)
+	const [prevIsRunning, setPrevIsRunning] = useState(isRunning)
+
+	if (!isRunning && prevIsRunning) {
+		setPrevIsRunning(false)
+		setNeedsRestart(false)
+	} else if (isRunning && !prevIsRunning) {
+		setPrevIsRunning(true)
+	}
+
 	const installed = useInstalledPlugins(server.id)
 	const actions = usePluginActions(server.id)
 	// Ingot's own plugin has its own card above the list
 	const userPlugins = (installed.data ?? []).filter((p) => !p.system)
-
-	useEffect(() => {
-		if (!isRunning) setNeedsRestart(false)
-	}, [isRunning])
 
 	if (server.core === "bedrock") {
 		return <BedrockPacksPanel server={server} />

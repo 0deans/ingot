@@ -63,14 +63,15 @@ export default function ServerListView() {
 	const deletingServerId = search.delete
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
+	const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery)
+	if (searchQuery !== prevSearchQuery) {
+		setPrevSearchQuery(searchQuery)
+		setSearchInput(searchQuery)
+	}
 	const [quickJoinServer, setQuickJoinServer] = useState<ServerConfig | null>(null)
 
 	const { servers, isLoading, refresh } = useServers()
 	const { runningMap, runningList } = useRunningServers()
-
-	useEffect(() => {
-		setSearchInput(searchQuery)
-	}, [searchQuery])
 
 	useEffect(() => {
 		const timer = setTimeout(() => {

@@ -84,11 +84,12 @@ const ScreenshotsView = () => {
 	const deleteFileName = search.delete
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
-	const [isDeleting, setIsDeleting] = useState(false)
-
-	useEffect(() => {
+	const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery)
+	if (searchQuery !== prevSearchQuery) {
+		setPrevSearchQuery(searchQuery)
 		setSearchInput(searchQuery)
-	}, [searchQuery])
+	}
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	useEffect(() => {
 		const timer = setTimeout(() => {

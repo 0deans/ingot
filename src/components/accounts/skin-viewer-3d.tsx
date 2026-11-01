@@ -90,25 +90,37 @@ const SkinViewer3D = ({
 	const [resolvedCape, setResolvedCape] = useState<string | null>(initialCape)
 	const loadedCapeRef = useRef<string | null>(null)
 
-	useEffect(() => {
-		if (model !== undefined) {
-			setIsSlim(model === "slim")
-			setHasUserOverriddenModel(true)
-		}
-	}, [model])
+	const [prevModel, setPrevModel] = useState(model)
+	if (model !== undefined && model !== prevModel) {
+		setPrevModel(model)
+		setIsSlim(model === "slim")
+		setHasUserOverriddenModel(true)
+	}
 
-	useEffect(() => {
-		let isMounted = true
+	const [prevCapeUrl, setPrevCapeUrl] = useState(capeUrl)
+	if (capeUrl !== prevCapeUrl) {
+		setPrevCapeUrl(capeUrl)
 		if (!capeUrl) {
 			setResolvedCape(null)
+		} else {
+			const cached = accountService.getCachedSkinDataUrl(capeUrl)
+			if (cached) {
+				setResolvedCape(cached)
+			}
+		}
+	}
+
+	useEffect(() => {
+		if (!capeUrl) {
 			return
 		}
 
 		const cached = accountService.getCachedSkinDataUrl(capeUrl)
 		if (cached) {
-			setResolvedCape(cached)
 			return
 		}
+
+		let isMounted = true
 
 		accountService
 			.getSkinDataUrl(capeUrl)
@@ -126,24 +138,36 @@ const SkinViewer3D = ({
 		}
 	}, [capeUrl])
 
-	useEffect(() => {
-		let isMounted = true
+	const [prevSkinUrl, setPrevSkinUrl] = useState(skinUrl)
+	if (skinUrl !== prevSkinUrl) {
+		setPrevSkinUrl(skinUrl)
 		setHasUserOverriddenModel(model !== undefined)
-
 		if (!skinUrl) {
 			setResolvedSkin(DEFAULT_STEVE_SKIN)
 			setIsLoadingSkin(false)
+		} else {
+			const cached = accountService.getCachedSkinDataUrl(skinUrl)
+			if (cached) {
+				setResolvedSkin(cached)
+				setIsLoadingSkin(false)
+			} else {
+				setIsLoadingSkin(true)
+			}
+		}
+	}
+
+	useEffect(() => {
+		if (!skinUrl) {
 			return
 		}
 
 		const cached = accountService.getCachedSkinDataUrl(skinUrl)
 		if (cached) {
-			setResolvedSkin(cached)
-			setIsLoadingSkin(false)
 			return
 		}
 
-		setIsLoadingSkin(true)
+		let isMounted = true
+
 		accountService
 			.getSkinDataUrl(skinUrl)
 			.then((dataUrl) => {

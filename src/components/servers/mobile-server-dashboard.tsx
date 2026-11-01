@@ -1,5 +1,5 @@
 import { Check, ChevronDown, Plus, Server, Settings2 } from "lucide-react"
-import { memo, useEffect, useState } from "react"
+import { memo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { PlayerDetails, ServerConfig } from "@/bindings"
 import { NewServerWizard, NoServersState } from "@/components/servers/new-server-wizard"
@@ -66,11 +66,14 @@ export const MobileServerDashboard = memo(() => {
 
 	useAndroidHostService(servers)
 
-	const server = servers.find((s) => s.id === selectedId) ?? servers[0]
+	const server =
+		servers.find((s) => {
+			return s.id === selectedId
+		}) ?? servers[0]
 
-	useEffect(() => {
-		if (server && server.id !== selectedId) setSelectedId(server.id)
-	}, [server, selectedId])
+	if (server && server.id !== selectedId) {
+		setSelectedId(server.id)
+	}
 
 	const select = (id: string) => {
 		setSelectedId(id)

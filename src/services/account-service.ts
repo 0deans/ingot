@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import { create } from "zustand"
 import type { AccountProfile, MicrosoftDeviceCode, PendingMicrosoftLogin } from "@/bindings"
 import { getRpcErrorMessage, rpc, unwrapRpc } from "@/lib/rpc"
+import type { ElySkinItem, ElySkinsCatalogResponse, UserUploadedSkin } from "@/types/skin"
 import { createAccountLoader } from "./account-loader"
 
 const useAccountStore = create<{
@@ -211,13 +212,13 @@ export const accountService = {
 		sort?: string,
 		model?: string,
 		uploader?: string,
-	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
+	): Promise<ElySkinsCatalogResponse> {
 		return await unwrapRpc(
 			rpc.skins.get_ely_skins(page, query ?? null, sort ?? null, model ?? null, uploader ?? null),
 		)
 	},
 
-	async getPlayerSkin(usernameOrUuid: string): Promise<import("@/types/skin").ElySkinItem | null> {
+	async getPlayerSkin(usernameOrUuid: string): Promise<ElySkinItem | null> {
 		const trimmed = usernameOrUuid.trim()
 		if (!trimmed) return null
 		try {
@@ -291,7 +292,7 @@ export const accountService = {
 		}
 	},
 
-	async getMultiplePlayerSkins(usernames: string[]): Promise<import("@/types/skin").ElySkinItem[]> {
+	async getMultiplePlayerSkins(usernames: string[]): Promise<ElySkinItem[]> {
 		const results = await Promise.allSettled(
 			usernames.map((u) => {
 				return this.getPlayerSkin(u)
@@ -304,15 +305,12 @@ export const accountService = {
 				}
 				return null
 			})
-			.filter((s): s is import("@/types/skin").ElySkinItem => {
+			.filter((s): s is ElySkinItem => {
 				return s !== null
 			})
 	},
 
-	async getPlayerSkinsCatalog(
-		query?: string,
-		model?: string,
-	): Promise<import("@/types/skin").ElySkinsCatalogResponse> {
+	async getPlayerSkinsCatalog(query?: string, model?: string): Promise<ElySkinsCatalogResponse> {
 		const clean = query?.trim()
 		if (clean) {
 			const single = await this.getPlayerSkin(clean)
@@ -395,19 +393,39 @@ export const FEATURED_PLAYERS = [
 
 const UPLOADED_SKINS_STORAGE_KEY_PREFIX = "ingot_uploaded_skins_"
 
+const isUserUploadedSkin = (item: unknown): item is UserUploadedSkin => {
+	if (typeof item !== "object" || item === null) {
+		return false
+	}
+	return (
+		"id" in item &&
+		typeof item.id === "string" &&
+		"name" in item &&
+		typeof item.name === "string" &&
+		"dataUrl" in item &&
+		typeof item.dataUrl === "string" &&
+		"isSlim" in item &&
+		typeof item.isSlim === "boolean" &&
+		"uploadedAt" in item &&
+		typeof item.uploadedAt === "number"
+	)
+}
+
 export const skinStorageService = {
-	getUploadedSkins(accountId: string): import("@/types/skin").UserUploadedSkin[] {
+	getUploadedSkins(accountId: string): UserUploadedSkin[] {
 		if (!accountId) return []
 		try {
 			const raw = localStorage.getItem(`${UPLOADED_SKINS_STORAGE_KEY_PREFIX}${accountId}`)
 			if (!raw) return []
-			return JSON.parse(raw) as import("@/types/skin").UserUploadedSkin[]
+			const parsed: unknown = JSON.parse(raw)
+			if (!Array.isArray(parsed)) return []
+			return parsed.filter(isUserUploadedSkin)
 		} catch {
 			return []
 		}
 	},
 
-	saveUploadedSkin(accountId: string, skin: import("@/types/skin").UserUploadedSkin): void {
+	saveUploadedSkin(accountId: string, skin: UserUploadedSkin): void {
 		if (!accountId) return
 		try {
 			const existing = this.getUploadedSkins(accountId)
