@@ -1,6 +1,15 @@
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router"
 import { cn } from "cn"
-import { Camera, Gamepad2, Palette, Server, Settings, Shirt, Sparkles } from "lucide-react"
+import {
+	Camera,
+	Gamepad2,
+	Newspaper,
+	Palette,
+	Server,
+	Settings,
+	Shirt,
+	Sparkles,
+} from "lucide-react"
 import { type ComponentProps, memo, type ReactNode, useCallback } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -92,6 +101,7 @@ SidebarTab.displayName = "SidebarTab"
 const TOP_NAV_TABS = [
 	"/",
 	"/modpacks",
+	"/news",
 	"/skins",
 	"/screenshots",
 	"/servers",
@@ -148,6 +158,10 @@ const Sidebar = () => {
 
 				<SidebarTab to="/modpacks" label={t("nav.discover")}>
 					<Sparkles className="size-5" />
+				</SidebarTab>
+
+				<SidebarTab to="/news" label={t("nav.news")}>
+					<Newspaper className="size-5" />
 				</SidebarTab>
 
 				<SidebarTab to="/skins" label={t("nav.skins")}>

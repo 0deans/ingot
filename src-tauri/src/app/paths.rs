@@ -32,6 +32,10 @@ impl AppPaths {
     pub(crate) fn accounts_file(&self) -> PathBuf {
         self.data_dir.join("accounts.json")
     }
+
+    pub(crate) fn news_cache_dir(&self) -> PathBuf {
+        self.data_dir.join("cache").join("news")
+    }
 }
 
 /// Uses a portable archive policy: both separators are recognized, Windows

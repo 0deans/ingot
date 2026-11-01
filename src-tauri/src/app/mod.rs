@@ -9,6 +9,7 @@ pub(crate) mod importer;
 pub(crate) mod instances;
 pub(crate) mod java;
 pub(crate) mod lifecycle;
+pub(crate) mod news;
 mod paths;
 pub(crate) mod platform;
 pub(crate) mod screenshots;

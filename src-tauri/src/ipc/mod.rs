@@ -10,6 +10,7 @@ pub(crate) mod events;
 mod instances;
 #[cfg(test)]
 mod metadata;
+mod news;
 mod servers;
 mod settings;
 mod skins;
@@ -27,6 +28,7 @@ use instances::{
     version_change::{InstanceVersionChangeApi, InstanceVersionChangeApiImpl},
     InstancesApi, InstancesApiImpl,
 };
+use news::{NewsApi, NewsApiImpl};
 use servers::{
     config::{ServerConfigApi, ServerConfigApiImpl},
     map::{ServerMapApi, ServerMapApiImpl},
@@ -68,6 +70,7 @@ macro_rules! registered_apis {
         $register!(ServerVersionChangeApiImpl);
         $register!(VersionsApiImpl);
         $register!(ContentApiImpl);
+        $register!(NewsApiImpl);
         $register!(BedrockApiImpl);
     };
 }

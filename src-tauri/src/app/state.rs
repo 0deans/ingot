@@ -19,6 +19,7 @@ pub(crate) struct AppState {
     pub(crate) server_uploads: crate::server::transfer::uploads::UploadManager,
     pub(crate) playit: PlayitManager,
     pub(crate) http: reqwest::Client,
+    pub(crate) news_cache_dir: std::path::PathBuf,
     pub(crate) lifecycle: LifecycleState,
     pub(crate) account_login: crate::account::login::LoginAttempts,
     pub(crate) pending_login: crate::account::pending_login::PendingLoginGrants,
@@ -59,7 +60,8 @@ impl AppState {
             session_provider: Box::new(crate::auth::session_provider::NativeSessionProvider::new(
                 http.clone(),
             )),
-            http,
+            http: http.clone(),
+            news_cache_dir: paths.news_cache_dir(),
             lifecycle: LifecycleState::default(),
             account_login: crate::account::login::LoginAttempts::default(),
             pending_login: crate::account::pending_login::PendingLoginGrants::new(

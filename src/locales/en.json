@@ -42,10 +42,40 @@
 	"nav": {
 		"instances": "Instances",
 		"discover": "Discover",
+		"news": "News",
 		"skins": "Skins Catalog",
 		"screenshots": "Screenshots",
 		"servers": "Dedicated Servers",
 		"settings": "Settings"
+	},
+	"news": {
+		"title": "Mojang News & Updates",
+		"subtitle": "Official Minecraft release announcements, snapshot development blogs, and articles",
+		"searchPlaceholder": "Search updates, snapshots, bug fixes...",
+		"filters": {
+			"all": "All Updates",
+			"releases": "Releases",
+			"snapshots": "Snapshots",
+			"blogs": "Articles & Blogs"
+		},
+		"badges": {
+			"release": "Release",
+			"snapshot": "Snapshot"
+		},
+		"actions": {
+			"readNotes": "Read Notes",
+			"createInstance": "Create Instance",
+			"createInstanceFull": "Create Instance with this Version",
+			"openExternal": "Open on Minecraft.net",
+			"refresh": "Refresh News",
+			"back": "Back to Updates"
+		},
+		"empty": {
+			"title": "No news articles found",
+			"description": "Try adjusting your search terms or filter selection.",
+			"offlineTitle": "Unable to load news feed",
+			"offlineDescription": "Check your network connection. Cached news will appear when available."
+		}
 	},
 	"updateBanner": {
 		"readyToInstall": "Ingot v{{version}} is ready to install!",

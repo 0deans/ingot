@@ -29,6 +29,7 @@ interface NewInstanceDialogProps {
 		loader: ModLoaderType,
 		loaderVersion: string | null,
 	) => Promise<void> | void
+	initialVersion?: string
 }
 
 const LOADERS: { id: ModLoaderType; label: string; badge?: string }[] = [
@@ -40,7 +41,12 @@ const LOADERS: { id: ModLoaderType; label: string; badge?: string }[] = [
 	{ id: "horizon", label: "Horizon", badge: "Rust" },
 ]
 
-const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstanceDialogProps) => {
+const NewInstanceDialog = ({
+	open,
+	onOpenChange,
+	onCreateInstance,
+	initialVersion,
+}: NewInstanceDialogProps) => {
 	const { t } = useTranslation()
 	const [instanceName, setInstanceName] = useState("")
 	const [gameVersion, setGameVersion] = useState("1.21.4")
@@ -76,7 +82,15 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 				const releases = list.filter((v) => {
 					return v.type === "release"
 				})
-				if (releases.length > 0) {
+				if (initialVersion) {
+					setGameVersion(initialVersion)
+					const isSnapshot = list.some((v) => {
+						return v.id === initialVersion && v.type === "snapshot"
+					})
+					if (isSnapshot || /snapshot|pre|rc/i.test(initialVersion)) {
+						setShowSnapshots(true)
+					}
+				} else if (releases.length > 0) {
 					setGameVersion((current) => {
 						const hasCurrent = releases.some((r) => {
 							return r.id === current
@@ -95,7 +109,7 @@ const NewInstanceDialog = ({ open, onOpenChange, onCreateInstance }: NewInstance
 		return () => {
 			cancelled = true
 		}
-	}, [open])
+	}, [open, initialVersion])
 
 	const [prevLoaderConfig, setPrevLoaderConfig] = useState({ open, loader, gameVersion })
 	if (

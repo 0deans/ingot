@@ -350,3 +350,17 @@ impl From<crate::minecraft::horizon::HorizonError> for ApiError {
         }
     }
 }
+
+impl From<crate::minecraft::news::NewsError> for ApiError {
+    fn from(error: crate::minecraft::news::NewsError) -> Self {
+        use crate::minecraft::news::NewsError;
+        match error {
+            NewsError::Network(_) | NewsError::HttpStatus(_) => {
+                Self::provider_unavailable(error.to_string())
+            }
+            NewsError::InvalidContentPath(_) => Self::invalid_input(error.to_string()),
+            NewsError::Io(_) => Self::storage_failure(error.to_string()),
+            NewsError::Parse(_) | NewsError::Task(_) => Self::internal(error.to_string()),
+        }
+    }
+}
