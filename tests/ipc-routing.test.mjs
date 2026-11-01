@@ -21,27 +21,27 @@ test("settings namespace sends the existing named arguments and unwraps success"
 		return memory
 	})
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.settings.set_memory_settings(1024, 8192), {
-		status: "ok",
-		data: memory,
-	})
+	assert.deepEqual(await rpc.settings.set_memory_settings(1024, 8192), memory)
 	assert.deepEqual(calls, [
 		{
 			command: "TauRPC__settings.set_memory_settings",
 			args: { min_ram_mb: 1024, max_ram_mb: 8192 },
 		},
 	])
-	assert.throws(() => rpc.set_memory_settings, /not found/)
+	assert.throws(() => {
+		return rpc.set_memory_settings
+	}, /not found/)
 })
 
 test("expected settings failures return typed error envelopes", async () => {
 	const apiError = { kind: "invalidInput", message: "Invalid launcher behavior: typo" }
-	mockIPC(() => Promise.reject(apiError))
+	mockIPC(() => {
+		return Promise.reject(apiError)
+	})
 	const rpc = createTauRPCProxy()
-	const result = await rpc.settings.set_launcher_behavior("typo")
-	assert.deepEqual(result, {
-		status: "error",
-		error: apiError,
+	await assert.rejects(rpc.settings.set_launcher_behavior("typo"), (error) => {
+		assert.deepEqual(error, apiError)
+		return true
 	})
 })
 
@@ -101,26 +101,19 @@ test("account and skin namespaces preserve positional arguments and typed error 
 	const apiError = { kind: "notFound", message: "Account not found" }
 	mockIPC((command, args) => {
 		calls.push({ command, args })
-		if (command === "TauRPC__accounts.set_active_account") return Promise.reject(apiError)
+		if (command === "TauRPC__accounts.set_active_account") {
+			return Promise.reject(apiError)
+		}
 		return null
 	})
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.accounts.reorder_accounts(["offline:b", "offline:a"]), {
-		status: "ok",
-		data: null,
-	})
-	assert.deepEqual(await rpc.accounts.microsoft_login_cancel(), { status: "ok", data: null })
-	assert.deepEqual(await rpc.skins.apply_ely_skin("ely:123", 42, null), {
-		status: "ok",
-		data: null,
-	})
-	assert.deepEqual(await rpc.skins.upload_microsoft_skin("microsoft:123", "image", true), {
-		status: "ok",
-		data: null,
-	})
-	assert.deepEqual(await rpc.accounts.set_active_account("missing"), {
-		status: "error",
-		error: apiError,
+	assert.equal(await rpc.accounts.reorder_accounts(["offline:b", "offline:a"]), null)
+	assert.equal(await rpc.accounts.microsoft_login_cancel(), null)
+	assert.equal(await rpc.skins.apply_ely_skin("ely:123", 42, null), null)
+	assert.equal(await rpc.skins.upload_microsoft_skin("microsoft:123", "image", true), null)
+	await assert.rejects(rpc.accounts.set_active_account("missing"), (error) => {
+		assert.deepEqual(error, apiError)
+		return true
 	})
 	assert.deepEqual(calls, [
 		{
@@ -138,8 +131,12 @@ test("account and skin namespaces preserve positional arguments and typed error 
 		},
 		{ command: "TauRPC__accounts.set_active_account", args: { account_id: "missing" } },
 	])
-	assert.throws(() => rpc.get_accounts, /not found/)
-	assert.throws(() => rpc.apply_ely_skin, /not found/)
+	assert.throws(() => {
+		return rpc.get_accounts
+	}, /not found/)
+	assert.throws(() => {
+		return rpc.apply_ely_skin
+	}, /not found/)
 })
 
 test("instance and server commands route through their namespaces", async () => {
@@ -149,18 +146,24 @@ test("instance and server commands route through their namespaces", async () => 
 		return null
 	})
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.instances.kill_instance("instance-id"), { status: "ok", data: null })
+	assert.equal(await rpc.instances.kill_instance("instance-id"), null)
 	assert.deepEqual(calls, [
 		{ command: "TauRPC__instances.kill_instance", args: { instance_id: "instance-id" } },
 	])
-	assert.throws(() => rpc.kill_instance, /not found/)
+	assert.throws(() => {
+		return rpc.kill_instance
+	}, /not found/)
 })
 
 test("Microsoft cancellation cleanup failures return typed error envelopes", async () => {
 	const apiError = { kind: "incompleteRecovery", message: "pending grant cleanup failed" }
-	mockIPC(() => Promise.reject(apiError))
-	const result = await createTauRPCProxy().accounts.microsoft_login_cancel()
-	assert.deepEqual(result, { status: "error", error: apiError })
+	mockIPC(() => {
+		return Promise.reject(apiError)
+	})
+	await assert.rejects(createTauRPCProxy().accounts.microsoft_login_cancel(), (error) => {
+		assert.deepEqual(error, apiError)
+		return true
+	})
 })
 
 test("pending Microsoft sign-in metadata and explicit tickets use the accounts namespace", async () => {
@@ -169,23 +172,21 @@ test("pending Microsoft sign-in metadata and explicit tickets use the accounts n
 	const apiError = { kind: "invalidInput", message: "sign-in expired" }
 	mockIPC((command, args) => {
 		calls.push({ command, args })
-		if (command === "TauRPC__accounts.get_pending_microsoft_login") return pending
-		if (command === "TauRPC__accounts.resume_microsoft_login") return Promise.reject(apiError)
+		if (command === "TauRPC__accounts.get_pending_microsoft_login") {
+			return pending
+		}
+		if (command === "TauRPC__accounts.resume_microsoft_login") {
+			return Promise.reject(apiError)
+		}
 		return null
 	})
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.accounts.get_pending_microsoft_login(), {
-		status: "ok",
-		data: pending,
+	assert.deepEqual(await rpc.accounts.get_pending_microsoft_login(), pending)
+	await assert.rejects(rpc.accounts.resume_microsoft_login(pending.ticket), (error) => {
+		assert.deepEqual(error, apiError)
+		return true
 	})
-	assert.deepEqual(await rpc.accounts.resume_microsoft_login(pending.ticket), {
-		status: "error",
-		error: apiError,
-	})
-	assert.deepEqual(await rpc.accounts.discard_pending_microsoft_login(pending.ticket), {
-		status: "ok",
-		data: null,
-	})
+	assert.equal(await rpc.accounts.discard_pending_microsoft_login(pending.ticket), null)
 	assert.deepEqual(calls, [
 		{ command: "TauRPC__accounts.get_pending_microsoft_login", args: {} },
 		{ command: "TauRPC__accounts.resume_microsoft_login", args: { ticket: pending.ticket } },
@@ -205,10 +206,10 @@ test("version change recovery commands route to their instances and servers name
 	})
 	const rpc = createTauRPCProxy()
 	const instRes = await rpc.instances.version_change.recover_instance_version_change("inst-1")
-	assert.deepEqual(instRes, { status: "ok", data: dummyConfig })
+	assert.deepEqual(instRes, dummyConfig)
 
 	const srvRes = await rpc.servers.version_change.recover_server_version_change("srv-1")
-	assert.deepEqual(srvRes, { status: "ok", data: dummyConfig })
+	assert.deepEqual(srvRes, dummyConfig)
 
 	assert.deepEqual(calls, [
 		{
@@ -238,10 +239,10 @@ test("version change transaction status commands route to instances and servers 
 	const rpc = createTauRPCProxy()
 	const instRes =
 		await rpc.instances.version_change.get_instance_version_transaction_status("inst-1")
-	assert.deepEqual(instRes, { status: "ok", data: dummyStatus })
+	assert.deepEqual(instRes, dummyStatus)
 
 	const srvRes = await rpc.servers.version_change.get_server_version_transaction_status("srv-1")
-	assert.deepEqual(srvRes, { status: "ok", data: dummyStatus })
+	assert.deepEqual(srvRes, dummyStatus)
 
 	assert.deepEqual(calls, [
 		{
