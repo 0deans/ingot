@@ -6,7 +6,7 @@ fn export_bindings() {
     let output = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../src/bindings.ts");
     let router = crate::ipc::contract();
     taurpc::Exporter::new()
-        .error_handling(taurpc::ErrorHandlingMode::Result)
+        .error_handling(taurpc::ErrorHandlingMode::Throw)
         .export(&router, output)
         .unwrap();
 }
@@ -17,7 +17,7 @@ fn generated_bindings_match_the_committed_contract() {
     let output = dir.path().join("bindings.ts");
     let router = crate::ipc::contract();
     taurpc::Exporter::new()
-        .error_handling(taurpc::ErrorHandlingMode::Result)
+        .error_handling(taurpc::ErrorHandlingMode::Throw)
         .export(&router, &output)
         .unwrap();
     let actual = std::fs::read_to_string(output)

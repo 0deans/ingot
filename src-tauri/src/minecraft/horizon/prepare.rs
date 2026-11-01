@@ -1,5 +1,7 @@
 use super::models::HorizonError;
-use crate::minecraft::downloader::download_file_chunked;
+use crate::minecraft::downloader::{download_file_chunked, download_files_concurrent, DownloadTask};
+use crate::minecraft::launcher::classpath::{maven_coordinate_to_path, resolve_library_path};
+use crate::minecraft::version::{should_include_library, VersionPackage};
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -229,6 +231,90 @@ where
             let _ = fs::copy(pinned_manifest_path, &target_json);
         }
     }
+
+    ensure_minecraft_libraries(client, data_dir, pinned_manifest_path, report_prog).await?;
+
+    Ok(())
+}
+
+pub(crate) fn collect_library_tasks(
+    pkg: &VersionPackage,
+    libraries_dir: &Path,
+) -> Vec<DownloadTask> {
+    let mut tasks = Vec::new();
+
+    for lib in &pkg.libraries {
+        if !should_include_library(lib) {
+            continue;
+        }
+
+        if let Some(downloads) = &lib.downloads {
+            if let Some(artifact) = &downloads.artifact {
+                if let Some(dest) = resolve_library_path(
+                    &lib.name,
+                    artifact.path.as_deref(),
+                    None,
+                    libraries_dir,
+                ) {
+                    tasks.push(DownloadTask {
+                        url: artifact.url.clone(),
+                        dest,
+                        sha1: artifact.sha1.clone(),
+                        size: artifact.size,
+                    });
+                }
+            }
+        } else if let Some(path) = maven_coordinate_to_path(&lib.name, None) {
+            let base_url = lib
+                .url
+                .as_deref()
+                .unwrap_or("https://libraries.minecraft.net/");
+            let full_url = format!("{base_url}{path}");
+            let dest = libraries_dir.join(&path);
+            tasks.push(DownloadTask {
+                url: full_url,
+                dest,
+                sha1: None,
+                size: None,
+            });
+        }
+    }
+
+    tasks
+}
+
+async fn ensure_minecraft_libraries<FProg>(
+    client: &reqwest::Client,
+    data_dir: &Path,
+    pinned_manifest_path: &Path,
+    report_prog: Arc<FProg>,
+) -> Result<(), HorizonError>
+where
+    FProg: Fn(&str, usize, usize, &str) + Send + Sync + 'static,
+{
+    let manifest_bytes = fs::read(pinned_manifest_path)?;
+    let version_pkg: VersionPackage = serde_json::from_slice(&manifest_bytes)?;
+
+    let libraries_dir = data_dir.join("libraries");
+    fs::create_dir_all(&libraries_dir)?;
+
+    let tasks = collect_library_tasks(&version_pkg, &libraries_dir);
+    if tasks.is_empty() {
+        return Ok(());
+    }
+
+    let dl_cb = {
+        let rp = report_prog.clone();
+        Arc::new(move |cur: usize, tot: usize, file_name: &str| {
+            let detail = format!("Library {cur}/{tot} ({file_name})");
+            let percent = (cur * 100).checked_div(tot).unwrap_or(0);
+            rp("Downloading Libraries", percent, 100, &detail);
+        })
+    };
+
+    download_files_concurrent(client, tasks, 16, Some(dl_cb))
+        .await
+        .map_err(|e| HorizonError::Preparation(format!("Failed to download libraries: {e}")))?;
 
     Ok(())
 }
@@ -520,5 +606,74 @@ mod tests {
     fn test_is_horizon_prepared_false_for_empty_dir() {
         let temp = tempfile::tempdir().unwrap();
         assert!(!is_horizon_prepared(temp.path(), "26.3"));
+    }
+
+    #[test]
+    fn test_collect_library_tasks_filters_disallowed_os_and_maps_paths() {
+        let temp = tempfile::tempdir().unwrap();
+        let libraries_dir = temp.path().join("libraries");
+        let manifest_json = r#"{
+            "id": "26.3",
+            "mainClass": "net.minecraft.client.main.Main",
+            "libraries": [
+                {
+                    "name": "at.yawk.lz4:lz4-java:1.10.1",
+                    "downloads": {
+                        "artifact": {
+                            "path": "at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar",
+                            "sha1": "f541d7f910fe3d76f38f799c507c48cc81b12ecb",
+                            "size": 910232,
+                            "url": "https://libraries.minecraft.net/at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar"
+                        }
+                    }
+                },
+                {
+                    "name": "custom.maven:lib:2.0",
+                    "url": "https://custom.repo/"
+                },
+                {
+                    "name": "disallowed:os-lib:1.0",
+                    "downloads": {
+                        "artifact": {
+                            "path": "disallowed/os-lib/1.0/os-lib-1.0.jar",
+                            "sha1": "abcdef123456",
+                            "size": 1234,
+                            "url": "https://example.com/disallowed.jar"
+                        }
+                    },
+                    "rules": [
+                        {
+                            "action": "allow",
+                            "os": { "name": "nonexistent_os" }
+                        }
+                    ]
+                }
+            ]
+        }"#;
+
+        let pkg: VersionPackage = serde_json::from_str(manifest_json).unwrap();
+        let tasks = collect_library_tasks(&pkg, &libraries_dir);
+
+        assert_eq!(tasks.len(), 2);
+        assert_eq!(
+            tasks[0].dest,
+            libraries_dir.join("at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar")
+        );
+        assert_eq!(
+            tasks[0].sha1.as_deref(),
+            Some("f541d7f910fe3d76f38f799c507c48cc81b12ecb")
+        );
+        assert_eq!(tasks[0].size, Some(910232));
+        assert_eq!(
+            tasks[0].url,
+            "https://libraries.minecraft.net/at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar"
+        );
+
+        assert_eq!(
+            tasks[1].dest,
+            libraries_dir.join("custom/maven/lib/2.0/lib-2.0.jar")
+        );
+        assert_eq!(tasks[1].url, "https://custom.repo/custom/maven/lib/2.0/lib-2.0.jar");
+        assert_eq!(tasks[1].sha1, None);
     }
 }
