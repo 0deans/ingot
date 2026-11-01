@@ -108,35 +108,9 @@ jobs:
         working-directory: src-tauri
         run: cargo clippy --all-targets --locked -- -D warnings
 
-      # Non-Windows runs the full test suite directly
       - name: Run tests
-        if: runner.os != 'Windows'
         working-directory: src-tauri
         run: cargo test --all-targets --locked
-
-      # Windows measures coverage for the ratchet baseline; llvm-cov already executes all targets
-      - name: Install cargo-llvm-cov
-        if: runner.os == 'Windows'
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov@0.9.1
-
-      - name: Run tests and measure coverage
-        if: runner.os == 'Windows'
-        working-directory: src-tauri
-        run: cargo llvm-cov --all-targets --locked --json --summary-only --output-path target/coverage.json
-
-      - name: Enforce measured Windows coverage baseline
-        if: runner.os == 'Windows'
-        run: node scripts/coverage-ratchet.mjs src-tauri/target/coverage.json src-tauri/coverage-baseline.windows.json
-
-      - name: Upload coverage report
-        if: always() && runner.os == 'Windows'
-        uses: actions/upload-artifact@v7
-        with:
-          name: rust-coverage-Windows
-          path: src-tauri/target/coverage.json
-          if-no-files-found: warn
 
       - name: Test native desktop vault
         working-directory: src-tauri

@@ -1,8 +1,13 @@
 use super::models::HorizonError;
-use crate::minecraft::downloader::{download_file_chunked, download_files_concurrent, DownloadTask};
+use crate::minecraft::downloader::{
+    download_file_chunked, download_files_concurrent, DownloadTask,
+};
 use crate::minecraft::launcher::classpath::{maven_coordinate_to_path, resolve_library_path};
-use crate::minecraft::version::{should_include_library, VersionPackage};
+use crate::minecraft::version::{
+    fetch_asset_index, should_include_library, AssetObject, VersionPackage,
+};
 use serde::Deserialize;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -35,6 +40,11 @@ pub fn is_horizon_prepared(engine_dir: &Path, game_version: &str) -> bool {
         .join(game_version)
         .join("horizon-resources.json");
     manifest.is_file()
+}
+
+pub fn is_horizon_complete(resources_dir: &Path) -> bool {
+    resources_dir.join("horizon-resources.json").is_file()
+        && resources_dir.join("asset-index.json").is_file()
 }
 
 pub fn preparer_binary_name() -> &'static str {
@@ -232,7 +242,90 @@ where
         }
     }
 
-    ensure_minecraft_libraries(client, data_dir, pinned_manifest_path, report_prog).await?;
+    ensure_minecraft_libraries(client, data_dir, pinned_manifest_path, report_prog.clone()).await?;
+    ensure_minecraft_assets(client, data_dir, pinned_manifest_path, report_prog).await?;
+
+    Ok(())
+}
+
+pub(crate) fn collect_asset_tasks(
+    assets_dir: &Path,
+    objects: &HashMap<String, AssetObject>,
+) -> Vec<DownloadTask> {
+    let mut tasks = Vec::with_capacity(objects.len());
+    let mut seen_hashes = HashSet::new();
+    let objects_dir = assets_dir.join("objects");
+
+    for obj in objects.values() {
+        if obj.hash.len() != 40 || !obj.hash.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            continue;
+        }
+        if !seen_hashes.insert(&obj.hash) {
+            continue;
+        }
+        let prefix = &obj.hash[..2];
+        let dest = objects_dir.join(prefix).join(&obj.hash);
+        let url = format!(
+            "https://resources.download.minecraft.net/{}/{}",
+            prefix, obj.hash
+        );
+        tasks.push(DownloadTask {
+            url,
+            dest,
+            sha1: Some(obj.hash.clone()),
+            size: Some(obj.size),
+        });
+    }
+
+    tasks
+}
+
+async fn ensure_minecraft_assets<FProg>(
+    client: &reqwest::Client,
+    data_dir: &Path,
+    pinned_manifest_path: &Path,
+    report_prog: Arc<FProg>,
+) -> Result<(), HorizonError>
+where
+    FProg: Fn(&str, usize, usize, &str) + Send + Sync + 'static,
+{
+    let manifest_bytes = fs::read(pinned_manifest_path)?;
+    let version_pkg: VersionPackage = serde_json::from_slice(&manifest_bytes)?;
+
+    let Some(asset_ref) = version_pkg.asset_index else {
+        return Ok(());
+    };
+
+    let assets_dir = data_dir.join("assets");
+    fs::create_dir_all(&assets_dir)?;
+
+    report_prog(
+        "Downloading Assets",
+        0,
+        100,
+        "Fetching Minecraft asset index...",
+    );
+    let asset_index = fetch_asset_index(client, &assets_dir, &asset_ref)
+        .await
+        .map_err(|e| HorizonError::Preparation(format!("Failed to fetch asset index: {e}")))?;
+
+    let tasks = collect_asset_tasks(&assets_dir, &asset_index.objects);
+    if tasks.is_empty() {
+        return Ok(());
+    }
+
+    let dl_cb = {
+        let rp = report_prog.clone();
+        Arc::new(move |cur: usize, tot: usize, file_name: &str| {
+            let detail = format!("Asset {cur}/{tot} ({file_name})");
+            let percent = (cur * 100).checked_div(tot).unwrap_or(0);
+            rp("Downloading Assets", percent, 100, &detail);
+        })
+    };
+
+    download_files_concurrent(client, tasks, 24, Some(dl_cb))
+        .await
+        .map_err(|e| HorizonError::Preparation(format!("Failed to download assets: {e}")))?;
 
     Ok(())
 }
@@ -242,6 +335,7 @@ pub(crate) fn collect_library_tasks(
     libraries_dir: &Path,
 ) -> Vec<DownloadTask> {
     let mut tasks = Vec::new();
+    let mut seen_dests = HashSet::new();
 
     for lib in &pkg.libraries {
         if !should_include_library(lib) {
@@ -250,18 +344,17 @@ pub(crate) fn collect_library_tasks(
 
         if let Some(downloads) = &lib.downloads {
             if let Some(artifact) = &downloads.artifact {
-                if let Some(dest) = resolve_library_path(
-                    &lib.name,
-                    artifact.path.as_deref(),
-                    None,
-                    libraries_dir,
-                ) {
-                    tasks.push(DownloadTask {
-                        url: artifact.url.clone(),
-                        dest,
-                        sha1: artifact.sha1.clone(),
-                        size: artifact.size,
-                    });
+                if let Some(dest) =
+                    resolve_library_path(&lib.name, artifact.path.as_deref(), None, libraries_dir)
+                {
+                    if seen_dests.insert(dest.clone()) {
+                        tasks.push(DownloadTask {
+                            url: artifact.url.clone(),
+                            dest,
+                            sha1: artifact.sha1.clone(),
+                            size: artifact.size,
+                        });
+                    }
                 }
             }
         } else if let Some(path) = maven_coordinate_to_path(&lib.name, None) {
@@ -271,12 +364,14 @@ pub(crate) fn collect_library_tasks(
                 .unwrap_or("https://libraries.minecraft.net/");
             let full_url = format!("{base_url}{path}");
             let dest = libraries_dir.join(&path);
-            tasks.push(DownloadTask {
-                url: full_url,
-                dest,
-                sha1: None,
-                size: None,
-            });
+            if seen_dests.insert(dest.clone()) {
+                tasks.push(DownloadTask {
+                    url: full_url,
+                    dest,
+                    sha1: None,
+                    size: None,
+                });
+            }
         }
     }
 
@@ -356,7 +451,7 @@ struct StepProgressScope {
 async fn run_preparer_step_streaming<FProg>(
     preparer_bin: &Path,
     preparer_root: &Path,
-    java_home: &Path,
+    java_home: Option<&Path>,
     args: &[&str],
     scope: StepProgressScope,
     report_prog: &FProg,
@@ -364,21 +459,24 @@ async fn run_preparer_step_streaming<FProg>(
 where
     FProg: Fn(&str, usize, usize, &str) + Send + Sync,
 {
-    let java_bin_dir = java_home.join("bin");
-    let current_path = std::env::var_os("PATH").unwrap_or_default();
-    let mut new_path = std::ffi::OsString::new();
-    new_path.push(&java_bin_dir);
-    #[cfg(target_os = "windows")]
-    new_path.push(";");
-    #[cfg(not(target_os = "windows"))]
-    new_path.push(":");
-    new_path.push(current_path);
+    let mut cmd = tokio::process::Command::new(preparer_bin);
+    cmd.current_dir(preparer_root).args(args);
 
-    let mut child = tokio::process::Command::new(preparer_bin)
-        .current_dir(preparer_root)
-        .args(args)
-        .env("JAVA_HOME", java_home)
-        .env("PATH", new_path)
+    if let Some(java_home) = java_home {
+        let java_bin_dir = java_home.join("bin");
+        let current_path = std::env::var_os("PATH").unwrap_or_default();
+        let mut new_path = std::ffi::OsString::new();
+        new_path.push(&java_bin_dir);
+        #[cfg(target_os = "windows")]
+        new_path.push(";");
+        #[cfg(not(target_os = "windows"))]
+        new_path.push(":");
+        new_path.push(current_path);
+
+        cmd.env("JAVA_HOME", java_home).env("PATH", new_path);
+    }
+
+    let mut child = cmd
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -446,6 +544,77 @@ where
     Ok(())
 }
 
+async fn import_horizon_assets<FProg>(
+    preparer_bin: &Path,
+    preparer_root: &Path,
+    data_dir: &Path,
+    java_home: Option<&Path>,
+    report_prog: &FProg,
+) -> Result<(), HorizonError>
+where
+    FProg: Fn(&str, usize, usize, &str) + Send + Sync,
+{
+    let data_dir_str = data_dir.to_string_lossy();
+    let root_str = preparer_root.to_string_lossy();
+
+    let steps = [
+        (
+            "packs",
+            "Importing Resource Packs",
+            "Importing default packs...",
+            72,
+            77,
+        ),
+        (
+            "panorama",
+            "Importing Panorama",
+            "Importing menu panorama...",
+            77,
+            82,
+        ),
+        (
+            "fonts",
+            "Importing Fonts",
+            "Importing font assets...",
+            82,
+            87,
+        ),
+        (
+            "languages",
+            "Importing Languages",
+            "Importing language assets...",
+            87,
+            92,
+        ),
+        (
+            "sounds",
+            "Importing Audio",
+            "Importing sound assets from Minecraft...",
+            92,
+            99,
+        ),
+    ];
+
+    for (cmd, phase, msg, base_pct, max_pct) in steps {
+        report_prog(phase, base_pct, 100, msg);
+        run_preparer_step_streaming(
+            preparer_bin,
+            preparer_root,
+            java_home,
+            &[cmd, "--minecraft-dir", &data_dir_str, "--root", &root_str],
+            StepProgressScope {
+                phase,
+                base_percent: base_pct,
+                max_percent: max_pct,
+            },
+            report_prog,
+        )
+        .await?;
+    }
+
+    Ok(())
+}
+
 pub async fn prepare_horizon_resources<FProg>(
     client: &reqwest::Client,
     engine_dir: &Path,
@@ -466,19 +635,10 @@ where
         .join("horizon-client")
         .join(&lock.minecraft.version);
 
-    if is_horizon_prepared(&preparer_root, &lock.minecraft.version) {
+    if is_horizon_complete(&resources_dir) {
         return Ok(resources_dir);
     }
 
-    report_prog("Java Setup", 10, 100, "Checking Java 25 runtime...");
-    let java_home = resolve_java_home(client, data_dir, lock.minecraft.java_major).await?;
-
-    report_prog(
-        "Resolving Metadata",
-        25,
-        100,
-        "Verifying 26.3 game manifest...",
-    );
     let pinned_manifest = ensure_pinned_manifest(
         client,
         &preparer_root,
@@ -489,7 +649,7 @@ where
 
     report_prog(
         "Verifying Files",
-        40,
+        15,
         100,
         "Checking Minecraft game files...",
     );
@@ -503,84 +663,72 @@ where
     )
     .await?;
 
-    report_prog(
-        "Downloading Server",
-        50,
-        100,
-        "Checking Minecraft server engine...",
-    );
-    let server_jar = ensure_server_jar(
-        client,
+    let is_prepared = is_horizon_prepared(&preparer_root, &lock.minecraft.version);
+    if !is_prepared {
+        report_prog("Java Setup", 30, 100, "Checking Java 25 runtime...");
+        let java_home = resolve_java_home(client, data_dir, lock.minecraft.java_major).await?;
+
+        report_prog(
+            "Downloading Server",
+            45,
+            100,
+            "Checking Minecraft server engine...",
+        );
+        let server_jar = ensure_server_jar(
+            client,
+            data_dir,
+            &lock.minecraft.version,
+            &lock.minecraft.server_sha1,
+            report_prog.clone(),
+        )
+        .await?;
+
+        report_prog(
+            "Generating Game Data",
+            55,
+            100,
+            "Starting Horizon data tables generation...",
+        );
+
+        let server_jar_str = server_jar.to_string_lossy();
+        let data_dir_str = data_dir.to_string_lossy();
+        let root_str = preparer_root.to_string_lossy();
+
+        run_preparer_step_streaming(
+            &preparer_bin,
+            &preparer_root,
+            Some(&java_home),
+            &[
+                "--prepare",
+                "--server-jar",
+                &server_jar_str,
+                "--minecraft-dir",
+                &data_dir_str,
+                "--root",
+                &root_str,
+            ],
+            StepProgressScope {
+                phase: "Generating Game Data",
+                base_percent: 55,
+                max_percent: 72,
+            },
+            report_prog.as_ref(),
+        )
+        .await?;
+    }
+
+    import_horizon_assets(
+        &preparer_bin,
+        &preparer_root,
         data_dir,
-        &lock.minecraft.version,
-        &lock.minecraft.server_sha1,
-        report_prog.clone(),
-    )
-    .await?;
-
-    report_prog(
-        "Generating Game Data",
-        55,
-        100,
-        "Starting Horizon data tables generation...",
-    );
-
-    let server_jar_str = server_jar.to_string_lossy();
-    let data_dir_str = data_dir.to_string_lossy();
-    let root_str = preparer_root.to_string_lossy();
-
-    run_preparer_step_streaming(
-        &preparer_bin,
-        &preparer_root,
-        &java_home,
-        &[
-            "--prepare",
-            "--server-jar",
-            &server_jar_str,
-            "--minecraft-dir",
-            &data_dir_str,
-            "--root",
-            &root_str,
-        ],
-        StepProgressScope {
-            phase: "Generating Game Data",
-            base_percent: 55,
-            max_percent: 85,
-        },
+        None,
         report_prog.as_ref(),
     )
     .await?;
 
-    report_prog(
-        "Importing Audio",
-        85,
-        100,
-        "Importing sound assets from Minecraft...",
-    );
-
-    let _ = run_preparer_step_streaming(
-        &preparer_bin,
-        &preparer_root,
-        &java_home,
-        &[
-            "sounds",
-            "--minecraft-dir",
-            &data_dir_str,
-            "--root",
-            &root_str,
-        ],
-        StepProgressScope {
-            phase: "Importing Audio",
-            base_percent: 85,
-            max_percent: 98,
-        },
-        report_prog.as_ref(),
-    )
-    .await;
-
-    if !is_horizon_prepared(&preparer_root, &lock.minecraft.version) {
+    if !is_horizon_complete(&resources_dir) {
         return Err(HorizonError::Preparation(
-            "horizon-prepare completed but horizon-resources.json was not created".into(),
+            "horizon-prepare completed but resources are still incomplete".into(),
         ));
     }
 
@@ -606,6 +754,23 @@ mod tests {
     fn test_is_horizon_prepared_false_for_empty_dir() {
         let temp = tempfile::tempdir().unwrap();
         assert!(!is_horizon_prepared(temp.path(), "26.3"));
+    }
+
+    #[test]
+    fn test_is_horizon_complete() {
+        let temp = tempfile::tempdir().unwrap();
+        let res_dir = temp.path();
+
+        // 1. Empty dir -> false
+        assert!(!is_horizon_complete(res_dir));
+
+        // 2. Only horizon-resources.json -> false
+        fs::write(res_dir.join("horizon-resources.json"), b"{}").unwrap();
+        assert!(!is_horizon_complete(res_dir));
+
+        // 3. Both horizon-resources.json and asset-index.json -> true
+        fs::write(res_dir.join("asset-index.json"), b"{}").unwrap();
+        assert!(is_horizon_complete(res_dir));
     }
 
     #[test]
@@ -673,7 +838,91 @@ mod tests {
             tasks[1].dest,
             libraries_dir.join("custom/maven/lib/2.0/lib-2.0.jar")
         );
-        assert_eq!(tasks[1].url, "https://custom.repo/custom/maven/lib/2.0/lib-2.0.jar");
+        assert_eq!(
+            tasks[1].url,
+            "https://custom.repo/custom/maven/lib/2.0/lib-2.0.jar"
+        );
         assert_eq!(tasks[1].sha1, None);
+    }
+
+    #[test]
+    fn test_collect_asset_tasks_deduplicates_and_validates() {
+        let temp = tempfile::tempdir().unwrap();
+        let assets_dir = temp.path();
+
+        let mut objects = HashMap::new();
+        let valid_hash_1 = "e787e8afd149a4cefa89d341b91f5aed8f5d93a0".to_string();
+        let valid_hash_2 = "abcdefabcdefabcdefabcdefabcdefabcdefabcd".to_string();
+
+        objects.insert(
+            "minecraft/sounds/click.ogg".to_string(),
+            AssetObject {
+                hash: valid_hash_1.clone(),
+                size: 1024,
+            },
+        );
+        // Duplicate hash with different key:
+        objects.insert(
+            "minecraft/sounds/click_alias.ogg".to_string(),
+            AssetObject {
+                hash: valid_hash_1.clone(),
+                size: 1024,
+            },
+        );
+        // Second distinct valid object:
+        objects.insert(
+            "minecraft/textures/gui/title/background/panorama_0.png".to_string(),
+            AssetObject {
+                hash: valid_hash_2.clone(),
+                size: 2048,
+            },
+        );
+        // Invalid hash (short length):
+        objects.insert(
+            "invalid/short.png".to_string(),
+            AssetObject {
+                hash: "short".to_string(),
+                size: 50,
+            },
+        );
+        // Invalid hash (non-hex characters):
+        objects.insert(
+            "invalid/nonhex.png".to_string(),
+            AssetObject {
+                hash: "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".to_string(),
+                size: 50,
+            },
+        );
+
+        let tasks = collect_asset_tasks(assets_dir, &objects);
+        assert_eq!(tasks.len(), 2);
+
+        let task1 = tasks
+            .iter()
+            .find(|t| t.sha1.as_deref() == Some(&valid_hash_1))
+            .unwrap();
+        assert_eq!(
+            task1.dest,
+            assets_dir.join("objects").join("e7").join(&valid_hash_1)
+        );
+        assert_eq!(
+            task1.url,
+            format!("https://resources.download.minecraft.net/e7/{valid_hash_1}")
+        );
+        assert_eq!(task1.size, Some(1024));
+
+        let task2 = tasks
+            .iter()
+            .find(|t| t.sha1.as_deref() == Some(&valid_hash_2))
+            .unwrap();
+        assert_eq!(
+            task2.dest,
+            assets_dir.join("objects").join("ab").join(&valid_hash_2)
+        );
+        assert_eq!(
+            task2.url,
+            format!("https://resources.download.minecraft.net/ab/{valid_hash_2}")
+        );
+        assert_eq!(task2.size, Some(2048));
     }
 }

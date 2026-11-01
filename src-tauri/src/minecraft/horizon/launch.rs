@@ -26,7 +26,7 @@ pub fn build_horizon_command(
     if let Some(session_path) = session_file {
         command.arg("--session-file").arg(session_path);
     } else if let Some(user) = username {
-        command.arg("--username").arg(user);
+        command.arg("--name").arg(user);
     }
 
     if fullscreen {
@@ -53,5 +53,18 @@ mod tests {
         assert!(debug.contains("--resources"));
         assert!(debug.contains("--session-file"));
         assert!(debug.contains("--fullscreen"));
+    }
+
+    #[test]
+    fn test_build_horizon_command_with_username() {
+        let exe = Path::new("horizon-client.exe");
+        let inst = Path::new("/instances/test");
+        let res = Path::new("/engines/horizon/resources");
+
+        let cmd = build_horizon_command(exe, inst, Some(res), None, Some("Player123"), false);
+        let debug = format!("{:?}", cmd);
+        assert!(debug.contains("--name"));
+        assert!(debug.contains("Player123"));
+        assert!(!debug.contains("--username"));
     }
 }
