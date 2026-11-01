@@ -8,6 +8,7 @@ import {
 	HardDrive,
 	LayoutGrid,
 	Monitor,
+	MoreVertical,
 	Play,
 	Settings,
 	Share2,
@@ -36,6 +37,7 @@ import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
+	DropdownMenuSeparator,
 	DropdownMenuSub,
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
@@ -173,7 +175,6 @@ export const InstanceCard = ({
 
 	return (
 		<motion.div
-			whileHover={{ y: -2, transition: { duration: 0.15 } }}
 			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${
 				isRunning
 					? "border-primary/40 ring-1 ring-primary/20"
@@ -433,57 +434,6 @@ export const InstanceCard = ({
 
 				{/* Utility Actions */}
 				<div className="flex items-center gap-1">
-					<Tooltip>
-						<TooltipTrigger
-							render={
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => instanceService.openInstanceFolder(instance.id)}
-									className="size-8 text-muted-foreground"
-									aria-label={t("instances.card.openFolderTooltip")}
-								/>
-							}
-						>
-							<FolderOpen className="size-3.5" />
-						</TooltipTrigger>
-						<TooltipContent>{t("instances.card.openFolderTooltip")}</TooltipContent>
-					</Tooltip>
-
-					<Tooltip>
-						<TooltipTrigger
-							render={
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={onDuplicate}
-									className="size-8 text-muted-foreground"
-									aria-label={t("instances.card.duplicateTooltip")}
-								/>
-							}
-						>
-							<Copy className="size-3.5" />
-						</TooltipTrigger>
-						<TooltipContent>{t("instances.card.duplicateTooltip")}</TooltipContent>
-					</Tooltip>
-
-					<Tooltip>
-						<TooltipTrigger
-							render={
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={onSettings}
-									className="size-8 text-muted-foreground"
-									aria-label={t("instances.card.settingsTooltip")}
-								/>
-							}
-						>
-							<Settings className="size-3.5" />
-						</TooltipTrigger>
-						<TooltipContent>{t("instances.card.settingsTooltip")}</TooltipContent>
-					</Tooltip>
-
 					<DropdownMenu>
 						<Tooltip>
 							<TooltipTrigger
@@ -493,62 +443,78 @@ export const InstanceCard = ({
 											<Button
 												variant="ghost"
 												size="icon"
-												className="size-8 text-muted-foreground"
-												aria-label={t("instances.card.createShortcutTooltip")}
+												className="size-8 text-muted-foreground hover:text-foreground"
+												aria-label={t("instances.card.moreActions")}
 											>
-												<Share2 className="size-3.5" />
+												<MoreVertical className="size-4" />
 											</Button>
 										}
 									/>
 								}
 							/>
-							<TooltipContent>{t("instances.card.createShortcutTooltip")}</TooltipContent>
+							<TooltipContent>{t("instances.card.moreActions")}</TooltipContent>
 						</Tooltip>
 						<DropdownMenuContent align="end" className="w-52">
 							<DropdownMenuGroup>
-								<DropdownMenuLabel className="text-3xs font-semibold tracking-wider text-muted-foreground uppercase">
-									{t("instances.card.createShortcut")}
-								</DropdownMenuLabel>
-								<DropdownMenuItem
-									onClick={() => {
-										return handleCreateShortcut("desktop")
-									}}
-									className="cursor-pointer gap-2"
-								>
-									<Monitor className="size-4 text-primary" />
-									<span className="text-xs">{t("instances.card.desktopShortcut")}</span>
+								<DropdownMenuItem onClick={onSettings} className="cursor-pointer gap-2">
+									<Settings className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("instances.card.settingsTooltip")}</span>
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									onClick={() => {
-										return handleCreateShortcut("applicationsMenu")
+										return void instanceService.openInstanceFolder(instance.id)
 									}}
 									className="cursor-pointer gap-2"
 								>
-									<LayoutGrid className="size-4 text-primary" />
-									<span className="text-xs">{t("instances.card.appMenuShortcut")}</span>
+									<FolderOpen className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("instances.card.openFolderTooltip")}</span>
 								</DropdownMenuItem>
+								<DropdownMenuItem onClick={onDuplicate} className="cursor-pointer gap-2">
+									<Copy className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("instances.card.duplicateTooltip")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger className="cursor-pointer gap-2">
+										<Share2 className="size-4 text-muted-foreground" />
+										<span className="text-xs">{t("instances.card.createShortcut")}</span>
+									</DropdownMenuSubTrigger>
+									<DropdownMenuSubContent className="w-52">
+										<DropdownMenuItem
+											onClick={() => {
+												return void handleCreateShortcut("desktop")
+											}}
+											className="cursor-pointer gap-2"
+										>
+											<Monitor className="size-4 text-primary" />
+											<span className="text-xs">{t("instances.card.desktopShortcut")}</span>
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											onClick={() => {
+												return void handleCreateShortcut("applicationsMenu")
+											}}
+											className="cursor-pointer gap-2"
+										>
+											<LayoutGrid className="size-4 text-primary" />
+											<span className="text-xs">{t("instances.card.appMenuShortcut")}</span>
+										</DropdownMenuItem>
+									</DropdownMenuSubContent>
+								</DropdownMenuSub>
 							</DropdownMenuGroup>
+							{!isRunning && !isDownloading && (
+								<>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										onClick={onDelete}
+										variant="destructive"
+										className="cursor-pointer gap-2"
+									>
+										<Trash2 className="size-4" />
+										<span className="text-xs">{t("instances.card.deleteTooltip")}</span>
+									</DropdownMenuItem>
+								</>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
-
-					{!isRunning && !isDownloading && (
-						<Tooltip>
-							<TooltipTrigger
-								render={
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={onDelete}
-										className="size-8 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-										aria-label={t("instances.card.deleteTooltip")}
-									/>
-								}
-							>
-								<Trash2 className="size-3.5" />
-							</TooltipTrigger>
-							<TooltipContent>{t("instances.card.deleteTooltip")}</TooltipContent>
-						</Tooltip>
-					)}
 				</div>
 			</div>
 
@@ -561,5 +527,7 @@ export const InstanceCard = ({
 		</motion.div>
 	)
 }
+
+InstanceCard.displayName = "InstanceCard"
 
 export default memo(InstanceCard)

@@ -170,7 +170,8 @@
 			"appMenuShortcut": "应用菜单快捷方式",
 			"shortcutCreatedDesktop": "已为 {{name}} 创建桌面快捷方式",
 			"shortcutCreatedAppMenu": "已为 {{name}} 创建应用菜单快捷方式",
-			"shortcutFailed": "创建快捷方式失败: {{error}}"
+			"shortcutFailed": "创建快捷方式失败: {{error}}",
+			"moreActions": "更多操作"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Zástupce v nabídce aplikací",
 			"shortcutCreatedDesktop": "Zástupce na ploše byl vytvořen pro {{name}}",
 			"shortcutCreatedAppMenu": "Zástupce v nabídce aplikací byl vytvořen pro {{name}}",
-			"shortcutFailed": "Vytvoření zástupce se nezdařilo: {{error}}"
+			"shortcutFailed": "Vytvoření zástupce se nezdařilo: {{error}}",
+			"moreActions": "Další akce"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

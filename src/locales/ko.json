@@ -170,7 +170,8 @@
 			"appMenuShortcut": "애플리케이션 메뉴 바로가기",
 			"shortcutCreatedDesktop": "{{name}}의 바탕화면 바로가기를 생성했습니다",
 			"shortcutCreatedAppMenu": "{{name}}의 애플리케이션 메뉴 바로가기를 생성했습니다",
-			"shortcutFailed": "바로가기 생성 실패: {{error}}"
+			"shortcutFailed": "바로가기 생성 실패: {{error}}",
+			"moreActions": "추가 작업"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

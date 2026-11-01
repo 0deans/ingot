@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Atalho no menu de aplicativos",
 			"shortcutCreatedDesktop": "Atalho na área de trabalho criado para {{name}}",
 			"shortcutCreatedAppMenu": "Atalho no menu de aplicativos criado para {{name}}",
-			"shortcutFailed": "Falha ao criar atalho: {{error}}"
+			"shortcutFailed": "Falha ao criar atalho: {{error}}",
+			"moreActions": "Mais ações"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

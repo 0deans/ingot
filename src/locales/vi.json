@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Lối tắt trong menu ứng dụng",
 			"shortcutCreatedDesktop": "Đã tạo lối tắt trên màn hình nền cho {{name}}",
 			"shortcutCreatedAppMenu": "Đã tạo lối tắt trong menu ứng dụng cho {{name}}",
-			"shortcutFailed": "Không thể tạo lối tắt: {{error}}"
+			"shortcutFailed": "Không thể tạo lối tắt: {{error}}",
+			"moreActions": "Thao tác khác"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

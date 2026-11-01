@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Collegamento nel menu applicazioni",
 			"shortcutCreatedDesktop": "Collegamento sul desktop creato per {{name}}",
 			"shortcutCreatedAppMenu": "Collegamento nel menu applicazioni creato per {{name}}",
-			"shortcutFailed": "Impossibile creare il collegamento: {{error}}"
+			"shortcutFailed": "Impossibile creare il collegamento: {{error}}",
+			"moreActions": "Altre azioni"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

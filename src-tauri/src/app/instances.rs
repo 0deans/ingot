@@ -138,14 +138,18 @@ pub(crate) async fn create_instance_shortcut<R: Runtime>(
             .find(|i| i.id == instance_id)
             .ok_or_else(|| InstanceError::NotFound(instance_id.clone()))?;
 
+        let instance_dir = ensure_instance_dir(&handle, &instance.id)?;
         let destination_dir = instance::shortcut::resolve_shortcut_directory(&handle, location)?;
         let target_exe = std::env::current_exe().map_err(instance::ShortcutError::Executable)?;
+
+        let icon_path = instance::shortcut::resolve_instance_icon(&instance_dir, &instance);
 
         let path = instance::shortcut::create_platform_shortcut(
             &destination_dir,
             &target_exe,
             &instance.id,
             &instance.name,
+            icon_path.as_deref(),
         )?;
 
         Ok(instance::ShortcutResult {

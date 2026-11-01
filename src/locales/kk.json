@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Қолданбалар мәзіріндегі таңбаша",
 			"shortcutCreatedDesktop": "{{name}} үшін жұмыс үстелінде таңбаша жасалды",
 			"shortcutCreatedAppMenu": "{{name}} үшін қолданбалар мәзірінде таңбаша жасалды",
-			"shortcutFailed": "Таңбаша жасау сәтсіз аяқталды: {{error}}"
+			"shortcutFailed": "Таңбаша жасау сәтсіз аяқталды: {{error}}",
+			"moreActions": "Қосымша әрекеттер"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

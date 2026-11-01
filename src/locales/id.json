@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Pintasan Menu Aplikasi",
 			"shortcutCreatedDesktop": "Pintasan desktop dibuat untuk {{name}}",
 			"shortcutCreatedAppMenu": "Pintasan menu aplikasi dibuat untuk {{name}}",
-			"shortcutFailed": "Gagal membuat pintasan: {{error}}"
+			"shortcutFailed": "Gagal membuat pintasan: {{error}}",
+			"moreActions": "Tindakan lainnya"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

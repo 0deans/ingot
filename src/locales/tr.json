@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Uygulama Menüsü Kısayolu",
 			"shortcutCreatedDesktop": "{{name}} için masaüstü kısayolu oluşturuldu",
 			"shortcutCreatedAppMenu": "{{name}} için uygulama menüsü kısayolu oluşturuldu",
-			"shortcutFailed": "Kısayol oluşturulamadı: {{error}}"
+			"shortcutFailed": "Kısayol oluşturulamadı: {{error}}",
+			"moreActions": "Daha fazla eylem"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

@@ -53,7 +53,6 @@ export function BedrockCard({ className }: { className?: string }) {
 
 	return (
 		<motion.div
-			whileHover={{ y: -2, transition: { duration: 0.15 } }}
 			className={cn(
 				"relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 transition-[border-color,background-color,box-shadow] duration-200 sm:p-5",
 				isInstalled

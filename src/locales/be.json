@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Ярлык у меню праграм",
 			"shortcutCreatedDesktop": "Ярлык на працоўным стале створаны для {{name}}",
 			"shortcutCreatedAppMenu": "Ярлык у меню праграм створаны для {{name}}",
-			"shortcutFailed": "Не ўдалося стварыць ярлык: {{error}}"
+			"shortcutFailed": "Не ўдалося стварыць ярлык: {{error}}",
+			"moreActions": "Іншыя дзеянні"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

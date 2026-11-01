@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Anwendungsmenü-Verknüpfung",
 			"shortcutCreatedDesktop": "Desktop-Verknüpfung für {{name}} erstellt",
 			"shortcutCreatedAppMenu": "Anwendungsmenü-Verknüpfung für {{name}} erstellt",
-			"shortcutFailed": "Fehler beim Erstellen der Verknüpfung: {{error}}"
+			"shortcutFailed": "Fehler beim Erstellen der Verknüpfung: {{error}}",
+			"moreActions": "Weitere Aktionen"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

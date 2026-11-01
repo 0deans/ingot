@@ -170,7 +170,8 @@
 			"shortcutCreatedDesktop": "Desktop shortcut created for {{name}}",
 			"shortcutCreatedAppMenu": "Application menu shortcut created for {{name}}",
 			"shortcutFailed": "Failed to create shortcut: {{error}}",
-			"ram": "{{size}} RAM"
+			"ram": "{{size}} RAM",
+			"moreActions": "More actions"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

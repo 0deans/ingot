@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Applikationsmenygenväg",
 			"shortcutCreatedDesktop": "Skrivbordsgenväg skapad för {{name}}",
 			"shortcutCreatedAppMenu": "Applikationsmenygenväg skapad för {{name}}",
-			"shortcutFailed": "Kunde inte skapa genväg: {{error}}"
+			"shortcutFailed": "Kunde inte skapa genväg: {{error}}",
+			"moreActions": "Fler åtgärder"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

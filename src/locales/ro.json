@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Comandă rapidă în meniul aplicațiilor",
 			"shortcutCreatedDesktop": "Comandă rapidă pe desktop creată pentru {{name}}",
 			"shortcutCreatedAppMenu": "Comandă rapidă în meniul aplicațiilor creată pentru {{name}}",
-			"shortcutFailed": "Nu s-a putut crea comanda rapidă: {{error}}"
+			"shortcutFailed": "Nu s-a putut crea comanda rapidă: {{error}}",
+			"moreActions": "Mai multe acțiuni"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

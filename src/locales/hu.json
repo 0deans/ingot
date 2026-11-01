@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Alkalmazásmenü parancsikon",
 			"shortcutCreatedDesktop": "Asztali parancsikon létrehozva ehhez: {{name}}",
 			"shortcutCreatedAppMenu": "Alkalmazásmenü parancsikon létrehozva ehhez: {{name}}",
-			"shortcutFailed": "A parancsikon létrehozása sikertelen: {{error}}"
+			"shortcutFailed": "A parancsikon létrehozása sikertelen: {{error}}",
+			"moreActions": "További műveletek"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

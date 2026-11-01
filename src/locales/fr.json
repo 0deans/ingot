@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Raccourci du menu d'applications",
 			"shortcutCreatedDesktop": "Raccourci de bureau créé pour {{name}}",
 			"shortcutCreatedAppMenu": "Raccourci du menu d'applications créé pour {{name}}",
-			"shortcutFailed": "Échec de la création du raccourci : {{error}}"
+			"shortcutFailed": "Échec de la création du raccourci : {{error}}",
+			"moreActions": "Plus d'actions"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

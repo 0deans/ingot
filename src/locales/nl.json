@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Applicatiemenusnelkoppeling",
 			"shortcutCreatedDesktop": "Bureaubladsnelkoppeling gemaakt voor {{name}}",
 			"shortcutCreatedAppMenu": "Applicatiemenusnelkoppeling gemaakt voor {{name}}",
-			"shortcutFailed": "Maken van snelkoppeling mislukt: {{error}}"
+			"shortcutFailed": "Maken van snelkoppeling mislukt: {{error}}",
+			"moreActions": "Meer acties"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

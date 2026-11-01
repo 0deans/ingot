@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Acceso directo en el menú de aplicaciones",
 			"shortcutCreatedDesktop": "Acceso directo en el escritorio creado para {{name}}",
 			"shortcutCreatedAppMenu": "Acceso directo en el menú de aplicaciones creado para {{name}}",
-			"shortcutFailed": "Error al crear el acceso directo: {{error}}"
+			"shortcutFailed": "Error al crear el acceso directo: {{error}}",
+			"moreActions": "Más acciones"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},

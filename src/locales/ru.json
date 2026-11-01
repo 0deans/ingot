@@ -170,7 +170,8 @@
 			"appMenuShortcut": "Ярлык в меню приложений",
 			"shortcutCreatedDesktop": "Ярлык на рабочем столе создан для {{name}}",
 			"shortcutCreatedAppMenu": "Ярлык в меню приложений создан для {{name}}",
-			"shortcutFailed": "Не удалось создать ярлык: {{error}}"
+			"shortcutFailed": "Не удалось создать ярлык: {{error}}",
+			"moreActions": "Другие действия"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})"
 	},
