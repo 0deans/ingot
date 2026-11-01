@@ -19,6 +19,9 @@ pub fn build_horizon_command(
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
+    #[cfg(windows)]
+    command.creation_flags(0x08000000);
+
     if let Some(resources) = resources_dir {
         command.arg("--resources").arg(resources);
     }

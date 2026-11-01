@@ -476,6 +476,9 @@ where
         cmd.env("JAVA_HOME", java_home).env("PATH", new_path);
     }
 
+    #[cfg(windows)]
+    cmd.creation_flags(0x08000000);
+
     let mut child = cmd
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
