@@ -5,7 +5,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import pkg from "./package.json" with { type: "json" }
-import { i18nHmrPlugin } from "./plugins/vite-plugin-i18n-hmr.ts"
+import { i18nHmrPlugin } from "./plugins/vite-plugin-i18n-hmr"
 
 const host = process.env.TAURI_DEV_HOST
 // Over USB (`--host 127.0.0.1`) tauri only runs `adb reverse` for port 1420, so HMR
