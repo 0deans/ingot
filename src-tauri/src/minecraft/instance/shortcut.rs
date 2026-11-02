@@ -338,7 +338,7 @@ fn create_windows_shortcut_com(
         "$ws = New-Object -ComObject WScript.Shell; \
          $sc = $ws.CreateShortcut('{shortcut_escaped}'); \
          $sc.TargetPath = '{target_escaped}'; \
-         $sc.Arguments = '--launch-instance \"{id_escaped}\"'; \
+         $sc.Arguments = '--launch-instance ' + [char]34 + '{id_escaped}' + [char]34; \
          $sc.WorkingDirectory = '{working_dir_escaped}'; \
          $sc.IconLocation = '{icon_escaped},0'; \
          $sc.Save();"
@@ -683,5 +683,18 @@ mod tests {
             shortcut.file_name().unwrap().to_string_lossy(),
             "Ingot - Windows Instance.lnk"
         );
+
+        let script = format!(
+            "$ws = New-Object -ComObject WScript.Shell; \
+             $sc = $ws.CreateShortcut('{}'); \
+             $sc.Arguments",
+            shortcut.to_string_lossy().replace('\'', "''")
+        );
+        let output = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+            .output()
+            .unwrap();
+        let args = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        assert_eq!(args, "--launch-instance \"inst-windows-test\"");
     }
 }
