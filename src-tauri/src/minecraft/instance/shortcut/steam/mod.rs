@@ -139,7 +139,8 @@ pub fn resolve_userdata_config_dirs(steam_roots: &[PathBuf]) -> Vec<PathBuf> {
 }
 
 fn discover_steam_roots() -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
+    #[allow(unused_mut)]
+    let mut candidates: Vec<PathBuf> = Vec::new();
 
     #[cfg(windows)]
     {
