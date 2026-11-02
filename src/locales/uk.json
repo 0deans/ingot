@@ -168,8 +168,10 @@
 			"createShortcut": "Створити ярлик",
 			"desktopShortcut": "Ярлик на робочому столі",
 			"appMenuShortcut": "Ярлик у меню програм",
+			"steamShortcut": "Додати в Steam",
 			"shortcutCreatedDesktop": "Ярлик на робочому столі створено для {{name}}",
 			"shortcutCreatedAppMenu": "Ярлик у меню програм створено для {{name}}",
+			"shortcutCreatedSteam": "{{name}} додано в Steam з обкладинками Grid (перезапустіть Steam)",
 			"shortcutFailed": "Не вдалося створити ярлик: {{error}}",
 			"moreActions": "Більше дій"
 		},
@@ -1522,7 +1524,8 @@
 		"shortcutsTitle": "Системні ярлики",
 		"shortcutsDesc": "Створюйте ярлыки на робочому столі або в меню програм для безпосереднього запуску цього екземпляра.",
 		"createDesktopShortcut": "Створити ярлик на робочому столі",
-		"createAppMenuShortcut": "Створити ярлик у меню програм"
+		"createAppMenuShortcut": "Створити ярлик у меню програм",
+		"createSteamShortcut": "Додати в Steam"
 	},
 	"install": {
 		"loadFailed": "Не вдалося завантажити варіанти встановлення",

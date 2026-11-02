@@ -168,8 +168,10 @@
 			"createShortcut": "Таңбаша жасау",
 			"desktopShortcut": "Жұмыс үстеліндегі таңбаша",
 			"appMenuShortcut": "Қолданбалар мәзіріндегі таңбаша",
+			"steamShortcut": "Steam-ге қосу",
 			"shortcutCreatedDesktop": "{{name}} үшін жұмыс үстелінде таңбаша жасалды",
 			"shortcutCreatedAppMenu": "{{name}} үшін қолданбалар мәзірінде таңбаша жасалды",
+			"shortcutCreatedSteam": "{{name}} арнайы Grid мұқабаларымен Steam-ге қосылды (Steam-ді қайта іске қосыңыз)",
 			"shortcutFailed": "Таңбаша жасау сәтсіз аяқталды: {{error}}",
 			"moreActions": "Қосымша әрекеттер"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Жүйелік таңбашалар",
 		"shortcutsDesc": "Бұл инстанцияны тікелей іске қосу үшін жұмыс үстелінде немесе қолданбалар мәзірінде таңбашалар жасаңыз.",
 		"createDesktopShortcut": "Жұмыс үстелінде таңбаша жасау",
-		"createAppMenuShortcut": "Қолданбалар мәзірінде таңбаша жасау"
+		"createAppMenuShortcut": "Қолданбалар мәзірінде таңбаша жасау",
+		"createSteamShortcut": "Steam-ге қосу"
 	},
 	"install": {
 		"loadFailed": "Орнату опцияларын жүктеу мүмкін болмады",

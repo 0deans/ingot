@@ -4,6 +4,7 @@ import {
 	Compass,
 	Copy,
 	FolderOpen,
+	Gamepad2,
 	Globe,
 	HardDrive,
 	LayoutGrid,
@@ -129,14 +130,24 @@ export const InstanceCard = ({
 		}
 	}
 
+	const getShortcutSuccessMessage = (location: ShortcutLocation): string => {
+		switch (location) {
+			case "desktop": {
+				return t("instances.card.shortcutCreatedDesktop", { name: instance.name })
+			}
+			case "applicationsMenu": {
+				return t("instances.card.shortcutCreatedAppMenu", { name: instance.name })
+			}
+			case "steam": {
+				return t("instances.card.shortcutCreatedSteam", { name: instance.name })
+			}
+		}
+	}
+
 	const handleCreateShortcut = async (location: ShortcutLocation) => {
 		try {
 			await instanceService.createShortcut(instance.id, location)
-			toast.success(
-				location === "desktop"
-					? t("instances.card.shortcutCreatedDesktop", { name: instance.name })
-					: t("instances.card.shortcutCreatedAppMenu", { name: instance.name }),
-			)
+			toast.success(getShortcutSuccessMessage(location))
 		} catch (error) {
 			toast.error(
 				t("instances.card.shortcutFailed", {
@@ -496,6 +507,15 @@ export const InstanceCard = ({
 										>
 											<LayoutGrid className="size-4 text-primary" />
 											<span className="text-xs">{t("instances.card.appMenuShortcut")}</span>
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											onClick={() => {
+												return void handleCreateShortcut("steam")
+											}}
+											className="cursor-pointer gap-2"
+										>
+											<Gamepad2 className="size-4 text-primary" />
+											<span className="text-xs">{t("instances.card.steamShortcut")}</span>
 										</DropdownMenuItem>
 									</DropdownMenuSubContent>
 								</DropdownMenuSub>

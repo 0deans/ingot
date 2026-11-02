@@ -125,8 +125,11 @@ pub async fn prepare_game_command(
     command
         .args(&cmd_args)
         .current_dir(instance_dir)
+        .stdin(Stdio::null())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
+    #[cfg(windows)]
+    command.creation_flags(0x08000000);
     Ok(command)
 }
 

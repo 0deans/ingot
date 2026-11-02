@@ -168,8 +168,10 @@
 			"createShortcut": "ショートカットを作成",
 			"desktopShortcut": "デスクトップショートカット",
 			"appMenuShortcut": "アプリケーションメニューショートカット",
+			"steamShortcut": "Steamに追加",
 			"shortcutCreatedDesktop": "{{name}} のデスクトップショートカットを作成しました",
 			"shortcutCreatedAppMenu": "{{name}} のアプリケーションメニューショートカットを作成しました",
+			"shortcutCreatedSteam": "{{name}} をカスタムGridアートワーク付きでSteamに追加しました（Steamを再起動してください）",
 			"shortcutFailed": "ショートカットの作成に失敗しました: {{error}}",
 			"moreActions": "その他の操作"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "OSショートカット",
 		"shortcutsDesc": "デスクトップまたはアプリケーションメニューにこのインスタンスを直接起動するショートカットを生成します。",
 		"createDesktopShortcut": "デスクトップショートカットを作成",
-		"createAppMenuShortcut": "アプリメニューショートカットを作成"
+		"createAppMenuShortcut": "アプリメニューショートカットを作成",
+		"createSteamShortcut": "Steamに追加"
 	},
 	"install": {
 		"loadFailed": "インストール オプションのロードに失敗しました",

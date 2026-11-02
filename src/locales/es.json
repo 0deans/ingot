@@ -168,8 +168,10 @@
 			"createShortcut": "Crear acceso directo",
 			"desktopShortcut": "Acceso directo en el escritorio",
 			"appMenuShortcut": "Acceso directo en el menú de aplicaciones",
+			"steamShortcut": "Añadir a Steam",
 			"shortcutCreatedDesktop": "Acceso directo en el escritorio creado para {{name}}",
 			"shortcutCreatedAppMenu": "Acceso directo en el menú de aplicaciones creado para {{name}}",
+			"shortcutCreatedSteam": "Se añadió {{name}} a Steam con portadas Grid personalizadas (reinicia Steam)",
 			"shortcutFailed": "Error al crear el acceso directo: {{error}}",
 			"moreActions": "Más acciones"
 		},
@@ -1502,7 +1504,8 @@
 		"shortcutsTitle": "Accesos directos del sistema",
 		"shortcutsDesc": "Genera accesos directos en tu escritorio o en el menú de aplicaciones para iniciar esta instancia directamente.",
 		"createDesktopShortcut": "Crear acceso directo en el escritorio",
-		"createAppMenuShortcut": "Crear acceso directo en el menú de aplicaciones"
+		"createAppMenuShortcut": "Crear acceso directo en el menú de aplicaciones",
+		"createSteamShortcut": "Añadir a Steam"
 	},
 	"install": {
 		"loadFailed": "No se pudieron cargar las opciones de instalación",

@@ -168,8 +168,10 @@
 			"createShortcut": "Snelkoppeling maken",
 			"desktopShortcut": "Bureaubladsnelkoppeling",
 			"appMenuShortcut": "Applicatiemenusnelkoppeling",
+			"steamShortcut": "Toevoegen aan Steam",
 			"shortcutCreatedDesktop": "Bureaubladsnelkoppeling gemaakt voor {{name}}",
 			"shortcutCreatedAppMenu": "Applicatiemenusnelkoppeling gemaakt voor {{name}}",
+			"shortcutCreatedSteam": "{{name}} toegevoegd aan Steam met aangepaste Grid-banners (herstart Steam)",
 			"shortcutFailed": "Maken van snelkoppeling mislukt: {{error}}",
 			"moreActions": "Meer acties"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Systeemsnelkoppelingen",
 		"shortcutsDesc": "Maak directe snelkoppelingen op uw bureaublad of applicatiemenu om deze instantie te starten.",
 		"createDesktopShortcut": "Bureaubladsnelkoppeling maken",
-		"createAppMenuShortcut": "Applicatiemenusnelkoppeling maken"
+		"createAppMenuShortcut": "Applicatiemenusnelkoppeling maken",
+		"createSteamShortcut": "Toevoegen aan Steam"
 	},
 	"install": {
 		"loadFailed": "Kan installatieopties niet laden",

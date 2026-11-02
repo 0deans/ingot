@@ -168,8 +168,10 @@
 			"createShortcut": "Criar atalho",
 			"desktopShortcut": "Atalho na área de trabalho",
 			"appMenuShortcut": "Atalho no menu de aplicativos",
+			"steamShortcut": "Adicionar ao Steam",
 			"shortcutCreatedDesktop": "Atalho na área de trabalho criado para {{name}}",
 			"shortcutCreatedAppMenu": "Atalho no menu de aplicativos criado para {{name}}",
+			"shortcutCreatedSteam": "{{name}} adicionado ao Steam com capas Grid personalizadas (reinicie o Steam)",
 			"shortcutFailed": "Falha ao criar atalho: {{error}}",
 			"moreActions": "Mais ações"
 		},
@@ -1502,7 +1504,8 @@
 		"shortcutsTitle": "Atalhos do sistema",
 		"shortcutsDesc": "Crie atalhos na sua área de trabalho ou menu de aplicativos para iniciar esta instância diretamente.",
 		"createDesktopShortcut": "Criar atalho na área de trabalho",
-		"createAppMenuShortcut": "Criar atalho no menu de aplicativos"
+		"createAppMenuShortcut": "Criar atalho no menu de aplicativos",
+		"createSteamShortcut": "Adicionar ao Steam"
 	},
 	"install": {
 		"loadFailed": "Não foi possível carregar as opções de instalação",

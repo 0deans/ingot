@@ -6,6 +6,7 @@ import {
 	Cpu,
 	DownloadCloud,
 	FolderOpen,
+	Gamepad2,
 	HardDrive,
 	LayoutGrid,
 	Monitor,
@@ -304,11 +305,20 @@ export const InstanceSettingsDialog = ({
 			setIsCreatingShortcut(true)
 			try {
 				await instanceService.createShortcut(instance.id, location)
-				toast.success(
-					location === "desktop"
-						? t("instances.card.shortcutCreatedDesktop", { name: instance.name })
-						: t("instances.card.shortcutCreatedAppMenu", { name: instance.name }),
-				)
+				switch (location) {
+					case "desktop": {
+						toast.success(t("instances.card.shortcutCreatedDesktop", { name: instance.name }))
+						break
+					}
+					case "applicationsMenu": {
+						toast.success(t("instances.card.shortcutCreatedAppMenu", { name: instance.name }))
+						break
+					}
+					case "steam": {
+						toast.success(t("instances.card.shortcutCreatedSteam", { name: instance.name }))
+						break
+					}
+				}
 			} catch (error) {
 				toast.error(
 					t("instances.card.shortcutFailed", {
@@ -976,6 +986,20 @@ export const InstanceSettingsDialog = ({
 								>
 									<LayoutGrid className="size-3.5 text-primary" />
 									{t("instanceSettings.createAppMenuShortcut")}
+								</Button>
+
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										return handleCreateShortcut("steam")
+									}}
+									disabled={isCreatingShortcut}
+									className="h-8 gap-1.5 text-xs"
+								>
+									<Gamepad2 className="size-3.5 text-primary" />
+									{t("instanceSettings.createSteamShortcut")}
 								</Button>
 							</div>
 						</div>

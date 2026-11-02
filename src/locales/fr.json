@@ -168,8 +168,10 @@
 			"createShortcut": "Créer un raccourci",
 			"desktopShortcut": "Raccourci de bureau",
 			"appMenuShortcut": "Raccourci du menu d'applications",
+			"steamShortcut": "Ajouter à Steam",
 			"shortcutCreatedDesktop": "Raccourci de bureau créé pour {{name}}",
 			"shortcutCreatedAppMenu": "Raccourci du menu d'applications créé pour {{name}}",
+			"shortcutCreatedSteam": "{{name}} ajouté à Steam avec des bannières Grid personnalisées (redémarrez Steam)",
 			"shortcutFailed": "Échec de la création du raccourci : {{error}}",
 			"moreActions": "Plus d'actions"
 		},
@@ -1502,7 +1504,8 @@
 		"shortcutsTitle": "Raccourcis du système",
 		"shortcutsDesc": "Générez des raccourcis directs sur votre bureau ou dans le menu d'applications pour lancer cette instance.",
 		"createDesktopShortcut": "Créer un raccourci sur le bureau",
-		"createAppMenuShortcut": "Créer un raccourci dans le menu d'applications"
+		"createAppMenuShortcut": "Créer un raccourci dans le menu d'applications",
+		"createSteamShortcut": "Ajouter à Steam"
 	},
 	"install": {
 		"loadFailed": "Impossible de charger les options d'installation",

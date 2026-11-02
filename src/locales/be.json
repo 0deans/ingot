@@ -168,8 +168,10 @@
 			"createShortcut": "Стварыць ярлык",
 			"desktopShortcut": "Ярлык на працоўным стале",
 			"appMenuShortcut": "Ярлык у меню праграм",
+			"steamShortcut": "Дадаць у Steam",
 			"shortcutCreatedDesktop": "Ярлык на працоўным стале створаны для {{name}}",
 			"shortcutCreatedAppMenu": "Ярлык у меню праграм створаны для {{name}}",
+			"shortcutCreatedSteam": "{{name}} дададзены ў Steam з вокладкамі Grid (перазапусціце Steam)",
 			"shortcutFailed": "Не ўдалося стварыць ярлык: {{error}}",
 			"moreActions": "Іншыя дзеянні"
 		},
@@ -1517,7 +1519,8 @@
 		"shortcutsTitle": "Ярлыкі сістэмы",
 		"shortcutsDesc": "Стварайце ярлыкі на працоўным стале або ў меню праграм для прамога запуску гэтага асобніка.",
 		"createDesktopShortcut": "Стварыць ярлык на працоўным стале",
-		"createAppMenuShortcut": "Стварыць ярлык у меню праграм"
+		"createAppMenuShortcut": "Стварыць ярлык у меню праграм",
+		"createSteamShortcut": "Дадаць у Steam"
 	},
 	"install": {
 		"loadFailed": "Не ўдалося загрузіць варыянты ўсталявання",

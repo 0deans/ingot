@@ -168,8 +168,10 @@
 			"createShortcut": "Verknüpfung erstellen",
 			"desktopShortcut": "Desktop-Verknüpfung",
 			"appMenuShortcut": "Anwendungsmenü-Verknüpfung",
+			"steamShortcut": "Zu Steam hinzufügen",
 			"shortcutCreatedDesktop": "Desktop-Verknüpfung für {{name}} erstellt",
 			"shortcutCreatedAppMenu": "Anwendungsmenü-Verknüpfung für {{name}} erstellt",
+			"shortcutCreatedSteam": "{{name}} mit eigenem Grid-Artwork zu Steam hinzugefügt (Steam neu starten)",
 			"shortcutFailed": "Fehler beim Erstellen der Verknüpfung: {{error}}",
 			"moreActions": "Weitere Aktionen"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Betriebssystem-Verknüpfungen",
 		"shortcutsDesc": "Erstellen Sie direkte Verknüpfungen auf Ihrem Desktop oder im Anwendungsmenü, um diese Instanz direkt zu starten.",
 		"createDesktopShortcut": "Desktop-Verknüpfung erstellen",
-		"createAppMenuShortcut": "Anwendungsmenü-Verknüpfung erstellen"
+		"createAppMenuShortcut": "Anwendungsmenü-Verknüpfung erstellen",
+		"createSteamShortcut": "Zu Steam hinzufügen"
 	},
 	"install": {
 		"loadFailed": "Installationsoptionen konnten nicht geladen werden",

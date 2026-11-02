@@ -168,8 +168,10 @@
 			"createShortcut": "Skapa genväg",
 			"desktopShortcut": "Skrivbordsgenväg",
 			"appMenuShortcut": "Applikationsmenygenväg",
+			"steamShortcut": "Lägg till i Steam",
 			"shortcutCreatedDesktop": "Skrivbordsgenväg skapad för {{name}}",
 			"shortcutCreatedAppMenu": "Applikationsmenygenväg skapad för {{name}}",
+			"shortcutCreatedSteam": "Lade till {{name}} i Steam med anpassade Grid-banners (starta om Steam)",
 			"shortcutFailed": "Kunde inte skapa genväg: {{error}}",
 			"moreActions": "Fler åtgärder"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Systemgenvägar",
 		"shortcutsDesc": "Generera genvägar på skrivbordet eller i programmenyn för att starta den här instansen direkt.",
 		"createDesktopShortcut": "Skapa skrivbordsgenväg",
-		"createAppMenuShortcut": "Skapa genväg i programmenyn"
+		"createAppMenuShortcut": "Skapa genväg i programmenyn",
+		"createSteamShortcut": "Lägg till i Steam"
 	},
 	"install": {
 		"loadFailed": "Det gick inte att läsa in installationsalternativen",

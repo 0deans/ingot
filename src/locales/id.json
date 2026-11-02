@@ -168,8 +168,10 @@
 			"createShortcut": "Buat Pintasan",
 			"desktopShortcut": "Pintasan Desktop",
 			"appMenuShortcut": "Pintasan Menu Aplikasi",
+			"steamShortcut": "Tambahkan ke Steam",
 			"shortcutCreatedDesktop": "Pintasan desktop dibuat untuk {{name}}",
 			"shortcutCreatedAppMenu": "Pintasan menu aplikasi dibuat untuk {{name}}",
+			"shortcutCreatedSteam": "{{name}} ditambahkan ke Steam dengan banner Grid kustom (mulai ulang Steam)",
 			"shortcutFailed": "Gagal membuat pintasan: {{error}}",
 			"moreActions": "Tindakan lainnya"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Pintasan Sistem",
 		"shortcutsDesc": "Buat pintasan di Desktop atau Menu Aplikasi untuk meluncurkan instans ini secara langsung.",
 		"createDesktopShortcut": "Buat Pintasan Desktop",
-		"createAppMenuShortcut": "Buat Pintasan Menu Aplikasi"
+		"createAppMenuShortcut": "Buat Pintasan Menu Aplikasi",
+		"createSteamShortcut": "Tambahkan ke Steam"
 	},
 	"install": {
 		"loadFailed": "Gagal memuat opsi instalasi",

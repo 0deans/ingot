@@ -17,9 +17,14 @@ impl From<crate::minecraft::instance::InstanceError> for ApiError {
                 Self::incomplete_recovery(error.to_string())
             }
             InstanceError::Shortcut(ref source) => match source {
+                crate::minecraft::instance::ShortcutError::SteamNotFound => {
+                    Self::not_found(source.to_string())
+                }
                 crate::minecraft::instance::ShortcutError::DirectoryNotFound(_)
                 | crate::minecraft::instance::ShortcutError::Executable(_)
-                | crate::minecraft::instance::ShortcutError::Io(_) => {
+                | crate::minecraft::instance::ShortcutError::Io(_)
+                | crate::minecraft::instance::ShortcutError::SteamCorruptVdf(_)
+                | crate::minecraft::instance::ShortcutError::Image(_) => {
                     Self::storage_failure(source.to_string())
                 }
                 crate::minecraft::instance::ShortcutError::UnsupportedPlatform(_) => {

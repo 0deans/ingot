@@ -168,8 +168,10 @@
 			"createShortcut": "Vytvořit zástupce",
 			"desktopShortcut": "Zástupce na ploše",
 			"appMenuShortcut": "Zástupce v nabídce aplikací",
+			"steamShortcut": "Přidat do Steamu",
 			"shortcutCreatedDesktop": "Zástupce na ploše byl vytvořen pro {{name}}",
 			"shortcutCreatedAppMenu": "Zástupce v nabídce aplikací byl vytvořen pro {{name}}",
+			"shortcutCreatedSteam": "{{name}} byl přidán do Steamu s vlastní grafikou Grid (restartujte Steam)",
 			"shortcutFailed": "Vytvoření zástupce se nezdařilo: {{error}}",
 			"moreActions": "Další akce"
 		},
@@ -1517,7 +1519,8 @@
 		"shortcutsTitle": "Systémoví zástupci",
 		"shortcutsDesc": "Vytvořte zástupce na ploše nebo v nabídce aplikací pro přímé spuštění této instance.",
 		"createDesktopShortcut": "Vytvořit zástupce na ploše",
-		"createAppMenuShortcut": "Vytvořit zástupce v nabídce aplikací"
+		"createAppMenuShortcut": "Vytvořit zástupce v nabídce aplikací",
+		"createSteamShortcut": "Přidat do Steamu"
 	},
 	"install": {
 		"loadFailed": "Možnosti instalace se nepodařilo načíst",

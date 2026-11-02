@@ -36,3 +36,5 @@ dist-ssr
 
 # Local build settings (see .env.example)
 .env
+
+*.tsbuildinfo

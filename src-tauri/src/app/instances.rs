@@ -139,18 +139,25 @@ pub(crate) async fn create_instance_shortcut<R: Runtime>(
             .ok_or_else(|| InstanceError::NotFound(instance_id.clone()))?;
 
         let instance_dir = ensure_instance_dir(&handle, &instance.id)?;
-        let destination_dir = instance::shortcut::resolve_shortcut_directory(&handle, location)?;
         let target_exe = std::env::current_exe().map_err(instance::ShortcutError::Executable)?;
 
-        let icon_path = instance::shortcut::resolve_instance_icon(&instance_dir, &instance);
-
-        let path = instance::shortcut::create_platform_shortcut(
-            &destination_dir,
-            &target_exe,
-            &instance.id,
-            &instance.name,
-            icon_path.as_deref(),
-        )?;
+        let path = match location {
+            instance::ShortcutLocation::Steam => {
+                instance::shortcut::create_steam_shortcut(&instance_dir, &target_exe, &instance)?
+            }
+            instance::ShortcutLocation::Desktop | instance::ShortcutLocation::ApplicationsMenu => {
+                let destination_dir =
+                    instance::shortcut::resolve_shortcut_directory(&handle, location)?;
+                let icon_path = instance::shortcut::resolve_instance_icon(&instance_dir, &instance);
+                instance::shortcut::create_platform_shortcut(
+                    &destination_dir,
+                    &target_exe,
+                    &instance.id,
+                    &instance.name,
+                    icon_path.as_deref(),
+                )?
+            }
+        };
 
         Ok(instance::ShortcutResult {
             path: path.to_string_lossy().into_owned(),

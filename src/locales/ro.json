@@ -168,8 +168,10 @@
 			"createShortcut": "Creează comandă rapidă",
 			"desktopShortcut": "Comandă rapidă pe desktop",
 			"appMenuShortcut": "Comandă rapidă în meniul aplicațiilor",
+			"steamShortcut": "Adaugă în Steam",
 			"shortcutCreatedDesktop": "Comandă rapidă pe desktop creată pentru {{name}}",
 			"shortcutCreatedAppMenu": "Comandă rapidă în meniul aplicațiilor creată pentru {{name}}",
+			"shortcutCreatedSteam": "{{name}} a fost adăugat în Steam cu bannere Grid personalizate (repornește Steam)",
 			"shortcutFailed": "Nu s-a putut crea comanda rapidă: {{error}}",
 			"moreActions": "Mai multe acțiuni"
 		},
@@ -1502,7 +1504,8 @@
 		"shortcutsTitle": "Comenzi rapide de sistem",
 		"shortcutsDesc": "Generați comenzi rapide pe desktop sau în meniul de aplicații pentru a lansa direct această instanță.",
 		"createDesktopShortcut": "Creează comandă rapidă pe desktop",
-		"createAppMenuShortcut": "Creează comandă rapidă în meniul aplicațiilor"
+		"createAppMenuShortcut": "Creează comandă rapidă în meniul aplicațiilor",
+		"createSteamShortcut": "Adaugă în Steam"
 	},
 	"install": {
 		"loadFailed": "Încărcarea opțiunilor de instalare a eșuat",

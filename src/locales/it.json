@@ -168,8 +168,10 @@
 			"createShortcut": "Crea collegamento",
 			"desktopShortcut": "Collegamento sul desktop",
 			"appMenuShortcut": "Collegamento nel menu applicazioni",
+			"steamShortcut": "Aggiungi a Steam",
 			"shortcutCreatedDesktop": "Collegamento sul desktop creato per {{name}}",
 			"shortcutCreatedAppMenu": "Collegamento nel menu applicazioni creato per {{name}}",
+			"shortcutCreatedSteam": "{{name}} aggiunto a Steam con banner Grid personalizzati (riavvia Steam)",
 			"shortcutFailed": "Impossibile creare il collegamento: {{error}}",
 			"moreActions": "Altre azioni"
 		},
@@ -1502,7 +1504,8 @@
 		"shortcutsTitle": "Collegamenti del sistema",
 		"shortcutsDesc": "Genera collegamenti sul desktop o nel menu delle applicazioni per avviare direttamente questa istanza.",
 		"createDesktopShortcut": "Crea collegamento sul desktop",
-		"createAppMenuShortcut": "Crea collegamento nel menu applicazioni"
+		"createAppMenuShortcut": "Crea collegamento nel menu applicazioni",
+		"createSteamShortcut": "Aggiungi a Steam"
 	},
 	"install": {
 		"loadFailed": "Impossibile caricare le opzioni di installazione",

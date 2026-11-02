@@ -168,8 +168,10 @@
 			"createShortcut": "创建快捷方式",
 			"desktopShortcut": "桌面快捷方式",
 			"appMenuShortcut": "应用菜单快捷方式",
+			"steamShortcut": "添加到 Steam",
 			"shortcutCreatedDesktop": "已为 {{name}} 创建桌面快捷方式",
 			"shortcutCreatedAppMenu": "已为 {{name}} 创建应用菜单快捷方式",
+			"shortcutCreatedSteam": "已将 {{name}} 及自定义 Grid 封面添加到 Steam（重启 Steam 后生效）",
 			"shortcutFailed": "创建快捷方式失败: {{error}}",
 			"moreActions": "更多操作"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "系统快捷方式",
 		"shortcutsDesc": "在桌面或应用程序菜单中生成快捷方式，以便直接启动此实例。",
 		"createDesktopShortcut": "创建桌面快捷方式",
-		"createAppMenuShortcut": "创建应用菜单快捷方式"
+		"createAppMenuShortcut": "创建应用菜单快捷方式",
+		"createSteamShortcut": "添加到 Steam"
 	},
 	"install": {
 		"loadFailed": "无法加载安装选项",

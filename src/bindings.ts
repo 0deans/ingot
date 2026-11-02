@@ -671,7 +671,7 @@ export type SharedSyncStatus = {
 	lastSyncedTimestamp: number | null,
 };
 
-export type ShortcutLocation = "desktop" | "applicationsMenu";
+export type ShortcutLocation = "desktop" | "applicationsMenu" | "steam";
 
 export type ShortcutResult = {
 	path: string,

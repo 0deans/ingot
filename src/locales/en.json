@@ -167,8 +167,10 @@
 			"createShortcut": "Create Shortcut",
 			"desktopShortcut": "Desktop Shortcut",
 			"appMenuShortcut": "Application Menu Shortcut",
+			"steamShortcut": "Add to Steam",
 			"shortcutCreatedDesktop": "Desktop shortcut created for {{name}}",
 			"shortcutCreatedAppMenu": "Application menu shortcut created for {{name}}",
+			"shortcutCreatedSteam": "Added {{name}} to Steam with custom Grid artwork (restart Steam to view)",
 			"shortcutFailed": "Failed to create shortcut: {{error}}",
 			"ram": "{{size}} RAM",
 			"moreActions": "More actions"
@@ -1482,6 +1484,7 @@
 		"shortcutsDesc": "Generate direct shortcuts to launch this instance from your desktop or application menu.",
 		"createDesktopShortcut": "Create Desktop Shortcut",
 		"createAppMenuShortcut": "Create Application Menu Shortcut",
+		"createSteamShortcut": "Add to Steam",
 		"description": "Configure execution parameters and memory limits for <b>{{name}}</b>.",
 		"namePlaceholder": "My Minecraft Instance",
 		"loader": "loader {{version}}",

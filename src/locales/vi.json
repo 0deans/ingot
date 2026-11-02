@@ -168,8 +168,10 @@
 			"createShortcut": "Tạo lối tắt",
 			"desktopShortcut": "Lối tắt trên màn hình nền",
 			"appMenuShortcut": "Lối tắt trong menu ứng dụng",
+			"steamShortcut": "Thêm vào Steam",
 			"shortcutCreatedDesktop": "Đã tạo lối tắt trên màn hình nền cho {{name}}",
 			"shortcutCreatedAppMenu": "Đã tạo lối tắt trong menu ứng dụng cho {{name}}",
+			"shortcutCreatedSteam": "Đã thêm {{name}} vào Steam kèm ảnh bìa Grid tùy chỉnh (hãy khởi động lại Steam)",
 			"shortcutFailed": "Không thể tạo lối tắt: {{error}}",
 			"moreActions": "Thao tác khác"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Lối tắt hệ thống",
 		"shortcutsDesc": "Tạo lối tắt trên màn hình nền hoặc menu ứng dụng để khởi chạy trực tiếp phiên bản này.",
 		"createDesktopShortcut": "Tạo lối tắt màn hình nền",
-		"createAppMenuShortcut": "Tạo lối tắt menu ứng dụng"
+		"createAppMenuShortcut": "Tạo lối tắt menu ứng dụng",
+		"createSteamShortcut": "Thêm vào Steam"
 	},
 	"install": {
 		"loadFailed": "Không tải được các tùy chọn cài đặt",

@@ -168,8 +168,10 @@
 			"createShortcut": "Создать ярлык",
 			"desktopShortcut": "Ярлык на рабочем столе",
 			"appMenuShortcut": "Ярлык в меню приложений",
+			"steamShortcut": "Добавить в Steam",
 			"shortcutCreatedDesktop": "Ярлык на рабочем столе создан для {{name}}",
 			"shortcutCreatedAppMenu": "Ярлык в меню приложений создан для {{name}}",
+			"shortcutCreatedSteam": "{{name}} добавлен в Steam с обложками Grid (перезапустите Steam)",
 			"shortcutFailed": "Не удалось создать ярлык: {{error}}",
 			"moreActions": "Другие действия"
 		},
@@ -1541,7 +1543,8 @@
 		"shortcutsTitle": "Ярлыки системы",
 		"shortcutsDesc": "Создавайте ярлыки на рабочем столе или в меню приложений для прямого запуска этой сборки.",
 		"createDesktopShortcut": "Создать ярлык на рабочем столе",
-		"createAppMenuShortcut": "Создать ярлык в меню приложений"
+		"createAppMenuShortcut": "Создать ярлык в меню приложений",
+		"createSteamShortcut": "Добавить в Steam"
 	},
 	"install": {
 		"loadFailed": "Не удалось загрузить варианты установки",

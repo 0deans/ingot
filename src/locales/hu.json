@@ -168,8 +168,10 @@
 			"createShortcut": "Parancsikon létrehozása",
 			"desktopShortcut": "Asztali parancsikon",
 			"appMenuShortcut": "Alkalmazásmenü parancsikon",
+			"steamShortcut": "Hozzáadás a Steamhez",
 			"shortcutCreatedDesktop": "Asztali parancsikon létrehozva ehhez: {{name}}",
 			"shortcutCreatedAppMenu": "Alkalmazásmenü parancsikon létrehozva ehhez: {{name}}",
+			"shortcutCreatedSteam": "{{name}} hozzáadva a Steamhez egyéni Grid borítókkal (indítsd újra a Steamet)",
 			"shortcutFailed": "A parancsikon létrehozása sikertelen: {{error}}",
 			"moreActions": "További műveletek"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Rendszer parancsikonok",
 		"shortcutsDesc": "Hozzon létre parancsikonokat az asztalon vagy az alkalmazásmenüben a példány közvetlen indításához.",
 		"createDesktopShortcut": "Asztali parancsikon létrehozása",
-		"createAppMenuShortcut": "Alkalmazásmenü parancsikon létrehozása"
+		"createAppMenuShortcut": "Alkalmazásmenü parancsikon létrehozása",
+		"createSteamShortcut": "Hozzáadás a Steamhez"
 	},
 	"install": {
 		"loadFailed": "Nem sikerült betölteni a telepítési opciókat",

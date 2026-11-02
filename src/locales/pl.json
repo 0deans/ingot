@@ -168,8 +168,10 @@
 			"createShortcut": "Utwórz skrót",
 			"desktopShortcut": "Skrót na pulpicie",
 			"appMenuShortcut": "Skrót w menu aplikacji",
+			"steamShortcut": "Dodaj do Steam",
 			"shortcutCreatedDesktop": "Utworzono skrót na pulpicie dla {{name}}",
 			"shortcutCreatedAppMenu": "Utworzono skrót w menu aplikacji dla {{name}}",
+			"shortcutCreatedSteam": "Dodano {{name}} do Steam z własnymi grafikami Grid (uruchom ponownie Steam)",
 			"shortcutFailed": "Nie udało się utworzyć skrótu: {{error}}",
 			"moreActions": "Więcej akcji"
 		},
@@ -1517,7 +1519,8 @@
 		"shortcutsTitle": "Skróty systemowe",
 		"shortcutsDesc": "Generuj skróty na pulpicie lub w menu aplikacji, aby bezpośrednio uruchamiać tę instancję.",
 		"createDesktopShortcut": "Utwórz skrót na pulpicie",
-		"createAppMenuShortcut": "Utwórz skrót w menu aplikacji"
+		"createAppMenuShortcut": "Utwórz skrót w menu aplikacji",
+		"createSteamShortcut": "Dodaj do Steam"
 	},
 	"install": {
 		"loadFailed": "Nie udało się wczytać opcji instalacji",

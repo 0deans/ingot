@@ -168,8 +168,10 @@
 			"createShortcut": "Kısayol Oluştur",
 			"desktopShortcut": "Masaüstü Kısayolu",
 			"appMenuShortcut": "Uygulama Menüsü Kısayolu",
+			"steamShortcut": "Steam'e Ekle",
 			"shortcutCreatedDesktop": "{{name}} için masaüstü kısayolu oluşturuldu",
 			"shortcutCreatedAppMenu": "{{name}} için uygulama menüsü kısayolu oluşturuldu",
+			"shortcutCreatedSteam": "{{name}} özel Grid görselleriyle Steam'e eklendi (Steam'i yeniden başlatın)",
 			"shortcutFailed": "Kısayol oluşturulamadı: {{error}}",
 			"moreActions": "Daha fazla eylem"
 		},
@@ -1487,7 +1489,8 @@
 		"shortcutsTitle": "Sistem Kısayolları",
 		"shortcutsDesc": "Bu örneği doğrudan başlatmak için masaüstünüzde veya uygulama menünüzde kısayollar oluşturun.",
 		"createDesktopShortcut": "Masaüstü Kısayolu Oluştur",
-		"createAppMenuShortcut": "Uygulama Menüsü Kısayolu Oluştur"
+		"createAppMenuShortcut": "Uygulama Menüsü Kısayolu Oluştur",
+		"createSteamShortcut": "Steam'e Ekle"
 	},
 	"install": {
 		"loadFailed": "Kurulum seçenekleri yüklenemedi",
