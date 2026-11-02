@@ -248,6 +248,7 @@ pub fn generate_linux_desktop_entry(
     icon: &str,
 ) -> String {
     let exe_str = target_exe.to_string_lossy();
+    let safe_id = sanitize_shortcut_filename(instance_id);
     format!(
         "[Desktop Entry]\n\
          Type=Application\n\
@@ -258,7 +259,7 @@ pub fn generate_linux_desktop_entry(
          Icon={icon}\n\
          Terminal=false\n\
          Categories=Game;\n\
-         StartupWMClass=ingot\n"
+         StartupWMClass=ingot-instance-{safe_id}\n"
     )
 }
 
@@ -296,15 +297,22 @@ extern "system" {
 }
 
 #[cfg(windows)]
-pub fn notify_shell_change() {
-    const SHCNE_ASSOCCHANGED: i32 = 0x08000000;
-    const SHCNF_IDLIST: u32 = 0x0000;
-    const SHCNF_FLUSH: u32 = 0x1000;
+pub fn notify_shortcut_created(shortcut_path: &Path) {
+    use std::os::windows::ffi::OsStrExt;
+    const SHCNE_CREATE: i32 = 0x00000002;
+    const SHCNF_PATHW: u32 = 0x0005;
+
+    let wide_path: Vec<u16> = shortcut_path
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
     unsafe {
         SHChangeNotify(
-            SHCNE_ASSOCCHANGED,
-            SHCNF_IDLIST | SHCNF_FLUSH,
-            std::ptr::null(),
+            SHCNE_CREATE,
+            SHCNF_PATHW,
+            wide_path.as_ptr() as *const std::ffi::c_void,
             std::ptr::null(),
         );
     }
@@ -392,7 +400,7 @@ pub fn create_windows_shortcut(
             .map_err(|e| ShortcutError::Io(std::io::Error::other(e)))?;
     }
 
-    notify_shell_change();
+    notify_shortcut_created(&shortcut_path);
 
     Ok(shortcut_path)
 }
@@ -545,7 +553,8 @@ pub fn resolve_shortcut_directory<R: tauri::Runtime>(
                         .join("Windows")
                         .join("Start Menu")
                         .join("Programs")
-                        .join("Ingot");
+                        .join("Ingot")
+                        .join("Instances");
                     Ok(start_menu)
                 }
                 #[cfg(target_os = "linux")]
@@ -602,6 +611,7 @@ mod tests {
         assert!(entry.contains("Name=Ingot - Survival World"));
         assert!(entry.contains("Exec=\"/usr/bin/ingot\" --launch-instance test-inst-1"));
         assert!(entry.contains("Icon=ingot"));
+        assert!(entry.contains("StartupWMClass=ingot-instance-test-inst-1"));
     }
 
     #[test]

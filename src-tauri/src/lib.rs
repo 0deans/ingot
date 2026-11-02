@@ -26,6 +26,23 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStrExt;
+        #[link(name = "shell32")]
+        extern "system" {
+            fn SetCurrentProcessExplicitAppUserModelID(app_id: *const u16) -> i32;
+        }
+
+        let app_id: Vec<u16> = std::ffi::OsStr::new("ingot")
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect();
+        unsafe {
+            let _ = SetCurrentProcessExplicitAppUserModelID(app_id.as_ptr());
+        }
+    }
+
     let _rt = if tokio::runtime::Handle::try_current().is_err() {
         let rt = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
