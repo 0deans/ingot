@@ -189,6 +189,8 @@
 			"createdAt": "Recently Created"
 		},
 		"colors": {
+			"custom": "Custom Color...",
+			"customShort": "Custom",
 			"filter": "Color",
 			"filterBy": "Filter by Color",
 			"all": "All Colors",

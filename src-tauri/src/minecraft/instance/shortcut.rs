@@ -74,7 +74,7 @@ pub fn sanitize_shortcut_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::minecraft::instance::models::{InstanceColorTag, InstanceConfig, ModLoaderType};
+    use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
     use std::path::Path;
 
     fn sample_instance(id: &str, name: &str, loader: ModLoaderType) -> InstanceConfig {
@@ -187,7 +187,7 @@ mod tests {
         let mut instance = sample_instance("steam-inst-1", "Deck Adventure", ModLoaderType::Fabric);
         instance.icon = Some("preset:creeper".to_string());
         instance.group = Some("1.21 SMP".to_string());
-        instance.color_tag = Some(InstanceColorTag::Emerald);
+        instance.color_tag = Some("#38bdf8".to_string());
         instance.last_played = Some(1_715_000_000);
         let target_exe = Path::new("/opt/ingot/ingot");
 

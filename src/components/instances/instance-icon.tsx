@@ -1,7 +1,20 @@
 import { cn } from "cn"
 import type React from "react"
-import type { InstanceColorTag, ModLoaderType, ServerCoreType } from "@/bindings"
+import type { ModLoaderType, ServerCoreType } from "@/bindings"
 import LoaderIcon from "@/components/instances/loader-icon"
+
+export type PresetColorTagId =
+	| "red"
+	| "orange"
+	| "amber"
+	| "emerald"
+	| "cyan"
+	| "blue"
+	| "violet"
+	| "pink"
+	| "rose"
+
+export type InstanceColorTag = PresetColorTagId | string
 
 export type PresetIconId =
 	| "creeper"
@@ -326,7 +339,7 @@ export const PRESET_ICONS: readonly PresetIconDefinition[] = [
 ]
 
 export interface ColorTagDefinition {
-	id: InstanceColorTag
+	id: string
 	labelKey: string
 	defaultLabel: string
 	dotClass: string
@@ -335,6 +348,7 @@ export interface ColorTagDefinition {
 	badgeClass: string
 	ringClass: string
 	hex: string
+	isCustom?: boolean
 }
 
 export const COLOR_TAGS: readonly ColorTagDefinition[] = [
@@ -439,17 +453,41 @@ export const COLOR_TAGS: readonly ColorTagDefinition[] = [
 	},
 ]
 
+export const isValidHexColor = (value: string | null | undefined): boolean => {
+	if (!value) {
+		return false
+	}
+	return /^#[0-9a-fA-F]{6}$/.test(value.trim())
+}
+
 export const getColorTagDefinition = (
-	colorTag: InstanceColorTag | null | undefined,
+	colorTag: string | null | undefined,
 ): ColorTagDefinition | null => {
 	if (!colorTag) {
 		return null
 	}
-	return (
-		COLOR_TAGS.find((entry) => {
-			return entry.id === colorTag
-		}) ?? null
-	)
+	const trimmed = colorTag.trim().toLowerCase()
+	const preset = COLOR_TAGS.find((entry) => {
+		return entry.id === trimmed || entry.hex.toLowerCase() === trimmed
+	})
+	if (preset) {
+		return preset
+	}
+	if (isValidHexColor(trimmed)) {
+		return {
+			id: trimmed,
+			labelKey: "instances.colors.custom",
+			defaultLabel: trimmed.toUpperCase(),
+			dotClass: "",
+			glowClass: "",
+			borderClass: "",
+			badgeClass: "",
+			ringClass: "",
+			hex: trimmed,
+			isCustom: true,
+		}
+	}
+	return null
 }
 
 export const findPresetIcon = (

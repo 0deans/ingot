@@ -63,5 +63,5 @@ pub struct InstanceConfig {
     #[serde(default)]
     pub group: Option<String>,
     #[serde(default)]
-    pub color_tag: Option<InstanceColorTag>,
+    pub color_tag: Option<String>,
 }

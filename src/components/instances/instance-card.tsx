@@ -21,11 +21,10 @@ import {
 	X,
 } from "lucide-react"
 import { motion } from "motion/react"
-import { memo, useEffect, useState } from "react"
+import { memo, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import type {
-	InstanceColorTag,
 	InstanceConfig,
 	InstanceWorldSummary,
 	LaunchProgressEvent,
@@ -37,6 +36,7 @@ import { DirectConnectDialog } from "@/components/instances/direct-connect-dialo
 import InstanceIcon, {
 	COLOR_TAGS,
 	getColorTagDefinition,
+	type InstanceColorTag,
 } from "@/components/instances/instance-icon"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -116,6 +116,7 @@ export const InstanceCard = ({
 	const { t } = useTranslation()
 	const isRunning = !!runningInfo
 	const isDownloading = !!progress && !isRunning
+	const customColorInputRef = useRef<HTMLInputElement | null>(null)
 
 	const [elapsedSeconds, setElapsedSeconds] = useState(0)
 	const [worlds, setWorlds] = useState<InstanceWorldSummary[]>([])
@@ -231,17 +232,40 @@ export const InstanceCard = ({
 		cardStateClasses = "border-primary/40 ring-1 ring-primary/20"
 	} else if (isDownloading) {
 		cardStateClasses = "border-warning/40 ring-1 ring-warning/20"
-	} else if (colorTagDef) {
+	} else if (colorTagDef && !colorTagDef.isCustom) {
 		cardStateClasses = colorTagDef.borderClass
 	}
 
+	const customCardStyle =
+		!isRunning && !isDownloading && colorTagDef?.isCustom
+			? { borderColor: `${colorTagDef.hex}59` }
+			: undefined
+	const customGlowStyle = colorTagDef?.isCustom
+		? {
+				background: `linear-gradient(135deg, ${colorTagDef.hex}1f 0%, ${colorTagDef.hex}0a 50%, transparent 100%)`,
+			}
+		: undefined
+
 	return (
 		<motion.div
+			style={customCardStyle}
 			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${cardStateClasses}`}
 		>
+			<input
+				ref={customColorInputRef}
+				type="color"
+				value={colorTagDef?.hex ?? "#3b82f6"}
+				onChange={(e) => {
+					return void handleSetColorTag(e.target.value)
+				}}
+				className="pointer-events-none absolute right-5 bottom-4 size-6 opacity-0"
+				tabIndex={-1}
+				aria-hidden="true"
+			/>
 			{colorTagDef && (
 				<div
-					className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${colorTagDef.glowClass}`}
+					style={customGlowStyle}
+					className={`pointer-events-none absolute inset-0 ${colorTagDef.isCustom ? "" : `bg-gradient-to-br ${colorTagDef.glowClass}`}`}
 				/>
 			)}
 
@@ -560,7 +584,7 @@ export const InstanceCard = ({
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										{COLOR_TAGS.map((tag) => {
-											const isSelected = instance.colorTag === tag.id
+											const isSelected = colorTagDef?.id === tag.id
 											return (
 												<DropdownMenuItem
 													key={tag.id}
@@ -577,6 +601,26 @@ export const InstanceCard = ({
 												</DropdownMenuItem>
 											)
 										})}
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											onClick={() => {
+												customColorInputRef.current?.click()
+											}}
+											className="cursor-pointer justify-between gap-2"
+										>
+											<span className="flex items-center gap-2 text-xs">
+												<span
+													className="size-2.5 rounded-full border border-border"
+													style={{
+														background: colorTagDef?.isCustom
+															? colorTagDef.hex
+															: "conic-gradient(from 0deg, #ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ec4899, #ef4444)",
+													}}
+												/>
+												{t("instances.colors.custom", { defaultValue: "Custom Color..." })}
+											</span>
+											{colorTagDef?.isCustom && <Check className="size-3.5 text-primary" />}
+										</DropdownMenuItem>
 									</DropdownMenuSubContent>
 								</DropdownMenuSub>
 								<DropdownMenuSub>

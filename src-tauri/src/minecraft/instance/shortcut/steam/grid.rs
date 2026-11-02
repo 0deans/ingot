@@ -5,7 +5,7 @@ use image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
 use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 
-use crate::minecraft::instance::models::{InstanceColorTag, InstanceConfig, ModLoaderType};
+use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
 use crate::minecraft::instance::shortcut::icons::resolve_instance_icon_bytes;
 use crate::minecraft::instance::shortcut::ShortcutError;
 
@@ -58,45 +58,70 @@ fn palette_for_loader(loader: &ModLoaderType) -> LoaderPalette {
     }
 }
 
-fn palette_for_color_tag(tag: InstanceColorTag) -> LoaderPalette {
-    match tag {
-        InstanceColorTag::Red => LoaderPalette {
+fn palette_for_color_tag(tag: &str) -> Option<LoaderPalette> {
+    let trimmed = tag.trim();
+    if let Some(rgb) = parse_hex_color(trimmed) {
+        let secondary = [
+            (u16::from(rgb[0]) * 38 / 100) as u8,
+            (u16::from(rgb[1]) * 38 / 100) as u8,
+            (u16::from(rgb[2]) * 38 / 100) as u8,
+        ];
+        return Some(LoaderPalette {
+            primary: rgb,
+            secondary,
+        });
+    }
+
+    match trimmed.to_ascii_lowercase().as_str() {
+        "red" => Some(LoaderPalette {
             primary: [239, 68, 68],
             secondary: [92, 18, 24],
-        },
-        InstanceColorTag::Orange => LoaderPalette {
+        }),
+        "orange" => Some(LoaderPalette {
             primary: [249, 115, 22],
             secondary: [98, 38, 12],
-        },
-        InstanceColorTag::Amber => LoaderPalette {
+        }),
+        "amber" => Some(LoaderPalette {
             primary: [245, 158, 11],
             secondary: [96, 58, 10],
-        },
-        InstanceColorTag::Emerald => LoaderPalette {
+        }),
+        "emerald" => Some(LoaderPalette {
             primary: [16, 185, 129],
             secondary: [10, 74, 52],
-        },
-        InstanceColorTag::Cyan => LoaderPalette {
+        }),
+        "cyan" => Some(LoaderPalette {
             primary: [6, 182, 212],
             secondary: [12, 68, 86],
-        },
-        InstanceColorTag::Blue => LoaderPalette {
+        }),
+        "blue" => Some(LoaderPalette {
             primary: [59, 130, 246],
             secondary: [18, 46, 102],
-        },
-        InstanceColorTag::Violet => LoaderPalette {
+        }),
+        "violet" => Some(LoaderPalette {
             primary: [139, 92, 246],
             secondary: [52, 26, 104],
-        },
-        InstanceColorTag::Pink => LoaderPalette {
+        }),
+        "pink" => Some(LoaderPalette {
             primary: [236, 72, 153],
             secondary: [92, 20, 58],
-        },
-        InstanceColorTag::Rose => LoaderPalette {
+        }),
+        "rose" => Some(LoaderPalette {
             primary: [244, 63, 94],
             secondary: [96, 18, 38],
-        },
+        }),
+        _ => None,
     }
+}
+
+fn parse_hex_color(value: &str) -> Option<[u8; 3]> {
+    let hex = value.strip_prefix('#')?;
+    if hex.len() != 6 {
+        return None;
+    }
+    let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+    let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+    let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+    Some([r, g, b])
 }
 
 #[derive(Debug, Clone)]
@@ -124,7 +149,8 @@ pub fn generate_steam_grid_assets(
     let latest_screenshot = load_latest_screenshot(instance_dir);
     let palette = instance
         .color_tag
-        .map(palette_for_color_tag)
+        .as_deref()
+        .and_then(palette_for_color_tag)
         .unwrap_or_else(|| palette_for_loader(&instance.loader));
 
     let portrait_path = grid_dir.join(format!("{app_id}p.png"));

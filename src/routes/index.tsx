@@ -13,18 +13,13 @@ import {
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import * as v from "valibot"
-import type {
-	InstanceColorTag,
-	InstanceConfig,
-	ModLoaderType,
-	QuickPlayOptions,
-	SyncConflictInfo,
-} from "@/bindings"
+import type { InstanceConfig, ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
 import BedrockCard from "@/components/instances/bedrock-card"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
+import { getColorTagDefinition, type InstanceColorTag } from "@/components/instances/instance-icon"
 import InstanceSearchHeader, {
 	type InstanceSortOption,
 } from "@/components/instances/instance-search-header"
@@ -256,6 +251,19 @@ const InstancesPage = () => {
 		})
 	}, [instances])
 
+	const usedColors = useMemo(() => {
+		const seen = new Set<string>()
+		const result: string[] = []
+		for (const inst of instances) {
+			const def = getColorTagDefinition(inst.colorTag)
+			if (def && !seen.has(def.id)) {
+				seen.add(def.id)
+				result.push(def.id)
+			}
+		}
+		return result
+	}, [instances])
+
 	const totalPlaytimeAllSeconds = useMemo(() => {
 		let sum = 0
 		for (const inst of instances) {
@@ -266,9 +274,13 @@ const InstancesPage = () => {
 
 	const filteredInstances = useMemo(() => {
 		const q = searchQuery.trim().toLowerCase()
+		const selectedColorDef = getColorTagDefinition(selectedColorTag)
 		const filtered = instances.filter((i) => {
-			if (selectedColorTag && i.colorTag !== selectedColorTag) {
-				return false
+			if (selectedColorDef) {
+				const instColorDef = getColorTagDefinition(i.colorTag)
+				if (instColorDef?.id !== selectedColorDef.id) {
+					return false
+				}
 			}
 			if (!q) {
 				return true
@@ -429,6 +441,7 @@ const InstancesPage = () => {
 					onSortChange={handleSortChange}
 					selectedColorTag={selectedColorTag}
 					onColorTagChange={setSelectedColorTag}
+					usedColors={usedColors}
 					onOpenNewInstance={() =>
 						navigate({
 							search: (prev) => ({ ...prev, action: "new" }),

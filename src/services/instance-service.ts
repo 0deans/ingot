@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 import { create } from "zustand"
 import type {
 	HorizonRelease,
-	InstanceColorTag,
 	InstanceConfig,
 	InstanceStatusEvent,
 	InstanceWorldSummary,
@@ -15,6 +14,7 @@ import type {
 	ShortcutResult,
 	VersionManifestEntry,
 } from "@/bindings"
+import type { InstanceColorTag } from "@/components/instances/instance-icon"
 import { rpc, unwrapRpc } from "@/lib/rpc"
 
 interface InstanceState {

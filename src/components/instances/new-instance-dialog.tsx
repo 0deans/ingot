@@ -2,10 +2,12 @@ import { Folder, ImagePlus, RotateCcw } from "lucide-react"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import type { InstanceColorTag, ModLoaderType, VersionManifestEntry } from "@/bindings"
+import type { ModLoaderType, VersionManifestEntry } from "@/bindings"
 import SearchableSelect from "@/components/common/searchable-select"
 import InstanceIcon, {
 	COLOR_TAGS,
+	getColorTagDefinition,
+	type InstanceColorTag,
 	PRESET_ICONS,
 	processUploadedIconFile,
 } from "@/components/instances/instance-icon"
@@ -495,9 +497,10 @@ const NewInstanceDialog = ({
 										</button>
 									)}
 								</div>
-								<div className="flex items-center gap-2 pt-0.5">
+								<div className="flex flex-wrap items-center gap-2 pt-0.5">
 									{COLOR_TAGS.map((tag) => {
-										const isSelected = colorTag === tag.id
+										const activeColorDef = getColorTagDefinition(colorTag)
+										const isSelected = activeColorDef?.id === tag.id
 										return (
 											<button
 												key={tag.id}
@@ -514,6 +517,34 @@ const NewInstanceDialog = ({
 											</button>
 										)
 									})}
+									<label
+										title={t("instances.colors.custom", { defaultValue: "Custom Color..." })}
+										className={`relative inline-flex h-6 cursor-pointer items-center gap-1.5 rounded-full border px-2 text-3xs font-medium transition-all ${
+											getColorTagDefinition(colorTag)?.isCustom
+												? "border-foreground bg-card text-foreground ring-1 ring-primary/40"
+												: "border-border/70 bg-background/60 text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										<input
+											type="color"
+											value={getColorTagDefinition(colorTag)?.hex ?? "#3b82f6"}
+											onChange={(e) => setColorTag(e.target.value)}
+											className="absolute inset-0 size-full cursor-pointer opacity-0"
+										/>
+										<span
+											className="size-3 rounded-full border border-border/60"
+											style={{
+												background: getColorTagDefinition(colorTag)?.isCustom
+													? getColorTagDefinition(colorTag)?.hex
+													: "conic-gradient(from 0deg, #ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ec4899, #ef4444)",
+											}}
+										/>
+										<span>
+											{getColorTagDefinition(colorTag)?.isCustom
+												? getColorTagDefinition(colorTag)?.defaultLabel
+												: t("instances.colors.customShort", { defaultValue: "Custom" })}
+										</span>
+									</label>
 								</div>
 							</div>
 
