@@ -7,8 +7,8 @@ pub mod steam;
 use serde::{Deserialize, Serialize};
 
 pub use icons::{
-    get_default_loader_icon_ico, get_default_loader_icon_png, png_to_ico, resolve_instance_icon,
-    resolve_instance_icon_bytes,
+    get_default_loader_icon_ico, get_default_loader_icon_png, png_to_ico, render_preset_icon_png,
+    resolve_instance_icon, resolve_instance_icon_bytes,
 };
 #[cfg(target_os = "linux")]
 pub use os::create_linux_shortcut;
@@ -74,7 +74,7 @@ pub fn sanitize_shortcut_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
+    use crate::minecraft::instance::models::{InstanceColorTag, InstanceConfig, ModLoaderType};
     use std::path::Path;
 
     fn sample_instance(id: &str, name: &str, loader: ModLoaderType) -> InstanceConfig {
@@ -88,6 +88,8 @@ mod tests {
             memory_min_mb: None,
             memory_max_mb: None,
             icon: None,
+            group: None,
+            color_tag: None,
             created_at: 0,
             last_played: None,
             total_play_time_seconds: 0,
@@ -182,7 +184,11 @@ mod tests {
 
         let instance_dir = temp_dir.path().join("instance");
         std::fs::create_dir_all(&instance_dir).unwrap();
-        let instance = sample_instance("steam-inst-1", "Deck Adventure", ModLoaderType::Fabric);
+        let mut instance = sample_instance("steam-inst-1", "Deck Adventure", ModLoaderType::Fabric);
+        instance.icon = Some("preset:creeper".to_string());
+        instance.group = Some("1.21 SMP".to_string());
+        instance.color_tag = Some(InstanceColorTag::Emerald);
+        instance.last_played = Some(1_715_000_000);
         let target_exe = Path::new("/opt/ingot/ingot");
 
         let resolved_configs = steam::resolve_userdata_config_dirs(&[steam_root]);
@@ -223,6 +229,13 @@ mod tests {
 
         let icon = image::open(grid_dir.join(format!("{app_id}_icon.png"))).unwrap();
         assert_eq!((icon.width(), icon.height()), (256, 256));
+
+        let preset_png = render_preset_icon_png("preset:creeper").unwrap();
+        let decoded_preset = image::load_from_memory(&preset_png).unwrap();
+        assert_eq!(
+            (decoded_preset.width(), decoded_preset.height()),
+            (256, 256)
+        );
 
         // Corrupting shortcuts.vdf must fail with SteamCorruptVdf and not overwrite the file
         let corrupt_payload = b"\x00shortcuts\x00\x99invalid";

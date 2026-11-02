@@ -1,7 +1,14 @@
-import { memo, useEffect, useMemo, useState } from "react"
+import { Folder, ImagePlus, RotateCcw } from "lucide-react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ModLoaderType, VersionManifestEntry } from "@/bindings"
+import { toast } from "sonner"
+import type { InstanceColorTag, ModLoaderType, VersionManifestEntry } from "@/bindings"
 import SearchableSelect from "@/components/common/searchable-select"
+import InstanceIcon, {
+	COLOR_TAGS,
+	PRESET_ICONS,
+	processUploadedIconFile,
+} from "@/components/instances/instance-icon"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -20,6 +27,12 @@ import { Spinner } from "@/components/ui/spinner"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { instanceService } from "@/services/instance-service"
 
+export interface NewInstanceCustomization {
+	group: string | null
+	colorTag: InstanceColorTag | null
+	icon: string | null
+}
+
 interface NewInstanceDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -28,8 +41,10 @@ interface NewInstanceDialogProps {
 		gameVersion: string,
 		loader: ModLoaderType,
 		loaderVersion: string | null,
+		customization?: NewInstanceCustomization,
 	) => Promise<void> | void
 	initialVersion?: string
+	existingGroups?: string[]
 }
 
 const LOADERS: { id: ModLoaderType; label: string; badge?: string }[] = [
@@ -46,13 +61,37 @@ const NewInstanceDialog = ({
 	onOpenChange,
 	onCreateInstance,
 	initialVersion,
+	existingGroups = [],
 }: NewInstanceDialogProps) => {
 	const { t } = useTranslation()
+	const iconFileInputRef = useRef<HTMLInputElement | null>(null)
 	const [instanceName, setInstanceName] = useState("")
 	const [gameVersion, setGameVersion] = useState("1.21.4")
 	const [loader, setLoader] = useState<ModLoaderType>("vanilla")
 	const [loaderVersion, setLoaderVersion] = useState<string>("")
 	const [showSnapshots, setShowSnapshots] = useState(false)
+	const [group, setGroup] = useState("")
+	const [colorTag, setColorTag] = useState<InstanceColorTag | null>(null)
+	const [iconSpec, setIconSpec] = useState<string | null>(null)
+
+	const handleUploadIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0]
+		e.target.value = ""
+		if (!file) {
+			return
+		}
+		try {
+			const encoded = await processUploadedIconFile(file)
+			setIconSpec(encoded)
+		} catch (err) {
+			toast.error(
+				t("instanceSettings.iconUploadFailed", {
+					defaultValue: "Failed to process icon image: {{error}}",
+					error: err instanceof Error ? err.message : String(err),
+				}),
+			)
+		}
+	}
 
 	const [versions, setVersions] = useState<VersionManifestEntry[]>([])
 	const [loaderVersions, setLoaderVersions] = useState<string[]>([])
@@ -67,6 +106,10 @@ const NewInstanceDialog = ({
 		setIsLoadingVersions(true)
 	} else if (!open && prevOpen) {
 		setPrevOpen(false)
+		setGroup("")
+		setColorTag(null)
+		setIconSpec(null)
+		setIsCustomName(false)
 	}
 
 	// Fetch game versions when dialog opens
@@ -220,8 +263,16 @@ const NewInstanceDialog = ({
 				gameVersion,
 				loader,
 				loader !== "vanilla" ? loaderVersion || null : null,
+				{
+					group: group.trim() ? group.trim() : null,
+					colorTag,
+					icon: iconSpec,
+				},
 			)
 			setInstanceName("")
+			setGroup("")
+			setColorTag(null)
+			setIconSpec(null)
 			setIsCustomName(false)
 			onOpenChange(false)
 		} catch (e) {
@@ -233,7 +284,7 @@ const NewInstanceDialog = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] sm:max-w-lg">
+			<DialogContent className="max-h-[90vh] sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle className="text-lg font-semibold">{t("newInstance.title")}</DialogTitle>
 					<DialogDescription className="text-xs text-muted-foreground">
@@ -241,8 +292,8 @@ const NewInstanceDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="-mx-1 max-h-[65vh] scroll-fade-y px-1">
-					<div className="grid gap-4 p-1">
+				<ScrollArea className="-mr-2 max-h-[68vh] scroll-fade-y pr-2">
+					<div className="grid gap-4 py-1 pr-1">
 						{/* Mod Loader Selector */}
 						<div className="grid gap-1.5">
 							<div className="text-xs font-medium text-muted-foreground">
@@ -385,6 +436,154 @@ const NewInstanceDialog = ({
 								}}
 								className="text-xs font-medium"
 							/>
+						</div>
+
+						{/* Optional Group & Color Tag */}
+						<div className="grid gap-3 rounded-xl border border-border/70 bg-card/30 p-3.5">
+							<div className="grid gap-1.5">
+								<Label
+									htmlFor="instance-group"
+									className="text-xs font-medium text-muted-foreground"
+								>
+									{t("instanceSettings.groupTitle", { defaultValue: "Group / Folder" })}
+								</Label>
+								<Input
+									id="instance-group"
+									value={group}
+									onChange={(e) => setGroup(e.target.value)}
+									placeholder={t("instanceSettings.groupPlaceholder", {
+										defaultValue: "e.g. Vanilla, Modpacks, 1.21 SMP",
+									})}
+									className="h-8 text-xs"
+								/>
+								{existingGroups.length > 0 && (
+									<div className="flex flex-wrap gap-1.5 pt-0.5">
+										{existingGroups.slice(0, 6).map((g) => {
+											const isCurrent = group.trim() === g
+											return (
+												<button
+													key={g}
+													type="button"
+													onClick={() => setGroup(isCurrent ? "" : g)}
+													className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-2xs transition-colors ${
+														isCurrent
+															? "border-primary bg-primary/10 text-primary"
+															: "border-border/70 bg-background/60 text-muted-foreground hover:border-border hover:text-foreground"
+													}`}
+												>
+													<Folder className="size-3 text-amber-400" />
+													<span>{g}</span>
+												</button>
+											)
+										})}
+									</div>
+								)}
+							</div>
+
+							<div className="grid gap-1.5 border-t border-border/50 pt-2.5">
+								<div className="flex items-center justify-between">
+									<Label className="text-xs font-medium text-muted-foreground">
+										{t("instanceSettings.colorTagTitle", { defaultValue: "Color Tag" })}
+									</Label>
+									{colorTag && (
+										<button
+											type="button"
+											onClick={() => setColorTag(null)}
+											className="text-2xs text-muted-foreground hover:text-foreground"
+										>
+											{t("instances.colors.none", { defaultValue: "No Color" })}
+										</button>
+									)}
+								</div>
+								<div className="flex items-center gap-2 pt-0.5">
+									{COLOR_TAGS.map((tag) => {
+										const isSelected = colorTag === tag.id
+										return (
+											<button
+												key={tag.id}
+												type="button"
+												onClick={() => setColorTag(isSelected ? null : tag.id)}
+												title={t(tag.labelKey, { defaultValue: tag.defaultLabel })}
+												className={`flex size-6 items-center justify-center rounded-full border transition-all ${
+													isSelected
+														? `border-foreground ring-2 ${tag.ringClass}`
+														: "border-border/70 opacity-75 hover:opacity-100"
+												}`}
+											>
+												<span className={`size-3.5 rounded-full ${tag.dotClass}`} />
+											</button>
+										)
+									})}
+								</div>
+							</div>
+
+							{/* Optional Icon Picker (Presets + Upload) */}
+							<div className="grid gap-2 border-t border-border/50 pt-2.5">
+								<div className="flex items-center justify-between gap-2">
+									<div className="flex items-center gap-2">
+										<div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+											<InstanceIcon icon={iconSpec} loader={loader} size={20} />
+										</div>
+										<Label className="text-xs font-medium text-muted-foreground">
+											{t("instanceSettings.iconTitle", { defaultValue: "Instance Icon" })}
+										</Label>
+									</div>
+									<div className="flex items-center gap-1.5">
+										<input
+											ref={iconFileInputRef}
+											type="file"
+											accept="image/png,image/jpeg,image/webp,image/gif"
+											onChange={(e) => {
+												return void handleUploadIconChange(e)
+											}}
+											className="hidden"
+										/>
+										<Button
+											type="button"
+											variant="outline"
+											size="xs"
+											onClick={() => iconFileInputRef.current?.click()}
+											className="gap-1.5"
+										>
+											<ImagePlus className="size-3.5 text-primary" />
+											{t("instanceSettings.uploadIcon", { defaultValue: "Upload PNG / GIF" })}
+										</Button>
+										{iconSpec != null && (
+											<Button
+												type="button"
+												variant="ghost"
+												size="xs"
+												onClick={() => setIconSpec(null)}
+												className="gap-1 text-muted-foreground"
+											>
+												<RotateCcw className="size-3" />
+												{t("common.reset", { defaultValue: "Reset" })}
+											</Button>
+										)}
+									</div>
+								</div>
+
+								<div className="grid grid-cols-6 gap-1.5 sm:grid-cols-6">
+									{PRESET_ICONS.map((preset) => {
+										const isSelected = iconSpec === preset.spec
+										return (
+											<button
+												key={preset.id}
+												type="button"
+												onClick={() => setIconSpec(isSelected ? null : preset.spec)}
+												title={t(preset.labelKey, { defaultValue: preset.defaultLabel })}
+												className={`flex h-9 items-center justify-center rounded-lg border bg-background/60 transition-all hover:border-primary/60 hover:bg-card ${
+													isSelected
+														? "border-primary bg-primary/10 ring-1 ring-primary/40"
+														: "border-border/60"
+												}`}
+											>
+												<InstanceIcon icon={preset.spec} loader={loader} size={22} />
+											</button>
+										)
+									})}
+								</div>
+							</div>
 						</div>
 					</div>
 				</ScrollArea>

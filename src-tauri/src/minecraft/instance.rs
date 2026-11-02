@@ -12,7 +12,7 @@ mod storage;
 mod tests;
 pub use error::InstanceError;
 mod worlds;
-pub use models::{InstanceConfig, ModLoaderType};
+pub use models::{InstanceColorTag, InstanceConfig, ModLoaderType};
 pub use shortcut::{ShortcutError, ShortcutLocation, ShortcutResult};
 pub use worlds::{get_instance_worlds, InstanceWorldSummary};
 
@@ -105,6 +105,8 @@ pub(crate) fn prepare_instance(
         sync_command_history: None,
         sync_creative_hotbars: None,
         last_synced_at: None,
+        group: None,
+        color_tag: None,
     };
 
     Ok(instance)

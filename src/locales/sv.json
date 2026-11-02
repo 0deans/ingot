@@ -31,7 +31,8 @@
 		"update": "Uppdatera",
 		"enable": "Aktivera",
 		"previous": "Föregående",
-		"next": "Nästa"
+		"next": "Nästa",
+		"reset": "Reset"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Välj ditt språk",
@@ -140,6 +141,9 @@
 		"noMatchTitle": "Inga instanser hittades för \"{{query}}\"",
 		"noMatchSubtitle": "Prova att söka efter ett annat namn, en annan version eller modladdare.",
 		"card": {
+			"zeroPlaytime": "0m played",
+			"colorTag": "Color Tag",
+			"groupMenu": "Group / Folder",
 			"neverPlayed": "Aldrig spelad",
 			"preparing": "Förbereder",
 			"preparingBtn": "Förbereder...",
@@ -175,7 +179,34 @@
 			"shortcutFailed": "Kunde inte skapa genväg: {{error}}",
 			"moreActions": "Fler åtgärder"
 		},
-		"activeEntry": "{{name}} (PID {{pid}})"
+		"activeEntry": "{{name}} (PID {{pid}})",
+		"totalPlaytimeAll": "Total playtime: {{duration}}",
+		"sort": {
+			"label": "Sort By",
+			"lastPlayed": "Last Played",
+			"playtime": "Total Playtime",
+			"name": "Name (A–Z)",
+			"createdAt": "Recently Created"
+		},
+		"colors": {
+			"filter": "Color",
+			"filterBy": "Filter by Color",
+			"all": "All Colors",
+			"none": "No Color",
+			"red": "Red",
+			"orange": "Orange",
+			"amber": "Amber",
+			"emerald": "Emerald",
+			"cyan": "Cyan",
+			"blue": "Blue",
+			"violet": "Violet",
+			"pink": "Pink",
+			"rose": "Rose"
+		},
+		"groups": {
+			"ungrouped": "Ungrouped",
+			"editInSettings": "Edit Group in Settings..."
+		}
 	},
 	"modpacks": {
 		"title": "Upptäck innehåll",
@@ -1452,6 +1483,20 @@
 		"device": "Enhetens lagring"
 	},
 	"instanceSettings": {
+		"iconTitle": "Instance Icon",
+		"iconHint": "Choose a built-in preset, upload a custom PNG/GIF, or use the default loader icon.",
+		"uploadIcon": "Upload PNG / GIF",
+		"iconUploadFailed": "Failed to process icon image: {{error}}",
+		"groupTitle": "Group / Folder",
+		"groupHint": "Organize instances into collapsible categories and Steam Library collections.",
+		"groupPlaceholder": "e.g. Vanilla, Modpacks, 1.21 SMP",
+		"colorTagTitle": "Color Tag",
+		"colorTagHint": "Color-code the instance card and Steam Grid banner palette.",
+		"playtimeTitle": "Cumulative Playtime",
+		"playtimeHint": "Adjust or reset total recorded lifetime hours and minutes played.",
+		"resetPlaytime": "Reset Timer",
+		"playtimeHours": "hours",
+		"playtimeMinutes": "minutes",
 		"pushFailed": "Det gick inte att skicka: {{error}}",
 		"pullFailed": "Det gick inte att hämta: {{error}}",
 		"saveFailed": "Det gick inte att spara inställningarna: {{error}}",
@@ -1754,5 +1799,21 @@
 		"openBehaviorPacks": "Beteendepaket",
 		"openScreenshots": "Skärmdumpsmapp",
 		"store": "Microsoft Store-sida"
+	},
+	"instanceIcon": {
+		"presets": {
+			"creeper": "Creeper",
+			"grass": "Grass Block",
+			"sword": "Diamond Sword",
+			"pickaxe": "Diamond Pickaxe",
+			"redstone": "Redstone",
+			"ender": "Ender Pearl",
+			"nether": "Nether Portal",
+			"potion": "Potion",
+			"commandBlock": "Command Block",
+			"chest": "Chest",
+			"beacon": "Beacon",
+			"book": "Enchanted Book"
+		}
 	}
 }

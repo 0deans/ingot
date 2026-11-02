@@ -3,30 +3,42 @@ import {
 	AlertTriangle,
 	ArrowUpDown,
 	CheckCircle2,
+	Clock,
 	Cpu,
 	DownloadCloud,
+	Folder,
 	FolderOpen,
 	Gamepad2,
 	HardDrive,
+	ImagePlus,
 	LayoutGrid,
 	Monitor,
+	Palette,
 	RefreshCw,
+	RotateCcw,
 	Share2,
 	Terminal,
 	Undo2,
 	UploadCloud,
 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import type {
+	InstanceColorTag,
 	InstanceConfig,
+	ModLoaderType,
 	ShortcutLocation,
 	VersionBackup,
 	VersionTransactionStatus,
 } from "@/bindings"
 import ChangeVersionDialog from "@/components/instances/change-version-dialog"
 import InitialSyncDialog from "@/components/instances/initial-sync-dialog"
+import InstanceIcon, {
+	COLOR_TAGS,
+	PRESET_ICONS,
+	processUploadedIconFile,
+} from "@/components/instances/instance-icon"
 import LoaderIcon from "@/components/instances/loader-icon"
 import { Button } from "@/components/ui/button"
 import {
@@ -58,6 +70,7 @@ import {
 interface InstanceSettingsDialogProps {
 	instance: InstanceConfig | null
 	open: boolean
+	existingGroups?: string[]
 	onOpenChange: (open: boolean) => void
 	onSave?: (updated: InstanceConfig) => Promise<void> | void
 }
@@ -71,10 +84,19 @@ function backupSide(backup: VersionBackup, side: "from" | "to"): string {
 
 const STEP_MB = 256
 const MIN_RAM_LIMIT_MB = 512
+const LOADER_ICON_CHOICES: readonly ModLoaderType[] = [
+	"vanilla",
+	"fabric",
+	"quilt",
+	"neoforge",
+	"forge",
+	"horizon",
+]
 
 export const InstanceSettingsDialog = ({
 	instance,
 	open,
+	existingGroups = [],
 	onOpenChange,
 	onSave,
 }: InstanceSettingsDialogProps) => {
@@ -84,7 +106,15 @@ export const InstanceSettingsDialog = ({
 	const { syncSettings: globalSync } = useSyncSettings()
 	const totalRamMb = systemMemory?.totalMb || 16384
 
+	const iconFileInputRef = useRef<HTMLInputElement | null>(null)
+
 	const [name, setName] = useState("")
+	const [iconSpec, setIconSpec] = useState<string | null>(null)
+	const [group, setGroup] = useState("")
+	const [colorTag, setColorTag] = useState<InstanceColorTag | null>(null)
+	const [playtimeHours, setPlaytimeHours] = useState(0)
+	const [playtimeMinutes, setPlaytimeMinutes] = useState(0)
+	const [playtimeRemainderSeconds, setPlaytimeRemainderSeconds] = useState(0)
 	const [useCustomRam, setUseCustomRam] = useState(false)
 	const [minRamMb, setMinRamMb] = useState(2048)
 	const [maxRamMb, setMaxRamMb] = useState(4096)
@@ -126,6 +156,13 @@ export const InstanceSettingsDialog = ({
 	if (instance && instance !== prevInstance) {
 		setPrevInstance(instance)
 		setName(instance.name)
+		setIconSpec(instance.icon ?? null)
+		setGroup(instance.group ?? "")
+		setColorTag(instance.colorTag ?? null)
+		const totalSec = Math.max(0, instance.totalPlayTimeSeconds || 0)
+		setPlaytimeHours(Math.floor(totalSec / 3600))
+		setPlaytimeMinutes(Math.floor((totalSec % 3600) / 60))
+		setPlaytimeRemainderSeconds(totalSec % 60)
 		const hasCustom = instance.memoryMinMb != null || instance.memoryMaxMb != null
 		setUseCustomRam(hasCustom)
 		setMinRamMb(instance.memoryMinMb ?? globalMemory.minRamMb)
@@ -332,11 +369,41 @@ export const InstanceSettingsDialog = ({
 		[instance, t],
 	)
 
+	const handleUploadIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0]
+		e.target.value = ""
+		if (!file) {
+			return
+		}
+		try {
+			const encoded = await processUploadedIconFile(file)
+			setIconSpec(encoded)
+		} catch (err) {
+			toast.error(
+				t("instanceSettings.iconUploadFailed", {
+					defaultValue: "Failed to process icon image: {{error}}",
+					error: err instanceof Error ? err.message : String(err),
+				}),
+			)
+		}
+	}
+
+	const handleResetPlaytime = () => {
+		setPlaytimeHours(0)
+		setPlaytimeMinutes(0)
+		setPlaytimeRemainderSeconds(0)
+	}
+
 	const handleSave = async () => {
 		if (!instance) return
 		setIsSaving(true)
 		try {
 			const parsedArgs = jvmArgsStr.trim().split(/\s+/).filter(Boolean)
+			const normalizedGroup = group.trim() ? group.trim() : null
+			const computedPlaytimeSeconds =
+				Math.max(0, Math.floor(playtimeHours)) * 3600 +
+				Math.max(0, Math.floor(playtimeMinutes)) * 60 +
+				playtimeRemainderSeconds
 
 			// The version may have changed (or been undone) while this dialog was open
 			const latest =
@@ -346,6 +413,10 @@ export const InstanceSettingsDialog = ({
 			const updated: InstanceConfig = {
 				...latest,
 				name: name.trim() || instance.name,
+				icon: iconSpec,
+				group: normalizedGroup,
+				colorTag,
+				totalPlayTimeSeconds: computedPlaytimeSeconds,
 				memoryMinMb: useCustomRam ? minRamMb : null,
 				memoryMaxMb: useCustomRam ? maxRamMb : null,
 				jvmArgs: parsedArgs.length > 0 ? parsedArgs : null,
@@ -386,7 +457,7 @@ export const InstanceSettingsDialog = ({
 			<DialogContent className="max-h-[90vh] w-full gap-3 p-4 sm:max-w-xl sm:p-5 md:max-w-2xl">
 				<DialogHeader className="gap-1.5">
 					<div className="flex items-center gap-2.5">
-						<LoaderIcon loader={instance.loader} size={24} />
+						<InstanceIcon icon={iconSpec} loader={instance.loader} size={24} />
 						<DialogTitle className="text-lg font-semibold text-foreground">
 							{t("instanceSettings.title")}
 						</DialogTitle>
@@ -414,6 +485,264 @@ export const InstanceSettingsDialog = ({
 								placeholder={t("instanceSettings.namePlaceholder")}
 								className="h-9 text-xs"
 							/>
+						</div>
+
+						{/* Custom Icon & Organization (Group + Color Tag + Playtime) */}
+						<div className="flex flex-col gap-4 rounded-xl border border-border/80 bg-card/30 p-4">
+							{/* Custom Icon Picker */}
+							<div className="flex flex-col gap-2.5">
+								<div className="flex items-center justify-between gap-2">
+									<div className="flex items-center gap-2.5">
+										<div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-background shadow-inner">
+											<InstanceIcon icon={iconSpec} loader={instance.loader} size={28} />
+										</div>
+										<div>
+											<h4 className="text-xs font-medium text-foreground">
+												{t("instanceSettings.iconTitle", { defaultValue: "Instance Icon" })}
+											</h4>
+											<p className="text-2xs text-muted-foreground">
+												{t("instanceSettings.iconHint", {
+													defaultValue:
+														"Choose a built-in preset, upload a custom PNG/GIF, or use the default loader icon.",
+												})}
+											</p>
+										</div>
+									</div>
+									<div className="flex items-center gap-1.5">
+										<input
+											ref={iconFileInputRef}
+											type="file"
+											accept="image/png,image/jpeg,image/webp,image/gif"
+											onChange={(e) => {
+												return void handleUploadIconChange(e)
+											}}
+											className="hidden"
+										/>
+										<Button
+											type="button"
+											variant="outline"
+											size="xs"
+											onClick={() => iconFileInputRef.current?.click()}
+											className="gap-1.5"
+										>
+											<ImagePlus className="size-3.5 text-primary" />
+											{t("instanceSettings.uploadIcon", { defaultValue: "Upload PNG / GIF" })}
+										</Button>
+										{iconSpec != null && (
+											<Button
+												type="button"
+												variant="ghost"
+												size="xs"
+												onClick={() => setIconSpec(null)}
+												className="gap-1 text-muted-foreground"
+											>
+												<RotateCcw className="size-3" />
+												{t("common.reset", { defaultValue: "Reset" })}
+											</Button>
+										)}
+									</div>
+								</div>
+
+								{/* Built-in Presets & Loader Icons */}
+								<div className="grid grid-cols-6 gap-1.5 sm:grid-cols-9">
+									{PRESET_ICONS.map((preset) => {
+										const isSelected = iconSpec === preset.spec
+										return (
+											<button
+												key={preset.id}
+												type="button"
+												onClick={() => setIconSpec(preset.spec)}
+												title={t(preset.labelKey, { defaultValue: preset.defaultLabel })}
+												className={`flex h-9 items-center justify-center rounded-lg border bg-background/60 transition-all hover:border-primary/60 hover:bg-card ${
+													isSelected
+														? "border-primary bg-primary/10 ring-1 ring-primary/40"
+														: "border-border/60"
+												}`}
+											>
+												<InstanceIcon icon={preset.spec} loader={instance.loader} size={22} />
+											</button>
+										)
+									})}
+									{LOADER_ICON_CHOICES.map((ldr) => {
+										const spec = `loader:${ldr}`
+										const isSelected = iconSpec === spec
+										return (
+											<button
+												key={spec}
+												type="button"
+												onClick={() => setIconSpec(spec)}
+												title={ldr.toUpperCase()}
+												className={`flex h-9 items-center justify-center rounded-lg border bg-background/60 transition-all hover:border-primary/60 hover:bg-card ${
+													isSelected
+														? "border-primary bg-primary/10 ring-1 ring-primary/40"
+														: "border-border/60"
+												}`}
+											>
+												<LoaderIcon loader={ldr} size={20} />
+											</button>
+										)
+									})}
+								</div>
+							</div>
+
+							{/* Group / Folder */}
+							<div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+								<div className="flex items-center gap-2">
+									<Folder className="size-4 text-amber-400" />
+									<div>
+										<h4 className="text-xs font-medium text-foreground">
+											{t("instanceSettings.groupTitle", { defaultValue: "Group / Folder" })}
+										</h4>
+										<p className="text-2xs text-muted-foreground">
+											{t("instanceSettings.groupHint", {
+												defaultValue:
+													"Organize instances into collapsible categories and Steam Library collections.",
+											})}
+										</p>
+									</div>
+								</div>
+								<Input
+									value={group}
+									onChange={(e) => setGroup(e.target.value)}
+									placeholder={t("instanceSettings.groupPlaceholder", {
+										defaultValue: "e.g. Vanilla, Modpacks, 1.21 SMP",
+									})}
+									className="h-8 text-xs"
+								/>
+								{existingGroups.length > 0 && (
+									<div className="flex flex-wrap items-center gap-1.5">
+										{existingGroups.map((existing) => (
+											<Button
+												key={existing}
+												type="button"
+												variant={group.trim() === existing ? "default" : "outline"}
+												size="xs"
+												onClick={() => setGroup(existing)}
+											>
+												{existing}
+											</Button>
+										))}
+									</div>
+								)}
+							</div>
+
+							{/* Color Tag */}
+							<div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+								<div className="flex items-center justify-between gap-2">
+									<div className="flex items-center gap-2">
+										<Palette className="size-4 text-primary" />
+										<div>
+											<h4 className="text-xs font-medium text-foreground">
+												{t("instanceSettings.colorTagTitle", { defaultValue: "Color Tag" })}
+											</h4>
+											<p className="text-2xs text-muted-foreground">
+												{t("instanceSettings.colorTagHint", {
+													defaultValue:
+														"Color-code the instance card and Steam Grid banner palette.",
+												})}
+											</p>
+										</div>
+									</div>
+									{colorTag && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="xs"
+											onClick={() => setColorTag(null)}
+											className="text-2xs text-muted-foreground"
+										>
+											{t("instances.colors.none", { defaultValue: "No Color" })}
+										</Button>
+									)}
+								</div>
+								<div className="flex flex-wrap items-center gap-2">
+									{COLOR_TAGS.map((tag) => {
+										const isSelected = colorTag === tag.id
+										return (
+											<button
+												key={tag.id}
+												type="button"
+												onClick={() => setColorTag(isSelected ? null : tag.id)}
+												className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-2xs font-medium transition-all ${
+													isSelected
+														? `${tag.badgeClass} ring-1 ${tag.ringClass}`
+														: "border-border/70 bg-background/60 text-muted-foreground hover:text-foreground"
+												}`}
+											>
+												<span className={`size-2.5 rounded-full ${tag.dotClass}`} />
+												<span>{t(tag.labelKey, { defaultValue: tag.defaultLabel })}</span>
+											</button>
+										)
+									})}
+								</div>
+							</div>
+
+							{/* Cumulative Playtime Tracking */}
+							<div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+								<div className="flex items-center justify-between gap-2">
+									<div className="flex items-center gap-2">
+										<Clock className="size-4 text-primary" />
+										<div>
+											<h4 className="text-xs font-medium text-foreground">
+												{t("instanceSettings.playtimeTitle", {
+													defaultValue: "Cumulative Playtime",
+												})}
+											</h4>
+											<p className="text-2xs text-muted-foreground">
+												{t("instanceSettings.playtimeHint", {
+													defaultValue:
+														"Adjust or reset total recorded lifetime hours and minutes played.",
+												})}
+											</p>
+										</div>
+									</div>
+									<Button
+										type="button"
+										variant="outline"
+										size="xs"
+										onClick={handleResetPlaytime}
+										className="gap-1 text-2xs"
+									>
+										<RotateCcw className="size-3" />
+										{t("instanceSettings.resetPlaytime", { defaultValue: "Reset Timer" })}
+									</Button>
+								</div>
+
+								<div className="flex items-center gap-3">
+									<div className="flex items-center gap-1.5">
+										<Input
+											type="number"
+											min={0}
+											value={playtimeHours}
+											onChange={(e) => {
+												const val = Number.parseInt(e.target.value, 10)
+												setPlaytimeHours(Number.isNaN(val) ? 0 : Math.max(0, val))
+											}}
+											className="h-8 w-20 font-mono text-xs"
+										/>
+										<span className="text-xs text-muted-foreground">
+											{t("instanceSettings.playtimeHours", { defaultValue: "hours" })}
+										</span>
+									</div>
+									<div className="flex items-center gap-1.5">
+										<Input
+											type="number"
+											min={0}
+											max={59}
+											value={playtimeMinutes}
+											onChange={(e) => {
+												const val = Number.parseInt(e.target.value, 10)
+												setPlaytimeMinutes(Number.isNaN(val) ? 0 : Math.min(59, Math.max(0, val)))
+												setPlaytimeRemainderSeconds(0)
+											}}
+											className="h-8 w-20 font-mono text-xs"
+										/>
+										<span className="text-xs text-muted-foreground">
+											{t("instanceSettings.playtimeMinutes", { defaultValue: "minutes" })}
+										</span>
+									</div>
+								</div>
+							</div>
 						</div>
 
 						{/* Minecraft version */}

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { create } from "zustand"
 import type {
 	HorizonRelease,
+	InstanceColorTag,
 	InstanceConfig,
 	InstanceStatusEvent,
 	InstanceWorldSummary,
@@ -129,10 +130,27 @@ export const instanceService = {
 		gameVersion: string,
 		loader: ModLoaderType,
 		loaderVersion: string | null = null,
+		customization?: {
+			group?: string | null
+			colorTag?: InstanceColorTag | null
+			icon?: string | null
+		},
 	): Promise<InstanceConfig> {
-		const created = await unwrapRpc(
+		let created = await unwrapRpc(
 			rpc.instances.create_instance(name, gameVersion, loader, loaderVersion),
 		)
+		const normalizedGroup = customization?.group?.trim() ? customization.group.trim() : null
+		const colorTag = customization?.colorTag ?? null
+		const icon = customization?.icon ?? null
+		if (normalizedGroup != null || colorTag != null || icon != null) {
+			created = {
+				...created,
+				group: normalizedGroup,
+				colorTag,
+				icon,
+			}
+			await unwrapRpc(rpc.instances.update_instance(created))
+		}
 		await this.refreshInstances()
 		return created
 	},

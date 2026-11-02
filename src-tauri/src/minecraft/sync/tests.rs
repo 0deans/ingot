@@ -40,6 +40,8 @@ fn create_test_instance_config() -> InstanceConfig {
         sync_command_history: None,
         sync_creative_hotbars: None,
         last_synced_at: None,
+        group: None,
+        color_tag: None,
     }
 }
 

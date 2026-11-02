@@ -12,6 +12,20 @@ pub enum ModLoaderType {
     Horizon,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum InstanceColorTag {
+    Red,
+    Orange,
+    Amber,
+    Emerald,
+    Cyan,
+    Blue,
+    Violet,
+    Pink,
+    Rose,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct InstanceConfig {
@@ -46,4 +60,8 @@ pub struct InstanceConfig {
     pub sync_creative_hotbars: Option<bool>,
     #[serde(default)]
     pub last_synced_at: Option<u64>,
+    #[serde(default)]
+    pub group: Option<String>,
+    #[serde(default)]
+    pub color_tag: Option<InstanceColorTag>,
 }

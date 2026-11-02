@@ -1,21 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { FolderDown, Gamepad2, Layers, Plus, Square } from "lucide-react"
-import { memo, useEffect, useMemo, useState } from "react"
+import {
+	ChevronDown,
+	ChevronRight,
+	Clock,
+	Folder,
+	FolderDown,
+	Gamepad2,
+	Layers,
+	Plus,
+	Square,
+} from "lucide-react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import * as v from "valibot"
-import type { ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
+import type {
+	InstanceColorTag,
+	InstanceConfig,
+	ModLoaderType,
+	QuickPlayOptions,
+	SyncConflictInfo,
+} from "@/bindings"
 import BedrockCard from "@/components/instances/bedrock-card"
 import DeleteInstanceDialog from "@/components/instances/delete-instance-dialog"
 import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-dialog"
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
-import InstanceSearchHeader from "@/components/instances/instance-search-header"
+import InstanceSearchHeader, {
+	type InstanceSortOption,
+} from "@/components/instances/instance-search-header"
 import InstanceSettingsDialog from "@/components/instances/instance-settings-dialog"
-import NewInstanceDialog from "@/components/instances/new-instance-dialog"
+import NewInstanceDialog, {
+	type NewInstanceCustomization,
+} from "@/components/instances/new-instance-dialog"
 import SyncConflictDialog from "@/components/instances/sync-conflict-dialog"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatDuration as formatLocalDuration } from "@/lib/format"
 import {
 	instanceService,
 	useAllInstancesProgress,
@@ -23,6 +44,43 @@ import {
 	useRunningInstances,
 } from "@/services/instance-service"
 import { settingsService, useMemorySettings } from "@/services/settings-service"
+
+const SORT_STORAGE_KEY = "ingot:instances:sort"
+const COLLAPSED_GROUPS_STORAGE_KEY = "ingot:instances:collapsed-groups"
+
+const readInitialSort = (): InstanceSortOption => {
+	try {
+		const raw = localStorage.getItem(SORT_STORAGE_KEY)
+		if (raw === "lastPlayed" || raw === "playtime" || raw === "name" || raw === "createdAt") {
+			return raw
+		}
+	} catch {
+		// Ignore storage access errors
+	}
+	return "lastPlayed"
+}
+
+const readInitialCollapsedGroups = (): Record<string, boolean> => {
+	try {
+		const raw = localStorage.getItem(COLLAPSED_GROUPS_STORAGE_KEY)
+		if (!raw) {
+			return {}
+		}
+		const parsed: unknown = JSON.parse(raw)
+		if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+			const record: Record<string, boolean> = {}
+			for (const [k, val] of Object.entries(parsed)) {
+				if (typeof val === "boolean") {
+					record[k] = val
+				}
+			}
+			return record
+		}
+	} catch {
+		// Ignore corrupt storage
+	}
+	return {}
+}
 
 export const instancesActionSchema = v.picklist(["new", "import"])
 
@@ -54,11 +112,40 @@ const InstancesPage = () => {
 		setSearchInput(searchQuery)
 	}
 	const [syncConflict, setSyncConflict] = useState<SyncConflictInfo | null>(null)
+	const [sortBy, setSortBy] = useState<InstanceSortOption>(readInitialSort)
+	const [selectedColorTag, setSelectedColorTag] = useState<InstanceColorTag | null>(null)
+	const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(
+		readInitialCollapsedGroups,
+	)
 
 	const { instances, isLoading, refresh } = useInstances()
 	const { runningMap, runningList } = useRunningInstances()
 	const progressMap = useAllInstancesProgress()
 	const { memory } = useMemorySettings()
+
+	const handleSortChange = useCallback((nextSort: InstanceSortOption) => {
+		setSortBy(nextSort)
+		try {
+			localStorage.setItem(SORT_STORAGE_KEY, nextSort)
+		} catch {
+			// Ignore storage errors
+		}
+	}, [])
+
+	const toggleGroupCollapsed = useCallback((groupKey: string) => {
+		setCollapsedGroups((prev) => {
+			const next = {
+				...prev,
+				[groupKey]: !prev[groupKey],
+			}
+			try {
+				localStorage.setItem(COLLAPSED_GROUPS_STORAGE_KEY, JSON.stringify(next))
+			} catch {
+				// Ignore storage errors
+			}
+			return next
+		})
+	}, [])
 
 	// Debounce search input to URL query
 	useEffect(() => {
@@ -87,8 +174,9 @@ const InstancesPage = () => {
 		gameVersion: string,
 		loader: ModLoaderType,
 		loaderVersion: string | null,
+		customization?: NewInstanceCustomization,
 	) => {
-		await instanceService.createInstance(name, gameVersion, loader, loaderVersion)
+		await instanceService.createInstance(name, gameVersion, loader, loaderVersion, customization)
 		await refresh()
 	}
 
@@ -155,20 +243,180 @@ const InstancesPage = () => {
 		})
 	}
 
+	const existingGroups = useMemo(() => {
+		const set = new Set<string>()
+		for (const inst of instances) {
+			const g = inst.group?.trim()
+			if (g) {
+				set.add(g)
+			}
+		}
+		return Array.from(set).sort((a, b) => {
+			return a.localeCompare(b)
+		})
+	}, [instances])
+
+	const totalPlaytimeAllSeconds = useMemo(() => {
+		let sum = 0
+		for (const inst of instances) {
+			sum += inst.totalPlayTimeSeconds || 0
+		}
+		return sum
+	}, [instances])
+
 	const filteredInstances = useMemo(() => {
-		if (!searchQuery.trim()) return instances
-		const q = searchQuery.toLowerCase()
-		return instances.filter((i) => {
+		const q = searchQuery.trim().toLowerCase()
+		const filtered = instances.filter((i) => {
+			if (selectedColorTag && i.colorTag !== selectedColorTag) {
+				return false
+			}
+			if (!q) {
+				return true
+			}
 			const name = i.name || ""
 			const ver = i.gameVersion || ""
 			const ldr = String(i.loader || "")
+			const grp = i.group || ""
 			return (
 				name.toLowerCase().includes(q) ||
 				ver.toLowerCase().includes(q) ||
-				ldr.toLowerCase().includes(q)
+				ldr.toLowerCase().includes(q) ||
+				grp.toLowerCase().includes(q)
 			)
 		})
-	}, [instances, searchQuery])
+
+		return [...filtered].sort((a, b) => {
+			if (sortBy === "playtime") {
+				const diff = (b.totalPlayTimeSeconds || 0) - (a.totalPlayTimeSeconds || 0)
+				if (diff !== 0) {
+					return diff
+				}
+				return a.name.localeCompare(b.name)
+			}
+			if (sortBy === "name") {
+				return a.name.localeCompare(b.name)
+			}
+			if (sortBy === "createdAt") {
+				const diff = (b.createdAt || 0) - (a.createdAt || 0)
+				if (diff !== 0) {
+					return diff
+				}
+				return a.name.localeCompare(b.name)
+			}
+			// Default: "lastPlayed"
+			const aPlayed = a.lastPlayed ?? 0
+			const bPlayed = b.lastPlayed ?? 0
+			if (bPlayed !== aPlayed) {
+				return bPlayed - aPlayed
+			}
+			const createdDiff = (b.createdAt || 0) - (a.createdAt || 0)
+			if (createdDiff !== 0) {
+				return createdDiff
+			}
+			return a.name.localeCompare(b.name)
+		})
+	}, [instances, searchQuery, selectedColorTag, sortBy])
+
+	const groupedSections = useMemo(() => {
+		const namedGroups = new Map<string, InstanceConfig[]>()
+		const ungrouped: InstanceConfig[] = []
+
+		for (const inst of filteredInstances) {
+			const groupName = inst.group?.trim()
+			if (groupName) {
+				const list = namedGroups.get(groupName) ?? []
+				list.push(inst)
+				namedGroups.set(groupName, list)
+			} else {
+				ungrouped.push(inst)
+			}
+		}
+
+		const sortedGroupNames = Array.from(namedGroups.keys()).sort((a, b) => {
+			return a.localeCompare(b)
+		})
+
+		const sections: {
+			key: string
+			title: string
+			isUngrouped: boolean
+			items: InstanceConfig[]
+			totalPlaytimeSeconds: number
+		}[] = []
+
+		for (const groupName of sortedGroupNames) {
+			const items = namedGroups.get(groupName) ?? []
+			let totalPlaytimeSeconds = 0
+			for (const item of items) {
+				totalPlaytimeSeconds += item.totalPlayTimeSeconds || 0
+			}
+			sections.push({
+				key: `group:${groupName}`,
+				title: groupName,
+				isUngrouped: false,
+				items,
+				totalPlaytimeSeconds,
+			})
+		}
+
+		if (ungrouped.length > 0) {
+			let totalPlaytimeSeconds = 0
+			for (const item of ungrouped) {
+				totalPlaytimeSeconds += item.totalPlayTimeSeconds || 0
+			}
+			sections.push({
+				key: "__ungrouped__",
+				title: t("instances.groups.ungrouped", { defaultValue: "Ungrouped" }),
+				isUngrouped: true,
+				items: ungrouped,
+				totalPlaytimeSeconds,
+			})
+		}
+
+		return sections
+	}, [filteredInstances, t])
+
+	const hasAnyNamedGroup = existingGroups.length > 0
+
+	const renderInstanceCard = (inst: InstanceConfig) => {
+		return (
+			<InstanceCard
+				key={inst.id}
+				instance={inst}
+				runningInfo={runningMap.get(inst.id)}
+				progress={progressMap.get(inst.id)}
+				globalMaxRamMb={memory.maxRamMb}
+				existingGroups={existingGroups}
+				onPlay={(quickPlay) => {
+					return void handlePlay(inst.id, quickPlay)
+				}}
+				onStop={() => {
+					return void handleStop(inst.id)
+				}}
+				onSettings={() =>
+					navigate({
+						search: (prev) => ({ ...prev, edit: inst.id }),
+						replace: true,
+					})
+				}
+				onDelete={() =>
+					navigate({
+						search: (prev) => ({ ...prev, delete: inst.id }),
+						replace: true,
+					})
+				}
+				onDuplicate={() =>
+					navigate({
+						search: (prev) => ({ ...prev, duplicate: inst.id }),
+						replace: true,
+					})
+				}
+				onQuickUpdate={async () => {
+					await refresh()
+				}}
+			/>
+		)
+	}
 
 	return (
 		<ScrollArea className="size-full flex-1 scroll-fade-y">
@@ -177,6 +425,10 @@ const InstancesPage = () => {
 				<InstanceSearchHeader
 					searchQuery={searchInput}
 					onSearchChange={setSearchInput}
+					sortBy={sortBy}
+					onSortChange={handleSortChange}
+					selectedColorTag={selectedColorTag}
+					onColorTagChange={setSelectedColorTag}
 					onOpenNewInstance={() =>
 						navigate({
 							search: (prev) => ({ ...prev, action: "new" }),
@@ -239,7 +491,7 @@ const InstancesPage = () => {
 					"minecraft".includes(searchQuery.toLowerCase())) && <BedrockCard />}
 
 				{/* Instances Section Header */}
-				<div className="flex items-center justify-between border-b border-border/30 pb-2">
+				<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/30 pb-2">
 					<div className="flex items-center gap-2 text-sm font-semibold text-foreground">
 						<Layers className="size-4 text-primary" />
 						<span>{t("instances.allInstances")}</span>
@@ -247,6 +499,20 @@ const InstancesPage = () => {
 							{instances.length}
 						</span>
 					</div>
+					{totalPlaytimeAllSeconds > 0 && (
+						<div className="inline-flex items-center gap-1.5 text-2xs text-muted-foreground">
+							<Clock className="size-3.5 text-primary" />
+							<span>
+								{t("instances.totalPlaytimeAll", {
+									defaultValue: "Total playtime: {{duration}}",
+									duration: formatLocalDuration(
+										totalPlaytimeAllSeconds,
+										totalPlaytimeAllSeconds < 3600,
+									),
+								})}
+							</span>
+						</div>
+					)}
 				</div>
 
 				{/* Instances Grid or Empty State */}
@@ -313,61 +579,108 @@ const InstancesPage = () => {
 						</div>
 					)
 				) : filteredInstances.length > 0 ? (
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{filteredInstances.map((inst) => (
-							<InstanceCard
-								key={inst.id}
-								instance={inst}
-								runningInfo={runningMap.get(inst.id)}
-								progress={progressMap.get(inst.id)}
-								globalMaxRamMb={memory.maxRamMb}
-								onPlay={(quickPlay) => handlePlay(inst.id, quickPlay)}
-								onStop={() => handleStop(inst.id)}
-								onSettings={() =>
-									navigate({
-										search: (prev) => ({ ...prev, edit: inst.id }),
-										replace: true,
-									})
-								}
-								onDelete={() =>
-									navigate({
-										search: (prev) => ({ ...prev, delete: inst.id }),
-										replace: true,
-									})
-								}
-								onDuplicate={() =>
-									navigate({
-										search: (prev) => ({ ...prev, duplicate: inst.id }),
-										replace: true,
-									})
-								}
-							/>
-						))}
+					hasAnyNamedGroup ? (
+						<div className="flex flex-col gap-5">
+							{groupedSections.map((section) => {
+								const isCollapsed = Boolean(collapsedGroups[section.key])
+								return (
+									<div key={section.key} className="flex flex-col gap-3">
+										<button
+											type="button"
+											onClick={() => toggleGroupCollapsed(section.key)}
+											className="flex items-center justify-between rounded-xl border border-border/50 bg-card/30 px-3.5 py-2 text-left transition-colors hover:border-border hover:bg-card/60"
+										>
+											<div className="flex items-center gap-2">
+												{isCollapsed ? (
+													<ChevronRight className="size-4 text-muted-foreground" />
+												) : (
+													<ChevronDown className="size-4 text-muted-foreground" />
+												)}
+												<Folder
+													className={`size-4 ${section.isUngrouped ? "text-muted-foreground" : "text-amber-400"}`}
+												/>
+												<span className="text-xs font-semibold text-foreground">
+													{section.title}
+												</span>
+												<span className="rounded-full bg-muted px-2 py-0.5 font-mono text-3xs text-muted-foreground">
+													{section.items.length}
+												</span>
+											</div>
+											{section.totalPlaytimeSeconds > 0 && (
+												<span className="inline-flex items-center gap-1 text-2xs text-muted-foreground">
+													<Clock className="size-3 text-primary" />
+													{formatLocalDuration(
+														section.totalPlaytimeSeconds,
+														section.totalPlaytimeSeconds < 3600,
+													)}
+												</span>
+											)}
+										</button>
 
-						{/* Create New Instance Card */}
-						<button
-							type="button"
-							onClick={() =>
-								navigate({
-									search: (prev) => ({ ...prev, action: "new" }),
-									replace: true,
-								})
-							}
-							className="group flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/50 bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
-						>
-							<div className="flex size-10 items-center justify-center rounded-xl border border-border bg-card shadow-inner transition-transform group-hover:scale-110">
-								<Plus className="size-5 text-muted-foreground group-hover:text-primary" />
+										{!isCollapsed && (
+											<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+												{section.items.map((inst) => renderInstanceCard(inst))}
+											</div>
+										)}
+									</div>
+								)
+							})}
+
+							{/* Create New Instance Card */}
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+								<button
+									type="button"
+									onClick={() =>
+										navigate({
+											search: (prev) => ({ ...prev, action: "new" }),
+											replace: true,
+										})
+									}
+									className="group flex min-h-[140px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/50 bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
+								>
+									<div className="flex size-10 items-center justify-center rounded-xl border border-border bg-card shadow-inner transition-transform group-hover:scale-110">
+										<Plus className="size-5 text-muted-foreground group-hover:text-primary" />
+									</div>
+									<div className="flex flex-col items-center gap-0.5 text-center">
+										<span className="text-xs font-semibold text-foreground/80 group-hover:text-foreground">
+											{t("instances.createCardTitle")}
+										</span>
+										<span className="text-2xs text-muted-foreground">
+											{t("instances.createCardSubtitle")}
+										</span>
+									</div>
+								</button>
 							</div>
-							<div className="flex flex-col items-center gap-0.5 text-center">
-								<span className="text-xs font-semibold text-foreground/80 group-hover:text-foreground">
-									{t("instances.createCardTitle")}
-								</span>
-								<span className="text-2xs text-muted-foreground">
-									{t("instances.createCardSubtitle")}
-								</span>
-							</div>
-						</button>
-					</div>
+						</div>
+					) : (
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{filteredInstances.map((inst) => renderInstanceCard(inst))}
+
+							{/* Create New Instance Card */}
+							<button
+								type="button"
+								onClick={() =>
+									navigate({
+										search: (prev) => ({ ...prev, action: "new" }),
+										replace: true,
+									})
+								}
+								className="group flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/50 bg-background/30 p-6 text-muted-foreground transition-all duration-200 hover:border-primary/60 hover:bg-card/40 hover:text-foreground"
+							>
+								<div className="flex size-10 items-center justify-center rounded-xl border border-border bg-card shadow-inner transition-transform group-hover:scale-110">
+									<Plus className="size-5 text-muted-foreground group-hover:text-primary" />
+								</div>
+								<div className="flex flex-col items-center gap-0.5 text-center">
+									<span className="text-xs font-semibold text-foreground/80 group-hover:text-foreground">
+										{t("instances.createCardTitle")}
+									</span>
+									<span className="text-2xs text-muted-foreground">
+										{t("instances.createCardSubtitle")}
+									</span>
+								</div>
+							</button>
+						</div>
+					)
 				) : (
 					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/40 bg-card/10 p-12 text-center">
 						<p className="text-sm font-medium text-foreground">
@@ -379,6 +692,7 @@ const InstancesPage = () => {
 							size="sm"
 							onClick={() => {
 								setSearchInput("")
+								setSelectedColorTag(null)
 								navigate({
 									search: (prev) => ({ ...prev, q: "" }),
 									replace: true,
@@ -394,9 +708,10 @@ const InstancesPage = () => {
 				{/* New Instance Dialog */}
 				<NewInstanceDialog
 					open={isNewInstanceOpen}
+					existingGroups={existingGroups}
 					onOpenChange={(open) => !open && handleCloseAction()}
-					onCreateInstance={async (name, ver, loader, loaderVer) => {
-						await handleCreateInstance(name, ver, loader, loaderVer)
+					onCreateInstance={async (name, ver, loader, loaderVer, customization) => {
+						await handleCreateInstance(name, ver, loader, loaderVer, customization)
 						handleCloseAction()
 					}}
 				/>
@@ -415,6 +730,7 @@ const InstancesPage = () => {
 				<InstanceSettingsDialog
 					instance={editingInstance}
 					open={Boolean(editingInstance)}
+					existingGroups={existingGroups}
 					onOpenChange={(open) => !open && handleCloseAction()}
 					onSave={async () => {
 						await refresh()

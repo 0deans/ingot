@@ -31,7 +31,8 @@
 		"update": "Perbarui",
 		"enable": "Aktifkan",
 		"previous": "Sebelumnya",
-		"next": "Berikutnya"
+		"next": "Berikutnya",
+		"reset": "Reset"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Pilih Bahasa Anda",
@@ -140,6 +141,9 @@
 		"noMatchTitle": "Tidak ada instansi yang cocok dengan \"{{query}}\"",
 		"noMatchSubtitle": "Coba cari nama, versi, atau pemuat mod lain.",
 		"card": {
+			"zeroPlaytime": "0m played",
+			"colorTag": "Color Tag",
+			"groupMenu": "Group / Folder",
 			"neverPlayed": "Belum pernah dimainkan",
 			"preparing": "Menyiapkan",
 			"preparingBtn": "Menyiapkan...",
@@ -175,7 +179,34 @@
 			"shortcutFailed": "Gagal membuat pintasan: {{error}}",
 			"moreActions": "Tindakan lainnya"
 		},
-		"activeEntry": "{{name}} (PID {{pid}})"
+		"activeEntry": "{{name}} (PID {{pid}})",
+		"totalPlaytimeAll": "Total playtime: {{duration}}",
+		"sort": {
+			"label": "Sort By",
+			"lastPlayed": "Last Played",
+			"playtime": "Total Playtime",
+			"name": "Name (A–Z)",
+			"createdAt": "Recently Created"
+		},
+		"colors": {
+			"filter": "Color",
+			"filterBy": "Filter by Color",
+			"all": "All Colors",
+			"none": "No Color",
+			"red": "Red",
+			"orange": "Orange",
+			"amber": "Amber",
+			"emerald": "Emerald",
+			"cyan": "Cyan",
+			"blue": "Blue",
+			"violet": "Violet",
+			"pink": "Pink",
+			"rose": "Rose"
+		},
+		"groups": {
+			"ungrouped": "Ungrouped",
+			"editInSettings": "Edit Group in Settings..."
+		}
 	},
 	"modpacks": {
 		"title": "Jelajahi Konten",
@@ -1452,6 +1483,20 @@
 		"device": "Penyimpanan perangkat"
 	},
 	"instanceSettings": {
+		"iconTitle": "Instance Icon",
+		"iconHint": "Choose a built-in preset, upload a custom PNG/GIF, or use the default loader icon.",
+		"uploadIcon": "Upload PNG / GIF",
+		"iconUploadFailed": "Failed to process icon image: {{error}}",
+		"groupTitle": "Group / Folder",
+		"groupHint": "Organize instances into collapsible categories and Steam Library collections.",
+		"groupPlaceholder": "e.g. Vanilla, Modpacks, 1.21 SMP",
+		"colorTagTitle": "Color Tag",
+		"colorTagHint": "Color-code the instance card and Steam Grid banner palette.",
+		"playtimeTitle": "Cumulative Playtime",
+		"playtimeHint": "Adjust or reset total recorded lifetime hours and minutes played.",
+		"resetPlaytime": "Reset Timer",
+		"playtimeHours": "hours",
+		"playtimeMinutes": "minutes",
 		"pushFailed": "Gagal mendorong (push): {{error}}",
 		"pullFailed": "Gagal menarik (pull): {{error}}",
 		"saveFailed": "Gagal menyimpan pengaturan: {{error}}",
@@ -1754,5 +1799,21 @@
 		"openBehaviorPacks": "Paket Perilaku",
 		"openScreenshots": "Folder Tangkapan Layar",
 		"store": "Halaman Microsoft Store"
+	},
+	"instanceIcon": {
+		"presets": {
+			"creeper": "Creeper",
+			"grass": "Grass Block",
+			"sword": "Diamond Sword",
+			"pickaxe": "Diamond Pickaxe",
+			"redstone": "Redstone",
+			"ender": "Ender Pearl",
+			"nether": "Nether Portal",
+			"potion": "Potion",
+			"commandBlock": "Command Block",
+			"chest": "Chest",
+			"beacon": "Beacon",
+			"book": "Enchanted Book"
+		}
 	}
 }

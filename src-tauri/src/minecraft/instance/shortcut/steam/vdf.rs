@@ -28,6 +28,9 @@ pub struct SteamShortcutSpec {
     pub target_exe: PathBuf,
     pub start_dir: PathBuf,
     pub icon_path: Option<PathBuf>,
+    pub group: Option<String>,
+    pub loader_name: String,
+    pub last_played: Option<u64>,
 }
 
 /// Computes standard IEEE 802.3 CRC32 over a byte slice.
@@ -244,6 +247,9 @@ pub fn upsert_steam_shortcut(
             _ => None,
         });
 
+    let last_play_time = spec.last_played.unwrap_or(0).min(u64::from(u32::MAX)) as u32;
+    let extra_tags = build_extra_tags(spec);
+
     if let Some(fields) = existing_entry {
         set_field(fields, "appid", VdfValue::Int(app_id));
         set_field(fields, "AppName", VdfValue::Str(spec.app_name.clone()));
@@ -251,7 +257,8 @@ pub fn upsert_steam_shortcut(
         set_field(fields, "StartDir", VdfValue::Str(quoted_start_dir));
         set_field(fields, "icon", VdfValue::Str(icon_str));
         set_field(fields, "LaunchOptions", VdfValue::Str(launch_options));
-        ensure_tags(fields);
+        update_last_play_time(fields, last_play_time);
+        ensure_tags(fields, &extra_tags);
     } else {
         let next_index = next_shortcut_key(shortcuts_map);
         let fields = build_new_shortcut_fields(
@@ -261,6 +268,8 @@ pub fn upsert_steam_shortcut(
             &quoted_start_dir,
             &icon_str,
             &launch_options,
+            last_play_time,
+            &extra_tags,
         );
         shortcuts_map.push(VdfEntry {
             key: next_index,
@@ -319,14 +328,61 @@ fn set_field(fields: &mut Vec<VdfEntry>, name: &str, value: VdfValue) {
     }
 }
 
-fn ensure_tags(fields: &mut Vec<VdfEntry>) {
-    let required_tags = ["Minecraft", "Ingot"];
+fn build_extra_tags(spec: &SteamShortcutSpec) -> Vec<String> {
+    let mut tags = Vec::new();
+    let loader = spec.loader_name.trim();
+    if !loader.is_empty() {
+        tags.push(loader.to_string());
+    }
+    if let Some(group) = &spec.group {
+        let trimmed = group.trim();
+        if !trimmed.is_empty() {
+            tags.push(trimmed.to_string());
+        }
+    }
+    tags
+}
+
+fn update_last_play_time(fields: &mut Vec<VdfEntry>, candidate: u32) {
+    if candidate == 0 {
+        return;
+    }
+    if let Some(existing) = fields
+        .iter_mut()
+        .find(|entry| entry.key.eq_ignore_ascii_case("LastPlayTime"))
+    {
+        if let VdfValue::Int(current) = existing.value {
+            if candidate > current {
+                existing.value = VdfValue::Int(candidate);
+            }
+            return;
+        }
+        existing.value = VdfValue::Int(candidate);
+    } else {
+        fields.push(VdfEntry {
+            key: "LastPlayTime".to_string(),
+            value: VdfValue::Int(candidate),
+        });
+    }
+}
+
+fn ensure_tags(fields: &mut Vec<VdfEntry>, extra_tags: &[String]) {
+    let mut required_tags = vec!["Minecraft".to_string(), "Ingot".to_string()];
+    for extra in extra_tags {
+        if !required_tags
+            .iter()
+            .any(|existing| existing.eq_ignore_ascii_case(extra))
+        {
+            required_tags.push(extra.clone());
+        }
+    }
+
     if let Some(tags_entry) = fields
         .iter_mut()
         .find(|entry| entry.key.eq_ignore_ascii_case("tags"))
     {
         if let VdfValue::Map(tag_list) = &mut tags_entry.value {
-            for &required in &required_tags {
+            for required in &required_tags {
                 let already_present = tag_list.iter().any(|item| {
                     matches!(&item.value, VdfValue::Str(val) if val.eq_ignore_ascii_case(required))
                 });
@@ -334,7 +390,7 @@ fn ensure_tags(fields: &mut Vec<VdfEntry>) {
                     let key = next_shortcut_key(tag_list);
                     tag_list.push(VdfEntry {
                         key,
-                        value: VdfValue::Str(required.to_string()),
+                        value: VdfValue::Str(required.clone()),
                     });
                 }
             }
@@ -342,21 +398,22 @@ fn ensure_tags(fields: &mut Vec<VdfEntry>) {
         }
     }
 
+    let tag_entries = required_tags
+        .into_iter()
+        .enumerate()
+        .map(|(idx, tag)| VdfEntry {
+            key: idx.to_string(),
+            value: VdfValue::Str(tag),
+        })
+        .collect();
+
     fields.push(VdfEntry {
         key: "tags".to_string(),
-        value: VdfValue::Map(vec![
-            VdfEntry {
-                key: "0".to_string(),
-                value: VdfValue::Str("Minecraft".to_string()),
-            },
-            VdfEntry {
-                key: "1".to_string(),
-                value: VdfValue::Str("Ingot".to_string()),
-            },
-        ]),
+        value: VdfValue::Map(tag_entries),
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_new_shortcut_fields(
     app_id: u32,
     app_name: &str,
@@ -364,8 +421,10 @@ fn build_new_shortcut_fields(
     quoted_start_dir: &str,
     icon_str: &str,
     launch_options: &str,
+    last_play_time: u32,
+    extra_tags: &[String],
 ) -> Vec<VdfEntry> {
-    vec![
+    let mut fields = vec![
         VdfEntry {
             key: "appid".to_string(),
             value: VdfValue::Int(app_id),
@@ -424,7 +483,7 @@ fn build_new_shortcut_fields(
         },
         VdfEntry {
             key: "LastPlayTime".to_string(),
-            value: VdfValue::Int(0),
+            value: VdfValue::Int(last_play_time),
         },
         VdfEntry {
             key: "FlatpakAppID".to_string(),
@@ -434,20 +493,9 @@ fn build_new_shortcut_fields(
             key: "sortas".to_string(),
             value: VdfValue::Str(String::new()),
         },
-        VdfEntry {
-            key: "tags".to_string(),
-            value: VdfValue::Map(vec![
-                VdfEntry {
-                    key: "0".to_string(),
-                    value: VdfValue::Str("Minecraft".to_string()),
-                },
-                VdfEntry {
-                    key: "1".to_string(),
-                    value: VdfValue::Str("Ingot".to_string()),
-                },
-            ]),
-        },
-    ]
+    ];
+    ensure_tags(&mut fields, extra_tags);
+    fields
 }
 
 #[cfg(test)]
@@ -471,6 +519,9 @@ mod tests {
             target_exe: PathBuf::from("/usr/bin/ingot"),
             start_dir: PathBuf::from("/usr/bin"),
             icon_path: Some(PathBuf::from("/tmp/icon.png")),
+            group: Some("1.21 SMP".to_string()),
+            loader_name: "Fabric".to_string(),
+            last_played: Some(1_700_000_000),
         };
 
         let first_app_id = upsert_steam_shortcut(&mut root, &spec).unwrap();

@@ -146,8 +146,19 @@ pub(crate) async fn create_instance_shortcut<R: Runtime>(
                 instance::shortcut::create_steam_shortcut(&instance_dir, &target_exe, &instance)?
             }
             instance::ShortcutLocation::Desktop | instance::ShortcutLocation::ApplicationsMenu => {
-                let destination_dir =
+                let mut destination_dir =
                     instance::shortcut::resolve_shortcut_directory(&handle, location)?;
+                #[cfg(windows)]
+                if location == instance::ShortcutLocation::ApplicationsMenu {
+                    if let Some(group) = &instance.group {
+                        let trimmed = group.trim();
+                        if !trimmed.is_empty() {
+                            let safe_group =
+                                instance::shortcut::sanitize_shortcut_filename(trimmed);
+                            destination_dir = destination_dir.join(safe_group);
+                        }
+                    }
+                }
                 let icon_path = instance::shortcut::resolve_instance_icon(&instance_dir, &instance);
                 instance::shortcut::create_platform_shortcut(
                     &destination_dir,

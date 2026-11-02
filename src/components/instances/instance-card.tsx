@@ -1,8 +1,10 @@
 import {
+	Check,
 	ChevronDown,
 	Clock,
 	Compass,
 	Copy,
+	Folder,
 	FolderOpen,
 	Gamepad2,
 	Globe,
@@ -10,17 +12,20 @@ import {
 	LayoutGrid,
 	Monitor,
 	MoreVertical,
+	Palette,
 	Play,
 	Settings,
 	Share2,
 	Square,
 	Trash2,
+	X,
 } from "lucide-react"
 import { motion } from "motion/react"
 import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import type {
+	InstanceColorTag,
 	InstanceConfig,
 	InstanceWorldSummary,
 	LaunchProgressEvent,
@@ -29,7 +34,10 @@ import type {
 	ShortcutLocation,
 } from "@/bindings"
 import { DirectConnectDialog } from "@/components/instances/direct-connect-dialog"
-import LoaderIcon from "@/components/instances/loader-icon"
+import InstanceIcon, {
+	COLOR_TAGS,
+	getColorTagDefinition,
+} from "@/components/instances/instance-icon"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -61,11 +69,13 @@ interface InstanceCardProps {
 	runningInfo?: RunningInstanceSummary
 	progress?: LaunchProgressEvent
 	globalMaxRamMb: number
+	existingGroups?: string[]
 	onPlay: (quickPlay?: QuickPlayOptions) => void
 	onStop: () => void
 	onSettings: () => void
 	onDelete: () => void
 	onDuplicate: () => void
+	onQuickUpdate?: (updated: InstanceConfig) => Promise<void> | void
 }
 
 function isVersionAtLeast(versionStr: string, targetMajor: number, targetMinor: number): boolean {
@@ -95,11 +105,13 @@ export const InstanceCard = ({
 	runningInfo,
 	progress,
 	globalMaxRamMb,
+	existingGroups = [],
 	onPlay,
 	onStop,
 	onSettings,
 	onDelete,
 	onDuplicate,
+	onQuickUpdate,
 }: InstanceCardProps) => {
 	const { t } = useTranslation()
 	const isRunning = !!runningInfo
@@ -174,6 +186,33 @@ export const InstanceCard = ({
 		}
 	}, [isRunning, runningInfo])
 
+	const handleSetColorTag = async (colorTag: InstanceColorTag | null) => {
+		const updated: InstanceConfig = {
+			...instance,
+			colorTag,
+		}
+		try {
+			await instanceService.updateInstance(updated)
+			await onQuickUpdate?.(updated)
+		} catch (e) {
+			console.error("Failed to update instance color tag:", e)
+		}
+	}
+
+	const handleSetGroup = async (group: string | null) => {
+		const normalizedGroup = group?.trim() ? group.trim() : null
+		const updated: InstanceConfig = {
+			...instance,
+			group: normalizedGroup,
+		}
+		try {
+			await instanceService.updateInstance(updated)
+			await onQuickUpdate?.(updated)
+		} catch (e) {
+			console.error("Failed to update instance group:", e)
+		}
+	}
+
 	const loaderType = instance.loader || "vanilla"
 	const loaderName =
 		loaderType === "vanilla"
@@ -183,22 +222,34 @@ export const InstanceCard = ({
 
 	const hasCustomRam = instance.memoryMaxMb != null
 	const effectiveRamMb = instance.memoryMaxMb ?? globalMaxRamMb
+	const colorTagDef = getColorTagDefinition(instance.colorTag)
+	const liveTotalPlaytimeSeconds = instance.totalPlayTimeSeconds + (isRunning ? elapsedSeconds : 0)
+	const groupLabel = instance.group?.trim() || null
+
+	let cardStateClasses = "border-border/50"
+	if (isRunning) {
+		cardStateClasses = "border-primary/40 ring-1 ring-primary/20"
+	} else if (isDownloading) {
+		cardStateClasses = "border-warning/40 ring-1 ring-warning/20"
+	} else if (colorTagDef) {
+		cardStateClasses = colorTagDef.borderClass
+	}
 
 	return (
 		<motion.div
-			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${
-				isRunning
-					? "border-primary/40 ring-1 ring-primary/20"
-					: isDownloading
-						? "border-warning/40 ring-1 ring-warning/20"
-						: "border-border/50"
-			}`}
+			className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-background/60 p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-input/80 hover:bg-card/50 hover:shadow-xl ${cardStateClasses}`}
 		>
+			{colorTagDef && (
+				<div
+					className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${colorTagDef.glowClass}`}
+				/>
+			)}
+
 			{/* Top Bar: Loader Badge & Status */}
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex items-center gap-2.5">
-					<div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card shadow-inner">
-						<LoaderIcon loader={loaderType} size={22} />
+					<div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card shadow-inner">
+						<InstanceIcon icon={instance.icon} loader={loaderType} size={22} />
 					</div>
 					<div className="flex flex-col">
 						<span className="text-2xs font-semibold tracking-wider text-muted-foreground uppercase">
@@ -259,12 +310,15 @@ export const InstanceCard = ({
 						</span>
 					</span>
 
-					{instance.totalPlayTimeSeconds > 0 && (
-						<span className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-card/60 px-2 py-0.5">
+					{liveTotalPlaytimeSeconds > 0 && (
+						<span
+							className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-card/60 px-2 py-0.5"
+							title={t("instanceSettings.playtimeTitle", { defaultValue: "Cumulative Playtime" })}
+						>
 							<Clock className="size-3 text-primary" />
 							<span>
 								{t("instances.card.playedDuration", {
-									duration: formatDuration(instance.totalPlayTimeSeconds),
+									duration: formatDuration(liveTotalPlaytimeSeconds),
 								})}
 							</span>
 						</span>
@@ -484,6 +538,97 @@ export const InstanceCard = ({
 									<Copy className="size-4 text-muted-foreground" />
 									<span className="text-xs">{t("instances.card.duplicateTooltip")}</span>
 								</DropdownMenuItem>
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger className="cursor-pointer gap-2">
+										<Palette className="size-4 text-muted-foreground" />
+										<span className="text-xs">
+											{t("instances.card.colorTag", { defaultValue: "Color Tag" })}
+										</span>
+									</DropdownMenuSubTrigger>
+									<DropdownMenuSubContent className="w-48">
+										<DropdownMenuItem
+											onClick={() => {
+												return void handleSetColorTag(null)
+											}}
+											className="cursor-pointer justify-between gap-2"
+										>
+											<span className="flex items-center gap-2 text-xs text-muted-foreground">
+												<X className="size-3.5" />
+												{t("instances.colors.none", { defaultValue: "No Color" })}
+											</span>
+											{!instance.colorTag && <Check className="size-3.5 text-primary" />}
+										</DropdownMenuItem>
+										<DropdownMenuSeparator />
+										{COLOR_TAGS.map((tag) => {
+											const isSelected = instance.colorTag === tag.id
+											return (
+												<DropdownMenuItem
+													key={tag.id}
+													onClick={() => {
+														return void handleSetColorTag(tag.id)
+													}}
+													className="cursor-pointer justify-between gap-2"
+												>
+													<span className="flex items-center gap-2 text-xs">
+														<span className={`size-2.5 rounded-full ${tag.dotClass}`} />
+														{t(tag.labelKey, { defaultValue: tag.defaultLabel })}
+													</span>
+													{isSelected && <Check className="size-3.5 text-primary" />}
+												</DropdownMenuItem>
+											)
+										})}
+									</DropdownMenuSubContent>
+								</DropdownMenuSub>
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger className="cursor-pointer gap-2">
+										<Folder className="size-4 text-muted-foreground" />
+										<span className="text-xs">
+											{t("instances.card.groupMenu", { defaultValue: "Group / Folder" })}
+										</span>
+									</DropdownMenuSubTrigger>
+									<DropdownMenuSubContent className="w-52">
+										<DropdownMenuItem
+											onClick={() => {
+												return void handleSetGroup(null)
+											}}
+											className="cursor-pointer justify-between gap-2"
+										>
+											<span className="flex items-center gap-2 text-xs text-muted-foreground">
+												<X className="size-3.5" />
+												{t("instances.groups.ungrouped", { defaultValue: "Ungrouped" })}
+											</span>
+											{!groupLabel && <Check className="size-3.5 text-primary" />}
+										</DropdownMenuItem>
+										{existingGroups.length > 0 && <DropdownMenuSeparator />}
+										{existingGroups.map((groupName) => {
+											const isCurrent = groupLabel === groupName
+											return (
+												<DropdownMenuItem
+													key={groupName}
+													onClick={() => {
+														return void handleSetGroup(groupName)
+													}}
+													className="cursor-pointer justify-between gap-2"
+												>
+													<span className="flex items-center gap-2 truncate text-xs">
+														<Folder className="size-3.5 shrink-0 text-amber-400" />
+														<span className="truncate">{groupName}</span>
+													</span>
+													{isCurrent && <Check className="size-3.5 shrink-0 text-primary" />}
+												</DropdownMenuItem>
+											)
+										})}
+										<DropdownMenuSeparator />
+										<DropdownMenuItem onClick={onSettings} className="cursor-pointer gap-2">
+											<Settings className="size-3.5 text-muted-foreground" />
+											<span className="text-xs">
+												{t("instances.groups.editInSettings", {
+													defaultValue: "Edit Group in Settings...",
+												})}
+											</span>
+										</DropdownMenuItem>
+									</DropdownMenuSubContent>
+								</DropdownMenuSub>
 								<DropdownMenuSub>
 									<DropdownMenuSubTrigger className="cursor-pointer gap-2">
 										<Share2 className="size-4 text-muted-foreground" />

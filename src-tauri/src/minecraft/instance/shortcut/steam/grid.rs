@@ -5,7 +5,7 @@ use image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
 use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 
-use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
+use crate::minecraft::instance::models::{InstanceColorTag, InstanceConfig, ModLoaderType};
 use crate::minecraft::instance::shortcut::icons::resolve_instance_icon_bytes;
 use crate::minecraft::instance::shortcut::ShortcutError;
 
@@ -58,6 +58,47 @@ fn palette_for_loader(loader: &ModLoaderType) -> LoaderPalette {
     }
 }
 
+fn palette_for_color_tag(tag: InstanceColorTag) -> LoaderPalette {
+    match tag {
+        InstanceColorTag::Red => LoaderPalette {
+            primary: [239, 68, 68],
+            secondary: [92, 18, 24],
+        },
+        InstanceColorTag::Orange => LoaderPalette {
+            primary: [249, 115, 22],
+            secondary: [98, 38, 12],
+        },
+        InstanceColorTag::Amber => LoaderPalette {
+            primary: [245, 158, 11],
+            secondary: [96, 58, 10],
+        },
+        InstanceColorTag::Emerald => LoaderPalette {
+            primary: [16, 185, 129],
+            secondary: [10, 74, 52],
+        },
+        InstanceColorTag::Cyan => LoaderPalette {
+            primary: [6, 182, 212],
+            secondary: [12, 68, 86],
+        },
+        InstanceColorTag::Blue => LoaderPalette {
+            primary: [59, 130, 246],
+            secondary: [18, 46, 102],
+        },
+        InstanceColorTag::Violet => LoaderPalette {
+            primary: [139, 92, 246],
+            secondary: [52, 26, 104],
+        },
+        InstanceColorTag::Pink => LoaderPalette {
+            primary: [236, 72, 153],
+            secondary: [92, 20, 58],
+        },
+        InstanceColorTag::Rose => LoaderPalette {
+            primary: [244, 63, 94],
+            secondary: [96, 18, 38],
+        },
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct GeneratedGridAssets {
     pub portrait_path: PathBuf,
@@ -81,7 +122,10 @@ pub fn generate_steam_grid_assets(
         .map_err(|e| ShortcutError::Image(format!("Failed to decode instance icon: {e}")))?;
 
     let latest_screenshot = load_latest_screenshot(instance_dir);
-    let palette = palette_for_loader(&instance.loader);
+    let palette = instance
+        .color_tag
+        .map(palette_for_color_tag)
+        .unwrap_or_else(|| palette_for_loader(&instance.loader));
 
     let portrait_path = grid_dir.join(format!("{app_id}p.png"));
     let wide_path = grid_dir.join(format!("{app_id}.png"));

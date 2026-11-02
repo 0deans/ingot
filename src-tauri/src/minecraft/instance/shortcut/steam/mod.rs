@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use crate::minecraft::instance::models::InstanceConfig;
+use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
 use crate::minecraft::instance::shortcut::icons::resolve_instance_icon;
 use crate::minecraft::instance::shortcut::ShortcutError;
 
@@ -80,6 +80,9 @@ pub fn export_instance_to_steam_configs(
             target_exe: target_exe.to_path_buf(),
             start_dir: start_dir.clone(),
             icon_path: Some(shortcut_icon),
+            group: instance.group.clone(),
+            loader_name: loader_tag_label(&instance.loader).to_string(),
+            last_played: instance.last_played,
         };
 
         upsert_steam_shortcut(&mut root_entries, &spec).map_err(ShortcutError::SteamCorruptVdf)?;
@@ -96,6 +99,17 @@ pub fn export_instance_to_steam_configs(
     }
 
     primary_vdf_path.ok_or(ShortcutError::SteamNotFound)
+}
+
+fn loader_tag_label(loader: &ModLoaderType) -> &'static str {
+    match loader {
+        ModLoaderType::Vanilla => "Vanilla",
+        ModLoaderType::Fabric => "Fabric",
+        ModLoaderType::Forge => "Forge",
+        ModLoaderType::NeoForge => "NeoForge",
+        ModLoaderType::Quilt => "Quilt",
+        ModLoaderType::Horizon => "Horizon",
+    }
 }
 
 /// Resolves `<steam_root>/userdata/<numeric_uid>/config` directories across candidate Steam root paths.

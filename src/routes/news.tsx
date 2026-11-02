@@ -6,7 +6,9 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import * as v from "valibot"
 import type { ModLoaderType, NewsArticle, PatchNoteSummary } from "@/bindings"
-import NewInstanceDialog from "@/components/instances/new-instance-dialog"
+import NewInstanceDialog, {
+	type NewInstanceCustomization,
+} from "@/components/instances/new-instance-dialog"
 import NewsArticleCard from "@/components/news/news-article-card"
 import NewsArticleDetailView from "@/components/news/news-article-detail-view"
 import NewsHeader, { type NewsFilterCategory } from "@/components/news/news-header"
@@ -206,9 +208,16 @@ const NewsPage = () => {
 			gameVersion: string,
 			loader: ModLoaderType,
 			loaderVersion: string | null,
+			customization?: NewInstanceCustomization,
 		) => {
 			try {
-				await instanceService.createInstance(name, gameVersion, loader, loaderVersion)
+				await instanceService.createInstance(
+					name,
+					gameVersion,
+					loader,
+					loaderVersion,
+					customization,
+				)
 				toast.success(`Instance "${name}" created successfully`)
 				setIsCreatingInstance(false)
 				navigate({ to: "/" })

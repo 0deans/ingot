@@ -31,7 +31,8 @@
 		"update": "更新",
 		"enable": "启用",
 		"previous": "上一页",
-		"next": "下一页"
+		"next": "下一页",
+		"reset": "Reset"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "选择您的语言",
@@ -140,6 +141,9 @@
 		"noMatchTitle": "未找到匹配“{{query}}”的实例",
 		"noMatchSubtitle": "请尝试搜索其他名称、版本或模组加载器。",
 		"card": {
+			"zeroPlaytime": "0m played",
+			"colorTag": "Color Tag",
+			"groupMenu": "Group / Folder",
 			"neverPlayed": "从未游玩",
 			"preparing": "准备中",
 			"preparingBtn": "准备中...",
@@ -175,7 +179,34 @@
 			"shortcutFailed": "创建快捷方式失败: {{error}}",
 			"moreActions": "更多操作"
 		},
-		"activeEntry": "{{name}} (PID {{pid}})"
+		"activeEntry": "{{name}} (PID {{pid}})",
+		"totalPlaytimeAll": "Total playtime: {{duration}}",
+		"sort": {
+			"label": "Sort By",
+			"lastPlayed": "Last Played",
+			"playtime": "Total Playtime",
+			"name": "Name (A–Z)",
+			"createdAt": "Recently Created"
+		},
+		"colors": {
+			"filter": "Color",
+			"filterBy": "Filter by Color",
+			"all": "All Colors",
+			"none": "No Color",
+			"red": "Red",
+			"orange": "Orange",
+			"amber": "Amber",
+			"emerald": "Emerald",
+			"cyan": "Cyan",
+			"blue": "Blue",
+			"violet": "Violet",
+			"pink": "Pink",
+			"rose": "Rose"
+		},
+		"groups": {
+			"ungrouped": "Ungrouped",
+			"editInSettings": "Edit Group in Settings..."
+		}
 	},
 	"modpacks": {
 		"title": "发现内容",
@@ -1452,6 +1483,20 @@
 		"device": "设备存储"
 	},
 	"instanceSettings": {
+		"iconTitle": "Instance Icon",
+		"iconHint": "Choose a built-in preset, upload a custom PNG/GIF, or use the default loader icon.",
+		"uploadIcon": "Upload PNG / GIF",
+		"iconUploadFailed": "Failed to process icon image: {{error}}",
+		"groupTitle": "Group / Folder",
+		"groupHint": "Organize instances into collapsible categories and Steam Library collections.",
+		"groupPlaceholder": "e.g. Vanilla, Modpacks, 1.21 SMP",
+		"colorTagTitle": "Color Tag",
+		"colorTagHint": "Color-code the instance card and Steam Grid banner palette.",
+		"playtimeTitle": "Cumulative Playtime",
+		"playtimeHint": "Adjust or reset total recorded lifetime hours and minutes played.",
+		"resetPlaytime": "Reset Timer",
+		"playtimeHours": "hours",
+		"playtimeMinutes": "minutes",
 		"pushFailed": "推送失败：{{error}}",
 		"pullFailed": "拉取失败：{{error}}",
 		"saveFailed": "保存设置失败：{{error}}",
@@ -1754,5 +1799,21 @@
 		"openBehaviorPacks": "行为包",
 		"openScreenshots": "屏幕截图文件夹",
 		"store": "Microsoft Store 页面"
+	},
+	"instanceIcon": {
+		"presets": {
+			"creeper": "Creeper",
+			"grass": "Grass Block",
+			"sword": "Diamond Sword",
+			"pickaxe": "Diamond Pickaxe",
+			"redstone": "Redstone",
+			"ender": "Ender Pearl",
+			"nether": "Nether Portal",
+			"potion": "Potion",
+			"commandBlock": "Command Block",
+			"chest": "Chest",
+			"beacon": "Beacon",
+			"book": "Enchanted Book"
+		}
 	}
 }

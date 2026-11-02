@@ -31,7 +31,8 @@
 		"update": "Actualizează",
 		"enable": "Activează",
 		"previous": "Înapoi",
-		"next": "Înainte"
+		"next": "Înainte",
+		"reset": "Reset"
 	},
 	"onboarding": {
 		"selectLanguageTitle": "Alege limba",
@@ -140,6 +141,9 @@
 		"noMatchTitle": "Nicio instanță găsită pentru „{{query}}”",
 		"noMatchSubtitle": "Încearcă să cauți alt nume, versiune sau încărcător de moduri.",
 		"card": {
+			"zeroPlaytime": "0m played",
+			"colorTag": "Color Tag",
+			"groupMenu": "Group / Folder",
 			"neverPlayed": "Jucat niciodată",
 			"preparing": "Se pregătește",
 			"preparingBtn": "Se pregătește...",
@@ -175,7 +179,34 @@
 			"shortcutFailed": "Nu s-a putut crea comanda rapidă: {{error}}",
 			"moreActions": "Mai multe acțiuni"
 		},
-		"activeEntry": "{{name}} (PID {{pid}})"
+		"activeEntry": "{{name}} (PID {{pid}})",
+		"totalPlaytimeAll": "Total playtime: {{duration}}",
+		"sort": {
+			"label": "Sort By",
+			"lastPlayed": "Last Played",
+			"playtime": "Total Playtime",
+			"name": "Name (A–Z)",
+			"createdAt": "Recently Created"
+		},
+		"colors": {
+			"filter": "Color",
+			"filterBy": "Filter by Color",
+			"all": "All Colors",
+			"none": "No Color",
+			"red": "Red",
+			"orange": "Orange",
+			"amber": "Amber",
+			"emerald": "Emerald",
+			"cyan": "Cyan",
+			"blue": "Blue",
+			"violet": "Violet",
+			"pink": "Pink",
+			"rose": "Rose"
+		},
+		"groups": {
+			"ungrouped": "Ungrouped",
+			"editInSettings": "Edit Group in Settings..."
+		}
 	},
 	"modpacks": {
 		"title": "Descoperă conținut",
@@ -1467,6 +1498,20 @@
 		"device": "Stocare dispozitiv"
 	},
 	"instanceSettings": {
+		"iconTitle": "Instance Icon",
+		"iconHint": "Choose a built-in preset, upload a custom PNG/GIF, or use the default loader icon.",
+		"uploadIcon": "Upload PNG / GIF",
+		"iconUploadFailed": "Failed to process icon image: {{error}}",
+		"groupTitle": "Group / Folder",
+		"groupHint": "Organize instances into collapsible categories and Steam Library collections.",
+		"groupPlaceholder": "e.g. Vanilla, Modpacks, 1.21 SMP",
+		"colorTagTitle": "Color Tag",
+		"colorTagHint": "Color-code the instance card and Steam Grid banner palette.",
+		"playtimeTitle": "Cumulative Playtime",
+		"playtimeHint": "Adjust or reset total recorded lifetime hours and minutes played.",
+		"resetPlaytime": "Reset Timer",
+		"playtimeHours": "hours",
+		"playtimeMinutes": "minutes",
 		"pushFailed": "Trimiterea a eșuat: {{error}}",
 		"pullFailed": "Preluarea a eșuat: {{error}}",
 		"saveFailed": "Salvarea setărilor a eșuat: {{error}}",
@@ -1781,5 +1826,21 @@
 		"openBehaviorPacks": "Pachete de comportament",
 		"openScreenshots": "Dosar capturi de ecran",
 		"store": "Pagina Microsoft Store"
+	},
+	"instanceIcon": {
+		"presets": {
+			"creeper": "Creeper",
+			"grass": "Grass Block",
+			"sword": "Diamond Sword",
+			"pickaxe": "Diamond Pickaxe",
+			"redstone": "Redstone",
+			"ender": "Ender Pearl",
+			"nether": "Nether Portal",
+			"potion": "Potion",
+			"commandBlock": "Command Block",
+			"chest": "Chest",
+			"beacon": "Beacon",
+			"book": "Enchanted Book"
+		}
 	}
 }

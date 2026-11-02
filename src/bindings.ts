@@ -208,6 +208,8 @@ export type InstalledPlugin = {
 	system: boolean,
 };
 
+export type InstanceColorTag = "red" | "orange" | "amber" | "emerald" | "cyan" | "blue" | "violet" | "pink" | "rose";
+
 export type InstanceConfig = {
 	id: string,
 	name: string,
@@ -231,6 +233,8 @@ export type InstanceConfig = {
 	syncCommandHistory?: boolean | null,
 	syncCreativeHotbars?: boolean | null,
 	lastSyncedAt?: number | null,
+	group?: string | null,
+	colorTag?: InstanceColorTag | null,
 };
 
 export type InstanceStatusEvent = {
