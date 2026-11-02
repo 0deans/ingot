@@ -9,6 +9,7 @@ use tauri::Runtime;
 #[derive(Default)]
 pub(crate) struct LifecycleState {
     quitting: AtomicBool,
+    direct_launch_session: AtomicBool,
     games_adopted: tokio::sync::OnceCell<()>,
 }
 
@@ -27,6 +28,14 @@ impl LifecycleState {
 
     pub(crate) fn is_quitting(&self) -> bool {
         self.quitting.load(Ordering::SeqCst)
+    }
+
+    pub(crate) fn set_direct_launch_session(&self, active: bool) {
+        self.direct_launch_session.store(active, Ordering::SeqCst);
+    }
+
+    pub(crate) fn is_direct_launch_session(&self) -> bool {
+        self.direct_launch_session.load(Ordering::SeqCst)
     }
 }
 
@@ -198,9 +207,22 @@ async fn collect_shutdowns(jobs: Vec<ShutdownJob>) -> Result<(), LifecycleError>
     Err(LifecycleError::Servers(ShutdownFailures(failures)))
 }
 
+pub(crate) fn set_direct_launch_session<R: Runtime>(app: &tauri::AppHandle<R>, active: bool) {
+    state(app).lifecycle.set_direct_launch_session(active);
+}
+
+pub(crate) fn clear_direct_launch_session<R: Runtime>(app: &tauri::AppHandle<R>) {
+    state(app).lifecycle.set_direct_launch_session(false);
+}
+
+pub(crate) fn is_direct_launch_session<R: Runtime>(app: &tauri::AppHandle<R>) -> bool {
+    state(app).lifecycle.is_direct_launch_session()
+}
+
 /// Quits for real, past the checks
 pub(crate) fn quit_now<R: Runtime>(app: &tauri::AppHandle<R>) {
     state(app).lifecycle.mark_quitting();
+    super::cli_waiter::cleanup_endpoint_file(app);
     app.exit(0);
 }
 
@@ -215,6 +237,12 @@ pub(crate) fn request_quit<R: Runtime>(app: &tauri::AppHandle<R>) {
     tauri::async_runtime::spawn(async move {
         let request = quit_request(&app).await;
         if request.servers.is_empty() {
+            if is_direct_launch_session(&app) {
+                let pm = get_process_manager(&app);
+                for running in pm.get_running_instances().await {
+                    let _ = pm.kill_instance(&running.instance_id).await;
+                }
+            }
             quit_now(&app);
             return;
         }

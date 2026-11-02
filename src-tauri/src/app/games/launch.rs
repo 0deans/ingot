@@ -16,12 +16,20 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, Runtime};
 
-pub async fn launch_minecraft<R: Runtime, FProg, FStatus>(
+#[derive(Default)]
+pub(crate) struct LaunchSessionOptions {
+    pub(crate) quick_play: Option<QuickPlayOptions>,
+    pub(crate) launched_from_cli: bool,
+    pub(crate) extra_env: Vec<(String, String)>,
+    pub(crate) on_reserved: Option<tokio::sync::oneshot::Sender<u64>>,
+}
+
+pub(crate) async fn launch_minecraft_with_options<R: Runtime, FProg, FStatus>(
     app: AppHandle<R>,
     process_manager: ProcessManager,
     client: reqwest::Client,
     instance_id: String,
-    quick_play: Option<QuickPlayOptions>,
+    options: LaunchSessionOptions,
     on_progress: FProg,
     on_status: FStatus,
 ) -> Result<u32, LaunchError>
@@ -29,6 +37,12 @@ where
     FProg: Fn(LaunchProgressEvent) + Send + Sync + 'static,
     FStatus: Fn(InstanceStatusEvent) + Send + Sync + 'static,
 {
+    let LaunchSessionOptions {
+        quick_play,
+        launched_from_cli,
+        extra_env,
+        on_reserved,
+    } = options;
     let reservation = reserve_instance_launch(
         &crate::app::state(&app).instances,
         &process_manager,
@@ -37,6 +51,9 @@ where
     .await?;
     let instance = reservation.instance;
     let starting_guard = reservation.ownership;
+    if let Some(tx) = on_reserved {
+        let _ = tx.send(starting_guard.reservation_id());
+    }
 
     let report_prog = make_progress_reporter(instance_id.clone(), on_progress);
 
@@ -53,7 +70,7 @@ where
 
     let global_settings = system::load_settings(&app).map_err(LaunchError::Settings)?;
 
-    let (command, _session_guard) =
+    let (mut command, _session_guard) =
         if instance.loader == crate::minecraft::instance::ModLoaderType::Horizon {
             super::horizon::prepare_horizon_game_command(
                 &app,
@@ -91,6 +108,10 @@ where
             )
         };
 
+    for (key, value) in &extra_env {
+        command.env(key, value);
+    }
+
     // Run pre-launch synchronization
     if let Err(e) = crate::app::sync::sync_before_launch(&app, &instance, &instance_dir) {
         eprintln!("[Launcher] Warning: Pre-launch sync failed: {e}");
@@ -117,6 +138,7 @@ where
         &app,
         global_settings.launcher_behavior.as_str(),
         &instance_id,
+        launched_from_cli,
     );
 
     // Background task to monitor child exit
@@ -152,6 +174,7 @@ where
             now,
             ended,
             clean,
+            launched_from_cli,
             &on_status_clone,
         )
         .await;
@@ -196,6 +219,22 @@ pub(crate) async fn launch_instance_with_events<R: Runtime>(
     instance_id: String,
     quick_play: Option<QuickPlayOptions>,
 ) -> Result<u32, LaunchError> {
+    launch_instance_with_options(
+        app,
+        instance_id,
+        LaunchSessionOptions {
+            quick_play,
+            ..Default::default()
+        },
+    )
+    .await
+}
+
+pub(crate) async fn launch_instance_with_options<R: Runtime>(
+    app: AppHandle<R>,
+    instance_id: String,
+    options: LaunchSessionOptions,
+) -> Result<u32, LaunchError> {
     crate::app::lifecycle::adopt_running_games(&app).await;
     let pm = crate::app::state(&app).games.clone();
     let client = crate::app::state(&app).http.clone();
@@ -210,7 +249,7 @@ pub(crate) async fn launch_instance_with_events<R: Runtime>(
         crate::app::events::instance_status(&app_stat, ev);
     };
 
-    launch_minecraft(app, pm, client, instance_id, quick_play, on_prog, on_status).await
+    launch_minecraft_with_options(app, pm, client, instance_id, options, on_prog, on_status).await
 }
 
 #[cfg(test)]

@@ -64,6 +64,7 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::err
 }
 
 pub fn restore_main_window<R: Runtime>(app: &AppHandle<R>) {
+    crate::app::lifecycle::clear_direct_launch_session(app);
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
         let _ = window.unminimize();

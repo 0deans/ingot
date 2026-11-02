@@ -39,26 +39,45 @@ pub fn parse_cli_launch_instance(args: &[String]) -> Option<String> {
     None
 }
 
+pub(crate) fn restore_window_on_cli_failure<R: Runtime>(
+    app: &AppHandle<R>,
+    err: &crate::minecraft::launcher::LaunchError,
+) {
+    if matches!(
+        err,
+        crate::minecraft::launcher::LaunchError::ReservationCancelled
+    ) {
+        return;
+    }
+    #[cfg(desktop)]
+    crate::tray::restore_main_window(app);
+    #[cfg(not(desktop))]
+    {
+        crate::app::lifecycle::clear_direct_launch_session(app);
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
+    }
+}
+
 /// Dispatches actions specified by command line arguments.
 pub fn handle_cli_args<R: Runtime>(app: &AppHandle<R>, args: &[String]) {
     if let Some(instance_id) = parse_cli_launch_instance(args) {
         let handle = app.clone();
         tauri::async_runtime::spawn(async move {
-            if let Err(err) = crate::app::games::launch_instance_with_events(
+            if let Err(err) = crate::app::games::launch_instance_with_options(
                 handle.clone(),
                 instance_id.clone(),
-                None,
+                crate::app::games::LaunchSessionOptions {
+                    launched_from_cli: true,
+                    ..Default::default()
+                },
             )
             .await
             {
                 eprintln!("[CLI] Failed to launch instance {instance_id}: {err}");
-                #[cfg(desktop)]
-                crate::tray::restore_main_window(&handle);
-                #[cfg(not(desktop))]
-                if let Some(window) = handle.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
+                restore_window_on_cli_failure(&handle, &err);
             }
         });
     }

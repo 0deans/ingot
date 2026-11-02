@@ -54,6 +54,21 @@ pub fn run() {
     };
     let _guard = _rt.as_ref().map(|rt| rt.enter());
 
+    #[cfg(desktop)]
+    {
+        let startup_args: Vec<String> = std::env::args().collect();
+        if app::cli::parse_cli_launch_instance(&startup_args).is_some() {
+            let delegated = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(
+                    app::cli_waiter::try_delegate_to_running_instance(&startup_args),
+                )
+            });
+            if let Some(exit_code) = delegated {
+                std::process::exit(exit_code);
+            }
+        }
+    }
+
     let router = ipc::router::<tauri::Wry>();
 
     #[cfg(debug_assertions)]
@@ -69,6 +84,7 @@ pub fn run() {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             let is_shortcut = app::cli::parse_cli_launch_instance(&args).is_some();
             if !is_shortcut {
+                app::lifecycle::clear_direct_launch_session(app);
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.unminimize();
@@ -86,8 +102,12 @@ pub fn run() {
         .setup(|_app| {
             let paths = app::AppPaths::new(_app.path().app_data_dir()?);
             _app.manage(app::AppState::new(paths)?);
+            let startup_args: Vec<String> = std::env::args().collect();
+            let is_direct_launch = app::cli::parse_cli_launch_instance(&startup_args).is_some();
+            app::lifecycle::set_direct_launch_session(_app.handle(), is_direct_launch);
             #[cfg(desktop)]
             {
+                app::cli_waiter::start_server(_app.handle());
                 if let Err(e) = _app
                     .handle()
                     .plugin(tauri_plugin_updater::Builder::new().build())
@@ -102,8 +122,7 @@ pub fn run() {
             let handle = _app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 app::lifecycle::adopt_running_games(&handle).await;
-                let args: Vec<String> = std::env::args().collect();
-                app::cli::handle_cli_args(&handle, &args);
+                app::cli::handle_cli_args(&handle, &startup_args);
             });
             Ok(())
         })
@@ -123,14 +142,19 @@ pub fn run() {
         .run(|_app, _event| {
             // Any other way out (the tray, the launcher closing itself) goes through the same check
             #[cfg(desktop)]
-            if let tauri::RunEvent::ExitRequested {
-                api, code: Some(_), ..
-            } = _event
-            {
-                if !app::lifecycle::is_quitting(_app) {
-                    api.prevent_exit();
-                    app::lifecycle::request_quit(_app);
+            match _event {
+                tauri::RunEvent::ExitRequested {
+                    api, code: Some(_), ..
+                } => {
+                    if !app::lifecycle::is_quitting(_app) {
+                        api.prevent_exit();
+                        app::lifecycle::request_quit(_app);
+                    }
                 }
+                tauri::RunEvent::Exit => {
+                    app::cli_waiter::cleanup_endpoint_file(_app);
+                }
+                _ => {}
             }
         });
 }

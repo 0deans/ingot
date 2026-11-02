@@ -103,3 +103,78 @@ async fn termination_worker_keeps_ownership_after_caller_cancellation() {
     finished_rx.await.unwrap();
     assert_eq!(manager.get_running_instances().await[0].pid, 10);
 }
+
+#[tokio::test]
+async fn reservation_wait_tracks_starting_running_and_maintenance_until_exit_guard_drops() {
+    let manager = ProcessManager::new();
+    let starting = manager.reserve_starting("instance").await.unwrap();
+    let reservation_id = starting.reservation_id();
+    assert!(manager.is_reservation_active("instance", reservation_id));
+
+    let waiter_manager = manager.clone();
+    let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
+    tokio::spawn(async move {
+        waiter_manager
+            .wait_for_reservation_end("instance", reservation_id)
+            .await;
+        let _ = done_tx.send(());
+    });
+
+    starting.commit(42, 100).unwrap();
+    assert!(manager.is_reservation_active("instance", reservation_id));
+    assert!(done_rx.try_recv().is_err());
+
+    let maintenance = manager.claim_exit("instance", 42).unwrap();
+    assert!(manager.is_reservation_active("instance", reservation_id));
+    assert!(done_rx.try_recv().is_err());
+
+    drop(maintenance);
+    done_rx.await.unwrap();
+    assert!(!manager.is_reservation_active("instance", reservation_id));
+}
+
+#[tokio::test]
+async fn cancel_or_kill_reservation_only_affects_matching_reservation_id() {
+    let manager = ProcessManager::new();
+    let first = manager.reserve_starting("instance").await.unwrap();
+    let first_id = first.reservation_id();
+
+    manager
+        .cancel_or_kill_reservation("instance", first_id + 99)
+        .await
+        .unwrap();
+    first.check_active().unwrap();
+
+    manager
+        .cancel_or_kill_reservation("instance", first_id)
+        .await
+        .unwrap();
+    assert!(matches!(
+        first.check_active(),
+        Err(LaunchError::ReservationCancelled)
+    ));
+
+    let second = manager.reserve_starting("instance").await.unwrap();
+    let second_id = second.reservation_id();
+    second.commit(77, 200).unwrap();
+
+    let (terminated_tx, mut terminated_rx) = tokio::sync::oneshot::channel();
+    manager
+        .cancel_or_kill_reservation_with("instance", first_id, move |child| async move {
+            let _ = terminated_tx.send(child.pid);
+            Ok(())
+        })
+        .await
+        .unwrap();
+    assert!(terminated_rx.try_recv().is_err());
+
+    let (terminated_tx2, terminated_rx2) = tokio::sync::oneshot::channel();
+    manager
+        .cancel_or_kill_reservation_with("instance", second_id, move |child| async move {
+            let _ = terminated_tx2.send(child.pid);
+            Ok(())
+        })
+        .await
+        .unwrap();
+    assert_eq!(terminated_rx2.await.unwrap(), 77);
+}

@@ -13,9 +13,16 @@ pub(crate) struct ActiveChild {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ProcessEntry {
-    Starting { reservation_id: u64 },
-    Running(ActiveChild),
-    Maintenance { reservation_id: u64 },
+    Starting {
+        reservation_id: u64,
+    },
+    Running {
+        child: ActiveChild,
+        reservation_id: Option<u64>,
+    },
+    Maintenance {
+        reservation_id: u64,
+    },
 }
 
 /// RAII reservation for a game process currently starting up.
@@ -25,12 +32,17 @@ pub(crate) enum ProcessEntry {
 /// does not allow a stale future to commit or clear a newer reservation.
 pub struct StartingGuard {
     pub(crate) running: Arc<Mutex<HashMap<String, ProcessEntry>>>,
+    pub(crate) state_changed: Arc<tokio::sync::Notify>,
     pub(crate) instance_id: String,
     pub(crate) reservation_id: u64,
     pub(crate) committed: bool,
 }
 
 impl StartingGuard {
+    pub fn reservation_id(&self) -> u64 {
+        self.reservation_id
+    }
+
     /// Verifies that this reservation is still active and owned by this guard.
     /// If cancellation removed the reservation or another launch replaced it, this returns Err.
     pub fn check_active(&self) -> Result<(), LaunchError> {
@@ -62,11 +74,14 @@ impl StartingGuard {
             {
                 lock.insert(
                     self.instance_id.clone(),
-                    ProcessEntry::Running(ActiveChild {
-                        pid,
-                        started_at,
-                        proc_start,
-                    }),
+                    ProcessEntry::Running {
+                        child: ActiveChild {
+                            pid,
+                            started_at,
+                            proc_start,
+                        },
+                        reservation_id: Some(self.reservation_id),
+                    },
                 );
                 Ok(())
             }
@@ -78,13 +93,18 @@ impl StartingGuard {
 impl Drop for StartingGuard {
     fn drop(&mut self) {
         if !self.committed {
+            let mut removed = false;
             if let Ok(mut lock) = self.running.lock() {
                 if let Some(ProcessEntry::Starting { reservation_id }) = lock.get(&self.instance_id)
                 {
                     if *reservation_id == self.reservation_id {
                         lock.remove(&self.instance_id);
+                        removed = true;
                     }
                 }
+            }
+            if removed {
+                self.state_changed.notify_waiters();
             }
         }
     }
@@ -94,6 +114,7 @@ impl Drop for StartingGuard {
 pub struct ProcessManager {
     running: Arc<Mutex<HashMap<String, ProcessEntry>>>,
     next_reservation_id: Arc<AtomicU64>,
+    state_changed: Arc<tokio::sync::Notify>,
 }
 
 impl ProcessManager {
@@ -101,6 +122,7 @@ impl ProcessManager {
         Self {
             running: Arc::new(Mutex::new(HashMap::new())),
             next_reservation_id: Arc::new(AtomicU64::new(1)),
+            state_changed: Arc::new(tokio::sync::Notify::new()),
         }
     }
 
@@ -121,6 +143,7 @@ impl ProcessManager {
         );
         Ok(StartingGuard {
             running: self.running.clone(),
+            state_changed: self.state_changed.clone(),
             instance_id: instance_id.to_string(),
             reservation_id: res_id,
             committed: false,
@@ -145,6 +168,7 @@ impl ProcessManager {
         );
         Ok(MaintenanceGuard {
             entries: self.running.clone(),
+            state_changed: self.state_changed.clone(),
             instance_id: instance_id.to_string(),
             reservation_id,
         })
@@ -172,7 +196,7 @@ impl ProcessManager {
         let lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
         lock.iter()
             .filter_map(|(id, entry)| match entry {
-                ProcessEntry::Running(child) => Some(RunningInstanceSummary {
+                ProcessEntry::Running { child, .. } => Some(RunningInstanceSummary {
                     instance_id: id.clone(),
                     pid: child.pid,
                     started_at: child.started_at,
@@ -187,11 +211,14 @@ impl ProcessManager {
         let mut lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
         lock.insert(
             instance_id.to_string(),
-            ProcessEntry::Running(ActiveChild {
-                pid,
-                started_at,
-                proc_start,
-            }),
+            ProcessEntry::Running {
+                child: ActiveChild {
+                    pid,
+                    started_at,
+                    proc_start,
+                },
+                reservation_id: None,
+            },
         );
     }
 
@@ -221,11 +248,14 @@ impl ProcessManager {
         }
         entries.insert(
             instance_id.to_owned(),
-            ProcessEntry::Running(ActiveChild {
-                pid,
-                started_at,
-                proc_start,
-            }),
+            ProcessEntry::Running {
+                child: ActiveChild {
+                    pid,
+                    started_at,
+                    proc_start,
+                },
+                reservation_id: None,
+            },
         );
         true
     }
@@ -235,35 +265,72 @@ impl ProcessManager {
             .running
             .lock()
             .unwrap_or_else(|error| error.into_inner());
-        let owns_process = matches!(entries.get(instance_id), Some(ProcessEntry::Running(child)) if child.pid == pid);
-        if !owns_process {
-            return None;
-        }
-        let reservation_id = self.next_reservation_id.fetch_add(1, Ordering::SeqCst);
+        let reservation_id = match entries.get(instance_id) {
+            Some(ProcessEntry::Running {
+                child,
+                reservation_id,
+            }) if child.pid == pid => reservation_id
+                .unwrap_or_else(|| self.next_reservation_id.fetch_add(1, Ordering::SeqCst)),
+            _ => return None,
+        };
         entries.insert(
             instance_id.to_owned(),
             ProcessEntry::Maintenance { reservation_id },
         );
         Some(MaintenanceGuard {
             entries: self.running.clone(),
+            state_changed: self.state_changed.clone(),
             instance_id: instance_id.to_owned(),
             reservation_id,
         })
     }
 
+    pub fn is_reservation_active(&self, instance_id: &str, expected_id: u64) -> bool {
+        let lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
+        matches!(
+            lock.get(instance_id),
+            Some(
+                ProcessEntry::Starting { reservation_id }
+                | ProcessEntry::Running {
+                    reservation_id: Some(reservation_id),
+                    ..
+                }
+                | ProcessEntry::Maintenance { reservation_id }
+            ) if *reservation_id == expected_id
+        )
+    }
+
+    pub async fn wait_for_reservation_end(&self, instance_id: &str, reservation_id: u64) {
+        loop {
+            let notified = self.state_changed.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            if !self.is_reservation_active(instance_id, reservation_id) {
+                return;
+            }
+            notified.await;
+        }
+    }
+
     pub async fn remove_if_pid_matches(&self, instance_id: &str, pid: u32) -> (bool, bool) {
-        let mut lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
-        let matches = match lock.get(instance_id) {
-            Some(ProcessEntry::Running(child)) => child.pid == pid,
-            _ => false,
+        let (removed, is_empty) = {
+            let mut lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
+            let matches = match lock.get(instance_id) {
+                Some(ProcessEntry::Running { child, .. }) => child.pid == pid,
+                _ => false,
+            };
+            let removed = if matches {
+                lock.remove(instance_id);
+                true
+            } else {
+                false
+            };
+            let is_empty = lock.is_empty();
+            (removed, is_empty)
         };
-        let removed = if matches {
-            lock.remove(instance_id);
-            true
-        } else {
-            false
-        };
-        let is_empty = lock.is_empty();
+        if removed {
+            self.state_changed.notify_waiters();
+        }
         (removed, is_empty)
     }
 
@@ -276,7 +343,14 @@ impl ProcessManager {
             .running
             .lock()
             .map_err(|_| LaunchError::RegistryPoisoned)?;
-        if entries.get(instance_id) != Some(&ProcessEntry::Running(child)) {
+        let matches = matches!(
+            entries.get(instance_id),
+            Some(ProcessEntry::Running {
+                child: current,
+                ..
+            }) if *current == child
+        );
+        if !matches {
             return Err(LaunchError::ReservationCancelled);
         }
         Ok(())
@@ -285,6 +359,70 @@ impl ProcessManager {
     pub async fn kill_instance(&self, instance_id: &str) -> Result<(), LaunchError> {
         self.kill_instance_with(instance_id, super::termination::terminate)
             .await
+    }
+
+    pub async fn cancel_or_kill_reservation(
+        &self,
+        instance_id: &str,
+        expected_id: u64,
+    ) -> Result<(), LaunchError> {
+        self.cancel_or_kill_reservation_with(
+            instance_id,
+            expected_id,
+            super::termination::terminate,
+        )
+        .await
+    }
+
+    async fn cancel_or_kill_reservation_with<F, Fut>(
+        &self,
+        instance_id: &str,
+        expected_id: u64,
+        terminate: F,
+    ) -> Result<(), LaunchError>
+    where
+        F: FnOnce(ActiveChild) -> Fut + Send + 'static,
+        Fut: std::future::Future<Output = Result<(), super::termination::TerminationError>>
+            + Send
+            + 'static,
+    {
+        let (active_child, removed_starting) = {
+            let mut lock = self
+                .running
+                .lock()
+                .map_err(|_| LaunchError::RegistryPoisoned)?;
+            match lock.get(instance_id).copied() {
+                Some(ProcessEntry::Starting { reservation_id })
+                    if reservation_id == expected_id =>
+                {
+                    lock.remove(instance_id);
+                    (None, true)
+                }
+                Some(ProcessEntry::Running {
+                    child,
+                    reservation_id: Some(reservation_id),
+                }) if reservation_id == expected_id => (Some(child), false),
+                _ => (None, false),
+            }
+        };
+        if removed_starting {
+            self.state_changed.notify_waiters();
+            return Ok(());
+        }
+        if let Some(child) = active_child {
+            let manager = self.clone();
+            let instance_id = instance_id.to_owned();
+            tokio::spawn(async move {
+                manager.check_running_identity(&instance_id, child)?;
+                let result = terminate(child).await;
+                if let Err(error) = &result {
+                    eprintln!("[Launcher] Game termination failed: {error}");
+                }
+                result.map_err(LaunchError::Termination)
+            })
+            .await??;
+        }
+        Ok(())
     }
 
     async fn kill_instance_with<F, Fut>(
@@ -298,7 +436,7 @@ impl ProcessManager {
             + Send
             + 'static,
     {
-        let active_child = {
+        let (active_child, removed_starting) = {
             let mut lock = self
                 .running
                 .lock()
@@ -310,15 +448,18 @@ impl ProcessManager {
                 return Err(LaunchError::Maintenance);
             }
             match lock.get(instance_id).copied() {
-                Some(ProcessEntry::Running(child)) => Some(child),
+                Some(ProcessEntry::Running { child, .. }) => (Some(child), false),
                 Some(ProcessEntry::Starting { .. }) => {
                     lock.remove(instance_id);
-                    None
+                    (None, true)
                 }
                 None => return Err(LaunchError::NotRunning(instance_id.to_string())),
                 Some(ProcessEntry::Maintenance { .. }) => return Err(LaunchError::Maintenance),
             }
         };
+        if removed_starting {
+            self.state_changed.notify_waiters();
+        }
         if let Some(child) = active_child {
             let manager = self.clone();
             let instance_id = instance_id.to_owned();
@@ -339,19 +480,27 @@ impl ProcessManager {
 
 pub(crate) struct MaintenanceGuard {
     entries: Arc<Mutex<HashMap<String, ProcessEntry>>>,
+    state_changed: Arc<tokio::sync::Notify>,
     instance_id: String,
     reservation_id: u64,
 }
 
 impl Drop for MaintenanceGuard {
     fn drop(&mut self) {
-        let mut entries = self
-            .entries
-            .lock()
-            .unwrap_or_else(|error| error.into_inner());
-        if matches!(entries.get(&self.instance_id), Some(ProcessEntry::Maintenance { reservation_id }) if *reservation_id == self.reservation_id)
+        let mut removed = false;
         {
-            entries.remove(&self.instance_id);
+            let mut entries = self
+                .entries
+                .lock()
+                .unwrap_or_else(|error| error.into_inner());
+            if matches!(entries.get(&self.instance_id), Some(ProcessEntry::Maintenance { reservation_id }) if *reservation_id == self.reservation_id)
+            {
+                entries.remove(&self.instance_id);
+                removed = true;
+            }
+        }
+        if removed {
+            self.state_changed.notify_waiters();
         }
     }
 }

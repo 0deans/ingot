@@ -3,6 +3,7 @@
 pub(crate) mod accounts;
 mod archive;
 pub(crate) mod cli;
+pub(crate) mod cli_waiter;
 pub(crate) mod content;
 pub(crate) mod events;
 pub(crate) mod games;
