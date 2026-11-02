@@ -158,6 +158,20 @@ function main() {
 		}
 	}
 
+	// 6. Ensure Cargo.toml includes staticlib and cdylib required for Android
+	const cargoTomlPath = path.join(ROOT_DIR, "src-tauri", "Cargo.toml")
+	if (fs.existsSync(cargoTomlPath)) {
+		let cargoToml = fs.readFileSync(cargoTomlPath, "utf8")
+		if (!cargoToml.includes('"cdylib"') || !cargoToml.includes('"staticlib"')) {
+			cargoToml = cargoToml.replace(
+				/crate-type\s*=\s*\[[^\]]*\]/,
+				'crate-type = ["staticlib", "cdylib", "rlib"]',
+			)
+			fs.writeFileSync(cargoTomlPath, cargoToml, "utf8")
+			console.log("Updated Cargo.toml crate-type for Android build")
+		}
+	}
+
 	console.log("Android project prepared successfully!")
 }
 

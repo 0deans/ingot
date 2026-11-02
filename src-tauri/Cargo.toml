@@ -10,8 +10,7 @@ edition = "2021"
 
 [lib]
 name = "ingot_lib"
-# Use ["rlib"] for fast desktop dev/test linking; add "staticlib", "cdylib" only when building for Android/iOS
-crate-type = ["rlib"]
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
