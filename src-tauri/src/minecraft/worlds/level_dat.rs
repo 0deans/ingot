@@ -121,7 +121,10 @@ pub fn find_seed_in_value(val: &fastnbt::Value) -> Option<String> {
 
             // Fallback: recursively search remaining child compounds
             for (key, child) in map {
-                if key != "WorldGenSettings" && key != "data" && key != "Data" && key != "dimensions"
+                if key != "WorldGenSettings"
+                    && key != "data"
+                    && key != "Data"
+                    && key != "dimensions"
                 {
                     if let Some(found) = find_seed_in_value(child) {
                         return Some(found);
@@ -136,9 +139,15 @@ pub fn find_seed_in_value(val: &fastnbt::Value) -> Option<String> {
 
 pub fn read_external_world_seed(world_dir: &std::path::Path) -> Option<String> {
     let candidate_paths = [
-        world_dir.join("data").join("minecraft").join("world_gen_settings.dat"),
+        world_dir
+            .join("data")
+            .join("minecraft")
+            .join("world_gen_settings.dat"),
         world_dir.join("data").join("world_gen_settings.dat"),
-        world_dir.join("data").join("minecraft").join("world_gen_settings.dat_old"),
+        world_dir
+            .join("data")
+            .join("minecraft")
+            .join("world_gen_settings.dat_old"),
         world_dir.join("data").join("world_gen_settings.dat_old"),
     ];
 
