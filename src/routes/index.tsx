@@ -9,9 +9,11 @@ import {
 	Layers,
 	Plus,
 	Square,
+	Terminal,
 } from "lucide-react"
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import * as v from "valibot"
 import type { InstanceConfig, ModLoaderType, QuickPlayOptions, SyncConflictInfo } from "@/bindings"
 import BedrockCard from "@/components/instances/bedrock-card"
@@ -20,6 +22,7 @@ import DuplicateInstanceDialog from "@/components/instances/duplicate-instance-d
 import ImportInstanceDialog from "@/components/instances/import-instance-dialog"
 import InstanceCard from "@/components/instances/instance-card"
 import { getColorTagDefinition, type InstanceColorTag } from "@/components/instances/instance-icon"
+import InstanceLogsView from "@/components/instances/instance-logs-view"
 import InstanceSearchHeader, {
 	type InstanceSortOption,
 } from "@/components/instances/instance-search-header"
@@ -32,6 +35,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDuration as formatLocalDuration } from "@/lib/format"
+import { useInstanceCrashState } from "@/services/instance-log-service"
 import {
 	instanceService,
 	useAllInstancesProgress,
@@ -85,6 +89,7 @@ export const instancesSearchSchema = v.object({
 	edit: v.optional(v.string()),
 	delete: v.optional(v.string()),
 	duplicate: v.optional(v.string()),
+	logs: v.optional(v.string()),
 })
 
 export type InstancesSearchParams = v.InferOutput<typeof instancesSearchSchema>
@@ -99,6 +104,7 @@ const InstancesPage = () => {
 	const editId = search.edit
 	const deleteId = search.delete
 	const duplicateId = search.duplicate
+	const logsId = search.logs
 
 	const [searchInput, setSearchInput] = useState(searchQuery)
 	const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery)
@@ -117,6 +123,7 @@ const InstancesPage = () => {
 	const { runningMap, runningList } = useRunningInstances()
 	const progressMap = useAllInstancesProgress()
 	const { memory } = useMemorySettings()
+	const { latestCrashAlert, dismissCrashAlert } = useInstanceCrashState()
 
 	const handleSortChange = useCallback((nextSort: InstanceSortOption) => {
 		setSortBy(nextSort)
@@ -163,6 +170,32 @@ const InstancesPage = () => {
 	const duplicatingInstance = duplicateId
 		? (instances.find((i) => i.id === duplicateId) ?? null)
 		: null
+	const logsInstance = logsId ? (instances.find((i) => i.id === logsId) ?? null) : null
+
+	useEffect(() => {
+		if (!latestCrashAlert) {
+			return
+		}
+		const crash = latestCrashAlert
+		dismissCrashAlert()
+		const descriptionText =
+			crash.description ||
+			(crash.exitCode != null
+				? t("instanceLogs.crashExitCode", { code: crash.exitCode })
+				: undefined)
+		toast.error(t("instanceLogs.crashToastTitle", { name: crash.instanceName }), {
+			description: descriptionText,
+			action: {
+				label: t("instanceLogs.crashToastViewLogs"),
+				onClick: () => {
+					navigate({
+						search: (prev) => ({ ...prev, logs: crash.instanceId }),
+						replace: true,
+					})
+				},
+			},
+		})
+	}, [latestCrashAlert, dismissCrashAlert, navigate, t])
 
 	const handleCreateInstance = async (
 		name: string,
@@ -233,6 +266,7 @@ const InstancesPage = () => {
 				edit: undefined,
 				delete: undefined,
 				duplicate: undefined,
+				logs: undefined,
 			}),
 			replace: true,
 		})
@@ -405,6 +439,12 @@ const InstancesPage = () => {
 				onStop={() => {
 					return void handleStop(inst.id)
 				}}
+				onLogs={() =>
+					navigate({
+						search: (prev) => ({ ...prev, logs: inst.id }),
+						replace: true,
+					})
+				}
 				onSettings={() =>
 					navigate({
 						search: (prev) => ({ ...prev, edit: inst.id }),
@@ -425,6 +465,19 @@ const InstancesPage = () => {
 				}
 				onQuickUpdate={async () => {
 					await refresh()
+				}}
+			/>
+		)
+	}
+
+	if (logsInstance) {
+		return (
+			<InstanceLogsView
+				instance={logsInstance}
+				runningInfo={runningMap.get(logsInstance.id)}
+				onBack={handleCloseAction}
+				onStopInstance={(id) => {
+					void handleStop(id)
 				}}
 			/>
 		)
@@ -475,6 +528,27 @@ const InstancesPage = () => {
 										<span>
 											{t("instances.activeEntry", { name: inst?.name ?? "", pid: proc.pid })}
 										</span>
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<Button
+														variant="ghost"
+														size="icon-xs"
+														onClick={() =>
+															navigate({
+																search: (prev) => ({ ...prev, logs: proc.instanceId }),
+																replace: true,
+															})
+														}
+														className="text-primary hover:bg-primary/20"
+														aria-label={t("instances.openLogs")}
+													/>
+												}
+											>
+												<Terminal className="size-3.5" />
+											</TooltipTrigger>
+											<TooltipContent>{t("instances.openLogs")}</TooltipContent>
+										</Tooltip>
 										<Tooltip>
 											<TooltipTrigger
 												render={

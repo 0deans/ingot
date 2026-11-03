@@ -79,6 +79,13 @@
 			"destination": "instances.sync"
 		},
 		{
+			"name": "clear_live_instance_logs",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.logs"
+		},
+		{
 			"name": "create_instance",
 			"currentPath": "instances",
 			"kind": "command",
@@ -358,6 +365,13 @@
 			"kind": "command",
 			"arguments": [],
 			"destination": "app"
+		},
+		{
+			"name": "get_live_instance_logs",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.logs"
 		},
 		{
 			"name": "get_map_dimensions",
@@ -689,6 +703,13 @@
 			"destination": "servers.packs"
 		},
 		{
+			"name": "list_instance_log_files",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.logs"
+		},
+		{
 			"name": "list_server_config_files",
 			"currentPath": "servers.config",
 			"kind": "command",
@@ -722,6 +743,20 @@
 			"kind": "command",
 			"arguments": [],
 			"destination": "accounts"
+		},
+		{
+			"name": "on_instance_crash",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
+		},
+		{
+			"name": "on_instance_log",
+			"currentPath": "events",
+			"kind": "event",
+			"arguments": ["event"],
+			"destination": "events"
 		},
 		{
 			"name": "on_instance_status_changed",
@@ -801,6 +836,13 @@
 			"destination": "instances"
 		},
 		{
+			"name": "open_instance_log_location",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["instance_id", "kind", "file_name"],
+			"destination": "instances.logs"
+		},
+		{
 			"name": "open_screenshots_folder",
 			"currentPath": "instances.screenshots",
 			"kind": "command",
@@ -848,6 +890,13 @@
 			"kind": "command",
 			"arguments": [],
 			"destination": "app"
+		},
+		{
+			"name": "read_instance_log_file",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["instance_id", "kind", "file_name"],
+			"destination": "instances.logs"
 		},
 		{
 			"name": "read_server_config_file",
@@ -925,6 +974,13 @@
 			"kind": "command",
 			"arguments": ["file_path"],
 			"destination": "instances.screenshots"
+		},
+		{
+			"name": "sanitize_log_text",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["content"],
+			"destination": "instances.logs"
 		},
 		{
 			"name": "save_server_world",
@@ -1130,6 +1186,13 @@
 			"kind": "command",
 			"arguments": ["account_id", "image_base64", "password"],
 			"destination": "skins"
+		},
+		{
+			"name": "upload_log_paste",
+			"currentPath": "instances.logs",
+			"kind": "command",
+			"arguments": ["content", "provider"],
+			"destination": "instances.logs"
 		},
 		{
 			"name": "upload_microsoft_skin",

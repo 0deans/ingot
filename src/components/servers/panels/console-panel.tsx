@@ -7,9 +7,17 @@ import {
 	Eraser,
 	Terminal,
 } from "lucide-react"
-import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+	type KeyboardEvent,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react"
 import { useTranslation } from "react-i18next"
 import type { ServerConfig } from "@/bindings"
+import LogPasteButton from "@/components/instances/log-paste-button"
 import { Button } from "@/components/ui/button"
 import {
 	InputGroup,
@@ -82,6 +90,10 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 		if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
 	}
 
+	const getJoinedLogs = useCallback(() => {
+		return logs.join("\n")
+	}, [logs])
+
 	const send = async () => {
 		const cmd = input.trim().replace(/^\//, "")
 		if (!cmd) return
@@ -116,6 +128,7 @@ export function ConsolePanel({ server, className }: { server: ServerConfig; clas
 					{autoScroll ? t("console.autoScrollOn") : t("console.autoScrollOff")}
 				</Toggle>
 				<span className="ml-auto" />
+				<LogPasteButton getContent={getJoinedLogs} disabled={logs.length === 0} size="xs" />
 				<IconButton
 					label={t("console.copyAll")}
 					onClick={async () => {

@@ -11,10 +11,12 @@ use crate::minecraft::launcher::progress::make_progress_reporter;
 use crate::minecraft::launcher::service::{
     prepare_game_command, spawn_and_commit_process, CommandContext,
 };
+use crate::minecraft::logs::{InstanceLogEvent, LogLevel};
 use crate::system;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, Runtime};
+use tokio::io::{AsyncBufReadExt, BufReader};
 
 #[derive(Default)]
 pub(crate) struct LaunchSessionOptions {
@@ -124,8 +126,62 @@ where
         .map(|d| d.as_secs())
         .unwrap_or(0);
 
+    process_manager.clear_instance_logs(&instance_id);
+    let launch_banner = format!(
+        "[Ingot] Launching {} ({} {:?})...",
+        instance.name, instance.game_version, instance.loader
+    );
+    let banner_line =
+        process_manager.append_instance_log(&instance_id, &launch_banner, LogLevel::Launcher);
+    crate::app::events::instance_log(
+        &app,
+        InstanceLogEvent {
+            instance_id: instance_id.clone(),
+            line: banner_line,
+        },
+    );
+
     let (mut child, pid) = spawn_and_commit_process(command, starting_guard, now).await?;
     crate::running::add(&app, crate::running::Kind::Game, &instance_id, pid, now);
+
+    let mut reader_handles = Vec::new();
+    if let Some(stdout) = child.stdout.take() {
+        let pm_out = process_manager.clone();
+        let app_out = app.clone();
+        let id_out = instance_id.clone();
+        reader_handles.push(tokio::spawn(async move {
+            let mut lines = BufReader::new(stdout).lines();
+            while let Ok(Some(raw)) = lines.next_line().await {
+                let line = pm_out.append_instance_log(&id_out, &raw, LogLevel::Info);
+                crate::app::events::instance_log(
+                    &app_out,
+                    InstanceLogEvent {
+                        instance_id: id_out.clone(),
+                        line,
+                    },
+                );
+            }
+        }));
+    }
+
+    if let Some(stderr) = child.stderr.take() {
+        let pm_err = process_manager.clone();
+        let app_err = app.clone();
+        let id_err = instance_id.clone();
+        reader_handles.push(tokio::spawn(async move {
+            let mut lines = BufReader::new(stderr).lines();
+            while let Ok(Some(raw)) = lines.next_line().await {
+                let line = pm_err.append_instance_log(&id_err, &raw, LogLevel::Info);
+                crate::app::events::instance_log(
+                    &app_err,
+                    InstanceLogEvent {
+                        instance_id: id_err.clone(),
+                        line,
+                    },
+                );
+            }
+        }));
+    }
 
     on_status(InstanceStatusEvent {
         instance_id: instance_id.clone(),
@@ -149,19 +205,40 @@ where
 
     tokio::spawn(async move {
         let _guard = _session_guard;
-        let clean = match child.wait().await {
+        let (clean, exit_code) = match child.wait().await {
             Ok(status) => {
                 println!(
                     "[Launcher] Minecraft process exited with status: {}",
                     status
                 );
-                status.success()
+                (status.success(), status.code())
             }
             Err(e) => {
                 eprintln!("[Launcher] Error waiting for Minecraft process: {e}");
-                false
+                (false, None)
             }
         };
+        for mut handle in reader_handles {
+            if tokio::time::timeout(Duration::from_secs(1), &mut handle)
+                .await
+                .is_err()
+            {
+                handle.abort();
+            }
+        }
+        let exit_msg = match exit_code {
+            Some(0) => "[Ingot] Process exited normally (code 0).".to_string(),
+            Some(code) => format!("[Ingot] Failed: Process exited with code {code}."),
+            None => "[Ingot] Process terminated.".to_string(),
+        };
+        let exit_line = pm_clone.append_instance_log(&inst_clone.id, &exit_msg, LogLevel::Launcher);
+        crate::app::events::instance_log(
+            &app_clone,
+            InstanceLogEvent {
+                instance_id: inst_clone.id.clone(),
+                line: exit_line,
+            },
+        );
         let ended = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_secs())
@@ -174,6 +251,7 @@ where
             now,
             ended,
             clean,
+            exit_code,
             launched_from_cli,
             &on_status_clone,
         )

@@ -1,5 +1,6 @@
 //! All frontend notifications share one explicit, event-only namespace.
 use crate::minecraft::launcher::{InstanceStatusEvent, LaunchProgressEvent};
+use crate::minecraft::logs::{InstanceCrashEvent, InstanceLogEvent};
 use crate::running::{LeftoverServer, QuitRequest};
 use crate::server::{ServerLogEvent, ServerStatusEvent};
 use crate::system::MemorySettings;
@@ -24,6 +25,12 @@ pub(crate) trait EventsApi {
 
     #[taurpc(event)]
     async fn on_instance_status_changed(event: InstanceStatusEvent);
+
+    #[taurpc(event)]
+    async fn on_instance_log(event: InstanceLogEvent);
+
+    #[taurpc(event)]
+    async fn on_instance_crash(event: InstanceCrashEvent);
 
     #[taurpc(event)]
     async fn on_launch_progress(event: LaunchProgressEvent);

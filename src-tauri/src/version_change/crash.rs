@@ -12,7 +12,7 @@ use super::{
     TargetKind, VersionChangeError,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct CrashSuspect {
     pub title: String,
@@ -49,7 +49,7 @@ pub fn first_start_ok(root: &Path) {
 }
 
 /// The newest crash report written since `since`
-fn crash_report(root: &Path, since: SystemTime) -> Option<PathBuf> {
+pub(crate) fn crash_report(root: &Path, since: SystemTime) -> Option<PathBuf> {
     fs::read_dir(root.join("crash-reports"))
         .ok()?
         .flatten()
@@ -139,7 +139,7 @@ pub(crate) fn blamed(text: &str) -> Vec<String> {
 }
 
 /// Ids and names a jar declares (Fabric, Quilt, Forge, NeoForge, Bukkit)
-fn jar_names(path: &Path) -> Vec<String> {
+pub(crate) fn jar_names(path: &Path) -> Vec<String> {
     let mut names = Vec::new();
     let Ok(file) = fs::File::open(path) else {
         return names;
@@ -192,6 +192,43 @@ fn jar_names(path: &Path) -> Vec<String> {
     names
 }
 
+pub(crate) fn find_suspect_jars(root: &Path, folders: &[&str], text: &str) -> Vec<CrashSuspect> {
+    let blamed = blamed(text);
+    if blamed.is_empty() {
+        return Vec::new();
+    }
+    let mut suspects = Vec::new();
+    for folder in folders {
+        let Ok(entries) = fs::read_dir(root.join(folder)) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let file_name = entry.file_name().to_string_lossy().into_owned();
+            if !file_name.to_ascii_lowercase().ends_with(".jar") {
+                continue;
+            }
+            let names = jar_names(&entry.path());
+            let hit = blamed.iter().any(|b| {
+                b.eq_ignore_ascii_case(&file_name)
+                    || names.iter().any(|n| n.eq_ignore_ascii_case(b))
+            });
+            if hit {
+                let title = names
+                    .iter()
+                    .rev()
+                    .find(|n| n.contains(' ') || n.chars().any(char::is_uppercase))
+                    .or(names.first());
+                suspects.push(CrashSuspect {
+                    title: title.cloned().unwrap_or_else(|| file_name.clone()),
+                    folder: folder.to_string(),
+                    file_name,
+                });
+            }
+        }
+    }
+    suspects
+}
+
 /// After a start that failed, while a change is still unconfirmed: what went wrong.
 /// `folders` are the content folders of the target (mods or plugins).
 pub fn analyze(
@@ -222,36 +259,7 @@ pub fn analyze(
         }
     };
 
-    let blamed = blamed(&text);
-    let mut suspects = Vec::new();
-    for folder in folders {
-        let Ok(entries) = fs::read_dir(root.join(folder)) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let file_name = entry.file_name().to_string_lossy().into_owned();
-            if !file_name.to_ascii_lowercase().ends_with(".jar") {
-                continue;
-            }
-            let names = jar_names(&entry.path());
-            let hit = blamed.iter().any(|b| {
-                b.eq_ignore_ascii_case(&file_name)
-                    || names.iter().any(|n| n.eq_ignore_ascii_case(b))
-            });
-            if hit {
-                let title = names
-                    .iter()
-                    .rev()
-                    .find(|n| n.contains(' ') || n.chars().any(char::is_uppercase))
-                    .or(names.first());
-                suspects.push(CrashSuspect {
-                    title: title.cloned().unwrap_or_else(|| file_name.clone()),
-                    folder: folder.to_string(),
-                    file_name,
-                });
-            }
-        }
-    }
+    let suspects = find_suspect_jars(root, folders, &text);
     Some(VersionChangeCrash {
         target_kind,
         target_id: target_id.to_string(),

@@ -23,6 +23,7 @@ use content::{ContentApi, ContentApiImpl};
 use events::{EventsApi, EventsApiImpl};
 use instances::{
     imports::{InstanceImportsApi, InstanceImportsApiImpl},
+    logs::{InstanceLogsApi, InstanceLogsApiImpl},
     screenshots::{InstanceScreenshotsApi, InstanceScreenshotsApiImpl},
     sync::{InstanceSyncApi, InstanceSyncApiImpl},
     version_change::{InstanceVersionChangeApi, InstanceVersionChangeApiImpl},
@@ -55,6 +56,7 @@ macro_rules! registered_apis {
         $register!(EventsApiImpl);
         $register!(InstancesApiImpl);
         $register!(InstanceImportsApiImpl);
+        $register!(InstanceLogsApiImpl);
         $register!(InstanceScreenshotsApiImpl);
         $register!(InstanceSyncApiImpl);
         $register!(InstanceVersionChangeApiImpl);

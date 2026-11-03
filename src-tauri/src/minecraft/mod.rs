@@ -7,6 +7,7 @@ pub mod instance;
 pub mod java;
 pub mod launcher;
 pub mod loader;
+pub mod logs;
 pub mod news;
 pub mod screenshots;
 pub mod sync;

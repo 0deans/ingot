@@ -95,6 +95,7 @@ pub async fn finish_game<R: Runtime>(
     started_at: u64,
     ended_at: u64,
     clean: bool,
+    exit_code: Option<i32>,
     launched_from_cli: bool,
     on_status: &StatusFn,
 ) {
@@ -124,6 +125,16 @@ pub async fn finish_game<R: Runtime>(
         ) {
             had_version_crash = true;
             crate::app::events::version_change_crash(app, crash);
+        } else if let Some(crash) = crate::minecraft::logs::analyze_instance_crash(
+            &instance_dir,
+            &instance_id,
+            &instance.name,
+            clean,
+            exit_code,
+            since,
+        ) {
+            had_version_crash = true;
+            crate::app::events::instance_crash(app, crash);
         }
     }
 
@@ -221,6 +232,7 @@ pub async fn adopt_running<R: Runtime>(app: AppHandle<R>, pm: ProcessManager, on
                 entry.started_at,
                 ended,
                 true,
+                Some(0),
                 false,
                 &on_status,
             )
@@ -256,6 +268,7 @@ pub async fn adopt_running<R: Runtime>(app: AppHandle<R>, pm: ProcessManager, on
                 entry.started_at,
                 ended,
                 true,
+                Some(0),
                 false,
                 &on_status,
             )

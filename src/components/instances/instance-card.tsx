@@ -17,6 +17,7 @@ import {
 	Settings,
 	Share2,
 	Square,
+	Terminal,
 	Trash2,
 	X,
 } from "lucide-react"
@@ -72,6 +73,7 @@ interface InstanceCardProps {
 	existingGroups?: string[]
 	onPlay: (quickPlay?: QuickPlayOptions) => void
 	onStop: () => void
+	onLogs: () => void
 	onSettings: () => void
 	onDelete: () => void
 	onDuplicate: () => void
@@ -108,6 +110,7 @@ export const InstanceCard = ({
 	existingGroups = [],
 	onPlay,
 	onStop,
+	onLogs,
 	onSettings,
 	onDelete,
 	onDuplicate,
@@ -523,6 +526,22 @@ export const InstanceCard = ({
 
 				{/* Utility Actions */}
 				<div className="flex items-center gap-1">
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={onLogs}
+									className="size-8 text-muted-foreground hover:text-foreground"
+									aria-label={t("instances.card.logsTooltip")}
+								/>
+							}
+						>
+							<Terminal className="size-4" />
+						</TooltipTrigger>
+						<TooltipContent>{t("instances.card.logsTooltip")}</TooltipContent>
+					</Tooltip>
 					<DropdownMenu>
 						<Tooltip>
 							<TooltipTrigger
@@ -545,6 +564,10 @@ export const InstanceCard = ({
 						</Tooltip>
 						<DropdownMenuContent align="end" className="w-52">
 							<DropdownMenuGroup>
+								<DropdownMenuItem onClick={onLogs} className="cursor-pointer gap-2">
+									<Terminal className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("instances.card.logsTooltip")}</span>
+								</DropdownMenuItem>
 								<DropdownMenuItem onClick={onSettings} className="cursor-pointer gap-2">
 									<Settings className="size-4 text-muted-foreground" />
 									<span className="text-xs">{t("instances.card.settingsTooltip")}</span>

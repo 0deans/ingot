@@ -16,8 +16,8 @@ pub fn build_horizon_command(
         .arg(instance_dir)
         .arg("--home")
         .arg(instance_dir)
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit());
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
 
     #[cfg(windows)]
     command.creation_flags(0x08000000);

@@ -260,3 +260,38 @@ test("version change transaction status commands route to instances and servers 
 		},
 	])
 })
+
+test("instances.logs commands route through their namespace and preserve arguments", async () => {
+	const calls = []
+	const pasteResult = {
+		provider: "mclogs",
+		id: "abc1234",
+		url: "https://mclo.gs/abc1234",
+		rawUrl: "https://api.mclo.gs/1/raw/abc1234",
+	}
+	mockIPC((command, args) => {
+		calls.push({ command, args })
+		if (command === "TauRPC__instances.logs.upload_log_paste") {
+			return pasteResult
+		}
+		return []
+	})
+	const rpc = createTauRPCProxy()
+	assert.deepEqual(await rpc.instances.logs.get_live_instance_logs("inst-1"), [])
+	assert.deepEqual(await rpc.instances.logs.list_instance_log_files("inst-1"), [])
+	assert.deepEqual(await rpc.instances.logs.upload_log_paste("log text", "mclogs"), pasteResult)
+	assert.deepEqual(calls, [
+		{
+			command: "TauRPC__instances.logs.get_live_instance_logs",
+			args: { instance_id: "inst-1" },
+		},
+		{
+			command: "TauRPC__instances.logs.list_instance_log_files",
+			args: { instance_id: "inst-1" },
+		},
+		{
+			command: "TauRPC__instances.logs.upload_log_paste",
+			args: { content: "log text", provider: "mclogs" },
+		},
+	])
+})

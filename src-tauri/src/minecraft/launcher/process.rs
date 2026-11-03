@@ -1,7 +1,17 @@
 use super::models::{LaunchError, RunningInstanceSummary};
-use std::collections::HashMap;
+use crate::minecraft::logs::{parse_log_line, InstanceLogLine, LogLevel};
+use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
+
+const MAX_INSTANCE_LOG_HISTORY: usize = 2500;
+
+#[derive(Default)]
+struct InstanceLogBuffer {
+    next_seq: u64,
+    last_level: Option<LogLevel>,
+    lines: VecDeque<InstanceLogLine>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct ActiveChild {
@@ -113,6 +123,7 @@ impl Drop for StartingGuard {
 #[derive(Clone, Default)]
 pub struct ProcessManager {
     running: Arc<Mutex<HashMap<String, ProcessEntry>>>,
+    logs: Arc<Mutex<HashMap<String, InstanceLogBuffer>>>,
     next_reservation_id: Arc<AtomicU64>,
     state_changed: Arc<tokio::sync::Notify>,
 }
@@ -121,9 +132,43 @@ impl ProcessManager {
     pub fn new() -> Self {
         Self {
             running: Arc::new(Mutex::new(HashMap::new())),
+            logs: Arc::new(Mutex::new(HashMap::new())),
             next_reservation_id: Arc::new(AtomicU64::new(1)),
             state_changed: Arc::new(tokio::sync::Notify::new()),
         }
+    }
+
+    pub fn clear_instance_logs(&self, instance_id: &str) {
+        let mut logs = self.logs.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(buffer) = logs.get_mut(instance_id) {
+            buffer.lines.clear();
+            buffer.last_level = None;
+        }
+    }
+
+    pub fn append_instance_log(
+        &self,
+        instance_id: &str,
+        raw_line: &str,
+        default_level: LogLevel,
+    ) -> InstanceLogLine {
+        let mut logs = self.logs.lock().unwrap_or_else(|e| e.into_inner());
+        let buffer = logs.entry(instance_id.to_string()).or_default();
+        buffer.next_seq = buffer.next_seq.saturating_add(1);
+        let parsed = parse_log_line(buffer.next_seq, raw_line, default_level, buffer.last_level);
+        buffer.last_level = Some(parsed.level);
+        if buffer.lines.len() >= MAX_INSTANCE_LOG_HISTORY {
+            buffer.lines.pop_front();
+        }
+        buffer.lines.push_back(parsed.clone());
+        parsed
+    }
+
+    pub fn get_instance_logs(&self, instance_id: &str) -> Vec<InstanceLogLine> {
+        let logs = self.logs.lock().unwrap_or_else(|e| e.into_inner());
+        logs.get(instance_id)
+            .map(|b| b.lines.iter().cloned().collect())
+            .unwrap_or_default()
     }
 
     pub async fn reserve_starting(&self, instance_id: &str) -> Result<StartingGuard, LaunchError> {

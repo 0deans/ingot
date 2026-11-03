@@ -1,8 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { AlertTriangle, Check, Package, RefreshCw, Undo2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { CrashSuspect, VersionChangeCrash } from "@/bindings"
+import LogPasteButton from "@/components/instances/log-paste-button"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
@@ -22,6 +23,10 @@ export default function VersionChangeCrashDialog() {
 	const [turnedOff, setTurnedOff] = useState<string[]>([])
 	const [busy, setBusy] = useState<string | null>(null)
 	const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+
+	const getCrashExcerpt = useCallback(() => {
+		return crash?.excerpt ?? ""
+	}, [crash?.excerpt])
 
 	useEffect(() => {
 		let unlisten: (() => void) | undefined
@@ -208,7 +213,9 @@ export default function VersionChangeCrashDialog() {
 					</p>
 				)}
 
-				<div className="flex flex-wrap justify-end gap-2">
+				<div className="flex flex-wrap items-center justify-end gap-2">
+					{crash.excerpt && <LogPasteButton getContent={getCrashExcerpt} size="sm" />}
+					<span className="mr-auto" />
 					<Button
 						variant="ghost"
 						disabled={busy !== null}

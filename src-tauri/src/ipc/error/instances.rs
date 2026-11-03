@@ -380,3 +380,22 @@ impl From<crate::minecraft::news::NewsError> for ApiError {
         }
     }
 }
+
+impl From<crate::minecraft::logs::LogError> for ApiError {
+    fn from(error: crate::minecraft::logs::LogError) -> Self {
+        use crate::minecraft::logs::LogError;
+        match error {
+            LogError::InvalidFileName(_)
+            | LogError::EmptyContent
+            | LogError::FileTooLarge(_)
+            | LogError::ProviderRejected(_) => Self::invalid_input(error.to_string()),
+            LogError::NotFound(_) => Self::not_found(error.to_string()),
+            LogError::Io(_) => Self::storage_failure(error.to_string()),
+            LogError::Instance(source) => Self::from(source),
+            LogError::Task(_) => Self::internal(error.to_string()),
+            LogError::Transport(_) | LogError::HttpStatus { .. } | LogError::InvalidResponse(_) => {
+                Self::provider_unavailable(error.to_string())
+            }
+        }
+    }
+}
