@@ -47,7 +47,8 @@
 		"skins": "Каталог скінаў",
 		"screenshots": "Здымкі экрана",
 		"servers": "Выдзеленыя серверы",
-		"settings": "Налады"
+		"settings": "Налады",
+		"worlds": "Светы"
 	},
 	"news": {
 		"title": "Навіны і абнаўленні Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Ярлык у меню праграм створаны для {{name}}",
 			"shortcutCreatedSteam": "{{name}} дададзены ў Steam з вокладкамі Grid (перазапусціце Steam)",
 			"shortcutFailed": "Не ўдалося стварыць ярлык: {{error}}",
-			"moreActions": "Іншыя дзеянні"
+			"moreActions": "Іншыя дзеянні",
+			"logsTooltip": "Кансоль і логі"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Кансоль і логі"
 	},
 	"modpacks": {
 		"title": "Каталог кантэнту",
@@ -736,7 +739,13 @@
 		"offlineHint": "Запусціце сервер, каб убачыць кансоль.",
 		"latest": "Да апошніх",
 		"placeholder": "Увядзіце каманду, напрыклад time set day",
-		"send": "Адправіць каманду"
+		"send": "Адправіць каманду",
+		"copySanitized": "Капіяваць ачышчаны",
+		"openPasteUrl": "Адкрыць спасылку",
+		"pasteFailed": "Не ўдалося загрузіць лог: {{error}}",
+		"pasteUploaded": "Ачышчаны лог загружаны на {{provider}} (спасылка скапіявана)",
+		"uploadPaste": "Загрузіць на {{provider}}",
+		"uploadingPaste": "Загрузка..."
 	},
 	"syncMaster": {
 		"setAsSource": "«{{name}}» цяпер асноўная крыніца сінхранізацыі.",
@@ -850,7 +859,12 @@
 		"microsoftEnterCode": "Адкрыйце старонку Microsoft і ўвядзіце гэты код:",
 		"microsoftOpenPage": "Скапіяваць код і адкрыць старонку",
 		"microsoftWaiting": "Чакаем уваходу…",
-		"microsoftFailed": "Не ўдалося ўвайсці праз Microsoft"
+		"microsoftFailed": "Не ўдалося ўвайсці праз Microsoft",
+		"microsoftDiscard": "Скасаваць уваход",
+		"microsoftPending": "Папярэдні ўваход у Microsoft быў перапынены. Працягніце яго або скасуйце, каб увайсці зноў.",
+		"microsoftPendingBusy": "Уваход у Microsoft ужо выконваецца.",
+		"microsoftPendingExpired": "Гэты папярэдні ўваход немагчыма аднавіць. Скасуйце яго і пачніце новы ўваход.",
+		"microsoftResume": "Працягнуць уваход"
 	},
 	"properties": {
 		"groups": {
@@ -1870,6 +1884,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Назад да зборак",
+		"crashDetectedTitle": "Дыягностыка збою",
+		"crashExitCode": "Завершана з кодам {{code}}",
+		"crashToastTitle": "Зборка {{name}} завяршылася са збоем",
+		"crashToastViewLogs": "Дыягностыка",
+		"emptyFiltered": "Няма радкоў, якія адпавядаюць фільтру",
+		"emptyLiveOffline": "Буфер вываду бягучага сеанса пусты",
+		"emptyLiveOfflineHint": "Запусціце зборку для прагляду кансолі ў рэальным часе або абярыце latest.log ці справаздачу аб збоі вышэй.",
+		"emptyLiveRunning": "Чаканне вываду кліента...",
+		"levels": {
+			"all": "Усе",
+			"debug": "Адладка",
+			"info": "Інфа",
+			"warn": "Папярэджанні",
+			"error": "Памылкі"
+		},
+		"liveStream": "Кансоль анлайн",
+		"maximize": "Разгарнуць",
+		"offlineBadge": "Спынена",
+		"openCrashReport": "Праглядзець справаздачу аб збоі",
+		"restore": "Аднавіць",
+		"runningBadge": "Працуе (PID {{pid}})",
+		"sanitizedNotice": "Уліковыя даныя, токены сесій, імёны карыстальнікаў, шляхі да хатняй папкі і IP-адрасы аўтаматычна хаваюцца перад адпраўкай.",
+		"searchFiltered": "адфільтравана",
+		"searchPlaceholder": "Фільтр або пошук у логах...",
+		"showingLines": "Паказана {{count}} з {{total}} радкоў",
+		"sources": {
+			"live": "Бягучы сеанс",
+			"latest": "latest.log",
+			"archivedLogs": "Архіўныя логі",
+			"crashReports": "Справаздачы аб збоях"
+		},
+		"streamingLive": "Трансляцыя кансолі ў рэальным часе",
+		"suspectedMods": "Магчымыя моды-вінаватыя:",
+		"title": "Кансоль і дыягностыка — {{name}}",
+		"uploadMclogs": "Загрузіць (mclo.gs)",
+		"uploadPasteEe": "Загрузіць (paste.ee)",
+		"wrapOff": "Перанос: выкл",
+		"wrapOn": "Перанос: укл"
+	},
+	"worlds": {
+		"title": "Светы і захаванні",
+		"subtitle": "Праглядайце метаданыя, капіюйце сіды, скідайце вымярэнні і кіруйце рэзервовымі копіямі зборак",
+		"refreshTooltip": "Абнавіць светы",
+		"searchPlaceholder": "Пошук светаў па назве або папцы...",
+		"allInstances": "Усе зборкі",
+		"allInstancesCount": "Усе зборкі ({{count}})",
+		"importWorld": "Імпарт свету",
+		"importWorldDesc": "Імпартаваць захаванне свету з архіва .zip у зборку",
+		"copySeed": "Скапіяваць сід",
+		"seedCopied": "Сід скапіяваны ў буфер абмену!",
+		"seedUnknown": "Сід недаступны",
+		"gameMode": "Рэжым гульні",
+		"survival": "Выжыванне",
+		"creative": "Творчасць",
+		"hardcore": "Хардкор",
+		"adventure": "Прыгоды",
+		"spectator": "Глядач",
+		"lastPlayed": "Апошняя гульня",
+		"fileSize": "Памер",
+		"seed": "Сід",
+		"version": "Версія",
+		"dimensions": "Вымярэнні",
+		"hasNether": "Нэзер",
+		"hasTheEnd": "Энд",
+		"actions": "Дзеянні",
+		"openFolder": "Адкрыць папку свету",
+		"createBackup": "Стварыць рэзервовую копію",
+		"creatingBackup": "Стварэнне копіі...",
+		"backupSuccess": "Рэзервовая копія свету паспяхова створана",
+		"exportZip": "Экспарт у .zip",
+		"exportSuccess": "Свет паспяхова экспартаваны ў {{path}}",
+		"viewBackups": "Рэзервовыя копіі",
+		"resetDimensions": "Скід вымярэнняў",
+		"resetNether": "Скінуць Нэзер (DIM-1)",
+		"resetTheEnd": "Скінуць Энд (DIM1)",
+		"resetDimensionTitle": "Скід вымярэння",
+		"resetDimensionConfirm": "Вы ўпэўненыя, што хочаце скінуць вымярэнне «{{dimension}}» для свету «{{name}}»?",
+		"resetDimensionWarning": "Гэта выдаліць згенераваны ландшафт і пабудовы ў гэтым вымярэнні. Minecraft згенеруе свежы свет пры наступным уваходзе ў партал.",
+		"resetDimensionTrashNote": "Папка папярэдняга вымярэння будзе бяспечна перамешчана ў .ingot-trash унутры папкі свету.",
+		"resetting": "Скід...",
+		"resetSuccess": "Вымярэнне паспяхова скінута",
+		"backupsTitle": "Рэзервовыя копіі свету — {{name}}",
+		"noBackups": "Для гэтага свету няма рэзервовых копій",
+		"deleteBackup": "Выдаліць копію",
+		"deleteBackupConfirm": "Выдаліць архіў рэзервовай копіі {{name}}?",
+		"deleteSuccess": "Рэзервовая копія выдалена",
+		"selectZip": "Абярыце файл .zip",
+		"selectInstance": "Абярыце зборку",
+		"importing": "Імпарт свету...",
+		"importSuccess": "Свет паспяхова імпартаваны: {{name}}",
+		"noSavedWorlds": "Захаваныя светы не знойдзены",
+		"noSavedWorldsDesc": "Згуляйце ў гульню або імпартуйце архіў захавання свету",
+		"noMatchingWorlds": "Ніводзін свет не адпавядае вашаму запыту",
+		"sorts": {
+			"lastPlayed-desc": "Апошняя гульня (спачатку новыя)",
+			"lastPlayed-asc": "Апошняя гульня (спачатку старыя)",
+			"name-asc": "Назва (А-Я)",
+			"name-desc": "Назва (Я-А)",
+			"size-desc": "Памер (спачатку вялікія)",
+			"size-asc": "Памер (спачатку малыя)"
 		}
 	}
 }

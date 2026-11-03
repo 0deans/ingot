@@ -47,7 +47,8 @@
 		"skins": "Skin Kataloğu",
 		"screenshots": "Ekran Görüntüleri",
 		"servers": "Özel Sunucular",
-		"settings": "Ayarlar"
+		"settings": "Ayarlar",
+		"worlds": "Dünyalar"
 	},
 	"news": {
 		"title": "Mojang Haberleri ve Güncellemeleri",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "{{name}} için uygulama menüsü kısayolu oluşturuldu",
 			"shortcutCreatedSteam": "{{name}} özel Grid görselleriyle Steam'e eklendi (Steam'i yeniden başlatın)",
 			"shortcutFailed": "Kısayol oluşturulamadı: {{error}}",
-			"moreActions": "Daha fazla eylem"
+			"moreActions": "Daha fazla eylem",
+			"logsTooltip": "Konsol ve Günlükler"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konsol ve Günlükler"
 	},
 	"modpacks": {
 		"title": "İçerik Keşfet",
@@ -720,7 +723,13 @@
 		"offlineHint": "Konsolunu görmek için sunucuyu başlatın.",
 		"latest": "En son",
 		"placeholder": "Bir komut yazın, örn. time set day",
-		"send": "Komut gönder"
+		"send": "Komut gönder",
+		"copySanitized": "Temizlenmişi kopyala",
+		"openPasteUrl": "Yapıştırma bağlantısını aç",
+		"pasteFailed": "Günlük yüklenemedi: {{error}}",
+		"pasteUploaded": "Temizlenmiş günlük {{provider}} konumuna yüklendi (bağlantı kopyalandı)",
+		"uploadPaste": "{{provider}} konumuna yükle",
+		"uploadingPaste": "Yükleniyor..."
 	},
 	"syncMaster": {
 		"setAsSource": "\"{{name}}\" profilini ana senkronizasyon kaynağı olarak ayarla.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Microsoft sayfasını açın ve bu kodu girin:",
 		"microsoftOpenPage": "Kodu kopyala ve sayfayı aç",
 		"microsoftWaiting": "Girişiniz bekleniyor…",
-		"microsoftFailed": "Microsoft ile giriş başarısız oldu"
+		"microsoftFailed": "Microsoft ile giriş başarısız oldu",
+		"microsoftDiscard": "Girişi iptal et",
+		"microsoftPending": "Önceki bir Microsoft girişi kesintiye uğradı. Devam ettirin veya yeniden giriş yapmak için iptal edin.",
+		"microsoftPendingBusy": "Zaten devam eden bir Microsoft girişi var.",
+		"microsoftPendingExpired": "Bu önceki giriş devam ettirilemez. İptal edin ve yeni bir giriş başlatın.",
+		"microsoftResume": "Girişe devam et"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Profillere dön",
+		"crashDetectedTitle": "Çökme Teşhisi",
+		"crashExitCode": "{{code}} koduyla sonlandı",
+		"crashToastTitle": "{{name}} çöktü",
+		"crashToastViewLogs": "Teşhisi Görüntüle",
+		"emptyFiltered": "Geçerli filtreyle eşleşen günlük satırı yok",
+		"emptyLiveOffline": "Arabelleğe alınmış canlı oturum çıktısı yok",
+		"emptyLiveOfflineHint": "Canlı konsol çıktısını izlemek için profili başlatın veya yukarıdan latest.log ya da bir çökme raporu seçin.",
+		"emptyLiveRunning": "İstemci çıktısı bekleniyor...",
+		"levels": {
+			"all": "Tümü",
+			"debug": "Hata Ayıklama",
+			"info": "Bilgi",
+			"warn": "Uyarılar",
+			"error": "Hatalar"
+		},
+		"liveStream": "Canlı Konsol",
+		"maximize": "Büyüt",
+		"offlineBadge": "Çevrimdışı",
+		"openCrashReport": "Çökme Raporunu Görüntüle",
+		"restore": "Geri Yükle",
+		"runningBadge": "Çalışıyor (PID {{pid}})",
+		"sanitizedNotice": "Kimlik bilgileri, oturum belirteçleri, kullanıcı adları, ana dizin yolları ve IP adresleri yüklemeden önce otomatik olarak gizlenir.",
+		"searchFiltered": "filtrelendi",
+		"searchPlaceholder": "Günlükleri filtrele veya ara...",
+		"showingLines": "{{count}} / {{total}} satır gösteriliyor",
+		"sources": {
+			"live": "Canlı Oturum",
+			"latest": "latest.log",
+			"archivedLogs": "Arşivlenmiş Günlükler",
+			"crashReports": "Çökme Raporları"
+		},
+		"streamingLive": "Canlı çıktı akışı yapılıyor",
+		"suspectedMods": "Şüpheli Modlar:",
+		"title": "Konsol ve Teşhis — {{name}}",
+		"uploadMclogs": "Yükle (mclo.gs)",
+		"uploadPasteEe": "Yükle (paste.ee)",
+		"wrapOff": "Kaydırma: Kapalı",
+		"wrapOn": "Kaydırma: Açık"
+	},
+	"worlds": {
+		"title": "Dünyalar ve Kayıtlar",
+		"subtitle": "Meta verileri inceleyin, tohumları kopyalayın, boyutları sıfırlayın ve yedeklemeleri yönetin",
+		"refreshTooltip": "Dünyaları Yenile",
+		"searchPlaceholder": "Dünyaları ada veya klasöre göre ara...",
+		"allInstances": "Tüm Profiller",
+		"allInstancesCount": "Tüm Profiller ({{count}})",
+		"importWorld": "Dünya İçe Aktar",
+		"importWorldDesc": "Bir .zip arşivinden bir profile dünya kaydı içe aktarın",
+		"copySeed": "Tohumu Kopyala",
+		"seedCopied": "Tohum panoya kopyalandı!",
+		"seedUnknown": "Tohum mevcut değil",
+		"gameMode": "Oyun Modu",
+		"survival": "Hayatta Kalma",
+		"creative": "Yaratıcı",
+		"hardcore": "Zorlayıcı",
+		"adventure": "Macera",
+		"spectator": "İzleyici",
+		"lastPlayed": "Son Oynanma",
+		"fileSize": "Boyut",
+		"seed": "Tohum",
+		"version": "Sürüm",
+		"dimensions": "Boyutlar",
+		"hasNether": "Nether",
+		"hasTheEnd": "End",
+		"actions": "Eylemler",
+		"openFolder": "Dünya Klasörünü Aç",
+		"createBackup": "Yedek Oluştur",
+		"creatingBackup": "Yedek oluşturuluyor...",
+		"backupSuccess": "Dünya yedeği başarıyla oluşturuldu",
+		"exportZip": ".zip Olarak Dışa Aktar",
+		"exportSuccess": "Dünya başarıyla dışa aktarıldı: {{path}}",
+		"viewBackups": "Yedekleri Görüntüle",
+		"resetDimensions": "Boyutları Sıfırla",
+		"resetNether": "Nether'ı Sıfırla (DIM-1)",
+		"resetTheEnd": "End'i Sıfırla (DIM1)",
+		"resetDimensionTitle": "Boyutu Sıfırla",
+		"resetDimensionConfirm": "\"{{name}}\" dünyası için {{dimension}} boyutunu sıfırlamak istediğinizden emin misiniz?",
+		"resetDimensionWarning": "Bu işlem bu boyuttaki mevcut araziyi ve yapıları kaldıracaktır. Portala bir sonraki girişinizde Minecraft yeni bir arazi oluşturacaktır.",
+		"resetDimensionTrashNote": "Önceki boyut klasörü dünya klasöründeki .ingot-trash konumuna güvenle taşınacaktır.",
+		"resetting": "Sıfırlanıyor...",
+		"resetSuccess": "Boyut başarıyla sıfırlandı",
+		"backupsTitle": "Dünya Yedekleri — {{name}}",
+		"noBackups": "Bu dünya için yedek bulunamadı",
+		"deleteBackup": "Yedeği Sil",
+		"deleteBackupConfirm": "{{name}} yedek arşivi silinsin mi?",
+		"deleteSuccess": "Yedek silindi",
+		"selectZip": ".zip Dosyası Seç",
+		"selectInstance": "Profil Seç",
+		"importing": "Dünya içe aktarılıyor...",
+		"importSuccess": "Dünya başarıyla içe aktarıldı: {{name}}",
+		"noSavedWorlds": "Kayıtlı dünya bulunamadı",
+		"noSavedWorldsDesc": "Başlamak için bir oyun oynayın veya bir dünya kaydı içe aktarın",
+		"noMatchingWorlds": "Aramanızla eşleşen dünya yok",
+		"sorts": {
+			"lastPlayed-desc": "Son Oynanma (En Yeni)",
+			"lastPlayed-asc": "Son Oynanma (En Eski)",
+			"name-asc": "Ad (A-Z)",
+			"name-desc": "Ad (Z-A)",
+			"size-desc": "Boyut (En Büyük)",
+			"size-asc": "Boyut (En Küçük)"
 		}
 	}
 }

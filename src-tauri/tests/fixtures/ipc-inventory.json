@@ -51,6 +51,13 @@
 			"destination": "servers.version_change"
 		},
 		{
+			"name": "backup_world",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "folder_name"],
+			"destination": "instances.worlds"
+		},
+		{
 			"name": "check_instance_version_change",
 			"currentPath": "instances.version_change",
 			"kind": "command",
@@ -143,6 +150,13 @@
 			"destination": "servers"
 		},
 		{
+			"name": "delete_world_backup",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "file_name"],
+			"destination": "instances.worlds"
+		},
+		{
 			"name": "detect_custom_instance",
 			"currentPath": "instances.imports",
 			"kind": "command",
@@ -206,6 +220,13 @@
 			"destination": "servers.transfer"
 		},
 		{
+			"name": "export_world",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "folder_name", "dest"],
+			"destination": "instances.worlds"
+		},
+		{
 			"name": "get_access_list",
 			"currentPath": "servers.config",
 			"kind": "command",
@@ -232,6 +253,13 @@
 			"kind": "command",
 			"arguments": [],
 			"destination": "instances.screenshots"
+		},
+		{
+			"name": "get_all_worlds",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": [],
+			"destination": "instances.worlds"
 		},
 		{
 			"name": "get_article_details",
@@ -323,6 +351,13 @@
 			"kind": "command",
 			"arguments": ["instance_id"],
 			"destination": "instances"
+		},
+		{
+			"name": "get_instance_worlds_full",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.worlds"
 		},
 		{
 			"name": "get_instances",
@@ -626,6 +661,13 @@
 			"destination": "servers.transfer"
 		},
 		{
+			"name": "import_world",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "zip_path"],
+			"destination": "instances.worlds"
+		},
+		{
 			"name": "install_bedrock_client",
 			"currentPath": "bedrock",
 			"kind": "command",
@@ -722,6 +764,13 @@
 			"kind": "command",
 			"arguments": ["server_id"],
 			"destination": "servers.plugins"
+		},
+		{
+			"name": "list_world_backups",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "folder_name"],
+			"destination": "instances.worlds"
 		},
 		{
 			"name": "microsoft_login_cancel",
@@ -857,6 +906,13 @@
 			"destination": "servers"
 		},
 		{
+			"name": "open_world_folder",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "folder_name"],
+			"destination": "instances.worlds"
+		},
+		{
 			"name": "ping_server",
 			"currentPath": "servers",
 			"kind": "command",
@@ -953,6 +1009,13 @@
 			"kind": "command",
 			"arguments": ["account_ids"],
 			"destination": "accounts"
+		},
+		{
+			"name": "reset_world_dimension",
+			"currentPath": "instances.worlds",
+			"kind": "command",
+			"arguments": ["instance_id", "folder_name", "dimension"],
+			"destination": "instances.worlds"
 		},
 		{
 			"name": "resolve_sync_conflict",

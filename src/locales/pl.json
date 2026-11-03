@@ -47,7 +47,8 @@
 		"skins": "Katalog skórek",
 		"screenshots": "Zrzuty ekranu",
 		"servers": "Serwery dedykowane",
-		"settings": "Ustawienia"
+		"settings": "Ustawienia",
+		"worlds": "Światy"
 	},
 	"news": {
 		"title": "Wiadomości i aktualizacje Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Utworzono skrót w menu aplikacji dla {{name}}",
 			"shortcutCreatedSteam": "Dodano {{name}} do Steam z własnymi grafikami Grid (uruchom ponownie Steam)",
 			"shortcutFailed": "Nie udało się utworzyć skrótu: {{error}}",
-			"moreActions": "Więcej akcji"
+			"moreActions": "Więcej akcji",
+			"logsTooltip": "Konsola i dzienniki"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konsola i dzienniki"
 	},
 	"modpacks": {
 		"title": "Odkrywaj zawartość",
@@ -736,7 +739,13 @@
 		"offlineHint": "Uruchom serwer, aby zobaczyć konsolę.",
 		"latest": "Najnowsze",
 		"placeholder": "Wpisz komendę, np. time set day",
-		"send": "Wyślij komendę"
+		"send": "Wyślij komendę",
+		"copySanitized": "Kopiuj oczyszczone",
+		"openPasteUrl": "Otwórz link do wklejki",
+		"pasteFailed": "Nie udało się przesłać dziennika: {{error}}",
+		"pasteUploaded": "Przesłano oczyszczony dziennik do {{provider}} (link skopiowany)",
+		"uploadPaste": "Prześlij do {{provider}}",
+		"uploadingPaste": "Przesyłanie..."
 	},
 	"syncMaster": {
 		"setAsSource": "„{{name}}” jest teraz głównym źródłem synchronizacji.",
@@ -850,7 +859,12 @@
 		"microsoftEnterCode": "Otwórz stronę Microsoft i wpisz ten kod:",
 		"microsoftOpenPage": "Skopiuj kod i otwórz stronę",
 		"microsoftWaiting": "Czekamy na zalogowanie…",
-		"microsoftFailed": "Logowanie przez Microsoft nie powiodło się"
+		"microsoftFailed": "Logowanie przez Microsoft nie powiodło się",
+		"microsoftDiscard": "Odrzuć logowanie",
+		"microsoftPending": "Poprzednie logowanie Microsoft zostało przerwane. Wznów je lub odrzuć, aby zalogować się ponownie.",
+		"microsoftPendingBusy": "Logowanie Microsoft jest już w toku.",
+		"microsoftPendingExpired": "Tego poprzedniego logowania nie można wznowić. Odrzuć je i rozpocznij nowe logowanie.",
+		"microsoftResume": "Wznów logowanie"
 	},
 	"properties": {
 		"groups": {
@@ -1870,6 +1884,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Wróć do instancji",
+		"crashDetectedTitle": "Diagnostyka awarii",
+		"crashExitCode": "Zakończono z kodem {{code}}",
+		"crashToastTitle": "Instancja {{name}} uległa awarii",
+		"crashToastViewLogs": "Zobacz diagnostykę",
+		"emptyFiltered": "Brak linii dziennika pasujących do bieżącego filtra",
+		"emptyLiveOffline": "Brak zbuforowanych danych wyjściowych bieżącej sesji",
+		"emptyLiveOfflineHint": "Uruchom instancję, aby przesyłać dane konsoli na żywo, lub wybierz latest.log albo raport o awarii powyżej.",
+		"emptyLiveRunning": "Oczekiwanie na dane wyjściowe klienta...",
+		"levels": {
+			"all": "Wszystkie",
+			"debug": "Debug",
+			"info": "Informacje",
+			"warn": "Ostrzeżenia",
+			"error": "Błędy"
+		},
+		"liveStream": "Konsola na żywo",
+		"maximize": "Maksymalizuj",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Zobacz raport o awarii",
+		"restore": "Przywróć",
+		"runningBadge": "Uruchomiona (PID {{pid}})",
+		"sanitizedNotice": "Dane logowania, tokeny sesji, nazwy użytkowników, ścieżki domowe i adresy IP są automatycznie usuwane przed przesłaniem.",
+		"searchFiltered": "przefiltrowano",
+		"searchPlaceholder": "Filtruj lub przeszukuj dzienniki...",
+		"showingLines": "Wyświetlanie {{count}} z {{total}} linii",
+		"sources": {
+			"live": "Sesja na żywo",
+			"latest": "latest.log",
+			"archivedLogs": "Zarchiwizowane dzienniki",
+			"crashReports": "Raporty o awariach"
+		},
+		"streamingLive": "Strumieniowanie wyjścia na żywo",
+		"suspectedMods": "Podejrzane mody:",
+		"title": "Konsola i diagnostyka — {{name}}",
+		"uploadMclogs": "Prześlij (mclo.gs)",
+		"uploadPasteEe": "Prześlij (paste.ee)",
+		"wrapOff": "Zawijanie: wył.",
+		"wrapOn": "Zawijanie: wł."
+	},
+	"worlds": {
+		"title": "Światy i zapisy",
+		"subtitle": "Przeglądaj metadane, kopiuj ziarna, resetuj wymiary i zarządzaj kopiami zapasowymi swoich instancji",
+		"refreshTooltip": "Odśwież światy",
+		"searchPlaceholder": "Szukaj światów według nazwy lub folderu...",
+		"allInstances": "Wszystkie instancje",
+		"allInstancesCount": "Wszystkie instancje ({{count}})",
+		"importWorld": "Importuj świat",
+		"importWorldDesc": "Importuj zapis świata z archiwum .zip do instancji",
+		"copySeed": "Kopiuj ziarno",
+		"seedCopied": "Ziarno skopiowane do schowka!",
+		"seedUnknown": "Ziarno niedostępne",
+		"gameMode": "Tryb gry",
+		"survival": "Przetrwanie",
+		"creative": "Kreatywny",
+		"hardcore": "Hardcore",
+		"adventure": "Przygoda",
+		"spectator": "Widz",
+		"lastPlayed": "Ostatnia gra",
+		"fileSize": "Rozmiar",
+		"seed": "Ziarno",
+		"version": "Wersja",
+		"dimensions": "Wymiary",
+		"hasNether": "Nether",
+		"hasTheEnd": "Kres",
+		"actions": "Akcje",
+		"openFolder": "Otwórz folder świata",
+		"createBackup": "Utwórz kopię zapasową",
+		"creatingBackup": "Tworzenie kopii...",
+		"backupSuccess": "Kopia zapasowa świata została pomyślnie utworzona",
+		"exportZip": "Eksportuj jako .zip",
+		"exportSuccess": "Świat pomyślnie wyeksportowany do {{path}}",
+		"viewBackups": "Pokaż kopie zapasowe",
+		"resetDimensions": "Zresetuj wymiary",
+		"resetNether": "Zresetuj Nether (DIM-1)",
+		"resetTheEnd": "Zresetuj Kres (DIM1)",
+		"resetDimensionTitle": "Reset wymiaru",
+		"resetDimensionConfirm": "Czy na pewno chcesz zresetować wymiar {{dimension}} dla „{{name}}”?",
+		"resetDimensionWarning": "Spowoduje to usunięcie bieżącego terenu i struktur w tym wymiarze. Minecraft wygeneruje świeży teren po ponownym wejściu do portalu.",
+		"resetDimensionTrashNote": "Poprzedni folder wymiaru zostanie bezpiecznie przeniesiony do .ingot-trash w folderze świata.",
+		"resetting": "Resetowanie...",
+		"resetSuccess": "Wymiar został pomyślnie zresetowany",
+		"backupsTitle": "Kopie zapasowe świata — {{name}}",
+		"noBackups": "Brak kopii zapasowych dla tego świata",
+		"deleteBackup": "Usuń kopię zapasową",
+		"deleteBackupConfirm": "Usunąć archiwum kopii zapasowej {{name}}?",
+		"deleteSuccess": "Kopia zapasowa została usunięta",
+		"selectZip": "Wybierz plik .zip",
+		"selectInstance": "Wybierz instancję",
+		"importing": "Importowanie świata...",
+		"importSuccess": "Świat pomyślnie zaimportowany: {{name}}",
+		"noSavedWorlds": "Nie znaleziono zapisanych światów",
+		"noSavedWorldsDesc": "Uruchom grę lub zaimportuj archiwum zapisu świata",
+		"noMatchingWorlds": "Żaden świat nie pasuje do Twojego zapytania",
+		"sorts": {
+			"lastPlayed-desc": "Ostatnia gra (najnowsze)",
+			"lastPlayed-asc": "Ostatnia gra (najstarsze)",
+			"name-asc": "Nazwa (A-Z)",
+			"name-desc": "Nazwa (Z-A)",
+			"size-desc": "Rozmiar (największe)",
+			"size-asc": "Rozmiar (najmniejsze)"
 		}
 	}
 }

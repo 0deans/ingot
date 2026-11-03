@@ -47,7 +47,8 @@
 		"skins": "Skincatalogus",
 		"screenshots": "Screenshots",
 		"servers": "Dedicated servers",
-		"settings": "Instellingen"
+		"settings": "Instellingen",
+		"worlds": "Werelden"
 	},
 	"news": {
 		"title": "Mojang Nieuws & Updates",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Applicatiemenusnelkoppeling gemaakt voor {{name}}",
 			"shortcutCreatedSteam": "{{name}} toegevoegd aan Steam met aangepaste Grid-banners (herstart Steam)",
 			"shortcutFailed": "Maken van snelkoppeling mislukt: {{error}}",
-			"moreActions": "Meer acties"
+			"moreActions": "Meer acties",
+			"logsTooltip": "Console & Logboeken"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Console & Logboeken"
 	},
 	"modpacks": {
 		"title": "Content ontdekken",
@@ -720,7 +723,13 @@
 		"offlineHint": "Start de server om de console te zien.",
 		"latest": "Nieuwste",
 		"placeholder": "Typ een commando, bijv. time set day",
-		"send": "Commando versturen"
+		"send": "Commando versturen",
+		"copySanitized": "Geschoond kopiëren",
+		"openPasteUrl": "Paste-link openen",
+		"pasteFailed": "Logboek uploaden mislukt: {{error}}",
+		"pasteUploaded": "Geschoond logboek geüpload naar {{provider}} (link gekopieerd)",
+		"uploadPaste": "Uploaden naar {{provider}}",
+		"uploadingPaste": "Uploaden..."
 	},
 	"syncMaster": {
 		"setAsSource": "\"{{name}}\" ingesteld als hoofdbron voor synchronisatie.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Open de Microsoft-pagina en voer deze code in:",
 		"microsoftOpenPage": "Code kopiëren en pagina openen",
 		"microsoftWaiting": "Wachten tot je inlogt…",
-		"microsoftFailed": "Inloggen met Microsoft mislukt"
+		"microsoftFailed": "Inloggen met Microsoft mislukt",
+		"microsoftDiscard": "Aanmelding annuleren",
+		"microsoftPending": "Een eerdere Microsoft-aanmelding werd onderbroken. Hervat deze of annuleer om opnieuw aan te melden.",
+		"microsoftPendingBusy": "Er is al een Microsoft-aanmelding bezig.",
+		"microsoftPendingExpired": "Deze eerdere aanmelding kan niet worden hervat. Annuleer en start een nieuwe aanmelding.",
+		"microsoftResume": "Aanmelding hervatten"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Terug naar instanties",
+		"crashDetectedTitle": "Crashdiagnose",
+		"crashExitCode": "Afgesloten met code {{code}}",
+		"crashToastTitle": "{{name}} is gecrasht",
+		"crashToastViewLogs": "Diagnose bekijken",
+		"emptyFiltered": "Geen logregels komen overeen met het huidige filter",
+		"emptyLiveOffline": "Geen live sessie-uitvoer in buffer",
+		"emptyLiveOfflineHint": "Start de instantie om live console-uitvoer te streamen, of selecteer latest.log of een crashrapport hierboven.",
+		"emptyLiveRunning": "Wachten op client-uitvoer...",
+		"levels": {
+			"all": "Alle",
+			"debug": "Foutopsporing",
+			"info": "Info",
+			"warn": "Waarschuwingen",
+			"error": "Fouten"
+		},
+		"liveStream": "Live console",
+		"maximize": "Maximaliseren",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Crashrapport bekijken",
+		"restore": "Herstellen",
+		"runningBadge": "Actief (PID {{pid}})",
+		"sanitizedNotice": "Inloggegevens, sessietokens, gebruikersnamen, thuismap-paden en IP-adressen worden vóór het uploaden automatisch verwijderd.",
+		"searchFiltered": "gefilterd",
+		"searchPlaceholder": "Logboeken filteren of doorzoeken...",
+		"showingLines": "{{count}} van {{total}} regels weergegeven",
+		"sources": {
+			"live": "Live sessie",
+			"latest": "latest.log",
+			"archivedLogs": "Gearchiveerde logboeken",
+			"crashReports": "Crashrapporten"
+		},
+		"streamingLive": "Live uitvoer streamen",
+		"suspectedMods": "Verdachte mods:",
+		"title": "Console & Diagnose — {{name}}",
+		"uploadMclogs": "Uploaden (mclo.gs)",
+		"uploadPasteEe": "Uploaden (paste.ee)",
+		"wrapOff": "Terugloop: Uit",
+		"wrapOn": "Terugloop: Aan"
+	},
+	"worlds": {
+		"title": "Werelden & Opgeslagen spellen",
+		"subtitle": "Bekijk metadata, kopieer seeds, reset dimensies en beheer back-ups van je instanties",
+		"refreshTooltip": "Werelden vernieuwen",
+		"searchPlaceholder": "Zoek werelden op naam of map...",
+		"allInstances": "Alle instanties",
+		"allInstancesCount": "Alle instanties ({{count}})",
+		"importWorld": "Wereld importeren",
+		"importWorldDesc": "Importeer een opgeslagen wereld uit een .zip-archief in een instantie",
+		"copySeed": "Seed kopiëren",
+		"seedCopied": "Seed gekopieerd naar klembord!",
+		"seedUnknown": "Seed niet beschikbaar",
+		"gameMode": "Spelmodus",
+		"survival": "Overleven",
+		"creative": "Creatief",
+		"hardcore": "Hardcore",
+		"adventure": "Avontuur",
+		"spectator": "Toeschouwer",
+		"lastPlayed": "Laatst gespeeld",
+		"fileSize": "Grootte",
+		"seed": "Seed",
+		"version": "Versie",
+		"dimensions": "Dimensies",
+		"hasNether": "Nether",
+		"hasTheEnd": "The End",
+		"actions": "Acties",
+		"openFolder": "Wereldmap openen",
+		"createBackup": "Back-up maken",
+		"creatingBackup": "Back-up maken...",
+		"backupSuccess": "Back-up van wereld succesvol gemaakt",
+		"exportZip": "Exporteren als .zip",
+		"exportSuccess": "Wereld succesvol geëxporteerd naar {{path}}",
+		"viewBackups": "Back-ups bekijken",
+		"resetDimensions": "Dimensies resetten",
+		"resetNether": "Nether resetten (DIM-1)",
+		"resetTheEnd": "The End resetten (DIM1)",
+		"resetDimensionTitle": "Dimensie resetten",
+		"resetDimensionConfirm": "Weet je zeker dat je de dimensie {{dimension}} voor \"{{name}}\" wilt resetten?",
+		"resetDimensionWarning": "Dit verwijdert het huidige terrein en de bouwwerken in deze dimensie. Minecraft genereert vers terrein wanneer je het portaal weer binnengaat.",
+		"resetDimensionTrashNote": "De vorige dimensiemap wordt veilig verplaatst naar .ingot-trash in de wereldmap.",
+		"resetting": "Resetten...",
+		"resetSuccess": "Dimensie succesvol gereset",
+		"backupsTitle": "Wereldback-ups — {{name}}",
+		"noBackups": "Geen back-ups gevonden voor deze wereld",
+		"deleteBackup": "Back-up verwijderen",
+		"deleteBackupConfirm": "Back-uparchief {{name}} verwijderen?",
+		"deleteSuccess": "Back-up verwijderd",
+		"selectZip": ".zip-bestand selecteren",
+		"selectInstance": "Instantie selecteren",
+		"importing": "Wereld importeren...",
+		"importSuccess": "Wereld succesvol geïmporteerd: {{name}}",
+		"noSavedWorlds": "Geen opgeslagen werelden gevonden",
+		"noSavedWorldsDesc": "Start een spel of importeer een wereldarchief om aan de slag te gaan",
+		"noMatchingWorlds": "Geen werelden komen overeen met je zoekopdracht",
+		"sorts": {
+			"lastPlayed-desc": "Laatst gespeeld (Nieuwste)",
+			"lastPlayed-asc": "Laatst gespeeld (Oudste)",
+			"name-asc": "Naam (A-Z)",
+			"name-desc": "Naam (Z-A)",
+			"size-desc": "Grootte (Grootste)",
+			"size-asc": "Grootte (Kleinste)"
 		}
 	}
 }

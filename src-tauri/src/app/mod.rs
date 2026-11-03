@@ -20,6 +20,7 @@ pub(crate) mod server_lifecycle;
 pub(crate) mod server_transfer;
 mod state;
 pub(crate) mod sync;
+pub(crate) mod worlds;
 
 pub(crate) use archive::extract_zip_entries;
 pub use archive::ArchiveError;

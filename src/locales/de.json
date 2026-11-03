@@ -47,7 +47,8 @@
 		"skins": "Skin-Katalog",
 		"screenshots": "Screenshots",
 		"servers": "Dedizierte Server",
-		"settings": "Einstellungen"
+		"settings": "Einstellungen",
+		"worlds": "Welten"
 	},
 	"news": {
 		"title": "Mojang Neuigkeiten & Updates",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Anwendungsmenü-Verknüpfung für {{name}} erstellt",
 			"shortcutCreatedSteam": "{{name}} mit eigenem Grid-Artwork zu Steam hinzugefügt (Steam neu starten)",
 			"shortcutFailed": "Fehler beim Erstellen der Verknüpfung: {{error}}",
-			"moreActions": "Weitere Aktionen"
+			"moreActions": "Weitere Aktionen",
+			"logsTooltip": "Konsole & Protokolle"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konsole & Protokolle"
 	},
 	"modpacks": {
 		"title": "Inhalte entdecken",
@@ -720,7 +723,13 @@
 		"offlineHint": "Starte den Server, um seine Konsole zu sehen.",
 		"latest": "Neueste",
 		"placeholder": "Befehl eingeben, z. B. time set day",
-		"send": "Befehl senden"
+		"send": "Befehl senden",
+		"copySanitized": "Bereinigt kopieren",
+		"openPasteUrl": "Paste-Link öffnen",
+		"pasteFailed": "Protokoll konnte nicht hochgeladen werden: {{error}}",
+		"pasteUploaded": "Bereinigtes Protokoll auf {{provider}} hochgeladen (Link kopiert)",
+		"uploadPaste": "Auf {{provider}} hochladen",
+		"uploadingPaste": "Wird hochgeladen..."
 	},
 	"syncMaster": {
 		"setAsSource": "\"{{name}}\" als Hauptquelle für die Synchronisierung festgelegt.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Öffne die Microsoft-Seite und gib diesen Code ein:",
 		"microsoftOpenPage": "Code kopieren und Seite öffnen",
 		"microsoftWaiting": "Warte auf deine Anmeldung…",
-		"microsoftFailed": "Microsoft-Anmeldung fehlgeschlagen"
+		"microsoftFailed": "Microsoft-Anmeldung fehlgeschlagen",
+		"microsoftDiscard": "Anmeldung verwerfen",
+		"microsoftPending": "Eine vorherige Microsoft-Anmeldung wurde unterbrochen. Setze sie fort oder verwerfe sie, um dich erneut anzumelden.",
+		"microsoftPendingBusy": "Eine Microsoft-Anmeldung wird bereits durchgeführt.",
+		"microsoftPendingExpired": "Diese vorherige Anmeldung kann nicht fortgesetzt werden. Verwerfe sie und starte eine neue Anmeldung.",
+		"microsoftResume": "Anmeldung fortsetzen"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Zurück zu Instanzen",
+		"crashDetectedTitle": "Absturzdiagnose",
+		"crashExitCode": "Beendet mit Code {{code}}",
+		"crashToastTitle": "{{name}} ist abgestürzt",
+		"crashToastViewLogs": "Diagnose anzeigen",
+		"emptyFiltered": "Keine Protokollzeilen entsprechen dem aktuellen Filter",
+		"emptyLiveOffline": "Keine Ausgabe der Live-Sitzung zwischengespeichert",
+		"emptyLiveOfflineHint": "Starte die Instanz, um die Live-Konsole anzuzeigen, oder wähle oben latest.log oder einen Absturzbericht aus.",
+		"emptyLiveRunning": "Warte auf Client-Ausgabe...",
+		"levels": {
+			"all": "Alle",
+			"debug": "Debug",
+			"info": "Info",
+			"warn": "Warnungen",
+			"error": "Fehler"
+		},
+		"liveStream": "Live-Konsole",
+		"maximize": "Maximieren",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Absturzbericht anzeigen",
+		"restore": "Wiederherstellen",
+		"runningBadge": "Läuft (PID {{pid}})",
+		"sanitizedNotice": "Zugangsdaten, Sitzungstoken, Benutzernamen, Home-Pfade und IP-Adressen werden vor dem Hochladen automatisch unkenntlich gemacht.",
+		"searchFiltered": "gefiltert",
+		"searchPlaceholder": "Protokolle filtern oder durchsuchen...",
+		"showingLines": "Zeige {{count}} von {{total}} Zeilen",
+		"sources": {
+			"live": "Live-Sitzung",
+			"latest": "latest.log",
+			"archivedLogs": "Archivierte Protokolle",
+			"crashReports": "Absturzberichte"
+		},
+		"streamingLive": "Live-Ausgabe wird gestreamt",
+		"suspectedMods": "Verdächtige Mods:",
+		"title": "Konsole & Diagnose — {{name}}",
+		"uploadMclogs": "Hochladen (mclo.gs)",
+		"uploadPasteEe": "Hochladen (paste.ee)",
+		"wrapOff": "Zeilenumbruch: Aus",
+		"wrapOn": "Zeilenumbruch: Ein"
+	},
+	"worlds": {
+		"title": "Welten & Spielstände",
+		"subtitle": "Metadaten einsehen, Seeds kopieren, Dimensionen zurücksetzen und Backups verwalten",
+		"refreshTooltip": "Welten aktualisieren",
+		"searchPlaceholder": "Welten nach Name oder Ordner durchsuchen...",
+		"allInstances": "Alle Instanzen",
+		"allInstancesCount": "Alle Instanzen ({{count}})",
+		"importWorld": "Welt importieren",
+		"importWorldDesc": "Einen Spielstand aus einem .zip-Archiv in eine Instanz importieren",
+		"copySeed": "Seed kopieren",
+		"seedCopied": "Seed in Zwischenablage kopiert!",
+		"seedUnknown": "Seed nicht verfügbar",
+		"gameMode": "Spielmodus",
+		"survival": "Überleben",
+		"creative": "Kreativ",
+		"hardcore": "Hardcore",
+		"adventure": "Abenteuer",
+		"spectator": "Zuschauer",
+		"lastPlayed": "Zuletzt gespielt",
+		"fileSize": "Größe",
+		"seed": "Seed",
+		"version": "Version",
+		"dimensions": "Dimensionen",
+		"hasNether": "Nether",
+		"hasTheEnd": "Das Ende",
+		"actions": "Aktionen",
+		"openFolder": "Weltordner öffnen",
+		"createBackup": "Backup erstellen",
+		"creatingBackup": "Backup wird erstellt...",
+		"backupSuccess": "Welt-Backup erfolgreich erstellt",
+		"exportZip": "Als .zip exportieren",
+		"exportSuccess": "Welt erfolgreich nach {{path}} exportiert",
+		"viewBackups": "Backups anzeigen",
+		"resetDimensions": "Dimensionen zurücksetzen",
+		"resetNether": "Nether zurücksetzen (DIM-1)",
+		"resetTheEnd": "Das Ende zurücksetzen (DIM1)",
+		"resetDimensionTitle": "Dimension zurücksetzen",
+		"resetDimensionConfirm": "Möchtest du die Dimension {{dimension}} für „{{name}}“ wirklich zurücksetzen?",
+		"resetDimensionWarning": "Dadurch werden das aktuelle Terrain und die Bauwerke dieser Dimension gelöscht. Minecraft generiert frisches Terrain beim nächsten Betreten des Portals.",
+		"resetDimensionTrashNote": "Der bisherige Dimensionsordner wird sicher in .ingot-trash im Weltordner verschoben.",
+		"resetting": "Wird zurückgesetzt...",
+		"resetSuccess": "Dimension erfolgreich zurückgesetzt",
+		"backupsTitle": "Welt-Backups — {{name}}",
+		"noBackups": "Keine Backups für diese Welt gefunden",
+		"deleteBackup": "Backup löschen",
+		"deleteBackupConfirm": "Backup-Archiv {{name}} löschen?",
+		"deleteSuccess": "Backup gelöscht",
+		"selectZip": ".zip-Datei auswählen",
+		"selectInstance": "Instanz auswählen",
+		"importing": "Welt wird importiert...",
+		"importSuccess": "Welt erfolgreich importiert: {{name}}",
+		"noSavedWorlds": "Keine gespeicherten Welten gefunden",
+		"noSavedWorldsDesc": "Starte das Spiel oder importiere ein Weltarchiv, um loszulegen",
+		"noMatchingWorlds": "Keine Welten entsprechen deiner Suche",
+		"sorts": {
+			"lastPlayed-desc": "Zuletzt gespielt (Neueste)",
+			"lastPlayed-asc": "Zuletzt gespielt (Älteste)",
+			"name-asc": "Name (A-Z)",
+			"name-desc": "Name (Z-A)",
+			"size-desc": "Größe (Größte)",
+			"size-asc": "Größe (Kleinste)"
 		}
 	}
 }

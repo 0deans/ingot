@@ -17,6 +17,7 @@ import { Route as ServersRouteImport } from './routes/servers'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SkinsRouteImport } from './routes/skins'
 import { Route as UiTestRouteImport } from './routes/ui-test'
+import { Route as WorldsRouteImport } from './routes/worlds'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const UiTestRoute = UiTestRouteImport.update({
   path: '/ui-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorldsRoute = WorldsRouteImport.update({
+  id: '/worlds',
+  path: '/worlds',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/skins': typeof SkinsRoute
   '/ui-test': typeof UiTestRoute
+  '/worlds': typeof WorldsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/skins': typeof SkinsRoute
   '/ui-test': typeof UiTestRoute
+  '/worlds': typeof WorldsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/skins': typeof SkinsRoute
   '/ui-test': typeof UiTestRoute
+  '/worlds': typeof WorldsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skins'
     | '/ui-test'
+    | '/worlds'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skins'
     | '/ui-test'
+    | '/worlds'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skins'
     | '/ui-test'
+    | '/worlds'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SkinsRoute: typeof SkinsRoute
   UiTestRoute: typeof UiTestRoute
+  WorldsRoute: typeof WorldsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UiTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/worlds': {
+      id: '/worlds'
+      path: '/worlds'
+      fullPath: '/worlds'
+      preLoaderRoute: typeof WorldsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SkinsRoute: SkinsRoute,
   UiTestRoute: UiTestRoute,
+  WorldsRoute: WorldsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

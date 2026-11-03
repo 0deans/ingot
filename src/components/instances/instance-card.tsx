@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router"
 import {
 	Check,
 	ChevronDown,
@@ -117,6 +118,7 @@ export const InstanceCard = ({
 	onQuickUpdate,
 }: InstanceCardProps) => {
 	const { t } = useTranslation()
+	const navigate = useNavigate()
 	const isRunning = !!runningInfo
 	const isDownloading = !!progress && !isRunning
 	const customColorInputRef = useRef<HTMLInputElement | null>(null)
@@ -584,6 +586,15 @@ export const InstanceCard = ({
 								<DropdownMenuItem onClick={onDuplicate} className="cursor-pointer gap-2">
 									<Copy className="size-4 text-muted-foreground" />
 									<span className="text-xs">{t("instances.card.duplicateTooltip")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => {
+										return navigate({ to: "/worlds", search: { instance: instance.id } })
+									}}
+									className="cursor-pointer gap-2"
+								>
+									<Globe className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("nav.worlds")}</span>
 								</DropdownMenuItem>
 								<DropdownMenuSub>
 									<DropdownMenuSubTrigger className="cursor-pointer gap-2">

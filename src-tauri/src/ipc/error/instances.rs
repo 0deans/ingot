@@ -399,3 +399,27 @@ impl From<crate::minecraft::logs::LogError> for ApiError {
         }
     }
 }
+
+impl From<crate::minecraft::worlds::WorldError> for ApiError {
+    fn from(error: crate::minecraft::worlds::WorldError) -> Self {
+        use crate::minecraft::worlds::WorldError;
+        match error {
+            WorldError::InstanceNotFound(msg) | WorldError::NotFound(msg) => Self::not_found(msg),
+            WorldError::DimensionNotFound(dim) => {
+                Self::not_found(format!("Dimension not found: {dim:?}"))
+            }
+            WorldError::InstanceRunning => {
+                Self::conflict("Instance is currently running or in maintenance")
+            }
+            WorldError::InvalidFolderName(msg)
+            | WorldError::Archive(msg)
+            | WorldError::Nbt(msg)
+            | WorldError::Gz(msg) => Self::invalid_input(msg),
+            WorldError::Io(_) | WorldError::Zip(_) => Self::storage_failure(error.to_string()),
+            WorldError::TaskJoin(_) => Self::internal(error.to_string()),
+            WorldError::LoadInstances(source) | WorldError::InstanceDir(source) => {
+                Self::from(source)
+            }
+        }
+    }
+}

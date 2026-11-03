@@ -47,7 +47,8 @@
 		"skins": "Katalog skinů",
 		"screenshots": "Snímky obrazovky",
 		"servers": "Dedikované servery",
-		"settings": "Nastavení"
+		"settings": "Nastavení",
+		"worlds": "Světy"
 	},
 	"news": {
 		"title": "Novinky a aktualizace Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Zástupce v nabídce aplikací byl vytvořen pro {{name}}",
 			"shortcutCreatedSteam": "{{name}} byl přidán do Steamu s vlastní grafikou Grid (restartujte Steam)",
 			"shortcutFailed": "Vytvoření zástupce se nezdařilo: {{error}}",
-			"moreActions": "Další akce"
+			"moreActions": "Další akce",
+			"logsTooltip": "Konzole a záznamy"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konzole a záznamy"
 	},
 	"modpacks": {
 		"title": "Objevovat obsah",
@@ -736,7 +739,13 @@
 		"offlineHint": "Spusťte server, abyste viděli konzoli.",
 		"latest": "Nejnovější",
 		"placeholder": "Zadejte příkaz, např. time set day",
-		"send": "Odeslat příkaz"
+		"send": "Odeslat příkaz",
+		"copySanitized": "Kopírovat očištěné",
+		"openPasteUrl": "Otevřít odkaz",
+		"pasteFailed": "Nahrání záznamu se nezdařilo: {{error}}",
+		"pasteUploaded": "Očištěný záznam byl nahrán na {{provider}} (odkaz zkopírován)",
+		"uploadPaste": "Nahrát na {{provider}}",
+		"uploadingPaste": "Nahrávání..."
 	},
 	"syncMaster": {
 		"setAsSource": "„{{name}}“ je teď hlavním zdrojem synchronizace.",
@@ -850,7 +859,12 @@
 		"microsoftEnterCode": "Otevřete stránku Microsoft a zadejte tento kód:",
 		"microsoftOpenPage": "Zkopírovat kód a otevřít stránku",
 		"microsoftWaiting": "Čekáme na přihlášení…",
-		"microsoftFailed": "Přihlášení přes Microsoft se nezdařilo"
+		"microsoftFailed": "Přihlášení přes Microsoft se nezdařilo",
+		"microsoftDiscard": "Zahodit přihlášení",
+		"microsoftPending": "Předchozí přihlášení k Microsoftu bylo přerušeno. Obnovte ho nebo zahoďte, abyste se mohli přihlásit znovu.",
+		"microsoftPendingBusy": "Přihlášení k Microsoftu již probíhá.",
+		"microsoftPendingExpired": "Toto předchozí přihlášení nelze obnovit. Zahoďte ho a začněte nové přihlášení.",
+		"microsoftResume": "Obnovit přihlášení"
 	},
 	"properties": {
 		"groups": {
@@ -1870,6 +1884,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Zpět k instancím",
+		"crashDetectedTitle": "Diagnostika pádu",
+		"crashExitCode": "Ukončeno s kódem {{code}}",
+		"crashToastTitle": "Instance {{name}} spadla",
+		"crashToastViewLogs": "Zobrazit diagnostiku",
+		"emptyFiltered": "Filtru neodpovídají žádné řádky záznamu",
+		"emptyLiveOffline": "Žádný výstup živé relace ve vyrovnávací paměti",
+		"emptyLiveOfflineHint": "Spusťte instanci pro sledování živého výstupu konzole, nebo vyberte latest.log či zprávu o pádu výše.",
+		"emptyLiveRunning": "Čekání na výstup klienta...",
+		"levels": {
+			"all": "Vše",
+			"debug": "Ladění",
+			"info": "Informace",
+			"warn": "Varování",
+			"error": "Chyby"
+		},
+		"liveStream": "Živá konzole",
+		"maximize": "Maximalizovat",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Zobrazit zprávu o pádu",
+		"restore": "Obnovit",
+		"runningBadge": "Běží (PID {{pid}})",
+		"sanitizedNotice": "Přihlašovací údaje, tokeny relací, uživatelská jména, domovské cesty a IP adresy jsou před nahráním automaticky odstraněny.",
+		"searchFiltered": "filtrováno",
+		"searchPlaceholder": "Filtrovat nebo prohledávat záznamy...",
+		"showingLines": "Zobrazeno {{count}} z {{total}} řádků",
+		"sources": {
+			"live": "Živá relace",
+			"latest": "latest.log",
+			"archivedLogs": "Archivované záznamy",
+			"crashReports": "Zprávy o pádu"
+		},
+		"streamingLive": "Streamování živého výstupu",
+		"suspectedMods": "Podezřelé mody:",
+		"title": "Konzole a diagnostika — {{name}}",
+		"uploadMclogs": "Nahrát (mclo.gs)",
+		"uploadPasteEe": "Nahrát (paste.ee)",
+		"wrapOff": "Zalamování: Vypnuto",
+		"wrapOn": "Zalamování: Zapnuto"
+	},
+	"worlds": {
+		"title": "Světy a uložené pozice",
+		"subtitle": "Prohlížejte metadata, kopírujte seedy, resetujte dimenze a spravujte zálohy svých instancí",
+		"refreshTooltip": "Obnovit světy",
+		"searchPlaceholder": "Hledat světy podle názvu nebo složky...",
+		"allInstances": "Všechny instance",
+		"allInstancesCount": "Všechny instance ({{count}})",
+		"importWorld": "Importovat svět",
+		"importWorldDesc": "Importovat uložený svět z archivu .zip do instance",
+		"copySeed": "Kopírovat seed",
+		"seedCopied": "Seed byl zkopírován do schránky!",
+		"seedUnknown": "Seed není k dispozici",
+		"gameMode": "Herní mód",
+		"survival": "Přežití",
+		"creative": "Tvořivá",
+		"hardcore": "Drsná hra",
+		"adventure": "Dobrodružná",
+		"spectator": "Divák",
+		"lastPlayed": "Naposledy hráno",
+		"fileSize": "Velikost",
+		"seed": "Seed",
+		"version": "Verze",
+		"dimensions": "Dimenze",
+		"hasNether": "Nether",
+		"hasTheEnd": "End",
+		"actions": "Akce",
+		"openFolder": "Otevřít složku světa",
+		"createBackup": "Vytvořit zálohu",
+		"creatingBackup": "Vytváření zálohy...",
+		"backupSuccess": "Záloha světa byla úspěšně vytvořena",
+		"exportZip": "Exportovat jako .zip",
+		"exportSuccess": "Svět byl úspěšně exportován do {{path}}",
+		"viewBackups": "Zobrazit zálohy",
+		"resetDimensions": "Resetovat dimenze",
+		"resetNether": "Resetovat Nether (DIM-1)",
+		"resetTheEnd": "Resetovat End (DIM1)",
+		"resetDimensionTitle": "Resetovat dimenzi",
+		"resetDimensionConfirm": "Opravdu chcete resetovat dimenzi {{dimension}} pro svět „{{name}}“?",
+		"resetDimensionWarning": "Tímto odstraníte stávající terén a struktury pro tuto dimenzi. Minecraft vygeneruje čerstvý terén při příštím vstupu do portálu.",
+		"resetDimensionTrashNote": "Předchozí složka dimenze bude bezpečně přesunuta do složky .ingot-trash uvnitř složky světa.",
+		"resetting": "Resetování...",
+		"resetSuccess": "Dimenze byla úspěšně resetována",
+		"backupsTitle": "Zálohy světa — {{name}}",
+		"noBackups": "Pro tento svět nebyly nalezeny žádné zálohy",
+		"deleteBackup": "Smazat zálohu",
+		"deleteBackupConfirm": "Smazat archiv zálohy {{name}}?",
+		"deleteSuccess": "Záloha byla smazána",
+		"selectZip": "Vyberte soubor .zip",
+		"selectInstance": "Vyberte instanci",
+		"importing": "Importování světa...",
+		"importSuccess": "Svět byl úspěšně importován: {{name}}",
+		"noSavedWorlds": "Nebyly nalezeny žádné uložené světy",
+		"noSavedWorldsDesc": "Spusťte hru nebo importujte archiv uloženého světa",
+		"noMatchingWorlds": "Vašemu dotazu neodpovídají žádné světy",
+		"sorts": {
+			"lastPlayed-desc": "Naposledy hráno (od nejnovějších)",
+			"lastPlayed-asc": "Naposledy hráno (od nejstarších)",
+			"name-asc": "Název (A-Z)",
+			"name-desc": "Název (Z-A)",
+			"size-desc": "Velikost (od největších)",
+			"size-asc": "Velikost (od nejmenších)"
 		}
 	}
 }

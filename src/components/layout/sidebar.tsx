@@ -3,6 +3,7 @@ import { cn } from "cn"
 import {
 	Camera,
 	Gamepad2,
+	Globe,
 	Newspaper,
 	Palette,
 	Server,
@@ -104,6 +105,7 @@ const TOP_NAV_TABS = [
 	"/news",
 	"/skins",
 	"/screenshots",
+	"/worlds",
 	"/servers",
 	...(import.meta.env.DEV ? ["/ui-test"] : []),
 ]
@@ -170,6 +172,10 @@ const Sidebar = () => {
 
 				<SidebarTab to="/screenshots" label={t("nav.screenshots")}>
 					<Camera className="size-5" />
+				</SidebarTab>
+
+				<SidebarTab to="/worlds" label={t("nav.worlds")}>
+					<Globe className="size-5" />
 				</SidebarTab>
 
 				<SidebarTab to="/servers" label={t("nav.servers")}>

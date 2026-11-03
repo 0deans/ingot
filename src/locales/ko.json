@@ -47,7 +47,8 @@
 		"skins": "스킨 카탈로그",
 		"screenshots": "스크린샷",
 		"servers": "전용 서버",
-		"settings": "설정"
+		"settings": "설정",
+		"worlds": "월드"
 	},
 	"news": {
 		"title": "Mojang 소식 및 업데이트",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "{{name}}의 애플리케이션 메뉴 바로가기를 생성했습니다",
 			"shortcutCreatedSteam": "커스텀 Grid 아트워크와 함께 {{name}}을(를) Steam에 추가했습니다 (Steam을 재시작하세요)",
 			"shortcutFailed": "바로가기 생성 실패: {{error}}",
-			"moreActions": "추가 작업"
+			"moreActions": "추가 작업",
+			"logsTooltip": "콘솔 및 로그"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "콘솔 및 로그"
 	},
 	"modpacks": {
 		"title": "콘텐츠 탐색",
@@ -720,7 +723,13 @@
 		"offlineHint": "콘솔을 보려면 서버를 시작하세요.",
 		"latest": "최신",
 		"placeholder": "명령어 입력 (예: time set day)",
-		"send": "명령어 전송"
+		"send": "명령어 전송",
+		"copySanitized": "민감 정보 제외 복사",
+		"openPasteUrl": "링크 열기",
+		"pasteFailed": "로그 업로드 실패: {{error}}",
+		"pasteUploaded": "{{provider}}에 로그를 업로드했습니다 (링크 복사됨)",
+		"uploadPaste": "{{provider}}에 업로드",
+		"uploadingPaste": "업로드 중..."
 	},
 	"syncMaster": {
 		"setAsSource": "\"{{name}}\"을(를) 마스터 동기화 소스로 설정했습니다.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Microsoft 페이지를 열고 이 코드를 입력하세요:",
 		"microsoftOpenPage": "코드 복사 후 페이지 열기",
 		"microsoftWaiting": "로그인을 기다리는 중…",
-		"microsoftFailed": "Microsoft 로그인에 실패했습니다"
+		"microsoftFailed": "Microsoft 로그인에 실패했습니다",
+		"microsoftDiscard": "로그인 취소",
+		"microsoftPending": "이전 Microsoft 로그인이 중단되었습니다. 재개하거나 취소하고 다시 로그인하세요.",
+		"microsoftPendingBusy": "Microsoft 로그인이 이미 진행 중입니다.",
+		"microsoftPendingExpired": "이전 로그인을 재개할 수 없습니다. 취소하고 새로 시작하세요.",
+		"microsoftResume": "로그인 재개"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "인스턴스로 돌아가기",
+		"crashDetectedTitle": "충돌 진단",
+		"crashExitCode": "종료 코드 {{code}}",
+		"crashToastTitle": "{{name}} 인스턴스가 충돌했습니다",
+		"crashToastViewLogs": "진단 보기",
+		"emptyFiltered": "현재 필터와 일치하는 로그 라인이 없습니다",
+		"emptyLiveOffline": "버퍼링된 실시간 세션 출력이 없습니다",
+		"emptyLiveOfflineHint": "실시간 콘솔 출력을 확인하려면 인스턴스를 시작하거나 상단에서 latest.log 또는 충돌 보고서를 선택하세요.",
+		"emptyLiveRunning": "클라이언트 출력 대기 중...",
+		"levels": {
+			"all": "전체",
+			"debug": "디버그",
+			"info": "정보",
+			"warn": "경고",
+			"error": "오류"
+		},
+		"liveStream": "실시간 콘솔",
+		"maximize": "최대화",
+		"offlineBadge": "오프라인",
+		"openCrashReport": "충돌 보고서 보기",
+		"restore": "이전 크기로 복원",
+		"runningBadge": "실행 중 (PID {{pid}})",
+		"sanitizedNotice": "자격 증명, 세션 토큰, 사용자 이름, 홈 경로 및 IP 주소는 업로드 전에 자동으로 마스킹됩니다.",
+		"searchFiltered": "개 필터됨",
+		"searchPlaceholder": "로그 필터 또는 검색...",
+		"showingLines": "전체 {{total}}줄 중 {{count}}줄 표시",
+		"sources": {
+			"live": "실시간 세션",
+			"latest": "latest.log",
+			"archivedLogs": "보관된 로그",
+			"crashReports": "충돌 보고서"
+		},
+		"streamingLive": "실시간 출력 스트리밍 중",
+		"suspectedMods": "원인으로 의심되는 모드:",
+		"title": "콘솔 및 진단 — {{name}}",
+		"uploadMclogs": "업로드 (mclo.gs)",
+		"uploadPasteEe": "업로드 (paste.ee)",
+		"wrapOff": "줄 바꿈: 끔",
+		"wrapOn": "줄 바꿈: 켬"
+	},
+	"worlds": {
+		"title": "월드 및 세이브",
+		"subtitle": "메타데이터 확인, 시드 복사, 차원 초기화 및 백업 관리",
+		"refreshTooltip": "월드 새로고침",
+		"searchPlaceholder": "이름 또는 폴더명으로 월드 검색...",
+		"allInstances": "모든 인스턴스",
+		"allInstancesCount": "모든 인스턴스 ({{count}})",
+		"importWorld": "월드 가져오기",
+		"importWorldDesc": ".zip 아카이브에서 인스턴스로 월드 세이브 가져오기",
+		"copySeed": "시드 복사",
+		"seedCopied": "시드가 클립보드에 복사되었습니다!",
+		"seedUnknown": "시드를 확인할 수 없음",
+		"gameMode": "게임 모드",
+		"survival": "서바이벌",
+		"creative": "크리에이티브",
+		"hardcore": "하드코어",
+		"adventure": "모험",
+		"spectator": "관전자",
+		"lastPlayed": "마지막 플레이",
+		"fileSize": "크기",
+		"seed": "시드",
+		"version": "버전",
+		"dimensions": "차원",
+		"hasNether": "네더",
+		"hasTheEnd": "엔드",
+		"actions": "작업",
+		"openFolder": "월드 폴더 열기",
+		"createBackup": "백업 생성",
+		"creatingBackup": "백업 생성 중...",
+		"backupSuccess": "월드 백업이 생성되었습니다",
+		"exportZip": ".zip으로 내보내기",
+		"exportSuccess": "월드를 성공적으로 내보냈습니다: {{path}}",
+		"viewBackups": "백업 보기",
+		"resetDimensions": "차원 초기화",
+		"resetNether": "네더 초기화 (DIM-1)",
+		"resetTheEnd": "엔드 초기화 (DIM1)",
+		"resetDimensionTitle": "차원 초기화",
+		"resetDimensionConfirm": "\"{{name}}\"의 {{dimension}} 차원을 초기화하시겠습니까?",
+		"resetDimensionWarning": "이 차원의 기존 지형과 구조물이 모두 삭제됩니다. 다음에 포털에 입장할 때 마인크래프트가 새로운 지형을 생성합니다.",
+		"resetDimensionTrashNote": "안전을 위해 이전 차원 폴더는 월드 폴더 내의 .ingot-trash로 이동됩니다.",
+		"resetting": "초기화 중...",
+		"resetSuccess": "차원이 초기화되었습니다",
+		"backupsTitle": "월드 백업 — {{name}}",
+		"noBackups": "이 월드의 백업이 없습니다",
+		"deleteBackup": "백업 삭제",
+		"deleteBackupConfirm": "{{name}} 백업을 삭제하시겠습니까?",
+		"deleteSuccess": "백업이 삭제되었습니다",
+		"selectZip": ".zip 파일 선택",
+		"selectInstance": "인스턴스 선택",
+		"importing": "월드 가져오는 중...",
+		"importSuccess": "월드를 가져왔습니다: {{name}}",
+		"noSavedWorlds": "저장된 월드가 없습니다",
+		"noSavedWorldsDesc": "게임을 플레이하거나 월드 아카이브를 가져와서 시작하세요",
+		"noMatchingWorlds": "검색과 일치하는 월드가 없습니다",
+		"sorts": {
+			"lastPlayed-desc": "마지막 플레이 (최신순)",
+			"lastPlayed-asc": "마지막 플레이 (오래된순)",
+			"name-asc": "이름 (A-Z)",
+			"name-desc": "이름 (Z-A)",
+			"size-desc": "크기 (큰 순)",
+			"size-asc": "크기 (작은 순)"
 		}
 	}
 }

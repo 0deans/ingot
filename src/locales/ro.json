@@ -47,7 +47,8 @@
 		"skins": "Catalog de skinuri",
 		"screenshots": "Capturi de ecran",
 		"servers": "Servere dedicate",
-		"settings": "Setări"
+		"settings": "Setări",
+		"worlds": "Lumi"
 	},
 	"news": {
 		"title": "Știri și actualizări Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Comandă rapidă în meniul aplicațiilor creată pentru {{name}}",
 			"shortcutCreatedSteam": "{{name}} a fost adăugat în Steam cu bannere Grid personalizate (repornește Steam)",
 			"shortcutFailed": "Nu s-a putut crea comanda rapidă: {{error}}",
-			"moreActions": "Mai multe acțiuni"
+			"moreActions": "Mai multe acțiuni",
+			"logsTooltip": "Consolă și jurnale"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Consolă și jurnale"
 	},
 	"modpacks": {
 		"title": "Descoperă conținut",
@@ -728,7 +731,13 @@
 		"offlineHint": "Pornește serverul pentru a-i vedea consola.",
 		"latest": "Ultimele",
 		"placeholder": "Scrie o comandă, ex. time set day",
-		"send": "Trimite comanda"
+		"send": "Trimite comanda",
+		"copySanitized": "Copiază curățat",
+		"openPasteUrl": "Deschide linkul paste",
+		"pasteFailed": "Încărcarea jurnalului a eșuat: {{error}}",
+		"pasteUploaded": "Jurnal curățat încărcat pe {{provider}} (link copiat)",
+		"uploadPaste": "Încarcă pe {{provider}}",
+		"uploadingPaste": "Se încarcă..."
 	},
 	"syncMaster": {
 		"setAsSource": "Setează „{{name}}” ca sursă principală de sincronizare.",
@@ -841,7 +850,12 @@
 		"microsoftEnterCode": "Deschide pagina Microsoft și introdu acest cod:",
 		"microsoftOpenPage": "Copiază codul și deschide pagina",
 		"microsoftWaiting": "Se așteaptă conectarea…",
-		"microsoftFailed": "Conectarea cu Microsoft a eșuat"
+		"microsoftFailed": "Conectarea cu Microsoft a eșuat",
+		"microsoftDiscard": "Renunță la conectare",
+		"microsoftPending": "O conectare anterioară Microsoft a fost întreruptă. Reia-o sau renunță pentru a te conecta din nou.",
+		"microsoftPendingBusy": "O conectare Microsoft este deja în curs.",
+		"microsoftPendingExpired": "Această conectare anterioară nu poate fi reluată. Renunță la ea și începe o conectare nouă.",
+		"microsoftResume": "Reia conectarea"
 	},
 	"properties": {
 		"groups": {
@@ -1843,6 +1857,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Înapoi la instanțe",
+		"crashDetectedTitle": "Diagnosticare blocare",
+		"crashExitCode": "Închis cu codul {{code}}",
+		"crashToastTitle": "{{name}} s-a blocat",
+		"crashToastViewLogs": "Vezi diagnosticarea",
+		"emptyFiltered": "Nicio linie din jurnal nu corespunde filtrului actual",
+		"emptyLiveOffline": "Nicio ieșire a sesiunii live în buffer",
+		"emptyLiveOfflineHint": "Lansează instanța pentru a transmite consola live sau selectează latest.log ori un raport de blocare mai sus.",
+		"emptyLiveRunning": "Se așteaptă ieșirea clientului...",
+		"levels": {
+			"all": "Toate",
+			"debug": "Depanare",
+			"info": "Info",
+			"warn": "Avertismente",
+			"error": "Erori"
+		},
+		"liveStream": "Consolă live",
+		"maximize": "Maximizează",
+		"offlineBadge": "Deconectat",
+		"openCrashReport": "Vezi raportul de blocare",
+		"restore": "Restaurează",
+		"runningBadge": "Rulează (PID {{pid}})",
+		"sanitizedNotice": "Credențialele, tokenurile de sesiune, numele de utilizator, căile personale și IP-urile sunt ascunse automat înainte de încărcare.",
+		"searchFiltered": "filtrat",
+		"searchPlaceholder": "Filtrează sau caută în jurnale...",
+		"showingLines": "Se afișează {{count}} din {{total}} linii",
+		"sources": {
+			"live": "Sesiune live",
+			"latest": "latest.log",
+			"archivedLogs": "Jurnale arhivate",
+			"crashReports": "Rapoarte de blocare"
+		},
+		"streamingLive": "Transmisie live a ieșirii",
+		"suspectedMods": "Moduri suspecte:",
+		"title": "Consolă și diagnosticare — {{name}}",
+		"uploadMclogs": "Încarcă (mclo.gs)",
+		"uploadPasteEe": "Încarcă (paste.ee)",
+		"wrapOff": "Încadrare rând: Oprit",
+		"wrapOn": "Încadrare rând: Pornit"
+	},
+	"worlds": {
+		"title": "Lumi și salvări",
+		"subtitle": "Inspectează metadate, copiază semințe, resetează dimensiuni și gestionează copii de rezervă",
+		"refreshTooltip": "Reîmprospătează lumile",
+		"searchPlaceholder": "Caută lumi după nume sau dosar...",
+		"allInstances": "Toate instanțele",
+		"allInstancesCount": "Toate instanțele ({{count}})",
+		"importWorld": "Importă lume",
+		"importWorldDesc": "Importă o salvare de lume dintr-o arhivă .zip într-o instanță",
+		"copySeed": "Copiază sămânța",
+		"seedCopied": "Sămânță copiată în clipboard!",
+		"seedUnknown": "Sămânță indisponibilă",
+		"gameMode": "Mod de joc",
+		"survival": "Supraviețuire",
+		"creative": "Creativ",
+		"hardcore": "Hardcore",
+		"adventure": "Aventură",
+		"spectator": "Spectator",
+		"lastPlayed": "Jucat ultima dată",
+		"fileSize": "Mărime",
+		"seed": "Sămânță",
+		"version": "Versiune",
+		"dimensions": "Dimensiuni",
+		"hasNether": "Nether",
+		"hasTheEnd": "End-ul",
+		"actions": "Acțiuni",
+		"openFolder": "Deschide dosarul lumii",
+		"createBackup": "Creează copie de rezervă",
+		"creatingBackup": "Se creează copia...",
+		"backupSuccess": "Copie de rezervă creată cu succes",
+		"exportZip": "Exportă ca .zip",
+		"exportSuccess": "Lume exportată cu succes la {{path}}",
+		"viewBackups": "Vezi copiile de rezervă",
+		"resetDimensions": "Resetează dimensiuni",
+		"resetNether": "Resetează Nether (DIM-1)",
+		"resetTheEnd": "Resetează End-ul (DIM1)",
+		"resetDimensionTitle": "Resetează dimensiunea",
+		"resetDimensionConfirm": "Sigur dorești să resetezi dimensiunea {{dimension}} pentru „{{name}}”?",
+		"resetDimensionWarning": "Aceasta va șterge terenul și structurile actuale din această dimensiune. Minecraft va genera un teren nou data viitoare când intri în portal.",
+		"resetDimensionTrashNote": "Dosarul anterior al dimensiunii va fi mutat în siguranță în .ingot-trash din interiorul lumii.",
+		"resetting": "Se resetează...",
+		"resetSuccess": "Dimensiune resetată cu succes",
+		"backupsTitle": "Copii de rezervă pentru lume — {{name}}",
+		"noBackups": "Nu s-au găsit copii de rezervă pentru această lume",
+		"deleteBackup": "Șterge copia de rezervă",
+		"deleteBackupConfirm": "Ștergi arhiva de rezervă {{name}}?",
+		"deleteSuccess": "Copie de rezervă ștearsă",
+		"selectZip": "Selectează fișierul .zip",
+		"selectInstance": "Selectează instanța",
+		"importing": "Se importă lumea...",
+		"importSuccess": "Lume importată cu succes: {{name}}",
+		"noSavedWorlds": "Nu s-au găsit lumi salvate",
+		"noSavedWorldsDesc": "Joacă un joc sau importă o arhivă pentru a începe",
+		"noMatchingWorlds": "Nicio lume nu corespunde căutării tale",
+		"sorts": {
+			"lastPlayed-desc": "Jucat ultima dată (Cele mai recente)",
+			"lastPlayed-asc": "Jucat ultima dată (Cele mai vechi)",
+			"name-asc": "Nume (A-Z)",
+			"name-desc": "Nume (Z-A)",
+			"size-desc": "Mărime (Cele mai mari)",
+			"size-asc": "Mărime (Cele mai mici)"
 		}
 	}
 }

@@ -47,7 +47,8 @@
 		"skins": "Skin katalógus",
 		"screenshots": "Képernyőképek",
 		"servers": "Dedikált szerverek",
-		"settings": "Beállítások"
+		"settings": "Beállítások",
+		"worlds": "Világok"
 	},
 	"news": {
 		"title": "Mojang Hírek és Frissítések",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Alkalmazásmenü parancsikon létrehozva ehhez: {{name}}",
 			"shortcutCreatedSteam": "{{name}} hozzáadva a Steamhez egyéni Grid borítókkal (indítsd újra a Steamet)",
 			"shortcutFailed": "A parancsikon létrehozása sikertelen: {{error}}",
-			"moreActions": "További műveletek"
+			"moreActions": "További műveletek",
+			"logsTooltip": "Konzol és naplók"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konzol és naplók"
 	},
 	"modpacks": {
 		"title": "Tartalom felfedezése",
@@ -720,7 +723,13 @@
 		"offlineHint": "Indítsd el a szervert a konzol megtekintéséhez.",
 		"latest": "Legújabb",
 		"placeholder": "Írj be egy parancsot, pl. time set day",
-		"send": "Parancs küldése"
+		"send": "Parancs küldése",
+		"copySanitized": "Tisztított másolása",
+		"openPasteUrl": "Paste link megnyitása",
+		"pasteFailed": "Napló feltöltése sikertelen: {{error}}",
+		"pasteUploaded": "Tisztított napló feltöltve a(z) {{provider}} szolgáltatásba (link másolva)",
+		"uploadPaste": "Feltöltés ide: {{provider}}",
+		"uploadingPaste": "Feltöltés..."
 	},
 	"syncMaster": {
 		"setAsSource": "„{{name}}” beállítása mester szinkronizációs forrásként.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Nyisd meg a Microsoft oldalát, és írd be ezt a kódot:",
 		"microsoftOpenPage": "Kód másolása és oldal megnyitása",
 		"microsoftWaiting": "Várakozás a bejelentkezésre…",
-		"microsoftFailed": "A Microsoft-bejelentkezés sikertelen"
+		"microsoftFailed": "A Microsoft-bejelentkezés sikertelen",
+		"microsoftDiscard": "Bejelentkezés elvetése",
+		"microsoftPending": "Egy korábbi Microsoft-bejelentkezés megszakadt. Folytasd vagy vesd el az újbóli bejelentkezéshez.",
+		"microsoftPendingBusy": "Egy Microsoft-bejelentkezés már folyamatban van.",
+		"microsoftPendingExpired": "Ez a korábbi bejelentkezés nem folytatható. Vesd el, és indíts egy újat.",
+		"microsoftResume": "Bejelentkezés folytatása"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Vissza a példányokhoz",
+		"crashDetectedTitle": "Összeomlás diagnosztika",
+		"crashExitCode": "Kilépési kód: {{code}}",
+		"crashToastTitle": "A(z) {{name}} összeomlott",
+		"crashToastViewLogs": "Diagnosztika megtekintése",
+		"emptyFiltered": "Nincs a szűrőnek megfelelő naplósor",
+		"emptyLiveOffline": "Nincs pufferelt élő munkamenet-kimenet",
+		"emptyLiveOfflineHint": "Indítsd el a példányt az élő konzolkimenethez, vagy válassz egy latest.log-ot vagy összeomlási jelentést fent.",
+		"emptyLiveRunning": "Várakozás a kliens kimenetére...",
+		"levels": {
+			"all": "Mind",
+			"debug": "Hibakeresés",
+			"info": "Infó",
+			"warn": "Figyelmeztetések",
+			"error": "Hibák"
+		},
+		"liveStream": "Élő konzol",
+		"maximize": "Teljes méret",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Összeomlási jelentés megtekintése",
+		"restore": "Visszaállítás",
+		"runningBadge": "Fut (PID {{pid}})",
+		"sanitizedNotice": "A hitelesítési adatok, munkamenet-tokenek, felhasználónevek, elérési utak és IP-címek feltöltés előtt automatikusan kitakarásra kerülnek.",
+		"searchFiltered": "szűrt",
+		"searchPlaceholder": "Naplók szűrése vagy keresése...",
+		"showingLines": "{{count}} / {{total}} sor megjelenítve",
+		"sources": {
+			"live": "Élő munkamenet",
+			"latest": "latest.log",
+			"archivedLogs": "Archivált naplók",
+			"crashReports": "Összeomlási jelentések"
+		},
+		"streamingLive": "Élő kimenet közvetítése",
+		"suspectedMods": "Gyanús modok:",
+		"title": "Konzol és diagnosztika — {{name}}",
+		"uploadMclogs": "Feltöltés (mclo.gs)",
+		"uploadPasteEe": "Feltöltés (paste.ee)",
+		"wrapOff": "Sortörés: Ki",
+		"wrapOn": "Sortörés: Be"
+	},
+	"worlds": {
+		"title": "Világok és mentések",
+		"subtitle": "Metaadatok megtekintése, seedek másolása, dimenziók visszaállítása és biztonsági másolatok kezelése",
+		"refreshTooltip": "Világok frissítése",
+		"searchPlaceholder": "Világok keresése név vagy mappa szerint...",
+		"allInstances": "Minden példány",
+		"allInstancesCount": "Minden példány ({{count}})",
+		"importWorld": "Világ importálása",
+		"importWorldDesc": "Világmentés importálása .zip archívumból egy példányba",
+		"copySeed": "Seed másolása",
+		"seedCopied": "Seed a vágólapra másolva!",
+		"seedUnknown": "Seed nem érhető el",
+		"gameMode": "Játékmód",
+		"survival": "Túlélő",
+		"creative": "Kreatív",
+		"hardcore": "Hardcore",
+		"adventure": "Kaland",
+		"spectator": "Megfigyelő",
+		"lastPlayed": "Utoljára játszva",
+		"fileSize": "Méret",
+		"seed": "Seed",
+		"version": "Verzió",
+		"dimensions": "Dimenziók",
+		"hasNether": "Nether",
+		"hasTheEnd": "A Vég",
+		"actions": "Műveletek",
+		"openFolder": "Világmappa megnyitása",
+		"createBackup": "Biztonsági mentés készítése",
+		"creatingBackup": "Biztonsági mentés készítése...",
+		"backupSuccess": "Biztonsági mentés sikeresen elkészült",
+		"exportZip": "Exportálás .zip-ként",
+		"exportSuccess": "Világ sikeresen exportálva ide: {{path}}",
+		"viewBackups": "Biztonsági mentések megtekintése",
+		"resetDimensions": "Dimenziók visszaállítása",
+		"resetNether": "Nether visszaállítása (DIM-1)",
+		"resetTheEnd": "A Vég visszaállítása (DIM1)",
+		"resetDimensionTitle": "Dimenzió visszaállítása",
+		"resetDimensionConfirm": "Biztosan vissza szeretnéd állítani a(z) {{dimension}} dimenziót a következőhöz: „{{name}}”?",
+		"resetDimensionWarning": "Ez eltávolítja a jelenlegi terepet és építményeket ebben a dimenzióban. A Minecraft új terepet generál, amikor legközelebb belépsz a portálba.",
+		"resetDimensionTrashNote": "A korábbi dimenziómappa biztonságosan a világ mappájában lévő .ingot-trash helyre kerül át.",
+		"resetting": "Visszaállítás...",
+		"resetSuccess": "Dimenzió sikeresen visszaállítva",
+		"backupsTitle": "Biztonsági mentések — {{name}}",
+		"noBackups": "Nem található biztonsági mentés ehhez a világhoz",
+		"deleteBackup": "Biztonsági mentés törlése",
+		"deleteBackupConfirm": "Törlöd a(z) {{name}} biztonsági mentést?",
+		"deleteSuccess": "Biztonsági mentés törölve",
+		"selectZip": ".zip fájl kiválasztása",
+		"selectInstance": "Példány kiválasztása",
+		"importing": "Világ importálása...",
+		"importSuccess": "Világ sikeresen importálva: {{name}}",
+		"noSavedWorlds": "Nem találhatók mentett világok",
+		"noSavedWorldsDesc": "Indíts el egy játékot vagy importálj egy archívumot a kezdéshez",
+		"noMatchingWorlds": "Nincs a keresésnek megfelelő világ",
+		"sorts": {
+			"lastPlayed-desc": "Utoljára játszva (Legújabb)",
+			"lastPlayed-asc": "Utoljára játszva (Legrégebbi)",
+			"name-asc": "Név (A-Z)",
+			"name-desc": "Név (Z-A)",
+			"size-desc": "Méret (Legnagyobb)",
+			"size-asc": "Méret (Legkisebb)"
 		}
 	}
 }

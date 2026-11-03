@@ -47,7 +47,8 @@
 		"skins": "Katalog Skin",
 		"screenshots": "Tangkapan Layar",
 		"servers": "Server Khusus",
-		"settings": "Pengaturan"
+		"settings": "Pengaturan",
+		"worlds": "Dunia"
 	},
 	"news": {
 		"title": "Berita & Pembaruan Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Pintasan menu aplikasi dibuat untuk {{name}}",
 			"shortcutCreatedSteam": "{{name}} ditambahkan ke Steam dengan banner Grid kustom (mulai ulang Steam)",
 			"shortcutFailed": "Gagal membuat pintasan: {{error}}",
-			"moreActions": "Tindakan lainnya"
+			"moreActions": "Tindakan lainnya",
+			"logsTooltip": "Konsol & Log"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konsol & Log"
 	},
 	"modpacks": {
 		"title": "Jelajahi Konten",
@@ -720,7 +723,13 @@
 		"offlineHint": "Mulai server untuk melihat konsolnya.",
 		"latest": "Terbaru",
 		"placeholder": "Ketik perintah, cth. time set day",
-		"send": "Kirim perintah"
+		"send": "Kirim perintah",
+		"copySanitized": "Salin yang dibersihkan",
+		"openPasteUrl": "Buka tautan paste",
+		"pasteFailed": "Gagal mengunggah log: {{error}}",
+		"pasteUploaded": "Log yang dibersihkan diunggah ke {{provider}} (tautan disalin)",
+		"uploadPaste": "Unggah ke {{provider}}",
+		"uploadingPaste": "Mengunggah..."
 	},
 	"syncMaster": {
 		"setAsSource": "Tetapkan \"{{name}}\" sebagai sumber sinkronisasi utama.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Buka halaman Microsoft dan masukkan kode ini:",
 		"microsoftOpenPage": "Salin kode dan buka halaman",
 		"microsoftWaiting": "Menunggu kamu masuk…",
-		"microsoftFailed": "Gagal masuk dengan Microsoft"
+		"microsoftFailed": "Gagal masuk dengan Microsoft",
+		"microsoftDiscard": "Batalkan masuk",
+		"microsoftPending": "Proses masuk Microsoft sebelumnya terputus. Lanjutkan atau batalkan untuk masuk kembali.",
+		"microsoftPendingBusy": "Masuk dengan Microsoft sedang berlangsung.",
+		"microsoftPendingExpired": "Proses masuk sebelumnya tidak dapat dilanjutkan. Silakan batalkan dan mulai baru.",
+		"microsoftResume": "Lanjutkan masuk"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Kembali ke Instansi",
+		"crashDetectedTitle": "Diagnostik Crash",
+		"crashExitCode": "Keluar dengan kode {{code}}",
+		"crashToastTitle": "{{name}} mengalami crash",
+		"crashToastViewLogs": "Lihat Diagnostik",
+		"emptyFiltered": "Tidak ada baris log yang cocok dengan filter saat ini",
+		"emptyLiveOffline": "Tidak ada output sesi langsung dalam buffer",
+		"emptyLiveOfflineHint": "Jalankan instansi untuk melihat konsol langsung, atau pilih latest.log atau laporan crash di atas.",
+		"emptyLiveRunning": "Menunggu output klien...",
+		"levels": {
+			"all": "Semua",
+			"debug": "Debug",
+			"info": "Info",
+			"warn": "Peringatan",
+			"error": "Kesalahan"
+		},
+		"liveStream": "Konsol Langsung",
+		"maximize": "Maksimalkan",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Lihat Laporan Crash",
+		"restore": "Pulihkan",
+		"runningBadge": "Berjalan (PID {{pid}})",
+		"sanitizedNotice": "Kredensial, token sesi, nama pengguna, path beranda, dan alamat IP disamarkan secara otomatis sebelum diunggah.",
+		"searchFiltered": "difilter",
+		"searchPlaceholder": "Filter atau cari log...",
+		"showingLines": "Menampilkan {{count}} dari {{total}} baris",
+		"sources": {
+			"live": "Sesi Langsung",
+			"latest": "latest.log",
+			"archivedLogs": "Log Diarsipkan",
+			"crashReports": "Laporan Crash"
+		},
+		"streamingLive": "Menyiarkan output langsung",
+		"suspectedMods": "Mod yang Dicurigai:",
+		"title": "Konsol & Diagnostik — {{name}}",
+		"uploadMclogs": "Unggah (mclo.gs)",
+		"uploadPasteEe": "Unggah (paste.ee)",
+		"wrapOff": "Bungkus Teks: Nonaktif",
+		"wrapOn": "Bungkus Teks: Aktif"
+	},
+	"worlds": {
+		"title": "Dunia & Simpanan",
+		"subtitle": "Periksa metadata, salin seed, atur ulang dimensi, dan kelola cadangan untuk instansi Anda",
+		"refreshTooltip": "Segarkan Dunia",
+		"searchPlaceholder": "Cari dunia berdasarkan nama atau folder...",
+		"allInstances": "Semua Instansi",
+		"allInstancesCount": "Semua Instansi ({{count}})",
+		"importWorld": "Impor Dunia",
+		"importWorldDesc": "Impor simpanan dunia dari arsip .zip ke dalam instansi",
+		"copySeed": "Salin Seed",
+		"seedCopied": "Seed disalin ke papan klip!",
+		"seedUnknown": "Seed tidak tersedia",
+		"gameMode": "Mode Permainan",
+		"survival": "Bertahan Hidup",
+		"creative": "Kreatif",
+		"hardcore": "Hardcore",
+		"adventure": "Petualangan",
+		"spectator": "Penonton",
+		"lastPlayed": "Terakhir Dimainkan",
+		"fileSize": "Ukuran",
+		"seed": "Seed",
+		"version": "Versi",
+		"dimensions": "Dimensi",
+		"hasNether": "Nether",
+		"hasTheEnd": "The End",
+		"actions": "Tindakan",
+		"openFolder": "Buka Folder Dunia",
+		"createBackup": "Buat Cadangan",
+		"creatingBackup": "Membuat cadangan...",
+		"backupSuccess": "Cadangan dunia berhasil dibuat",
+		"exportZip": "Ekspor sebagai .zip",
+		"exportSuccess": "Dunia berhasil diekspor ke {{path}}",
+		"viewBackups": "Lihat Cadangan",
+		"resetDimensions": "Atur Ulang Dimensi",
+		"resetNether": "Atur Ulang Nether (DIM-1)",
+		"resetTheEnd": "Atur Ulang The End (DIM1)",
+		"resetDimensionTitle": "Atur Ulang Dimensi",
+		"resetDimensionConfirm": "Yakin ingin mengatur ulang dimensi {{dimension}} untuk \"{{name}}\"?",
+		"resetDimensionWarning": "Ini akan menghapus medan dan struktur saat ini di dimensi tersebut. Minecraft akan membuat medan baru saat Anda memasuki portal berikutnya.",
+		"resetDimensionTrashNote": "Folder dimensi sebelumnya akan dipindahkan dengan aman ke .ingot-trash di dalam folder dunia.",
+		"resetting": "Mengatur ulang...",
+		"resetSuccess": "Dimensi berhasil diatur ulang",
+		"backupsTitle": "Cadangan Dunia — {{name}}",
+		"noBackups": "Tidak ada cadangan yang ditemukan untuk dunia ini",
+		"deleteBackup": "Hapus Cadangan",
+		"deleteBackupConfirm": "Hapus arsip cadangan {{name}}?",
+		"deleteSuccess": "Cadangan dihapus",
+		"selectZip": "Pilih File .zip",
+		"selectInstance": "Pilih Instansi",
+		"importing": "Mengimpor dunia...",
+		"importSuccess": "Dunia berhasil diimpor: {{name}}",
+		"noSavedWorlds": "Tidak ada dunia tersimpan yang ditemukan",
+		"noSavedWorldsDesc": "Mainkan game atau impor arsip dunia untuk memulai",
+		"noMatchingWorlds": "Tidak ada dunia yang cocok dengan pencarian Anda",
+		"sorts": {
+			"lastPlayed-desc": "Terakhir Dimainkan (Terbaru)",
+			"lastPlayed-asc": "Terakhir Dimainkan (Terlama)",
+			"name-asc": "Nama (A-Z)",
+			"name-desc": "Nama (Z-A)",
+			"size-desc": "Ukuran (Terbesar)",
+			"size-asc": "Ukuran (Terkecil)"
 		}
 	}
 }

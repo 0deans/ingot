@@ -47,7 +47,8 @@
 		"skins": "Catálogo de skins",
 		"screenshots": "Capturas",
 		"servers": "Servidores dedicados",
-		"settings": "Configuración"
+		"settings": "Configuración",
+		"worlds": "Mundos"
 	},
 	"news": {
 		"title": "Noticias y actualizaciones de Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Acceso directo en el menú de aplicaciones creado para {{name}}",
 			"shortcutCreatedSteam": "Se añadió {{name}} a Steam con portadas Grid personalizadas (reinicia Steam)",
 			"shortcutFailed": "Error al crear el acceso directo: {{error}}",
-			"moreActions": "Más acciones"
+			"moreActions": "Más acciones",
+			"logsTooltip": "Consola y registros"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Consola y registros"
 	},
 	"modpacks": {
 		"title": "Explorar contenido",
@@ -728,7 +731,13 @@
 		"offlineHint": "Inicia el servidor para ver su consola.",
 		"latest": "Lo último",
 		"placeholder": "Escribe un comando, p. ej. time set day",
-		"send": "Enviar comando"
+		"send": "Enviar comando",
+		"copySanitized": "Copiar saneado",
+		"openPasteUrl": "Abrir enlace de pegado",
+		"pasteFailed": "Error al subir el registro: {{error}}",
+		"pasteUploaded": "Registro saneado subido a {{provider}} (enlace copiado)",
+		"uploadPaste": "Subir a {{provider}}",
+		"uploadingPaste": "Subiendo..."
 	},
 	"syncMaster": {
 		"setAsSource": "«{{name}}» es ahora la fuente principal de sincronización.",
@@ -841,7 +850,12 @@
 		"microsoftEnterCode": "Abre la página de Microsoft e introduce este código:",
 		"microsoftOpenPage": "Copiar código y abrir página",
 		"microsoftWaiting": "Esperando a que inicies sesión…",
-		"microsoftFailed": "Error al iniciar sesión con Microsoft"
+		"microsoftFailed": "Error al iniciar sesión con Microsoft",
+		"microsoftDiscard": "Descartar inicio de sesión",
+		"microsoftPending": "Un inicio de sesión anterior de Microsoft fue interrumpido. Reanúdalo o descártalo para iniciar sesión de nuevo.",
+		"microsoftPendingBusy": "Ya hay un inicio de sesión de Microsoft en curso.",
+		"microsoftPendingExpired": "No se puede reanudar este inicio de sesión anterior. Descártalo e inicia uno nuevo.",
+		"microsoftResume": "Reanudar inicio de sesión"
 	},
 	"properties": {
 		"groups": {
@@ -1843,6 +1857,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Volver a instancias",
+		"crashDetectedTitle": "Diagnóstico de fallo",
+		"crashExitCode": "Terminó con código {{code}}",
+		"crashToastTitle": "{{name}} se ha cerrado inesperadamente",
+		"crashToastViewLogs": "Ver diagnóstico",
+		"emptyFiltered": "Ninguna línea de registro coincide con el filtro actual",
+		"emptyLiveOffline": "No hay salida de sesión en vivo almacenada en búfer",
+		"emptyLiveOfflineHint": "Inicia la instancia para transmitir la consola en vivo, o selecciona latest.log o un informe de fallo arriba.",
+		"emptyLiveRunning": "Esperando salida del cliente...",
+		"levels": {
+			"all": "Todo",
+			"debug": "Depuración",
+			"info": "Información",
+			"warn": "Advertencias",
+			"error": "Errores"
+		},
+		"liveStream": "Consola en vivo",
+		"maximize": "Maximizar",
+		"offlineBadge": "Desconectado",
+		"openCrashReport": "Ver informe de fallo",
+		"restore": "Restaurar",
+		"runningBadge": "En ejecución (PID {{pid}})",
+		"sanitizedNotice": "Las credenciales, tokens de sesión, nombres de usuario, rutas personales e IPs se ocultan automáticamente antes de subir.",
+		"searchFiltered": "filtrado",
+		"searchPlaceholder": "Filtrar o buscar registros...",
+		"showingLines": "Mostrando {{count}} de {{total}} líneas",
+		"sources": {
+			"live": "Sesión en vivo",
+			"latest": "latest.log",
+			"archivedLogs": "Registros archivados",
+			"crashReports": "Informes de fallos"
+		},
+		"streamingLive": "Transmitiendo salida en vivo",
+		"suspectedMods": "Mods sospechosos:",
+		"title": "Consola y diagnósticos — {{name}}",
+		"uploadMclogs": "Subir (mclo.gs)",
+		"uploadPasteEe": "Subir (paste.ee)",
+		"wrapOff": "Ajuste de línea: Desactivado",
+		"wrapOn": "Ajuste de línea: Activado"
+	},
+	"worlds": {
+		"title": "Mundos y partidas guardadas",
+		"subtitle": "Inspecciona metadatos, copia semillas, restablece dimensiones y gestiona copias de seguridad de tus instancias",
+		"refreshTooltip": "Actualizar mundos",
+		"searchPlaceholder": "Buscar mundos por nombre o carpeta...",
+		"allInstances": "Todas las instancias",
+		"allInstancesCount": "Todas las instancias ({{count}})",
+		"importWorld": "Importar mundo",
+		"importWorldDesc": "Importar una partida guardada desde un archivo .zip a una instancia",
+		"copySeed": "Copiar semilla",
+		"seedCopied": "¡Semilla copiada al portapapeles!",
+		"seedUnknown": "Semilla no disponible",
+		"gameMode": "Modo de juego",
+		"survival": "Supervivencia",
+		"creative": "Creativo",
+		"hardcore": "Extremo",
+		"adventure": "Aventura",
+		"spectator": "Espectador",
+		"lastPlayed": "Última partida",
+		"fileSize": "Tamaño",
+		"seed": "Semilla",
+		"version": "Versión",
+		"dimensions": "Dimensiones",
+		"hasNether": "Nether",
+		"hasTheEnd": "El End",
+		"actions": "Acciones",
+		"openFolder": "Abrir carpeta del mundo",
+		"createBackup": "Crear copia de seguridad",
+		"creatingBackup": "Creando copia de seguridad...",
+		"backupSuccess": "Copia de seguridad del mundo creada correctamente",
+		"exportZip": "Exportar como .zip",
+		"exportSuccess": "Mundo exportado correctamente a {{path}}",
+		"viewBackups": "Ver copias de seguridad",
+		"resetDimensions": "Restablecer dimensiones",
+		"resetNether": "Restablecer Nether (DIM-1)",
+		"resetTheEnd": "Restablecer El End (DIM1)",
+		"resetDimensionTitle": "Restablecer dimensión",
+		"resetDimensionConfirm": "¿Seguro que quieres restablecer la dimensión {{dimension}} para \"{{name}}\"?",
+		"resetDimensionWarning": "Esto eliminará el terreno actual y las estructuras de esta dimensión. Minecraft generará terreno nuevo la próxima vez que entres al portal.",
+		"resetDimensionTrashNote": "La carpeta anterior de la dimensión se moverá de forma segura a .ingot-trash dentro de la carpeta del mundo.",
+		"resetting": "Restableciendo...",
+		"resetSuccess": "Dimensión restablecida correctamente",
+		"backupsTitle": "Copias de seguridad del mundo — {{name}}",
+		"noBackups": "No se encontraron copias de seguridad para este mundo",
+		"deleteBackup": "Eliminar copia",
+		"deleteBackupConfirm": "¿Eliminar el archivo de copia de seguridad {{name}}?",
+		"deleteSuccess": "Copia de seguridad eliminada",
+		"selectZip": "Seleccionar archivo .zip",
+		"selectInstance": "Seleccionar instancia",
+		"importing": "Importando mundo...",
+		"importSuccess": "Mundo importado correctamente: {{name}}",
+		"noSavedWorlds": "No se encontraron mundos guardados",
+		"noSavedWorldsDesc": "Juega una partida o importa un archivo de mundo para comenzar",
+		"noMatchingWorlds": "Ningún mundo coincide con tu búsqueda",
+		"sorts": {
+			"lastPlayed-desc": "Última partida (Más reciente)",
+			"lastPlayed-asc": "Última partida (Más antigua)",
+			"name-asc": "Nombre (A-Z)",
+			"name-desc": "Nombre (Z-A)",
+			"size-desc": "Tamaño (Más grande)",
+			"size-asc": "Tamaño (Más pequeño)"
 		}
 	}
 }

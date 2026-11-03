@@ -27,6 +27,7 @@ use instances::{
     screenshots::{InstanceScreenshotsApi, InstanceScreenshotsApiImpl},
     sync::{InstanceSyncApi, InstanceSyncApiImpl},
     version_change::{InstanceVersionChangeApi, InstanceVersionChangeApiImpl},
+    worlds::{InstanceWorldsApi, InstanceWorldsApiImpl},
     InstancesApi, InstancesApiImpl,
 };
 use news::{NewsApi, NewsApiImpl};
@@ -60,6 +61,7 @@ macro_rules! registered_apis {
         $register!(InstanceScreenshotsApiImpl);
         $register!(InstanceSyncApiImpl);
         $register!(InstanceVersionChangeApiImpl);
+        $register!(InstanceWorldsApiImpl);
         $register!(ServersApiImpl);
         $register!(ServerConfigApiImpl);
         $register!(ServerPlayersApiImpl);

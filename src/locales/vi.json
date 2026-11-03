@@ -47,7 +47,8 @@
 		"skins": "Kho Skin",
 		"screenshots": "Ảnh chụp màn hình",
 		"servers": "Máy chủ riêng",
-		"settings": "Cài đặt"
+		"settings": "Cài đặt",
+		"worlds": "Thế giới"
 	},
 	"news": {
 		"title": "Tin tức & Cập nhật Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Đã tạo lối tắt trong menu ứng dụng cho {{name}}",
 			"shortcutCreatedSteam": "Đã thêm {{name}} vào Steam kèm ảnh bìa Grid tùy chỉnh (hãy khởi động lại Steam)",
 			"shortcutFailed": "Không thể tạo lối tắt: {{error}}",
-			"moreActions": "Thao tác khác"
+			"moreActions": "Thao tác khác",
+			"logsTooltip": "Bảng điều khiển & Nhật ký"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Bảng điều khiển & Nhật ký"
 	},
 	"modpacks": {
 		"title": "Khám phá nội dung",
@@ -720,7 +723,13 @@
 		"offlineHint": "Khởi động máy chủ để xem bảng điều khiển.",
 		"latest": "Mới nhất",
 		"placeholder": "Nhập một lệnh, ví dụ: time set day",
-		"send": "Gửi lệnh"
+		"send": "Gửi lệnh",
+		"copySanitized": "Sao chép đã làm sạch",
+		"openPasteUrl": "Mở liên kết paste",
+		"pasteFailed": "Tải nhật ký lên thất bại: {{error}}",
+		"pasteUploaded": "Đã tải nhật ký đã làm sạch lên {{provider}} (đã sao chép liên kết)",
+		"uploadPaste": "Tải lên {{provider}}",
+		"uploadingPaste": "Đang tải lên..."
 	},
 	"syncMaster": {
 		"setAsSource": "Đặt \"{{name}}\" làm nguồn đồng bộ chính.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Mở trang Microsoft và nhập mã này:",
 		"microsoftOpenPage": "Sao chép mã và mở trang",
 		"microsoftWaiting": "Đang chờ bạn đăng nhập…",
-		"microsoftFailed": "Đăng nhập Microsoft thất bại"
+		"microsoftFailed": "Đăng nhập Microsoft thất bại",
+		"microsoftDiscard": "Hủy đăng nhập",
+		"microsoftPending": "Phiên đăng nhập Microsoft trước đó đã bị gián đoạn. Tiếp tục hoặc hủy để đăng nhập lại.",
+		"microsoftPendingBusy": "Một phiên đăng nhập Microsoft đang diễn ra.",
+		"microsoftPendingExpired": "Không thể tiếp tục phiên đăng nhập trước đó. Vui lòng hủy và bắt đầu lại.",
+		"microsoftResume": "Tiếp tục đăng nhập"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Quay lại danh sách phiên bản",
+		"crashDetectedTitle": "Chẩn đoán sự cố",
+		"crashExitCode": "Đã thoát với mã {{code}}",
+		"crashToastTitle": "{{name}} đã gặp sự cố",
+		"crashToastViewLogs": "Xem chẩn đoán",
+		"emptyFiltered": "Không có dòng nhật ký nào khớp với bộ lọc hiện tại",
+		"emptyLiveOffline": "Không có đầu ra phiên trực tiếp trong bộ đệm",
+		"emptyLiveOfflineHint": "Khởi chạy phiên bản để xem nhật ký trực tiếp, hoặc chọn latest.log hay báo cáo sự cố ở trên.",
+		"emptyLiveRunning": "Đang chờ dữ liệu từ trò chơi...",
+		"levels": {
+			"all": "Tất cả",
+			"debug": "Gỡ lỗi",
+			"info": "Thông tin",
+			"warn": "Cảnh báo",
+			"error": "Lỗi"
+		},
+		"liveStream": "Bảng điều khiển trực tiếp",
+		"maximize": "Phóng to",
+		"offlineBadge": "Ngoại tuyến",
+		"openCrashReport": "Xem báo cáo sự cố",
+		"restore": "Thu nhỏ",
+		"runningBadge": "Đang chạy (PID {{pid}})",
+		"sanitizedNotice": "Thông tin xác thực, mã phiên, tên người dùng, đường dẫn thư mục và IP sẽ tự động được ẩn trước khi tải lên.",
+		"searchFiltered": "đã lọc",
+		"searchPlaceholder": "Lọc hoặc tìm kiếm nhật ký...",
+		"showingLines": "Đang hiển thị {{count}} trên {{total}} dòng",
+		"sources": {
+			"live": "Phiên trực tiếp",
+			"latest": "latest.log",
+			"archivedLogs": "Nhật ký đã lưu",
+			"crashReports": "Báo cáo sự cố"
+		},
+		"streamingLive": "Đang phát trực tiếp đầu ra",
+		"suspectedMods": "Mod bị nghi ngờ:",
+		"title": "Bảng điều khiển & Chẩn đoán — {{name}}",
+		"uploadMclogs": "Tải lên (mclo.gs)",
+		"uploadPasteEe": "Tải lên (paste.ee)",
+		"wrapOff": "Tự động xuống dòng: Tắt",
+		"wrapOn": "Tự động xuống dòng: Bật"
+	},
+	"worlds": {
+		"title": "Thế giới & Bản lưu",
+		"subtitle": "Kiểm tra siêu dữ liệu, sao chép seed, đặt lại chiều không gian và quản lý sao lưu",
+		"refreshTooltip": "Làm mới danh sách thế giới",
+		"searchPlaceholder": "Tìm kiếm thế giới theo tên hoặc thư mục...",
+		"allInstances": "Tất cả phiên bản",
+		"allInstancesCount": "Tất cả phiên bản ({{count}})",
+		"importWorld": "Nhập thế giới",
+		"importWorldDesc": "Nhập bản lưu thế giới từ tệp .zip vào một phiên bản",
+		"copySeed": "Sao chép Seed",
+		"seedCopied": "Đã sao chép seed vào khay nhớ tạm!",
+		"seedUnknown": "Không có seed",
+		"gameMode": "Chế độ chơi",
+		"survival": "Sinh tồn",
+		"creative": "Sáng tạo",
+		"hardcore": "Khó nhằn",
+		"adventure": "Phiêu lưu",
+		"spectator": "Khán giả",
+		"lastPlayed": "Lần chơi cuối",
+		"fileSize": "Kích thước",
+		"seed": "Seed",
+		"version": "Phiên bản",
+		"dimensions": "Chiều không gian",
+		"hasNether": "Nether",
+		"hasTheEnd": "The End",
+		"actions": "Thao tác",
+		"openFolder": "Mở thư mục thế giới",
+		"createBackup": "Tạo bản sao lưu",
+		"creatingBackup": "Đang tạo bản sao lưu...",
+		"backupSuccess": "Đã tạo bản sao lưu thế giới thành công",
+		"exportZip": "Xuất dưới dạng .zip",
+		"exportSuccess": "Đã xuất thế giới thành công tới {{path}}",
+		"viewBackups": "Xem các bản sao lưu",
+		"resetDimensions": "Đặt lại chiều không gian",
+		"resetNether": "Đặt lại Nether (DIM-1)",
+		"resetTheEnd": "Đặt lại The End (DIM1)",
+		"resetDimensionTitle": "Đặt lại chiều không gian",
+		"resetDimensionConfirm": "Bạn có chắc chắn muốn đặt lại chiều không gian {{dimension}} cho \"{{name}}\" không?",
+		"resetDimensionWarning": "Thao tác này sẽ xóa địa hình và công trình hiện tại trong chiều không gian này. Minecraft sẽ tạo địa hình mới vào lần tiếp theo bạn bước qua cổng.",
+		"resetDimensionTrashNote": "Thư mục chiều không gian cũ sẽ được chuyển an toàn vào .ingot-trash bên trong thư mục thế giới.",
+		"resetting": "Đang đặt lại...",
+		"resetSuccess": "Đã đặt lại chiều không gian thành công",
+		"backupsTitle": "Bản sao lưu thế giới — {{name}}",
+		"noBackups": "Không tìm thấy bản sao lưu nào cho thế giới này",
+		"deleteBackup": "Xóa bản sao lưu",
+		"deleteBackupConfirm": "Xóa tệp sao lưu {{name}}?",
+		"deleteSuccess": "Đã xóa bản sao lưu",
+		"selectZip": "Chọn tệp .zip",
+		"selectInstance": "Chọn phiên bản",
+		"importing": "Đang nhập thế giới...",
+		"importSuccess": "Đã nhập thế giới thành công: {{name}}",
+		"noSavedWorlds": "Không tìm thấy thế giới nào đã lưu",
+		"noSavedWorldsDesc": "Chơi một ván game hoặc nhập bản lưu thế giới để bắt đầu",
+		"noMatchingWorlds": "Không có thế giới nào khớp với tìm kiếm của bạn",
+		"sorts": {
+			"lastPlayed-desc": "Lần chơi cuối (Mới nhất)",
+			"lastPlayed-asc": "Lần chơi cuối (Cũ nhất)",
+			"name-asc": "Tên (A-Z)",
+			"name-desc": "Tên (Z-A)",
+			"size-desc": "Kích thước (Lớn nhất)",
+			"size-asc": "Kích thước (Nhỏ nhất)"
 		}
 	}
 }

@@ -47,7 +47,8 @@
 		"skins": "Catalogue de skins",
 		"screenshots": "Captures d'écran",
 		"servers": "Serveurs dédiés",
-		"settings": "Paramètres"
+		"settings": "Paramètres",
+		"worlds": "Mondes"
 	},
 	"news": {
 		"title": "Actualités & Mises à jour Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Raccourci du menu d'applications créé pour {{name}}",
 			"shortcutCreatedSteam": "{{name}} ajouté à Steam avec des bannières Grid personnalisées (redémarrez Steam)",
 			"shortcutFailed": "Échec de la création du raccourci : {{error}}",
-			"moreActions": "Plus d'actions"
+			"moreActions": "Plus d'actions",
+			"logsTooltip": "Console & Journaux"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Console & Journaux"
 	},
 	"modpacks": {
 		"title": "Découvrir du contenu",
@@ -728,7 +731,13 @@
 		"offlineHint": "Démarrez le serveur pour voir sa console.",
 		"latest": "Dernières lignes",
 		"placeholder": "Tapez une commande, ex. time set day",
-		"send": "Envoyer la commande"
+		"send": "Envoyer la commande",
+		"copySanitized": "Copier nettoyé",
+		"openPasteUrl": "Ouvrir le lien du paste",
+		"pasteFailed": "Échec du téléversement du journal : {{error}}",
+		"pasteUploaded": "Journal nettoyé envoyé vers {{provider}} (lien copié)",
+		"uploadPaste": "Téléverser sur {{provider}}",
+		"uploadingPaste": "Téléversement en cours..."
 	},
 	"syncMaster": {
 		"setAsSource": "« {{name}} » défini comme source principale de synchronisation.",
@@ -841,7 +850,12 @@
 		"microsoftEnterCode": "Ouvrez la page Microsoft et saisissez ce code :",
 		"microsoftOpenPage": "Copier le code et ouvrir la page",
 		"microsoftWaiting": "En attente de votre connexion…",
-		"microsoftFailed": "Échec de la connexion Microsoft"
+		"microsoftFailed": "Échec de la connexion Microsoft",
+		"microsoftDiscard": "Ignorer la connexion",
+		"microsoftPending": "Une connexion Microsoft précédente a été interrompue. Reprenez-la ou ignorez-la pour vous reconnecter.",
+		"microsoftPendingBusy": "Une connexion Microsoft est déjà en cours.",
+		"microsoftPendingExpired": "Cette connexion précédente ne peut pas être reprise. Ignorez-la et démarrez-en une nouvelle.",
+		"microsoftResume": "Reprendre la connexion"
 	},
 	"properties": {
 		"groups": {
@@ -1843,6 +1857,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Retour aux instances",
+		"crashDetectedTitle": "Diagnostic du plantage",
+		"crashExitCode": "Quitté avec le code {{code}}",
+		"crashToastTitle": "{{name}} a planté",
+		"crashToastViewLogs": "Voir le diagnostic",
+		"emptyFiltered": "Aucune ligne de journal ne correspond au filtre actuel",
+		"emptyLiveOffline": "Aucune sortie de session en direct en mémoire tampon",
+		"emptyLiveOfflineHint": "Lancez l'instance pour diffuser la console en direct, ou sélectionnez latest.log ou un rapport de plantage ci-dessus.",
+		"emptyLiveRunning": "En attente de la sortie du client...",
+		"levels": {
+			"all": "Tout",
+			"debug": "Débogage",
+			"info": "Info",
+			"warn": "Avertissements",
+			"error": "Erreurs"
+		},
+		"liveStream": "Console en direct",
+		"maximize": "Agrandir",
+		"offlineBadge": "Hors ligne",
+		"openCrashReport": "Afficher le rapport de plantage",
+		"restore": "Restaurer",
+		"runningBadge": "En cours d'exécution (PID {{pid}})",
+		"sanitizedNotice": "Les identifiants, jetons de session, noms d'utilisateur, chemins personnels et adresses IP sont automatiquement masqués avant l'envoi.",
+		"searchFiltered": "filtré",
+		"searchPlaceholder": "Filtrer ou rechercher dans les journaux...",
+		"showingLines": "Affichage de {{count}} sur {{total}} lignes",
+		"sources": {
+			"live": "Session en direct",
+			"latest": "latest.log",
+			"archivedLogs": "Journaux archivés",
+			"crashReports": "Rapports de plantage"
+		},
+		"streamingLive": "Diffusion de la sortie en direct",
+		"suspectedMods": "Mods suspects :",
+		"title": "Console & Diagnostics — {{name}}",
+		"uploadMclogs": "Téléverser (mclo.gs)",
+		"uploadPasteEe": "Téléverser (paste.ee)",
+		"wrapOff": "Retour à la ligne : Désactivé",
+		"wrapOn": "Retour à la ligne : Activé"
+	},
+	"worlds": {
+		"title": "Mondes & Sauvegardes",
+		"subtitle": "Consultez les métadonnées, copiez les graines, réinitialisez les dimensions et gérez vos sauvegardes",
+		"refreshTooltip": "Actualiser les mondes",
+		"searchPlaceholder": "Rechercher des mondes par nom ou dossier...",
+		"allInstances": "Toutes les instances",
+		"allInstancesCount": "Toutes les instances ({{count}})",
+		"importWorld": "Importer un monde",
+		"importWorldDesc": "Importer une sauvegarde de monde depuis une archive .zip dans une instance",
+		"copySeed": "Copier la graine",
+		"seedCopied": "Graine copiée dans le presse-papiers !",
+		"seedUnknown": "Graine indisponible",
+		"gameMode": "Mode de jeu",
+		"survival": "Survie",
+		"creative": "Créatif",
+		"hardcore": "Hardcore",
+		"adventure": "Aventure",
+		"spectator": "Spectateur",
+		"lastPlayed": "Dernière partie",
+		"fileSize": "Taille",
+		"seed": "Graine",
+		"version": "Version",
+		"dimensions": "Dimensions",
+		"hasNether": "Nether",
+		"hasTheEnd": "L'End",
+		"actions": "Actions",
+		"openFolder": "Ouvrir le dossier du monde",
+		"createBackup": "Créer une sauvegarde",
+		"creatingBackup": "Création de la sauvegarde...",
+		"backupSuccess": "Sauvegarde du monde créée avec succès",
+		"exportZip": "Exporter en .zip",
+		"exportSuccess": "Monde exporté avec succès vers {{path}}",
+		"viewBackups": "Voir les sauvegardes",
+		"resetDimensions": "Réinitialiser les dimensions",
+		"resetNether": "Réinitialiser le Nether (DIM-1)",
+		"resetTheEnd": "Réinitialiser l'End (DIM1)",
+		"resetDimensionTitle": "Réinitialiser la dimension",
+		"resetDimensionConfirm": "Êtes-vous sûr de vouloir réinitialiser la dimension {{dimension}} pour « {{name}} » ?",
+		"resetDimensionWarning": "Cela supprimera le terrain et les structures actuelles de cette dimension. Minecraft générera un nouveau terrain lors de votre prochain passage dans le portail.",
+		"resetDimensionTrashNote": "L'ancien dossier de la dimension sera déplacé en toute sécurité dans .ingot-trash au sein du dossier du monde.",
+		"resetting": "Réinitialisation en cours...",
+		"resetSuccess": "Dimension réinitialisée avec succès",
+		"backupsTitle": "Sauvegardes du monde — {{name}}",
+		"noBackups": "Aucune sauvegarde trouvée pour ce monde",
+		"deleteBackup": "Supprimer la sauvegarde",
+		"deleteBackupConfirm": "Supprimer l'archive de sauvegarde {{name}} ?",
+		"deleteSuccess": "Sauvegarde supprimée",
+		"selectZip": "Sélectionner un fichier .zip",
+		"selectInstance": "Sélectionner une instance",
+		"importing": "Importation du monde...",
+		"importSuccess": "Monde importé avec succès : {{name}}",
+		"noSavedWorlds": "Aucun monde sauvegardé trouvé",
+		"noSavedWorldsDesc": "Jouez à une partie ou importez une archive de sauvegarde de monde pour commencer",
+		"noMatchingWorlds": "Aucun monde ne correspond à votre recherche",
+		"sorts": {
+			"lastPlayed-desc": "Dernière partie (Plus récente)",
+			"lastPlayed-asc": "Dernière partie (Plus ancienne)",
+			"name-asc": "Nom (A-Z)",
+			"name-desc": "Nom (Z-A)",
+			"size-desc": "Taille (Plus volumineux)",
+			"size-asc": "Taille (Moins volumineux)"
 		}
 	}
 }

@@ -4,6 +4,7 @@ pub(crate) mod logs;
 pub(crate) mod screenshots;
 pub(crate) mod sync;
 pub(crate) mod version_change;
+pub(crate) mod worlds;
 
 use crate::app::lifecycle::adopt_running_games;
 use crate::ipc::ApiError;

@@ -47,7 +47,8 @@
 		"skins": "Skinkatalog",
 		"screenshots": "Skärmbilder",
 		"servers": "Dedikerade servrar",
-		"settings": "Inställningar"
+		"settings": "Inställningar",
+		"worlds": "Världar"
 	},
 	"news": {
 		"title": "Mojang Nyheter & Uppdateringar",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Applikationsmenygenväg skapad för {{name}}",
 			"shortcutCreatedSteam": "Lade till {{name}} i Steam med anpassade Grid-banners (starta om Steam)",
 			"shortcutFailed": "Kunde inte skapa genväg: {{error}}",
-			"moreActions": "Fler åtgärder"
+			"moreActions": "Fler åtgärder",
+			"logsTooltip": "Konsol & Loggar"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Konsol & Loggar"
 	},
 	"modpacks": {
 		"title": "Upptäck innehåll",
@@ -720,7 +723,13 @@
 		"offlineHint": "Starta servern för att se dess konsol.",
 		"latest": "Senaste",
 		"placeholder": "Skriv ett kommando, t.ex. time set day",
-		"send": "Skicka kommando"
+		"send": "Skicka kommando",
+		"copySanitized": "Kopiera rensad",
+		"openPasteUrl": "Öppna paste-länk",
+		"pasteFailed": "Kunde inte ladda upp logg: {{error}}",
+		"pasteUploaded": "Rensad logg laddades upp till {{provider}} (länk kopierad)",
+		"uploadPaste": "Ladda upp till {{provider}}",
+		"uploadingPaste": "Laddar upp..."
 	},
 	"syncMaster": {
 		"setAsSource": "\"{{name}}\" är nu huvudkälla för synkronisering.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Öppna Microsofts sida och ange den här koden:",
 		"microsoftOpenPage": "Kopiera koden och öppna sidan",
 		"microsoftWaiting": "Väntar på att du loggar in…",
-		"microsoftFailed": "Inloggningen med Microsoft misslyckades"
+		"microsoftFailed": "Inloggningen med Microsoft misslyckades",
+		"microsoftDiscard": "Avbryt inloggning",
+		"microsoftPending": "En tidigare Microsoft-inloggning avbröts. Återuppta den eller avbryt den för att logga in igen.",
+		"microsoftPendingBusy": "En Microsoft-inloggning pågår redan.",
+		"microsoftPendingExpired": "Denna tidigare inloggning kan inte återupptas. Avbryt den och starta en ny inloggning.",
+		"microsoftResume": "Återuppta inloggning"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Tillbaka till instanser",
+		"crashDetectedTitle": "Kraschdiagnostik",
+		"crashExitCode": "Avslutades med kod {{code}}",
+		"crashToastTitle": "{{name}} kraschade",
+		"crashToastViewLogs": "Visa diagnostik",
+		"emptyFiltered": "Inga loggrader matchar det aktuella filtret",
+		"emptyLiveOffline": "Ingen live-sessionsutmatning i buffert",
+		"emptyLiveOfflineHint": "Starta instansen för att strömma live-konsolutmatning, eller välj latest.log eller en kraschrapport ovan.",
+		"emptyLiveRunning": "Väntar på klientutmatning...",
+		"levels": {
+			"all": "Alla",
+			"debug": "Felsökning",
+			"info": "Info",
+			"warn": "Varningar",
+			"error": "Fel"
+		},
+		"liveStream": "Live-konsol",
+		"maximize": "Maximera",
+		"offlineBadge": "Offline",
+		"openCrashReport": "Visa kraschrapport",
+		"restore": "Återställ",
+		"runningBadge": "Körs (PID {{pid}})",
+		"sanitizedNotice": "Inloggningsuppgifter, sessionstoken, användarnamn, hemmappar och IP-adresser rensas automatiskt före uppladdning.",
+		"searchFiltered": "filtrerad",
+		"searchPlaceholder": "Filtrera eller sök i loggar...",
+		"showingLines": "Visar {{count}} av {{total}} rader",
+		"sources": {
+			"live": "Live-session",
+			"latest": "latest.log",
+			"archivedLogs": "Arkiverade loggar",
+			"crashReports": "Kraschrapporter"
+		},
+		"streamingLive": "Strömmar live-utmatning",
+		"suspectedMods": "Misstänkta moddar:",
+		"title": "Konsol & Diagnostik — {{name}}",
+		"uploadMclogs": "Ladda upp (mclo.gs)",
+		"uploadPasteEe": "Ladda upp (paste.ee)",
+		"wrapOff": "Radbrytning: Av",
+		"wrapOn": "Radbrytning: På"
+	},
+	"worlds": {
+		"title": "Världar & Sparfiler",
+		"subtitle": "Granska metadata, kopiera seeds, återställ dimensioner och hantera säkerhetskopior för dina instanser",
+		"refreshTooltip": "Uppdatera världar",
+		"searchPlaceholder": "Sök världar efter namn eller mapp...",
+		"allInstances": "Alla instanser",
+		"allInstancesCount": "Alla instanser ({{count}})",
+		"importWorld": "Importera värld",
+		"importWorldDesc": "Importera en sparad värld från ett .zip-arkiv till en instans",
+		"copySeed": "Kopiera seed",
+		"seedCopied": "Seed kopierat till urklipp!",
+		"seedUnknown": "Seed ej tillgängligt",
+		"gameMode": "Spelläge",
+		"survival": "Överlevnad",
+		"creative": "Kreativt",
+		"hardcore": "Hardcore",
+		"adventure": "Äventyr",
+		"spectator": "Åskådare",
+		"lastPlayed": "Senast spelad",
+		"fileSize": "Storlek",
+		"seed": "Seed",
+		"version": "Version",
+		"dimensions": "Dimensioner",
+		"hasNether": "Nether",
+		"hasTheEnd": "The End",
+		"actions": "Åtgärder",
+		"openFolder": "Öppna världsmapp",
+		"createBackup": "Skapa säkerhetskopia",
+		"creatingBackup": "Skapar säkerhetskopia...",
+		"backupSuccess": "Säkerhetskopia av världen skapades",
+		"exportZip": "Exportera som .zip",
+		"exportSuccess": "Världen exporterades till {{path}}",
+		"viewBackups": "Visa säkerhetskopior",
+		"resetDimensions": "Återställ dimensioner",
+		"resetNether": "Återställ Nether (DIM-1)",
+		"resetTheEnd": "Återställ The End (DIM1)",
+		"resetDimensionTitle": "Återställ dimension",
+		"resetDimensionConfirm": "Är du säker på att du vill återställa dimensionen {{dimension}} för \"{{name}}\"?",
+		"resetDimensionWarning": "Detta tar bort befintlig terräng och byggnader i denna dimension. Minecraft genererar ny terräng nästa gång du går genom portalen.",
+		"resetDimensionTrashNote": "Den tidigare dimensionsmappen flyttas säkert till .ingot-trash i världsmappen.",
+		"resetting": "Återställer...",
+		"resetSuccess": "Dimensionen har återställts",
+		"backupsTitle": "Säkerhetskopior för världen — {{name}}",
+		"noBackups": "Inga säkerhetskopior hittades för denna värld",
+		"deleteBackup": "Ta bort säkerhetskopia",
+		"deleteBackupConfirm": "Ta bort säkerhetskopiearkivet {{name}}?",
+		"deleteSuccess": "Säkerhetskopia borttagen",
+		"selectZip": "Välj .zip-fil",
+		"selectInstance": "Välj instans",
+		"importing": "Importerar värld...",
+		"importSuccess": "Världen importerades: {{name}}",
+		"noSavedWorlds": "Inga sparade världar hittades",
+		"noSavedWorldsDesc": "Starta ett spel eller importera ett världarkiv för att komma igång",
+		"noMatchingWorlds": "Inga världar matchar din sökning",
+		"sorts": {
+			"lastPlayed-desc": "Senast spelad (Nyast)",
+			"lastPlayed-asc": "Senast spelad (Äldst)",
+			"name-asc": "Namn (A-Ö)",
+			"name-desc": "Namn (Ö-A)",
+			"size-desc": "Storlek (Störst)",
+			"size-asc": "Storlek (Minst)"
 		}
 	}
 }

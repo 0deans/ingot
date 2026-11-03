@@ -47,7 +47,8 @@
 		"skins": "Каталог скинов",
 		"screenshots": "Скриншоты",
 		"servers": "Серверы",
-		"settings": "Настройки"
+		"settings": "Настройки",
+		"worlds": "Миры"
 	},
 	"news": {
 		"title": "Новости и обновления Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Ярлык в меню приложений создан для {{name}}",
 			"shortcutCreatedSteam": "{{name}} добавлен в Steam с обложками Grid (перезапустите Steam)",
 			"shortcutFailed": "Не удалось создать ярлык: {{error}}",
-			"moreActions": "Другие действия"
+			"moreActions": "Другие действия",
+			"logsTooltip": "Консоль и логи"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Консоль и логи"
 	},
 	"bedrock": {
 		"title": "Minecraft: Bedrock Edition",
@@ -755,7 +758,13 @@
 		"offlineHint": "Запустите сервер, чтобы увидеть консоль.",
 		"latest": "К последним",
 		"placeholder": "Введите команду, например time set day",
-		"send": "Отправить команду"
+		"send": "Отправить команду",
+		"copySanitized": "Копировать очищенный",
+		"openPasteUrl": "Открыть ссылку",
+		"pasteFailed": "Не удалось загрузить лог: {{error}}",
+		"pasteUploaded": "Очищенный лог загружен на {{provider}} (ссылка скопирована)",
+		"uploadPaste": "Загрузить на {{provider}}",
+		"uploadingPaste": "Загрузка..."
 	},
 	"syncMaster": {
 		"setAsSource": "«{{name}}» теперь основной источник синхронизации.",
@@ -1875,6 +1884,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Назад к сборкам",
+		"crashDetectedTitle": "Диагностика сбоя",
+		"crashExitCode": "Завершено с кодом {{code}}",
+		"crashToastTitle": "{{name}} завершилась со сбоем",
+		"crashToastViewLogs": "Диагностика",
+		"emptyFiltered": "Нет строк, соответствующих фильтру",
+		"emptyLiveOffline": "Буфер вывода текущей сессии пуст",
+		"emptyLiveOfflineHint": "Запустите сборку для просмотра консоли в реальном времени или выберите latest.log или отчет о сбое выше.",
+		"emptyLiveRunning": "Ожидание вывода клиента...",
+		"levels": {
+			"all": "Все",
+			"debug": "Отладка",
+			"info": "Инфо",
+			"warn": "Предупреждения",
+			"error": "Ошибки"
+		},
+		"liveStream": "Консоль онлайн",
+		"maximize": "Развернуть",
+		"offlineBadge": "Остановлена",
+		"openCrashReport": "Открыть отчет о сбое",
+		"restore": "Восстановить",
+		"runningBadge": "Работает (PID {{pid}})",
+		"sanitizedNotice": "Учетные данные, токены сессии, имена пользователей, пути к домашней папке и IP-адреса автоматически скрываются перед отправкой.",
+		"searchFiltered": "отфильтровано",
+		"searchPlaceholder": "Фильтр или поиск в логах...",
+		"showingLines": "Показано {{count}} из {{total}} строк",
+		"sources": {
+			"live": "Текущая сессия",
+			"latest": "latest.log",
+			"archivedLogs": "Архивные логи",
+			"crashReports": "Отчеты о сбоях"
+		},
+		"streamingLive": "Трансляция консоли в реальном времени",
+		"suspectedMods": "Возможные моды-виновники:",
+		"title": "Консоль и диагностика — {{name}}",
+		"uploadMclogs": "Загрузить (mclo.gs)",
+		"uploadPasteEe": "Загрузить (paste.ee)",
+		"wrapOff": "Перенос: выкл",
+		"wrapOn": "Перенос: вкл"
+	},
+	"worlds": {
+		"title": "Миры и сохранения",
+		"subtitle": "Просматривайте метаданные, копируйте сиды, сбрасывайте измерения и управляйте резервными копиями сборок",
+		"refreshTooltip": "Обновить миры",
+		"searchPlaceholder": "Поиск миров по названию или папке...",
+		"allInstances": "Все сборки",
+		"allInstancesCount": "Все сборки ({{count}})",
+		"importWorld": "Импорт мира",
+		"importWorldDesc": "Импортировать сохранение мира из архива .zip в сборку",
+		"copySeed": "Скопировать сид",
+		"seedCopied": "Сид скопирован в буфер обмена!",
+		"seedUnknown": "Сид недоступен",
+		"gameMode": "Режим игры",
+		"survival": "Выживание",
+		"creative": "Творчество",
+		"hardcore": "Хардкор",
+		"adventure": "Приключение",
+		"spectator": "Наблюдатель",
+		"lastPlayed": "Последняя игра",
+		"fileSize": "Размер",
+		"seed": "Сид",
+		"version": "Версия",
+		"dimensions": "Измерения",
+		"hasNether": "Нижний мир",
+		"hasTheEnd": "Край",
+		"actions": "Действия",
+		"openFolder": "Открыть папку мира",
+		"createBackup": "Создать резервную копию",
+		"creatingBackup": "Создание копии...",
+		"backupSuccess": "Резервная копия мира успешно создана",
+		"exportZip": "Экспорт в .zip",
+		"exportSuccess": "Мир успешно экспортирован в {{path}}",
+		"viewBackups": "Резервные копии",
+		"resetDimensions": "Сброс измерений",
+		"resetNether": "Сбросить Нижний мир (DIM-1)",
+		"resetTheEnd": "Сбросить Край (DIM1)",
+		"resetDimensionTitle": "Сброс измерения",
+		"resetDimensionConfirm": "Вы уверены, что хотите сбросить измерение «{{dimension}}» для мира «{{name}}»?",
+		"resetDimensionWarning": "Это удалит сгенерированный ландшафт и постройки в этом измерении. Minecraft сгенерирует новый мир при следующем входе в портал.",
+		"resetDimensionTrashNote": "Папка прежнего измерения будет безопасно перемещена в .ingot-trash внутри папки мира.",
+		"resetting": "Сброс...",
+		"resetSuccess": "Измерение успешно сброшено",
+		"backupsTitle": "Резервные копии мира — {{name}}",
+		"noBackups": "Для этого мира нет резервных копий",
+		"deleteBackup": "Удалить копию",
+		"deleteBackupConfirm": "Удалить архив резервной копии {{name}}?",
+		"deleteSuccess": "Резервная копия удалена",
+		"selectZip": "Выберите файл .zip",
+		"selectInstance": "Выберите сборку",
+		"importing": "Импорт мира...",
+		"importSuccess": "Мир успешно импортирован: {{name}}",
+		"noSavedWorlds": "Сохраненные миры не найдены",
+		"noSavedWorldsDesc": "Сыграйте в игру или импортируйте архив сохранения мира",
+		"noMatchingWorlds": "Миры по вашему запросу не найдены",
+		"sorts": {
+			"lastPlayed-desc": "Последняя игра (сначала новые)",
+			"lastPlayed-asc": "Последняя игра (сначала старые)",
+			"name-asc": "Название (А-Я)",
+			"name-desc": "Название (Я-А)",
+			"size-desc": "Размер (сначала большие)",
+			"size-asc": "Размер (сначала маленькие)"
 		}
 	}
 }

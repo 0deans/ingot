@@ -47,7 +47,8 @@
 		"skins": "Каталог скінів",
 		"screenshots": "Знімки екрана",
 		"servers": "Виділені сервери",
-		"settings": "Налаштування"
+		"settings": "Налаштування",
+		"worlds": "Світи"
 	},
 	"news": {
 		"title": "Новини та оновлення Mojang",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "Ярлик у меню програм створено для {{name}}",
 			"shortcutCreatedSteam": "{{name}} додано в Steam з обкладинками Grid (перезапустіть Steam)",
 			"shortcutFailed": "Не вдалося створити ярлик: {{error}}",
-			"moreActions": "Більше дій"
+			"moreActions": "Більше дій",
+			"logsTooltip": "Консоль і логи"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Консоль і логи"
 	},
 	"modpacks": {
 		"title": "Каталог контенту",
@@ -736,7 +739,13 @@
 		"offlineHint": "Запустіть сервер, щоб побачити консоль.",
 		"latest": "До останніх",
 		"placeholder": "Введіть команду, наприклад time set day",
-		"send": "Надіслати команду"
+		"send": "Надіслати команду",
+		"copySanitized": "Копіювати очищений",
+		"openPasteUrl": "Відкрити посилання",
+		"pasteFailed": "Не вдалося завантажити лог: {{error}}",
+		"pasteUploaded": "Очищений лог завантажено на {{provider}} (посилання скопійовано)",
+		"uploadPaste": "Завантажити на {{provider}}",
+		"uploadingPaste": "Завантаження..."
 	},
 	"syncMaster": {
 		"setAsSource": "«{{name}}» тепер основне джерело синхронізації.",
@@ -1875,6 +1884,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Назад до збірок",
+		"crashDetectedTitle": "Діагностика аварії",
+		"crashExitCode": "Завершено з кодом {{code}}",
+		"crashToastTitle": "{{name}} завершилася аварійно",
+		"crashToastViewLogs": "Діагностика",
+		"emptyFiltered": "Немає рядків, що відповідають фільтру",
+		"emptyLiveOffline": "Буфер виводу поточної сесії порожній",
+		"emptyLiveOfflineHint": "Запустіть збірку для перегляду консолі в реальному часі або виберіть latest.log чи звіт про аварію вище.",
+		"emptyLiveRunning": "Очікування виводу клієнта...",
+		"levels": {
+			"all": "Всі",
+			"debug": "Налагодження",
+			"info": "Інфо",
+			"warn": "Попередження",
+			"error": "Помилки"
+		},
+		"liveStream": "Консоль наживо",
+		"maximize": "Розгорнути",
+		"offlineBadge": "Зупинено",
+		"openCrashReport": "Переглянути звіт про аварію",
+		"restore": "Відновити",
+		"runningBadge": "Працює (PID {{pid}})",
+		"sanitizedNotice": "Облікові дані, токени сесій, імена користувачів, шляхи до домашньої папки та IP-адреси автоматично приховуються перед завантаженням.",
+		"searchFiltered": "відфільтровано",
+		"searchPlaceholder": "Фільтр або пошук у логах...",
+		"showingLines": "Показано {{count}} з {{total}} рядків",
+		"sources": {
+			"live": "Поточна сесія",
+			"latest": "latest.log",
+			"archivedLogs": "Архівні логи",
+			"crashReports": "Звіти про аварії"
+		},
+		"streamingLive": "Трансляція консолі в реальному часі",
+		"suspectedMods": "Підозрілі моди:",
+		"title": "Консоль і діагностика — {{name}}",
+		"uploadMclogs": "Завантажити (mclo.gs)",
+		"uploadPasteEe": "Завантажити (paste.ee)",
+		"wrapOff": "Перенесення: вимк",
+		"wrapOn": "Перенесення: увімк"
+	},
+	"worlds": {
+		"title": "Світи та збереження",
+		"subtitle": "Переглядайте метадані, копіюйте сіди, скидайте виміри та керуйте резервними копіями збірок",
+		"refreshTooltip": "Оновити світи",
+		"searchPlaceholder": "Пошук світів за назвою чи папкою...",
+		"allInstances": "Всі збірки",
+		"allInstancesCount": "Всі збірки ({{count}})",
+		"importWorld": "Імпорт світу",
+		"importWorldDesc": "Імпортувати збереження світу з архіву .zip до збірки",
+		"copySeed": "Скопіювати сід",
+		"seedCopied": "Сід скопійовано в буфер обміну!",
+		"seedUnknown": "Сід недоступний",
+		"gameMode": "Режим гри",
+		"survival": "Виживання",
+		"creative": "Творчість",
+		"hardcore": "Хардкор",
+		"adventure": "Пригоди",
+		"spectator": "Спостерігач",
+		"lastPlayed": "Остання гра",
+		"fileSize": "Розмір",
+		"seed": "Сід",
+		"version": "Версія",
+		"dimensions": "Виміри",
+		"hasNether": "Нижній світ",
+		"hasTheEnd": "Край",
+		"actions": "Дії",
+		"openFolder": "Відкрити папку світу",
+		"createBackup": "Створити резервну копію",
+		"creatingBackup": "Створення копії...",
+		"backupSuccess": "Резервну копію світу успішно створено",
+		"exportZip": "Експорт у .zip",
+		"exportSuccess": "Світ успішно експортовано до {{path}}",
+		"viewBackups": "Резервні копії",
+		"resetDimensions": "Скидання вимірів",
+		"resetNether": "Скинути Нижній світ (DIM-1)",
+		"resetTheEnd": "Скинути Край (DIM1)",
+		"resetDimensionTitle": "Скидання виміру",
+		"resetDimensionConfirm": "Ви впевнені, що хочете скинути вимір «{{dimension}}» для світу «{{name}}»?",
+		"resetDimensionWarning": "Це видалить поточний ландшафт і структури для цього виміру. Minecraft згенерує свіжий ландшафт під час наступного входу в портал.",
+		"resetDimensionTrashNote": "Папку попереднього виміру буде безпечно переміщено до .ingot-trash всередині папки світу.",
+		"resetting": "Скидання...",
+		"resetSuccess": "Вимір успішно скинуто",
+		"backupsTitle": "Резервні копії світу — {{name}}",
+		"noBackups": "Для цього світу немає резервних копій",
+		"deleteBackup": "Видалити копію",
+		"deleteBackupConfirm": "Видалити архів резервної копії {{name}}?",
+		"deleteSuccess": "Резервну копію видалено",
+		"selectZip": "Виберіть файл .zip",
+		"selectInstance": "Виберіть збірку",
+		"importing": "Імпорт світу...",
+		"importSuccess": "Світ успішно імпортовано: {{name}}",
+		"noSavedWorlds": "Збережені світи не знайдено",
+		"noSavedWorldsDesc": "Зіграйте в гру або імпортуйте архів збереження світу",
+		"noMatchingWorlds": "Жоден світ не відповідає вашому пошуковому запиту",
+		"sorts": {
+			"lastPlayed-desc": "Остання гра (спочатку нові)",
+			"lastPlayed-asc": "Остання гра (спочатку старі)",
+			"name-asc": "Назва (А-Я)",
+			"name-desc": "Назва (Я-А)",
+			"size-desc": "Розмір (спочатку великі)",
+			"size-asc": "Розмір (спочатку малі)"
 		}
 	}
 }

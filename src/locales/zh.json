@@ -47,7 +47,8 @@
 		"skins": "皮肤目录",
 		"screenshots": "游戏截图",
 		"servers": "独立服务器",
-		"settings": "设置"
+		"settings": "设置",
+		"worlds": "世界"
 	},
 	"news": {
 		"title": "Mojang 新闻与更新",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "已为 {{name}} 创建应用菜单快捷方式",
 			"shortcutCreatedSteam": "已将 {{name}} 及自定义 Grid 封面添加到 Steam（重启 Steam 后生效）",
 			"shortcutFailed": "创建快捷方式失败: {{error}}",
-			"moreActions": "更多操作"
+			"moreActions": "更多操作",
+			"logsTooltip": "控制台与日志"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "控制台与日志"
 	},
 	"modpacks": {
 		"title": "发现内容",
@@ -720,7 +723,13 @@
 		"offlineHint": "启动服务器以查看其控制台。",
 		"latest": "最新",
 		"placeholder": "输入指令，例如 time set day",
-		"send": "发送指令"
+		"send": "发送指令",
+		"copySanitized": "复制脱敏日志",
+		"openPasteUrl": "打开分享链接",
+		"pasteFailed": "上传日志失败：{{error}}",
+		"pasteUploaded": "已将脱敏日志上传至 {{provider}}（链接已复制）",
+		"uploadPaste": "上传到 {{provider}}",
+		"uploadingPaste": "正在上传..."
 	},
 	"syncMaster": {
 		"setAsSource": "将“{{name}}”设为主同步源。",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "打开 Microsoft 页面并输入此代码：",
 		"microsoftOpenPage": "复制代码并打开页面",
 		"microsoftWaiting": "正在等待你登录…",
-		"microsoftFailed": "Microsoft 登录失败"
+		"microsoftFailed": "Microsoft 登录失败",
+		"microsoftDiscard": "放弃登录",
+		"microsoftPending": "上一次 Microsoft 登录已中断。您可以继续该登录，或放弃并重新登录。",
+		"microsoftPendingBusy": "Microsoft 登录已在进行中。",
+		"microsoftPendingExpired": "无法继续此前的登录。请放弃并重新开始。",
+		"microsoftResume": "继续登录"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "返回实例列表",
+		"crashDetectedTitle": "崩溃诊断",
+		"crashExitCode": "进程退出，代码：{{code}}",
+		"crashToastTitle": "{{name}} 崩溃了",
+		"crashToastViewLogs": "查看诊断",
+		"emptyFiltered": "没有匹配当前筛选条件的日志行",
+		"emptyLiveOffline": "没有已缓冲的实时会话输出",
+		"emptyLiveOfflineHint": "启动实例以查看实时控制台输出，或在上方选择 latest.log 或崩溃报告。",
+		"emptyLiveRunning": "正在等待客户端输出...",
+		"levels": {
+			"all": "全部",
+			"debug": "调试",
+			"info": "信息",
+			"warn": "警告",
+			"error": "错误"
+		},
+		"liveStream": "实时控制台",
+		"maximize": "最大化",
+		"offlineBadge": "离线",
+		"openCrashReport": "查看崩溃报告",
+		"restore": "还原",
+		"runningBadge": "运行中 (PID {{pid}})",
+		"sanitizedNotice": "凭证、会话令牌、用户名、用户主目录路径和 IP 地址会在上传前自动脱敏。",
+		"searchFiltered": "已过滤",
+		"searchPlaceholder": "过滤或搜索日志...",
+		"showingLines": "显示 {{count}} / {{total}} 行",
+		"sources": {
+			"live": "实时会话",
+			"latest": "latest.log",
+			"archivedLogs": "归档日志",
+			"crashReports": "崩溃报告"
+		},
+		"streamingLive": "正在实时输出",
+		"suspectedMods": "疑似引发崩溃的模组：",
+		"title": "控制台与诊断 — {{name}}",
+		"uploadMclogs": "上传至 mclo.gs",
+		"uploadPasteEe": "上传至 paste.ee",
+		"wrapOff": "换行：关",
+		"wrapOn": "换行：开"
+	},
+	"worlds": {
+		"title": "世界与存档",
+		"subtitle": "查看存档元数据、复制种子、重置维度以及管理实例的备份",
+		"refreshTooltip": "刷新世界列表",
+		"searchPlaceholder": "按名称或文件夹搜索世界...",
+		"allInstances": "所有实例",
+		"allInstancesCount": "所有实例 ({{count}})",
+		"importWorld": "导入世界",
+		"importWorldDesc": "从 .zip 压缩包导入世界存档至实例中",
+		"copySeed": "复制种子",
+		"seedCopied": "种子已复制到剪贴板！",
+		"seedUnknown": "种子不可用",
+		"gameMode": "游戏模式",
+		"survival": "生存",
+		"creative": "创造",
+		"hardcore": "极限",
+		"adventure": "冒险",
+		"spectator": "旁观",
+		"lastPlayed": "最后游玩",
+		"fileSize": "大小",
+		"seed": "种子",
+		"version": "版本",
+		"dimensions": "维度",
+		"hasNether": "下界",
+		"hasTheEnd": "末地",
+		"actions": "操作",
+		"openFolder": "打开世界文件夹",
+		"createBackup": "创建备份",
+		"creatingBackup": "正在创建备份...",
+		"backupSuccess": "世界备份已成功创建",
+		"exportZip": "导出为 .zip",
+		"exportSuccess": "世界已成功导出至 {{path}}",
+		"viewBackups": "查看备份",
+		"resetDimensions": "重置维度",
+		"resetNether": "重置下界 (DIM-1)",
+		"resetTheEnd": "重置末地 (DIM1)",
+		"resetDimensionTitle": "重置维度",
+		"resetDimensionConfirm": "确定要重置“{{name}}”的 {{dimension}} 维度吗？",
+		"resetDimensionWarning": "这将删除该维度中现有的地形和建筑。下次穿过传送门时，Minecraft 将重新生成全新地形。",
+		"resetDimensionTrashNote": "旧的维度文件夹将安全移动到世界文件夹下的 .ingot-trash 目录中。",
+		"resetting": "正在重置...",
+		"resetSuccess": "维度重置成功",
+		"backupsTitle": "世界备份 — {{name}}",
+		"noBackups": "此世界尚无备份",
+		"deleteBackup": "删除备份",
+		"deleteBackupConfirm": "确定删除备份存档 {{name}} 吗？",
+		"deleteSuccess": "备份已删除",
+		"selectZip": "选择 .zip 文件",
+		"selectInstance": "选择目标实例",
+		"importing": "正在导入世界...",
+		"importSuccess": "世界导入成功：{{name}}",
+		"noSavedWorlds": "未找到已保存的世界",
+		"noSavedWorldsDesc": "开始游戏游玩或导入世界存档以开始",
+		"noMatchingWorlds": "没有匹配搜索条件的世界",
+		"sorts": {
+			"lastPlayed-desc": "最后游玩（最新优先）",
+			"lastPlayed-asc": "最后游玩（最早优先）",
+			"name-asc": "名称 (A-Z)",
+			"name-desc": "名称 (Z-A)",
+			"size-desc": "大小（由大到小）",
+			"size-asc": "大小（由小到大）"
 		}
 	}
 }

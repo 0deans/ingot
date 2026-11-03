@@ -12,5 +12,6 @@ pub mod news;
 pub mod screenshots;
 pub mod sync;
 pub mod version;
+pub mod worlds;
 
 pub(crate) mod metadata;

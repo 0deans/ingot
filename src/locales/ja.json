@@ -47,7 +47,8 @@
 		"skins": "スキンカタログ",
 		"screenshots": "スクリーンショット",
 		"servers": "専用サーバー",
-		"settings": "設定"
+		"settings": "設定",
+		"worlds": "ワールド"
 	},
 	"news": {
 		"title": "Mojang ニュース & アップデート",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "{{name}} のアプリケーションメニューショートカットを作成しました",
 			"shortcutCreatedSteam": "{{name}} をカスタムGridアートワーク付きでSteamに追加しました（Steamを再起動してください）",
 			"shortcutFailed": "ショートカットの作成に失敗しました: {{error}}",
-			"moreActions": "その他の操作"
+			"moreActions": "その他の操作",
+			"logsTooltip": "コンソールとログ"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "コンソールとログ"
 	},
 	"modpacks": {
 		"title": "コンテンツを探す",
@@ -720,7 +723,13 @@
 		"offlineHint": "コンソールを表示するにはサーバーを起動してください。",
 		"latest": "最新",
 		"placeholder": "コマンドを入力 (例: time set day)",
-		"send": "コマンドを送信"
+		"send": "コマンドを送信",
+		"copySanitized": "機密情報を除外してコピー",
+		"openPasteUrl": "共有リンクを開く",
+		"pasteFailed": "ログのアップロードに失敗しました: {{error}}",
+		"pasteUploaded": "機密情報を除外したログを {{provider}} にアップロードしました（リンクをコピー済み）",
+		"uploadPaste": "{{provider}} にアップロード",
+		"uploadingPaste": "アップロード中..."
 	},
 	"syncMaster": {
 		"setAsSource": "\"{{name}}\" をマスター同期元に設定します。",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Microsoftのページを開き、このコードを入力してください:",
 		"microsoftOpenPage": "コードをコピーしてページを開く",
 		"microsoftWaiting": "サインインを待っています…",
-		"microsoftFailed": "Microsoftでのサインインに失敗しました"
+		"microsoftFailed": "Microsoftでのサインインに失敗しました",
+		"microsoftDiscard": "サインインを破棄",
+		"microsoftPending": "以前のMicrosoftサインインが中断されました。再開するか破棄して最初からやり直してください。",
+		"microsoftPendingBusy": "Microsoftサインインが既に進行中です。",
+		"microsoftPendingExpired": "この以前のサインインは再開できません。破棄して新しくやり直してください。",
+		"microsoftResume": "サインインを再開"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "インスタンス一覧に戻る",
+		"crashDetectedTitle": "クラッシュ診断",
+		"crashExitCode": "終了コード: {{code}}",
+		"crashToastTitle": "{{name}} がクラッシュしました",
+		"crashToastViewLogs": "診断を表示",
+		"emptyFiltered": "現在のフィルターに一致するログ行はありません",
+		"emptyLiveOffline": "バッファされたライブセッション出力はありません",
+		"emptyLiveOfflineHint": "インスタンスを起動してコンソール出力をライブ配信するか、上で latest.log またはクラッシュレポートを選択してください。",
+		"emptyLiveRunning": "クライアントの出力を待機中...",
+		"levels": {
+			"all": "すべて",
+			"debug": "デバッグ",
+			"info": "情報",
+			"warn": "警告",
+			"error": "エラー"
+		},
+		"liveStream": "ライブコンソール",
+		"maximize": "最大化",
+		"offlineBadge": "オフライン",
+		"openCrashReport": "クラッシュレポートを表示",
+		"restore": "元に戻す",
+		"runningBadge": "実行中 (PID {{pid}})",
+		"sanitizedNotice": "認証情報、セッショントークン、ユーザー名、ホームパス、IPアドレスはアップロード前に自動的に除外されます。",
+		"searchFiltered": "件をフィルター済み",
+		"searchPlaceholder": "ログをフィルターまたは検索...",
+		"showingLines": "{{count}} / {{total}} 行を表示中",
+		"sources": {
+			"live": "ライブセッション",
+			"latest": "latest.log",
+			"archivedLogs": "アーカイブされたログ",
+			"crashReports": "クラッシュレポート"
+		},
+		"streamingLive": "ライブ出力を配信中",
+		"suspectedMods": "原因の可能性があるMOD:",
+		"title": "コンソールと診断 — {{name}}",
+		"uploadMclogs": "アップロード (mclo.gs)",
+		"uploadPasteEe": "アップロード (paste.ee)",
+		"wrapOff": "折り返し: オフ",
+		"wrapOn": "折り返し: オン"
+	},
+	"worlds": {
+		"title": "ワールドとセーブデータ",
+		"subtitle": "メタデータの確認、シード値のコピー、ディメンションのリセット、バックアップ管理",
+		"refreshTooltip": "ワールド一覧を更新",
+		"searchPlaceholder": "名前またはフォルダーでワールドを検索...",
+		"allInstances": "すべてのインスタンス",
+		"allInstancesCount": "すべてのインスタンス ({{count}})",
+		"importWorld": "ワールドをインポート",
+		"importWorldDesc": ".zip アーカイブからインスタンスにワールドデータをインポート",
+		"copySeed": "シード値をコピー",
+		"seedCopied": "シード値をクリップボードにコピーしました！",
+		"seedUnknown": "シード値を利用できません",
+		"gameMode": "ゲームモード",
+		"survival": "サバイバル",
+		"creative": "クリエイティブ",
+		"hardcore": "ハードコア",
+		"adventure": "アドベンチャー",
+		"spectator": "スペクテイター",
+		"lastPlayed": "最終プレイ日時",
+		"fileSize": "サイズ",
+		"seed": "シード値",
+		"version": "バージョン",
+		"dimensions": "ディメンション",
+		"hasNether": "ネザー",
+		"hasTheEnd": "ジ・エンド",
+		"actions": "アクション",
+		"openFolder": "ワールドフォルダーを開く",
+		"createBackup": "バックアップを作成",
+		"creatingBackup": "バックアップ作成中...",
+		"backupSuccess": "ワールドのバックアップが作成されました",
+		"exportZip": ".zip としてエクスポート",
+		"exportSuccess": "ワールドを {{path}} にエクスポートしました",
+		"viewBackups": "バックアップを表示",
+		"resetDimensions": "ディメンションをリセット",
+		"resetNether": "ネザーをリセット (DIM-1)",
+		"resetTheEnd": "ジ・エンドをリセット (DIM1)",
+		"resetDimensionTitle": "ディメンションのリセット",
+		"resetDimensionConfirm": "「{{name}}」の {{dimension}} ディメンションをリセットしてもよろしいですか？",
+		"resetDimensionWarning": "これにより、このディメンション内の既存の地形と構造物が削除されます。次回ポータルに入った際に新しい地形が再生成されます。",
+		"resetDimensionTrashNote": "元のディメンションフォルダーは安全のためワールド内の .ingot-trash に退避されます。",
+		"resetting": "リセット中...",
+		"resetSuccess": "ディメンションを正常にリセットしました",
+		"backupsTitle": "ワールドバックアップ — {{name}}",
+		"noBackups": "このワールドのバックアップはありません",
+		"deleteBackup": "バックアップを削除",
+		"deleteBackupConfirm": "バックアップ {{name}} を削除しますか？",
+		"deleteSuccess": "バックアップを削除しました",
+		"selectZip": ".zip ファイルを選択",
+		"selectInstance": "インスタンスを選択",
+		"importing": "ワールドをインポート中...",
+		"importSuccess": "ワールドが正常にインポートされました: {{name}}",
+		"noSavedWorlds": "セーブされたワールドが見つかりません",
+		"noSavedWorldsDesc": "ゲームをプレイするか、ワールドアーカイブをインポートして始めましょう",
+		"noMatchingWorlds": "検索条件に一致するワールドはありません",
+		"sorts": {
+			"lastPlayed-desc": "最終プレイ日時（新しい順）",
+			"lastPlayed-asc": "最終プレイ日時（古い順）",
+			"name-asc": "名前 (A-Z)",
+			"name-desc": "名前 (Z-A)",
+			"size-desc": "サイズ（大きい順）",
+			"size-asc": "サイズ（小さい順）"
 		}
 	}
 }

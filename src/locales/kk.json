@@ -47,7 +47,8 @@
 		"skins": "Скиндер каталогы",
 		"screenshots": "Скриншоттар",
 		"servers": "Арнайы серверлер",
-		"settings": "Баптаулар"
+		"settings": "Баптаулар",
+		"worlds": "Әлемдер"
 	},
 	"news": {
 		"title": "Mojang жаңалықтары мен жаңартулары",
@@ -177,7 +178,8 @@
 			"shortcutCreatedAppMenu": "{{name}} үшін қолданбалар мәзірінде таңбаша жасалды",
 			"shortcutCreatedSteam": "{{name}} арнайы Grid мұқабаларымен Steam-ге қосылды (Steam-ді қайта іске қосыңыз)",
 			"shortcutFailed": "Таңбаша жасау сәтсіз аяқталды: {{error}}",
-			"moreActions": "Қосымша әрекеттер"
+			"moreActions": "Қосымша әрекеттер",
+			"logsTooltip": "Консоль және журналдар"
 		},
 		"activeEntry": "{{name}} (PID {{pid}})",
 		"totalPlaytimeAll": "Total playtime: {{duration}}",
@@ -208,7 +210,8 @@
 		"groups": {
 			"ungrouped": "Ungrouped",
 			"editInSettings": "Edit Group in Settings..."
-		}
+		},
+		"openLogs": "Консоль және журналдар"
 	},
 	"modpacks": {
 		"title": "Контент каталогы",
@@ -720,7 +723,13 @@
 		"offlineHint": "Консольді көру үшін серверді қосыңыз.",
 		"latest": "Соңғысы",
 		"placeholder": "Команда енгізіңіз, мыс. time set day",
-		"send": "Команданы жіберу"
+		"send": "Команданы жіберу",
+		"copySanitized": "Тазартылғанды көшіру",
+		"openPasteUrl": "Сілтемені ашу",
+		"pasteFailed": "Журналды жүктеу сәтсіз аяқталды: {{error}}",
+		"pasteUploaded": "Тазартылған журнал {{provider}} қызметіне жүктелді (сілтеме көшірілді)",
+		"uploadPaste": "{{provider}} қызметіне жүктеу",
+		"uploadingPaste": "Жүктелуде..."
 	},
 	"syncMaster": {
 		"setAsSource": "«{{name}}» енді синхрондаудың негізгі көзі.",
@@ -832,7 +841,12 @@
 		"microsoftEnterCode": "Microsoft бетін ашып, осы кодты енгізіңіз:",
 		"microsoftOpenPage": "Кодты көшіріп, бетті ашу",
 		"microsoftWaiting": "Кіруіңізді күтудеміз…",
-		"microsoftFailed": "Microsoft арқылы кіру сәтсіз аяқталды"
+		"microsoftFailed": "Microsoft арқылы кіру сәтсіз аяқталды",
+		"microsoftDiscard": "Кіруді болдырмау",
+		"microsoftPending": "Алдыңғы Microsoft кіруі үзілді. Қайта кіру үшін жалғастырыңыз немесе болдырмаңыз.",
+		"microsoftPendingBusy": "Microsoft жүйесіне кіру қазірдің өзінде орындалуда.",
+		"microsoftPendingExpired": "Бұл алдыңғы кіруді жалғастыру мүмкін емес. Болдырмаңыз және жаңа кіруді бастаңыз.",
+		"microsoftResume": "Кіруді жалғастыру"
 	},
 	"properties": {
 		"groups": {
@@ -1816,6 +1830,110 @@
 			"chest": "Chest",
 			"beacon": "Beacon",
 			"book": "Enchanted Book"
+		}
+	},
+	"instanceLogs": {
+		"backToInstances": "Жинақтарға оралу",
+		"crashDetectedTitle": "Ақаулық диагностикасы",
+		"crashExitCode": "{{code}} кодымен аяқталды",
+		"crashToastTitle": "{{name}} ақаулықпен жабылды",
+		"crashToastViewLogs": "Диагностиканы көру",
+		"emptyFiltered": "Ағымдағы сүзгіге сәйкес келетін журнал жолдары жоқ",
+		"emptyLiveOffline": "Буферде тікелей сеанс шығысы жоқ",
+		"emptyLiveOfflineHint": "Тікелей консольді көру үшін жинақты іске қосыңыз немесе жоғарыдан latest.log немесе ақаулық есебін таңдаңыз.",
+		"emptyLiveRunning": "Клиент шығысы күтілуде...",
+		"levels": {
+			"all": "Барлығы",
+			"debug": "Жөндеу",
+			"info": "Ақпарат",
+			"warn": "Ескертулер",
+			"error": "Қателер"
+		},
+		"liveStream": "Тікелей консоль",
+		"maximize": "Үлкейту",
+		"offlineBadge": "Офлайн",
+		"openCrashReport": "Ақаулық есебін ашу",
+		"restore": "Қалпына келтіру",
+		"runningBadge": "Жұмыс істеп тұр (PID {{pid}})",
+		"sanitizedNotice": "Тіркелгі деректері, сеанс токендері, пайдаланушы аттары, үй жолдары және IP мекенжайлары жүктелмес бұрын автоматты түрде жасырылады.",
+		"searchFiltered": "сүзілді",
+		"searchPlaceholder": "Журналдарды сүзу немесе іздеу...",
+		"showingLines": "{{total}} жолдың {{count}} көрсетілуде",
+		"sources": {
+			"live": "Тікелей сеанс",
+			"latest": "latest.log",
+			"archivedLogs": "Мұрағатталған журналдар",
+			"crashReports": "Ақаулық есептері"
+		},
+		"streamingLive": "Тікелей шығыс таратылуда",
+		"suspectedMods": "Күдікті модтар:",
+		"title": "Консоль және диагностика — {{name}}",
+		"uploadMclogs": "Жүктеу (mclo.gs)",
+		"uploadPasteEe": "Жүктеу (paste.ee)",
+		"wrapOff": "Тасымалдау: Өшірулі",
+		"wrapOn": "Тасымалдау: Қосулы"
+	},
+	"worlds": {
+		"title": "Әлемдер мен сақтаулар",
+		"subtitle": "Метадеректерді қараңыз, сидтерді көшіріңіз, өлшемдерді қалпына келтіріңіз және сақтық көшірмелерді басқарыңыз",
+		"refreshTooltip": "Әлемдерді жаңарту",
+		"searchPlaceholder": "Әлемдерді аты немесе қалтасы бойынша іздеу...",
+		"allInstances": "Барлық жинақтар",
+		"allInstancesCount": "Барлық жинақтар ({{count}})",
+		"importWorld": "Әлемді импорттау",
+		"importWorldDesc": ".zip мұрағатынан жинаққа әлем сақтауын импорттау",
+		"copySeed": "Сидті көшіру",
+		"seedCopied": "Сид алмасу буферіне көшірілді!",
+		"seedUnknown": "Сид қолжетімсіз",
+		"gameMode": "Ойын режимі",
+		"survival": "Тірі қалу",
+		"creative": "Шығармашылық",
+		"hardcore": "Хардкор",
+		"adventure": "Шытырман оқиға",
+		"spectator": "Бақылаушы",
+		"lastPlayed": "Соңғы ойналған",
+		"fileSize": "Өлшемі",
+		"seed": "Сид",
+		"version": "Нұсқа",
+		"dimensions": "Өлшемдер",
+		"hasNether": "Төменгі әлем",
+		"hasTheEnd": "Энд",
+		"actions": "Әрекеттер",
+		"openFolder": "Әлем қалтасын ашу",
+		"createBackup": "Сақтық көшірме жасау",
+		"creatingBackup": "Сақтық көшірме жасалуда...",
+		"backupSuccess": "Әлемнің сақтық көшірмесі сәтті жасалды",
+		"exportZip": ".zip ретінде экспорттау",
+		"exportSuccess": "Әлем сәтті экспортталды: {{path}}",
+		"viewBackups": "Сақтық көшірмелерді көру",
+		"resetDimensions": "Өлшемдерді қалпына келтіру",
+		"resetNether": "Төменгі әлемді қалпына келтіру (DIM-1)",
+		"resetTheEnd": "Эндті қалпына келтіру (DIM1)",
+		"resetDimensionTitle": "Өлшемді қалпына келтіру",
+		"resetDimensionConfirm": "\"{{name}}\" әлемі үшін {{dimension}} өлшемін қалпына келтіргіңіз келетініне сенімдісіз бе?",
+		"resetDimensionWarning": "Бұл осы өлшемдегі бар ландшафт пен құрылымдарды жояды. Minecraft порталға келесі кіргенде жаңа ландшафт жасайды.",
+		"resetDimensionTrashNote": "Алдыңғы өлшем қалтасы әлем қалтасындағы .ingot-trash ішіне қауіпсіз жылжытылады.",
+		"resetting": "Қалпына келтірілуде...",
+		"resetSuccess": "Өлшем сәтті қалпына келтірілді",
+		"backupsTitle": "Әлем сақтық көшірмелері — {{name}}",
+		"noBackups": "Бұл әлем үшін сақтық көшірмелер табылмады",
+		"deleteBackup": "Көшірмені жою",
+		"deleteBackupConfirm": "{{name}} сақтық көшірмесін жою керек пе?",
+		"deleteSuccess": "Сақтық көшірме жойылды",
+		"selectZip": ".zip файлын таңдау",
+		"selectInstance": "Жинақты таңдау",
+		"importing": "Әлем импортталуда...",
+		"importSuccess": "Әлем сәтті импортталды: {{name}}",
+		"noSavedWorlds": "Сақталған әлемдер табылмады",
+		"noSavedWorldsDesc": "Бастау үшін ойын ойнаңыз немесе әлем мұрағатын импорттаңыз",
+		"noMatchingWorlds": "Іздеуіңізге сәйкес келетін әлемдер жоқ",
+		"sorts": {
+			"lastPlayed-desc": "Соңғы ойналған (ең жаңасы)",
+			"lastPlayed-asc": "Соңғы ойналған (ең ескісі)",
+			"name-asc": "Аты (А-Я)",
+			"name-desc": "Аты (Я-А)",
+			"size-desc": "Өлшемі (ең үлкені)",
+			"size-asc": "Өлшемі (ең кішісі)"
 		}
 	}
 }
