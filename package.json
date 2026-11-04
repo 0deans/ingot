@@ -1,6 +1,6 @@
 {
 	"name": "ingot",
-	"version": "0.5.14",
+	"version": "0.5.15",
 	"private": true,
 	"description": "Fast, lightweight Minecraft launcher built with Tauri and React",
 	"license": "GPL-3.0-only",
