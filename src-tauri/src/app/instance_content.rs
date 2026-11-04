@@ -189,11 +189,6 @@ pub(crate) async fn apply_content_updates<R: Runtime>(
 
     let http = super::state(app).http.clone();
 
-    crate::minecraft::instance_content::apply_updates(
-        &instance_dir,
-        category,
-        selections,
-        &http,
-    )
-    .await
+    crate::minecraft::instance_content::apply_updates(&instance_dir, category, selections, &http)
+        .await
 }

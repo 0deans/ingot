@@ -229,4 +229,3 @@ mod tests {
         assert!(shader_scope.modrinth.contains(&"iris"));
     }
 }
-
