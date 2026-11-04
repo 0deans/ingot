@@ -17,12 +17,32 @@ pub(crate) async fn install_content_file<R: Runtime>(
 ) -> Result<String, ContentError> {
     let handle = app.clone();
     let id = instance_id.to_owned();
-    let directory = tokio::task::spawn_blocking(move || {
-        crate::app::instances::ensure_instance_dir(&handle, &id)
+    let (instance, directory) = tokio::task::spawn_blocking(move || {
+        let parent = crate::app::instances::ensure_instances_dir(&handle)?;
+        let dir = crate::minecraft::instance::ensure_instance_directory(
+            &super::state(&handle).instances,
+            &parent,
+            &id,
+        )?;
+        let instances = crate::app::instances::load_instances(&handle)?;
+        let inst = instances
+            .into_iter()
+            .find(|i| i.id == id)
+            .ok_or_else(|| crate::minecraft::instance::InstanceError::NotFound(id))?;
+        Ok::<_, crate::minecraft::instance::InstanceError>((inst, dir))
     })
     .await
     .map_err(ContentError::Task)?
     .map_err(ContentError::Instance)?;
+
+    if project_type.eq_ignore_ascii_case("mod") && !instance.loader.supports_mods() {
+        return Err(ContentError::UnsupportedLoader {
+            instance: instance.name,
+            loader: instance.loader,
+            category: "mods",
+        });
+    }
+
     content::install::install_content_file(
         &super::state(app).http,
         &directory,

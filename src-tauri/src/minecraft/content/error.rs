@@ -58,6 +58,13 @@ pub enum ContentError {
     #[error("Modpack download failed integrity validation: {0}")]
     Integrity(&'static str),
 
+    #[error("Instance '{instance}' with loader {loader:?} does not support {category}")]
+    UnsupportedLoader {
+        instance: String,
+        loader: crate::minecraft::instance::ModLoaderType,
+        category: &'static str,
+    },
+
     #[error("Modpack blocking task failed: {0}")]
     Task(#[source] tokio::task::JoinError),
 

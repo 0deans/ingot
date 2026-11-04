@@ -1,5 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import type { ContentCategory, ContentListResult, InstalledContent } from "@/bindings"
+import type {
+	ContentApplyReport,
+	ContentCategory,
+	ContentListResult,
+	ContentUpdateCandidate,
+	IdentifyResult,
+	InstalledContent,
+	UpdateCheckResult,
+} from "@/bindings"
 import { rpc, unwrapRpc } from "@/lib/rpc"
 
 export const instanceContentService = {
@@ -47,14 +55,41 @@ export const instanceContentService = {
 	): Promise<null> => {
 		return unwrapRpc(rpc.instances.content.open_content_folder(instanceId, category, world ?? null))
 	},
+
+	identifyContent: async (
+		instanceId: string,
+		category: ContentCategory,
+	): Promise<IdentifyResult> => {
+		return unwrapRpc(rpc.instances.content.identify_instance_content(instanceId, category))
+	},
+
+	checkUpdates: async (
+		instanceId: string,
+		category: ContentCategory,
+	): Promise<UpdateCheckResult> => {
+		return unwrapRpc(rpc.instances.content.check_content_updates(instanceId, category))
+	},
+
+	applyUpdates: async (
+		instanceId: string,
+		category: ContentCategory,
+		selections: ContentUpdateCandidate[],
+	): Promise<ContentApplyReport> => {
+		return unwrapRpc(rpc.instances.content.apply_content_updates(instanceId, category, selections))
+	},
 }
 
-export const useInstanceContent = (instanceId: string, category: ContentCategory) => {
+export const useInstanceContent = (
+	instanceId: string,
+	category: ContentCategory,
+	options?: { enabled?: boolean },
+) => {
 	const query = useQuery({
 		queryKey: ["instance-content", instanceId, category],
 		queryFn: () => {
 			return instanceContentService.listContent(instanceId, category)
 		},
+		enabled: options?.enabled ?? true,
 		staleTime: 1000 * 15,
 	})
 
@@ -106,4 +141,48 @@ export const useDeleteContentMutation = (instanceId: string, category: ContentCa
 	})
 }
 
-export type { InstalledContent }
+export const useIdentifyContentMutation = (instanceId: string, category: ContentCategory) => {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async () => {
+			return instanceContentService.identifyContent(instanceId, category)
+		},
+		onSuccess: () => {
+			void queryClient.invalidateQueries({
+				queryKey: ["instance-content", instanceId, category],
+			})
+		},
+	})
+}
+
+export const useCheckUpdatesMutation = (instanceId: string, category: ContentCategory) => {
+	return useMutation({
+		mutationFn: async () => {
+			return instanceContentService.checkUpdates(instanceId, category)
+		},
+	})
+}
+
+export const useApplyUpdatesMutation = (instanceId: string, category: ContentCategory) => {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (selections: ContentUpdateCandidate[]) => {
+			return instanceContentService.applyUpdates(instanceId, category, selections)
+		},
+		onSuccess: () => {
+			void queryClient.invalidateQueries({
+				queryKey: ["instance-content", instanceId, category],
+			})
+		},
+	})
+}
+
+export type {
+	ContentApplyReport,
+	ContentUpdateCandidate,
+	IdentifyResult,
+	InstalledContent,
+	UpdateCheckResult,
+}

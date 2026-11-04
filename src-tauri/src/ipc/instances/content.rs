@@ -2,7 +2,10 @@ use tauri::Runtime;
 
 use crate::app::instance_content;
 use crate::ipc::ApiError;
-use crate::minecraft::instance_content::{ContentCategory, ContentListResult};
+use crate::minecraft::instance_content::{
+    ContentApplyReport, ContentCategory, ContentListResult, ContentUpdateCandidate, IdentifyResult,
+    UpdateCheckResult,
+};
 
 #[taurpc::procedures(path = "instances.content")]
 pub trait InstanceContentApi {
@@ -41,6 +44,25 @@ pub trait InstanceContentApi {
         category: ContentCategory,
         world: Option<String>,
     ) -> Result<(), ApiError>;
+
+    async fn identify_instance_content(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: ContentCategory,
+    ) -> Result<IdentifyResult, ApiError>;
+
+    async fn check_content_updates(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: ContentCategory,
+    ) -> Result<UpdateCheckResult, ApiError>;
+
+    async fn apply_content_updates(
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: ContentCategory,
+        selections: Vec<ContentUpdateCandidate>,
+    ) -> Result<ContentApplyReport, ApiError>;
 }
 
 #[derive(Clone)]
@@ -117,6 +139,40 @@ impl InstanceContentApi for InstanceContentApiImpl {
         world: Option<String>,
     ) -> Result<(), ApiError> {
         instance_content::open_content_folder(&app_handle, &instance_id, category, world)
+            .await
+            .map_err(ApiError::from)
+    }
+
+    async fn identify_instance_content(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: ContentCategory,
+    ) -> Result<IdentifyResult, ApiError> {
+        instance_content::identify_content(&app_handle, &instance_id, category)
+            .await
+            .map_err(ApiError::from)
+    }
+
+    async fn check_content_updates(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: ContentCategory,
+    ) -> Result<UpdateCheckResult, ApiError> {
+        instance_content::check_content_updates(&app_handle, &instance_id, category)
+            .await
+            .map_err(ApiError::from)
+    }
+
+    async fn apply_content_updates(
+        self,
+        app_handle: tauri::AppHandle<impl Runtime>,
+        instance_id: String,
+        category: ContentCategory,
+        selections: Vec<ContentUpdateCandidate>,
+    ) -> Result<ContentApplyReport, ApiError> {
+        instance_content::apply_content_updates(&app_handle, &instance_id, category, selections)
             .await
             .map_err(ApiError::from)
     }

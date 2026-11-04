@@ -61,7 +61,7 @@ fn assert_inventory(bindings: &str) {
     assert_eq!(
         serde_json::to_value(recorded).unwrap(),
         arguments,
-        "Update the procedure inventory during migration"
+        "Update src-tauri/tests/fixtures/ipc-inventory.json to match the exported procedures. Left is the inventory fixture; right is the TauRPC exported contract."
     );
     let (_, functions, _) = crate::ipc::contract().generate_types();
     for procedure in inventory["procedures"].as_array().unwrap() {

@@ -27,6 +27,9 @@ pub enum InstanceContentError {
     #[error("Serialization error: {0}")]
     Serialization(String),
 
+    #[error("Metadata error: {0}")]
+    Metadata(String),
+
     #[error("World '{0}' not found in instance")]
     WorldNotFound(String),
 

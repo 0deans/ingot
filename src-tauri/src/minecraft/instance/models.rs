@@ -12,6 +12,18 @@ pub enum ModLoaderType {
     Horizon,
 }
 
+impl ModLoaderType {
+    pub fn supports_mods(&self) -> bool {
+        matches!(
+            self,
+            ModLoaderType::Fabric
+                | ModLoaderType::Quilt
+                | ModLoaderType::NeoForge
+                | ModLoaderType::Forge
+        )
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum InstanceColorTag {
@@ -64,4 +76,19 @@ pub struct InstanceConfig {
     pub group: Option<String>,
     #[serde(default)]
     pub color_tag: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mod_loader_supports_mods() {
+        assert!(!ModLoaderType::Vanilla.supports_mods());
+        assert!(!ModLoaderType::Horizon.supports_mods());
+        assert!(ModLoaderType::Fabric.supports_mods());
+        assert!(ModLoaderType::Quilt.supports_mods());
+        assert!(ModLoaderType::NeoForge.supports_mods());
+        assert!(ModLoaderType::Forge.supports_mods());
+    }
 }

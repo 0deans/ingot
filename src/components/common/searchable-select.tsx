@@ -14,6 +14,7 @@ export interface SearchableSelectOption {
 	value: string
 	label: string
 	badge?: string
+	disabled?: boolean
 }
 
 interface SearchableSelectProps {
@@ -61,7 +62,7 @@ export const SearchableSelect = memo(
 					<ComboboxEmpty>{i18n.t("select.noMatches")}</ComboboxEmpty>
 					<ComboboxList>
 						{(option: SearchableSelectOption) => (
-							<ComboboxItem key={option.value} value={option}>
+							<ComboboxItem key={option.value} value={option} disabled={option.disabled}>
 								<span className="truncate">{option.label}</span>
 								{option.badge && (
 									<Badge variant="secondary" className="ml-auto font-mono">

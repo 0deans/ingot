@@ -5,7 +5,7 @@
 			"name": "add_access_entry",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "kind", "name"],
+			"arguments": ["server_id","kind","name"],
 			"destination": "servers.config"
 		},
 		{
@@ -19,49 +19,63 @@
 			"name": "add_to_server_whitelist",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "username"],
+			"arguments": ["server_id","username"],
 			"destination": "servers.config"
+		},
+		{
+			"name": "apply_content_updates",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category","selections"],
+			"destination": "instances.content"
 		},
 		{
 			"name": "apply_ely_skin",
 			"currentPath": "skins",
 			"kind": "command",
-			"arguments": ["account_id", "skin_id", "password"],
+			"arguments": ["account_id","skin_id","password"],
 			"destination": "skins"
 		},
 		{
 			"name": "apply_instance_version_change",
 			"currentPath": "instances.version_change",
 			"kind": "command",
-			"arguments": ["plan", "backup_worlds"],
+			"arguments": ["plan","backup_worlds"],
 			"destination": "instances.version_change"
 		},
 		{
 			"name": "apply_microsoft_skin",
 			"currentPath": "skins",
 			"kind": "command",
-			"arguments": ["account_id", "skin_url", "is_slim"],
+			"arguments": ["account_id","skin_url","is_slim"],
 			"destination": "skins"
 		},
 		{
 			"name": "apply_server_version_change",
 			"currentPath": "servers.version_change",
 			"kind": "command",
-			"arguments": ["plan", "backup_worlds"],
+			"arguments": ["plan","backup_worlds"],
 			"destination": "servers.version_change"
 		},
 		{
 			"name": "backup_world",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "folder_name"],
+			"arguments": ["instance_id","folder_name"],
 			"destination": "instances.worlds"
+		},
+		{
+			"name": "check_content_updates",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category"],
+			"destination": "instances.content"
 		},
 		{
 			"name": "check_instance_version_change",
 			"currentPath": "instances.version_change",
 			"kind": "command",
-			"arguments": ["instance_id", "game_version", "loader", "loader_version"],
+			"arguments": ["instance_id","game_version","loader","loader_version"],
 			"destination": "instances.version_change"
 		},
 		{
@@ -75,7 +89,7 @@
 			"name": "check_server_version_change",
 			"currentPath": "servers.version_change",
 			"kind": "command",
-			"arguments": ["server_id", "game_version", "core"],
+			"arguments": ["server_id","game_version","core"],
 			"destination": "servers.version_change"
 		},
 		{
@@ -96,37 +110,36 @@
 			"name": "create_instance",
 			"currentPath": "instances",
 			"kind": "command",
-			"arguments": ["name", "game_version", "loader", "loader_version"],
+			"arguments": ["name","game_version","loader","loader_version"],
 			"destination": "instances"
 		},
 		{
 			"name": "create_instance_shortcut",
 			"currentPath": "instances",
 			"kind": "command",
-			"arguments": ["instance_id", "location"],
+			"arguments": ["instance_id","location"],
 			"destination": "instances"
 		},
 		{
 			"name": "create_server",
 			"currentPath": "servers",
 			"kind": "command",
-			"arguments": [
-				"name",
-				"core",
-				"game_version",
-				"build_number",
-				"port",
-				"memory_min_mb",
-				"memory_max_mb"
-			],
+			"arguments": ["name","core","game_version","build_number","port","memory_min_mb","memory_max_mb"],
 			"destination": "servers"
 		},
 		{
 			"name": "delete_bedrock_pack",
 			"currentPath": "servers.packs",
 			"kind": "command",
-			"arguments": ["server_id", "folder_name", "pack_type"],
+			"arguments": ["server_id","folder_name","pack_type"],
 			"destination": "servers.packs"
+		},
+		{
+			"name": "delete_content",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category","file_names"],
+			"destination": "instances.content"
 		},
 		{
 			"name": "delete_instance",
@@ -139,21 +152,21 @@
 			"name": "delete_screenshot",
 			"currentPath": "instances.screenshots",
 			"kind": "command",
-			"arguments": ["instance_id", "file_name"],
+			"arguments": ["instance_id","file_name"],
 			"destination": "instances.screenshots"
 		},
 		{
 			"name": "delete_server",
 			"currentPath": "servers",
 			"kind": "command",
-			"arguments": ["server_id", "delete_files"],
+			"arguments": ["server_id","delete_files"],
 			"destination": "servers"
 		},
 		{
 			"name": "delete_world_backup",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "file_name"],
+			"arguments": ["instance_id","file_name"],
 			"destination": "instances.worlds"
 		},
 		{
@@ -188,49 +201,49 @@
 			"name": "duplicate_instance",
 			"currentPath": "instances",
 			"kind": "command",
-			"arguments": ["instance_id", "name", "include_worlds"],
+			"arguments": ["instance_id","name","include_worlds"],
 			"destination": "instances"
 		},
 		{
 			"name": "duplicate_server",
 			"currentPath": "servers.transfer",
 			"kind": "command",
-			"arguments": ["server_id", "name", "game_version", "build_number"],
+			"arguments": ["server_id","name","game_version","build_number"],
 			"destination": "servers.transfer"
 		},
 		{
 			"name": "ely_login",
 			"currentPath": "accounts",
 			"kind": "command",
-			"arguments": ["username", "password"],
+			"arguments": ["username","password"],
 			"destination": "accounts"
 		},
 		{
 			"name": "export_instance_category_to_shared",
 			"currentPath": "instances.sync",
 			"kind": "command",
-			"arguments": ["instance_id", "category"],
+			"arguments": ["instance_id","category"],
 			"destination": "instances.sync"
 		},
 		{
 			"name": "export_server",
 			"currentPath": "servers.transfer",
 			"kind": "command",
-			"arguments": ["server_id", "mode", "dest"],
+			"arguments": ["server_id","mode","dest"],
 			"destination": "servers.transfer"
 		},
 		{
 			"name": "export_world",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "folder_name", "dest"],
+			"arguments": ["instance_id","folder_name","dest"],
 			"destination": "instances.worlds"
 		},
 		{
 			"name": "get_access_list",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "kind"],
+			"arguments": ["server_id","kind"],
 			"destination": "servers.config"
 		},
 		{
@@ -286,7 +299,7 @@
 			"name": "get_available_loader_versions",
 			"currentPath": "versions",
 			"kind": "command",
-			"arguments": ["game_version", "loader"],
+			"arguments": ["game_version","loader"],
 			"destination": "versions"
 		},
 		{
@@ -314,7 +327,7 @@
 			"name": "get_content_details",
 			"currentPath": "content",
 			"kind": "command",
-			"arguments": ["source", "project_id"],
+			"arguments": ["source","project_id"],
 			"destination": "content"
 		},
 		{
@@ -328,7 +341,7 @@
 			"name": "get_ely_skins",
 			"currentPath": "skins",
 			"kind": "command",
-			"arguments": ["page", "query", "sort", "model", "uploader"],
+			"arguments": ["page","query","sort","model","uploader"],
 			"destination": "skins"
 		},
 		{
@@ -391,7 +404,7 @@
 			"name": "get_launcher_instances",
 			"currentPath": "instances.imports",
 			"kind": "command",
-			"arguments": ["launcher_id", "custom_path"],
+			"arguments": ["launcher_id","custom_path"],
 			"destination": "instances.imports"
 		},
 		{
@@ -419,7 +432,7 @@
 			"name": "get_map_tile",
 			"currentPath": "servers.map",
 			"kind": "command",
-			"arguments": ["server_id", "dimension", "x", "z"],
+			"arguments": ["server_id","dimension","x","z"],
 			"destination": "servers.map"
 		},
 		{
@@ -461,7 +474,7 @@
 			"name": "get_player_details",
 			"currentPath": "servers.players",
 			"kind": "command",
-			"arguments": ["server_id", "name"],
+			"arguments": ["server_id","name"],
 			"destination": "servers.players"
 		},
 		{
@@ -496,7 +509,7 @@
 			"name": "get_screenshot_thumbnail",
 			"currentPath": "instances.screenshots",
 			"kind": "command",
-			"arguments": ["instance_id", "file_name", "file_path", "modified_at"],
+			"arguments": ["instance_id","file_name","file_path","modified_at"],
 			"destination": "instances.screenshots"
 		},
 		{
@@ -524,14 +537,14 @@
 			"name": "get_server_plugin_page",
 			"currentPath": "servers.plugins",
 			"kind": "command",
-			"arguments": ["source", "project_id"],
+			"arguments": ["source","project_id"],
 			"destination": "servers.plugins"
 		},
 		{
 			"name": "get_server_plugin_versions",
 			"currentPath": "servers.plugins",
 			"kind": "command",
-			"arguments": ["server_id", "source", "project_id", "compatible_only"],
+			"arguments": ["server_id","source","project_id","compatible_only"],
 			"destination": "servers.plugins"
 		},
 		{
@@ -640,6 +653,13 @@
 			"destination": "skins"
 		},
 		{
+			"name": "identify_instance_content",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category"],
+			"destination": "instances.content"
+		},
+		{
 			"name": "import_instance",
 			"currentPath": "instances.imports",
 			"kind": "command",
@@ -657,14 +677,14 @@
 			"name": "import_upload_chunk",
 			"currentPath": "servers.transfer",
 			"kind": "command",
-			"arguments": ["upload_id", "data_base64", "first"],
+			"arguments": ["upload_id","data_base64","first"],
 			"destination": "servers.transfer"
 		},
 		{
 			"name": "import_world",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "zip_path"],
+			"arguments": ["instance_id","zip_path"],
 			"destination": "instances.worlds"
 		},
 		{
@@ -678,7 +698,7 @@
 			"name": "install_bedrock_pack",
 			"currentPath": "servers.packs",
 			"kind": "command",
-			"arguments": ["server_id", "download_url", "filename"],
+			"arguments": ["server_id","download_url","filename"],
 			"destination": "servers.packs"
 		},
 		{
@@ -692,21 +712,21 @@
 			"name": "install_content_file",
 			"currentPath": "content",
 			"kind": "command",
-			"arguments": ["instance_id", "project_type", "download_url", "filename"],
+			"arguments": ["instance_id","project_type","download_url","filename"],
 			"destination": "content"
 		},
 		{
 			"name": "install_modpack_instance",
 			"currentPath": "content",
 			"kind": "command",
-			"arguments": ["name", "source", "download_url", "filename"],
+			"arguments": ["name","source","download_url","filename"],
 			"destination": "content"
 		},
 		{
 			"name": "install_server_plugin",
 			"currentPath": "servers.plugins",
 			"kind": "command",
-			"arguments": ["server_id", "source", "project_id", "version_id"],
+			"arguments": ["server_id","source","project_id","version_id"],
 			"destination": "servers.plugins"
 		},
 		{
@@ -734,7 +754,7 @@
 			"name": "launch_instance",
 			"currentPath": "instances",
 			"kind": "command",
-			"arguments": ["instance_id", "quick_play"],
+			"arguments": ["instance_id","quick_play"],
 			"destination": "instances"
 		},
 		{
@@ -743,6 +763,13 @@
 			"kind": "command",
 			"arguments": ["server_id"],
 			"destination": "servers.packs"
+		},
+		{
+			"name": "list_instance_content",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category"],
+			"destination": "instances.content"
 		},
 		{
 			"name": "list_instance_log_files",
@@ -769,7 +796,7 @@
 			"name": "list_world_backups",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "folder_name"],
+			"arguments": ["instance_id","folder_name"],
 			"destination": "instances.worlds"
 		},
 		{
@@ -874,8 +901,15 @@
 			"name": "open_bedrock_server_subfolder",
 			"currentPath": "servers.packs",
 			"kind": "command",
-			"arguments": ["server_id", "subfolder"],
+			"arguments": ["server_id","subfolder"],
 			"destination": "servers.packs"
+		},
+		{
+			"name": "open_content_folder",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category","world"],
+			"destination": "instances.content"
 		},
 		{
 			"name": "open_instance_folder",
@@ -888,7 +922,7 @@
 			"name": "open_instance_log_location",
 			"currentPath": "instances.logs",
 			"kind": "command",
-			"arguments": ["instance_id", "kind", "file_name"],
+			"arguments": ["instance_id","kind","file_name"],
 			"destination": "instances.logs"
 		},
 		{
@@ -909,7 +943,7 @@
 			"name": "open_world_folder",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "folder_name"],
+			"arguments": ["instance_id","folder_name"],
 			"destination": "instances.worlds"
 		},
 		{
@@ -951,14 +985,14 @@
 			"name": "read_instance_log_file",
 			"currentPath": "instances.logs",
 			"kind": "command",
-			"arguments": ["instance_id", "kind", "file_name"],
+			"arguments": ["instance_id","kind","file_name"],
 			"destination": "instances.logs"
 		},
 		{
 			"name": "read_server_config_file",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "path"],
+			"arguments": ["server_id","path"],
 			"destination": "servers.config"
 		},
 		{
@@ -979,7 +1013,7 @@
 			"name": "remove_access_entry",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "kind", "name"],
+			"arguments": ["server_id","kind","name"],
 			"destination": "servers.config"
 		},
 		{
@@ -993,14 +1027,14 @@
 			"name": "remove_from_server_whitelist",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "username"],
+			"arguments": ["server_id","username"],
 			"destination": "servers.config"
 		},
 		{
 			"name": "remove_server_plugin",
 			"currentPath": "servers.plugins",
 			"kind": "command",
-			"arguments": ["server_id", "file_name"],
+			"arguments": ["server_id","file_name"],
 			"destination": "servers.plugins"
 		},
 		{
@@ -1014,14 +1048,14 @@
 			"name": "reset_world_dimension",
 			"currentPath": "instances.worlds",
 			"kind": "command",
-			"arguments": ["instance_id", "folder_name", "dimension"],
+			"arguments": ["instance_id","folder_name","dimension"],
 			"destination": "instances.worlds"
 		},
 		{
 			"name": "resolve_sync_conflict",
 			"currentPath": "instances.sync",
 			"kind": "command",
-			"arguments": ["instance_id", "resolution"],
+			"arguments": ["instance_id","resolution"],
 			"destination": "instances.sync"
 		},
 		{
@@ -1049,44 +1083,35 @@
 			"name": "save_server_world",
 			"currentPath": "servers",
 			"kind": "command",
-			"arguments": ["server_id", "flush"],
+			"arguments": ["server_id","flush"],
 			"destination": "servers"
 		},
 		{
 			"name": "save_skin_to_downloads",
 			"currentPath": "skins",
 			"kind": "command",
-			"arguments": ["username", "skin_url"],
+			"arguments": ["username","skin_url"],
 			"destination": "skins"
 		},
 		{
 			"name": "search_content",
 			"currentPath": "content",
 			"kind": "command",
-			"arguments": [
-				"source",
-				"project_type",
-				"query",
-				"game_version",
-				"loader",
-				"sort",
-				"page",
-				"page_size"
-			],
+			"arguments": ["source","project_type","query","game_version","loader","sort","page","page_size"],
 			"destination": "content"
 		},
 		{
 			"name": "search_server_plugins",
 			"currentPath": "servers.plugins",
 			"kind": "command",
-			"arguments": ["server_id", "source", "query", "sort", "compatible_only", "page"],
+			"arguments": ["server_id","source","query","sort","compatible_only","page"],
 			"destination": "servers.plugins"
 		},
 		{
 			"name": "send_server_command",
 			"currentPath": "servers",
 			"kind": "command",
-			"arguments": ["server_id", "command"],
+			"arguments": ["server_id","command"],
 			"destination": "servers"
 		},
 		{
@@ -1100,8 +1125,22 @@
 			"name": "set_bedrock_pack_enabled",
 			"currentPath": "servers.packs",
 			"kind": "command",
-			"arguments": ["server_id", "pack_id", "pack_type", "enabled"],
+			"arguments": ["server_id","pack_id","pack_type","enabled"],
 			"destination": "servers.packs"
+		},
+		{
+			"name": "set_content_enabled",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category","file_name","enabled"],
+			"destination": "instances.content"
+		},
+		{
+			"name": "set_content_enabled_bulk",
+			"currentPath": "instances.content",
+			"kind": "command",
+			"arguments": ["instance_id","category","file_names","enabled"],
+			"destination": "instances.content"
 		},
 		{
 			"name": "set_launcher_behavior",
@@ -1114,35 +1153,35 @@
 			"name": "set_memory_settings",
 			"currentPath": "settings",
 			"kind": "command",
-			"arguments": ["min_ram_mb", "max_ram_mb"],
+			"arguments": ["min_ram_mb","max_ram_mb"],
 			"destination": "settings"
 		},
 		{
 			"name": "set_server_icon",
 			"currentPath": "servers",
 			"kind": "command",
-			"arguments": ["server_id", "base64_data"],
+			"arguments": ["server_id","base64_data"],
 			"destination": "servers"
 		},
 		{
 			"name": "set_server_plugin_enabled",
 			"currentPath": "servers.plugins",
 			"kind": "command",
-			"arguments": ["server_id", "file_name", "enabled"],
+			"arguments": ["server_id","file_name","enabled"],
 			"destination": "servers.plugins"
 		},
 		{
 			"name": "set_server_properties",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "properties"],
+			"arguments": ["server_id","properties"],
 			"destination": "servers.config"
 		},
 		{
 			"name": "set_server_properties_all",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "entries"],
+			"arguments": ["server_id","entries"],
 			"destination": "servers.config"
 		},
 		{
@@ -1212,7 +1251,7 @@
 			"name": "turn_off_after_version_change",
 			"currentPath": "app",
 			"kind": "command",
-			"arguments": ["target_kind", "target_id", "folder", "file_name"],
+			"arguments": ["target_kind","target_id","folder","file_name"],
 			"destination": "app"
 		},
 		{
@@ -1247,28 +1286,28 @@
 			"name": "upload_ely_skin",
 			"currentPath": "skins",
 			"kind": "command",
-			"arguments": ["account_id", "image_base64", "password"],
+			"arguments": ["account_id","image_base64","password"],
 			"destination": "skins"
 		},
 		{
 			"name": "upload_log_paste",
 			"currentPath": "instances.logs",
 			"kind": "command",
-			"arguments": ["content", "provider"],
+			"arguments": ["content","provider"],
 			"destination": "instances.logs"
 		},
 		{
 			"name": "upload_microsoft_skin",
 			"currentPath": "skins",
 			"kind": "command",
-			"arguments": ["account_id", "image_base64", "is_slim"],
+			"arguments": ["account_id","image_base64","is_slim"],
 			"destination": "skins"
 		},
 		{
 			"name": "write_server_config_file",
 			"currentPath": "servers.config",
 			"kind": "command",
-			"arguments": ["server_id", "path", "content"],
+			"arguments": ["server_id","path","content"],
 			"destination": "servers.config"
 		}
 	]

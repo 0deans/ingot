@@ -106,6 +106,7 @@ impl From<crate::minecraft::content::error::ContentError> for ApiError {
             | ContentError::UnsafePath(_)
             | ContentError::Integrity(_)
             | ContentError::Json(_)
+            | ContentError::UnsupportedLoader { .. }
             | ContentError::Zip(_) => Self::invalid_input(error.to_string()),
             ContentError::Io(error) => Self::storage_failure(error.to_string()),
             ContentError::Cleanup { .. } => Self::incomplete_recovery(error.to_string()),
@@ -438,6 +439,7 @@ impl From<crate::minecraft::instance_content::InstanceContentError> for ApiError
             InstanceContentError::InvalidFileName { reason, .. } => Self::invalid_input(reason),
             InstanceContentError::Io { .. } => Self::storage_failure(error.to_string()),
             InstanceContentError::Serialization(msg)
+            | InstanceContentError::Metadata(msg)
             | InstanceContentError::InvalidOperation(msg) => Self::internal(msg),
         }
     }

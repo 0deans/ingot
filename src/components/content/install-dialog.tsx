@@ -37,6 +37,46 @@ interface InstallDialogProps {
 	onSuccess?: (message: string) => void
 }
 
+export const supportsMods = (loader: string): boolean => {
+	const l = loader.toLowerCase()
+	return l === "fabric" || l === "quilt" || l === "neoforge" || l === "forge"
+}
+
+export const isVersionCompatibleWithInstance = (
+	instance: InstanceConfig,
+	version: UnifiedContentVersion,
+	projectType: string,
+): boolean => {
+	const matchGameVer = version.gameVersions.some((gv) => {
+		return gv.toLowerCase() === instance.gameVersion.toLowerCase()
+	})
+	if (!matchGameVer) {
+		return false
+	}
+
+	if (projectType === "mod") {
+		if (!supportsMods(instance.loader)) {
+			return false
+		}
+		const instLoader = instance.loader.toLowerCase()
+		return version.loaders.some((l) => {
+			const vl = l.toLowerCase()
+			if (vl === instLoader) {
+				return true
+			}
+			if (instLoader === "quilt" && vl === "fabric") {
+				return true
+			}
+			if (instLoader === "neoforge" && vl === "forge" && instance.gameVersion === "1.20.1") {
+				return true
+			}
+			return false
+		})
+	}
+
+	return true
+}
+
 function formatError(err: unknown): string {
 	if (!err) return i18n.t("install.loadFailed")
 	if (typeof err === "string") return err
@@ -66,6 +106,7 @@ export const InstallDialog = memo(
 		const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
 		const isModpack = item?.projectType === "modpack"
+		const isMod = item?.projectType === "mod"
 
 		const [prevOpen, setPrevOpen] = useState(open)
 		const [prevItem, setPrevItem] = useState(item)
@@ -142,41 +183,46 @@ export const InstallDialog = memo(
 				})
 			if (!hasSelected) {
 				if (versions.length > 0) {
+					// 1. Try to find an instance compatible with at least one version
 					const compInst = instances.find((inst) => {
 						return versions.some((v) => {
-							const matchVer = v.gameVersions.some((gv) => {
-								return gv.toLowerCase() === inst.gameVersion.toLowerCase()
-							})
-							const matchLdr = v.loaders.some((l) => {
-								return l.toLowerCase() === inst.loader.toLowerCase()
-							})
-							return matchVer && matchLdr
+							return isVersionCompatibleWithInstance(inst, v, item?.projectType ?? "")
 						})
 					})
-					setSelectedInstanceId(compInst ? compInst.id : instances[0].id)
+					// 2. Fall back to an instance that supports mods (or first instance)
+					const fallbackInst = isMod
+						? (instances.find((inst) => {
+								return supportsMods(inst.loader)
+							}) ?? instances[0])
+						: instances[0]
+
+					setSelectedInstanceId(compInst ? compInst.id : fallbackInst.id)
 				} else {
-					setSelectedInstanceId(instances[0].id)
+					const fallbackInst = isMod
+						? (instances.find((inst) => {
+								return supportsMods(inst.loader)
+							}) ?? instances[0])
+						: instances[0]
+					setSelectedInstanceId(fallbackInst.id)
 				}
 			}
 		}
 
 		const selectedInstance = useMemo(() => {
-			return instances.find((i) => i.id === selectedInstanceId)
+			return instances.find((i) => {
+				return i.id === selectedInstanceId
+			})
 		}, [instances, selectedInstanceId])
 
 		// For the selected instance, filter compatible versions
 		const compatibleVersions = useMemo(() => {
-			if (isModpack || !selectedInstance) return versions
+			if (isModpack || !selectedInstance) {
+				return versions
+			}
 			return versions.filter((v) => {
-				const matchVer = v.gameVersions.some(
-					(gv) => gv.toLowerCase() === selectedInstance.gameVersion.toLowerCase(),
-				)
-				const matchLdr = v.loaders.some(
-					(l) => l.toLowerCase() === selectedInstance.loader.toLowerCase(),
-				)
-				return matchVer && matchLdr
+				return isVersionCompatibleWithInstance(selectedInstance, v, item?.projectType ?? "")
 			})
-		}, [versions, selectedInstance, isModpack])
+		}, [versions, selectedInstance, isModpack, item?.projectType])
 
 		if (!isModpack && compatibleVersions.length > 0) {
 			const currentIsComp = compatibleVersions.some((v) => {
@@ -188,48 +234,113 @@ export const InstallDialog = memo(
 		}
 
 		const selectedVersion = useMemo(() => {
-			return versions.find((v) => v.id === selectedVersionId) || versions[0]
-		}, [versions, selectedVersionId])
+			if (isModpack) {
+				return (
+					versions.find((v) => {
+						return v.id === selectedVersionId
+					}) ?? (versions.length > 0 ? versions[0] : null)
+				)
+			}
+			if (compatibleVersions.length === 0) {
+				return null
+			}
+			return (
+				compatibleVersions.find((v) => {
+					return v.id === selectedVersionId
+				}) ?? compatibleVersions[0]
+			)
+		}, [versions, selectedVersionId, isModpack, compatibleVersions])
 
 		// Searchable options for Instance Selector
 		const instanceOptions: SearchableSelectOption[] = useMemo(() => {
 			return instances.map((inst) => {
-				const isComp = versions.some((v) => {
-					const matchVer = v.gameVersions.some(
-						(gv) => gv.toLowerCase() === inst.gameVersion.toLowerCase(),
-					)
-					const matchLdr = v.loaders.some((l) => l.toLowerCase() === inst.loader.toLowerCase())
-					return matchVer && matchLdr
-				})
+				const hasModSupport = !isMod || supportsMods(inst.loader)
+				const isComp =
+					hasModSupport &&
+					versions.some((v) => {
+						return isVersionCompatibleWithInstance(inst, v, item?.projectType ?? "")
+					})
+
+				let badge = `${inst.gameVersion} • ${inst.loader}`
+				if (isMod && !supportsMods(inst.loader)) {
+					badge += ` • ✗ ${t("install.noModSupport")}`
+				} else if (isComp) {
+					badge += ` • ✓ ${t("install.compatible")}`
+				} else {
+					badge += ` • ✗ ${t("install.incompatible")}`
+				}
+
 				return {
 					value: inst.id,
 					label: inst.name,
-					badge: `${inst.gameVersion} • ${inst.loader}${isComp ? ` • ✓ ${t("install.compatible")}` : ""}`,
+					badge,
+					disabled: isMod && !supportsMods(inst.loader),
 				}
 			})
-		}, [instances, versions, t])
+		}, [instances, versions, isMod, item?.projectType, t])
 
 		// Searchable options for Modpack Versions
 		const modpackVersionOptions: SearchableSelectOption[] = useMemo(() => {
-			return versions.map((ver) => ({
-				value: ver.id,
-				label: ver.name,
-				badge: `${ver.versionType.toUpperCase()} • MC ${ver.gameVersions.slice(0, 2).join(", ") || t("install.all")}`,
-			}))
+			return versions.map((ver) => {
+				return {
+					value: ver.id,
+					label: ver.name,
+					badge: `${ver.versionType.toUpperCase()} • MC ${ver.gameVersions.slice(0, 2).join(", ") || t("install.all")}`,
+				}
+			})
 		}, [versions, t])
 
 		// Searchable options for Mod File Versions
 		const singleVersionOptions: SearchableSelectOption[] = useMemo(() => {
-			const sourceList = compatibleVersions.length > 0 ? compatibleVersions : versions
-			return sourceList.map((ver) => ({
-				value: ver.id,
-				label: ver.name,
-				badge: `${ver.versionType.toUpperCase()} • ${ver.loaders.slice(0, 2).join(", ") || t("install.any")}`,
-			}))
-		}, [compatibleVersions, versions, t])
+			return versions.map((ver) => {
+				const isComp = selectedInstance
+					? isVersionCompatibleWithInstance(selectedInstance, ver, item?.projectType ?? "")
+					: true
+				return {
+					value: ver.id,
+					label: ver.name,
+					badge: `${ver.versionType.toUpperCase()} • ${ver.loaders.slice(0, 2).join(", ") || t("install.any")}${!isComp ? ` • ✗ ${t("install.incompatible")}` : ""}`,
+					disabled: !isComp,
+				}
+			})
+		}, [versions, selectedInstance, item?.projectType, t])
 
 		const handleInstall = async () => {
-			if (!item || !selectedVersion) return
+			if (!item) {
+				return
+			}
+			if (!isModpack) {
+				if (!selectedInstance) {
+					setErrorMessage(t("install.selectTarget"))
+					return
+				}
+				if (isMod && !supportsMods(selectedInstance.loader)) {
+					setErrorMessage(
+						t("install.unsupportedLoaderWarning", {
+							instance: selectedInstance.name,
+							loader: selectedInstance.loader,
+						}),
+					)
+					return
+				}
+				if (
+					!selectedVersion ||
+					!isVersionCompatibleWithInstance(selectedInstance, selectedVersion, item.projectType)
+				) {
+					setErrorMessage(
+						t("install.versionIncompatibleWarning", {
+							instance: selectedInstance.name,
+							version: selectedInstance.gameVersion,
+							loader: selectedInstance.loader,
+						}),
+					)
+					return
+				}
+			}
+			if (!selectedVersion) {
+				return
+			}
+
 			setIsSubmitting(true)
 			setErrorMessage(null)
 
@@ -246,11 +357,6 @@ export const InstallDialog = memo(
 					onSuccess?.(t("install.modpackDone", { name }))
 					onOpenChange(false)
 				} else {
-					if (!selectedInstanceId) {
-						setErrorMessage(t("install.selectTarget"))
-						setIsSubmitting(false)
-						return
-					}
 					await contentService.installContentFile(
 						selectedInstanceId,
 						item.projectType,
@@ -468,6 +574,32 @@ export const InstallDialog = memo(
 													</div>
 												</div>
 											)}
+											{selectedInstance && isMod && !supportsMods(selectedInstance.loader) && (
+												<Alert variant="destructive">
+													<AlertCircle className="size-4 shrink-0" />
+													<AlertDescription>
+														{t("install.unsupportedLoaderWarning", {
+															instance: selectedInstance.name,
+															loader: selectedInstance.loader,
+														})}
+													</AlertDescription>
+												</Alert>
+											)}
+
+											{selectedInstance &&
+												(!isMod || supportsMods(selectedInstance.loader)) &&
+												compatibleVersions.length === 0 && (
+													<Alert variant="destructive">
+														<AlertCircle className="size-4 shrink-0" />
+														<AlertDescription>
+															{t("install.noCompatibleVersionWarning", {
+																instance: selectedInstance.name,
+																version: selectedInstance.gameVersion,
+																loader: selectedInstance.loader,
+															})}
+														</AlertDescription>
+													</Alert>
+												)}
 										</>
 									)}
 								</div>
@@ -496,8 +628,11 @@ export const InstallDialog = memo(
 							disabled={
 								isLoadingData ||
 								isSubmitting ||
-								(!isModpack && instances.length === 0) ||
-								!selectedVersion
+								(!isModpack &&
+									(instances.length === 0 ||
+										!selectedInstance ||
+										(isMod && !supportsMods(selectedInstance.loader)) ||
+										!selectedVersion))
 							}
 							onClick={handleInstall}
 							className="gap-1.5 text-xs font-semibold"

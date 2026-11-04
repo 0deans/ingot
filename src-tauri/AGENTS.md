@@ -105,7 +105,7 @@ pnpm test:ipc
 ```
 
 - The five live API tests are explicitly ignored smoke tests. Default tests run without skip filters; opt in to a specific live test by name with `--ignored --exact`. Cargo's `--offline` restricts dependency access; it does not disable network calls made by tests.
-- Binding freshness and the procedure inventory are checked by `ipc_contract::generated_bindings_match_the_committed_contract` in the library suite. Regenerate without launching the app:
+- Binding freshness and the procedure inventory are checked by `ipc_contract::generated_bindings_match_the_committed_contract` in the library suite. Note that changes to IPC procedures (adding, removing, or modifying arguments or paths) require updating `tests/fixtures/ipc-inventory.json` in addition to regenerating `src/bindings.ts`. Regenerate bindings without launching the app:
 
 ```text
 cargo test --lib --locked ipc_contract::export_bindings -- --ignored --exact

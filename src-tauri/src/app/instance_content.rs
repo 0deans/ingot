@@ -114,3 +114,86 @@ pub(crate) async fn open_content_folder<R: Runtime>(
 
     Ok(())
 }
+
+pub(crate) async fn identify_content<R: Runtime>(
+    app: &AppHandle<R>,
+    instance_id: &str,
+    category: ContentCategory,
+) -> Result<crate::minecraft::instance_content::IdentifyResult, InstanceContentError> {
+    let instance_dir = super::instances::ensure_instance_dir(app, instance_id)
+        .map_err(|_| InstanceContentError::InstanceNotFound(instance_id.to_string()))?;
+
+    let config = super::instances::load_instances(app)
+        .map_err(|e| InstanceContentError::Metadata(e.to_string()))?
+        .into_iter()
+        .find(|i| i.id == instance_id)
+        .ok_or_else(|| InstanceContentError::InstanceNotFound(instance_id.to_string()))?;
+
+    let game_version = config.game_version;
+    let loader_id = crate::version_change::targets::loader_id(&config.loader);
+    let http = super::state(app).http.clone();
+
+    crate::minecraft::instance_content::identify_content(
+        &instance_dir,
+        category,
+        &game_version,
+        &loader_id,
+        &http,
+    )
+    .await
+}
+
+pub(crate) async fn check_content_updates<R: Runtime>(
+    app: &AppHandle<R>,
+    instance_id: &str,
+    category: ContentCategory,
+) -> Result<crate::minecraft::instance_content::UpdateCheckResult, InstanceContentError> {
+    let instance_dir = super::instances::ensure_instance_dir(app, instance_id)
+        .map_err(|_| InstanceContentError::InstanceNotFound(instance_id.to_string()))?;
+
+    let config = super::instances::load_instances(app)
+        .map_err(|e| InstanceContentError::Metadata(e.to_string()))?
+        .into_iter()
+        .find(|i| i.id == instance_id)
+        .ok_or_else(|| InstanceContentError::InstanceNotFound(instance_id.to_string()))?;
+
+    let game_version = config.game_version;
+    let loader_id = crate::version_change::targets::loader_id(&config.loader);
+    let http = super::state(app).http.clone();
+
+    crate::minecraft::instance_content::check_updates(
+        &instance_dir,
+        category,
+        &game_version,
+        &loader_id,
+        &http,
+    )
+    .await
+}
+
+pub(crate) async fn apply_content_updates<R: Runtime>(
+    app: &AppHandle<R>,
+    instance_id: &str,
+    category: ContentCategory,
+    selections: Vec<crate::minecraft::instance_content::ContentUpdateCandidate>,
+) -> Result<crate::minecraft::instance_content::ContentApplyReport, InstanceContentError> {
+    super::lifecycle::adopt_running_games(app).await;
+    if super::state(app).games.is_running(instance_id).await {
+        return Err(InstanceContentError::InstanceRunning(
+            instance_id.to_string(),
+        ));
+    }
+
+    let instance_dir = super::instances::ensure_instance_dir(app, instance_id)
+        .map_err(|_| InstanceContentError::InstanceNotFound(instance_id.to_string()))?;
+
+    let http = super::state(app).http.clone();
+
+    crate::minecraft::instance_content::apply_updates(
+        &instance_dir,
+        category,
+        selections,
+        &http,
+    )
+    .await
+}

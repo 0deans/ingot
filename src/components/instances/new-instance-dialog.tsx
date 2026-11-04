@@ -68,7 +68,7 @@ const NewInstanceDialog = ({
 	const { t } = useTranslation()
 	const iconFileInputRef = useRef<HTMLInputElement | null>(null)
 	const [instanceName, setInstanceName] = useState("")
-	const [gameVersion, setGameVersion] = useState("1.21.4")
+	const [gameVersion, setGameVersion] = useState(initialVersion || "")
 	const [loader, setLoader] = useState<ModLoaderType>("vanilla")
 	const [loaderVersion, setLoaderVersion] = useState<string>("")
 	const [showSnapshots, setShowSnapshots] = useState(false)
@@ -112,6 +112,9 @@ const NewInstanceDialog = ({
 		setColorTag(null)
 		setIconSpec(null)
 		setIsCustomName(false)
+		if (!initialVersion) {
+			setGameVersion("")
+		}
 	}
 
 	// Fetch game versions when dialog opens
@@ -137,9 +140,11 @@ const NewInstanceDialog = ({
 					}
 				} else if (releases.length > 0) {
 					setGameVersion((current) => {
-						const hasCurrent = releases.some((r) => {
-							return r.id === current
-						})
+						const hasCurrent =
+							Boolean(current) &&
+							releases.some((r) => {
+								return r.id === current
+							})
 						return hasCurrent ? current : releases[0].id
 					})
 				}
@@ -211,7 +216,11 @@ const NewInstanceDialog = ({
 			LOADERS.find((l) => {
 				return l.id === loader
 			})?.label || "Vanilla"
-		setInstanceName(`${loaderLabel} ${gameVersion}`)
+		if (gameVersion) {
+			setInstanceName(`${loaderLabel} ${gameVersion}`)
+		} else {
+			setInstanceName(loaderLabel)
+		}
 	} else if (isCustomName !== prevNameConfig.isCustomName) {
 		setPrevNameConfig({ loader, gameVersion, isCustomName })
 	}

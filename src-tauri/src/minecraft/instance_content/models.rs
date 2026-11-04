@@ -109,3 +109,41 @@ pub struct ContentListResult {
     pub items: Vec<InstalledContent>,
     pub dependency_issues: Vec<ContentDependencyIssue>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ContentUpdateCandidate {
+    pub file_name: String,
+    pub current_version: Option<String>,
+    pub latest_version: String,
+    pub latest_version_id: String,
+    pub title: String,
+    pub download_url: String,
+    pub new_file_name: String,
+    pub channel: String,
+    pub source: ProviderSource,
+    pub sha1: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateCheckResult {
+    pub updates: Vec<ContentUpdateCandidate>,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ContentApplyReport {
+    pub updated: Vec<String>,
+    pub failed: Vec<String>,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct IdentifyResult {
+    pub identified_count: u32,
+    pub total_count: u32,
+    pub warnings: Vec<String>,
+}
