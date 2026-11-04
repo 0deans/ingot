@@ -423,3 +423,22 @@ impl From<crate::minecraft::worlds::WorldError> for ApiError {
         }
     }
 }
+
+impl From<crate::minecraft::instance_content::InstanceContentError> for ApiError {
+    fn from(error: crate::minecraft::instance_content::InstanceContentError) -> Self {
+        use crate::minecraft::instance_content::InstanceContentError;
+        match error {
+            InstanceContentError::InstanceNotFound(msg)
+            | InstanceContentError::NotFound(msg)
+            | InstanceContentError::WorldNotFound(msg) => Self::not_found(msg),
+            InstanceContentError::InstanceRunning(inst) => {
+                Self::conflict(format!("Instance '{inst}' is currently running"))
+            }
+            InstanceContentError::NameConflict(msg) => Self::conflict(msg),
+            InstanceContentError::InvalidFileName { reason, .. } => Self::invalid_input(reason),
+            InstanceContentError::Io { .. } => Self::storage_failure(error.to_string()),
+            InstanceContentError::Serialization(msg)
+            | InstanceContentError::InvalidOperation(msg) => Self::internal(msg),
+        }
+    }
+}

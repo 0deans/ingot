@@ -13,6 +13,7 @@ import {
 	LayoutGrid,
 	Monitor,
 	MoreVertical,
+	Package,
 	Palette,
 	Play,
 	Settings,
@@ -569,6 +570,18 @@ export const InstanceCard = ({
 								<DropdownMenuItem onClick={onLogs} className="cursor-pointer gap-2">
 									<Terminal className="size-4 text-muted-foreground" />
 									<span className="text-xs">{t("instances.card.logsTooltip")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => {
+										return void navigate({
+											to: "/instances/$id",
+											params: { id: instance.id },
+										})
+									}}
+									className="cursor-pointer gap-2"
+								>
+									<Package className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("instanceContent.manageContent")}</span>
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={onSettings} className="cursor-pointer gap-2">
 									<Settings className="size-4 text-muted-foreground" />

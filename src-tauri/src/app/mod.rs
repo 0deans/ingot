@@ -8,6 +8,7 @@ pub(crate) mod content;
 pub(crate) mod events;
 pub(crate) mod games;
 pub(crate) mod importer;
+pub(crate) mod instance_content;
 pub(crate) mod instances;
 pub(crate) mod java;
 pub(crate) mod lifecycle;

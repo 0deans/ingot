@@ -23,7 +23,7 @@ pub fn parse_loader<T: DeserializeOwned>(id: &str) -> Result<T, super::models::V
 }
 
 /// Mods for this loader on Modrinth and CurseForge (Quilt also runs Fabric mods)
-fn mod_scope(loader: &str) -> Scope {
+pub(crate) fn mod_scope(loader: &str) -> Scope {
     let (modrinth, cf_loader, cf_loader_names): (
         Vec<&'static str>,
         Option<u32>,

@@ -22,6 +22,7 @@ use bedrock::{BedrockApi, BedrockApiImpl};
 use content::{ContentApi, ContentApiImpl};
 use events::{EventsApi, EventsApiImpl};
 use instances::{
+    content::{InstanceContentApi, InstanceContentApiImpl},
     imports::{InstanceImportsApi, InstanceImportsApiImpl},
     logs::{InstanceLogsApi, InstanceLogsApiImpl},
     screenshots::{InstanceScreenshotsApi, InstanceScreenshotsApiImpl},
@@ -56,6 +57,7 @@ macro_rules! registered_apis {
         $register!(SettingsApiImpl);
         $register!(EventsApiImpl);
         $register!(InstancesApiImpl);
+        $register!(InstanceContentApiImpl);
         $register!(InstanceImportsApiImpl);
         $register!(InstanceLogsApiImpl);
         $register!(InstanceScreenshotsApiImpl);

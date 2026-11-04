@@ -4,6 +4,7 @@ pub mod downloader;
 pub mod horizon;
 pub mod importer;
 pub mod instance;
+pub mod instance_content;
 pub mod java;
 pub mod launcher;
 pub mod loader;

@@ -1,4 +1,5 @@
 //! IPC procedures for Minecraft instance management.
+pub(crate) mod content;
 pub(crate) mod imports;
 pub(crate) mod logs;
 pub(crate) mod screenshots;
