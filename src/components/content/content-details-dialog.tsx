@@ -4,11 +4,15 @@ import i18n from "i18next"
 import {
 	ChevronLeft,
 	ChevronRight,
+	Compass,
 	Download,
 	ExternalLink,
 	Flame,
 	Globe,
 	Maximize2,
+	Package,
+	Rocket,
+	Wrench,
 	X,
 } from "lucide-react"
 import { marked } from "marked"
@@ -34,6 +38,7 @@ import { cn } from "@/lib/utils"
 import {
 	type ContentSource,
 	contentService,
+	stripContentSourcePrefix,
 	type UnifiedContentDetails,
 	type UnifiedContentItem,
 	type UnifiedContentVersion,
@@ -75,29 +80,95 @@ function formatDate(dateStr: string): string {
 	return dateStr ? formatLocalDate(dateStr) || dateStr : ""
 }
 
-function formatError(err: unknown): string {
-	if (!err) return i18n.t("contentDetails.loadFailed")
-	if (typeof err === "string") return err
-	if (err instanceof Error) return err.message
+const formatError = (err: unknown): string => {
+	if (!err) {
+		return i18n.t("contentDetails.loadFailed")
+	}
+	if (typeof err === "string") {
+		return err
+	}
+	if (err instanceof Error) {
+		return err.message
+	}
 	if (
 		typeof err === "object" &&
 		err !== null &&
 		"message" in err &&
-		typeof (err as { message: unknown }).message === "string"
+		typeof err.message === "string"
 	) {
-		return (err as { message: string }).message
+		return err.message
 	}
 	return String(err)
 }
 
+interface ContentDetailsSourceBadge {
+	label: string
+	className: string
+	icon?: typeof Flame
+	iconClassName?: string
+}
+
+const getContentDetailsSourceBadge = (
+	source: ContentSource | string,
+	t: TFunction,
+): ContentDetailsSourceBadge => {
+	switch (source) {
+		case "modrinth":
+			return {
+				label: t("modpacks.sources.modrinth"),
+				className: "border border-primary/20 bg-primary/15 text-primary",
+				icon: Compass,
+				iconClassName: "size-3 text-primary",
+			}
+		case "curseforge":
+			return {
+				label: t("modpacks.sources.curseforge"),
+				className: "border border-warning/20 bg-warning/15 text-warning",
+				icon: Flame,
+				iconClassName: "size-3 text-orange-400",
+			}
+		case "ftb":
+			return {
+				label: t("modpacks.sources.ftb"),
+				className: "border border-red-500/20 bg-red-500/15 text-red-400",
+				icon: Package,
+				iconClassName: "size-3 text-red-400",
+			}
+		case "technic":
+			return {
+				label: t("modpacks.sources.technic"),
+				className: "border border-blue-500/20 bg-blue-500/15 text-blue-400",
+				icon: Wrench,
+				iconClassName: "size-3 text-blue-400",
+			}
+		case "atlauncher":
+			return {
+				label: t("modpacks.sources.atlauncher"),
+				className: "border border-sky-500/20 bg-sky-500/15 text-sky-400",
+				icon: Rocket,
+				iconClassName: "size-3 text-sky-400",
+			}
+		default:
+			return {
+				label: source,
+				className: "border border-border/30 bg-muted text-muted-foreground",
+			}
+	}
+}
+
 /**
- * Description HTML from Modrinth/CurseForge, safe to render. CurseForge sends HTML and
- * Markdown may embed it, so every path goes through the sanitizer: inside the app's
- * WebView, script in a description could reach the Tauri backend.
+ * Description HTML from Modrinth/CurseForge/FTB/Technic/ATLauncher, safe to render.
+ * Platforms may send HTML or Markdown (which may embed HTML), so every path goes
+ * through sanitizeHtml: inside the app's WebView, script in a description could
+ * reach the Tauri backend.
  */
-function renderDescriptionHtml(body: string, isHtml: boolean): string {
-	if (!body) return ""
-	if (isHtml) return sanitizeHtml(body)
+const renderDescriptionHtml = (body: string, isHtml: boolean): string => {
+	if (!body) {
+		return ""
+	}
+	if (isHtml) {
+		return sanitizeHtml(body)
+	}
 
 	try {
 		const parsed = marked.parse(body)
@@ -151,10 +222,10 @@ export const ContentDetailsDialog = memo(
 
 			let cancelled = false
 
-			const cleanId = item.id.replace(/^(mr|cf|modrinth|curseforge):/, "")
+			const cleanId = stripContentSourcePrefix(item.id)
 
 			contentService
-				.getContentDetails(item.source as ContentSource, cleanId)
+				.getContentDetails(item.source, cleanId)
 				.then((d) => {
 					if (!cancelled) {
 						setDetails(d)
@@ -200,10 +271,10 @@ export const ContentDetailsDialog = memo(
 			if (!details?.body) {
 				return ""
 			}
-			return renderDescriptionHtml(
-				details.body,
-				item?.source === "curseforge" || details.body.trim().startsWith("<"),
-			)
+			const trimmed = details.body.trim()
+			const isHtml =
+				item?.source === "curseforge" || item?.source === "technic" || trimmed.startsWith("<")
+			return renderDescriptionHtml(details.body, isHtml)
 		}, [details, item?.source])
 
 		const availableGameVersions = useMemo(() => {
@@ -298,6 +369,9 @@ export const ContentDetailsDialog = memo(
 
 		if (!item) return null
 
+		const sourceBadge = getContentDetailsSourceBadge(item.source, t)
+		const SourceIcon = sourceBadge.icon
+
 		return (
 			<>
 				<Dialog open={open} onOpenChange={onOpenChange}>
@@ -323,14 +397,13 @@ export const ContentDetailsDialog = memo(
 								<div className="flex min-w-0 flex-1 flex-col gap-1">
 									<div className="flex items-center gap-2">
 										<span
-											className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-2xs font-medium ${
-												item.source === "modrinth"
-													? "border border-primary/20 bg-primary/15 text-primary"
-													: "border border-warning/20 bg-warning/15 text-warning"
-											}`}
+											className={cn(
+												"inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-2xs font-medium",
+												sourceBadge.className,
+											)}
 										>
-											{item.source === "curseforge" && <Flame className="size-3 text-orange-400" />}
-											{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
+											{SourceIcon && <SourceIcon className={sourceBadge.iconClassName} />}
+											{sourceBadge.label}
 										</span>
 
 										<span className="rounded bg-muted px-1.5 py-0.5 text-2xs text-muted-foreground capitalize">
@@ -435,12 +508,16 @@ export const ContentDetailsDialog = memo(
 										onClick={() => {
 											setIsLoading(true)
 											setError(null)
-											const cleanId = item.id.replace(/^(mr|cf|modrinth|curseforge):/, "")
+											const cleanId = stripContentSourcePrefix(item.id)
 											contentService
-												.getContentDetails(item.source as ContentSource, cleanId)
+												.getContentDetails(item.source, cleanId)
 												.then(setDetails)
-												.catch((err) => setError(formatError(err)))
-												.finally(() => setIsLoading(false))
+												.catch((err) => {
+													setError(formatError(err))
+												})
+												.finally(() => {
+													setIsLoading(false)
+												})
 										}}
 									>
 										{t("common.tryAgain")}

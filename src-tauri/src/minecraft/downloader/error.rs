@@ -5,7 +5,7 @@ pub enum DownloadError {
     #[error("Duplicate download destination: {0}")]
     Duplicate(PathBuf),
 
-    #[error("Download transport failed")]
+    #[error("Download transport failed: {0}")]
     Transport(#[source] reqwest::Error),
 
     #[error("Downloaded content does not match its declared {0}")]

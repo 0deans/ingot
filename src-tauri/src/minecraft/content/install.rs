@@ -10,9 +10,12 @@ use std::{
 };
 use zip::ZipArchive;
 
-mod pack;
+pub(crate) mod atlauncher_pack;
+pub(crate) mod ftb_pack;
+pub(crate) mod pack;
 #[cfg(test)]
 mod pack_tests;
+pub(crate) mod technic_pack;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -123,6 +126,13 @@ pub(crate) fn construct_curseforge_cdn_url(file_id: u32, file_name: &str) -> Str
     format!("https://edge.forgecdn.net/files/{part1}/{part2}/{file_name}")
 }
 
+fn is_invalid_checksum_error(error: &std::io::Error) -> bool {
+    error
+        .to_string()
+        .to_ascii_lowercase()
+        .contains("invalid checksum")
+}
+
 /// Extracts overrides directory from a modpack archive to the target instance directory.
 pub(crate) fn extract_zip_overrides<R: Read + Seek>(
     zip: &mut ZipArchive<R>,
@@ -162,7 +172,14 @@ pub(crate) fn extract_zip_overrides<R: Read + Seek>(
                 fs::create_dir_all(parent)?;
             }
             let mut outfile = fs::File::create(&out_path)?;
-            std::io::copy(&mut file, &mut outfile)?;
+            // Technic and legacy modpack archives often contain entries with invalid header CRC32
+            // checksums despite valid uncompressed payload bytes. Since Crc32Reader only returns
+            // this error at EOF after writing all uncompressed bytes, we tolerate it.
+            if let Err(error) = std::io::copy(&mut file, &mut outfile) {
+                if !is_invalid_checksum_error(&error) {
+                    return Err(error);
+                }
+            }
             outfile.sync_all()?;
         }
     }
@@ -218,6 +235,7 @@ pub(crate) struct ModpackInstaller {
         std::sync::Arc<crate::minecraft::metadata::MetadataRepository<InstanceConfig>>,
     pub(crate) root: std::path::PathBuf,
     pub(crate) curseforge_base: String,
+    pub(crate) on_progress: Option<crate::minecraft::launcher::progress::ProgressCallback>,
 }
 
 impl ModpackInstaller {
@@ -228,17 +246,48 @@ impl ModpackInstaller {
         download_url: &str,
         filename: &str,
     ) -> Result<InstanceConfig, ContentError> {
-        let bytes = pack::fetch(&self.client, download_url).await?;
-        let prepared = pack::prepare_modpack(
+        let bytes = pack::fetch_with_progress(
             &self.client,
-            &self.curseforge_base,
-            &self.root,
+            download_url,
+            "Installing Modpack",
+            "Downloading modpack archive",
+            self.on_progress.as_ref(),
+        )
+        .await?;
+        let mut prepared = pack::prepare_modpack(pack::PrepareModpackParams {
+            client: &self.client,
+            curseforge_base: &self.curseforge_base,
+            root: &self.root,
             bytes,
             source,
             filename,
             name,
-        )
+            manifest_url: Some(download_url),
+            on_progress: self.on_progress.as_ref(),
+        })
         .await?;
+
+        if prepared.loader != ModLoaderType::Vanilla
+            && prepared
+                .loader_version
+                .as_deref()
+                .map(str::trim)
+                .unwrap_or("")
+                .is_empty()
+        {
+            if let Ok(versions) = crate::minecraft::loader::fetch_loader_versions(
+                &self.client,
+                &prepared.loader,
+                &prepared.game_version,
+            )
+            .await
+            {
+                if let Some(first) = versions.into_iter().next() {
+                    prepared.loader_version = Some(first);
+                }
+            }
+        }
+
         let config = instance::prepare_instance(
             prepared.name,
             prepared.game_version,

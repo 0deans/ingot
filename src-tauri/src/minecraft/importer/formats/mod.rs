@@ -1,8 +1,10 @@
 //! Format parsers for external Minecraft launcher installations.
 pub(crate) mod atlauncher;
 pub(crate) mod curseforge;
+pub(crate) mod ftb;
 pub(crate) mod legacy;
 pub(crate) mod modrinth;
+pub(crate) mod technic;
 pub(crate) mod vanilla;
 
 use super::models::ImportableInstance;
@@ -11,8 +13,10 @@ use std::path::Path;
 
 pub(crate) use atlauncher::scan_atlauncher_instances;
 pub(crate) use curseforge::scan_curseforge_instances;
+pub(crate) use ftb::scan_ftb_instances;
 pub(crate) use legacy::scan_legacy_instances;
 pub(crate) use modrinth::scan_modrinth_instances;
+pub(crate) use technic::scan_technic_instances;
 pub(crate) use vanilla::scan_vanilla_instances;
 
 /// Counts files directly inside `dir`, optionally filtering by extension.

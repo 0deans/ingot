@@ -2,7 +2,8 @@
 use super::{
     formats::{
         count_instance_stats, scan_atlauncher_instances, scan_curseforge_instances,
-        scan_legacy_instances, scan_modrinth_instances, scan_vanilla_instances,
+        scan_ftb_instances, scan_legacy_instances, scan_modrinth_instances, scan_technic_instances,
+        scan_vanilla_instances,
     },
     models::{DetectedLauncher, ImportError, ImportableInstance},
 };
@@ -71,6 +72,45 @@ pub(crate) fn get_atlauncher_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
                 .join("Application Support")
                 .join("ATLauncher")
                 .join("instances"),
+        );
+    }
+    dirs
+}
+
+pub(crate) fn get_ftb_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+    if let Some(appdata) = roots.app_data.clone() {
+        dirs.push(appdata.join("FTBApp").join("instances"));
+        dirs.push(appdata.join(".ftba").join("instances"));
+    }
+    if let Some(home) = roots.home.clone() {
+        dirs.push(home.join(".ftba").join("instances"));
+        dirs.push(home.join(".ftbapp").join("instances"));
+        dirs.push(home.join("FTBApp").join("instances"));
+        dirs.push(
+            home.join("Library")
+                .join("Application Support")
+                .join("FTBApp")
+                .join("instances"),
+        );
+    }
+    dirs
+}
+
+pub(crate) fn get_technic_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+    if let Some(appdata) = roots.app_data.clone() {
+        dirs.push(appdata.join(".technic").join("modpacks"));
+        dirs.push(appdata.join("technic").join("modpacks"));
+    }
+    if let Some(home) = roots.home.clone() {
+        dirs.push(home.join(".technic").join("modpacks"));
+        dirs.push(home.join("technic").join("modpacks"));
+        dirs.push(
+            home.join("Library")
+                .join("Application Support")
+                .join("technic")
+                .join("modpacks"),
         );
     }
     dirs
@@ -182,7 +222,49 @@ pub fn get_detected_launchers(roots: &DiscoveryRoots) -> Vec<DetectedLauncher> {
         available: atl_found,
     });
 
-    // 4. LegacyLauncher
+    // 4. FTB App
+    let mut ftb_path = String::new();
+    let mut ftb_count = 0u32;
+    let mut ftb_found = false;
+    for dir in get_ftb_dirs(roots) {
+        if dir.exists() {
+            ftb_found = true;
+            ftb_path = dir.to_string_lossy().to_string();
+            ftb_count = scan_ftb_instances(&dir).len() as u32;
+            break;
+        }
+    }
+    launchers.push(DetectedLauncher {
+        id: "ftb".to_string(),
+        name: "FTB App".to_string(),
+        icon: "ftb".to_string(),
+        path: ftb_path,
+        instances_count: ftb_count,
+        available: ftb_found,
+    });
+
+    // 5. Technic Launcher
+    let mut technic_path = String::new();
+    let mut technic_count = 0u32;
+    let mut technic_found = false;
+    for dir in get_technic_dirs(roots) {
+        if dir.exists() {
+            technic_found = true;
+            technic_path = dir.to_string_lossy().to_string();
+            technic_count = scan_technic_instances(&dir).len() as u32;
+            break;
+        }
+    }
+    launchers.push(DetectedLauncher {
+        id: "technic".to_string(),
+        name: "Technic Launcher".to_string(),
+        icon: "technic".to_string(),
+        path: technic_path,
+        instances_count: technic_count,
+        available: technic_found,
+    });
+
+    // 6. LegacyLauncher
     let mut tl_path = String::new();
     let mut tl_count = 0u32;
     let mut tl_found = false;
@@ -203,7 +285,7 @@ pub fn get_detected_launchers(roots: &DiscoveryRoots) -> Vec<DetectedLauncher> {
         available: tl_found,
     });
 
-    // 5. Vanilla Minecraft Launcher
+    // 7. Vanilla Minecraft Launcher
     let mut mc_path = String::new();
     let mut mc_count = 0u32;
     let mut mc_found = false;
@@ -263,6 +345,26 @@ pub fn get_launcher_instances(
                 Ok(Vec::new())
             }
         }
+        "ftb" => {
+            let path = custom_path
+                .map(PathBuf::from)
+                .or_else(|| get_ftb_dirs(roots).into_iter().find(|p| p.exists()));
+            if let Some(p) = path {
+                Ok(scan_ftb_instances(&p))
+            } else {
+                Ok(Vec::new())
+            }
+        }
+        "technic" => {
+            let path = custom_path
+                .map(PathBuf::from)
+                .or_else(|| get_technic_dirs(roots).into_iter().find(|p| p.exists()));
+            if let Some(p) = path {
+                Ok(scan_technic_instances(&p))
+            } else {
+                Ok(Vec::new())
+            }
+        }
         "legacylauncher" => {
             let path = custom_path.map(PathBuf::from).or_else(|| {
                 get_legacylauncher_dirs(roots)
@@ -311,9 +413,25 @@ pub fn detect_custom_instance(path_str: &str) -> Result<ImportableInstance, Impo
         }
     }
 
+    // Check FTB App
+    if path.join("instance.json").exists() {
+        let list = scan_ftb_instances(path.parent().unwrap_or(&path));
+        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
+            return Ok(inst);
+        }
+    }
+
     // Check ATLauncher
     if path.join("instance.json").exists() {
         let list = scan_atlauncher_instances(path.parent().unwrap_or(&path));
+        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
+            return Ok(inst);
+        }
+    }
+
+    // Check Technic
+    if path.join("bin").exists() {
+        let list = scan_technic_instances(path.parent().unwrap_or(&path));
         if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
             return Ok(inst);
         }

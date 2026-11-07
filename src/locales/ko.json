@@ -227,7 +227,10 @@
 		"sources": {
 			"all": "모든 출처",
 			"modrinth": "Modrinth",
-			"curseforge": "CurseForge"
+			"curseforge": "CurseForge",
+			"ftb": "FTB",
+			"technic": "Technic",
+			"atlauncher": "ATLauncher"
 		},
 		"filters": {
 			"loader": "로더:",

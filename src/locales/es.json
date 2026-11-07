@@ -227,7 +227,10 @@
 		"sources": {
 			"all": "Todas las fuentes",
 			"modrinth": "Modrinth",
-			"curseforge": "CurseForge"
+			"curseforge": "CurseForge",
+			"ftb": "FTB",
+			"technic": "Technic",
+			"atlauncher": "ATLauncher"
 		},
 		"filters": {
 			"loader": "Cargador:",

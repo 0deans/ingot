@@ -18,13 +18,24 @@ import type { InstanceColorTag } from "@/components/instances/instance-icon"
 import { rpc, unwrapRpc } from "@/lib/rpc"
 
 interface InstanceState {
+	savedInstances: InstanceConfig[]
+	pendingInstalls: Map<string, InstanceConfig>
 	instances: InstanceConfig[]
 	running: Map<string, RunningInstanceSummary>
 	progress: Map<string, LaunchProgressEvent>
 }
 
+const computeMergedInstances = (
+	saved: InstanceConfig[],
+	pending: Map<string, InstanceConfig>,
+): InstanceConfig[] => {
+	return [...Array.from(pending.values()), ...saved]
+}
+
 const useInstanceStore = create<InstanceState>(() => {
 	return {
+		savedInstances: [],
+		pendingInstalls: new Map(),
 		instances: [],
 		running: new Map(),
 		progress: new Map(),
@@ -32,16 +43,24 @@ const useInstanceStore = create<InstanceState>(() => {
 })
 
 // Maps are replaced (never mutated) so selectors see a new reference on every change.
-function setRunning(update: (running: Map<string, RunningInstanceSummary>) => void) {
+const setRunning = (update: (running: Map<string, RunningInstanceSummary>) => void) => {
 	const running = new Map(useInstanceStore.getState().running)
 	update(running)
 	useInstanceStore.setState({ running })
 }
 
-function setProgress(update: (progress: Map<string, LaunchProgressEvent>) => void) {
+const setProgress = (update: (progress: Map<string, LaunchProgressEvent>) => void) => {
 	const progress = new Map(useInstanceStore.getState().progress)
 	update(progress)
 	useInstanceStore.setState({ progress })
+}
+
+export const setPendingInstalls = (update: (pending: Map<string, InstanceConfig>) => void) => {
+	const current = useInstanceStore.getState()
+	const pendingInstalls = new Map(current.pendingInstalls)
+	update(pendingInstalls)
+	const instances = computeMergedInstances(current.savedInstances, pendingInstalls)
+	useInstanceStore.setState({ pendingInstalls, instances })
 }
 
 let isInitialized = false
@@ -111,8 +130,10 @@ export const instanceService = {
 		refreshInstancesPromise = (async () => {
 			try {
 				await initListeners()
-				const instances = await unwrapRpc(rpc.instances.get_instances())
-				useInstanceStore.setState({ instances })
+				const savedInstances = await unwrapRpc(rpc.instances.get_instances())
+				const pendingInstalls = useInstanceStore.getState().pendingInstalls
+				const instances = computeMergedInstances(savedInstances, pendingInstalls)
+				useInstanceStore.setState({ savedInstances, instances })
 				return instances
 			} catch (e) {
 				console.error("Failed to fetch instances:", e)
@@ -123,6 +144,69 @@ export const instanceService = {
 		})()
 
 		return refreshInstancesPromise
+	},
+
+	registerPendingInstall(params: {
+		name: string
+		gameVersion?: string
+		loader?: ModLoaderType
+		iconUrl?: string | null
+	}): string {
+		void initListeners()
+		const trimmedName = params.name.trim()
+		const trackingId = `installing:${trimmedName}`
+		const placeholder: InstanceConfig = {
+			id: trackingId,
+			name: trimmedName,
+			gameVersion: params.gameVersion || "1.20.1",
+			loader: params.loader ?? "forge",
+			loaderVersion: null,
+			javaPath: null,
+			memoryMinMb: null,
+			memoryMaxMb: null,
+			icon: params.iconUrl || null,
+			createdAt: Math.floor(Date.now() / 1000),
+			lastPlayed: null,
+			totalPlayTimeSeconds: 0,
+			jvmArgs: null,
+			fullscreen: null,
+			windowWidth: null,
+			windowHeight: null,
+			syncOptions: null,
+			syncServers: null,
+			syncResourcePacks: null,
+			syncCommandHistory: null,
+			syncCreativeHotbars: null,
+			group: null,
+			colorTag: null,
+		}
+		setPendingInstalls((pending) => {
+			pending.set(trackingId, placeholder)
+		})
+		setProgress((progress) => {
+			progress.set(trackingId, {
+				instanceId: trackingId,
+				phase: "Installing Modpack",
+				currentStep: 0,
+				totalSteps: 1,
+				percentage: 0,
+				detail: "Downloading modpack manifest...",
+			})
+		})
+		return trackingId
+	},
+
+	finishPendingInstall(trackingId: string): void {
+		setPendingInstalls((pending) => {
+			pending.delete(trackingId)
+		})
+		setProgress((progress) => {
+			progress.delete(trackingId)
+		})
+	},
+
+	isPendingInstall(trackingId: string): boolean {
+		return useInstanceStore.getState().pendingInstalls.has(trackingId)
 	},
 
 	async createInstance(
@@ -167,10 +251,13 @@ export const instanceService = {
 
 	async deleteInstance(instanceId: string): Promise<void> {
 		useInstanceStore.setState((state) => {
+			const savedInstances = state.savedInstances.filter((i) => {
+				return i.id !== instanceId
+			})
+			const instances = computeMergedInstances(savedInstances, state.pendingInstalls)
 			return {
-				instances: state.instances.filter((i) => {
-					return i.id !== instanceId
-				}),
+				savedInstances,
+				instances,
 			}
 		})
 		try {

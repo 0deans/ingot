@@ -1,14 +1,18 @@
+import i18n from "i18next"
+import { toast } from "sonner"
 import type {
 	ContentScreenshot,
 	ContentSearchResult,
 	InstanceConfig,
+	ModLoaderType,
 	UnifiedContentDetails,
 	UnifiedContentItem,
 	UnifiedContentVersion,
 } from "@/bindings"
 import { rpc, unwrapRpc } from "@/lib/rpc"
+import { instanceService } from "@/services/instance-service"
 
-export type ContentSource = "all" | "modrinth" | "curseforge"
+export type ContentSource = "all" | "modrinth" | "curseforge" | "ftb" | "technic" | "atlauncher"
 export type ContentType = "all" | "modpack" | "mod" | "resourcepack" | "shader"
 export type ContentSort = "downloads" | "relevance" | "updated" | "newest"
 
@@ -21,6 +25,14 @@ export interface SearchContentParams {
 	sort?: ContentSort | null
 	page?: number
 	pageSize?: number
+}
+
+export const stripContentSourcePrefix = (projectId: string): string => {
+	return projectId.replace(/^(mr|cf|ftb|technic|atl|modrinth|curseforge|atlauncher):/, "")
+}
+
+export const isModpackOnlySource = (source: ContentSource): boolean => {
+	return source === "ftb" || source === "technic" || source === "atlauncher"
 }
 
 export const contentService = {
@@ -50,10 +62,10 @@ export const contentService = {
 	},
 
 	async getContentDetails(
-		source: ContentSource,
+		source: ContentSource | string,
 		projectId: string,
 	): Promise<UnifiedContentDetails> {
-		const cleanId = projectId.replace(/^(mr|cf|modrinth|curseforge):/, "")
+		const cleanId = stripContentSourcePrefix(projectId)
 		try {
 			return await unwrapRpc(rpc.content.get_content_details(source, cleanId))
 		} catch (error) {
@@ -80,7 +92,7 @@ export const contentService = {
 
 	async installModpackInstance(
 		name: string,
-		source: ContentSource,
+		source: ContentSource | string,
 		downloadUrl: string,
 		filename: string,
 	): Promise<InstanceConfig> {
@@ -93,6 +105,79 @@ export const contentService = {
 			throw error
 		}
 	},
+
+	startBackgroundModpackInstall(params: {
+		name: string
+		source: ContentSource | string
+		downloadUrl: string
+		filename: string
+		gameVersion?: string
+		loader?: ModLoaderType
+		iconUrl?: string | null
+	}): void {
+		const trimmedName = params.name.trim()
+		const trackingId = `installing:${trimmedName}`
+		if (instanceService.isPendingInstall(trackingId)) {
+			return
+		}
+
+		instanceService.registerPendingInstall({
+			name: trimmedName,
+			gameVersion: params.gameVersion,
+			loader: params.loader,
+			iconUrl: params.iconUrl,
+		})
+
+		toast.info(
+			i18n.t("install.modpackStarted", {
+				name: trimmedName,
+				defaultValue: `Installing "${trimmedName}" in the background...`,
+			}),
+		)
+
+		void (async () => {
+			try {
+				await this.installModpackInstance(
+					trimmedName,
+					params.source,
+					params.downloadUrl,
+					params.filename,
+				)
+				instanceService.finishPendingInstall(trackingId)
+				await instanceService.refreshInstances()
+				toast.success(
+					i18n.t("install.modpackDone", {
+						name: trimmedName,
+					}),
+				)
+			} catch (err) {
+				instanceService.finishPendingInstall(trackingId)
+				const message = formatErrorMessage(err)
+				toast.error(message)
+			}
+		})()
+	},
+}
+
+const formatErrorMessage = (err: unknown): string => {
+	if (!err) {
+		return i18n.t("install.loadFailed")
+	}
+	if (typeof err === "string") {
+		return err
+	}
+	if (err instanceof Error) {
+		return err.message
+	}
+	if (
+		typeof err === "object" &&
+		err !== null &&
+		"message" in err &&
+		typeof err.message === "string"
+	) {
+		return err.message
+	}
+	return String(err)
 }
 
 export type {

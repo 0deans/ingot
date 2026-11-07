@@ -536,6 +536,7 @@ export const InstanceCard = ({
 									variant="ghost"
 									size="icon"
 									onClick={onLogs}
+									disabled={isDownloading || instance.id.startsWith("installing:")}
 									className="size-8 text-muted-foreground hover:text-foreground"
 									aria-label={t("instances.card.logsTooltip")}
 								/>
@@ -554,6 +555,7 @@ export const InstanceCard = ({
 											<Button
 												variant="ghost"
 												size="icon"
+												disabled={isDownloading || instance.id.startsWith("installing:")}
 												className="size-8 text-muted-foreground hover:text-foreground"
 												aria-label={t("instances.card.moreActions")}
 											>

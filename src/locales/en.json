@@ -234,8 +234,9 @@
 	},
 	"modpacks": {
 		"title": "Discover Content",
-		"subtitle": "Search and install mods, modpacks, resource packs, and shaders directly into your instances from Modrinth and CurseForge.",
+		"subtitle": "Search and install mods, modpacks, resource packs, and shaders from Modrinth, CurseForge, FTB, Technic, and ATLauncher.",
 		"searchPlaceholder": "Search mods, modpacks, resource packs, shaders...",
+		"searchTechnicPlaceholder": "Search Technic modpacks or paste a Technic pack URL...",
 		"categories": {
 			"all": "All Types",
 			"modpack": "Modpacks",
@@ -246,7 +247,10 @@
 		"sources": {
 			"all": "All Sources",
 			"modrinth": "Modrinth",
-			"curseforge": "CurseForge"
+			"curseforge": "CurseForge",
+			"ftb": "FTB",
+			"technic": "Technic",
+			"atlauncher": "ATLauncher"
 		},
 		"filters": {
 			"loader": "Loader:",
@@ -1682,6 +1686,7 @@
 		"all": "All",
 		"any": "Any",
 		"modpackDone": "Modpack \"{{name}}\" installed successfully as a new instance!",
+		"modpackStarted": "Installing \"{{name}}\" in the background...",
 		"selectTarget": "Select target instance...",
 		"added": "Added {{file}} to {{instance}}!",
 		"modpackTitle": "Install Modpack",

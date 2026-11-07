@@ -197,6 +197,30 @@ fn test_parse_vanilla_version_id_variants() {
             Some("47.2.0".to_string())
         )
     );
+    assert_eq!(
+        parse_vanilla_version_id("1.7.10-Forge10.13.4.1614-1.7.10"),
+        (
+            "1.7.10".to_string(),
+            ModLoaderType::Forge,
+            Some("10.13.4.1614".to_string())
+        )
+    );
+    assert_eq!(
+        parse_vanilla_version_id("1.12.2-forge14.23.5.2860"),
+        (
+            "1.12.2".to_string(),
+            ModLoaderType::Forge,
+            Some("14.23.5.2860".to_string())
+        )
+    );
+    assert_eq!(
+        parse_vanilla_version_id("1.16.5-forge-36.2.39"),
+        (
+            "1.16.5".to_string(),
+            ModLoaderType::Forge,
+            Some("36.2.39".to_string())
+        )
+    );
 
     // NeoForge
     assert_eq!(
@@ -594,4 +618,98 @@ fn test_copy_instance_contents_propagates_extra_data_failure() {
 
     let res = copy_instance_contents(src, dst, &options);
     assert!(res.is_err(), "must propagate extra data copy failure");
+}
+
+#[test]
+fn test_scan_ftb_instances() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+
+    let inst1 = root.join("ftb-inst-1");
+    fs::create_dir_all(inst1.join("mods")).unwrap();
+    fs::create_dir_all(inst1.join("saves").join("world1")).unwrap();
+    fs::write(inst1.join("mods").join("mod1.jar"), b"mod").unwrap();
+
+    let ftb_json = serde_json::json!({
+        "uuid": "uuid-1234",
+        "name": "Direwolf20 1.20",
+        "mcVersion": "1.20.1",
+        "modLoader": "Forge",
+        "modLoaderVersion": "47.2.0"
+    });
+    fs::write(
+        inst1.join("instance.json"),
+        serde_json::to_string(&ftb_json).unwrap(),
+    )
+    .unwrap();
+
+    let instances = super::formats::scan_ftb_instances(root);
+    assert_eq!(instances.len(), 1);
+    assert_eq!(instances[0].id, "ftb-uuid-1234");
+    assert_eq!(instances[0].launcher_id, "ftb");
+    assert_eq!(instances[0].name, "Direwolf20 1.20");
+    assert_eq!(instances[0].game_version, "1.20.1");
+    assert_eq!(instances[0].loader, ModLoaderType::Forge);
+    assert_eq!(instances[0].loader_version, Some("47.2.0".to_string()));
+    assert_eq!(instances[0].mods_count, 1);
+    assert_eq!(instances[0].saves_count, 1);
+}
+
+#[test]
+fn test_scan_technic_instances() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+
+    let inst1 = root.join("tekkit-main");
+    fs::create_dir_all(inst1.join("bin")).unwrap();
+    fs::create_dir_all(inst1.join("mods")).unwrap();
+    fs::write(inst1.join("mods").join("industrialcraft.jar"), b"ic2").unwrap();
+
+    let version_json = serde_json::json!({
+        "id": "1.6.4-forge-9.11.1.965"
+    });
+    fs::write(
+        inst1.join("bin").join("version.json"),
+        serde_json::to_string(&version_json).unwrap(),
+    )
+    .unwrap();
+
+    let instances = super::formats::scan_technic_instances(root);
+    assert_eq!(instances.len(), 1);
+    assert_eq!(instances[0].id, "technic-tekkit-main");
+    assert_eq!(instances[0].launcher_id, "technic");
+    assert_eq!(instances[0].name, "Tekkit Main");
+    assert_eq!(instances[0].game_version, "1.6.4");
+    assert_eq!(instances[0].loader, ModLoaderType::Forge);
+    assert_eq!(instances[0].loader_version, Some("9.11.1.965".to_string()));
+    assert_eq!(instances[0].mods_count, 1);
+}
+
+#[test]
+fn test_scan_technic_instance_with_modpack_jar() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+
+    let inst = root.join("rlcraft-test");
+    fs::create_dir_all(inst.join("bin")).unwrap();
+    fs::create_dir_all(inst.join("mods")).unwrap();
+
+    let mut jar_writer = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    jar_writer
+        .start_file("version.json", zip::write::SimpleFileOptions::default())
+        .unwrap();
+    std::io::Write::write_all(&mut jar_writer, br#"{"id": "1.12.2-forge-14.23.5.2860"}"#).unwrap();
+    let jar_bytes = jar_writer.finish().unwrap().into_inner();
+    fs::write(inst.join("bin").join("modpack.jar"), jar_bytes).unwrap();
+
+    let instances = super::formats::scan_technic_instances(root);
+    assert_eq!(instances.len(), 1);
+    assert_eq!(instances[0].id, "technic-rlcraft-test");
+    assert_eq!(instances[0].name, "Rlcraft Test");
+    assert_eq!(instances[0].game_version, "1.12.2");
+    assert_eq!(instances[0].loader, ModLoaderType::Forge);
+    assert_eq!(
+        instances[0].loader_version,
+        Some("14.23.5.2860".to_string())
+    );
 }

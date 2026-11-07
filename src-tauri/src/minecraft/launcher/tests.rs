@@ -434,3 +434,167 @@ async fn test_cancellation_between_validation_and_commit_terminates_and_reaps_ch
     // 6. Verify the child process is not tracked as running
     assert!(!pm.is_running("inst-cancel-test").await);
 }
+
+#[test]
+fn test_extract_native_jars_extracts_files_and_skips_meta_inf() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let jar_path = temp_dir.path().join("natives.jar");
+    let natives_dir = temp_dir.path().join("natives");
+    fs::create_dir_all(&natives_dir).unwrap();
+
+    let file = fs::File::create(&jar_path).unwrap();
+    let mut zip = zip::ZipWriter::new(file);
+    let options = zip::write::SimpleFileOptions::default();
+
+    zip.start_file("META-INF/MANIFEST.MF", options).unwrap();
+    std::io::Write::write_all(&mut zip, b"Manifest-Version: 1.0\n").unwrap();
+
+    zip.start_file("lwjgl64.dll", options).unwrap();
+    std::io::Write::write_all(&mut zip, b"fake dll binary content").unwrap();
+
+    zip.finish().unwrap();
+
+    super::service::extract_native_jars(&[jar_path], &natives_dir).unwrap();
+
+    assert!(natives_dir.join("lwjgl64.dll").exists());
+    assert_eq!(
+        fs::read(natives_dir.join("lwjgl64.dll")).unwrap(),
+        b"fake dll binary content"
+    );
+    assert!(!natives_dir.join("META-INF").exists());
+    assert!(!natives_dir.join("MANIFEST.MF").exists());
+}
+
+#[test]
+fn test_extract_native_jars_missing_jar_fails_with_not_found() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let natives_dir = temp_dir.path().join("natives");
+    fs::create_dir_all(&natives_dir).unwrap();
+
+    let res = super::service::extract_native_jars(
+        &[temp_dir.path().join("nonexistent.jar")],
+        &natives_dir,
+    );
+    assert!(res.is_err());
+    assert_eq!(res.unwrap_err().kind(), std::io::ErrorKind::NotFound);
+}
+
+#[tokio::test]
+async fn test_prepare_game_command_injects_forgewrapper_arguments() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let instance_dir = temp_dir.path().join("instance");
+    let cache_dir = temp_dir.path().join("cache");
+    let assets_dir = temp_dir.path().join("assets");
+    let libraries_dir = temp_dir.path().join("libraries");
+    fs::create_dir_all(&instance_dir).unwrap();
+    fs::create_dir_all(&cache_dir).unwrap();
+    fs::create_dir_all(&assets_dir).unwrap();
+    fs::create_dir_all(&libraries_dir).unwrap();
+
+    let installer_path = libraries_dir
+        .join("net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar");
+    fs::create_dir_all(installer_path.parent().unwrap()).unwrap();
+    fs::write(&installer_path, b"fake installer").unwrap();
+
+    let client_jar = cache_dir.join("versions/1.16.5/1.16.5.jar");
+    fs::create_dir_all(client_jar.parent().unwrap()).unwrap();
+    fs::write(&client_jar, b"fake client").unwrap();
+
+    let instance = crate::minecraft::instance::prepare_instance(
+        "forge-1.16.5".into(),
+        "1.16.5".into(),
+        crate::minecraft::instance::ModLoaderType::Forge,
+        Some("36.2.39".into()),
+    )
+    .unwrap();
+
+    let version_pkg = crate::minecraft::version::VersionPackage {
+        id: "1.16.5".into(),
+        main_class: "net.minecraft.client.main.Main".into(),
+        minecraft_arguments: None,
+        arguments: None,
+        asset_index: None,
+        downloads: None,
+        libraries: Vec::new(),
+        java_version: None,
+    };
+
+    let loader_profile = crate::minecraft::loader::LoaderProfile {
+        id: "forge-1.16.5-36.2.39".into(),
+        main_class: "io.github.zekerzhayard.forgewrapper.installer.Main".into(),
+        libraries: Vec::new(),
+        maven_files: vec![crate::minecraft::version::LibraryEntry {
+            name: "net.minecraftforge:forge:1.16.5-36.2.39:installer".into(),
+            downloads: Some(crate::minecraft::version::LibraryDownloads {
+                artifact: Some(crate::minecraft::version::DownloadArtifact {
+                    path: Some(
+                        "net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar"
+                            .into(),
+                    ),
+                    sha1: None,
+                    size: None,
+                    url: "http://example.com/installer.jar".into(),
+                }),
+                classifiers: None,
+            }),
+            rules: None,
+            natives: None,
+            url: None,
+        }],
+        jvm_args: vec!["-Dloader_test=true".into()],
+        game_args: vec!["--fml.forgeVersion".into(), "36.2.39".into()],
+        minecraft_arguments: None,
+    };
+
+    let prep = super::prepare::LaunchPreparation {
+        version_pkg,
+        loader_profile: Some(loader_profile),
+        java_bin: std::path::PathBuf::from("java"),
+        client_jar_dest: client_jar.clone(),
+        classpath_entries: Vec::new(),
+        native_jars: Vec::new(),
+        auth: super::prepare::ResolvedAuth {
+            player_name: "test_player".into(),
+            uuid_str: "uuid-123".into(),
+            access_token: "token".into(),
+            user_type: "msa",
+            xuid: None,
+            is_ely: false,
+        },
+    };
+
+    let settings = crate::settings::LauncherSettings::default();
+    let client = reqwest::Client::new();
+    let context = super::service::CommandContext {
+        instance: &instance,
+        settings: &settings,
+        instance_dir: &instance_dir,
+        cache_dir: &cache_dir,
+        assets_dir: &assets_dir,
+        libraries_dir: &libraries_dir,
+        quick_play: None,
+    };
+
+    let report_prog: super::progress::ProgressCallback = std::sync::Arc::new(|_, _, _, _| {});
+    let cmd = super::service::prepare_game_command(&client, &prep, context, &report_prog)
+        .await
+        .unwrap();
+
+    let args: Vec<String> = cmd
+        .as_std()
+        .get_args()
+        .map(|s| s.to_string_lossy().to_string())
+        .collect();
+
+    assert!(args
+        .iter()
+        .any(|a| a.starts_with("-Dforgewrapper.librariesDir=")));
+    assert!(args
+        .iter()
+        .any(|a| a.starts_with("-Dforgewrapper.minecraft=")));
+    assert!(args
+        .iter()
+        .any(|a| a.starts_with("-Dforgewrapper.installer=")));
+    assert!(args.contains(&"-Dloader_test=true".to_string()));
+    assert!(args.contains(&"io.github.zekerzhayard.forgewrapper.installer.Main".to_string()));
+}

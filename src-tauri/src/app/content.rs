@@ -67,11 +67,18 @@ pub(crate) async fn install_modpack_instance<R: Runtime>(
             .map_err(ContentError::Task)?
             .map_err(ContentError::Instance)?;
     let state = super::state(app);
+    let tracking_id = format!("installing:{}", name.trim());
+    let app_prog = app.clone();
+    let on_progress =
+        crate::minecraft::launcher::progress::make_progress_reporter(tracking_id, move |ev| {
+            crate::app::events::launch_progress(&app_prog, ev);
+        });
     let installer = content::install::ModpackInstaller {
         client: state.http.clone(),
         instances: std::sync::Arc::clone(&state.instances),
         root,
         curseforge_base: content::curseforge::DEFAULT_CURSEFORGE_BASE.into(),
+        on_progress: Some(on_progress),
     };
     installer
         .install(name, source, download_url, filename)

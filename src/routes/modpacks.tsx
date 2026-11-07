@@ -1,19 +1,24 @@
 import { queryOptions, useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import type { TFunction } from "i18next"
 import {
 	AlertCircle,
 	Box,
 	ChevronLeft,
 	ChevronRight,
+	Compass,
 	Download,
 	Flame,
 	Info,
+	type LucideIcon,
 	Package,
 	Paintbrush,
 	RefreshCw,
+	Rocket,
 	Search,
 	Sparkles,
 	SunMedium,
+	Wrench,
 	X,
 } from "lucide-react"
 import { motion } from "motion/react"
@@ -55,12 +60,20 @@ import {
 	type ContentSource,
 	type ContentType,
 	contentService,
+	isModpackOnlySource,
 	type UnifiedContentItem,
 	type UnifiedContentVersion,
 } from "@/services/content-service"
 
 export const categorySchema = v.picklist(["all", "modpack", "mod", "resourcepack", "shader"])
-export const sourceSchema = v.picklist(["all", "modrinth", "curseforge"])
+export const sourceSchema = v.picklist([
+	"all",
+	"modrinth",
+	"curseforge",
+	"ftb",
+	"technic",
+	"atlauncher",
+])
 export const sortSchema = v.picklist(["downloads", "relevance", "updated", "newest"])
 
 export const modpacksSearchSchema = v.object({
@@ -84,7 +97,14 @@ const CATEGORIES = [
 	{ id: "shader" as const, icon: SunMedium },
 ]
 
-const SOURCES = [{ id: "all" as const }, { id: "modrinth" as const }, { id: "curseforge" as const }]
+const SOURCES = [
+	{ id: "all" as const },
+	{ id: "modrinth" as const },
+	{ id: "curseforge" as const },
+	{ id: "ftb" as const },
+	{ id: "technic" as const },
+	{ id: "atlauncher" as const },
+]
 
 const LOADERS = [
 	{ id: "", label: "All Loaders" },
@@ -129,18 +149,76 @@ const SKELETON_KEYS = [
 	"skel-8",
 ]
 
+interface SourceBadgeConfig {
+	label: string
+	className: string
+	icon?: LucideIcon
+	iconClassName?: string
+}
+
+export const getSourceBadgeInfo = (
+	source: ContentSource | string,
+	t: TFunction,
+): SourceBadgeConfig => {
+	switch (source) {
+		case "modrinth":
+			return {
+				label: t("modpacks.sources.modrinth"),
+				className: "border-primary/30 text-primary",
+				icon: Compass,
+				iconClassName: "text-primary",
+			}
+		case "curseforge":
+			return {
+				label: t("modpacks.sources.curseforge"),
+				className: "border-warning/30 text-warning",
+				icon: Flame,
+				iconClassName: "text-orange-400",
+			}
+		case "ftb":
+			return {
+				label: t("modpacks.sources.ftb"),
+				className: "border-red-500/30 text-red-400",
+				icon: Package,
+				iconClassName: "text-red-400",
+			}
+		case "technic":
+			return {
+				label: t("modpacks.sources.technic"),
+				className: "border-blue-500/30 text-blue-400",
+				icon: Wrench,
+				iconClassName: "text-blue-400",
+			}
+		case "atlauncher":
+			return {
+				label: t("modpacks.sources.atlauncher"),
+				className: "border-sky-500/30 text-sky-400",
+				icon: Rocket,
+				iconClassName: "text-sky-400",
+			}
+		case "all":
+			return {
+				label: t("modpacks.sources.all"),
+				className: "border-border text-muted-foreground",
+			}
+		default:
+			return {
+				label: source,
+				className: "border-border text-muted-foreground",
+			}
+	}
+}
+
 interface ContentCardProps {
 	item: UnifiedContentItem
 	onOpenDetails: (item: UnifiedContentItem) => void
 	onStartInstall: (item: UnifiedContentItem) => void
 }
 
-const ContentCard = memo(function ContentCard({
-	item,
-	onOpenDetails,
-	onStartInstall,
-}: ContentCardProps) {
+const ContentCardComponent = ({ item, onOpenDetails, onStartInstall }: ContentCardProps) => {
 	const { t } = useTranslation()
+	const sourceBadge = getSourceBadgeInfo(item.source, t)
+	const SourceIcon = sourceBadge.icon
 
 	return (
 		<motion.div
@@ -151,7 +229,9 @@ const ContentCard = memo(function ContentCard({
 			<button
 				type="button"
 				aria-label={item.title}
-				onClick={() => onOpenDetails(item)}
+				onClick={() => {
+					onOpenDetails(item)
+				}}
 				className="absolute inset-0 z-10 size-full cursor-pointer border-none bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 			/>
 
@@ -177,16 +257,9 @@ const ContentCard = memo(function ContentCard({
 					<div className="flex min-w-0 flex-1 flex-col">
 						<div className="flex items-center gap-1.5">
 							{/* Source Badge */}
-							<Badge
-								variant="outline"
-								className={
-									item.source === "modrinth"
-										? "border-primary/30 text-primary"
-										: "border-warning/30 text-warning"
-								}
-							>
-								{item.source === "curseforge" && <Flame />}
-								{item.source === "modrinth" ? "Modrinth" : "CurseForge"}
+							<Badge variant="outline" className={sourceBadge.className}>
+								{SourceIcon && <SourceIcon className={sourceBadge.iconClassName} />}
+								{sourceBadge.label}
 							</Badge>
 
 							{/* Type Badge */}
@@ -211,11 +284,13 @@ const ContentCard = memo(function ContentCard({
 
 				{/* Tags & Loaders */}
 				<div className="flex flex-wrap items-center gap-1">
-					{item.loaders.slice(0, 3).map((ldr) => (
-						<Badge key={ldr} variant="secondary" className="font-mono capitalize">
-							{ldr}
-						</Badge>
-					))}
+					{item.loaders.slice(0, 3).map((ldr) => {
+						return (
+							<Badge key={ldr} variant="secondary" className="font-mono capitalize">
+								{ldr}
+							</Badge>
+						)
+					})}
 					{item.latestVersion && (
 						<Badge variant="outline" className="font-mono">
 							{item.latestVersion}
@@ -261,7 +336,10 @@ const ContentCard = memo(function ContentCard({
 			</div>
 		</motion.div>
 	)
-})
+}
+
+ContentCardComponent.displayName = "ContentCard"
+const ContentCard = memo(ContentCardComponent)
 
 export const modpacksQueryOptions = (search: ModpacksSearchParams) =>
 	queryOptions({
@@ -357,7 +435,19 @@ const ModpacksPage = () => {
 
 	const handleSourceChange = (source: ContentSource) => {
 		navigate({
-			search: (prev) => ({ ...prev, source, page: 0 }),
+			search: (prev) => {
+				const nextCategory =
+					isModpackOnlySource(source) && prev.category !== "all" && prev.category !== "modpack"
+						? "modpack"
+						: prev.category
+
+				return {
+					...prev,
+					source,
+					category: nextCategory,
+					page: 0,
+				}
+			},
 			replace: true,
 		})
 	}
@@ -393,16 +483,18 @@ const ModpacksPage = () => {
 	const handleClearFilters = () => {
 		setSearchInput("")
 		navigate({
-			search: () => ({
-				query: "",
-				category: "all",
-				source: "all",
-				loader: "",
-				version: "",
-				sort: "downloads",
-				page: 0,
-				details: undefined,
-			}),
+			search: () => {
+				return {
+					query: "",
+					category: "all",
+					source: "all",
+					loader: "",
+					version: "",
+					sort: "downloads",
+					page: 0,
+					details: undefined,
+				}
+			},
 			replace: true,
 		})
 	}
@@ -438,6 +530,13 @@ const ModpacksPage = () => {
 
 	const totalPages = Math.ceil(totalHits / PAGE_SIZE)
 	const isBusy = isLoading || isFetching
+	const isModpackOnly = isModpackOnlySource(activeSource)
+	const searchPlaceholder =
+		activeSource === "technic"
+			? t("modpacks.searchTechnicPlaceholder", {
+					defaultValue: "Search Technic modpacks or paste a Technic pack URL...",
+				})
+			: t("modpacks.searchPlaceholder")
 
 	return (
 		<ScrollArea className="size-full flex-1 scroll-fade-y">
@@ -467,7 +566,7 @@ const ModpacksPage = () => {
 								type="text"
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
-								placeholder={t("modpacks.searchPlaceholder")}
+								placeholder={searchPlaceholder}
 								className="text-sm"
 							/>
 							{searchInput && (
@@ -499,12 +598,16 @@ const ModpacksPage = () => {
 								if (source) handleSourceChange(source)
 							}}
 						>
-							{SOURCES.map((s) => (
-								<ToggleGroupItem key={s.id} value={s.id}>
-									{s.id === "curseforge" && <Flame className="text-orange-400" />}
-									{t(`modpacks.sources.${s.id}`)}
-								</ToggleGroupItem>
-							))}
+							{SOURCES.map((s) => {
+								const sourceBadge = getSourceBadgeInfo(s.id, t)
+								const Icon = sourceBadge.icon
+								return (
+									<ToggleGroupItem key={s.id} value={s.id}>
+										{Icon && <Icon className={sourceBadge.iconClassName} />}
+										{sourceBadge.label}
+									</ToggleGroupItem>
+								)
+							})}
 						</ToggleGroup>
 					</div>
 
@@ -520,12 +623,17 @@ const ModpacksPage = () => {
 							variant="line"
 							className="max-w-full scrollbar-none overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
 						>
-							{CATEGORIES.map(({ id, icon: Icon }) => (
-								<TabsTrigger key={id} value={id}>
-									<Icon />
-									{t(`modpacks.categories.${id}`)}
-								</TabsTrigger>
-							))}
+							{CATEGORIES.map(({ id, icon: Icon }) => {
+								const isCategoryDisabled =
+									isModpackOnly && (id === "mod" || id === "resourcepack" || id === "shader")
+
+								return (
+									<TabsTrigger key={id} value={id} disabled={isCategoryDisabled}>
+										<Icon />
+										{t(`modpacks.categories.${id}`)}
+									</TabsTrigger>
+								)
+							})}
 						</TabsList>
 					</Tabs>
 

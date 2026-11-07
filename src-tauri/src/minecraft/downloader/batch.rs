@@ -38,6 +38,80 @@ fn prepare_download(
     Ok(staging)
 }
 
+const MAX_ATTEMPTS: usize = 3;
+
+fn is_retryable_url(url: &str) -> bool {
+    let lower = url.to_ascii_lowercase();
+    let is_http = lower.starts_with("http://") || lower.starts_with("https://");
+    let is_loopback = lower.starts_with("http://127.0.0.1")
+        || lower.starts_with("http://localhost")
+        || lower.starts_with("http://[::1]")
+        || lower.starts_with("https://127.0.0.1")
+        || lower.starts_with("https://localhost")
+        || lower.starts_with("https://[::1]");
+    is_http && !is_loopback
+}
+
+async fn fetch_task_bytes(
+    client: &reqwest::Client,
+    task: &DownloadTask,
+) -> Result<Vec<u8>, DownloadError> {
+    let can_retry = is_retryable_url(&task.url);
+    let mut last_error = None;
+
+    for attempt in 0..MAX_ATTEMPTS {
+        let resp_result = client.get(&task.url).send().await;
+        let resp = match resp_result {
+            Ok(resp) => resp,
+            Err(err) => {
+                let download_err = DownloadError::from(err);
+                if can_retry && attempt + 1 < MAX_ATTEMPTS {
+                    let delay_ms = 150 * (attempt + 1) as u64;
+                    tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+                    last_error = Some(download_err);
+                    continue;
+                }
+                return Err(download_err);
+            }
+        };
+
+        let status = resp.status();
+        let is_transient_status = status.is_server_error()
+            || status == reqwest::StatusCode::TOO_MANY_REQUESTS
+            || status == reqwest::StatusCode::REQUEST_TIMEOUT;
+
+        if is_transient_status && can_retry && attempt + 1 < MAX_ATTEMPTS {
+            let delay_ms = 150 * (attempt + 1) as u64;
+            tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+            if let Err(status_err) = resp.error_for_status() {
+                last_error = Some(DownloadError::from(status_err));
+            }
+            continue;
+        }
+
+        let resp = resp.error_for_status()?;
+        match resp.bytes().await {
+            Ok(bytes) => return Ok(bytes.to_vec()),
+            Err(err) => {
+                let download_err = DownloadError::from(err);
+                if can_retry && attempt + 1 < MAX_ATTEMPTS {
+                    let delay_ms = 150 * (attempt + 1) as u64;
+                    tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+                    last_error = Some(download_err);
+                    continue;
+                }
+                return Err(download_err);
+            }
+        }
+    }
+
+    if let Some(err) = last_error {
+        Err(err)
+    } else {
+        Err(DownloadError::Integrity("download attempts exhausted"))
+    }
+}
+
 async fn download_one_with_preparer(
     client: reqwest::Client,
     task: DownloadTask,
@@ -45,13 +119,7 @@ async fn download_one_with_preparer(
         + Send
         + 'static,
 ) -> Result<DownloadTask, DownloadError> {
-    let bytes = client
-        .get(&task.url)
-        .send()
-        .await?
-        .error_for_status()?
-        .bytes()
-        .await?;
+    let bytes = fetch_task_bytes(&client, &task).await?;
     if task.size.is_some_and(|size| size != bytes.len() as u64) {
         return Err(DownloadError::Integrity("size"));
     }

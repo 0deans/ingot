@@ -2,7 +2,7 @@ import i18n from "i18next"
 import { AlertCircle, Download, FolderPlus } from "lucide-react"
 import { memo, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { InstanceConfig } from "@/bindings"
+import type { InstanceConfig, ModLoaderType } from "@/bindings"
 import {
 	SearchableSelect,
 	type SearchableSelectOption,
@@ -22,8 +22,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import {
-	type ContentSource,
 	contentService,
+	stripContentSourcePrefix,
 	type UnifiedContentItem,
 	type UnifiedContentVersion,
 } from "@/services/content-service"
@@ -40,6 +40,29 @@ interface InstallDialogProps {
 export const supportsMods = (loader: string): boolean => {
 	const l = loader.toLowerCase()
 	return l === "fabric" || l === "quilt" || l === "neoforge" || l === "forge"
+}
+
+export const normalizeLoader = (loaderStr?: string | null): ModLoaderType => {
+	const l = loaderStr?.toLowerCase()
+	if (l === "fabric") {
+		return "fabric"
+	}
+	if (l === "quilt") {
+		return "quilt"
+	}
+	if (l === "neoforge") {
+		return "neoforge"
+	}
+	if (l === "forge") {
+		return "forge"
+	}
+	if (l === "horizon") {
+		return "horizon"
+	}
+	if (l === "vanilla") {
+		return "vanilla"
+	}
+	return "forge"
 }
 
 export const isVersionCompatibleWithInstance = (
@@ -77,17 +100,23 @@ export const isVersionCompatibleWithInstance = (
 	return true
 }
 
-function formatError(err: unknown): string {
-	if (!err) return i18n.t("install.loadFailed")
-	if (typeof err === "string") return err
-	if (err instanceof Error) return err.message
+const formatError = (err: unknown): string => {
+	if (!err) {
+		return i18n.t("install.loadFailed")
+	}
+	if (typeof err === "string") {
+		return err
+	}
+	if (err instanceof Error) {
+		return err.message
+	}
 	if (
 		typeof err === "object" &&
 		err !== null &&
 		"message" in err &&
-		typeof (err as { message: unknown }).message === "string"
+		typeof err.message === "string"
 	) {
-		return (err as { message: string }).message
+		return err.message
 	}
 	return String(err)
 }
@@ -133,7 +162,7 @@ export const InstallDialog = memo(
 			}
 
 			let cancelled = false
-			const cleanId = item.id.replace(/^(mr|cf|modrinth|curseforge):/, "")
+			const cleanId = stripContentSourcePrefix(item.id)
 
 			// Load existing local instances independently
 			instanceService
@@ -148,7 +177,7 @@ export const InstallDialog = memo(
 
 			// Load content versions independently
 			contentService
-				.getContentDetails(item.source as ContentSource, cleanId)
+				.getContentDetails(item.source, cleanId)
 				.then((details) => {
 					if (cancelled) return
 					setVersions(details.versions)
@@ -309,35 +338,47 @@ export const InstallDialog = memo(
 			if (!item) {
 				return
 			}
-			if (!isModpack) {
-				if (!selectedInstance) {
-					setErrorMessage(t("install.selectTarget"))
-					return
-				}
-				if (isMod && !supportsMods(selectedInstance.loader)) {
-					setErrorMessage(
-						t("install.unsupportedLoaderWarning", {
-							instance: selectedInstance.name,
-							loader: selectedInstance.loader,
-						}),
-					)
-					return
-				}
-				if (
-					!selectedVersion ||
-					!isVersionCompatibleWithInstance(selectedInstance, selectedVersion, item.projectType)
-				) {
-					setErrorMessage(
-						t("install.versionIncompatibleWarning", {
-							instance: selectedInstance.name,
-							version: selectedInstance.gameVersion,
-							loader: selectedInstance.loader,
-						}),
-					)
-					return
-				}
-			}
 			if (!selectedVersion) {
+				return
+			}
+			if (isModpack) {
+				const name = modpackName.trim() || item.title
+				const gameVersion = selectedVersion.gameVersions[0] ?? "1.20.1"
+				const loader = normalizeLoader(selectedVersion.loaders[0])
+				contentService.startBackgroundModpackInstall({
+					name,
+					source: item.source,
+					downloadUrl: selectedVersion.downloadUrl,
+					filename: selectedVersion.filename,
+					gameVersion,
+					loader,
+					iconUrl: item.iconUrl,
+				})
+				onOpenChange(false)
+				return
+			}
+
+			if (!selectedInstance) {
+				setErrorMessage(t("install.selectTarget"))
+				return
+			}
+			if (isMod && !supportsMods(selectedInstance.loader)) {
+				setErrorMessage(
+					t("install.unsupportedLoaderWarning", {
+						instance: selectedInstance.name,
+						loader: selectedInstance.loader,
+					}),
+				)
+				return
+			}
+			if (!isVersionCompatibleWithInstance(selectedInstance, selectedVersion, item.projectType)) {
+				setErrorMessage(
+					t("install.versionIncompatibleWarning", {
+						instance: selectedInstance.name,
+						version: selectedInstance.gameVersion,
+						loader: selectedInstance.loader,
+					}),
+				)
 				return
 			}
 
@@ -345,28 +386,15 @@ export const InstallDialog = memo(
 			setErrorMessage(null)
 
 			try {
-				if (isModpack) {
-					const name = modpackName.trim() || item.title
-					await contentService.installModpackInstance(
-						name,
-						item.source as ContentSource,
-						selectedVersion.downloadUrl,
-						selectedVersion.filename,
-					)
-					await instanceService.refreshInstances()
-					onSuccess?.(t("install.modpackDone", { name }))
-					onOpenChange(false)
-				} else {
-					await contentService.installContentFile(
-						selectedInstanceId,
-						item.projectType,
-						selectedVersion.downloadUrl,
-						selectedVersion.filename,
-					)
-					const instName = selectedInstance ? selectedInstance.name : ""
-					onSuccess?.(t("install.added", { file: selectedVersion.filename, instance: instName }))
-					onOpenChange(false)
-				}
+				await contentService.installContentFile(
+					selectedInstanceId,
+					item.projectType,
+					selectedVersion.downloadUrl,
+					selectedVersion.filename,
+				)
+				const instName = selectedInstance ? selectedInstance.name : ""
+				onSuccess?.(t("install.added", { file: selectedVersion.filename, instance: instName }))
+				onOpenChange(false)
 			} catch (err) {
 				setErrorMessage(formatError(err))
 			} finally {
@@ -415,9 +443,9 @@ export const InstallDialog = memo(
 								onClick={() => {
 									setIsLoadingData(true)
 									setErrorMessage(null)
-									const cleanId = item.id.replace(/^(mr|cf|modrinth|curseforge):/, "")
+									const cleanId = stripContentSourcePrefix(item.id)
 									contentService
-										.getContentDetails(item.source as ContentSource, cleanId)
+										.getContentDetails(item.source, cleanId)
 										.then((details) => {
 											setVersions(details.versions)
 											if (details.versions.length > 0) {

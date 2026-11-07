@@ -13,11 +13,13 @@ import {
 	Gamepad2,
 	HardDrive,
 	Layers,
+	Package,
 	Rocket,
 	Search,
 	Server,
 	Sliders,
 	Sparkles,
+	Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
@@ -80,6 +82,18 @@ const LAUNCHER_META: Record<
 		color: "text-sky-400",
 		bg: "bg-sky-500/10",
 		border: "hover:border-sky-500/40",
+	},
+	ftb: {
+		icon: Package,
+		color: "text-red-400",
+		bg: "bg-red-500/10",
+		border: "hover:border-red-500/40",
+	},
+	technic: {
+		icon: Wrench,
+		color: "text-blue-400",
+		bg: "bg-blue-500/10",
+		border: "hover:border-blue-500/40",
 	},
 	legacylauncher: {
 		icon: Gamepad2,

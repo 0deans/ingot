@@ -11,15 +11,32 @@ pub fn default_classpath_separator() -> &'static str {
 
 /// Converts a Maven coordinate like `com.mojang:authlib:1.5.25` into a relative file path.
 pub fn maven_coordinate_to_path(name: &str, classifier: Option<&str>) -> Option<String> {
-    let parts: Vec<&str> = name.split(':').collect();
+    let (coord, at_ext) = match name.split_once('@') {
+        Some((c, e)) => (c, Some(e)),
+        None => (name, None),
+    };
+    let parts: Vec<&str> = coord.split(':').collect();
     if parts.len() < 3 {
         return None;
     }
     let group = parts[0].replace('.', "/");
     let artifact = parts[1];
     let version = parts[2];
-    let class_suffix = classifier.map(|c| format!("-{}", c)).unwrap_or_default();
-    let ext = parts.get(3).unwrap_or(&"jar");
+    let (effective_classifier, ext) = if let Some(c) = classifier {
+        (
+            Some(c),
+            at_ext.or_else(|| parts.get(4).copied()).unwrap_or("jar"),
+        )
+    } else {
+        (
+            parts.get(3).copied(),
+            at_ext.or_else(|| parts.get(4).copied()).unwrap_or("jar"),
+        )
+    };
+    let class_suffix = effective_classifier
+        .filter(|c| !c.is_empty())
+        .map(|c| format!("-{}", c))
+        .unwrap_or_default();
 
     Some(format!(
         "{}/{}/{}/{}-{}{}.{}",
@@ -105,6 +122,36 @@ mod tests {
     #[test]
     fn maven_coordinate_to_path_returns_none_for_malformed_input() {
         assert!(maven_coordinate_to_path("invalid-coord", None).is_none());
+    }
+
+    #[test]
+    fn maven_coordinate_to_path_handles_four_part_coordinates() {
+        let path =
+            maven_coordinate_to_path("net.minecraftforge:forge:1.16.5-36.2.39:launcher", None)
+                .unwrap();
+        assert_eq!(
+            path,
+            "net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-launcher.jar"
+        );
+
+        let path2 = maven_coordinate_to_path(
+            "net.minecraftforge:forge:1.12.2-14.23.5.2860:universal",
+            None,
+        )
+        .unwrap();
+        assert_eq!(
+            path2,
+            "net/minecraftforge/forge/1.12.2-14.23.5.2860/forge-1.12.2-14.23.5.2860-universal.jar"
+        );
+    }
+
+    #[test]
+    fn maven_coordinate_to_path_handles_at_extension() {
+        let path = maven_coordinate_to_path("com.example:lib:1.0@zip", None).unwrap();
+        assert_eq!(path, "com/example/lib/1.0/lib-1.0.zip");
+
+        let path2 = maven_coordinate_to_path("com.example:lib:1.0:client@zip", None).unwrap();
+        assert_eq!(path2, "com/example/lib/1.0/lib-1.0-client.zip");
     }
 
     #[test]

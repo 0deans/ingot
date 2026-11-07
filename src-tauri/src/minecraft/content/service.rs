@@ -1,6 +1,7 @@
 use super::{
-    parse_content_source_and_id, ContentError, ContentSearchQuery, ContentSearchResult,
-    CurseForgeClient, ModrinthClient, UnifiedContentDetails,
+    parse_content_source_and_id, AtLauncherClient, ContentError, ContentSearchQuery,
+    ContentSearchResult, CurseForgeClient, FtbClient, ModrinthClient, TechnicClient,
+    UnifiedContentDetails,
 };
 
 pub(crate) struct ContentSearchRequest {
@@ -17,24 +18,51 @@ pub(crate) struct ContentSearchRequest {
 pub(crate) struct ContentService {
     modrinth: ModrinthClient,
     curseforge: CurseForgeClient,
+    ftb: FtbClient,
+    technic: TechnicClient,
+    atlauncher: AtLauncherClient,
 }
 
 impl ContentService {
     pub(crate) fn new(client: reqwest::Client) -> Self {
-        Self::with_providers(
+        Self::with_all_providers(
             ModrinthClient::with_endpoint(client.clone(), super::modrinth::DEFAULT_MODRINTH_BASE),
             CurseForgeClient::with_endpoint(
-                client,
+                client.clone(),
                 super::curseforge::DEFAULT_CURSEFORGE_BASE,
                 super::CURSEFORGE_API_KEY,
             ),
+            FtbClient::with_endpoint(client.clone(), super::ftb::DEFAULT_FTB_BASE),
+            TechnicClient::with_endpoint(client.clone(), super::technic::DEFAULT_TECHNIC_BASE),
+            AtLauncherClient::with_endpoint(client, super::atlauncher::DEFAULT_ATLAUNCHER_BASE),
         )
     }
 
+    #[allow(dead_code)]
     pub(crate) fn with_providers(modrinth: ModrinthClient, curseforge: CurseForgeClient) -> Self {
+        let client = reqwest::Client::new();
+        Self::with_all_providers(
+            modrinth,
+            curseforge,
+            FtbClient::with_endpoint(client.clone(), super::ftb::DEFAULT_FTB_BASE),
+            TechnicClient::with_endpoint(client.clone(), super::technic::DEFAULT_TECHNIC_BASE),
+            AtLauncherClient::with_endpoint(client, super::atlauncher::DEFAULT_ATLAUNCHER_BASE),
+        )
+    }
+
+    pub(crate) fn with_all_providers(
+        modrinth: ModrinthClient,
+        curseforge: CurseForgeClient,
+        ftb: FtbClient,
+        technic: TechnicClient,
+        atlauncher: AtLauncherClient,
+    ) -> Self {
         Self {
             modrinth,
             curseforge,
+            ftb,
+            technic,
+            atlauncher,
         }
     }
 
@@ -76,6 +104,27 @@ impl ContentService {
             offset,
             limit: page_size,
         };
+
+        if src_clean == "ftb" {
+            return self.ftb.search(&search_query).await;
+        }
+
+        if src_clean == "technic" {
+            return self.technic.search(&search_query).await;
+        }
+
+        if src_clean == "atlauncher" || src_clean == "atl" {
+            return self.atlauncher.search(&search_query).await;
+        }
+
+        if (src_clean == "all" || src_clean.is_empty())
+            && search_query
+                .query
+                .and_then(super::technic::extract_technic_slug_from_query)
+                .is_some()
+        {
+            return self.technic.search(&search_query).await;
+        }
 
         if is_bedrock || src_clean == "curseforge" {
             return self.curseforge.search(&search_query).await;
@@ -149,6 +198,12 @@ impl ContentService {
             self.modrinth.get_details(clean_id).await
         } else if src == "curseforge" {
             self.curseforge.get_details(clean_id).await
+        } else if src == "ftb" {
+            self.ftb.get_details(clean_id).await
+        } else if src == "technic" {
+            self.technic.get_details(clean_id).await
+        } else if src == "atlauncher" || src == "atl" {
+            self.atlauncher.get_details(clean_id).await
         } else {
             Err(ContentError::UnknownSource(source.to_string()))
         }
