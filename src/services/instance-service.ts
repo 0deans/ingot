@@ -2,6 +2,9 @@ import i18n from "i18next"
 import { useEffect, useState } from "react"
 import { create } from "zustand"
 import type {
+	ExportOptions,
+	ExportPreview,
+	ExportReport,
 	HorizonRelease,
 	InstanceConfig,
 	InstanceStatusEvent,
@@ -330,6 +333,18 @@ export const instanceService = {
 
 	async getAvailableHorizonReleases(): Promise<HorizonRelease[]> {
 		return unwrapRpc(rpc.versions.get_available_horizon_releases())
+	},
+
+	async previewExport(instanceId: string): Promise<ExportPreview> {
+		return unwrapRpc(rpc.instances.export.preview_instance_export(instanceId))
+	},
+
+	async exportInstance(
+		instanceId: string,
+		options: ExportOptions,
+		dest: string | null = null,
+	): Promise<ExportReport> {
+		return unwrapRpc(rpc.instances.export.export_instance(instanceId, options, dest))
 	},
 }
 

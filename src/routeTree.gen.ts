@@ -19,6 +19,7 @@ import { Route as SkinsRouteImport } from './routes/skins'
 import { Route as UiTestRouteImport } from './routes/ui-test'
 import { Route as WorldsRouteImport } from './routes/worlds'
 import { Route as InstancesIdRouteImport } from './routes/instances/$id'
+import { Route as InstancesIdExportRouteImport } from './routes/instances/$id.export'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,11 @@ const InstancesIdRoute = InstancesIdRouteImport.update({
   path: '/instances/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstancesIdExportRoute = InstancesIdExportRouteImport.update({
+  id: '/export',
+  path: '/export',
+  getParentRoute: () => InstancesIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -81,7 +87,8 @@ export interface FileRoutesByFullPath {
   '/skins': typeof SkinsRoute
   '/ui-test': typeof UiTestRoute
   '/worlds': typeof WorldsRoute
-  '/instances/$id': typeof InstancesIdRoute
+  '/instances/$id': typeof InstancesIdRouteWithChildren
+  '/instances/$id/export': typeof InstancesIdExportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,7 +100,8 @@ export interface FileRoutesByTo {
   '/skins': typeof SkinsRoute
   '/ui-test': typeof UiTestRoute
   '/worlds': typeof WorldsRoute
-  '/instances/$id': typeof InstancesIdRoute
+  '/instances/$id': typeof InstancesIdRouteWithChildren
+  '/instances/$id/export': typeof InstancesIdExportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,7 +114,8 @@ export interface FileRoutesById {
   '/skins': typeof SkinsRoute
   '/ui-test': typeof UiTestRoute
   '/worlds': typeof WorldsRoute
-  '/instances/$id': typeof InstancesIdRoute
+  '/instances/$id': typeof InstancesIdRouteWithChildren
+  '/instances/$id/export': typeof InstancesIdExportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/worlds'
     | '/instances/$id'
+    | '/instances/$id/export'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/worlds'
     | '/instances/$id'
+    | '/instances/$id/export'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/worlds'
     | '/instances/$id'
+    | '/instances/$id/export'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -157,7 +169,7 @@ export interface RootRouteChildren {
   SkinsRoute: typeof SkinsRoute
   UiTestRoute: typeof UiTestRoute
   WorldsRoute: typeof WorldsRoute
-  InstancesIdRoute: typeof InstancesIdRoute
+  InstancesIdRoute: typeof InstancesIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -232,8 +244,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstancesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instances/$id/export': {
+      id: '/instances/$id/export'
+      path: '/export'
+      fullPath: '/instances/$id/export'
+      preLoaderRoute: typeof InstancesIdExportRouteImport
+      parentRoute: typeof InstancesIdRoute
+    }
   }
 }
+
+interface InstancesIdRouteChildren {
+  InstancesIdExportRoute: typeof InstancesIdExportRoute
+}
+
+const InstancesIdRouteChildren: InstancesIdRouteChildren = {
+  InstancesIdExportRoute: InstancesIdExportRoute,
+}
+
+const InstancesIdRouteWithChildren = InstancesIdRoute._addFileChildren(
+  InstancesIdRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -245,7 +276,7 @@ const rootRouteChildren: RootRouteChildren = {
   SkinsRoute: SkinsRoute,
   UiTestRoute: UiTestRoute,
   WorldsRoute: WorldsRoute,
-  InstancesIdRoute: InstancesIdRoute,
+  InstancesIdRoute: InstancesIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

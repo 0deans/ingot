@@ -444,3 +444,26 @@ impl From<crate::minecraft::instance_content::InstanceContentError> for ApiError
         }
     }
 }
+
+impl From<crate::minecraft::instance_export::InstanceExportError> for ApiError {
+    fn from(error: crate::minecraft::instance_export::InstanceExportError) -> Self {
+        use crate::minecraft::instance_export::InstanceExportError;
+        match error {
+            InstanceExportError::UnsupportedLoader(_)
+            | InstanceExportError::UnsafePath(_)
+            | InstanceExportError::EmptyName => Self::invalid_input(error.to_string()),
+            InstanceExportError::NotFound(id) => Self::not_found(id),
+            InstanceExportError::InstanceRunning => {
+                Self::conflict("Instance is currently running".to_string())
+            }
+            InstanceExportError::Io { .. } | InstanceExportError::Zip(_) => {
+                Self::storage_failure(error.to_string())
+            }
+            InstanceExportError::Provider(_) => Self::provider_unavailable(error.to_string()),
+            InstanceExportError::Content(e) => Self::from(e),
+            InstanceExportError::Task(_) | InstanceExportError::Serialization(_) => {
+                Self::internal(error.to_string())
+            }
+        }
+    }
+}

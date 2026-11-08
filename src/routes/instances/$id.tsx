@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { Outlet, createFileRoute, useChildMatches } from "@tanstack/react-router"
 import { memo, useCallback } from "react"
 import * as v from "valibot"
 import InstanceContentView from "@/components/instance-content/instance-content-view"
@@ -24,6 +24,7 @@ const InstanceManagePage = () => {
 	const { tab } = Route.useSearch()
 	const navigate = Route.useNavigate()
 	const { runningMap } = useRunningInstances()
+	const childMatches = useChildMatches()
 
 	// 2. Refs (none)
 
@@ -51,6 +52,16 @@ const InstanceManagePage = () => {
 	const handleBack = useCallback(() => {
 		void navigate({
 			to: "/",
+			search: (prev) => {
+				return {
+					...prev,
+					logs: undefined,
+					action: undefined,
+					edit: undefined,
+					delete: undefined,
+					duplicate: undefined,
+				}
+			},
 		})
 	}, [navigate])
 
@@ -59,6 +70,10 @@ const InstanceManagePage = () => {
 			to: "/modpacks",
 		})
 	}, [navigate])
+
+	if (childMatches.length > 0) {
+		return <Outlet />
+	}
 
 	if (!instance) {
 		return (

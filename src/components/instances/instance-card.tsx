@@ -604,6 +604,19 @@ export const InstanceCard = ({
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									onClick={() => {
+										void navigate({
+											to: "/instances/$id/export",
+											params: { id: instance.id },
+											search: { from: "home" },
+										})
+									}}
+									className="cursor-pointer gap-2"
+								>
+									<Package className="size-4 text-muted-foreground" />
+									<span className="text-xs">{t("instances.card.exportTooltip")}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => {
 										return navigate({ to: "/worlds", search: { instance: instance.id } })
 									}}
 									className="cursor-pointer gap-2"

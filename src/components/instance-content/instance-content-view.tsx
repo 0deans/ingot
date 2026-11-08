@@ -1,4 +1,5 @@
-import { ArrowLeft, Box, Compass, FolderOpen, Layers, Sparkles } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
+import { ArrowLeft, Box, Compass, FolderOpen, Layers, Package, Sparkles } from "lucide-react"
 import { memo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -32,6 +33,7 @@ const InstanceContentView = ({
 }: InstanceContentViewProps) => {
 	// 1. Context & Global
 	const { t } = useTranslation()
+	const navigate = useNavigate()
 
 	// 2. Refs (none)
 
@@ -144,6 +146,32 @@ const InstanceContentView = ({
 						/>
 						<TooltipContent side="bottom" align="end">
 							{t("instanceContent.openFolder")}
+						</TooltipContent>
+					</Tooltip>
+
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										void navigate({
+											to: "/instances/$id/export",
+											params: { id: instance.id },
+											search: { from: "manage" },
+										})
+									}}
+									className="gap-1.5 text-xs max-sm:size-8 max-sm:p-0"
+									aria-label={t("exportInstance.title")}
+								>
+									<Package className="size-3.5" />
+									<span className="hidden sm:inline">{t("instances.card.exportTooltip")}</span>
+								</Button>
+							}
+						/>
+						<TooltipContent side="bottom" align="end">
+							{t("exportInstance.title")}
 						</TooltipContent>
 					</Tooltip>
 				</div>

@@ -10,6 +10,7 @@ mod tests;
 use super::TargetFile;
 pub use fingerprint::cf_fingerprint;
 pub use http::{SourceClient, SourceError};
+pub use modrinth::ModrinthVersionFileMatch;
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]

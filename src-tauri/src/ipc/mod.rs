@@ -23,6 +23,7 @@ use content::{ContentApi, ContentApiImpl};
 use events::{EventsApi, EventsApiImpl};
 use instances::{
     content::{InstanceContentApi, InstanceContentApiImpl},
+    export::{InstanceExportApi, InstanceExportApiImpl},
     imports::{InstanceImportsApi, InstanceImportsApiImpl},
     logs::{InstanceLogsApi, InstanceLogsApiImpl},
     screenshots::{InstanceScreenshotsApi, InstanceScreenshotsApiImpl},
@@ -64,6 +65,7 @@ macro_rules! registered_apis {
         $register!(InstanceSyncApiImpl);
         $register!(InstanceVersionChangeApiImpl);
         $register!(InstanceWorldsApiImpl);
+        $register!(InstanceExportApiImpl);
         $register!(ServersApiImpl);
         $register!(ServerConfigApiImpl);
         $register!(ServerPlayersApiImpl);

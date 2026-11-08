@@ -219,6 +219,13 @@
 			"destination": "accounts"
 		},
 		{
+			"name": "export_instance",
+			"currentPath": "instances.export",
+			"kind": "command",
+			"arguments": ["instance_id","options","dest"],
+			"destination": "instances.export"
+		},
+		{
 			"name": "export_instance_category_to_shared",
 			"currentPath": "instances.sync",
 			"kind": "command",
@@ -952,6 +959,13 @@
 			"kind": "command",
 			"arguments": ["port"],
 			"destination": "servers"
+		},
+		{
+			"name": "preview_instance_export",
+			"currentPath": "instances.export",
+			"kind": "command",
+			"arguments": ["instance_id"],
+			"destination": "instances.export"
 		},
 		{
 			"name": "pull_instance_sync",

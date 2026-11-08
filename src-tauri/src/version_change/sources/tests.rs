@@ -417,3 +417,54 @@ async fn planner_propagates_identification_target_dependency_and_metadata_failur
         ));
     }
 }
+
+#[tokio::test]
+async fn test_modrinth_version_files_by_hash_loopback() {
+    let hash = "abc1234567890def";
+    let body = json!({
+        hash: {
+            "id": "v1",
+            "project_id": "p1",
+            "version_number": "1.0",
+            "version_type": "release",
+            "game_versions": ["1.20.1"],
+            "loaders": ["fabric"],
+            "dependencies": [],
+            "files": [
+                {
+                    "filename": "primary.jar",
+                    "url": "https://cdn.modrinth.com/primary.jar",
+                    "size": 100,
+                    "primary": true,
+                    "hashes": { "sha1": "other_hash" }
+                },
+                {
+                    "filename": "secondary.jar",
+                    "url": "https://cdn.modrinth.com/secondary.jar",
+                    "size": 200,
+                    "primary": false,
+                    "hashes": {
+                        "sha1": hash,
+                        "sha512": "sha512_content"
+                    }
+                }
+            ]
+        }
+    })
+    .to_string();
+
+    let fixture = Fixture::new(vec![(200, body)]).await;
+    let client = reqwest::Client::new();
+    let sources = fixture.sources(&client);
+
+    let result = sources
+        .modrinth_version_files_by_hash(&[hash.to_string()])
+        .await
+        .unwrap();
+
+    assert_eq!(result.len(), 1);
+    let matched = result.get(hash).unwrap();
+    assert_eq!(matched.url, "https://cdn.modrinth.com/secondary.jar");
+    assert_eq!(matched.sha512, Some("sha512_content".to_string()));
+    assert_eq!(matched.size, 200);
+}

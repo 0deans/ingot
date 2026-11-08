@@ -6,6 +6,13 @@ use serde_json::json;
 use super::http::{nonempty, optional, required};
 use super::{Channel, Dep, ProjectInfo, Release, Source, SourceClient, SourceError, TargetFile};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ModrinthVersionFileMatch {
+    pub url: String,
+    pub sha512: Option<String>,
+    pub size: u64,
+}
+
 #[derive(Deserialize)]
 struct Version {
     id: String,
@@ -130,6 +137,42 @@ impl Version {
 }
 
 impl SourceClient<'_> {
+    pub async fn modrinth_version_files_by_hash(
+        &self,
+        hashes: &[String],
+    ) -> Result<HashMap<String, ModrinthVersionFileMatch>, SourceError> {
+        if hashes.is_empty() {
+            return Ok(HashMap::new());
+        }
+        let request = self
+            .http
+            .post(format!("{}/version_files", self.modrinth))
+            .json(&json!({"hashes": hashes, "algorithm": "sha1"}));
+        let versions: HashMap<String, Version> = required(request, Source::Modrinth).await?;
+        let mut matches = HashMap::new();
+        for (hash, version) in versions {
+            for file in version.files {
+                let sha1_matches = file
+                    .hashes
+                    .get("sha1")
+                    .map(|h| h.eq_ignore_ascii_case(&hash))
+                    .unwrap_or(false);
+                if sha1_matches {
+                    matches.insert(
+                        hash.clone(),
+                        ModrinthVersionFileMatch {
+                            url: file.url,
+                            sha512: file.hashes.get("sha512").cloned(),
+                            size: file.size,
+                        },
+                    );
+                    break;
+                }
+            }
+        }
+        Ok(matches)
+    }
+
     pub async fn modrinth_identify(
         &self,
         hashes: &[String],
