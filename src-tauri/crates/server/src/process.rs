@@ -11,7 +11,7 @@ pub(crate) mod lifecycle_tests;
 #[cfg(test)]
 mod tests;
 
-pub use console::clean_console_line;
+pub use console::{clean_console_line, is_list_reply, is_query_reply, ENTITY_DATA_MARKER};
 pub use lifecycle::{
     claim_server_launch, launch_claimed_server, ClaimedServerLaunch, ServerLaunchContext,
 };

@@ -14,7 +14,11 @@ pub const USER_AGENT: &str = concat!(
 
 pub mod ipc;
 pub(crate) use crate::core::process_tree;
-pub use ingot_minecraft as minecraft;
+pub mod minecraft {
+    pub use ingot_content::{content, importer, instance_export};
+    pub use ingot_minecraft::*;
+}
+pub use ingot_content as content;
 pub mod running;
 pub mod server {
     pub use crate::app::server_config::{
@@ -22,7 +26,9 @@ pub mod server {
     };
     pub(crate) use crate::app::server_config::{delete_server, update_server};
     pub use ingot_server::*;
+    pub use ingot_server_map::{live, map};
 }
+pub use ingot_server_map as server_map;
 pub mod system;
 #[cfg(desktop)]
 pub mod tray;

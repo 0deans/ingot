@@ -144,10 +144,9 @@ mod file_tests {
     #[ignore]
     fn reads_real_player_files() {
         let dir = std::path::PathBuf::from(std::env::var("INGOT_TEST_SERVER_DIR").unwrap());
-        let known = crate::server::live::known_players(&dir, &dir.join("world"));
+        let known = crate::live::known_players(&dir, &dir.join("world"));
         println!("{known:?}");
-        let p =
-            crate::server::live::offline_player(&dir, &dir.join("world"), &known[0].name).unwrap();
+        let p = crate::live::offline_player(&dir, &dir.join("world"), &known[0].name).unwrap();
         println!(
             "{} hp={} food={} pos=({}, {}, {}) dim={} seen={:?}",
             p.name, p.health, p.food, p.x, p.y, p.z, p.dimension, p.last_seen

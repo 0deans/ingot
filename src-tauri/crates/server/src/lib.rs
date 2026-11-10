@@ -15,8 +15,9 @@ pub mod config;
 pub mod downloader;
 pub mod files;
 pub mod installer;
-pub mod live;
-pub mod map;
+pub mod map {
+    pub use crate::config::level_name;
+}
 pub mod plugins;
 pub mod process;
 pub mod proxy;

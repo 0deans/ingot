@@ -11,9 +11,11 @@ edition = "2021"
 [workspace.dependencies]
 ingot-accounts = { path = "crates/accounts" }
 ingot-artifacts = { path = "crates/artifacts" }
+ingot-content = { path = "crates/content" }
 ingot-core = { path = "crates/core" }
 ingot-minecraft = { path = "crates/minecraft" }
 ingot-server = { path = "crates/server" }
+ingot-server-map = { path = "crates/server-map" }
 ingot-settings = { path = "crates/settings" }
 ingot-version-change = { path = "crates/version-change" }
 tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
@@ -73,9 +75,11 @@ dotenvy = { workspace = true }
 [dependencies]
 ingot-accounts = { workspace = true }
 ingot-artifacts = { workspace = true }
+ingot-content = { workspace = true }
 ingot-core = { workspace = true }
 ingot-minecraft = { workspace = true }
 ingot-server = { workspace = true }
+ingot-server-map = { workspace = true }
 ingot-settings = { workspace = true }
 ingot-version-change = { workspace = true }
 tauri = { workspace = true }

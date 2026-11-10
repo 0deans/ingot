@@ -121,6 +121,22 @@ pub fn parse_bedrock_connected(line: &str) -> Option<(String, Option<String>)> {
     Some((name, xuid))
 }
 
+pub const ENTITY_DATA_MARKER: &str = " has the following entity data: ";
+
+/// Lines that answer our internal queries; hidden from the user's console while pending
+pub fn is_query_reply(line: &str) -> bool {
+    line.contains(ENTITY_DATA_MARKER)
+        || line.contains("No entity was found")
+        || is_list_reply(line)
+        || line.contains("TPS from last")
+        || line.contains("Saving the game")
+        || line.contains("Saved the game")
+}
+
+pub fn is_list_reply(line: &str) -> bool {
+    line.contains("There are ") && line.contains("players online")
+}
+
 /// Parses Bedrock player disconnect lines: "Player disconnected: PlayerName, xuid: 123456"
 pub fn parse_bedrock_disconnected(line: &str) -> Option<String> {
     let rest = line.split("Player disconnected: ").nth(1)?;

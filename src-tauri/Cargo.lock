@@ -2139,9 +2139,11 @@ dependencies = [
  "indexmap 2.14.2",
  "ingot-accounts",
  "ingot-artifacts",
+ "ingot-content",
  "ingot-core",
  "ingot-minecraft",
  "ingot-server",
+ "ingot-server-map",
  "ingot-settings",
  "ingot-version-change",
  "keyring",
@@ -2211,6 +2213,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "ingot-content"
+version = "0.5.17"
+dependencies = [
+ "base64 0.23.1",
+ "flate2",
+ "ingot-artifacts",
+ "ingot-core",
+ "ingot-minecraft",
+ "ingot-settings",
+ "md-5 0.11.0",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.11.0",
+ "specta",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "toml_edit 0.25.15+spec-1.1.0",
+ "uuid",
+ "zip 8.6.0",
+]
+
+[[package]]
 name = "ingot-core"
 version = "0.5.17"
 dependencies = [
@@ -2258,8 +2286,6 @@ name = "ingot-server"
 version = "0.5.17"
 dependencies = [
  "base64 0.23.1",
- "bedrock-world",
- "fastnbt",
  "flate2",
  "if-addrs",
  "indexmap 2.14.2",
@@ -2267,7 +2293,6 @@ dependencies = [
  "ingot-core",
  "libc",
  "md-5 0.11.0",
- "png 0.18.1",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -2280,6 +2305,25 @@ dependencies = [
  "toml_edit 0.25.15+spec-1.1.0",
  "uuid",
  "zip 8.6.0",
+]
+
+[[package]]
+name = "ingot-server-map"
+version = "0.5.17"
+dependencies = [
+ "base64 0.23.1",
+ "bedrock-world",
+ "fastnbt",
+ "flate2",
+ "ingot-core",
+ "ingot-server",
+ "png 0.18.1",
+ "serde",
+ "serde_json",
+ "specta",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
 ]
 
 [[package]]

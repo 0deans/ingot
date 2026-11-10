@@ -50,7 +50,7 @@ pub(crate) fn spawn_stdout_reader(ctx: StdoutReaderContext) -> tokio::task::Join
             }
             let _ = line_tx.send(line.clone());
             if pending_queries.load(std::sync::atomic::Ordering::SeqCst) > 0
-                && crate::server::live::is_query_reply(&line)
+                && super::console::is_query_reply(&line)
             {
                 continue;
             }

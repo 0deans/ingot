@@ -55,6 +55,18 @@ pub fn read_server_properties_from_dir(
     })
 }
 
+/// Name of the world folder (`level-name` in server.properties)
+pub fn level_name(server_dir: &Path) -> String {
+    std::fs::read_to_string(server_dir.join("server.properties"))
+        .ok()
+        .and_then(|raw| {
+            raw.lines()
+                .find_map(|l| l.strip_prefix("level-name=").map(|v| v.trim().to_string()))
+        })
+        .filter(|name| !name.is_empty() && !name.contains(['/', '\\']) && name != "..")
+        .unwrap_or_else(|| "world".to_string())
+}
+
 /// Updates supported keys while retaining custom settings and Bedrock aliases.
 pub fn write_server_properties_to_dir(
     server_dir: &Path,
