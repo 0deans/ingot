@@ -187,10 +187,18 @@ pub(crate) fn resolve_shortcut_directory<R: Runtime>(
     location: instance::ShortcutLocation,
 ) -> Result<PathBuf, instance::ShortcutError> {
     match location {
+        #[cfg(not(target_os = "android"))]
         instance::ShortcutLocation::Desktop => app
             .path()
             .desktop_dir()
             .map_err(|e| instance::ShortcutError::DirectoryNotFound(e.to_string())),
+        #[cfg(target_os = "android")]
+        instance::ShortcutLocation::Desktop => {
+            let _ = app;
+            Err(instance::ShortcutError::UnsupportedPlatform(
+                std::env::consts::OS.to_string(),
+            ))
+        }
         instance::ShortcutLocation::ApplicationsMenu => {
             #[cfg(target_os = "macos")]
             {

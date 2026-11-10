@@ -53,3 +53,45 @@ async fn failed_blocking_operation_releases_maintenance_and_preserves_error() {
     ));
     assert!(manager.reserve_maintenance("instance").is_ok());
 }
+
+#[test]
+fn resolve_shortcut_directory_handles_all_locations() {
+    let app = tauri::test::mock_app();
+    let handle = app.handle();
+
+    #[cfg(not(target_os = "android"))]
+    {
+        let desktop = super::resolve_shortcut_directory(
+            handle,
+            crate::minecraft::instance::ShortcutLocation::Desktop,
+        );
+        assert!(
+            desktop.is_ok()
+                || matches!(
+                    desktop,
+                    Err(crate::minecraft::instance::ShortcutError::DirectoryNotFound(_))
+                )
+        );
+    }
+
+    #[cfg(target_os = "android")]
+    {
+        let desktop = super::resolve_shortcut_directory(
+            handle,
+            crate::minecraft::instance::ShortcutLocation::Desktop,
+        );
+        assert!(matches!(
+            desktop,
+            Err(crate::minecraft::instance::ShortcutError::UnsupportedPlatform(_))
+        ));
+    }
+
+    let steam = super::resolve_shortcut_directory(
+        handle,
+        crate::minecraft::instance::ShortcutLocation::Steam,
+    );
+    assert!(matches!(
+        steam,
+        Err(crate::minecraft::instance::ShortcutError::DirectoryNotFound(_))
+    ));
+}
