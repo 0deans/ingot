@@ -27,13 +27,13 @@ impl<R: Runtime> ServerLifecycleHooks for TauriServerLifecycleHooks<R> {
         crate::running::remove(&self.app, crate::running::Kind::Server, server_id, pid);
     }
 
-    fn on_crash(&self, crash: crate::version_change::CrashReport) {
+    fn on_crash(&self, crash: crate::artifacts::crash::CrashReport) {
         crate::app::events::version_change_crash(&self.app, crash);
     }
 }
 
-use crate::app::java::ensure_java_runtime_in_dir;
-use crate::minecraft::java::get_required_java_version;
+use crate::artifacts::java::ensure_java_runtime_in_dir;
+use crate::artifacts::java::get_required_java_version;
 use crate::server::config::{ServerConfig, ServerCoreType};
 use crate::server::downloader::ensure_server_jar;
 use crate::server::process::command::{build_aikar_gc_flags, build_java_version_flags};

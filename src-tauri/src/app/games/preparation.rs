@@ -20,7 +20,7 @@ impl<R: Runtime> PreparationEffects for NativePreparation<'_, R> {
         client: &'a reqwest::Client,
         major_version: u32,
         custom_path: Option<&'a str>,
-        progress: Option<crate::minecraft::java::JavaProgressFn>,
+        progress: Option<crate::artifacts::java::JavaProgressFn>,
     ) -> PreparationFuture<'a, PathBuf> {
         Box::pin(async move {
             crate::app::java::ensure_java_runtime(

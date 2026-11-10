@@ -1,8 +1,8 @@
 use super::ApiError;
 
-impl From<crate::minecraft::java::JavaError> for ApiError {
-    fn from(error: crate::minecraft::java::JavaError) -> Self {
-        use crate::minecraft::java::JavaError;
+impl From<crate::artifacts::java::JavaError> for ApiError {
+    fn from(error: crate::artifacts::java::JavaError) -> Self {
+        use crate::artifacts::java::JavaError;
         match error {
             JavaError::ProbeCancelled => Self::cancelled(error.to_string()),
             JavaError::Io(_) => Self::storage_failure(error.to_string()),
@@ -324,7 +324,7 @@ impl From<crate::server::tunnel::PlayitError> for ApiError {
         use crate::server::tunnel::PlayitError;
         match error {
             PlayitError::Io(_)
-            | PlayitError::AppData(_)
+            | PlayitError::Directory(_)
             | PlayitError::CredentialRead(_)
             | PlayitError::CredentialWrite(_)
             | PlayitError::CredentialDelete(_) => Self::storage_failure(error.to_string()),

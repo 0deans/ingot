@@ -27,4 +27,7 @@ test("coverage gate rejects regressions, missing files and malformed counters", 
 	assert.throws(() => {
 		return checkCoverage(report(9), { ...baseline, files: [], sourceRoot: "src/" })
 	}, /Untracked/)
+	assert.throws(() => {
+		return checkCoverage(report(9), { ...baseline, files: [], sourceRoots: ["src/"] })
+	}, /Untracked/)
 })

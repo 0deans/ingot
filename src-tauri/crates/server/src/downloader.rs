@@ -1,0 +1,359 @@
+use crate::artifacts::downloader::download_file_chunked;
+use crate::server::config::ServerCoreType;
+use serde::Deserialize;
+use std::path::Path;
+
+#[derive(Debug, Deserialize)]
+struct PaperProjectsResponseV3 {
+    versions: indexmap::IndexMap<String, Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PaperBuildResponseV3 {
+    id: u32,
+    #[serde(default)]
+    downloads: std::collections::HashMap<String, PaperDownloadItemV3>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+struct PaperDownloadItemV3 {
+    #[serde(default)]
+    name: Option<String>,
+    url: String,
+    #[serde(default)]
+    size: Option<u64>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PurpurVersionsResponse {
+    versions: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PurpurBuildsResponse {
+    builds: PurpurBuildsInfo,
+}
+
+#[derive(Debug, Deserialize)]
+struct PurpurBuildsInfo {
+    latest: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct FabricLoaderEntry {
+    loader: FabricLoaderInfo,
+}
+
+#[derive(Debug, Deserialize)]
+struct FabricLoaderInfo {
+    version: String,
+    stable: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct MojangVersionManifest {
+    versions: Vec<MojangVersionEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MojangVersionEntry {
+    id: String,
+    #[serde(rename = "type")]
+    version_type: String,
+    url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct MojangVersionPackage {
+    downloads: Option<MojangDownloads>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MojangDownloads {
+    server: Option<MojangDownloadFile>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MojangDownloadFile {
+    url: String,
+    sha1: Option<String>,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ServerCoreError {
+    #[error("Network request failed: {0}")]
+    Network(#[from] reqwest::Error),
+
+    #[error("JSON deserialization failed: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Installer error: {0}")]
+    Installer(#[from] crate::server::installer::InstallerError),
+
+    #[error("Pumpkin error: {0}")]
+    Pumpkin(#[from] crate::server::pumpkin::PumpkinError),
+
+    #[error("Bedrock error: {0}")]
+    Bedrock(#[from] crate::server::bedrock::BedrockServerError),
+
+    #[error("Download error: {0}")]
+    Download(#[from] crate::artifacts::downloader::DownloadError),
+
+    #[error("Version not found: {0}")]
+    NotFound(String),
+}
+
+/// Fetches supported Minecraft versions for a given server core
+pub async fn fetch_core_versions(
+    client: &reqwest::Client,
+    core: &ServerCoreType,
+) -> Result<Vec<String>, ServerCoreError> {
+    match core {
+        ServerCoreType::Paper | ServerCoreType::Folia => {
+            let project = if *core == ServerCoreType::Folia {
+                "folia"
+            } else {
+                "paper"
+            };
+            let url = format!("https://fill.papermc.io/v3/projects/{}", project);
+            let res = client.get(&url).send().await?;
+            let data: PaperProjectsResponseV3 = res.json().await?;
+
+            let mut list = Vec::new();
+            for group in data.versions.values() {
+                for ver in group {
+                    list.push(ver.clone());
+                }
+            }
+            Ok(list)
+        }
+        ServerCoreType::Purpur => {
+            let res = client
+                .get("https://api.purpurmc.org/v2/purpur")
+                .send()
+                .await?;
+            let data: PurpurVersionsResponse = res.json().await?;
+            let mut list = data.versions;
+            list.reverse();
+            Ok(list)
+        }
+        ServerCoreType::Fabric => {
+            let res = client
+                .get("https://meta.fabricmc.net/v2/versions/game")
+                .send()
+                .await?;
+            let data: Vec<serde_json::Value> = res.json().await?;
+
+            let mut versions = Vec::new();
+            for item in data {
+                if item
+                    .get("stable")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false)
+                {
+                    if let Some(ver) = item.get("version").and_then(|v| v.as_str()) {
+                        versions.push(ver.to_string());
+                    }
+                }
+            }
+            Ok(versions)
+        }
+        ServerCoreType::Vanilla => {
+            let res = client
+                .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
+                .send()
+                .await?;
+            let manifest: MojangVersionManifest = res.json().await?;
+
+            let versions = manifest
+                .versions
+                .into_iter()
+                .filter(|v| v.version_type == "release")
+                .map(|v| v.id)
+                .collect();
+            Ok(versions)
+        }
+        ServerCoreType::Pumpkin => {
+            Ok(crate::server::pumpkin::fetch_pumpkin_versions(client).await?)
+        }
+        ServerCoreType::Bedrock => {
+            Ok(crate::server::bedrock::fetch_bedrock_versions(client).await?)
+        }
+        ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
+            Ok(crate::server::installer::fetch_game_versions(client, core).await?)
+        }
+    }
+}
+
+/// Downloads and installs server.jar into server_dir if not already present
+pub async fn ensure_server_jar(
+    client: &reqwest::Client,
+    server_dir: &Path,
+    core: &ServerCoreType,
+    game_version: &str,
+    build_number: Option<&str>,
+) -> Result<String, ServerCoreError> {
+    // Installed on start instead: their installers need Java
+    if crate::server::installer::uses_installer(core) {
+        return Ok(format!("{core} is installed when the server starts"));
+    }
+    let dest_jar = server_dir.join("server.jar");
+    if dest_jar.exists() {
+        return Ok("Server core already downloaded".to_string());
+    }
+
+    match core {
+        ServerCoreType::Paper | ServerCoreType::Folia => {
+            let project = if *core == ServerCoreType::Folia {
+                "folia"
+            } else {
+                "paper"
+            };
+
+            let build_target = build_number.unwrap_or("latest");
+            let build_url = format!(
+                "https://fill.papermc.io/v3/projects/{}/versions/{}/builds/{}",
+                project, game_version, build_target
+            );
+
+            let b_resp = client.get(&build_url).send().await?.error_for_status()?;
+
+            let b_data: PaperBuildResponseV3 = b_resp.json().await?;
+
+            let dl_entry = b_data
+                .downloads
+                .get("server:default")
+                .or_else(|| b_data.downloads.get("application"))
+                .or_else(|| b_data.downloads.values().next())
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound(format!(
+                        "No server download entry found for {} build #{}",
+                        project, b_data.id
+                    ))
+                })?;
+
+            download_file_chunked(client, &dl_entry.url, &dest_jar, None, None).await?;
+            Ok(format!("{} build #{} installed", core, b_data.id))
+        }
+
+        ServerCoreType::Purpur => {
+            let build = if let Some(b) = build_number {
+                b.to_string()
+            } else {
+                let info_url = format!("https://api.purpurmc.org/v2/purpur/{}", game_version);
+                let resp = client.get(&info_url).send().await?.error_for_status()?;
+                let data: PurpurBuildsResponse = resp.json().await?;
+                data.builds.latest
+            };
+
+            let download_url = format!(
+                "https://api.purpurmc.org/v2/purpur/{}/{}/download",
+                game_version, build
+            );
+
+            download_file_chunked(client, &download_url, &dest_jar, None, None).await?;
+            Ok(format!("Purpur build #{} installed", build))
+        }
+
+        ServerCoreType::Fabric => {
+            // Find latest loader for this game version
+            let loader_url = format!(
+                "https://meta.fabricmc.net/v2/versions/loader/{}",
+                game_version
+            );
+            let resp = client.get(&loader_url).send().await?.error_for_status()?;
+            let loaders: Vec<FabricLoaderEntry> = resp.json().await?;
+
+            let loader_ver = loaders
+                .iter()
+                .find(|l| l.loader.stable)
+                .or_else(|| loaders.first())
+                .map(|l| &l.loader.version)
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound(format!(
+                        "No Fabric loader found for {}",
+                        game_version
+                    ))
+                })?;
+
+            // The server launcher is built by a given installer version (the URL
+            // without one no longer exists)
+            let installers: Vec<serde_json::Value> = client
+                .get("https://meta.fabricmc.net/v2/versions/installer")
+                .send()
+                .await?
+                .error_for_status()?
+                .json()
+                .await?;
+            let installer = installers
+                .iter()
+                .find(|i| i.get("stable").and_then(|s| s.as_bool()) == Some(true))
+                .or_else(|| installers.first())
+                .and_then(|i| i.get("version").and_then(|v| v.as_str()))
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound("No Fabric installer found".to_string())
+                })?;
+
+            let server_jar_url = format!(
+                "https://meta.fabricmc.net/v2/versions/loader/{}/{}/{}/server/jar",
+                game_version, loader_ver, installer
+            );
+
+            download_file_chunked(client, &server_jar_url, &dest_jar, None, None).await?;
+            Ok(format!("Fabric server (loader {}) installed", loader_ver))
+        }
+
+        ServerCoreType::Vanilla => {
+            let manifest_res = client
+                .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
+                .send()
+                .await?
+                .error_for_status()?;
+            let manifest: MojangVersionManifest = manifest_res.json().await?;
+
+            let entry = manifest
+                .versions
+                .into_iter()
+                .find(|v| v.id == game_version)
+                .ok_or_else(|| {
+                    ServerCoreError::NotFound(format!(
+                        "Vanilla version {} not found in manifest",
+                        game_version
+                    ))
+                })?;
+
+            let pkg_res = client.get(&entry.url).send().await?.error_for_status()?;
+            let pkg: MojangVersionPackage = pkg_res.json().await?;
+
+            let server_dl = pkg.downloads.and_then(|d| d.server).ok_or_else(|| {
+                ServerCoreError::NotFound(format!(
+                    "No server download provided for vanilla {}",
+                    game_version
+                ))
+            })?;
+
+            download_file_chunked(
+                client,
+                &server_dl.url,
+                &dest_jar,
+                server_dl.sha1.as_deref(),
+                None,
+            )
+            .await?;
+            Ok(format!("Vanilla server {} installed", game_version))
+        }
+        ServerCoreType::Pumpkin => {
+            crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
+            Ok("Pumpkin binary ready".to_string())
+        }
+        ServerCoreType::Bedrock => {
+            crate::server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_version)
+                .await?;
+            Ok("Bedrock server binary ready".to_string())
+        }
+        ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
+            unreachable!("handled above")
+        }
+    }
+}

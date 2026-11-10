@@ -340,3 +340,62 @@ async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
     )
     .is_err());
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn launch_instance_with_incomplete_transaction_returns_incomplete_recovery_error() {
+    let dir = tempfile::tempdir().unwrap();
+    let app_paths = AppPaths::new(dir.path().to_owned());
+    let instances_file = app_paths.instances_file();
+
+    let mut instance = crate::minecraft::instance::prepare_instance(
+        "Test".into(),
+        "1.20".into(),
+        crate::minecraft::instance::ModLoaderType::Vanilla,
+        None,
+    )
+    .unwrap();
+    instance.id = "test-inst".into();
+    let repository = crate::minecraft::metadata::MetadataRepository::new(instances_file);
+    repository
+        .update(|records| {
+            records.push(instance);
+            Ok(())
+        })
+        .unwrap();
+
+    let app = tauri::test::mock_builder()
+        .invoke_handler(super::router::<MockRuntime>().into_handler())
+        .build(tauri::test::mock_context(tauri::test::noop_assets()))
+        .unwrap();
+    app.manage(AppState::new(app_paths).unwrap());
+
+    let instance_dir =
+        crate::app::instances::ensure_instance_dir(app.handle(), "test-inst").unwrap();
+    let backup = crate::version_change::models::backup_dir(&instance_dir);
+    std::fs::create_dir_all(&backup).unwrap();
+    let journal = crate::version_change::journal::Journal {
+        phase: crate::version_change::TransactionPhase::Swapping,
+        ..Default::default()
+    };
+    std::fs::write(
+        backup.join("journal.json"),
+        serde_json::to_vec(&journal).unwrap(),
+    )
+    .unwrap();
+
+    let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
+        .build()
+        .unwrap();
+
+    let error = invoke(
+        &webview,
+        "TauRPC__instances.launch_instance",
+        json!({"instance_id": "test-inst", "quick_play": null}),
+    )
+    .unwrap_err();
+    assert_eq!(error["kind"], "incompleteRecovery");
+    assert!(error["message"]
+        .as_str()
+        .unwrap()
+        .contains("version change transaction is in incomplete state (Swapping)"));
+}

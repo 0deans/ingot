@@ -1,10 +1,10 @@
 //! All frontend notifications share one explicit, event-only namespace.
+use crate::artifacts::crash::VersionChangeCrash;
 use crate::minecraft::launcher::{InstanceStatusEvent, LaunchProgressEvent};
 use crate::minecraft::logs::{InstanceCrashEvent, InstanceLogEvent};
 use crate::running::{LeftoverServer, QuitRequest};
 use crate::server::{ServerLogEvent, ServerStatusEvent};
 use crate::system::MemorySettings;
-use crate::version_change::crash::VersionChangeCrash;
 
 #[taurpc::procedures(path = "events")]
 pub(crate) trait EventsApi {

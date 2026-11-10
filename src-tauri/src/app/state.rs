@@ -59,6 +59,7 @@ impl AppState {
             playit: PlayitManager::new(),
             session_provider: Box::new(crate::auth::session_provider::NativeSessionProvider::new(
                 http.clone(),
+                option_env!("INGOT_MSA_CLIENT_ID").map(str::to_owned),
             )),
             http: http.clone(),
             news_cache_dir: paths.news_cache_dir(),

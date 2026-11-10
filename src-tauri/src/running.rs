@@ -7,16 +7,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, Runtime};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Entry {
-    pub id: String,
-    pub pid: u32,
-    /// When Ingot started it (unix seconds), for playtime
-    pub started_at: u64,
-    /// When the OS says the process started: pids get reused, this tells them apart
-    pub proc_start: u64,
-}
+pub use crate::core::process::{is_alive, process_start, Entry};
 
 /// A server that keeps Ingot from simply quitting
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -135,16 +126,6 @@ pub fn load<R: Runtime>(app: &AppHandle<R>, kind: Kind) -> Vec<Entry> {
     read(&path).list(kind).clone()
 }
 
-/// When the OS says a process started (unix seconds), if it is running
-pub fn process_start(pid: u32) -> Option<u64> {
-    crate::process_tree::capture(pid).map(crate::process_tree::ProcessIdentity::start)
-}
-
-/// Whether the process in the entry is still running (and is still that process)
-pub fn is_alive(entry: &Entry) -> bool {
-    process_start(entry.pid).is_some_and(|start| start.abs_diff(entry.proc_start) <= 2)
-}
-
 /// A completed stop may only acknowledge the saved incarnation that it owned.
 pub(crate) fn remove_original<R: Runtime>(app: &AppHandle<R>, kind: Kind, original: &Entry) {
     update(app, |registry| {
@@ -183,24 +164,5 @@ mod tests {
         let mut entries = vec![original.clone(), reused.clone(), replacement.clone()];
         remove_original_entry(&mut entries, &original);
         assert_eq!(entries, vec![reused, replacement]);
-    }
-
-    #[test]
-    fn knows_its_own_process() {
-        let pid = std::process::id();
-        let start = process_start(pid).expect("this process is running");
-        let entry = Entry {
-            id: "x".into(),
-            pid,
-            started_at: 0,
-            proc_start: start,
-        };
-        assert!(is_alive(&entry));
-        // Same pid, another start time: a different process that reused the pid
-        let reused = Entry {
-            proc_start: start.saturating_sub(3600),
-            ..entry
-        };
-        assert!(!is_alive(&reused));
     }
 }

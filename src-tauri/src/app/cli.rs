@@ -41,12 +41,9 @@ pub fn parse_cli_launch_instance(args: &[String]) -> Option<String> {
 
 pub(crate) fn restore_window_on_cli_failure<R: Runtime>(
     app: &AppHandle<R>,
-    err: &crate::minecraft::launcher::LaunchError,
+    err: &crate::app::games::GameLaunchError,
 ) {
-    if matches!(
-        err,
-        crate::minecraft::launcher::LaunchError::ReservationCancelled
-    ) {
+    if err.is_reservation_cancelled() {
         return;
     }
     #[cfg(desktop)]

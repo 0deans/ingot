@@ -1,9 +1,10 @@
-pub mod account;
+pub use ingot_accounts::{account, auth, keyring_store};
 mod app;
-pub mod auth;
+pub use ingot_artifacts as artifacts;
+pub use ingot_core as core;
 #[cfg(test)]
 mod ipc_contract;
-mod settings;
+pub use ingot_settings as settings;
 /// User agent for all HTTP requests; the version comes from Cargo.toml at build time
 pub const USER_AGENT: &str = concat!(
     "Ingot-Launcher/",
@@ -12,15 +13,20 @@ pub const USER_AGENT: &str = concat!(
 );
 
 pub mod ipc;
-pub mod keyring_store;
-pub mod minecraft;
-pub(crate) mod process_tree;
+pub(crate) use crate::core::process_tree;
+pub use ingot_minecraft as minecraft;
 pub mod running;
-pub mod server;
+pub mod server {
+    pub use crate::app::server_config::{
+        create_server, get_server_dir, get_servers_dir, load_servers,
+    };
+    pub(crate) use crate::app::server_config::{delete_server, update_server};
+    pub use ingot_server::*;
+}
 pub mod system;
 #[cfg(desktop)]
 pub mod tray;
-pub mod version_change;
+pub use ingot_version_change as version_change;
 
 use tauri::Manager;
 

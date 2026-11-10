@@ -114,7 +114,7 @@ pub async fn finish_game<R: Runtime>(
         }
 
         let since = UNIX_EPOCH + std::time::Duration::from_secs(started_at.saturating_sub(1));
-        if let Some(crash) = crate::version_change::crash::after_exit(
+        if let Some(crash) = crate::artifacts::crash::after_exit(
             &instance_dir,
             clean,
             crate::version_change::TargetKind::Instance,

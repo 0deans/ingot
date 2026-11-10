@@ -26,6 +26,24 @@ pub(crate) struct LaunchSessionOptions {
     pub(crate) on_reserved: Option<tokio::sync::oneshot::Sender<u64>>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum GameLaunchError {
+    #[error(transparent)]
+    Launcher(#[from] LaunchError),
+
+    #[error("Version change transaction is in incomplete state: {0:?}. Please recover or revert it first.")]
+    IncompleteTransaction(crate::version_change::TransactionPhase),
+
+    #[error("Cannot inspect version change recovery state: {0}")]
+    TransactionInspection(#[source] Box<crate::version_change::VersionChangeError>),
+}
+
+impl GameLaunchError {
+    pub(crate) fn is_reservation_cancelled(&self) -> bool {
+        matches!(self, Self::Launcher(LaunchError::ReservationCancelled))
+    }
+}
+
 pub(crate) async fn launch_minecraft_with_options<R: Runtime, FProg, FStatus>(
     app: AppHandle<R>,
     process_manager: ProcessManager,
@@ -34,7 +52,7 @@ pub(crate) async fn launch_minecraft_with_options<R: Runtime, FProg, FStatus>(
     options: LaunchSessionOptions,
     on_progress: FProg,
     on_status: FStatus,
-) -> Result<u32, LaunchError>
+) -> Result<u32, GameLaunchError>
 where
     FProg: Fn(LaunchProgressEvent) + Send + Sync + 'static,
     FStatus: Fn(InstanceStatusEvent) + Send + Sync + 'static,
@@ -261,11 +279,11 @@ where
     Ok(pid)
 }
 
-fn ensure_transaction_ready(instance_dir: &std::path::Path) -> Result<(), LaunchError> {
+fn ensure_transaction_ready(instance_dir: &std::path::Path) -> Result<(), GameLaunchError> {
     let incomplete = crate::version_change::detect_incomplete_transaction(instance_dir)
-        .map_err(|source| LaunchError::TransactionInspection(Box::new(source)))?;
+        .map_err(|source| GameLaunchError::TransactionInspection(Box::new(source)))?;
     if let Some(transaction) = incomplete {
-        return Err(LaunchError::IncompleteTransaction(transaction.phase));
+        return Err(GameLaunchError::IncompleteTransaction(transaction.phase));
     }
     Ok(())
 }
@@ -296,7 +314,7 @@ pub(crate) async fn launch_instance_with_events<R: Runtime>(
     app: AppHandle<R>,
     instance_id: String,
     quick_play: Option<QuickPlayOptions>,
-) -> Result<u32, LaunchError> {
+) -> Result<u32, GameLaunchError> {
     launch_instance_with_options(
         app,
         instance_id,
@@ -312,7 +330,7 @@ pub(crate) async fn launch_instance_with_options<R: Runtime>(
     app: AppHandle<R>,
     instance_id: String,
     options: LaunchSessionOptions,
-) -> Result<u32, LaunchError> {
+) -> Result<u32, GameLaunchError> {
     crate::app::lifecycle::adopt_running_games(&app).await;
     let pm = crate::app::state(&app).games.clone();
     let client = crate::app::state(&app).http.clone();
@@ -346,7 +364,7 @@ mod tests {
         std::fs::create_dir_all(&backup).unwrap();
         std::fs::write(backup.join("journal.json"), b"malformed").unwrap();
         let error = ensure_transaction_ready(directory.path()).unwrap_err();
-        assert!(matches!(error, LaunchError::TransactionInspection(_)));
+        assert!(matches!(error, GameLaunchError::TransactionInspection(_)));
         let source = error.source().unwrap();
         assert!(source.is::<Box<crate::version_change::VersionChangeError>>());
         assert!(source.source().unwrap().is::<serde_json::Error>());
@@ -368,10 +386,51 @@ mod tests {
         .unwrap();
         assert!(matches!(
             ensure_transaction_ready(directory.path()),
-            Err(LaunchError::IncompleteTransaction(
+            Err(GameLaunchError::IncompleteTransaction(
                 crate::version_change::TransactionPhase::Swapping
             ))
         ));
+    }
+
+    #[test]
+    fn incomplete_transaction_maps_to_incomplete_recovery_api_error() {
+        let directory = tempfile::tempdir().unwrap();
+        let backup = crate::version_change::models::backup_dir(directory.path());
+        std::fs::create_dir_all(&backup).unwrap();
+        let journal = crate::version_change::journal::Journal {
+            phase: crate::version_change::TransactionPhase::Swapping,
+            ..Default::default()
+        };
+        std::fs::write(
+            backup.join("journal.json"),
+            serde_json::to_vec(&journal).unwrap(),
+        )
+        .unwrap();
+        let error = ensure_transaction_ready(directory.path()).unwrap_err();
+        let api_error = crate::ipc::ApiError::from(error);
+        assert_eq!(
+            api_error,
+            crate::ipc::ApiError::IncompleteRecovery {
+                message: "Cannot launch instance: version change transaction is in incomplete state (Swapping). Please recover or revert it first.".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn transaction_inspection_maps_to_incomplete_recovery_api_error() {
+        let directory = tempfile::tempdir().unwrap();
+        let backup = crate::version_change::models::backup_dir(directory.path());
+        std::fs::create_dir_all(&backup).unwrap();
+        std::fs::write(backup.join("journal.json"), b"malformed").unwrap();
+        let error = ensure_transaction_ready(directory.path()).unwrap_err();
+        let api_error = crate::ipc::ApiError::from(error);
+        assert!(matches!(
+            api_error,
+            crate::ipc::ApiError::IncompleteRecovery { .. }
+        ));
+        assert!(api_error
+            .to_string()
+            .contains("Cannot inspect version change recovery state"));
     }
 
     #[tokio::test]

@@ -109,7 +109,7 @@ impl ApplicationApi for ApplicationApiImpl {
                 crate::server::get_server_dir(&app_handle, &target_id)?
             }
         };
-        crate::version_change::crash::disable(&root, &folder, &file_name).map_err(ApiError::from)
+        crate::artifacts::crash::disable(&root, &folder, &file_name).map_err(ApiError::from)
     }
 
     async fn should_show_window_on_startup(self) -> Result<bool, ApiError> {

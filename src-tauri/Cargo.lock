@@ -2137,6 +2137,13 @@ dependencies = [
  "if-addrs",
  "image",
  "indexmap 2.14.2",
+ "ingot-accounts",
+ "ingot-artifacts",
+ "ingot-core",
+ "ingot-minecraft",
+ "ingot-server",
+ "ingot-settings",
+ "ingot-version-change",
  "keyring",
  "libc",
  "md-5 0.11.0",
@@ -2164,6 +2171,144 @@ dependencies = [
  "toml_edit 0.25.15+spec-1.1.0",
  "uuid",
  "zip 8.6.0",
+]
+
+[[package]]
+name = "ingot-accounts"
+version = "0.5.17"
+dependencies = [
+ "base64 0.23.1",
+ "keyring",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "specta",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "ingot-artifacts"
+version = "0.5.17"
+dependencies = [
+ "flate2",
+ "ingot-core",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.11.0",
+ "specta",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "toml_edit 0.25.15+spec-1.1.0",
+ "uuid",
+ "zip 8.6.0",
+]
+
+[[package]]
+name = "ingot-core"
+version = "0.5.17"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "uuid",
+ "zip 8.6.0",
+]
+
+[[package]]
+name = "ingot-minecraft"
+version = "0.5.17"
+dependencies = [
+ "base64 0.23.1",
+ "fastnbt",
+ "flate2",
+ "image",
+ "ingot-accounts",
+ "ingot-artifacts",
+ "ingot-core",
+ "ingot-settings",
+ "md-5 0.11.0",
+ "mslnk",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.11.0",
+ "specta",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "toml_edit 0.25.15+spec-1.1.0",
+ "uuid",
+ "zip 8.6.0",
+]
+
+[[package]]
+name = "ingot-server"
+version = "0.5.17"
+dependencies = [
+ "base64 0.23.1",
+ "bedrock-world",
+ "fastnbt",
+ "flate2",
+ "if-addrs",
+ "indexmap 2.14.2",
+ "ingot-artifacts",
+ "ingot-core",
+ "libc",
+ "md-5 0.11.0",
+ "png 0.18.1",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "specta",
+ "sysinfo",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "toml_edit 0.25.15+spec-1.1.0",
+ "uuid",
+ "zip 8.6.0",
+]
+
+[[package]]
+name = "ingot-settings"
+version = "0.5.17"
+dependencies = [
+ "serde",
+ "serde_json",
+ "specta",
+ "tempfile",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "ingot-version-change"
+version = "0.5.17"
+dependencies = [
+ "ingot-artifacts",
+ "ingot-core",
+ "ingot-minecraft",
+ "ingot-server",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "specta",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

@@ -1,23 +1,24 @@
-[package]
-name = "ingot"
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
 version = "0.5.17"
-description = "Lightweight, open-source Minecraft launcher"
 authors = ["0deans <https://github.com/0deans>"]
 license = "GPL-3.0-only"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-name = "ingot_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
-
-[build-dependencies]
+[workspace.dependencies]
+ingot-accounts = { path = "crates/accounts" }
+ingot-artifacts = { path = "crates/artifacts" }
+ingot-core = { path = "crates/core" }
+ingot-minecraft = { path = "crates/minecraft" }
+ingot-server = { path = "crates/server" }
+ingot-settings = { path = "crates/settings" }
+ingot-version-change = { path = "crates/version-change" }
+tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
 tauri-build = { version = "2", features = [] }
 dotenvy = "0.15"
-
-[dependencies]
-tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
 tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
@@ -46,20 +47,80 @@ md5 = { version = "0.11", package = "md-5" }
 if-addrs = "0.15.0"
 sha2 = "0.11.0"
 bedrock-world = "0.3.5"
-
-[target.'cfg(target_os = "android")'.dependencies]
 libc = "0.2"
-
-[dev-dependencies]
-tauri = { version = "2", features = ["test"] }
-tokio = { version = "1", features = ["test-util"] }
-
-[target.'cfg(windows)'.dependencies]
 mslnk = "0.1.8"
-
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
+
+[package]
+name = "ingot"
+version.workspace = true
+description = "Lightweight, open-source Minecraft launcher"
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "ingot_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { workspace = true }
+dotenvy = { workspace = true }
+
+[dependencies]
+ingot-accounts = { workspace = true }
+ingot-artifacts = { workspace = true }
+ingot-core = { workspace = true }
+ingot-minecraft = { workspace = true }
+ingot-server = { workspace = true }
+ingot-settings = { workspace = true }
+ingot-version-change = { workspace = true }
+tauri = { workspace = true }
+tauri-plugin-opener = { workspace = true }
+tauri-plugin-process = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tempfile = { workspace = true }
+keyring = { workspace = true }
+reqwest = { workspace = true }
+uuid = { workspace = true }
+taurpc = { workspace = true }
+specta = { workspace = true }
+tokio = { workspace = true }
+sysinfo = { workspace = true }
+base64 = { workspace = true }
+tauri-plugin-dialog = { workspace = true }
+sha1 = { workspace = true }
+toml_edit = { workspace = true }
+zip = { workspace = true }
+flate2 = { workspace = true }
+indexmap = { workspace = true }
+tar = { workspace = true }
+fastnbt = { workspace = true }
+png = { workspace = true }
+image = { workspace = true }
+md5 = { workspace = true }
+if-addrs = { workspace = true }
+sha2 = { workspace = true }
+bedrock-world = { workspace = true }
+
+[target.'cfg(target_os = "android")'.dependencies]
+libc = { workspace = true }
+
+[dev-dependencies]
+tauri = { workspace = true, features = ["test"] }
+tokio = { workspace = true, features = ["test-util"] }
+
+[target.'cfg(windows)'.dependencies]
+mslnk = { workspace = true }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-single-instance = { workspace = true }
+tauri-plugin-updater = { workspace = true }
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.dev]

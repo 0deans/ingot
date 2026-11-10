@@ -1,9 +1,9 @@
 //! Map lifecycle notifications to the frontend's transport at the native boundary.
+use crate::artifacts::crash::VersionChangeCrash;
 use crate::ipc::events::TauRpcEventsApiEventTrigger;
 use crate::minecraft::launcher::{InstanceStatusEvent, LaunchProgressEvent};
 use crate::minecraft::logs::{InstanceCrashEvent, InstanceLogEvent};
 use crate::running::QuitRequest;
-use crate::version_change::crash::VersionChangeCrash;
 use tauri::Runtime;
 
 pub(crate) fn instance_status<R: Runtime>(app: &tauri::AppHandle<R>, event: InstanceStatusEvent) {

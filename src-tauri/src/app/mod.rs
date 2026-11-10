@@ -1,7 +1,6 @@
 //! Application-owned dependencies and paths resolved at the native boundary.
 
 pub(crate) mod accounts;
-mod archive;
 pub(crate) mod cli;
 pub(crate) mod cli_waiter;
 pub(crate) mod content;
@@ -24,9 +23,12 @@ mod state;
 pub(crate) mod sync;
 pub(crate) mod worlds;
 
-pub(crate) use archive::extract_zip_entries;
-pub use archive::ArchiveError;
-pub(crate) use paths::{safe_enclosed_filename, safe_enclosed_path, AppPaths};
+#[allow(unused_imports)]
+pub(crate) use crate::core::archive::extract_zip_entries;
+pub use crate::core::archive::ArchiveError;
+#[allow(unused_imports)]
+pub(crate) use crate::core::paths::{safe_enclosed_filename, safe_enclosed_path};
+pub(crate) use paths::AppPaths;
 pub(crate) use server_lifecycle::TauriServerLifecycleHooks;
 pub(crate) use state::state;
 pub(crate) use state::AppState;

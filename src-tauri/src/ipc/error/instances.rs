@@ -184,7 +184,8 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
             | crate::version_change::VersionChangeError::MissingRecoveryFile(_)
             | crate::version_change::VersionChangeError::AdditionalFailure { .. } => Self::incomplete_recovery(error.to_string()),
             crate::version_change::VersionChangeError::MetadataCommit(_) => Self::storage_failure(error.to_string()),
-            crate::version_change::VersionChangeError::IncompleteTransaction(_)
+            crate::version_change::VersionChangeError::ActiveTransaction { .. }
+            | crate::version_change::VersionChangeError::IncompleteTransaction(_)
             | crate::version_change::VersionChangeError::AlreadyDisabled(_) => Self::conflict(error.to_string()),
             crate::version_change::VersionChangeError::RecoveryUnavailable(_)
             | crate::version_change::VersionChangeError::NoVersionChange => Self::invalid_input(error.to_string()),
@@ -205,16 +206,50 @@ impl From<crate::version_change::VersionChangeError> for ApiError {
                 Self::provider_unavailable(msg)
             }
             crate::version_change::VersionChangeError::Source(source) => match source {
-                crate::version_change::sources::SourceError::InvalidProjectId { .. } => {
+                crate::artifacts::sources::SourceError::InvalidProjectId { .. } => {
                     Self::invalid_input(source.to_string())
                 }
-                crate::version_change::sources::SourceError::Transport { .. }
-                | crate::version_change::sources::SourceError::InvalidPayload { .. }
-                | crate::version_change::sources::SourceError::HttpStatus { .. }
-                | crate::version_change::sources::SourceError::Decode { .. } => {
+                crate::artifacts::sources::SourceError::Transport { .. }
+                | crate::artifacts::sources::SourceError::InvalidPayload { .. }
+                | crate::artifacts::sources::SourceError::HttpStatus { .. }
+                | crate::artifacts::sources::SourceError::Decode { .. } => {
                     Self::provider_unavailable(source.to_string())
                 }
             },
+        }
+    }
+}
+
+impl From<crate::artifacts::crash::CrashError> for ApiError {
+    fn from(error: crate::artifacts::crash::CrashError) -> Self {
+        use crate::artifacts::crash::CrashError;
+        match error {
+            CrashError::InvalidFileName(msg) | CrashError::InvalidPath(msg) => {
+                Self::invalid_input(msg)
+            }
+            CrashError::FileIo { .. }
+            | CrashError::JournalDecode(_)
+            | CrashError::JournalIo { .. } => Self::storage_failure(error.to_string()),
+            CrashError::IncompleteTransaction(_) | CrashError::AlreadyDisabled(_) => {
+                Self::conflict(error.to_string())
+            }
+            CrashError::NoVersionChange => Self::invalid_input(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::app::games::GameLaunchError> for ApiError {
+    fn from(error: crate::app::games::GameLaunchError) -> Self {
+        match error {
+            crate::app::games::GameLaunchError::Launcher(err) => Self::from(err),
+            crate::app::games::GameLaunchError::IncompleteTransaction(msg) => {
+                Self::incomplete_recovery(format!(
+                    "Cannot launch instance: version change transaction is in incomplete state ({msg:?}). Please recover or revert it first."
+                ))
+            }
+            crate::app::games::GameLaunchError::TransactionInspection(_) => {
+                Self::incomplete_recovery(error.to_string())
+            }
         }
     }
 }
@@ -223,7 +258,9 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
     fn from(error: crate::minecraft::launcher::LaunchError) -> Self {
         match error {
             crate::minecraft::launcher::LaunchError::Metadata(error) => Self::from(error),
-            crate::minecraft::launcher::LaunchError::InstanceNotFound(id) => Self::not_found(format!("Instance not found: {id}")),
+            crate::minecraft::launcher::LaunchError::InstanceNotFound(id) => {
+                Self::not_found(format!("Instance not found: {id}"))
+            }
             crate::minecraft::launcher::LaunchError::AlreadyRunning => {
                 Self::conflict("Instance is already running")
             }
@@ -240,23 +277,10 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::AppDataDir(source) => {
                 Self::storage_failure(source.to_string())
             }
-            crate::minecraft::launcher::LaunchError::IncompleteTransaction(msg) => {
-                Self::incomplete_recovery(format!(
-                    "Cannot launch instance: version change transaction is in incomplete state ({msg:?}). Please recover or revert it first."
-                ))
-            }
-            crate::minecraft::launcher::LaunchError::VersionPackage(err) => {
-                Self::from(err)
-            }
-            crate::minecraft::launcher::LaunchError::LoaderProfile(err) => {
-                Self::from(err)
-            }
-            crate::minecraft::launcher::LaunchError::Download(err) => {
-                Self::from(err)
-            }
-            crate::minecraft::launcher::LaunchError::JavaRuntime(err) => {
-                Self::from(err)
-            }
+            crate::minecraft::launcher::LaunchError::VersionPackage(err) => Self::from(err),
+            crate::minecraft::launcher::LaunchError::LoaderProfile(err) => Self::from(err),
+            crate::minecraft::launcher::LaunchError::Download(err) => Self::from(err),
+            crate::minecraft::launcher::LaunchError::JavaRuntime(err) => Self::from(err),
             crate::minecraft::launcher::LaunchError::Account(error) => {
                 use crate::minecraft::launcher::models::LaunchAccountCause;
                 match *error.source {
@@ -270,9 +294,6 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             }
             crate::minecraft::launcher::LaunchError::Io(err) => {
                 Self::storage_failure(err.to_string())
-            }
-            crate::minecraft::launcher::LaunchError::TransactionInspection(_) => {
-                Self::incomplete_recovery(error.to_string())
             }
             crate::minecraft::launcher::LaunchError::ReservationCancelled => {
                 Self::cancelled(error.to_string())
@@ -318,9 +339,9 @@ impl From<crate::minecraft::loader::LoaderError> for ApiError {
     }
 }
 
-impl From<crate::minecraft::downloader::DownloadError> for ApiError {
-    fn from(error: crate::minecraft::downloader::DownloadError) -> Self {
-        use crate::minecraft::downloader::DownloadError;
+impl From<crate::artifacts::downloader::DownloadError> for ApiError {
+    fn from(error: crate::artifacts::downloader::DownloadError) -> Self {
+        use crate::artifacts::downloader::DownloadError;
         match error {
             DownloadError::Duplicate(_) => Self::conflict(error.to_string()),
             DownloadError::Transport(_) | DownloadError::HttpStatus { .. } => {

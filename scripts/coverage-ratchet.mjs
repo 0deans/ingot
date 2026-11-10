@@ -35,19 +35,37 @@ export const checkCoverage = (report, baseline) => {
 			summaries.set(file.filename.replaceAll("\\", "/"), lines)
 		}
 	}
-	const scope = baseline.sourceRoot
-	if (scope !== undefined && (typeof scope !== "string" || !scope.endsWith("/"))) {
+	const scopes = Array.isArray(baseline.sourceRoots)
+		? baseline.sourceRoots
+		: baseline.sourceRoot !== undefined
+			? [baseline.sourceRoot]
+			: []
+	if (baseline.sourceRoots !== undefined && !Array.isArray(baseline.sourceRoots)) {
+		throw new Error("Invalid coverage source roots")
+	}
+	if (baseline.sourceRoot !== undefined && typeof baseline.sourceRoot !== "string") {
 		throw new Error("Invalid coverage source root")
+	}
+	for (const scope of scopes) {
+		if (typeof scope !== "string" || !scope.endsWith("/")) {
+			throw new Error("Invalid coverage source root")
+		}
 	}
 	const expectedFiles = new Set(baseline.files)
 	if (expectedFiles.size !== baseline.files.length) {
 		throw new Error("Duplicate coverage baseline file")
 	}
-	if (scope !== undefined) {
+	if (scopes.length > 0) {
 		for (const filename of summaries.keys()) {
-			const offset = filename.lastIndexOf(`/${scope}`)
-			if (offset < 0) continue
-			const relative = filename.slice(offset + 1)
+			let relative = null
+			for (const scope of scopes) {
+				const offset = filename.lastIndexOf(`/${scope}`)
+				if (offset >= 0) {
+					relative = filename.slice(offset + 1)
+					break
+				}
+			}
+			if (relative === null) continue
 			const isTestFile = /(?:^|\/)(?:tests|[^/]+_tests)\.rs$|\/tests\/|\/ipc_contract\.rs$/.test(
 				relative,
 			)

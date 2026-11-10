@@ -77,7 +77,7 @@ fn importer_native_path_failure_preserves_its_source() {
 
 #[test]
 fn provider_payload_failure_is_not_reported_as_invalid_user_input() {
-    use crate::version_change::sources::{Source, SourceError};
+    use crate::artifacts::sources::{Source, SourceError};
 
     let malformed = VersionChangeError::Source(SourceError::InvalidPayload {
         provider: Source::Modrinth,
@@ -126,14 +126,14 @@ fn test_launch_error_boundary_mappings() {
         ApiError::NotFound { .. }
     ));
     assert!(matches!(
-        ApiError::from(LaunchError::IncompleteTransaction(
+        ApiError::from(crate::app::games::GameLaunchError::IncompleteTransaction(
             crate::version_change::TransactionPhase::Swapping
         )),
         ApiError::IncompleteRecovery { .. }
     ));
     assert!(matches!(
         ApiError::from(LaunchError::JavaRuntime(
-            crate::minecraft::java::JavaError::MissingBinary
+            crate::artifacts::java::JavaError::MissingBinary
         )),
         ApiError::NotFound { .. }
     ));
@@ -267,6 +267,49 @@ fn test_version_change_error_boundary_mappings() {
         ))),
         ApiError::Conflict { .. }
     ));
+    assert!(matches!(
+        ApiError::from(VersionChangeError::JournalIo {
+            operation: "create directory for",
+            path: std::path::PathBuf::from("/tmp/backup"),
+            source: std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+        }),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(VersionChangeError::ScanDirectory {
+            path: std::path::PathBuf::from("/tmp/mods"),
+            source: std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+        }),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(VersionChangeError::ScanFile {
+            path: std::path::PathBuf::from("/tmp/mods/broken.jar"),
+            source: std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+        }),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(VersionChangeError::InvalidFileName("../escaped.jar".into())),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(VersionChangeError::DownloadPrep {
+            operation: "remove staging",
+            path: std::path::PathBuf::from("/tmp/staging"),
+            source: std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+        }),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(VersionChangeError::DownloadFailed {
+            title: "Example mod".into(),
+            source: crate::artifacts::downloader::DownloadError::HttpStatus {
+                status: reqwest::StatusCode::SERVICE_UNAVAILABLE,
+            },
+        }),
+        ApiError::ProviderUnavailable { .. }
+    ));
 }
 
 #[test]
@@ -352,11 +395,17 @@ fn test_server_domain_error_boundary_mappings() {
         ApiError::from(PlayitError::ClaimRejected),
         ApiError::ProviderUnavailable { .. }
     ));
+    assert!(matches!(
+        ApiError::from(PlayitError::Directory(
+            std::io::ErrorKind::PermissionDenied.into()
+        )),
+        ApiError::StorageFailure { .. }
+    ));
 }
 
 #[test]
 fn server_launch_preserves_recovery_and_java_error_categories() {
-    use crate::minecraft::java::JavaError;
+    use crate::artifacts::java::JavaError;
     use crate::minecraft::metadata::MetadataError;
     use crate::server::process::ProcessError;
     let recovery = ProcessError::Metadata(MetadataError::RecoveryBlocked("ambiguous receipt"));
@@ -475,6 +524,82 @@ fn launcher_account_failures_preserve_causes_and_categories() {
 }
 
 #[test]
+fn account_and_auth_skin_failures_map_to_actionable_api_categories_and_redact_secrets() {
+    use crate::app::accounts::SkinError;
+    use crate::auth::ely::ElyError;
+    use crate::auth::microsoft::MicrosoftSkinError;
+    use reqwest::StatusCode;
+
+    // Ely uploaded-not-applied maps to IncompleteRecovery
+    let incomplete_err = ElyError::UploadedNotApplied {
+        skin_id: 8888,
+        source: Box::new(ElyError::HttpStatus(StatusCode::SERVICE_UNAVAILABLE)),
+    };
+    let ipc = ApiError::from(SkinError::Ely(incomplete_err));
+    assert!(matches!(ipc, ApiError::IncompleteRecovery { .. }));
+
+    // Ely OAuth and authentication failures map to ProviderUnavailable and wire serialization redacts secrets
+    for ely_err in [
+        ElyError::OAuthCompletion {
+            status: StatusCode::BAD_REQUEST,
+        },
+        ElyError::MissingRedirectUri,
+        ElyError::AuthenticationRejected,
+    ] {
+        let ipc = ApiError::from(SkinError::Ely(ely_err));
+        assert!(matches!(ipc, ApiError::ProviderUnavailable { .. }));
+        let wire = serde_json::to_string(&ipc).unwrap();
+        assert!(!wire.contains("private-"));
+    }
+
+    // Microsoft skin HTTP status errors map to ProviderUnavailable and wire serialization redacts secrets
+    let ms_http_err = MicrosoftSkinError::HttpStatus(StatusCode::BAD_REQUEST);
+    let ipc = ApiError::from(SkinError::Microsoft(ms_http_err));
+    assert!(matches!(ipc, ApiError::ProviderUnavailable { .. }));
+    let wire = serde_json::to_string(&ipc).unwrap();
+    assert!(!wire.contains("private-"));
+
+    // Microsoft skin decode/response and transport errors map to ProviderUnavailable and wire serialization redacts secrets
+    let reqwest_err = reqwest::Client::new()
+        .get("::invalid url::")
+        .build()
+        .unwrap_err();
+    let ms_response_err = MicrosoftSkinError::Response(reqwest_err);
+    let ipc = ApiError::from(SkinError::Microsoft(ms_response_err));
+    assert!(matches!(ipc, ApiError::ProviderUnavailable { .. }));
+    let wire = serde_json::to_string(&ipc).unwrap();
+    assert!(!wire.contains("private-token"));
+
+    // Additional SkinError failure categories map to expected API errors
+    let profile_err = crate::app::accounts::ProfileError::EmptyNickname;
+    let meta_err = SkinError::MetadataAfterProvider(profile_err);
+    assert!(matches!(
+        ApiError::from(meta_err),
+        ApiError::IncompleteRecovery { .. }
+    ));
+
+    let cred_err = CredentialError::Missing;
+    let cred_after_err = SkinError::CredentialsAfterProvider(cred_err);
+    assert!(matches!(
+        ApiError::from(cred_after_err),
+        ApiError::IncompleteRecovery { .. }
+    ));
+
+    assert!(matches!(
+        ApiError::from(SkinError::AccountNotFound),
+        ApiError::NotFound { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(SkinError::PasswordRequired),
+        ApiError::Unauthorized { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(SkinError::NotEly),
+        ApiError::InvalidInput { .. }
+    ));
+}
+
+#[test]
 fn launcher_settings_failures_preserve_causes_and_categories() {
     use crate::settings::SettingsError;
     use std::error::Error;
@@ -562,10 +687,11 @@ fn lifecycle_and_tracking_boundaries_preserve_missing_and_recovery_categories() 
 
 #[test]
 fn launcher_recovery_inspection_and_cancellation_keep_their_categories() {
-    let inspection =
-        LaunchError::TransactionInspection(Box::new(VersionChangeError::JournalDecode(
+    let inspection = crate::app::games::GameLaunchError::TransactionInspection(Box::new(
+        VersionChangeError::JournalDecode(
             serde_json::from_str::<serde_json::Value>("{").unwrap_err(),
-        )));
+        ),
+    ));
     let transaction = std::error::Error::source(&inspection)
         .unwrap()
         .downcast_ref::<Box<VersionChangeError>>()
@@ -618,7 +744,7 @@ fn server_start_failure_and_cleanup_keep_distinct_categories() {
 
 #[tokio::test]
 async fn download_validation_and_admission_errors_remain_internal() {
-    use crate::minecraft::downloader::{error::ContentRangeError, DownloadError};
+    use crate::artifacts::downloader::{error::ContentRangeError, DownloadError};
     for error in [
         DownloadError::InvalidAssetHash,
         DownloadError::ContentRange(ContentRangeError::MissingHeader),
@@ -632,6 +758,19 @@ async fn download_validation_and_admission_errors_remain_internal() {
         ApiError::from(DownloadError::Semaphore(source)),
         ApiError::Internal { .. }
     ));
+}
+
+#[test]
+fn download_error_diagnostics_are_redacted_at_api_boundary() {
+    use crate::artifacts::downloader::DownloadError;
+    let error = DownloadError::HttpStatus {
+        status: reqwest::StatusCode::SERVICE_UNAVAILABLE,
+    };
+    let boundary = ApiError::from(error);
+    assert!(matches!(boundary, ApiError::ProviderUnavailable { .. }));
+    let payload = serde_json::to_string(&boundary).unwrap();
+    assert!(!payload.contains("download-secret"));
+    assert!(!payload.contains("private-artifact"));
 }
 
 #[test]
@@ -738,4 +877,37 @@ fn process_tree_failures_keep_cleanup_distinct_from_command_failures() {
         ApiError::from(unconfirmed),
         ApiError::IncompleteRecovery { .. }
     ));
+}
+
+#[test]
+fn server_installer_error_ipc_categories_remain_correct() {
+    use crate::server::config::ServerCoreType;
+    use crate::server::installer::InstallerError;
+    use std::io;
+
+    let process_err = InstallerError::Process {
+        core: ServerCoreType::NeoForge,
+        source: Box::new(io::Error::new(io::ErrorKind::BrokenPipe, "pipe broken")),
+    };
+    let api_err = ApiError::from(process_err);
+    assert!(matches!(api_err, ApiError::Internal { .. }));
+
+    let io_err = InstallerError::Io(io::Error::new(io::ErrorKind::PermissionDenied, "denied"));
+    let api_err = ApiError::from(io_err);
+    assert!(matches!(api_err, ApiError::StorageFailure { .. }));
+
+    let not_configured = InstallerError::NotConfigured(ServerCoreType::Forge);
+    let api_err = ApiError::from(not_configured);
+    assert!(matches!(api_err, ApiError::NotFound { .. }));
+
+    let version_unavailable = InstallerError::VersionUnavailable {
+        core: ServerCoreType::Quilt,
+        game_version: "1.99".to_string(),
+    };
+    let api_err = ApiError::from(version_unavailable);
+    assert!(matches!(api_err, ApiError::NotFound { .. }));
+
+    let unsupported = InstallerError::UnsupportedCore(ServerCoreType::Vanilla);
+    let api_err = ApiError::from(unsupported);
+    assert!(matches!(api_err, ApiError::InvalidInput { .. }));
 }

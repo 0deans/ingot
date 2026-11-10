@@ -1,0 +1,29 @@
+[package]
+name = "ingot-version-change"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+name = "ingot_version_change"
+path = "src/lib.rs"
+
+[dependencies]
+ingot-core = { workspace = true }
+ingot-artifacts = { workspace = true }
+ingot-minecraft = { workspace = true }
+ingot-server = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }

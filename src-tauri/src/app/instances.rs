@@ -146,8 +146,7 @@ pub(crate) async fn create_instance_shortcut<R: Runtime>(
                 instance::shortcut::create_steam_shortcut(&instance_dir, &target_exe, &instance)?
             }
             instance::ShortcutLocation::Desktop | instance::ShortcutLocation::ApplicationsMenu => {
-                let destination_dir =
-                    instance::shortcut::resolve_shortcut_directory(&handle, location)?;
+                let destination_dir = resolve_shortcut_directory(&handle, location)?;
                 #[cfg(windows)]
                 let destination_dir = if location == instance::ShortcutLocation::ApplicationsMenu {
                     if let Some(group) = &instance.group {
@@ -181,6 +180,39 @@ pub(crate) async fn create_instance_shortcut<R: Runtime>(
         })
     })
     .await?
+}
+
+pub(crate) fn resolve_shortcut_directory<R: Runtime>(
+    app: &AppHandle<R>,
+    location: instance::ShortcutLocation,
+) -> Result<PathBuf, instance::ShortcutError> {
+    match location {
+        instance::ShortcutLocation::Desktop => app
+            .path()
+            .desktop_dir()
+            .map_err(|e| instance::ShortcutError::DirectoryNotFound(e.to_string())),
+        instance::ShortcutLocation::ApplicationsMenu => {
+            #[cfg(target_os = "macos")]
+            {
+                let home = app
+                    .path()
+                    .home_dir()
+                    .map_err(|e| instance::ShortcutError::DirectoryNotFound(e.to_string()))?;
+                instance::shortcut::resolve_shortcut_directory(&home, location)
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                let data = app
+                    .path()
+                    .data_dir()
+                    .map_err(|e| instance::ShortcutError::DirectoryNotFound(e.to_string()))?;
+                instance::shortcut::resolve_shortcut_directory(&data, location)
+            }
+        }
+        instance::ShortcutLocation::Steam => Err(instance::ShortcutError::DirectoryNotFound(
+            "Steam shortcuts are resolved through Steam userdata discovery".to_string(),
+        )),
+    }
 }
 
 #[cfg(test)]

@@ -10,7 +10,7 @@
 		"test:ui": "vitest run",
 		"test:ipc": "node --test tests/ipc-routing.test.mjs tests/rpc-result.test.mjs tests/coverage-ratchet.test.mjs",
 		"coverage:ratchet": "node scripts/coverage-ratchet.mjs src-tauri/target/coverage.json src-tauri/coverage-baseline.windows.json",
-		"coverage:measure": "cargo llvm-cov --manifest-path src-tauri/Cargo.toml --all-targets --locked --json --summary-only --output-path src-tauri/target/coverage.json",
+		"coverage:measure": "cargo llvm-cov --manifest-path src-tauri/Cargo.toml --workspace --all-targets --locked --json --summary-only --output-path src-tauri/target/coverage.json",
 		"coverage:windows": "pnpm coverage:measure && pnpm coverage:ratchet",
 		"dev": "vite",
 		"build": "tsc && vite build",

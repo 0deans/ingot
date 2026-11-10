@@ -108,11 +108,11 @@ jobs:
 
       - name: Clippy lint check
         working-directory: src-tauri
-        run: cargo clippy --all-targets --locked -- -D warnings
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
       - name: Run tests
         working-directory: src-tauri
-        run: cargo test --all-targets --locked
+        run: cargo test --workspace --all-targets --locked
 
       - name: Test native desktop vault
         working-directory: src-tauri
@@ -175,4 +175,4 @@ jobs:
 
       - name: Check Android compilation
         working-directory: src-tauri
-        run: cargo check --target aarch64-linux-android --locked
+        run: cargo check --workspace --target aarch64-linux-android --locked

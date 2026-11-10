@@ -98,8 +98,8 @@ For Rust implementation changes, run focused tests first, then the applicable ch
 
 ```text
 cargo fmt --all -- --check
-cargo clippy --all-targets --locked -- -D warnings
-cargo test --all-targets --locked
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --all-targets --locked
 pnpm exec tsc --noEmit -p .
 pnpm test:ipc
 ```

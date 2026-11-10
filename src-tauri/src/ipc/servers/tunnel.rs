@@ -2,7 +2,7 @@
 use super::get_http_client;
 use crate::ipc::ApiError;
 use crate::server::{self, PlayitTunnelStatus};
-use tauri::Runtime;
+use tauri::{Manager, Runtime};
 
 fn get_playit_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &server::PlayitManager {
     &crate::app::state(app).playit
@@ -33,8 +33,12 @@ impl ServerTunnelApi for ServerTunnelApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         secret_key: Option<String>,
     ) -> Result<PlayitTunnelStatus, ApiError> {
+        let app_data_dir = app_handle
+            .path()
+            .app_data_dir()
+            .map_err(|e| ApiError::storage_failure(e.to_string()))?;
         get_playit_manager(&app_handle)
-            .start_tunnel(&app_handle, get_http_client(&app_handle), secret_key)
+            .start_tunnel(&app_data_dir, get_http_client(&app_handle), secret_key)
             .await
             .map_err(ApiError::from)
     }

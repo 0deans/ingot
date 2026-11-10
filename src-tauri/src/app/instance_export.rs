@@ -3,11 +3,11 @@ use std::path::PathBuf;
 
 use tauri::{Manager, Runtime};
 
+use crate::artifacts::sources::SourceClient;
 use crate::minecraft::instance_export::{
     export_instance, preview_export, ExportOptions, ExportPreview, ExportReport,
     InstanceExportError, SourceClientResolver,
 };
-use crate::version_change::sources::SourceClient;
 
 pub(crate) async fn preview_instance_export<R: Runtime>(
     app: &tauri::AppHandle<R>,
