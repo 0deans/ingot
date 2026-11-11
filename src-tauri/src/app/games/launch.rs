@@ -1,22 +1,24 @@
 use super::exit::{finish_game, handle_launcher_behavior_on_launch};
 use super::preparation::NativePreparation;
 use crate::app::instances::ensure_instance_dir;
-use crate::system;
+use crate::system::{self, LauncherSettings};
+use ingot_minecraft::horizon::HorizonSessionGuard;
 use ingot_minecraft::instance::InstanceConfig;
 use ingot_minecraft::launcher::models::{
     InstanceStatusEvent, LaunchError, LaunchProgressEvent, QuickPlayOptions, StatusFn,
 };
 use ingot_minecraft::launcher::prepare::prepare_launch_environment;
 use ingot_minecraft::launcher::process::ProcessManager;
-use ingot_minecraft::launcher::progress::make_progress_reporter;
+use ingot_minecraft::launcher::progress::{make_progress_reporter, ProgressCallback};
 use ingot_minecraft::launcher::service::{
     prepare_game_command, spawn_and_commit_process, CommandContext,
 };
 use ingot_minecraft::logs::{InstanceLogEvent, LogLevel};
+use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, Runtime};
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 
 #[derive(Default)]
 pub(crate) struct LaunchSessionOptions {
@@ -82,55 +84,23 @@ where
         .app_data_dir()
         .map_err(|source| LaunchError::AppDataDir(std::io::Error::other(source)))?;
 
-    let cache_dir = data_dir.join("cache");
-    let assets_dir = data_dir.join("assets");
-    let libraries_dir = data_dir.join("libraries");
     let instance_dir = ensure_instance_dir(&app, &instance_id).map_err(LaunchError::InstanceDir)?;
     ensure_transaction_ready(&instance_dir)?;
 
     let global_settings = system::load_settings(&app).map_err(LaunchError::Settings)?;
 
-    let (mut command, _session_guard) =
-        if instance.loader == ingot_minecraft::instance::ModLoaderType::Horizon {
-            super::horizon::prepare_horizon_game_command(
-                &app,
-                &client,
-                &instance,
-                &instance_dir,
-                &data_dir,
-                &report_prog,
-            )
-            .await?
-        } else {
-            let prep = prepare_launch_environment(
-                &NativePreparation::new(&app),
-                &client,
-                &instance,
-                &cache_dir,
-                &assets_dir,
-                &libraries_dir,
-                report_prog.clone(),
-            )
-            .await?;
-
-            let context = CommandContext {
-                instance: &instance,
-                settings: &global_settings,
-                instance_dir: &instance_dir,
-                cache_dir: &cache_dir,
-                assets_dir: &assets_dir,
-                libraries_dir: &libraries_dir,
-                quick_play: quick_play.as_ref(),
-            };
-            (
-                prepare_game_command(&client, &prep, context, &report_prog).await?,
-                None,
-            )
-        };
-
-    for (key, value) in &extra_env {
-        command.env(key, value);
-    }
+    let (command, session_guard) = prepare_launch_command(LaunchCommandInput {
+        app: &app,
+        client: &client,
+        instance: &instance,
+        instance_dir: &instance_dir,
+        data_dir: &data_dir,
+        global_settings: &global_settings,
+        quick_play: quick_play.as_ref(),
+        extra_env: &extra_env,
+        report_prog: &report_prog,
+    })
+    .await?;
 
     // Run pre-launch synchronization
     if let Err(e) = crate::app::sync::sync_before_launch(&app, &instance, &instance_dir) {
@@ -149,56 +119,27 @@ where
         "[Ingot] Launching {} ({} {:?})...",
         instance.name, instance.game_version, instance.loader
     );
-    let banner_line =
-        process_manager.append_instance_log(&instance_id, &launch_banner, LogLevel::Launcher);
-    crate::app::events::instance_log(
+    emit_instance_log(
         &app,
-        InstanceLogEvent {
-            instance_id: instance_id.clone(),
-            line: banner_line,
-        },
+        &process_manager,
+        &instance_id,
+        &launch_banner,
+        LogLevel::Launcher,
     );
 
     let (mut child, pid) = spawn_and_commit_process(command, starting_guard, now).await?;
     crate::running::add(&app, crate::running::Kind::Game, &instance_id, pid, now);
 
     let mut reader_handles = Vec::new();
-    if let Some(stdout) = child.stdout.take() {
-        let pm_out = process_manager.clone();
-        let app_out = app.clone();
-        let id_out = instance_id.clone();
-        reader_handles.push(tokio::spawn(async move {
-            let mut lines = BufReader::new(stdout).lines();
-            while let Ok(Some(raw)) = lines.next_line().await {
-                let line = pm_out.append_instance_log(&id_out, &raw, LogLevel::Info);
-                crate::app::events::instance_log(
-                    &app_out,
-                    InstanceLogEvent {
-                        instance_id: id_out.clone(),
-                        line,
-                    },
-                );
-            }
-        }));
+    if let Some(handle) =
+        spawn_log_reader(child.stdout.take(), &app, &process_manager, &instance_id)
+    {
+        reader_handles.push(handle);
     }
-
-    if let Some(stderr) = child.stderr.take() {
-        let pm_err = process_manager.clone();
-        let app_err = app.clone();
-        let id_err = instance_id.clone();
-        reader_handles.push(tokio::spawn(async move {
-            let mut lines = BufReader::new(stderr).lines();
-            while let Ok(Some(raw)) = lines.next_line().await {
-                let line = pm_err.append_instance_log(&id_err, &raw, LogLevel::Info);
-                crate::app::events::instance_log(
-                    &app_err,
-                    InstanceLogEvent {
-                        instance_id: id_err.clone(),
-                        line,
-                    },
-                );
-            }
-        }));
+    if let Some(handle) =
+        spawn_log_reader(child.stderr.take(), &app, &process_manager, &instance_id)
+    {
+        reader_handles.push(handle);
     }
 
     on_status(InstanceStatusEvent {
@@ -215,14 +156,171 @@ where
         launched_from_cli,
     );
 
-    // Background task to monitor child exit
-    let pm_clone = process_manager.clone();
-    let app_clone = app.clone();
-    let on_status_clone: StatusFn = Arc::new(on_status);
-    let inst_clone = instance.clone();
+    spawn_exit_monitor(ExitMonitorContext {
+        app,
+        process_manager,
+        instance,
+        child,
+        pid,
+        started_at: now,
+        launched_from_cli,
+        reader_handles,
+        session_guard,
+        on_status: Arc::new(on_status),
+    });
 
+    Ok(pid)
+}
+
+struct LaunchCommandInput<'a, R: Runtime> {
+    app: &'a AppHandle<R>,
+    client: &'a reqwest::Client,
+    instance: &'a InstanceConfig,
+    instance_dir: &'a Path,
+    data_dir: &'a Path,
+    global_settings: &'a LauncherSettings,
+    quick_play: Option<&'a QuickPlayOptions>,
+    extra_env: &'a [(String, String)],
+    report_prog: &'a ProgressCallback,
+}
+
+async fn prepare_launch_command<R: Runtime>(
+    input: LaunchCommandInput<'_, R>,
+) -> Result<(tokio::process::Command, Option<HorizonSessionGuard>), LaunchError> {
+    let LaunchCommandInput {
+        app,
+        client,
+        instance,
+        instance_dir,
+        data_dir,
+        global_settings,
+        quick_play,
+        extra_env,
+        report_prog,
+    } = input;
+    let cache_dir = data_dir.join("cache");
+    let assets_dir = data_dir.join("assets");
+    let libraries_dir = data_dir.join("libraries");
+
+    let (mut command, session_guard) =
+        if instance.loader == ingot_minecraft::instance::ModLoaderType::Horizon {
+            super::horizon::prepare_horizon_game_command(
+                app,
+                client,
+                instance,
+                instance_dir,
+                data_dir,
+                report_prog,
+            )
+            .await?
+        } else {
+            let prep = prepare_launch_environment(
+                &NativePreparation::new(app),
+                client,
+                instance,
+                &cache_dir,
+                &assets_dir,
+                &libraries_dir,
+                report_prog.clone(),
+            )
+            .await?;
+
+            let context = CommandContext {
+                instance,
+                settings: global_settings,
+                instance_dir,
+                cache_dir: &cache_dir,
+                assets_dir: &assets_dir,
+                libraries_dir: &libraries_dir,
+                quick_play,
+            };
+            (
+                prepare_game_command(client, &prep, context, report_prog).await?,
+                None,
+            )
+        };
+
+    for (key, value) in extra_env {
+        command.env(key, value);
+    }
+
+    Ok((command, session_guard))
+}
+
+fn emit_instance_log<R: Runtime>(
+    app: &AppHandle<R>,
+    process_manager: &ProcessManager,
+    instance_id: &str,
+    message: &str,
+    level: LogLevel,
+) {
+    let line = process_manager.append_instance_log(instance_id, message, level);
+    crate::app::events::instance_log(
+        app,
+        InstanceLogEvent {
+            instance_id: instance_id.to_owned(),
+            line,
+        },
+    );
+}
+
+fn spawn_log_reader<R: Runtime, S>(
+    stream: Option<S>,
+    app: &AppHandle<R>,
+    process_manager: &ProcessManager,
+    instance_id: &str,
+) -> Option<tokio::task::JoinHandle<()>>
+where
+    S: AsyncRead + Unpin + Send + 'static,
+{
+    let stream = stream?;
+    let pm = process_manager.clone();
+    let app = app.clone();
+    let instance_id = instance_id.to_owned();
+    Some(tokio::spawn(async move {
+        let mut lines = BufReader::new(stream).lines();
+        while let Ok(Some(raw)) = lines.next_line().await {
+            emit_instance_log(&app, &pm, &instance_id, &raw, LogLevel::Info);
+        }
+    }))
+}
+
+fn format_exit_log_message(exit_code: Option<i32>) -> String {
+    match exit_code {
+        Some(0) => "[Ingot] Process exited normally (code 0).".to_string(),
+        Some(code) => format!("[Ingot] Failed: Process exited with code {code}."),
+        None => "[Ingot] Process terminated.".to_string(),
+    }
+}
+
+struct ExitMonitorContext<R: Runtime> {
+    app: AppHandle<R>,
+    process_manager: ProcessManager,
+    instance: InstanceConfig,
+    child: tokio::process::Child,
+    pid: u32,
+    started_at: u64,
+    launched_from_cli: bool,
+    reader_handles: Vec<tokio::task::JoinHandle<()>>,
+    session_guard: Option<HorizonSessionGuard>,
+    on_status: StatusFn,
+}
+
+fn spawn_exit_monitor<R: Runtime>(ctx: ExitMonitorContext<R>) {
     tokio::spawn(async move {
-        let _guard = _session_guard;
+        let ExitMonitorContext {
+            app,
+            process_manager,
+            instance,
+            mut child,
+            pid,
+            started_at,
+            launched_from_cli,
+            reader_handles,
+            session_guard,
+            on_status,
+        } = ctx;
+        let _guard = session_guard;
         let (clean, exit_code) = match child.wait().await {
             Ok(status) => {
                 println!(
@@ -244,39 +342,32 @@ where
                 handle.abort();
             }
         }
-        let exit_msg = match exit_code {
-            Some(0) => "[Ingot] Process exited normally (code 0).".to_string(),
-            Some(code) => format!("[Ingot] Failed: Process exited with code {code}."),
-            None => "[Ingot] Process terminated.".to_string(),
-        };
-        let exit_line = pm_clone.append_instance_log(&inst_clone.id, &exit_msg, LogLevel::Launcher);
-        crate::app::events::instance_log(
-            &app_clone,
-            InstanceLogEvent {
-                instance_id: inst_clone.id.clone(),
-                line: exit_line,
-            },
+        let exit_msg = format_exit_log_message(exit_code);
+        emit_instance_log(
+            &app,
+            &process_manager,
+            &instance.id,
+            &exit_msg,
+            LogLevel::Launcher,
         );
         let ended = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_secs())
-            .unwrap_or(now);
+            .unwrap_or(started_at);
         finish_game(
-            &app_clone,
-            &pm_clone,
-            &inst_clone,
+            &app,
+            &process_manager,
+            &instance,
             pid,
-            now,
+            started_at,
             ended,
             clean,
             exit_code,
             launched_from_cli,
-            &on_status_clone,
+            &on_status,
         )
         .await;
     });
-
-    Ok(pid)
 }
 
 fn ensure_transaction_ready(instance_dir: &std::path::Path) -> Result<(), GameLaunchError> {

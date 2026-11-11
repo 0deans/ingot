@@ -8,9 +8,14 @@ use ingot_version_change::VersionChangeError;
 
 #[test]
 fn instance_adapters_preserve_causes_and_api_categories() {
+    use ingot_content::content::error::ContentError;
     use ingot_content::importer::models::ImportError;
+    use ingot_content::instance_export::InstanceExportError;
     use ingot_core::metadata::MetadataError;
-    use ingot_minecraft::{instance::InstanceError, screenshots::ScreenshotError};
+    use ingot_minecraft::{
+        instance::InstanceError, logs::LogError, screenshots::ScreenshotError, sync::SyncError,
+        worlds::WorldError,
+    };
     use std::error::Error;
 
     fn failures() -> Vec<InstanceError> {
@@ -19,6 +24,11 @@ fn instance_adapters_preserve_causes_and_api_categories() {
             InstanceError::NotFound("missing-instance".into()),
             InstanceError::Io(std::io::ErrorKind::PermissionDenied.into()),
             InstanceError::Metadata(MetadataError::Conflict("busy instance".into())),
+            InstanceError::Metadata(MetadataError::Decode {
+                path: "instances.json".into(),
+                source: serde_json::from_str::<serde_json::Value>("{").unwrap_err(),
+            }),
+            InstanceError::Metadata(MetadataError::RecoveryBlocked("blocked recovery")),
             InstanceError::FilesCleanupCommitted {
                 path: "retained-instance".into(),
                 source: std::io::ErrorKind::PermissionDenied.into(),
@@ -47,6 +57,12 @@ fn instance_adapters_preserve_causes_and_api_categories() {
     check(ScreenshotError::LoadInstances);
     check(ImportError::InstanceDir);
     check(ImportError::InstanceCreate);
+    check(InstanceExportError::Instance);
+    check(WorldError::InstanceDir);
+    check(WorldError::LoadInstances);
+    check(SyncError::Instances);
+    check(ContentError::Instance);
+    check(LogError::Instance);
 }
 
 #[test]
@@ -1100,4 +1116,70 @@ async fn instance_content_blocking_task_panic_maps_to_internal_api_error() {
     let wrapped = InstanceContentActionError::from(join_error);
     assert!(matches!(wrapped, InstanceContentActionError::Task(_)));
     assert!(matches!(ApiError::from(wrapped), ApiError::Internal { .. }));
+}
+
+#[tokio::test]
+async fn instance_export_errors_preserve_sources_and_api_categories() {
+    use ingot_content::instance_export::InstanceExportError;
+    use ingot_core::metadata::MetadataError;
+    use ingot_minecraft::instance::{InstanceError, ModLoaderType};
+    use std::error::Error;
+
+    let decode_err = InstanceExportError::from(InstanceError::Metadata(MetadataError::Decode {
+        path: "instances.json".into(),
+        source: serde_json::from_str::<serde_json::Value>("{").unwrap_err(),
+    }));
+    assert!(decode_err
+        .source()
+        .and_then(|err| err.downcast_ref::<InstanceError>())
+        .is_some());
+    assert!(matches!(
+        ApiError::from(decode_err),
+        ApiError::StorageFailure { .. }
+    ));
+
+    let recovery_err = InstanceExportError::from(InstanceError::Metadata(
+        MetadataError::RecoveryBlocked("instances.deletion.json"),
+    ));
+    assert!(matches!(
+        ApiError::from(recovery_err),
+        ApiError::IncompleteRecovery { .. }
+    ));
+
+    assert!(matches!(
+        ApiError::from(InstanceExportError::InstanceRunning),
+        ApiError::Conflict { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceExportError::NotFound("missing".into())),
+        ApiError::NotFound { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceExportError::UnsupportedLoader(
+            ModLoaderType::Horizon
+        )),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceExportError::EmptyName),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceExportError::UnsafePath("../bad".into())),
+        ApiError::InvalidInput { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceExportError::Serialization("bad json".into())),
+        ApiError::Internal { .. }
+    ));
+
+    let join_error = tokio::task::spawn_blocking(|| {
+        panic!("simulated export task panic");
+    })
+    .await
+    .unwrap_err();
+    assert!(matches!(
+        ApiError::from(InstanceExportError::from(join_error)),
+        ApiError::Internal { .. }
+    ));
 }

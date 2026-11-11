@@ -4,7 +4,7 @@ use super::models::{
     VersionChangeError, VersionPlan, FABRIC_ONLY,
 };
 use super::scan::{list_worlds, scan};
-use super::sources::{self, ProjectInfo, Release, Source, SourceClient};
+use ingot_artifacts::sources::{self, ProjectInfo, Release, Source, SourceClient};
 use std::collections::{HashMap, HashSet};
 
 pub fn site(source: Source) -> &'static str {
@@ -126,7 +126,7 @@ pub(super) async fn check_with_sources(
                 if kind == ContentKind::Mod || kind == ContentKind::Plugin {
                     let path = target.root.join(folder.dir).join(&file.file_name);
                     if let Some((name, version, _, _)) =
-                        crate::server::plugins::read_jar_metadata(&path)
+                        ingot_server::plugins::read_jar_metadata(&path)
                     {
                         item.title = name;
                         item.current_version = version;

@@ -190,8 +190,9 @@ impl InstancesApi for InstancesApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<(), ApiError> {
-        let dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let dir = crate::app::instances::resolve_registered_instance(&app_handle, &instance_id)
+            .map_err(ApiError::from)?
+            .dir;
         crate::app::platform::open_directory(&dir).map_err(ApiError::from)
     }
 

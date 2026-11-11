@@ -1,5 +1,5 @@
 use super::models::{mention, ContentKind, Folder, ItemAction, ItemStatus, PlanItem};
-use super::sources::{self, Release, Scope, Source, SourceClient, SourceError};
+use ingot_artifacts::sources::{self, Release, Scope, Source, SourceClient, SourceError};
 use std::collections::{HashMap, HashSet};
 
 pub fn is_active(action: ItemAction) -> bool {

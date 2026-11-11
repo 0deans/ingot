@@ -15,13 +15,35 @@ mod tests;
 
 pub(crate) use helpers::*;
 
-use crate::app::server_config::{
-    create_server, delete_server, get_server_dir, load_servers, update_server,
-};
-use crate::ipc::events::TauRpcEventsApiEventTrigger;
+use crate::app::server_config::{create_server, get_server_dir, load_servers};
+use crate::app::server_lifecycle::{self, ServerLaunchError, ServerMaintenanceError};
 use crate::ipc::ApiError;
 use ingot_server::{RunningServerSummary, ServerConfig, ServerCoreType, ServerPingResponse};
 use tauri::Runtime;
+
+fn map_launch_error(error: ServerLaunchError) -> ApiError {
+    match error {
+        ServerLaunchError::NotFound(_) => ApiError::not_found(error.to_string()),
+        ServerLaunchError::Config(err) => ApiError::from(err),
+        ServerLaunchError::Process(err) => ApiError::from(err),
+        ServerLaunchError::IncompleteTransaction(_)
+        | ServerLaunchError::TransactionInspection(_) => {
+            ApiError::incomplete_recovery(error.to_string())
+        }
+        ServerLaunchError::LeftoverRunning { .. }
+        | ServerLaunchError::PortUsedByServer { .. }
+        | ServerLaunchError::PortInUse(_) => ApiError::conflict(error.to_string()),
+        ServerLaunchError::AppDataDir(message) => ApiError::storage_failure(message),
+    }
+}
+
+fn map_maintenance_error(error: ServerMaintenanceError) -> ApiError {
+    match error {
+        ServerMaintenanceError::Process(err) => ApiError::from(err),
+        ServerMaintenanceError::Config(err) => ApiError::from(err),
+        ServerMaintenanceError::TaskJoin(err) => ApiError::from_display(err),
+    }
+}
 
 #[taurpc::procedures(path = "servers")]
 #[allow(clippy::too_many_arguments)]
@@ -155,15 +177,7 @@ impl ServersApi for ServersApiImpl {
             memory_min_mb,
             memory_max_mb,
         )?;
-        if ingot_server::companion::supported(&created.core, &created.game_version) {
-            if let Ok((dir, _)) = server_with_config(&app_handle, &created.id) {
-                if let Err(e) =
-                    ingot_server::companion::install(&dir, &created.core, &created.game_version)
-                {
-                    eprintln!("[Server] Couldn't install the Ingot plugin: {e}");
-                }
-            }
-        }
+        server_lifecycle::install_companion_if_supported(&app_handle, &created);
         Ok(created)
     }
 
@@ -173,16 +187,9 @@ impl ServersApi for ServersApiImpl {
         server_id: String,
         delete_files: bool,
     ) -> Result<(), ApiError> {
-        let ownership = get_server_process_manager(&app_handle)
-            .reserve_maintenance(&server_id)
-            .await?;
-        tokio::task::spawn_blocking(move || {
-            let _ownership = ownership;
-            delete_server(&app_handle, &server_id, delete_files)
-        })
-        .await
-        .map_err(ApiError::from_display)?
-        .map_err(ApiError::from)
+        server_lifecycle::delete_server_guarded(&app_handle, server_id, delete_files)
+            .await
+            .map_err(map_maintenance_error)
     }
 
     async fn update_server(
@@ -190,16 +197,9 @@ impl ServersApi for ServersApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server: ServerConfig,
     ) -> Result<(), ApiError> {
-        let ownership = get_server_process_manager(&app_handle)
-            .reserve_maintenance(&server.id)
-            .await?;
-        tokio::task::spawn_blocking(move || {
-            let _ownership = ownership;
-            update_server(&app_handle, server)
-        })
-        .await
-        .map_err(ApiError::from_display)?
-        .map_err(ApiError::from)
+        server_lifecycle::update_server_guarded(&app_handle, server)
+            .await
+            .map_err(map_maintenance_error)
     }
 
     async fn start_server(
@@ -207,82 +207,9 @@ impl ServersApi for ServersApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<u32, ApiError> {
-        use tauri::Manager;
-
-        let servers = load_servers(&app_handle)?;
-        let config = servers
-            .into_iter()
-            .find(|s| s.id == server_id)
-            .ok_or_else(|| ApiError::not_found(format!("Server not found: {}", server_id)))?;
-
-        let (dir, _) = server_with_config(&app_handle, &server_id)?;
-        validate_pre_launch(&app_handle, &config, &dir).await?;
-
-        let data_dir = app_handle
-            .path()
-            .app_data_dir()
-            .map_err(|e| ApiError::storage_failure(e.to_string()))?;
-
-        let pm = get_server_process_manager(&app_handle).clone();
-        let client = get_http_client(&app_handle).clone();
-
-        let claimed = ingot_server::process::claim_server_launch(
-            &crate::app::state(&app_handle).server_configs,
-            &pm,
-            &server_id,
-        )
-        .await
-        .map_err(ApiError::from)?;
-
-        let hooks = std::sync::Arc::new(crate::app::TauriServerLifecycleHooks::new(
-            app_handle.clone(),
-        ));
-
-        let app_log = app_handle.clone();
-        let on_log = move |ev: ingot_server::ServerLogEvent| {
-            let trigger = TauRpcEventsApiEventTrigger::new(app_log.clone());
-            if let Err(e) = trigger.on_server_log(ev) {
-                eprintln!("[IPC] Failed to emit on_server_log: {e}");
-            }
-        };
-
-        let app_status = app_handle.clone();
-        let on_status = move |ev: ingot_server::ServerStatusEvent| {
-            let trigger = TauRpcEventsApiEventTrigger::new(app_status.clone());
-            if let Err(e) = trigger.on_server_status_changed(ev) {
-                eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
-            }
-        };
-
-        let has_tps = core_has_tps(&config);
-        let pid = get_server_supervisor_manager(&app_handle)
-            .supervise_and_start(
-                ingot_server::process::ServerLaunchContext {
-                    repository: crate::app::state(&app_handle).server_configs.clone(),
-                    server_dir: dir,
-                    data_dir,
-                    processes: pm,
-                    client,
-                    hooks,
-                    command_builder: std::sync::Arc::new(
-                        crate::app::server_lifecycle::DefaultServerCommandBuilder::new(
-                            crate::app::state(&app_handle).sandbox_setup.clone(),
-                        ),
-                    ),
-                    on_log: std::sync::Arc::new(on_log),
-                    on_status: std::sync::Arc::new(on_status),
-                    publication: Default::default(),
-                },
-                claimed,
-            )
+        server_lifecycle::start_server(&app_handle, &server_id)
             .await
-            .map_err(ApiError::from)?;
-        ingot_server::stats::ensure_sampler(
-            get_server_process_manager(&app_handle).clone(),
-            &server_id,
-            has_tps,
-        );
-        Ok(pid)
+            .map_err(map_launch_error)
     }
 
     async fn put_server_to_sleep(
@@ -290,19 +217,7 @@ impl ServersApi for ServersApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<(), ApiError> {
-        let app_status = app_handle.clone();
-        let on_status = move |ev: ingot_server::ServerStatusEvent| {
-            let trigger = TauRpcEventsApiEventTrigger::new(app_status.clone());
-            if let Err(e) = trigger.on_server_status_changed(ev) {
-                eprintln!("[IPC] Failed to emit on_server_status_changed: {e}");
-            }
-        };
-        get_server_supervisor_manager(&app_handle)
-            .put_to_sleep(
-                get_server_process_manager(&app_handle),
-                &server_id,
-                on_status,
-            )
+        server_lifecycle::put_server_to_sleep(&app_handle, &server_id)
             .await
             .map_err(ApiError::from)
     }

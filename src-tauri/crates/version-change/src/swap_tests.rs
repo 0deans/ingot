@@ -1,9 +1,12 @@
 use super::{item, plan, write};
+use crate::journal::Journal;
+use crate::models::{backup_dir, work_dir};
+use crate::transaction::swap;
 use crate::{
-    backup_dir, last_backup, targets, undo_typed, work_dir, write_journal_typed, ContentKind,
-    ItemAction, Journal, Target, TargetKind, VersionPlan,
+    last_backup, targets, undo_typed, write_journal_typed, ContentKind, ItemAction, Target,
+    TargetKind, VersionPlan,
 };
-use crate::{crash, swap};
+use ingot_artifacts::crash;
 use std::fs;
 
 #[test]
@@ -11,7 +14,7 @@ fn missing_staged_replacement_fails_and_can_restore_original() {
     let temporary = tempfile::tempdir().unwrap();
     let root = temporary.path();
     write(root, &[("plugins/old.jar", "original")]);
-    let target = targets::server(root, &crate::server::ServerCoreType::Paper).unwrap();
+    let target = targets::server(root, &ingot_server::ServerCoreType::Paper).unwrap();
     let plan = plan(vec![item(
         ContentKind::Plugin,
         "plugins",
@@ -59,7 +62,7 @@ fn swaps_and_undoes_exactly() {
         &staging,
         &[("plugins/old-2.jar", "new"), ("plugins/dep.jar", "dep")],
     );
-    let target = targets::server(&root, &crate::server::config::ServerCoreType::Purpur).unwrap();
+    let target = targets::server(&root, &ingot_server::config::ServerCoreType::Purpur).unwrap();
     let plan = plan(vec![
         item(
             ContentKind::Plugin,

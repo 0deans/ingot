@@ -18,10 +18,29 @@ pub(crate) fn ensure_instance_dir<R: Runtime>(
     instance::ensure_instance_directory(&super::state(app).instances, &parent, id)
 }
 
+pub(crate) struct ResolvedInstance {
+    pub(crate) config: InstanceConfig,
+    pub(crate) dir: PathBuf,
+}
+
 pub(crate) fn load_instances<R: Runtime>(
     app: &AppHandle<R>,
 ) -> Result<Vec<InstanceConfig>, InstanceError> {
     instance::load_instances(&super::state(app).instances)
+}
+
+/// Checks instance registration before touching the instance directory so missing
+/// IDs never create orphan directories and metadata or filesystem failures propagate.
+pub(crate) fn resolve_registered_instance<R: Runtime>(
+    app: &AppHandle<R>,
+    id: &str,
+) -> Result<ResolvedInstance, InstanceError> {
+    let config = load_instances(app)?
+        .into_iter()
+        .find(|instance| instance.id == id)
+        .ok_or_else(|| InstanceError::NotFound(id.to_owned()))?;
+    let dir = ensure_instance_dir(app, &config.id)?;
+    Ok(ResolvedInstance { config, dir })
 }
 
 pub(crate) fn patch_instance<R: Runtime>(
@@ -119,8 +138,8 @@ pub(crate) async fn read_worlds<R: Runtime>(
 ) -> Result<Vec<instance::InstanceWorldSummary>, InstanceError> {
     let handle = app.clone();
     tokio::task::spawn_blocking(move || {
-        let directory = ensure_instance_dir(&handle, &id)?;
-        instance::get_instance_worlds(&directory)
+        let resolved = resolve_registered_instance(&handle, &id)?;
+        instance::get_instance_worlds(&resolved.dir)
     })
     .await?
 }
@@ -132,13 +151,10 @@ pub(crate) async fn create_instance_shortcut<R: Runtime>(
 ) -> Result<instance::ShortcutResult, InstanceError> {
     let handle = app.clone();
     tokio::task::spawn_blocking(move || {
-        let instances = instance::load_instances(&super::state(&handle).instances)?;
-        let instance = instances
-            .into_iter()
-            .find(|i| i.id == instance_id)
-            .ok_or_else(|| InstanceError::NotFound(instance_id.clone()))?;
-
-        let instance_dir = ensure_instance_dir(&handle, &instance.id)?;
+        let ResolvedInstance {
+            config: instance,
+            dir: instance_dir,
+        } = resolve_registered_instance(&handle, &instance_id)?;
         let target_exe = std::env::current_exe().map_err(instance::ShortcutError::Executable)?;
 
         let path = match location {

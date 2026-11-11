@@ -900,3 +900,24 @@ async fn test_curseforge_export_tracking_fingerprint_modlist_and_roundtrip() {
     horizon_config.loader = ModLoaderType::Horizon;
     assert!(build_curseforge_modloaders(&horizon_config).is_err());
 }
+
+#[test]
+fn instance_export_error_preserves_instance_error_source() {
+    use super::error::InstanceExportError;
+    use ingot_core::metadata::MetadataError;
+    use ingot_minecraft::instance::InstanceError;
+    use std::error::Error;
+
+    for original in [
+        InstanceError::NotFound("missing".to_owned()),
+        InstanceError::InvalidId,
+        InstanceError::Io(std::io::ErrorKind::PermissionDenied.into()),
+        InstanceError::Metadata(MetadataError::RecoveryBlocked("lock")),
+    ] {
+        let wrapped = InstanceExportError::from(original);
+        let source = wrapped
+            .source()
+            .and_then(|err| err.downcast_ref::<InstanceError>());
+        assert!(source.is_some());
+    }
+}

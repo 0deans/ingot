@@ -5,9 +5,9 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-use super::sources::Scope;
 use super::{ContentKind, Folder, Target};
-use crate::server::config::ServerCoreType;
+use ingot_artifacts::sources::Scope;
+use ingot_server::config::ServerCoreType;
 
 /// The lowercase name a loader or core is stored as ("fabric", "neoforge", "paper")
 pub fn loader_id<T: Serialize>(value: &T) -> String {
@@ -22,7 +22,7 @@ pub fn parse_loader<T: DeserializeOwned>(id: &str) -> Result<T, super::models::V
         .map_err(|_| super::models::VersionChangeError::InvalidTarget(id.to_string()))
 }
 
-pub use crate::artifacts::targets::mod_scope;
+pub use ingot_artifacts::targets::mod_scope;
 
 /// An instance moving to `to_loader` (which may be the loader it has now)
 pub fn instance(root: &Path, from_loader: &str, to_loader: &str) -> Target {
@@ -90,9 +90,9 @@ pub fn can_switch(from: &ServerCoreType, to: &ServerCoreType) -> bool {
 pub fn server(
     root: &Path,
     to_core: &ServerCoreType,
-) -> Result<Target, crate::server::plugins::tracking::TrackingError> {
+) -> Result<Target, ingot_server::plugins::tracking::TrackingError> {
     let mut folders = Vec::new();
-    if let Some(platform) = crate::server::plugins::platform(to_core) {
+    if let Some(platform) = ingot_server::plugins::platform(to_core) {
         let (kind, scope) = if platform.folder == "plugins" {
             (
                 ContentKind::Plugin,
@@ -175,7 +175,7 @@ pub fn server(
         worlds,
         configs,
         core_files,
-        hangar: crate::server::plugins::tracked_hangar(root)?,
+        hangar: ingot_server::plugins::tracked_hangar(root)?,
     })
 }
 

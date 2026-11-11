@@ -11,9 +11,27 @@ mod transport;
 use std::future::Future;
 use tauri::{AppHandle, Runtime};
 
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum WaiterLaunchError {
+    #[error(transparent)]
+    Launch(#[from] super::games::GameLaunchError),
+
+    #[error("Launch task failed: {0}")]
+    Task(#[from] tokio::task::JoinError),
+
+    #[error("Instance launch ended before reservation completed")]
+    EndedBeforeReservation,
+}
+
+impl From<ingot_minecraft::launcher::LaunchError> for WaiterLaunchError {
+    fn from(error: ingot_minecraft::launcher::LaunchError) -> Self {
+        Self::Launch(error.into())
+    }
+}
+
 pub(crate) struct ReservedLaunch {
     pub(crate) reservation_id: u64,
-    pub(crate) launch_result: tokio::sync::oneshot::Receiver<Result<u32, String>>,
+    pub(crate) launch_result: tokio::sync::oneshot::Receiver<Result<u32, WaiterLaunchError>>,
 }
 
 pub(crate) trait WaiterSessionHost: Send + Sync + 'static {
@@ -21,7 +39,7 @@ pub(crate) trait WaiterSessionHost: Send + Sync + 'static {
         &self,
         instance_id: String,
         steam_env: Vec<(String, String)>,
-    ) -> impl Future<Output = Result<ReservedLaunch, String>> + Send;
+    ) -> impl Future<Output = Result<ReservedLaunch, WaiterLaunchError>> + Send;
 
     fn wait_for_reservation_end(
         &self,

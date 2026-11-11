@@ -17,7 +17,7 @@ pub fn get_sandbox_dir_in(data_dir: &Path) -> Result<PathBuf, SandboxError> {
 
 pub fn is_rootfs_installed(rootfs_dir: &Path) -> Result<bool, SandboxError> {
     for relative in [BASE_MARKER, "sbin/apk"] {
-        let path = crate::core::safe_enclosed_path(rootfs_dir, relative)
+        let path = ingot_core::safe_enclosed_path(rootfs_dir, relative)
             .ok_or(SandboxError::InvalidRootfs)?;
         match std::fs::metadata(path) {
             Ok(metadata) if metadata.is_file() => {}

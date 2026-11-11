@@ -3,12 +3,12 @@ use super::{
     models::{Restored, TargetKind, VersionChangeError, VersionPlan},
     targets, transaction,
 };
-use crate::core::metadata::{MetadataError, MetadataRepository};
-use crate::minecraft::{
+use ingot_core::metadata::{MetadataError, MetadataRepository};
+use ingot_minecraft::{
     instance::{InstanceConfig, ModLoaderType},
     launcher::ProcessManager,
 };
-use crate::server::{ServerConfig, ServerCoreType, ServerProcessManager};
+use ingot_server::{ServerConfig, ServerCoreType, ServerProcessManager};
 use std::path::Path;
 
 #[derive(Debug, thiserror::Error)]
@@ -18,7 +18,7 @@ pub enum ChangeServiceError {
     #[error(transparent)]
     Transaction(#[from] VersionChangeError),
     #[error(transparent)]
-    Tracking(#[from] crate::server::plugins::tracking::TrackingError),
+    Tracking(#[from] ingot_server::plugins::tracking::TrackingError),
     #[error("Target is running or another operation owns it")]
     Busy,
     #[error("Target not found")]
@@ -203,7 +203,7 @@ pub async fn apply_server(
         backup_worlds,
         |_| {},
         || -> Result<(), ChangeServiceError> {
-            crate::server::plugins::track_version_change(root, &plan.items)?;
+            ingot_server::plugins::track_version_change(root, &plan.items)?;
             patch_server(
                 repository,
                 &plan.target_id,

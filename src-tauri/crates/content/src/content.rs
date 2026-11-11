@@ -7,6 +7,7 @@ pub(crate) mod ftb;
 pub mod install;
 pub mod models;
 pub(crate) mod modrinth;
+pub(crate) mod serde_helpers;
 pub(crate) mod technic;
 #[cfg(test)]
 mod tests;

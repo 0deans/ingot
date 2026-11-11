@@ -1,6 +1,6 @@
 //! IPC procedures for client instance logs, crash reports, and paste uploads.
 use super::{find_instance, get_http_client, get_process_manager};
-use crate::app::instances::ensure_instance_dir;
+use crate::app::instances::resolve_registered_instance;
 use crate::ipc::ApiError;
 use ingot_minecraft::logs::{
     list_instance_log_files, read_instance_log_file, sanitize_log_content, upload_sanitized_log,
@@ -93,8 +93,9 @@ impl InstanceLogsApi for InstanceLogsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<Vec<InstanceLogFileSummary>, ApiError> {
-        find_instance(&app_handle, &instance_id)?;
-        let dir = ensure_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let dir = resolve_registered_instance(&app_handle, &instance_id)
+            .map_err(ApiError::from)?
+            .dir;
         tokio::task::spawn_blocking(move || list_instance_log_files(&dir))
             .await
             .map_err(LogError::Task)
@@ -109,8 +110,9 @@ impl InstanceLogsApi for InstanceLogsApiImpl {
         kind: LogFileKind,
         file_name: String,
     ) -> Result<InstanceLogFileContent, ApiError> {
-        find_instance(&app_handle, &instance_id)?;
-        let dir = ensure_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let dir = resolve_registered_instance(&app_handle, &instance_id)
+            .map_err(ApiError::from)?
+            .dir;
         tokio::task::spawn_blocking(move || read_instance_log_file(&dir, kind, &file_name))
             .await
             .map_err(LogError::Task)
@@ -148,9 +150,9 @@ impl InstanceLogsApi for InstanceLogsApiImpl {
         kind: Option<LogFileKind>,
         file_name: Option<String>,
     ) -> Result<(), ApiError> {
-        find_instance(&app_handle, &instance_id)?;
-        let instance_dir =
-            ensure_instance_dir(&app_handle, &instance_id).map_err(ApiError::from)?;
+        let instance_dir = resolve_registered_instance(&app_handle, &instance_id)
+            .map_err(ApiError::from)?
+            .dir;
 
         let target_path = match (kind, file_name) {
             (Some(LogFileKind::Log), Some(name)) => {

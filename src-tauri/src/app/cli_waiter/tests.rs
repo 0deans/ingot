@@ -8,7 +8,9 @@ use super::transport::{
     delegate_launch_over_io, delegate_launch_with_file, handle_waiter_io, serve_waiter_listener,
     RESERVATION_ACK_TIMEOUT,
 };
-use super::{ReservedLaunch, WaiterSessionHost};
+use super::{ReservedLaunch, WaiterLaunchError, WaiterSessionHost};
+use crate::app::games::GameLaunchError;
+use ingot_minecraft::launcher::LaunchError;
 use std::io;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -18,8 +20,8 @@ use tokio::net::{TcpListener, TcpStream};
 
 struct FakeHost {
     reservation_id: u64,
-    launch_error: Option<String>,
-    prep_error: Option<String>,
+    launch_error: Mutex<Option<WaiterLaunchError>>,
+    prep_error: Mutex<Option<WaiterLaunchError>>,
     start_calls: AtomicUsize,
     started_env: Mutex<Vec<(String, String)>>,
     waited_target: Mutex<Option<(String, u64)>>,
@@ -32,8 +34,8 @@ impl FakeHost {
     fn new(reservation_id: u64) -> Self {
         Self {
             reservation_id,
-            launch_error: None,
-            prep_error: None,
+            launch_error: Mutex::new(None),
+            prep_error: Mutex::new(None),
             start_calls: AtomicUsize::new(0),
             started_env: Mutex::new(Vec::new()),
             waited_target: Mutex::new(None),
@@ -49,15 +51,15 @@ impl WaiterSessionHost for FakeHost {
         &self,
         _instance_id: String,
         steam_env: Vec<(String, String)>,
-    ) -> Result<ReservedLaunch, String> {
+    ) -> Result<ReservedLaunch, WaiterLaunchError> {
         self.start_calls.fetch_add(1, Ordering::SeqCst);
         *self.started_env.lock().unwrap() = steam_env;
-        if let Some(err) = &self.launch_error {
-            return Err(err.clone());
+        if let Some(err) = self.launch_error.lock().unwrap().take() {
+            return Err(err);
         }
         let (tx, rx) = tokio::sync::oneshot::channel();
-        if let Some(prep_err) = &self.prep_error {
-            let _ = tx.send(Err(prep_err.clone()));
+        if let Some(prep_err) = self.prep_error.lock().unwrap().take() {
+            let _ = tx.send(Err(prep_err));
         } else {
             let _ = tx.send(Ok(1234));
         }
@@ -455,8 +457,8 @@ async fn launch_failures_return_nonzero_and_stale_or_corrupt_files_return_none()
     )
     .unwrap();
 
-    let mut pre_fail_host = FakeHost::new(1);
-    pre_fail_host.launch_error = Some("Instance is already running".to_string());
+    let pre_fail_host = FakeHost::new(1);
+    *pre_fail_host.launch_error.lock().unwrap() = Some(LaunchError::AlreadyRunning.into());
     let server_task = tokio::spawn(serve_waiter_listener(
         listener,
         "token".to_string(),
@@ -482,7 +484,13 @@ async fn launch_failures_return_nonzero_and_stale_or_corrupt_files_return_none()
 
     let (post_wait_tx, post_wait_rx) = tokio::sync::oneshot::channel();
     let mut post_fail_host = FakeHost::new(2);
-    post_fail_host.prep_error = Some("Missing runtime asset".to_string());
+    *post_fail_host.prep_error.lock().unwrap() = Some(
+        LaunchError::Io(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Missing runtime asset",
+        ))
+        .into(),
+    );
     post_fail_host.wait_entered_tx = Mutex::new(Some(post_wait_tx));
     let post_fail_host = Arc::new(post_fail_host);
     let finish_notify = Arc::clone(&post_fail_host.finish_notify);
@@ -718,4 +726,80 @@ async fn client_returns_none_after_reservation_ack_timeout() {
 
     tokio::time::advance(Duration::from_millis(2)).await;
     assert_eq!(client_task.await.unwrap(), None);
+}
+
+#[tokio::test]
+async fn waiter_launch_error_preserves_sources_and_wire_failure_messages() {
+    use std::error::Error;
+
+    let typed_launch = WaiterLaunchError::from(LaunchError::AlreadyRunning);
+    assert!(matches!(
+        typed_launch,
+        WaiterLaunchError::Launch(GameLaunchError::Launcher(LaunchError::AlreadyRunning))
+    ));
+
+    let typed_io = WaiterLaunchError::from(LaunchError::Io(io::Error::new(
+        io::ErrorKind::NotFound,
+        "missing asset",
+    )));
+    let io_source = typed_io
+        .source()
+        .and_then(|err| err.downcast_ref::<io::Error>());
+    assert!(matches!(io_source, Some(err) if err.kind() == io::ErrorKind::NotFound));
+
+    let wrapped_game = WaiterLaunchError::from(GameLaunchError::IncompleteTransaction(
+        ingot_version_change::TransactionPhase::Swapping,
+    ));
+    assert!(matches!(
+        wrapped_game,
+        WaiterLaunchError::Launch(GameLaunchError::IncompleteTransaction(_))
+    ));
+
+    let panicked = tokio::spawn(async { panic!("simulated pre-reservation panic") })
+        .await
+        .unwrap_err();
+    let task_err = WaiterLaunchError::from(panicked);
+    assert!(matches!(task_err, WaiterLaunchError::Task(_)));
+    assert!(task_err
+        .source()
+        .and_then(|err| err.downcast_ref::<tokio::task::JoinError>())
+        .is_some());
+    assert_eq!(
+        WaiterLaunchError::EndedBeforeReservation.to_string(),
+        "Instance launch ended before reservation completed"
+    );
+
+    let (client_stream, server_stream) = tokio::io::duplex(4096);
+    let (client_read, mut client_write) = tokio::io::split(client_stream);
+    let (server_read, server_write) = tokio::io::split(server_stream);
+
+    let host = Arc::new(FakeHost::new(99));
+    *host.launch_error.lock().unwrap() = Some(LaunchError::AlreadyRunning.into());
+    let server = tokio::spawn(handle_waiter_io(server_read, server_write, "tok", host));
+
+    let req = serde_json::to_string(&WaiterLaunchRequest {
+        token: "tok".to_string(),
+        instance_id: "inst-typed-fail".to_string(),
+        steam_env: Vec::new(),
+    })
+    .unwrap();
+    client_write
+        .write_all(format!("{req}\n").as_bytes())
+        .await
+        .unwrap();
+    client_write.flush().await.unwrap();
+
+    let mut client_reader = BufReader::new(client_read);
+    let line = read_bounded_line(&mut client_reader)
+        .await
+        .unwrap()
+        .unwrap();
+    let response: WaiterLaunchResponse = serde_json::from_str(&line).unwrap();
+    assert_eq!(
+        response,
+        WaiterLaunchResponse::Failed {
+            message: LaunchError::AlreadyRunning.to_string(),
+        }
+    );
+    server.await.unwrap().unwrap();
 }

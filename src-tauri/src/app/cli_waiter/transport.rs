@@ -126,8 +126,14 @@ where
         .await
     {
         Ok(reserved) => reserved,
-        Err(message) => {
-            send_message(&mut write_half, &WaiterLaunchResponse::Failed { message }).await?;
+        Err(error) => {
+            send_message(
+                &mut write_half,
+                &WaiterLaunchResponse::Failed {
+                    message: error.to_string(),
+                },
+            )
+            .await?;
             return Ok(());
         }
     };
@@ -167,11 +173,16 @@ where
 }
 
 fn resolve_launch_outcome(
-    launch_result: Result<Result<u32, String>, tokio::sync::oneshot::error::RecvError>,
+    launch_result: Result<
+        Result<u32, super::WaiterLaunchError>,
+        tokio::sync::oneshot::error::RecvError,
+    >,
 ) -> WaiterLaunchResponse {
     match launch_result {
         Ok(Ok(_pid)) => WaiterLaunchResponse::Finished { exit_code: 0 },
-        Ok(Err(message)) => WaiterLaunchResponse::Failed { message },
+        Ok(Err(error)) => WaiterLaunchResponse::Failed {
+            message: error.to_string(),
+        },
         Err(_) => WaiterLaunchResponse::Finished { exit_code: 0 },
     }
 }

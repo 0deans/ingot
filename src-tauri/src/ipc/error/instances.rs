@@ -472,6 +472,7 @@ impl From<ingot_content::instance_export::InstanceExportError> for ApiError {
             }
             InstanceExportError::Provider(_) => Self::provider_unavailable(error.to_string()),
             InstanceExportError::Content(e) => Self::from(e),
+            InstanceExportError::Instance(e) => Self::from(e),
             InstanceExportError::Task(_) | InstanceExportError::Serialization(_) => {
                 Self::internal(error.to_string())
             }

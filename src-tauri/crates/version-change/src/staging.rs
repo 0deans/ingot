@@ -73,7 +73,7 @@ pub async fn stage_typed(
                         }
                     })?;
                 }
-                let result = crate::artifacts::downloader::download_file_chunked(
+                let result = ingot_artifacts::downloader::download_file_chunked(
                     &client, &file.url, &dest, None, None,
                 )
                 .await;

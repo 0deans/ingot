@@ -44,7 +44,7 @@ fn reject_link_ancestor(path: &Path) -> Result<(), VersionChangeError> {
             ));
         }
     };
-    if crate::core::is_link_or_reparse_point(&metadata) {
+    if ingot_core::is_link_or_reparse_point(&metadata) {
         return Err(VersionChangeError::InvalidPath(format!(
             "Linked transaction ancestor: {}",
             path.display()

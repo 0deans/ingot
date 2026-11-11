@@ -23,6 +23,5 @@ pub(crate) mod sync;
 pub(crate) mod worlds;
 
 pub(crate) use paths::AppPaths;
-pub(crate) use server_lifecycle::TauriServerLifecycleHooks;
 pub(crate) use state::state;
 pub(crate) use state::AppState;

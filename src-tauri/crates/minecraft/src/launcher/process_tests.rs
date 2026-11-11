@@ -3,7 +3,7 @@ use super::*;
 #[tokio::test]
 async fn poisoned_registry_is_an_explicit_failure() {
     let manager = ProcessManager::new();
-    let entries = manager.running.clone();
+    let entries = manager.registry.running.clone();
     assert!(std::thread::spawn(move || {
         let _guard = entries.lock().unwrap();
         panic!("poison fixture");

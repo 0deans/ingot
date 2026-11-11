@@ -300,3 +300,142 @@ async fn test_download_log4j_libraries_live() {
         .await
         .expect("Log4j libraries download failed");
 }
+
+#[tokio::test]
+async fn test_fetch_loader_versions_with_endpoints_handles_success_non_success_and_malformed_json()
+{
+    use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
+
+    let server = LoopbackServer::exact_script(vec![
+        ScriptedExchange::expect_path(
+            "/fabric/v2/versions/loader/1.21.4",
+            (
+                200,
+                r#"[{"loader":{"version":"0.16.9"}},{"loader":{"version":"0.16.8"}}]"#,
+            ),
+        ),
+        ScriptedExchange::expect_path(
+            "/prism/v1/net.neoforged/index.json",
+            ResponseSpec::status(404),
+        ),
+        ScriptedExchange::expect_path(
+            "/quilt/v3/versions/loader/1.21.4",
+            ResponseSpec::json(200, b"{invalid-json".to_vec()),
+        ),
+    ])
+    .await;
+
+    let endpoints = LoaderEndpoints::from_base(server.base_url());
+    let client = reqwest::Client::new();
+
+    let fabric =
+        fetch_loader_versions_with_endpoints(&client, &endpoints, &ModLoaderType::Fabric, "1.21.4")
+            .await
+            .unwrap();
+    assert_eq!(fabric, vec!["0.16.9", "0.16.8"]);
+
+    let neoforge_missing = fetch_loader_versions_with_endpoints(
+        &client,
+        &endpoints,
+        &ModLoaderType::NeoForge,
+        "1.21.4",
+    )
+    .await
+    .unwrap();
+    assert!(neoforge_missing.is_empty());
+
+    let quilt_malformed =
+        fetch_loader_versions_with_endpoints(&client, &endpoints, &ModLoaderType::Quilt, "1.21.4")
+            .await
+            .unwrap_err();
+    assert!(matches!(quilt_malformed, LoaderError::Json(_)));
+
+    let requests = server.finish().await;
+    assert_eq!(requests.len(), 3);
+}
+
+#[tokio::test]
+async fn test_resolve_loader_profile_with_endpoints_caches_recovers_corrupt_cache_and_errors_on_500(
+) {
+    use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
+
+    let temp_dir = tempfile::tempdir().unwrap();
+    let cache_dir = temp_dir.path();
+    let profiles_dir = cache_dir.join("loader_profiles");
+    fs::create_dir_all(&profiles_dir).unwrap();
+
+    // Seed corrupt cache entry so resolve refreshes from loopback server and overwrites it.
+    let cache_path = profiles_dir.join("v5_Fabric_1.21.4_0.16.9.json");
+    fs::write(&cache_path, b"corrupt-cache").unwrap();
+
+    let server = LoopbackServer::exact_script(vec![
+        ScriptedExchange::expect_path(
+            "/fabric/v2/versions/loader/1.21.4/0.16.9/profile/json",
+            (
+                200,
+                r#"{"mainClass":"net.fabricmc.loader.impl.launch.knot.KnotClient","libraries":[{"name":"org.ow2.asm:asm:9.7"}]}"#,
+            ),
+        ),
+        ScriptedExchange::expect_path(
+            "/prism/v1/net.minecraftforge/47.3.0.json",
+            ResponseSpec::text(500, "Upstream error"),
+        ),
+    ])
+    .await;
+
+    let endpoints = LoaderEndpoints::from_base(server.base_url());
+    let client = reqwest::Client::new();
+
+    let resolved = resolve_loader_profile_with_endpoints(
+        &client,
+        &endpoints,
+        cache_dir,
+        &ModLoaderType::Fabric,
+        "1.21.4",
+        "0.16.9",
+    )
+    .await
+    .unwrap();
+    assert_eq!(resolved.id, "fabric-1.21.4-0.16.9");
+    assert_eq!(resolved.libraries.len(), 1);
+
+    // Second lookup must hit the freshly written cache without making an HTTP request.
+    let cached = resolve_loader_profile_with_endpoints(
+        &client,
+        &endpoints,
+        cache_dir,
+        &ModLoaderType::Fabric,
+        "1.21.4",
+        "0.16.9",
+    )
+    .await
+    .unwrap();
+    assert_eq!(cached.id, "fabric-1.21.4-0.16.9");
+
+    let forge_err = resolve_loader_profile_with_endpoints(
+        &client,
+        &endpoints,
+        cache_dir,
+        &ModLoaderType::Forge,
+        "1.20.1",
+        "forge-1.20.1-47.3.0",
+    )
+    .await
+    .unwrap_err();
+    assert!(matches!(forge_err, LoaderError::Network(_)));
+
+    let vanilla_err = resolve_loader_profile_with_endpoints(
+        &client,
+        &endpoints,
+        cache_dir,
+        &ModLoaderType::Vanilla,
+        "1.21.4",
+        "",
+    )
+    .await
+    .unwrap_err();
+    assert!(matches!(vanilla_err, LoaderError::VanillaNotSupported));
+
+    let requests = server.finish().await;
+    assert_eq!(requests.len(), 2);
+}

@@ -169,7 +169,7 @@ fn install_stack_guard(rootfs: &Path) -> Result<bool, SandboxError> {
 fn write_stack_guard(rootfs: &Path) -> Result<(), SandboxError> {
     let relative = STACK_GUARD_GUEST_PATH.trim_start_matches('/');
     let host_path =
-        crate::core::safe_enclosed_path(rootfs, relative).ok_or(SandboxError::InvalidRootfs)?;
+        ingot_core::safe_enclosed_path(rootfs, relative).ok_or(SandboxError::InvalidRootfs)?;
     match std::fs::read(&host_path) {
         Ok(bytes) if bytes == STACK_GUARD_SO => return Ok(()),
         Ok(_) => {}

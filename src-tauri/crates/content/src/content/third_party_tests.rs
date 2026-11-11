@@ -1,11 +1,12 @@
 use super::super::{
-    atlauncher::compute_atlauncher_safe_name, curseforge::CurseForgeClient,
+    atlauncher::compute_atlauncher_safe_name, curseforge::CurseForgeClient, error::ContentError,
     install::ftb_pack::FtbVersionManifest, models::ContentSearchQuery, modrinth::ModrinthClient,
     service::ContentSearchRequest, service::ContentService,
     technic::extract_technic_slug_from_query, AtLauncherClient, FtbClient, TechnicClient,
 };
 use super::MockServer;
-use reqwest::Client;
+use ingot_test_support::{LoopbackServer, ResponseSpec};
+use reqwest::{Client, StatusCode};
 
 #[tokio::test]
 async fn test_ftb_client_search_and_details_loopback() {
@@ -673,4 +674,236 @@ async fn test_atlauncher_packsnew_safe_name_computation_and_configs_json() {
         details.issues_url,
         Some("https://github.com/example/support".to_string())
     );
+}
+
+#[tokio::test]
+async fn atlauncher_rejects_malformed_detail_json_and_http_errors_explicitly() {
+    let server = MockServer::start(|_method, path| {
+        if path == "/pack/BadJson" {
+            (200, "{not-valid-json".to_string())
+        } else if path == "/pack/ServerErr" {
+            (503, "unavailable".to_string())
+        } else if path == "/launcher/json/packsnew.json" {
+            (
+                200,
+                r#"[{"id":1,"name":"BadJson","safeName":"BadJson","versions":[{"version":"1.0"}]}]"#
+                    .to_string(),
+            )
+        } else {
+            (404, "Not Found".to_string())
+        }
+    })
+    .await;
+
+    let client = AtLauncherClient::with_endpoint(Client::new(), &server.base_url);
+
+    let bad_json = client.get_details("BadJson").await.unwrap_err();
+    assert!(matches!(bad_json, ContentError::Response(_)));
+
+    let server_err = client.get_details("ServerErr").await.unwrap_err();
+    assert!(matches!(
+        server_err,
+        ContentError::HttpStatus(StatusCode::SERVICE_UNAVAILABLE)
+    ));
+
+    let missing = client.get_details("DoesNotExist").await.unwrap_err();
+    assert!(matches!(
+        missing,
+        ContentError::HttpStatus(StatusCode::NOT_FOUND)
+    ));
+
+    let broken_server = LoopbackServer::with_handler(|req| {
+        if req.path.starts_with("/pack/") {
+            ResponseSpec::close_connection()
+        } else {
+            ResponseSpec::json(200, b"{not-json".to_vec())
+        }
+    })
+    .await;
+    let broken_client = AtLauncherClient::with_endpoint(Client::new(), broken_server.base_url());
+    assert!(matches!(
+        broken_client.get_details("Broken").await.unwrap_err(),
+        ContentError::Transport(_)
+    ));
+
+    let bad_search = broken_client
+        .search(&ContentSearchQuery {
+            project_type: "modpack",
+            query: None,
+            game_version: None,
+            loader: None,
+            sort: None,
+            offset: 0,
+            limit: 10,
+        })
+        .await
+        .unwrap_err();
+    assert!(matches!(bad_search, ContentError::Response(_)));
+    let _ = broken_server.finish().await;
+}
+
+#[tokio::test]
+async fn ftb_rejects_malformed_list_and_hydration_failures_explicitly() {
+    let bad_list_server =
+        MockServer::start(|_method, _path| (200, r#"{"unexpected":"no-packs-field"}"#.to_string()))
+            .await;
+    let bad_list_client = FtbClient::with_endpoint(Client::new(), &bad_list_server.base_url);
+    let query = ContentSearchQuery {
+        project_type: "modpack",
+        query: None,
+        game_version: None,
+        loader: None,
+        sort: None,
+        offset: 0,
+        limit: 10,
+    };
+    assert!(matches!(
+        bad_list_client.search(&query).await.unwrap_err(),
+        ContentError::Response(_)
+    ));
+
+    let bad_hydration_server = LoopbackServer::with_handler(|req| {
+        if req.path == "/modpack/popular/installs/50" {
+            ResponseSpec::json(200, br#"{"packs":[101]}"#.to_vec())
+        } else if req.path == "/modpack/101" {
+            ResponseSpec::json(200, b"{broken-json".to_vec())
+        } else {
+            ResponseSpec::status(404)
+        }
+    })
+    .await;
+    let bad_hydration_client =
+        FtbClient::with_endpoint(Client::new(), bad_hydration_server.base_url());
+    assert!(matches!(
+        bad_hydration_client.search(&query).await.unwrap_err(),
+        ContentError::Response(_)
+    ));
+    let _ = bad_hydration_server.finish().await;
+
+    let http_err_server = LoopbackServer::with_handler(|req| {
+        if req.path == "/modpack/popular/installs/50" {
+            ResponseSpec::json(200, br#"{"packs":[101]}"#.to_vec())
+        } else {
+            ResponseSpec::text(503, "busy")
+        }
+    })
+    .await;
+    let http_err_client = FtbClient::with_endpoint(Client::new(), http_err_server.base_url());
+    assert!(matches!(
+        http_err_client.search(&query).await.unwrap_err(),
+        ContentError::HttpStatus(StatusCode::SERVICE_UNAVAILABLE)
+    ));
+    assert!(matches!(
+        http_err_client.get_details("101").await.unwrap_err(),
+        ContentError::HttpStatus(StatusCode::SERVICE_UNAVAILABLE)
+    ));
+    let _ = http_err_server.finish().await;
+
+    let closed_hydration_server = LoopbackServer::with_handler(|req| {
+        if req.path == "/modpack/popular/installs/50" {
+            ResponseSpec::json(200, br#"{"packs":[101]}"#.to_vec())
+        } else {
+            ResponseSpec::close_connection()
+        }
+    })
+    .await;
+    let closed_client = FtbClient::with_endpoint(Client::new(), closed_hydration_server.base_url());
+    assert!(matches!(
+        closed_client.search(&query).await.unwrap_err(),
+        ContentError::Transport(_)
+    ));
+    let _ = closed_hydration_server.finish().await;
+}
+
+#[tokio::test]
+async fn technic_solder_and_hydration_reject_malformed_or_failed_responses() {
+    let server = LoopbackServer::with_handler(|req| {
+        if req.path.starts_with("/modpack/solder-ok") {
+            let solder_base = req
+                .header("host")
+                .map(|host| format!("http://{host}/solder"))
+                .unwrap_or_default();
+            ResponseSpec::json(
+                200,
+                format!(
+                    r#"{{"name":"solder-ok","displayName":"Solder OK","solder":"{solder_base}"}}"#
+                )
+                .into_bytes(),
+            )
+        } else if req.path == "/solder/modpack/solder-ok" {
+            ResponseSpec::json(
+                200,
+                br#"{"recommended":"1.2.0","builds":["1.1.0","1.2.0"]}"#.to_vec(),
+            )
+        } else if req.path.starts_with("/modpack/solder-bad-json") {
+            let solder_base = req
+                .header("host")
+                .map(|host| format!("http://{host}/solder"))
+                .unwrap_or_default();
+            ResponseSpec::json(
+                200,
+                format!(r#"{{"name":"solder-bad-json","solder":"{solder_base}"}}"#).into_bytes(),
+            )
+        } else if req.path == "/solder/modpack/solder-bad-json" {
+            ResponseSpec::json(200, br#"{"error":"missing builds"}"#.to_vec())
+        } else if req.path.starts_with("/modpack/solder-503") {
+            let solder_base = req
+                .header("host")
+                .map(|host| format!("http://{host}/solder"))
+                .unwrap_or_default();
+            ResponseSpec::json(
+                200,
+                format!(r#"{{"name":"solder-503","solder":"{solder_base}"}}"#).into_bytes(),
+            )
+        } else if req.path == "/solder/modpack/solder-503" {
+            ResponseSpec::text(503, "solder down")
+        } else if req.path.starts_with("/modpack/no-download") {
+            ResponseSpec::json(200, br#"{"name":"no-download"}"#.to_vec())
+        } else if req.path.starts_with("/search") {
+            ResponseSpec::json(
+                200,
+                br#"{"modpacks":[{"name":"bad-hydrate","slug":"bad-hydrate"}]}"#.to_vec(),
+            )
+        } else if req.path.starts_with("/modpack/bad-hydrate") {
+            ResponseSpec::json(200, b"{not-json".to_vec())
+        } else {
+            ResponseSpec::status(404)
+        }
+    })
+    .await;
+
+    let client = TechnicClient::with_endpoint(Client::new(), server.base_url());
+
+    let ok_details = client.get_details("solder-ok").await.unwrap();
+    assert_eq!(ok_details.versions.len(), 2);
+    assert_eq!(ok_details.versions[0].version_type, "beta");
+    assert_eq!(ok_details.versions[1].version_type, "release");
+
+    assert!(matches!(
+        client.get_details("solder-bad-json").await.unwrap_err(),
+        ContentError::Response(_)
+    ));
+    assert!(matches!(
+        client.get_details("solder-503").await.unwrap_err(),
+        ContentError::HttpStatus(StatusCode::SERVICE_UNAVAILABLE)
+    ));
+    assert!(matches!(
+        client.get_details("no-download").await.unwrap_err(),
+        ContentError::MissingField("modpack download URL or Solder build")
+    ));
+
+    let search_err = client
+        .search(&ContentSearchQuery {
+            project_type: "modpack",
+            query: Some("bad"),
+            game_version: None,
+            loader: None,
+            sort: None,
+            offset: 0,
+            limit: 10,
+        })
+        .await
+        .unwrap_err();
+    assert!(matches!(search_err, ContentError::Response(_)));
+    let _ = server.finish().await;
 }

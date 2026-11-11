@@ -1,6 +1,6 @@
 use super::*;
-use crate::artifacts::downloader::DownloadError;
 use crate::{ContentKind, ItemAction, ItemStatus};
+use ingot_artifacts::downloader::DownloadError;
 use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
 use std::error::Error;
 

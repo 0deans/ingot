@@ -1,6 +1,5 @@
-use std::path::PathBuf;
-
-use ingot_minecraft::instance::{InstanceConfig, InstanceError};
+use super::instances::ResolvedInstance;
+use ingot_minecraft::instance::InstanceError;
 use ingot_minecraft::instance_content::{
     listing, mutation, ContentCategory, ContentListResult, InstanceContentError,
 };
@@ -18,11 +17,6 @@ pub(crate) enum InstanceContentActionError {
     FileManager(#[from] super::platform::OpenDirectoryError),
 }
 
-struct ResolvedInstance {
-    config: InstanceConfig,
-    dir: PathBuf,
-}
-
 async fn ensure_instance_not_running<R: Runtime>(
     app: &AppHandle<R>,
     instance_id: &str,
@@ -38,12 +32,10 @@ fn resolve_instance<R: Runtime>(
     app: &AppHandle<R>,
     instance_id: &str,
 ) -> Result<ResolvedInstance, InstanceContentActionError> {
-    let config = super::instances::load_instances(app)?
-        .into_iter()
-        .find(|instance| instance.id == instance_id)
-        .ok_or_else(|| InstanceContentError::InstanceNotFound(instance_id.to_string()))?;
-    let dir = super::instances::ensure_instance_dir(app, &config.id)?;
-    Ok(ResolvedInstance { config, dir })
+    super::instances::resolve_registered_instance(app, instance_id).map_err(|error| match error {
+        InstanceError::NotFound(id) => InstanceContentError::InstanceNotFound(id).into(),
+        other => other.into(),
+    })
 }
 
 async fn run_blocking<T: Send + 'static>(
@@ -190,6 +182,7 @@ mod tests {
     use crate::ipc::ApiError;
     use ingot_core::metadata::MetadataError;
     use ingot_minecraft::instance::{prepare_instance, ModLoaderType};
+    use std::path::PathBuf;
     use tauri::Manager;
 
     struct RemoveFileOnDrop(PathBuf);

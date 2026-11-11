@@ -46,7 +46,7 @@ impl MicrosoftSkinClient {
     pub fn new() -> Self {
         Self::with_endpoint(
             Client::builder()
-                .user_agent(crate::USER_AGENT)
+                .user_agent(ingot_core::USER_AGENT)
                 .timeout(Duration::from_secs(30))
                 .build()
                 .unwrap_or_default(),

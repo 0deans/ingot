@@ -5,16 +5,10 @@ use tauri::{Manager, Runtime};
 pub(crate) fn service<R: Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<TransferService, TransferError> {
-    let parent = app
-        .path()
-        .app_data_dir()
-        .map_err(|error| {
-            ingot_server::config::ConfigError::Directory(std::io::Error::other(error))
-        })?
-        .join("servers");
+    let servers_dir = super::server_config::get_servers_dir(app)?;
     Ok(TransferService {
         repository: crate::app::state(app).server_configs.clone(),
-        servers_dir: parent,
+        servers_dir,
     })
 }
 
@@ -98,5 +92,40 @@ mod tests {
         release_tx.send(()).unwrap();
         worker.await.unwrap().unwrap();
         assert!(manager.reserve_maintenance("source").await.is_ok());
+    }
+
+    #[test]
+    fn service_uses_shared_servers_dir_and_preserves_config_recovery_errors() {
+        use crate::app::{AppPaths, AppState};
+        use ingot_core::metadata::MetadataError;
+        use ingot_server::config::ConfigError;
+
+        let dir = tempfile::tempdir().unwrap();
+        let state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
+        let app = tauri::test::mock_builder()
+            .manage(state)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
+
+        let resolved = service(app.handle()).unwrap();
+        let expected_dir = app.path().app_data_dir().unwrap().join("servers");
+        assert_eq!(resolved.servers_dir, expected_dir);
+        assert!(resolved.servers_dir.is_dir());
+
+        let blocked_dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(blocked_dir.path().join("servers.deletion.json")).unwrap();
+        let blocked_state = AppState::new(AppPaths::new(blocked_dir.path().to_owned())).unwrap();
+        let blocked_app = tauri::test::mock_builder()
+            .manage(blocked_state)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
+
+        let err = service(blocked_app.handle())
+            .err()
+            .expect("recovery-blocked servers store must propagate ConfigError");
+        assert!(matches!(
+            err,
+            TransferError::Config(ConfigError::Metadata(MetadataError::RecoveryBlocked(_)))
+        ));
     }
 }

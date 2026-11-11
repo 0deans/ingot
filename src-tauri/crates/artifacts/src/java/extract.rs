@@ -9,11 +9,11 @@ pub(super) fn extract_runtime(
     match format {
         ArchiveFormat::Zip => {
             let mut archive = zip::ZipArchive::new(file)?;
-            crate::core::extract_zip_entries(&mut archive, destination, "", None).map_err(
+            ingot_core::extract_zip_entries(&mut archive, destination, "", None).map_err(
                 |error| match error {
-                    crate::core::ArchiveError::UnsafeEntry => JavaError::UnsafeArchive,
-                    crate::core::ArchiveError::Zip(error) => JavaError::Zip(error),
-                    crate::core::ArchiveError::Io(error) => JavaError::Io(error),
+                    ingot_core::ArchiveError::UnsafeEntry => JavaError::UnsafeArchive,
+                    ingot_core::ArchiveError::Zip(error) => JavaError::Zip(error),
+                    ingot_core::ArchiveError::Io(error) => JavaError::Io(error),
                 },
             )?;
         }
@@ -32,7 +32,7 @@ pub(super) fn extract_runtime(
                     .to_str()
                     .ok_or(JavaError::UnsafeArchive)?
                     .trim_end_matches('/');
-                let output = crate::core::safe_enclosed_path(destination, relative)
+                let output = ingot_core::safe_enclosed_path(destination, relative)
                     .ok_or(JavaError::UnsafeArchive)?;
                 if kind.is_symlink() || kind.is_hard_link() {
                     let target = entry.link_name()?.ok_or(JavaError::UnsafeArchive)?;
@@ -45,7 +45,7 @@ pub(super) fn extract_runtime(
                         Path::new("")
                     };
                     let resolved = resolve_link(parent, target)?;
-                    crate::core::safe_enclosed_path(destination, &resolved)
+                    ingot_core::safe_enclosed_path(destination, &resolved)
                         .ok_or(JavaError::UnsafeArchive)?;
                     links.push(FileLink {
                         name: relative.to_owned(),
@@ -114,7 +114,7 @@ fn materialize_links(destination: &Path, mut pending: Vec<FileLink>) -> Result<(
         let previous_count = pending.len();
         let mut unresolved = Vec::new();
         for link in pending {
-            let target = crate::core::safe_enclosed_path(destination, &link.target)
+            let target = ingot_core::safe_enclosed_path(destination, &link.target)
                 .ok_or(JavaError::UnsafeArchive)?;
             let metadata = match std::fs::symlink_metadata(&target) {
                 Ok(metadata) => metadata,
@@ -127,7 +127,7 @@ fn materialize_links(destination: &Path, mut pending: Vec<FileLink>) -> Result<(
             if !metadata.is_file() {
                 return Err(JavaError::UnsafeArchive);
             }
-            let output = crate::core::safe_enclosed_path(destination, &link.name)
+            let output = ingot_core::safe_enclosed_path(destination, &link.name)
                 .ok_or(JavaError::UnsafeArchive)?;
             if let Some(parent) = output.parent() {
                 std::fs::create_dir_all(parent)?;

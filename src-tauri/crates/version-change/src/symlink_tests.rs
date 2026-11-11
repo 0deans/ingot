@@ -1,5 +1,8 @@
 use super::plan;
-use crate::{backup_dir, swap, targets, undo_typed, work_dir, write_journal_typed, Journal};
+use crate::journal::Journal;
+use crate::models::{backup_dir, work_dir};
+use crate::transaction::swap;
+use crate::{targets, undo_typed, write_journal_typed};
 use std::fs;
 use std::path::Path;
 

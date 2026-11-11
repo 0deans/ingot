@@ -1,6 +1,6 @@
 use super::*;
-use crate::artifacts::sources::Scope;
 use crate::models::{ContentKind, Folder, Target};
+use ingot_artifacts::sources::Scope;
 use std::collections::HashMap;
 use std::io;
 

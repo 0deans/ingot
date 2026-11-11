@@ -93,15 +93,15 @@ fn prepare_stage(stage: &Path, archive_path: &Path) -> Result<(), SandboxError> 
     let mut archive = Archive::new(GzDecoder::new(File::open(archive_path)?));
     archive.unpack(stage)?;
     let apk =
-        crate::core::safe_enclosed_path(stage, "sbin/apk").ok_or(SandboxError::InvalidRootfs)?;
-    let repositories = crate::core::safe_enclosed_path(stage, "etc/apk/repositories")
+        ingot_core::safe_enclosed_path(stage, "sbin/apk").ok_or(SandboxError::InvalidRootfs)?;
+    let repositories = ingot_core::safe_enclosed_path(stage, "etc/apk/repositories")
         .ok_or(SandboxError::InvalidRootfs)?;
-    let resolv = crate::core::safe_enclosed_path(stage, "etc/resolv.conf")
+    let resolv = ingot_core::safe_enclosed_path(stage, "etc/resolv.conf")
         .ok_or(SandboxError::InvalidRootfs)?;
     let hosts =
-        crate::core::safe_enclosed_path(stage, "etc/hosts").ok_or(SandboxError::InvalidRootfs)?;
+        ingot_core::safe_enclosed_path(stage, "etc/hosts").ok_or(SandboxError::InvalidRootfs)?;
     let marker =
-        crate::core::safe_enclosed_path(stage, BASE_MARKER).ok_or(SandboxError::InvalidRootfs)?;
+        ingot_core::safe_enclosed_path(stage, BASE_MARKER).ok_or(SandboxError::InvalidRootfs)?;
     if !apk.is_file() || !stage.join("etc/apk").is_dir() {
         return Err(SandboxError::InvalidRootfs);
     }
@@ -213,7 +213,7 @@ fn validate_paths(sandbox: &Path) -> Result<(), SandboxError> {
     ] {
         match fs::symlink_metadata(path) {
             Ok(metadata) => {
-                if crate::core::is_link_or_reparse_point(&metadata) {
+                if ingot_core::is_link_or_reparse_point(&metadata) {
                     return Err(SandboxError::RecoveryBlocked("linked publication path"));
                 }
             }

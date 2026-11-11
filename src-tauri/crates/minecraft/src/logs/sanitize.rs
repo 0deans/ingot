@@ -484,4 +484,72 @@ mod tests {
         assert!(sanitized.contains("[REDACTED_IP]"));
         assert!(sanitized.contains("~\\AppData\\Roaming"));
     }
+
+    #[test]
+    fn redacts_equals_quoted_flags_bearer_and_json_secret_fields() {
+        let ctx = SanitizeContext::default();
+        let raw = "\
+Args: --accessToken=\"tok-1\" --clientToken='tok 2' --uuid=550e8400-e29b-41d4-a716-446655440000 --name='Alt Name'
+Auth: Bearer live-bearer-token next
+Log: Session ID is sess-abc-999 connected
+Setting user: HiddenPlayer
+Payload: {\"access_token\":\"secA\",\"refreshToken\": \"secB\",\"password\":\"secC\"}";
+
+        let sanitized = sanitize_log_content(raw, &ctx);
+
+        assert!(sanitized.contains("--accessToken=[REDACTED_TOKEN]"));
+        assert!(sanitized.contains("--clientToken=[REDACTED_TOKEN]"));
+        assert!(sanitized.contains("--uuid=[REDACTED_UUID]"));
+        assert!(sanitized.contains("--name=[REDACTED_USER]"));
+        assert!(sanitized.contains("Bearer [REDACTED_TOKEN] next"));
+        assert!(sanitized.contains("Session ID is [REDACTED_SESSION] connected"));
+        assert!(sanitized.contains("Setting user: [REDACTED_USER]"));
+        assert!(sanitized.contains("\"access_token\":\"[REDACTED_TOKEN]\""));
+        assert!(sanitized.contains("\"refreshToken\": \"[REDACTED_TOKEN]\""));
+        assert!(sanitized.contains("\"password\":\"[REDACTED_TOKEN]\""));
+        assert!(!sanitized.contains("secA"));
+        assert!(!sanitized.contains("secB"));
+        assert!(!sanitized.contains("secC"));
+    }
+
+    #[test]
+    fn redacts_home_variants_compact_uuids_and_respects_word_and_common_word_boundaries() {
+        let ctx = SanitizeContext {
+            usernames: vec!["Ada".to_string(), "Player".to_string()],
+            uuids: vec!["550E8400-E29B-41D4-A716-446655440000".to_string()],
+            os_username: Some("alice".to_string()),
+            home_dirs: vec!["C:\\Users\\alice".to_string()],
+        };
+
+        let raw = "\
+Slash: C:/Users/alice/mods and Escaped: C:\\\\Users\\\\alice\\\\mods
+Linux: /home/bob/game and macOS: /Users/carol/Library
+Words: Ada joined with Radar and Player plus alice in alice_bot
+Compact: 550e8400e29b41d4a716446655440000";
+
+        let sanitized = sanitize_log_content(raw, &ctx);
+
+        assert!(sanitized.contains("Slash: ~/mods and Escaped: ~\\\\mods"));
+        assert!(sanitized.contains("/home/[USER]/game and macOS: /Users/[USER]/Library"));
+        assert!(sanitized.contains(
+            "Words: [REDACTED_USER] joined with Radar and Player plus [USER] in alice_bot"
+        ));
+        assert!(sanitized.contains("Compact: [REDACTED_UUID]"));
+    }
+
+    #[test]
+    fn respects_jwt_and_ipv4_boundaries() {
+        let ctx = SanitizeContext::default();
+        let raw = "\
+NotJwtShort: eyJ0eXAiOiJKV1QifQ NotJwtPrefixed: xeyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.sig
+RealJwt: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.sig
+VersionsAndInvalidIps: 1.21.4.2 192.168.001.1 999.1.2.3 1.2.3.4-rc1 198.51.100.7";
+
+        let sanitized = sanitize_log_content(raw, &ctx);
+
+        assert!(sanitized.contains("NotJwtShort: eyJ0eXAiOiJKV1QifQ"));
+        assert!(sanitized.contains("NotJwtPrefixed: xeyJhbGciOiJIUzI1NiJ9"));
+        assert!(sanitized.contains("RealJwt: [REDACTED_TOKEN]"));
+        assert!(sanitized.contains("1.21.4.2 192.168.001.1 999.1.2.3 1.2.3.4-rc1 [REDACTED_IP]"));
+    }
 }

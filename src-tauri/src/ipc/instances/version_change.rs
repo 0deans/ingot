@@ -55,6 +55,21 @@ pub trait InstanceVersionChangeApi {
     ) -> Result<ingot_version_change::VersionTransactionStatus, ApiError>;
 }
 
+fn resolve_idle_instance_dir<R: Runtime>(
+    app_handle: &tauri::AppHandle<R>,
+    id: &str,
+) -> Result<std::path::PathBuf, ApiError> {
+    let state = crate::app::state(app_handle);
+    let _ownership = state
+        .games
+        .reserve_maintenance(id)
+        .map_err(|_| ingot_version_change::service::ChangeServiceError::Busy)?;
+    drop(_ownership);
+    crate::app::instances::resolve_registered_instance(app_handle, id)
+        .map(|resolved| resolved.dir)
+        .map_err(ApiError::from)
+}
+
 #[derive(Clone)]
 pub struct InstanceVersionChangeApiImpl;
 
@@ -76,8 +91,10 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
             )));
         }
         let downgrade = is_downgrade(&app_handle, &instance.game_version, &game_version).await?;
-        let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let instance_dir =
+            crate::app::instances::resolve_registered_instance(&app_handle, &instance_id)
+                .map_err(ApiError::from)?
+                .dir;
         let (from, to) = (loader_id(&instance.loader), loader_id(&loader));
         let target = change_targets::instance(&instance_dir, &from, &to);
         let request = PlanRequest {
@@ -102,8 +119,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         plan: VersionPlan,
         backup_worlds: bool,
     ) -> Result<InstanceConfig, ApiError> {
-        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &plan.target_id)
-            .map_err(ApiError::from)?;
+        let directory = resolve_idle_instance_dir(&app_handle, &plan.target_id)?;
         let state = crate::app::state(&app_handle);
         ingot_version_change::service::apply_instance(
             &state.instances,
@@ -122,8 +138,10 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<Option<VersionBackup>, ApiError> {
-        let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let instance_dir =
+            crate::app::instances::resolve_registered_instance(&app_handle, &instance_id)
+                .map_err(ApiError::from)?
+                .dir;
         ingot_version_change::last_backup(&instance_dir).map_err(ApiError::from)
     }
 
@@ -132,8 +150,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, ApiError> {
-        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let directory = resolve_idle_instance_dir(&app_handle, &instance_id)?;
         let state = crate::app::state(&app_handle);
         ingot_version_change::service::restore_instance(
             &state.instances,
@@ -155,9 +172,10 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
             .games
             .reserve_maintenance(&instance_id)
             .map_err(|_| ApiError::conflict("Instance is busy"))?;
-        find_instance(&app_handle, &instance_id)?;
-        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let directory =
+            crate::app::instances::resolve_registered_instance(&app_handle, &instance_id)
+                .map_err(ApiError::from)?
+                .dir;
         ingot_version_change::discard_backup_typed(&directory).map_err(ApiError::from)
     }
 
@@ -166,8 +184,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<InstanceConfig, ApiError> {
-        let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let directory = resolve_idle_instance_dir(&app_handle, &instance_id)?;
         let state = crate::app::state(&app_handle);
         ingot_version_change::service::restore_instance(
             &state.instances,
@@ -184,8 +201,10 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
     ) -> Result<ingot_version_change::VersionTransactionStatus, ApiError> {
-        let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
-            .map_err(ApiError::from)?;
+        let instance_dir =
+            crate::app::instances::resolve_registered_instance(&app_handle, &instance_id)
+                .map_err(ApiError::from)?
+                .dir;
         Ok(ingot_version_change::transaction_status(&instance_dir))
     }
 }

@@ -3,7 +3,7 @@
 use super::endpoint::{cleanup_endpoint_file_at, write_endpoint_file};
 use super::protocol::WaiterEndpointInfo;
 use super::transport::serve_waiter_listener;
-use super::{ReservedLaunch, WaiterSessionHost};
+use super::{ReservedLaunch, WaiterLaunchError, WaiterSessionHost};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager, Runtime};
@@ -15,6 +15,10 @@ struct PreReservationTaskGuard(Option<tokio::task::JoinHandle<()>>);
 impl PreReservationTaskGuard {
     fn disarm(&mut self) {
         self.0 = None;
+    }
+
+    fn take_handle(&mut self) -> Option<tokio::task::JoinHandle<()>> {
+        self.0.take()
     }
 }
 
@@ -35,7 +39,7 @@ impl<R: Runtime> WaiterSessionHost for NativeWaiterHost<R> {
         &self,
         instance_id: String,
         steam_env: Vec<(String, String)>,
-    ) -> Result<ReservedLaunch, String> {
+    ) -> Result<ReservedLaunch, WaiterLaunchError> {
         let (reserved_tx, reserved_rx) = tokio::sync::oneshot::channel();
         let (result_tx, result_rx) = tokio::sync::oneshot::channel();
         let handle = self.app.clone();
@@ -61,7 +65,7 @@ impl<R: Runtime> WaiterSessionHost for NativeWaiterHost<R> {
                 Err(err) => {
                     eprintln!("[CLI] Failed to launch instance {id_for_launch}: {err}");
                     crate::app::cli::restore_window_on_cli_failure(&handle, &err);
-                    let _ = result_tx.send(Err(err.to_string()));
+                    let _ = result_tx.send(Err(WaiterLaunchError::Launch(err)));
                 }
             }
         });
@@ -76,10 +80,16 @@ impl<R: Runtime> WaiterSessionHost for NativeWaiterHost<R> {
                 })
             }
             Err(_) => {
-                task_guard.disarm();
+                let launch_task = task_guard.take_handle();
                 match result_rx.await {
-                    Ok(Err(message)) => Err(message),
-                    _ => Err("Instance launch ended before reservation completed".to_string()),
+                    Ok(Err(err)) => Err(err),
+                    Ok(Ok(_)) | Err(_) => match launch_task {
+                        Some(handle) => match handle.await {
+                            Ok(()) => Err(WaiterLaunchError::EndedBeforeReservation),
+                            Err(join_err) => Err(WaiterLaunchError::Task(join_err)),
+                        },
+                        None => Err(WaiterLaunchError::EndedBeforeReservation),
+                    },
                 }
             }
         }

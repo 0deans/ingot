@@ -4,7 +4,6 @@ pub mod grid;
 pub mod vdf;
 
 use std::collections::HashSet;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::instance::models::{InstanceConfig, ModLoaderType};
@@ -12,10 +11,7 @@ use crate::instance::shortcut::icons::resolve_instance_icon;
 use crate::instance::shortcut::ShortcutError;
 
 use self::grid::generate_steam_grid_assets;
-use self::vdf::{
-    compute_steam_app_id, parse_shortcuts_vdf, quote_steam_path, serialize_shortcuts_vdf,
-    upsert_steam_shortcut, SteamShortcutSpec,
-};
+use self::vdf::{compute_steam_app_id, quote_steam_path, upsert_shortcuts_file, SteamShortcutSpec};
 
 /// Discovers active Steam `userdata/<uid>/config` directories and exports the instance shortcut + custom grid banners.
 pub fn create_steam_shortcut(
@@ -64,16 +60,6 @@ pub fn export_instance_to_steam_configs(
             .clone()
             .unwrap_or_else(|| grid_assets.icon_path.clone());
 
-        let vdf_path = config_dir.join("shortcuts.vdf");
-        let existing_bytes = match std::fs::read(&vdf_path) {
-            Ok(bytes) => bytes,
-            Err(err) if err.kind() == std::io::ErrorKind::NotFound => Vec::new(),
-            Err(err) => return Err(ShortcutError::Io(err)),
-        };
-
-        let mut root_entries =
-            parse_shortcuts_vdf(&existing_bytes).map_err(ShortcutError::SteamCorruptVdf)?;
-
         let spec = SteamShortcutSpec {
             instance_id: instance.id.clone(),
             app_name: app_name.clone(),
@@ -85,13 +71,7 @@ pub fn export_instance_to_steam_configs(
             last_played: instance.last_played,
         };
 
-        upsert_steam_shortcut(&mut root_entries, &spec).map_err(ShortcutError::SteamCorruptVdf)?;
-        let serialized = serialize_shortcuts_vdf(&root_entries);
-
-        let mut staged = tempfile::NamedTempFile::new_in(config_dir)?;
-        staged.write_all(&serialized)?;
-        staged.flush()?;
-        staged.persist(&vdf_path).map_err(|e| e.error)?;
+        let vdf_path = upsert_shortcuts_file(config_dir, &spec)?;
 
         if primary_vdf_path.is_none() {
             primary_vdf_path = Some(vdf_path);

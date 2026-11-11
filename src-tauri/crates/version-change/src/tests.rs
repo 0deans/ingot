@@ -1,4 +1,7 @@
 use super::*;
+use crate::journal::{read_journal, Journal};
+use crate::models::backup_dir;
+use ingot_artifacts::crash;
 use std::fs;
 use std::path::Path;
 
@@ -204,7 +207,7 @@ fn journal_roundtrip_and_discard() {
 
 #[tokio::test]
 async fn planner_propagates_identification_target_dependency_and_metadata_failures() {
-    use crate::artifacts::sources::{SourceClient, SourceError};
+    use ingot_artifacts::sources::{SourceClient, SourceError};
     use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
     use serde_json::json;
 
@@ -257,7 +260,7 @@ async fn planner_propagates_identification_target_dependency_and_metadata_failur
     let directory = tempfile::tempdir().unwrap();
     std::fs::create_dir(directory.path().join("mods")).unwrap();
     std::fs::write(directory.path().join("mods/mod.jar"), b"installed").unwrap();
-    let hash = crate::artifacts::models::sha1_hex(b"installed");
+    let hash = ingot_artifacts::models::sha1_hex(b"installed");
     let target = targets::instance(directory.path(), "fabric", "fabric");
     let current = modrinth_version("current", "release");
     let identified = json!({ (hash.clone()): current }).to_string();

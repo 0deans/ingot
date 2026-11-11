@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 use ingot_artifacts::sources::SourceError;
-use ingot_minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::{InstanceError, ModLoaderType};
 use ingot_minecraft::instance_content::error::InstanceContentError;
 
 #[derive(Error, Debug)]
@@ -34,6 +34,9 @@ pub enum InstanceExportError {
 
     #[error("Instance content error: {0}")]
     Content(#[from] InstanceContentError),
+
+    #[error("Instance error: {0}")]
+    Instance(#[from] InstanceError),
 
     #[error("Async task join error: {0}")]
     Task(#[from] tokio::task::JoinError),

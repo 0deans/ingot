@@ -143,7 +143,9 @@ fn linked_import_content_never_publishes_or_changes_external_data() {
 }
 
 use super::{
-    discovery::detect_custom_instance,
+    discovery::{
+        detect_custom_instance, get_detected_launchers, get_launcher_instances, DiscoveryRoots,
+    },
     execute::copy_instance_contents,
     formats::{
         atlauncher::scan_atlauncher_instances, curseforge::scan_curseforge_instances,
@@ -152,6 +154,7 @@ use super::{
     },
     models::ImportInstanceOptions,
     version_id::parse_vanilla_version_id,
+    ImportError,
 };
 use ingot_minecraft::instance::ModLoaderType;
 use std::fs;
@@ -714,4 +717,153 @@ fn test_scan_technic_instance_with_modpack_jar() {
         instances[0].loader_version,
         Some("14.23.5.2860".to_string())
     );
+}
+
+#[test]
+fn test_get_detected_launchers_with_roots() {
+    let home = tempfile::tempdir().unwrap();
+    let app_data = tempfile::tempdir().unwrap();
+
+    let cf_inst = home
+        .path()
+        .join("curseforge")
+        .join("minecraft")
+        .join("Instances")
+        .join("PackA");
+    fs::create_dir_all(&cf_inst).unwrap();
+    fs::write(
+        cf_inst.join("minecraftinstance.json"),
+        r#"{"name":"Pack A","gameVersion":"1.20.1"}"#,
+    )
+    .unwrap();
+
+    let mr_prof = app_data
+        .path()
+        .join("Modrinth App")
+        .join("profiles")
+        .join("ProfA");
+    fs::create_dir_all(&mr_prof).unwrap();
+    fs::write(
+        mr_prof.join("profile.json"),
+        r#"{"name":"Prof A","game_version":"1.20.4","loader":"fabric","loader_version":"0.15.3"}"#,
+    )
+    .unwrap();
+
+    let roots = DiscoveryRoots {
+        app_data: Some(app_data.path().to_path_buf()),
+        home: Some(home.path().to_path_buf()),
+    };
+
+    let launchers = get_detected_launchers(&roots);
+    assert_eq!(launchers.len(), 7);
+
+    let cf = launchers
+        .iter()
+        .find(|launcher| launcher.id == "curseforge")
+        .unwrap();
+    assert!(cf.available);
+    assert_eq!(cf.instances_count, 1);
+
+    let mr = launchers
+        .iter()
+        .find(|launcher| launcher.id == "modrinth")
+        .unwrap();
+    assert!(mr.available);
+    assert_eq!(mr.instances_count, 1);
+
+    for missing_id in ["atlauncher", "ftb", "technic", "legacylauncher", "vanilla"] {
+        let missing = launchers
+            .iter()
+            .find(|launcher| launcher.id == missing_id)
+            .unwrap();
+        assert!(!missing.available);
+        assert_eq!(missing.instances_count, 0);
+        assert!(missing.path.is_empty());
+    }
+}
+
+#[test]
+fn test_get_launcher_instances_roots_custom_path_and_unknown_error() {
+    let home = tempfile::tempdir().unwrap();
+    let cf_inst = home
+        .path()
+        .join("curseforge")
+        .join("minecraft")
+        .join("Instances")
+        .join("RootPack");
+    fs::create_dir_all(&cf_inst).unwrap();
+    fs::write(
+        cf_inst.join("minecraftinstance.json"),
+        r#"{"name":"Root Pack","gameVersion":"1.20.1"}"#,
+    )
+    .unwrap();
+
+    let roots = DiscoveryRoots {
+        app_data: None,
+        home: Some(home.path().to_path_buf()),
+    };
+    let root_instances = get_launcher_instances(&roots, "curseforge", None).unwrap();
+    assert_eq!(root_instances.len(), 1);
+    assert_eq!(root_instances[0].name, "Root Pack");
+
+    let custom_atl = tempfile::tempdir().unwrap();
+    let atl_inst = custom_atl.path().join("CustomATL");
+    fs::create_dir_all(&atl_inst).unwrap();
+    fs::write(
+        atl_inst.join("instance.json"),
+        r#"{"name":"Custom ATL","version":"1.19.2","loader":"forge","loaderVersion":"43.3.0"}"#,
+    )
+    .unwrap();
+
+    let empty_roots = DiscoveryRoots {
+        app_data: None,
+        home: None,
+    };
+    let custom_instances = get_launcher_instances(
+        &empty_roots,
+        "atlauncher",
+        Some(&custom_atl.path().to_string_lossy()),
+    )
+    .unwrap();
+    assert_eq!(custom_instances.len(), 1);
+    assert_eq!(custom_instances[0].name, "Custom ATL");
+    assert_eq!(custom_instances[0].launcher_id, "atlauncher");
+
+    let missing_instances = get_launcher_instances(&empty_roots, "ftb", None).unwrap();
+    assert!(missing_instances.is_empty());
+
+    let unknown = get_launcher_instances(&empty_roots, "multimc", None);
+    assert!(matches!(unknown, Err(ImportError::UnknownLauncher(id)) if id == "multimc"));
+}
+
+#[test]
+fn test_detect_custom_instance_prefers_launcher_markers_before_fallback() {
+    let temp = tempfile::tempdir().unwrap();
+
+    let mr_dir = temp.path().join("DetectedModrinth");
+    fs::create_dir_all(&mr_dir).unwrap();
+    fs::write(
+        mr_dir.join("profile.json"),
+        r#"{"name":"Detected MR","game_version":"1.21","loader":"fabric","loader_version":"0.16.0"}"#,
+    )
+    .unwrap();
+
+    let mr_inst = detect_custom_instance(&mr_dir.to_string_lossy()).unwrap();
+    assert_eq!(mr_inst.launcher_id, "modrinth");
+    assert_eq!(mr_inst.name, "Detected MR");
+    assert_eq!(mr_inst.game_version, "1.21");
+    assert_eq!(mr_inst.loader, ModLoaderType::Fabric);
+
+    let cf_dir = temp.path().join("DetectedCurseForge");
+    fs::create_dir_all(&cf_dir).unwrap();
+    fs::write(
+        cf_dir.join("minecraftinstance.json"),
+        r#"{"name":"Detected CF","gameVersion":"1.20.1","baseModLoader":{"name":"neoforge-20.4.0"}}"#,
+    )
+    .unwrap();
+
+    let cf_inst = detect_custom_instance(&cf_dir.to_string_lossy()).unwrap();
+    assert_eq!(cf_inst.launcher_id, "curseforge");
+    assert_eq!(cf_inst.name, "Detected CF");
+    assert_eq!(cf_inst.loader, ModLoaderType::NeoForge);
 }

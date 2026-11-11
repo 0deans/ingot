@@ -1,9 +1,9 @@
-use super::sources::Scope;
+use ingot_artifacts::sources::Scope;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-pub use crate::artifacts::models::{
+pub use ingot_artifacts::models::{
     backup_dir, sha1_hex, sha256_hex, work_dir, ContentKind, ItemAction, ItemStatus, Journal,
     PlanItem, TargetFile, TargetKind, TrackedHangarPlugin, TransactionPhase, JOURNAL, WORK_DIR,
 };
@@ -139,13 +139,13 @@ pub fn dir_size_typed(path: &Path) -> Result<u64, std::io::Error> {
 
 /// Only a plain file name (no folders), with the expected extension
 pub fn safe_file_name_typed(name: &str, kind: ContentKind) -> Result<&str, VersionChangeError> {
-    crate::artifacts::models::safe_file_name_typed(name, kind)
+    ingot_artifacts::models::safe_file_name_typed(name, kind)
         .map_err(VersionChangeError::InvalidFileName)
 }
 
 /// A path inside the target given by the frontend or the journal: relative, no ".."
 pub fn safe_rel_typed(rel: &str) -> Result<&str, VersionChangeError> {
-    crate::artifacts::models::safe_rel_typed(rel).map_err(VersionChangeError::InvalidPath)
+    ingot_artifacts::models::safe_rel_typed(rel).map_err(VersionChangeError::InvalidPath)
 }
 
 pub fn now_secs() -> u64 {

@@ -31,7 +31,7 @@ impl ElyAuthService {
     pub fn new() -> Self {
         Self::with_endpoints(
             reqwest::Client::builder()
-                .user_agent(crate::USER_AGENT)
+                .user_agent(ingot_core::USER_AGENT)
                 .build()
                 .unwrap_or_default(),
             Self::DEFAULT_ELY_BASE,

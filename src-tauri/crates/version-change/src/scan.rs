@@ -1,7 +1,7 @@
 use super::models::{
     dir_size_typed, safe_file_name_typed, sha1_hex, Target, VersionChangeError, WorldInfo,
 };
-use super::sources;
+use ingot_artifacts::sources;
 use std::fs;
 use std::path::{Path, PathBuf};
 

@@ -1,9 +1,12 @@
 use super::{item, plan, write};
+use crate::journal::{read_journal, Journal};
+use crate::models::{backup_dir, work_dir};
+use crate::transaction::swap;
 use crate::{
-    apply_typed_with_commit, backup_dir, detect_incomplete_transaction, journal, read_journal,
-    read_journal_state, recover_interrupted_transaction, swap, targets, transaction, undo_typed,
-    undo_typed_with_commit, work_dir, write_journal_typed, ContentKind, ItemAction, Journal,
-    JournalState, TransactionPhase, VersionChangeError,
+    apply_typed_with_commit, detect_incomplete_transaction, journal, read_journal_state,
+    recover_interrupted_transaction, targets, transaction, undo_typed, undo_typed_with_commit,
+    write_journal_typed, ContentKind, ItemAction, JournalState, TransactionPhase,
+    VersionChangeError,
 };
 use std::fs;
 
@@ -47,7 +50,7 @@ async fn metadata_commit_failure_triggers_clean_rollback() {
     let staging = work_dir(root).join("staging");
     write(&staging, &[("plugins/old-2.jar", "new")]);
 
-    let target = targets::server(root, &crate::server::config::ServerCoreType::Purpur).unwrap();
+    let target = targets::server(root, &ingot_server::config::ServerCoreType::Purpur).unwrap();
     let plan = plan(vec![item(
         ContentKind::Plugin,
         "plugins",
@@ -104,7 +107,7 @@ async fn metadata_commit_failure_with_failed_restore_preserves_backup() {
         &[("plugins/old-1.jar", "old"), ("server.jar", "paper 1.21.4")],
     );
 
-    let target = targets::server(root, &crate::server::config::ServerCoreType::Purpur).unwrap();
+    let target = targets::server(root, &ingot_server::config::ServerCoreType::Purpur).unwrap();
     let plan = plan(vec![item(
         ContentKind::Plugin,
         "plugins",
@@ -373,7 +376,7 @@ fn interrupted_transaction_at_mutation_boundary_recovers_idempotently() {
 fn recovery_restores_missing_plugin_tracking_to_absence() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path();
-    let target = targets::server(root, &crate::server::ServerCoreType::Purpur).unwrap();
+    let target = targets::server(root, &ingot_server::ServerCoreType::Purpur).unwrap();
     let mut journal = Journal {
         phase: TransactionPhase::Swapping,
         ..Default::default()

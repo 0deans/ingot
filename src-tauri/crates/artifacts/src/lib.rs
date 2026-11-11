@@ -1,5 +1,3 @@
-pub(crate) use ingot_core as core;
-
 pub mod crash;
 pub mod downloader;
 pub mod java;

@@ -1,6 +1,5 @@
-use crate::app::instances::ensure_instance_dir;
 use crate::system::load_settings;
-use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::instance::{InstanceConfig, InstanceError};
 use ingot_minecraft::sync::{
     execute::{ensure_shared_directories, file_exists, inspect_shared_status},
     models::{
@@ -72,6 +71,18 @@ pub fn sync_after_exit<R: Runtime>(
     Ok(())
 }
 
+fn resolve_instance<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    instance_id: &str,
+) -> Result<crate::app::instances::ResolvedInstance, SyncError> {
+    crate::app::instances::resolve_registered_instance(app, instance_id).map_err(
+        |error| match error {
+            InstanceError::NotFound(id) => SyncError::InstanceNotFound(id),
+            other => SyncError::Instances(other),
+        },
+    )
+}
+
 pub fn export_instance_category_to_shared<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
@@ -79,9 +90,9 @@ pub fn export_instance_category_to_shared<R: Runtime>(
 ) -> Result<SyncReport, SyncError> {
     let cat = SyncCategory::parse(category)
         .ok_or_else(|| SyncError::InvalidCategory(category.to_string()))?;
+    let resolved = resolve_instance(app, instance_id)?;
     let shared = get_shared_dir(app)?;
-    let instance_dir = ensure_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
-    let report = export_instance_category_files(&shared, &instance_dir, cat)?;
+    let report = export_instance_category_files(&shared, &resolved.dir, cat)?;
     mark_instance_synced(app, instance_id)?;
     Ok(report)
 }
@@ -97,9 +108,9 @@ pub fn import_shared_to_instance<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
 ) -> Result<SyncReport, SyncError> {
+    let resolved = resolve_instance(app, instance_id)?;
     let shared = get_shared_dir(app)?;
-    let instance_dir = ensure_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
-    let report = import_shared_files_to_instance(&shared, &instance_dir)?;
+    let report = import_shared_files_to_instance(&shared, &resolved.dir)?;
     mark_instance_synced(app, instance_id)?;
     Ok(report)
 }
@@ -115,15 +126,12 @@ pub fn check_sync_conflict<R: Runtime>(
     app: &tauri::AppHandle<R>,
     instance_id: &str,
 ) -> Result<Option<SyncConflictInfo>, SyncError> {
-    let instances = crate::app::instances::load_instances(app).map_err(SyncError::Instances)?;
-    let instance = instances
-        .iter()
-        .find(|i| i.id == instance_id)
-        .ok_or_else(|| SyncError::InstanceNotFound(instance_id.to_string()))?;
+    let resolved = resolve_instance(app, instance_id)?;
+    let instance = &resolved.config;
+    let instance_dir = &resolved.dir;
 
     let eff = get_effective_sync(app, instance)?;
     let shared = get_shared_dir(app)?;
-    let instance_dir = ensure_instance_dir(app, instance_id).map_err(SyncError::Instances)?;
 
     let has_instance_options = file_exists(&instance_dir.join("options.txt"))?;
     let has_instance_servers = file_exists(&instance_dir.join("servers.dat"))?;
@@ -281,6 +289,149 @@ mod tests {
         assert!(matches!(
             native,
             tauri::Error::Io(source) if source.kind() == std::io::ErrorKind::PermissionDenied
+        ));
+    }
+
+    struct RemoveFileOnDrop(PathBuf);
+
+    impl Drop for RemoveFileOnDrop {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+
+    fn build_test_app(dir: &std::path::Path) -> tauri::App<tauri::test::MockRuntime> {
+        let state = AppState::new(AppPaths::new(dir.to_owned())).unwrap();
+        tauri::test::mock_builder()
+            .manage(state)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    fn register_instance(app: &tauri::AppHandle<tauri::test::MockRuntime>, id: &str) {
+        let mut record = instance();
+        record.id = id.to_owned();
+        crate::app::state(app)
+            .instances
+            .update(|records| {
+                records.push(record);
+                Ok(())
+            })
+            .unwrap();
+    }
+
+    #[test]
+    fn missing_instance_returns_not_found_without_creating_orphan_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        let app = build_test_app(dir.path());
+        let missing_id = format!("sync-missing-{}", uuid::Uuid::new_v4());
+
+        for error in [
+            export_instance_category_to_shared(app.handle(), &missing_id, "all").unwrap_err(),
+            import_shared_to_instance(app.handle(), &missing_id).unwrap_err(),
+            check_sync_conflict(app.handle(), &missing_id).unwrap_err(),
+        ] {
+            assert!(matches!(
+                &error,
+                SyncError::InstanceNotFound(id) if id == &missing_id
+            ));
+            assert!(matches!(
+                crate::ipc::ApiError::from(error),
+                crate::ipc::ApiError::NotFound { .. }
+            ));
+        }
+
+        let orphan_dir = app
+            .path()
+            .app_data_dir()
+            .unwrap()
+            .join("instances")
+            .join(&missing_id);
+        assert!(!orphan_dir.exists());
+    }
+
+    #[test]
+    fn corrupt_and_recovery_blocked_metadata_are_preserved() {
+        use ingot_core::metadata::MetadataError;
+
+        let corrupt_dir = tempfile::tempdir().unwrap();
+        let instances_file = corrupt_dir.path().join("instances.json");
+        let corrupt = b"{corrupt-instances";
+        std::fs::write(&instances_file, corrupt).unwrap();
+        let corrupt_app = build_test_app(corrupt_dir.path());
+
+        for error in [
+            export_instance_category_to_shared(corrupt_app.handle(), "any-instance", "all")
+                .unwrap_err(),
+            import_shared_to_instance(corrupt_app.handle(), "any-instance").unwrap_err(),
+            check_sync_conflict(corrupt_app.handle(), "any-instance").unwrap_err(),
+        ] {
+            assert!(matches!(
+                &error,
+                SyncError::Instances(InstanceError::Metadata(MetadataError::Decode { path, .. }))
+                    if path == &instances_file
+            ));
+            assert!(matches!(
+                crate::ipc::ApiError::from(error),
+                crate::ipc::ApiError::StorageFailure { .. }
+            ));
+        }
+        assert_eq!(std::fs::read(&instances_file).unwrap(), corrupt);
+
+        let recovery_dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(recovery_dir.path().join("instances.deletion.json")).unwrap();
+        let recovery_app = build_test_app(recovery_dir.path());
+
+        for error in [
+            export_instance_category_to_shared(recovery_app.handle(), "any-instance", "all")
+                .unwrap_err(),
+            import_shared_to_instance(recovery_app.handle(), "any-instance").unwrap_err(),
+            check_sync_conflict(recovery_app.handle(), "any-instance").unwrap_err(),
+        ] {
+            assert!(matches!(
+                &error,
+                SyncError::Instances(InstanceError::Metadata(MetadataError::RecoveryBlocked(_)))
+            ));
+            assert!(matches!(
+                crate::ipc::ApiError::from(error),
+                crate::ipc::ApiError::IncompleteRecovery { .. }
+            ));
+        }
+    }
+
+    #[test]
+    fn registered_io_and_invalid_id_errors_are_preserved() {
+        let dir = tempfile::tempdir().unwrap();
+        let app = build_test_app(dir.path());
+        let io_id = format!("sync-io-blocker-{}", uuid::Uuid::new_v4());
+        let invalid_id = "../sync-invalid";
+        register_instance(app.handle(), &io_id);
+        register_instance(app.handle(), invalid_id);
+
+        let instances_root = app.path().app_data_dir().unwrap().join("instances");
+        std::fs::create_dir_all(&instances_root).unwrap();
+        let blocker = instances_root.join(&io_id);
+        std::fs::write(&blocker, b"file-blocking-dir").unwrap();
+        let _cleanup = RemoveFileOnDrop(blocker);
+
+        let io_err = check_sync_conflict(app.handle(), &io_id).unwrap_err();
+        assert!(matches!(
+            &io_err,
+            SyncError::Instances(InstanceError::Io(_))
+        ));
+        assert!(matches!(
+            crate::ipc::ApiError::from(io_err),
+            crate::ipc::ApiError::StorageFailure { .. }
+        ));
+
+        let invalid_err = check_sync_conflict(app.handle(), invalid_id).unwrap_err();
+        assert!(matches!(
+            &invalid_err,
+            SyncError::Instances(InstanceError::InvalidId)
+        ));
+        assert!(matches!(
+            crate::ipc::ApiError::from(invalid_err),
+            crate::ipc::ApiError::InvalidInput { .. }
         ));
     }
 }

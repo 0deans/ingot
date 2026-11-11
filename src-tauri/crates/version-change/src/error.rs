@@ -1,3 +1,4 @@
+use ingot_artifacts::{crash::CrashError, downloader::DownloadError, sources::SourceError};
 use std::{fmt, path::PathBuf};
 use thiserror::Error;
 
@@ -13,7 +14,7 @@ pub enum VersionChangeError {
     #[error("Cannot encode recovery journal")]
     JournalEncode(#[source] serde_json::Error),
     #[error(transparent)]
-    Source(#[from] super::sources::SourceError),
+    Source(#[from] SourceError),
     #[error("Unexpected file name: {0}")]
     InvalidFileName(String),
     #[error("Unexpected path: {0}")]
@@ -41,7 +42,7 @@ pub enum VersionChangeError {
     DownloadFailed {
         title: String,
         #[source]
-        source: crate::artifacts::downloader::DownloadError,
+        source: DownloadError,
     },
     #[error("Version change download task failed: {0}")]
     Task(#[from] tokio::task::JoinError),
@@ -152,17 +153,15 @@ pub(super) fn file_io(
     }
 }
 
-impl From<crate::artifacts::crash::CrashError> for VersionChangeError {
-    fn from(error: crate::artifacts::crash::CrashError) -> Self {
+impl From<CrashError> for VersionChangeError {
+    fn from(error: CrashError) -> Self {
         match error {
-            crate::artifacts::crash::CrashError::NoVersionChange => Self::NoVersionChange,
-            crate::artifacts::crash::CrashError::IncompleteTransaction(phase) => {
-                Self::IncompleteTransaction(phase)
-            }
-            crate::artifacts::crash::CrashError::AlreadyDisabled(f) => Self::AlreadyDisabled(f),
-            crate::artifacts::crash::CrashError::InvalidFileName(f) => Self::InvalidFileName(f),
-            crate::artifacts::crash::CrashError::InvalidPath(p) => Self::InvalidPath(p),
-            crate::artifacts::crash::CrashError::FileIo {
+            CrashError::NoVersionChange => Self::NoVersionChange,
+            CrashError::IncompleteTransaction(phase) => Self::IncompleteTransaction(phase),
+            CrashError::AlreadyDisabled(f) => Self::AlreadyDisabled(f),
+            CrashError::InvalidFileName(f) => Self::InvalidFileName(f),
+            CrashError::InvalidPath(p) => Self::InvalidPath(p),
+            CrashError::FileIo {
                 operation,
                 path,
                 source,
@@ -171,8 +170,8 @@ impl From<crate::artifacts::crash::CrashError> for VersionChangeError {
                 path,
                 source,
             },
-            crate::artifacts::crash::CrashError::JournalDecode(e) => Self::JournalDecode(e),
-            crate::artifacts::crash::CrashError::JournalIo {
+            CrashError::JournalDecode(e) => Self::JournalDecode(e),
+            CrashError::JournalIo {
                 operation,
                 path,
                 source,

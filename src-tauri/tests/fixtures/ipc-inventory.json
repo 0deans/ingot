@@ -1,5 +1,5 @@
 {
-	"description": "Baseline before namespace migration; update deliberately alongside router and consumers.",
+	"description": "TauRPC namespace inventory after completed migration; update deliberately alongside router and consumers.",
 	"procedures": [
 		{
 			"name": "add_access_entry",

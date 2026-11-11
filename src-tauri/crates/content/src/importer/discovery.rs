@@ -1,4 +1,6 @@
 //! Platform filesystem discovery and launcher detection.
+pub(super) mod rules;
+
 use super::{
     formats::{
         count_instance_stats, scan_atlauncher_instances, scan_curseforge_instances,
@@ -7,306 +9,40 @@ use super::{
     },
     models::{DetectedLauncher, ImportError, ImportableInstance},
 };
-use ingot_minecraft::instance::ModLoaderType;
-use std::path::PathBuf;
+pub use rules::DiscoveryRoots;
+use rules::{
+    build_custom_fallback_instance, custom_probe_order, CustomInstanceMarkers, CustomProbeKind,
+    LauncherKind,
+};
+use std::path::{Path, PathBuf};
 
-pub struct DiscoveryRoots {
-    pub app_data: Option<PathBuf>,
-    pub home: Option<PathBuf>,
-}
-
-pub(crate) fn get_curseforge_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(home) = roots.home.clone() {
-        dirs.push(home.join("curseforge").join("minecraft").join("Instances"));
-        dirs.push(home.join("CurseForge").join("minecraft").join("Instances"));
-        dirs.push(
-            home.join("Documents")
-                .join("curseforge")
-                .join("minecraft")
-                .join("Instances"),
-        );
-        dirs.push(
-            home.join("Documents")
-                .join("CurseForge")
-                .join("minecraft")
-                .join("Instances"),
-        );
+fn scan_launcher_instances(kind: LauncherKind, dir: &Path) -> Vec<ImportableInstance> {
+    match kind {
+        LauncherKind::CurseForge => scan_curseforge_instances(dir),
+        LauncherKind::Modrinth => scan_modrinth_instances(dir),
+        LauncherKind::AtLauncher => scan_atlauncher_instances(dir),
+        LauncherKind::Ftb => scan_ftb_instances(dir),
+        LauncherKind::Technic => scan_technic_instances(dir),
+        LauncherKind::LegacyLauncher => scan_legacy_instances(dir),
+        LauncherKind::Vanilla => scan_vanilla_instances(dir),
     }
-    dirs
-}
-
-pub(crate) fn get_modrinth_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(appdata) = roots.app_data.clone() {
-        dirs.push(appdata.join("com.modrinth.theseus").join("profiles"));
-        dirs.push(appdata.join("Modrinth App").join("profiles"));
-    }
-    if let Some(home) = roots.home.clone() {
-        dirs.push(
-            home.join(".local")
-                .join("share")
-                .join("com.modrinth.theseus")
-                .join("profiles"),
-        );
-        dirs.push(
-            home.join("Library")
-                .join("Application Support")
-                .join("com.modrinth.theseus")
-                .join("profiles"),
-        );
-    }
-    dirs
-}
-
-pub(crate) fn get_atlauncher_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(appdata) = roots.app_data.clone() {
-        dirs.push(appdata.join("ATLauncher").join("instances"));
-    }
-    if let Some(home) = roots.home.clone() {
-        dirs.push(home.join(".atlauncher").join("instances"));
-        dirs.push(home.join("ATLauncher").join("instances"));
-        dirs.push(
-            home.join("Library")
-                .join("Application Support")
-                .join("ATLauncher")
-                .join("instances"),
-        );
-    }
-    dirs
-}
-
-pub(crate) fn get_ftb_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(appdata) = roots.app_data.clone() {
-        dirs.push(appdata.join("FTBApp").join("instances"));
-        dirs.push(appdata.join(".ftba").join("instances"));
-    }
-    if let Some(home) = roots.home.clone() {
-        dirs.push(home.join(".ftba").join("instances"));
-        dirs.push(home.join(".ftbapp").join("instances"));
-        dirs.push(home.join("FTBApp").join("instances"));
-        dirs.push(
-            home.join("Library")
-                .join("Application Support")
-                .join("FTBApp")
-                .join("instances"),
-        );
-    }
-    dirs
-}
-
-pub(crate) fn get_technic_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(appdata) = roots.app_data.clone() {
-        dirs.push(appdata.join(".technic").join("modpacks"));
-        dirs.push(appdata.join("technic").join("modpacks"));
-    }
-    if let Some(home) = roots.home.clone() {
-        dirs.push(home.join(".technic").join("modpacks"));
-        dirs.push(home.join("technic").join("modpacks"));
-        dirs.push(
-            home.join("Library")
-                .join("Application Support")
-                .join("technic")
-                .join("modpacks"),
-        );
-    }
-    dirs
-}
-
-pub(crate) fn get_legacylauncher_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(appdata) = roots.app_data.clone() {
-        dirs.push(
-            appdata
-                .join(".tlauncher")
-                .join("legacy")
-                .join("Minecraft")
-                .join("game"),
-        );
-        dirs.push(appdata.join(".minecraft"));
-    }
-    if let Some(home) = roots.home.clone() {
-        dirs.push(
-            home.join(".tlauncher")
-                .join("legacy")
-                .join("Minecraft")
-                .join("game"),
-        );
-        dirs.push(home.join(".minecraft"));
-    }
-    dirs
-}
-
-pub(crate) fn get_vanilla_dirs(roots: &DiscoveryRoots) -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Some(appdata) = roots.app_data.clone() {
-        dirs.push(appdata.join(".minecraft"));
-    }
-    if let Some(home) = roots.home.clone() {
-        dirs.push(home.join(".minecraft"));
-        dirs.push(
-            home.join("Library")
-                .join("Application Support")
-                .join("minecraft"),
-        );
-    }
-    dirs
 }
 
 pub fn get_detected_launchers(roots: &DiscoveryRoots) -> Vec<DetectedLauncher> {
-    let mut launchers = Vec::new();
-
-    // 1. CurseForge
-    let mut cf_path = String::new();
-    let mut cf_count = 0u32;
-    let mut cf_found = false;
-    for dir in get_curseforge_dirs(roots) {
-        if dir.exists() {
-            cf_found = true;
-            cf_path = dir.to_string_lossy().to_string();
-            cf_count = scan_curseforge_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "curseforge".to_string(),
-        name: "CurseForge".to_string(),
-        icon: "curseforge".to_string(),
-        path: cf_path,
-        instances_count: cf_count,
-        available: cf_found,
-    });
-
-    // 2. Modrinth App
-    let mut mr_path = String::new();
-    let mut mr_count = 0u32;
-    let mut mr_found = false;
-    for dir in get_modrinth_dirs(roots) {
-        if dir.exists() {
-            mr_found = true;
-            mr_path = dir.to_string_lossy().to_string();
-            mr_count = scan_modrinth_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "modrinth".to_string(),
-        name: "Modrinth App".to_string(),
-        icon: "modrinth".to_string(),
-        path: mr_path,
-        instances_count: mr_count,
-        available: mr_found,
-    });
-
-    // 3. ATLauncher
-    let mut atl_path = String::new();
-    let mut atl_count = 0u32;
-    let mut atl_found = false;
-    for dir in get_atlauncher_dirs(roots) {
-        if dir.exists() {
-            atl_found = true;
-            atl_path = dir.to_string_lossy().to_string();
-            atl_count = scan_atlauncher_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "atlauncher".to_string(),
-        name: "ATLauncher".to_string(),
-        icon: "atlauncher".to_string(),
-        path: atl_path,
-        instances_count: atl_count,
-        available: atl_found,
-    });
-
-    // 4. FTB App
-    let mut ftb_path = String::new();
-    let mut ftb_count = 0u32;
-    let mut ftb_found = false;
-    for dir in get_ftb_dirs(roots) {
-        if dir.exists() {
-            ftb_found = true;
-            ftb_path = dir.to_string_lossy().to_string();
-            ftb_count = scan_ftb_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "ftb".to_string(),
-        name: "FTB App".to_string(),
-        icon: "ftb".to_string(),
-        path: ftb_path,
-        instances_count: ftb_count,
-        available: ftb_found,
-    });
-
-    // 5. Technic Launcher
-    let mut technic_path = String::new();
-    let mut technic_count = 0u32;
-    let mut technic_found = false;
-    for dir in get_technic_dirs(roots) {
-        if dir.exists() {
-            technic_found = true;
-            technic_path = dir.to_string_lossy().to_string();
-            technic_count = scan_technic_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "technic".to_string(),
-        name: "Technic Launcher".to_string(),
-        icon: "technic".to_string(),
-        path: technic_path,
-        instances_count: technic_count,
-        available: technic_found,
-    });
-
-    // 6. LegacyLauncher
-    let mut tl_path = String::new();
-    let mut tl_count = 0u32;
-    let mut tl_found = false;
-    for dir in get_legacylauncher_dirs(roots) {
-        if dir.exists() {
-            tl_found = true;
-            tl_path = dir.to_string_lossy().to_string();
-            tl_count = scan_legacy_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "legacylauncher".to_string(),
-        name: "LegacyLauncher".to_string(),
-        icon: "legacylauncher".to_string(),
-        path: tl_path,
-        instances_count: tl_count,
-        available: tl_found,
-    });
-
-    // 7. Vanilla Minecraft Launcher
-    let mut mc_path = String::new();
-    let mut mc_count = 0u32;
-    let mut mc_found = false;
-    for dir in get_vanilla_dirs(roots) {
-        if dir.exists() {
-            mc_found = true;
-            mc_path = dir.to_string_lossy().to_string();
-            mc_count = scan_vanilla_instances(&dir).len() as u32;
-            break;
-        }
-    }
-    launchers.push(DetectedLauncher {
-        id: "vanilla".to_string(),
-        name: "Vanilla Minecraft Launcher".to_string(),
-        icon: "vanilla".to_string(),
-        path: mc_path,
-        instances_count: mc_count,
-        available: mc_found,
-    });
-
-    launchers
+    LauncherKind::ALL
+        .into_iter()
+        .map(|kind| {
+            let found_dir = kind
+                .candidate_dirs(roots)
+                .into_iter()
+                .find(|dir| dir.exists());
+            let count = found_dir
+                .as_deref()
+                .map(|dir| scan_launcher_instances(kind, dir).len() as u32)
+                .unwrap_or(0);
+            kind.to_detected_launcher(found_dir.as_deref(), count)
+        })
+        .collect()
 }
 
 pub fn get_launcher_instances(
@@ -314,80 +50,52 @@ pub fn get_launcher_instances(
     launcher_id: &str,
     custom_path: Option<&str>,
 ) -> Result<Vec<ImportableInstance>, ImportError> {
-    match launcher_id {
-        "curseforge" => {
-            let path = custom_path
-                .map(PathBuf::from)
-                .or_else(|| get_curseforge_dirs(roots).into_iter().find(|p| p.exists()));
-            if let Some(p) = path {
-                Ok(scan_curseforge_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        "modrinth" => {
-            let path = custom_path
-                .map(PathBuf::from)
-                .or_else(|| get_modrinth_dirs(roots).into_iter().find(|p| p.exists()));
-            if let Some(p) = path {
-                Ok(scan_modrinth_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        "atlauncher" => {
-            let path = custom_path
-                .map(PathBuf::from)
-                .or_else(|| get_atlauncher_dirs(roots).into_iter().find(|p| p.exists()));
-            if let Some(p) = path {
-                Ok(scan_atlauncher_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        "ftb" => {
-            let path = custom_path
-                .map(PathBuf::from)
-                .or_else(|| get_ftb_dirs(roots).into_iter().find(|p| p.exists()));
-            if let Some(p) = path {
-                Ok(scan_ftb_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        "technic" => {
-            let path = custom_path
-                .map(PathBuf::from)
-                .or_else(|| get_technic_dirs(roots).into_iter().find(|p| p.exists()));
-            if let Some(p) = path {
-                Ok(scan_technic_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        "legacylauncher" => {
-            let path = custom_path.map(PathBuf::from).or_else(|| {
-                get_legacylauncher_dirs(roots)
-                    .into_iter()
-                    .find(|p| p.exists())
-            });
-            if let Some(p) = path {
-                Ok(scan_legacy_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        "vanilla" => {
-            let path = custom_path
-                .map(PathBuf::from)
-                .or_else(|| get_vanilla_dirs(roots).into_iter().find(|p| p.exists()));
-            if let Some(p) = path {
-                Ok(scan_vanilla_instances(&p))
-            } else {
-                Ok(Vec::new())
-            }
-        }
-        _ => Err(ImportError::UnknownLauncher(launcher_id.to_string())),
+    let kind = LauncherKind::from_id(launcher_id)
+        .ok_or_else(|| ImportError::UnknownLauncher(launcher_id.to_string()))?;
+
+    let path = custom_path
+        .map(PathBuf::from)
+        .or_else(|| kind.candidate_dirs(roots).into_iter().find(|p| p.exists()));
+
+    Ok(path
+        .map(|dir| scan_launcher_instances(kind, &dir))
+        .unwrap_or_default())
+}
+
+fn probe_custom_markers(path: &Path) -> CustomInstanceMarkers {
+    CustomInstanceMarkers {
+        has_minecraftinstance_json: path.join("minecraftinstance.json").exists(),
+        has_profile_json: path.join("profile.json").exists(),
+        has_metadata_json: path.join("metadata.json").exists(),
+        has_instance_json: path.join("instance.json").exists(),
+        has_bin_dir: path.join("bin").exists(),
+        has_versions_dir: path.join("versions").exists(),
+    }
+}
+
+fn run_custom_probe(
+    kind: CustomProbeKind,
+    path: &Path,
+    path_str: &str,
+) -> Option<ImportableInstance> {
+    let parent = path.parent().unwrap_or(path);
+    match kind {
+        CustomProbeKind::CurseForge => scan_curseforge_instances(parent)
+            .into_iter()
+            .find(|i| i.source_path == path_str),
+        CustomProbeKind::Modrinth => scan_modrinth_instances(parent)
+            .into_iter()
+            .find(|i| i.source_path == path_str),
+        CustomProbeKind::Ftb => scan_ftb_instances(parent)
+            .into_iter()
+            .find(|i| i.source_path == path_str),
+        CustomProbeKind::AtLauncher => scan_atlauncher_instances(parent)
+            .into_iter()
+            .find(|i| i.source_path == path_str),
+        CustomProbeKind::Technic => scan_technic_instances(parent)
+            .into_iter()
+            .find(|i| i.source_path == path_str),
+        CustomProbeKind::Legacy => scan_legacy_instances(path).into_iter().next(),
     }
 }
 
@@ -397,78 +105,20 @@ pub fn detect_custom_instance(path_str: &str) -> Result<ImportableInstance, Impo
         return Err(ImportError::SourceNotFound(path_str.to_string()));
     }
 
-    // Check CurseForge
-    if path.join("minecraftinstance.json").exists() {
-        let list = scan_curseforge_instances(path.parent().unwrap_or(&path));
-        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
+    let markers = probe_custom_markers(&path);
+    for probe in custom_probe_order(markers) {
+        if let Some(inst) = run_custom_probe(probe, &path, path_str) {
             return Ok(inst);
         }
     }
-
-    // Check Modrinth
-    if path.join("profile.json").exists() || path.join("metadata.json").exists() {
-        let list = scan_modrinth_instances(path.parent().unwrap_or(&path));
-        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
-            return Ok(inst);
-        }
-    }
-
-    // Check FTB App
-    if path.join("instance.json").exists() {
-        let list = scan_ftb_instances(path.parent().unwrap_or(&path));
-        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
-            return Ok(inst);
-        }
-    }
-
-    // Check ATLauncher
-    if path.join("instance.json").exists() {
-        let list = scan_atlauncher_instances(path.parent().unwrap_or(&path));
-        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
-            return Ok(inst);
-        }
-    }
-
-    // Check Technic
-    if path.join("bin").exists() {
-        let list = scan_technic_instances(path.parent().unwrap_or(&path));
-        if let Some(inst) = list.into_iter().find(|i| i.source_path == path_str) {
-            return Ok(inst);
-        }
-    }
-
-    // Check Legacy
-    if path.join("versions").exists() {
-        let list = scan_legacy_instances(&path);
-        if let Some(inst) = list.into_iter().next() {
-            return Ok(inst);
-        }
-    }
-
-    // Raw minecraft directory fallback
-    let name = path
-        .file_name()
-        .and_then(|s| s.to_str())
-        .unwrap_or("Custom Instance")
-        .to_string();
 
     let (mods_count, saves_count, screenshots_count) = count_instance_stats(&path);
-
-    Ok(ImportableInstance {
-        id: format!("custom-{}", uuid::Uuid::new_v4()),
-        launcher_id: "custom".to_string(),
-        name,
-        game_version: "1.20.1".to_string(),
-        loader: if mods_count > 0 {
-            ModLoaderType::Fabric
-        } else {
-            ModLoaderType::Vanilla
-        },
-        loader_version: None,
-        icon: None,
-        source_path: path_str.to_string(),
+    Ok(build_custom_fallback_instance(
+        &path,
+        path_str,
+        format!("custom-{}", uuid::Uuid::new_v4()),
         mods_count,
         saves_count,
         screenshots_count,
-    })
+    ))
 }
