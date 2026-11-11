@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, Runtime};
 
-pub use crate::core::process::{is_alive, process_start, Entry};
+pub use ingot_core::process::{is_alive, process_start, Entry};
 
 /// A server that keeps Ingot from simply quitting
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

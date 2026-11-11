@@ -1,5 +1,5 @@
 use crate::ipc::ApiError;
-use crate::minecraft::bedrock::{self, BedrockClientStatus};
+use ingot_minecraft::bedrock::{self, BedrockClientStatus};
 
 #[taurpc::procedures(path = "bedrock")]
 pub trait BedrockApi {

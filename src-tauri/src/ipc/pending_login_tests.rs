@@ -8,13 +8,13 @@ async fn pending_sign_in_routes_preserve_metadata_named_tickets_and_string_rejec
         .build(tauri::test::mock_context(tauri::test::noop_assets()))
         .unwrap();
     let mut state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
-    let vault = crate::account::credentials::tests::FakeCredentialStore::default();
+    let vault = ingot_accounts::account::credentials::tests::FakeCredentialStore::default();
     state.credentials = Box::new(vault.clone());
     state
         .pending_login
         .checkpoint(
             &vault,
-            &crate::auth::microsoft::MicrosoftDeviceCode {
+            &ingot_accounts::auth::microsoft::MicrosoftDeviceCode {
                 user_code: "fixture-user".into(),
                 verification_uri: "https://fixture.invalid/link".into(),
                 device_code: "private-device".into(),

@@ -10,8 +10,8 @@ use super::service::{
     execute_sync_after_exit, execute_sync_before_launch, export_instance_category_files,
     import_shared_files_to_instance,
 };
-use crate::minecraft::instance::InstanceConfig;
-use crate::settings::SyncSettings;
+use crate::instance::InstanceConfig;
+use ingot_settings::SyncSettings;
 use std::fs;
 use std::time::{Duration, UNIX_EPOCH};
 use tempfile::TempDir;
@@ -21,7 +21,7 @@ fn create_test_instance_config() -> InstanceConfig {
         id: "test-instance".to_string(),
         name: "Test Instance".to_string(),
         game_version: "1.20.1".to_string(),
-        loader: crate::minecraft::instance::ModLoaderType::Vanilla,
+        loader: crate::instance::ModLoaderType::Vanilla,
         loader_version: None,
         java_path: None,
         memory_min_mb: None,

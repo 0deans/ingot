@@ -1,5 +1,5 @@
-use crate::server::transfer::{self, TransferError, TransferService};
-use crate::server::ServerConfig;
+use ingot_server::transfer::{self, TransferError, TransferService};
+use ingot_server::ServerConfig;
 use tauri::{Manager, Runtime};
 
 pub(crate) fn service<R: Runtime>(
@@ -9,7 +9,7 @@ pub(crate) fn service<R: Runtime>(
         .path()
         .app_data_dir()
         .map_err(|error| {
-            crate::server::config::ConfigError::Directory(std::io::Error::other(error))
+            ingot_server::config::ConfigError::Directory(std::io::Error::other(error))
         })?
         .join("servers");
     Ok(TransferService {
@@ -23,7 +23,7 @@ pub(crate) fn upload_path<R: Runtime>(
     id: &str,
 ) -> Result<std::path::PathBuf, TransferError> {
     let cache = app.path().app_cache_dir().map_err(|error| {
-        crate::server::config::ConfigError::Directory(std::io::Error::other(error))
+        ingot_server::config::ConfigError::Directory(std::io::Error::other(error))
     })?;
     Ok(cache.join("imports").join(format!("{id}.zip")))
 }
@@ -58,17 +58,17 @@ pub(crate) async fn duplicate<R: Runtime>(
         let source = service
             .repository
             .load()
-            .map_err(crate::server::config::ConfigError::from)?
+            .map_err(ingot_server::config::ConfigError::from)?
             .into_iter()
             .find(|server| server.id == server_id)
-            .ok_or(crate::server::config::ConfigError::InvalidId)?;
+            .ok_or(ingot_server::config::ConfigError::InvalidId)?;
         service.duplicate(&source, &name, version.as_deref(), build)
     })
     .await?
 }
 
 fn run_owned<T: Send + 'static>(
-    ownership: crate::server::process::StartingGuard,
+    ownership: ingot_server::process::StartingGuard,
     operation: impl FnOnce() -> Result<T, TransferError> + Send + 'static,
 ) -> tokio::task::JoinHandle<Result<T, TransferError>> {
     tokio::task::spawn_blocking(move || {
@@ -83,7 +83,7 @@ mod tests {
 
     #[tokio::test]
     async fn cancelled_waiter_cannot_release_a_running_copy_reservation() {
-        let manager = crate::server::ServerProcessManager::new();
+        let manager = ingot_server::ServerProcessManager::new();
         let ownership = manager.reserve_maintenance("source").await.unwrap();
         let (entered_tx, entered_rx) = tokio::sync::oneshot::channel();
         let (release_tx, release_rx) = std::sync::mpsc::channel();

@@ -1,7 +1,7 @@
 use super::{
     error::ConfigError,
     models::{ServerConfig, ServerCoreType},
-    ports::{check_port_typed, free_port_for_core, internal_port_for},
+    ports::{check_port, free_port_for_core, internal_port_for},
 };
 
 pub struct ServerCreation {
@@ -31,7 +31,7 @@ pub fn prepare_server_config(
     } = request;
     let selected_port = match port {
         Some(p) => {
-            check_port_typed(servers, &id, p)?;
+            check_port(servers, &id, p)?;
             p
         }
         None => free_port_for_core(servers, &id, &core),

@@ -1,5 +1,5 @@
 use super::*;
-use crate::core::metadata::MetadataRepository;
+use ingot_core::metadata::MetadataRepository;
 
 fn repository(root: &Path) -> MetadataRepository<InstanceConfig> {
     MetadataRepository::with_deletion_directory(

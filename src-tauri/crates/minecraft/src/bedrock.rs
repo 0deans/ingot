@@ -352,8 +352,7 @@ pub fn open_bedrock_folder(_kind: &str) -> Result<(), BedrockError> {
         let status = detect_bedrock_status();
         let target_path = match _kind {
             "screenshots" => {
-                let folder =
-                    crate::minecraft::screenshots::get_primary_bedrock_screenshots_folder();
+                let folder = crate::screenshots::get_primary_bedrock_screenshots_folder();
                 Some(folder.to_string_lossy().to_string())
             }
             "worlds" => status.worlds_path.or_else(|| {

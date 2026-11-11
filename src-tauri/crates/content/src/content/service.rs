@@ -30,7 +30,7 @@ impl ContentService {
             CurseForgeClient::with_endpoint(
                 client.clone(),
                 super::curseforge::DEFAULT_CURSEFORGE_BASE,
-                super::CURSEFORGE_API_KEY,
+                ingot_artifacts::sources::CURSEFORGE_API_KEY,
             ),
             FtbClient::with_endpoint(client.clone(), super::ftb::DEFAULT_FTB_BASE),
             TechnicClient::with_endpoint(client.clone(), super::technic::DEFAULT_TECHNIC_BASE),

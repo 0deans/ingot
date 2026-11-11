@@ -1,6 +1,7 @@
 pub mod arguments;
 mod authlib;
 pub mod classpath;
+mod library_plan;
 pub mod models;
 pub mod prepare;
 pub mod process;

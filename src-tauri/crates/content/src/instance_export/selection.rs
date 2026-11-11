@@ -124,7 +124,7 @@ fn walk_dir_entries(
             if is_permanently_excluded(&rel_str) {
                 continue;
             }
-            if crate::core::safe_enclosed_path(instance_dir, &rel_str).is_none() {
+            if ingot_core::safe_enclosed_path(instance_dir, &rel_str).is_none() {
                 return Err(InstanceExportError::UnsafePath(rel_str));
             }
             entries.push(ExportPreviewEntry {
@@ -156,7 +156,7 @@ pub fn validate_included_paths(
             return Err(InstanceExportError::UnsafePath(normalized));
         }
 
-        let full_path = crate::core::safe_enclosed_path(instance_dir, &normalized)
+        let full_path = ingot_core::safe_enclosed_path(instance_dir, &normalized)
             .ok_or_else(|| InstanceExportError::UnsafePath(normalized.clone()))?;
 
         let meta = std::fs::symlink_metadata(&full_path)

@@ -1,4 +1,4 @@
-use crate::server::config::{ServerCoreType, ServerStatus};
+use crate::config::{ServerCoreType, ServerStatus};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::process::ChildStdin;
@@ -140,11 +140,11 @@ impl Drop for PendingQueryGuard {
 #[error("{source}")]
 pub struct ServerTerminationError {
     #[source]
-    pub(super) source: Arc<crate::core::process_tree::TerminationError>,
+    pub(super) source: Arc<ingot_core::process_tree::TerminationError>,
 }
 
 impl ServerTerminationError {
-    pub fn cause(&self) -> &crate::core::process_tree::TerminationError {
+    pub fn cause(&self) -> &ingot_core::process_tree::TerminationError {
         &self.source
     }
 }
@@ -223,21 +223,21 @@ pub enum ProcessError {
     #[error("Server launch was cancelled")]
     LaunchCancelled,
     #[error("Server configuration or directory error: {0}")]
-    Config(#[from] crate::server::config::ConfigError),
+    Config(#[from] crate::config::ConfigError),
     #[error("Server metadata failed: {0}")]
-    Metadata(#[from] crate::core::metadata::MetadataError),
+    Metadata(#[from] ingot_core::metadata::MetadataError),
     #[error("Server file operation failed: {0}")]
-    File(#[from] crate::server::files::ServerFileError),
+    File(#[from] crate::files::ServerFileError),
     #[error("Java runtime failed: {0}")]
-    Java(#[from] crate::artifacts::java::JavaError),
+    Java(#[from] ingot_artifacts::java::JavaError),
     #[error("Server core error: {0}")]
-    Core(#[from] crate::server::downloader::ServerCoreError),
+    Core(#[from] crate::downloader::ServerCoreError),
     #[error("Installer error: {0}")]
-    Installer(#[from] crate::server::installer::InstallerError),
+    Installer(#[from] crate::installer::InstallerError),
     #[error("Pumpkin server error: {0}")]
-    Pumpkin(#[from] crate::server::pumpkin::PumpkinError),
+    Pumpkin(#[from] crate::pumpkin::PumpkinError),
     #[error("Bedrock server error: {0}")]
-    Bedrock(#[from] crate::server::bedrock::BedrockServerError),
+    Bedrock(#[from] crate::bedrock::BedrockServerError),
     #[error("Sandbox error: {0}")]
     Sandbox(#[from] ingot_sandbox::SandboxError),
     #[error("I/O error: {0}")]

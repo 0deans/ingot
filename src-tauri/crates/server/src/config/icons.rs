@@ -1,4 +1,4 @@
-use crate::server::files::ServerFileError;
+use crate::files::ServerFileError;
 use std::fs;
 use std::path::Path;
 

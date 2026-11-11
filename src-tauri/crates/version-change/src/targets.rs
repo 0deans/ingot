@@ -112,7 +112,7 @@ pub fn server(
     }
 
     // The world and its dimensions (Paper keeps them in separate folders)
-    let level = crate::server::map::level_name(root);
+    let level = ingot_server::config::level_name(root);
     let worlds: Vec<String> = [
         level.clone(),
         format!("{level}_nether"),

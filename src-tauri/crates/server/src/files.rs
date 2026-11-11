@@ -26,7 +26,7 @@ pub(super) fn publish_file(path: &Path, bytes: &[u8]) -> Result<(), ServerFileEr
     if path.parent().is_none() {
         return Err(ServerFileError::InvalidPath(path.display().to_string()));
     }
-    crate::core::write_file_atomic(path, bytes)?;
+    ingot_core::write_file_atomic(path, bytes)?;
     Ok(())
 }
 

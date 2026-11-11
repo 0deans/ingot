@@ -1,9 +1,7 @@
 use super::*;
-use crate::account::AccountSecrets;
-use crate::{
-    account::{credentials::tests::FakeCredentialStore, policy, recovery::ProfileChange},
-    app::{AppPaths, AppState},
-};
+use crate::app::{AppPaths, AppState};
+use ingot_accounts::account::credentials::tests::FakeCredentialStore;
+use ingot_accounts::account::{policy, recovery::ProfileChange, AccountSecrets};
 use std::{
     future::{poll_fn, Future},
     task::Poll,

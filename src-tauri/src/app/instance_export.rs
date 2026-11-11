@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use tauri::{Manager, Runtime};
 
-use crate::artifacts::sources::SourceClient;
-use crate::minecraft::instance_export::{
+use ingot_artifacts::sources::SourceClient;
+use ingot_content::instance_export::{
     export_instance, preview_export, ExportOptions, ExportPreview, ExportReport,
     InstanceExportError, SourceClientResolver,
 };

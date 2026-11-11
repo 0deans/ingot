@@ -1,33 +1,11 @@
-pub use ingot_accounts::{account, auth, keyring_store};
 mod app;
-pub use ingot_artifacts as artifacts;
-pub use ingot_core as core;
+pub mod ipc;
 #[cfg(test)]
 mod ipc_contract;
-pub use ingot_core::USER_AGENT;
-pub use ingot_settings as settings;
-
-pub mod ipc;
-pub(crate) use crate::core::process_tree;
-pub mod minecraft {
-    pub use ingot_content::{content, importer, instance_export};
-    pub use ingot_minecraft::*;
-}
 pub mod running;
-pub use ingot_sandbox as sandbox;
-pub mod server {
-    pub use crate::app::server_config::{
-        create_server, get_server_dir, get_servers_dir, load_servers,
-    };
-    pub(crate) use crate::app::server_config::{delete_server, update_server};
-    pub use ingot_server::*;
-    pub use ingot_server_map::{live, map};
-}
 pub mod system;
 #[cfg(desktop)]
 pub mod tray;
-pub use ingot_tunnel as tunnel;
-pub use ingot_version_change as version_change;
 
 use tauri::Manager;
 

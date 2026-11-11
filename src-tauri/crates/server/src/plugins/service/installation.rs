@@ -10,7 +10,7 @@ use super::{
     installed::{folder, list_installed},
     publication::{publish_plugin_transaction_locked, with_plugin_lock},
 };
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 use std::{
     collections::HashSet,
     path::{Path, PathBuf},
@@ -101,7 +101,7 @@ pub(crate) async fn install_with_provider(
             return Err(PluginError::ManualDownloadRequired(title));
         };
         let file_name = safe_jar_name(&version.file_name)?.to_string();
-        let target_dest = crate::core::safe_enclosed_filename(&dir, &file_name)
+        let target_dest = ingot_core::safe_enclosed_filename(&dir, &file_name)
             .ok_or_else(|| PluginError::InvalidJarName(file_name.clone()))?;
         let staging_file = staging.path().join(uuid::Uuid::new_v4().to_string());
         download_with_stage(
@@ -149,7 +149,7 @@ pub(crate) async fn install_with_provider(
                 .filter(|old| old.project_id == item.tracking.project_id)
             {
                 for filename in [&old.file_name, &format!("{}.disabled", old.file_name)] {
-                    let path = crate::core::safe_enclosed_filename(&dir, filename)
+                    let path = ingot_core::safe_enclosed_filename(&dir, filename)
                         .ok_or_else(|| PluginError::InvalidJarName(filename.clone()))?;
                     if path.exists() {
                         old_files.push(path);

@@ -1,5 +1,5 @@
 use super::*;
-use crate::minecraft::version::{AssetObject, VersionPackage};
+use crate::version::{AssetObject, VersionPackage};
 use std::collections::HashMap;
 
 #[test]

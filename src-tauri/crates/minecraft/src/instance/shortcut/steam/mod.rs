@@ -7,9 +7,9 @@ use std::collections::HashSet;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
-use crate::minecraft::instance::shortcut::icons::resolve_instance_icon;
-use crate::minecraft::instance::shortcut::ShortcutError;
+use crate::instance::models::{InstanceConfig, ModLoaderType};
+use crate::instance::shortcut::icons::resolve_instance_icon;
+use crate::instance::shortcut::ShortcutError;
 
 use self::grid::generate_steam_grid_assets;
 use self::vdf::{

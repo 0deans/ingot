@@ -1,5 +1,5 @@
 //! Data models and DTOs for launcher detection, instance import, and reporting.
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -67,7 +67,7 @@ pub enum ImportError {
     Task(#[from] tokio::task::JoinError),
 
     #[error("Import metadata publication failed: {0}")]
-    Metadata(#[source] crate::core::metadata::MetadataError),
+    Metadata(#[source] ingot_core::metadata::MetadataError),
 
     #[error("{primary}; import staging cleanup also failed: {cleanup}")]
     Cleanup {
@@ -79,10 +79,10 @@ pub enum ImportError {
     SourceNotFound(String),
 
     #[error("Instance creation failed: {0}")]
-    InstanceCreate(#[source] crate::minecraft::instance::InstanceError),
+    InstanceCreate(#[source] ingot_minecraft::instance::InstanceError),
 
     #[error("Failed to resolve instance directory: {0}")]
-    InstanceDir(#[source] crate::minecraft::instance::InstanceError),
+    InstanceDir(#[source] ingot_minecraft::instance::InstanceError),
 
     #[error("Failed to resolve native import paths: {0}")]
     NativePath(#[source] std::io::Error),

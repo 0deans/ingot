@@ -1,17 +1,16 @@
 use super::*;
-use crate::account::{
+use ingot_accounts::account::{
     credentials::CredentialError, pending_login::PendingGrantError, policy::AccountPolicyError,
     recovery::RecoveryError, session::SessionError, AccountError,
 };
-use crate::minecraft::launcher::LaunchError;
-use crate::version_change::VersionChangeError;
+use ingot_minecraft::launcher::LaunchError;
+use ingot_version_change::VersionChangeError;
 
 #[test]
 fn instance_adapters_preserve_causes_and_api_categories() {
-    use crate::minecraft::{
-        importer::models::ImportError, instance::InstanceError, metadata::MetadataError,
-        screenshots::ScreenshotError,
-    };
+    use ingot_content::importer::models::ImportError;
+    use ingot_core::metadata::MetadataError;
+    use ingot_minecraft::{instance::InstanceError, screenshots::ScreenshotError};
     use std::error::Error;
 
     fn failures() -> Vec<InstanceError> {
@@ -52,7 +51,7 @@ fn instance_adapters_preserve_causes_and_api_categories() {
 
 #[test]
 fn importer_native_path_failure_preserves_its_source() {
-    use crate::minecraft::importer::models::ImportError;
+    use ingot_content::importer::models::ImportError;
     use std::error::Error;
 
     let native_error = tauri::Error::Io(std::io::ErrorKind::PermissionDenied.into());
@@ -77,7 +76,7 @@ fn importer_native_path_failure_preserves_its_source() {
 
 #[test]
 fn provider_payload_failure_is_not_reported_as_invalid_user_input() {
-    use crate::artifacts::sources::{Source, SourceError};
+    use ingot_artifacts::sources::{Source, SourceError};
 
     let malformed = VersionChangeError::Source(SourceError::InvalidPayload {
         provider: Source::Modrinth,
@@ -99,7 +98,7 @@ fn provider_payload_failure_is_not_reported_as_invalid_user_input() {
 
 #[test]
 fn pending_deletion_recovery_remains_distinct_from_ordinary_storage_failure() {
-    use crate::minecraft::metadata::MetadataError;
+    use ingot_core::metadata::MetadataError;
     let errors = [
         MetadataError::RecoveryBlocked("Ambiguous deletion directories"),
         MetadataError::RecoveryCleanup {
@@ -127,13 +126,13 @@ fn test_launch_error_boundary_mappings() {
     ));
     assert!(matches!(
         ApiError::from(crate::app::games::GameLaunchError::IncompleteTransaction(
-            crate::version_change::TransactionPhase::Swapping
+            ingot_version_change::TransactionPhase::Swapping
         )),
         ApiError::IncompleteRecovery { .. }
     ));
     assert!(matches!(
         ApiError::from(LaunchError::JavaRuntime(
-            crate::artifacts::java::JavaError::MissingBinary
+            ingot_artifacts::java::JavaError::MissingBinary
         )),
         ApiError::NotFound { .. }
     ));
@@ -189,10 +188,10 @@ fn test_session_error_boundary_mappings() {
     );
     assert_eq!(
         ApiError::from(SessionError::Ownership(
-            crate::account::operations::OperationError
+            ingot_accounts::account::operations::OperationError
         )),
         ApiError::Conflict {
-            message: crate::account::operations::OperationError.to_string()
+            message: ingot_accounts::account::operations::OperationError.to_string()
         }
     );
 }
@@ -208,7 +207,7 @@ fn test_credential_error_boundary_mappings() {
     assert!(matches!(
         ApiError::from(CredentialError::Vault {
             operation: "read",
-            source: crate::account::credentials::VaultFailure::injected(),
+            source: ingot_accounts::account::credentials::VaultFailure::injected(),
         }),
         ApiError::ProviderUnavailable { .. }
     ));
@@ -304,7 +303,7 @@ fn test_version_change_error_boundary_mappings() {
     assert!(matches!(
         ApiError::from(VersionChangeError::DownloadFailed {
             title: "Example mod".into(),
-            source: crate::artifacts::downloader::DownloadError::HttpStatus {
+            source: ingot_artifacts::downloader::DownloadError::HttpStatus {
                 status: reqwest::StatusCode::SERVICE_UNAVAILABLE,
             },
         }),
@@ -314,7 +313,7 @@ fn test_version_change_error_boundary_mappings() {
 
 #[test]
 fn test_process_error_boundary_mappings() {
-    use crate::server::process::models::ProcessError;
+    use ingot_server::process::models::ProcessError;
 
     assert!(matches!(
         ApiError::from(ProcessError::NotRunning("srv1".into())),
@@ -347,20 +346,20 @@ fn test_process_error_boundary_mappings() {
         ApiError::ProviderUnavailable { .. }
     ));
     assert!(matches!(
-        ApiError::from(ProcessError::Config(
-            crate::server::config::ConfigError::Io(std::io::Error::other("bad config"))
-        )),
+        ApiError::from(ProcessError::Config(ingot_server::config::ConfigError::Io(
+            std::io::Error::other("bad config")
+        ))),
         ApiError::StorageFailure { .. }
     ));
 }
 
 #[test]
 fn test_server_domain_error_boundary_mappings() {
-    use crate::server::live::LiveError;
-    use crate::server::map::MapError;
-    use crate::server::slp::PingError;
-    use crate::server::transfer::TransferError;
-    use crate::tunnel::PlayitError;
+    use ingot_server::slp::PingError;
+    use ingot_server::transfer::TransferError;
+    use ingot_server_map::live::LiveError;
+    use ingot_server_map::map::MapError;
+    use ingot_tunnel::PlayitError;
 
     assert!(matches!(
         ApiError::from(LiveError::InvalidPlayerName("bad!name".into())),
@@ -405,9 +404,9 @@ fn test_server_domain_error_boundary_mappings() {
 
 #[test]
 fn server_launch_preserves_recovery_and_java_error_categories() {
-    use crate::artifacts::java::JavaError;
-    use crate::minecraft::metadata::MetadataError;
-    use crate::server::process::ProcessError;
+    use ingot_artifacts::java::JavaError;
+    use ingot_core::metadata::MetadataError;
+    use ingot_server::process::ProcessError;
     let recovery = ProcessError::Metadata(MetadataError::RecoveryBlocked("ambiguous receipt"));
     assert!(std::error::Error::source(&recovery).is_some());
     assert!(matches!(
@@ -428,7 +427,7 @@ fn server_launch_preserves_recovery_and_java_error_categories() {
 #[test]
 fn server_port_collision_is_a_conflict() {
     let error =
-        crate::server::config::ConfigError::Port(crate::server::config::PortError::PortInUse {
+        ingot_server::config::ConfigError::Port(ingot_server::config::PortError::PortInUse {
             port: 25565,
             owner: "another server".into(),
             suggested: 25566,
@@ -438,7 +437,8 @@ fn server_port_collision_is_a_conflict() {
 
 #[test]
 fn native_boundary_failures_keep_actionable_api_categories() {
-    use crate::{sandbox::SandboxError, server::transfer::TransferError};
+    use ingot_sandbox::SandboxError;
+    use ingot_server::transfer::TransferError;
     assert!(matches!(
         ApiError::from(TransferError::UnsupportedManifestFormat(99)),
         ApiError::InvalidInput { .. }
@@ -453,7 +453,7 @@ fn native_boundary_failures_keep_actionable_api_categories() {
     ));
     assert!(matches!(
         ApiError::from(TransferError::Process(
-            crate::server::process::models::ProcessError::AlreadyStarting
+            ingot_server::process::models::ProcessError::AlreadyStarting
         )),
         ApiError::Conflict { .. }
     ));
@@ -469,7 +469,7 @@ fn native_boundary_failures_keep_actionable_api_categories() {
 
 #[test]
 fn launcher_account_failures_preserve_causes_and_categories() {
-    use crate::account::{
+    use ingot_accounts::account::{
         operations::OperationError,
         provider::{ProviderError, ProviderOperation},
     };
@@ -487,7 +487,7 @@ fn launcher_account_failures_preserve_causes_and_categories() {
     ];
     for session in sessions {
         let launch = LaunchError::Account(
-            crate::minecraft::launcher::models::LaunchAccountError::new(session),
+            ingot_minecraft::launcher::models::LaunchAccountError::new(session),
         );
         let account = launch.source().unwrap();
         let cause = account.source().unwrap();
@@ -510,7 +510,7 @@ fn launcher_account_failures_preserve_causes_and_categories() {
         assert_eq!(ApiError::from(launch), expected);
     }
     let recovery =
-        LaunchError::Account(crate::minecraft::launcher::models::LaunchAccountError::new(
+        LaunchError::Account(ingot_minecraft::launcher::models::LaunchAccountError::new(
             RecoveryError::Profile(AccountError::LockPoisoned),
         ));
     assert!(recovery
@@ -529,8 +529,8 @@ fn launcher_account_failures_preserve_causes_and_categories() {
 #[test]
 fn account_and_auth_skin_failures_map_to_actionable_api_categories_and_redact_secrets() {
     use crate::app::accounts::SkinError;
-    use crate::auth::ely::ElyError;
-    use crate::auth::microsoft::MicrosoftSkinError;
+    use ingot_accounts::auth::ely::ElyError;
+    use ingot_accounts::auth::microsoft::MicrosoftSkinError;
     use reqwest::StatusCode;
 
     // Ely uploaded-not-applied maps to IncompleteRecovery
@@ -604,7 +604,7 @@ fn account_and_auth_skin_failures_map_to_actionable_api_categories_and_redact_se
 
 #[test]
 fn launcher_settings_failures_preserve_causes_and_categories() {
-    use crate::settings::SettingsError;
+    use ingot_settings::SettingsError;
     use std::error::Error;
 
     let failures = [
@@ -638,7 +638,7 @@ fn launcher_settings_failures_preserve_causes_and_categories() {
 
 #[test]
 fn launcher_and_screenshot_native_paths_retain_original_errors() {
-    use crate::minecraft::screenshots::ScreenshotError;
+    use ingot_minecraft::screenshots::ScreenshotError;
     use std::error::Error;
 
     fn native_failure() -> std::io::Error {
@@ -676,7 +676,7 @@ fn launcher_and_screenshot_native_paths_retain_original_errors() {
 
 #[test]
 fn lifecycle_and_tracking_boundaries_preserve_missing_and_recovery_categories() {
-    use crate::server::plugins::{tracking::TrackingError, PluginError};
+    use ingot_server::plugins::{tracking::TrackingError, PluginError};
     let missing = crate::app::lifecycle::LifecycleError::LeftoverServerMissing;
     assert!(matches!(ApiError::from(missing), ApiError::NotFound { .. }));
     let recovery = TrackingError::Recovery(Box::new(PluginError::RecoveryBlocked(
@@ -715,7 +715,7 @@ fn launcher_recovery_inspection_and_cancellation_keep_their_categories() {
 
 #[test]
 fn server_start_failure_and_cleanup_keep_distinct_categories() {
-    use crate::server::process::ProcessError;
+    use ingot_server::process::ProcessError;
     let startup = ProcessError::ProxyStartup {
         port: 25565,
         source: std::io::ErrorKind::PermissionDenied.into(),
@@ -747,7 +747,7 @@ fn server_start_failure_and_cleanup_keep_distinct_categories() {
 
 #[tokio::test]
 async fn download_validation_and_admission_errors_remain_internal() {
-    use crate::artifacts::downloader::{error::ContentRangeError, DownloadError};
+    use ingot_artifacts::downloader::{error::ContentRangeError, DownloadError};
     for error in [
         DownloadError::InvalidAssetHash,
         DownloadError::ContentRange(ContentRangeError::MissingHeader),
@@ -765,7 +765,7 @@ async fn download_validation_and_admission_errors_remain_internal() {
 
 #[test]
 fn download_error_diagnostics_are_redacted_at_api_boundary() {
-    use crate::artifacts::downloader::DownloadError;
+    use ingot_artifacts::downloader::DownloadError;
     let error = DownloadError::HttpStatus {
         status: reqwest::StatusCode::SERVICE_UNAVAILABLE,
     };
@@ -778,7 +778,7 @@ fn download_error_diagnostics_are_redacted_at_api_boundary() {
 
 #[test]
 fn live_queries_delegate_process_failure_categories() {
-    use crate::server::{live_query::LiveQueryError, process::ProcessError};
+    use ingot_server::{live_query::LiveQueryError, process::ProcessError};
     let stopped = LiveQueryError::Query(Box::new(ProcessError::NotRunning("srv1".into())));
     assert!(matches!(ApiError::from(stopped), ApiError::NotFound { .. }));
     let timeout = LiveQueryError::Query(Box::new(ProcessError::NoReply("list".into())));
@@ -797,7 +797,8 @@ fn live_queries_delegate_process_failure_categories() {
 
 #[test]
 fn sync_settings_delegate_validation_and_state_categories() {
-    use crate::{minecraft::sync::SyncError, settings::SettingsError};
+    use ingot_minecraft::sync::SyncError;
+    use ingot_settings::SettingsError;
     let invalid = SyncError::Settings(SettingsError::InvalidMemory {
         min_mb: 4096,
         max_mb: 1024,
@@ -820,12 +821,10 @@ fn sync_settings_delegate_validation_and_state_categories() {
 
 #[test]
 fn bedrock_archive_and_protocol_errors_keep_categories() {
-    use crate::{
-        core::ArchiveError,
-        server::{
-            bedrock::BedrockServerError, bedrock_packs::BedrockPackError, files::ServerFileError,
-            slp::PingError,
-        },
+    use ingot_core::ArchiveError;
+    use ingot_server::{
+        bedrock::BedrockServerError, bedrock_packs::BedrockPackError, files::ServerFileError,
+        slp::PingError,
     };
     let unsafe_archive = BedrockServerError::Archive(ArchiveError::UnsafeEntry);
     assert!(matches!(
@@ -859,7 +858,7 @@ fn bedrock_archive_and_protocol_errors_keep_categories() {
 #[test]
 fn process_tree_failures_keep_cleanup_distinct_from_command_failures() {
     use crate::app::lifecycle::LifecycleError;
-    use crate::process_tree::TerminationError;
+    use ingot_core::process_tree::TerminationError;
 
     let command = LifecycleError::Termination(TerminationError::Spawn {
         pid: 10,
@@ -884,8 +883,8 @@ fn process_tree_failures_keep_cleanup_distinct_from_command_failures() {
 
 #[test]
 fn server_installer_error_ipc_categories_remain_correct() {
-    use crate::server::config::ServerCoreType;
-    use crate::server::installer::InstallerError;
+    use ingot_server::config::ServerCoreType;
+    use ingot_server::installer::InstallerError;
     use std::io;
 
     let process_err = InstallerError::Process {
@@ -913,4 +912,192 @@ fn server_installer_error_ipc_categories_remain_correct() {
     let unsupported = InstallerError::UnsupportedCore(ServerCoreType::Vanilla);
     let api_err = ApiError::from(unsupported);
     assert!(matches!(api_err, ApiError::InvalidInput { .. }));
+}
+
+#[test]
+fn instance_content_action_errors_preserve_causes_and_api_categories() {
+    use crate::app::instance_content::InstanceContentActionError;
+    use crate::app::platform::OpenDirectoryError;
+    use ingot_core::metadata::MetadataError;
+    use ingot_minecraft::instance::InstanceError;
+    use ingot_minecraft::instance_content::InstanceContentError;
+    use std::error::Error;
+    use std::io;
+
+    let make_instance_failures = || -> Vec<InstanceError> {
+        vec![
+            InstanceError::InvalidId,
+            InstanceError::NotFound("missing-instance".into()),
+            InstanceError::Io(io::ErrorKind::PermissionDenied.into()),
+            InstanceError::Metadata(MetadataError::Conflict("busy instance".into())),
+            InstanceError::Metadata(MetadataError::RecoveryBlocked("blocked recovery")),
+            InstanceError::Metadata(MetadataError::Decode {
+                path: "instances.json".into(),
+                source: serde_json::from_str::<serde_json::Value>("{").unwrap_err(),
+            }),
+            InstanceError::Metadata(MetadataError::Io {
+                operation: "read",
+                path: "instances.json".into(),
+                source: io::ErrorKind::PermissionDenied.into(),
+            }),
+            InstanceError::FilesCleanupCommitted {
+                path: "retained-instance".into(),
+                source: io::ErrorKind::PermissionDenied.into(),
+            },
+            InstanceError::Cleanup {
+                primary: Box::new(InstanceError::InvalidId),
+                cleanup: io::ErrorKind::PermissionDenied.into(),
+            },
+        ]
+    };
+
+    for (original, expected) in make_instance_failures()
+        .into_iter()
+        .zip(make_instance_failures())
+    {
+        let wrapped = InstanceContentActionError::from(original);
+        match &wrapped {
+            InstanceContentActionError::Instance(InstanceError::Io(_))
+            | InstanceContentActionError::Instance(InstanceError::Metadata(MetadataError::Io {
+                ..
+            }))
+            | InstanceContentActionError::Instance(InstanceError::FilesCleanupCommitted {
+                ..
+            }) => {
+                let io = wrapped
+                    .source()
+                    .unwrap()
+                    .downcast_ref::<io::Error>()
+                    .unwrap();
+                assert_eq!(io.kind(), io::ErrorKind::PermissionDenied);
+            }
+            InstanceContentActionError::Instance(InstanceError::Metadata(
+                MetadataError::Decode { .. },
+            )) => {
+                assert!(wrapped
+                    .source()
+                    .unwrap()
+                    .downcast_ref::<serde_json::Error>()
+                    .is_some());
+            }
+            InstanceContentActionError::Instance(InstanceError::Cleanup { .. }) => {
+                assert_eq!(wrapped.to_string(), expected.to_string());
+                let primary = wrapped
+                    .source()
+                    .unwrap()
+                    .downcast_ref::<Box<InstanceError>>()
+                    .unwrap();
+                assert!(matches!(primary.as_ref(), InstanceError::InvalidId));
+            }
+            _ => {}
+        }
+        assert_eq!(ApiError::from(wrapped), ApiError::from(expected));
+    }
+
+    let io_content = InstanceContentActionError::from(InstanceContentError::io(
+        "mods/example.jar",
+        io::ErrorKind::PermissionDenied.into(),
+    ));
+    assert_eq!(
+        io_content
+            .source()
+            .unwrap()
+            .downcast_ref::<io::Error>()
+            .unwrap()
+            .kind(),
+        io::ErrorKind::PermissionDenied
+    );
+    assert!(matches!(
+        ApiError::from(io_content),
+        ApiError::StorageFailure { .. }
+    ));
+
+    for (content_error, expected_kind_check) in [
+        (
+            InstanceContentError::InstanceNotFound("inst-1".into()),
+            ApiError::not_found("inst-1"),
+        ),
+        (
+            InstanceContentError::NotFound("mod.jar".into()),
+            ApiError::not_found("mod.jar"),
+        ),
+        (
+            InstanceContentError::WorldNotFound("world".into()),
+            ApiError::not_found("world"),
+        ),
+        (
+            InstanceContentError::InstanceRunning("inst-1".into()),
+            ApiError::conflict("Instance 'inst-1' is currently running"),
+        ),
+        (
+            InstanceContentError::NameConflict("mod.jar".into()),
+            ApiError::conflict("mod.jar"),
+        ),
+        (
+            InstanceContentError::invalid_file_name("../bad.jar", "traversal"),
+            ApiError::invalid_input("traversal"),
+        ),
+        (
+            InstanceContentError::Serialization("bad json".into()),
+            ApiError::internal("bad json"),
+        ),
+        (
+            InstanceContentError::InvalidOperation("failed".into()),
+            ApiError::internal("failed"),
+        ),
+    ] {
+        assert_eq!(
+            ApiError::from(InstanceContentActionError::from(content_error)),
+            expected_kind_check
+        );
+    }
+
+    let spawn_err = InstanceContentActionError::from(OpenDirectoryError::Spawn(
+        io::ErrorKind::PermissionDenied.into(),
+    ));
+    assert_eq!(
+        spawn_err
+            .source()
+            .unwrap()
+            .downcast_ref::<io::Error>()
+            .unwrap()
+            .kind(),
+        io::ErrorKind::PermissionDenied
+    );
+    assert!(matches!(
+        ApiError::from(spawn_err),
+        ApiError::Internal { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceContentActionError::from(
+            OpenDirectoryError::Target(io::ErrorKind::NotFound.into())
+        )),
+        ApiError::NotFound { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceContentActionError::from(
+            OpenDirectoryError::Target(io::ErrorKind::PermissionDenied.into())
+        )),
+        ApiError::StorageFailure { .. }
+    ));
+    assert!(matches!(
+        ApiError::from(InstanceContentActionError::from(
+            OpenDirectoryError::Unsupported
+        )),
+        ApiError::Internal { .. }
+    ));
+}
+
+#[tokio::test]
+async fn instance_content_blocking_task_panic_maps_to_internal_api_error() {
+    use crate::app::instance_content::InstanceContentActionError;
+
+    let join_error = tokio::task::spawn_blocking(|| {
+        panic!("simulated blocking worker failure");
+    })
+    .await
+    .unwrap_err();
+    let wrapped = InstanceContentActionError::from(join_error);
+    assert!(matches!(wrapped, InstanceContentActionError::Task(_)));
+    assert!(matches!(ApiError::from(wrapped), ApiError::Internal { .. }));
 }

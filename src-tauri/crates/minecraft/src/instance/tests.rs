@@ -10,7 +10,7 @@ fn stored_instance(id: &str) -> InstanceConfig {
 
 #[test]
 fn invalid_identifiers_cannot_remove_files_outside_instances() {
-    use crate::core::metadata::MetadataRepository;
+    use ingot_core::metadata::MetadataRepository;
     let root = tempfile::tempdir().unwrap();
     let instances = root.path().join("instances");
     fs::create_dir(&instances).unwrap();
@@ -44,7 +44,7 @@ fn required_instance_subdirectory_creation_failure_is_not_success() {
     fs::create_dir(&instance).unwrap();
     fs::write(instance.join("config"), b"blocking file").unwrap();
     let repository =
-        crate::core::metadata::MetadataRepository::new(root.path().join("instances.json"));
+        ingot_core::metadata::MetadataRepository::new(root.path().join("instances.json"));
     assert!(matches!(
         ensure_instance_directory(&repository, root.path(), "instance"),
         Err(InstanceError::Io(_))
@@ -76,7 +76,7 @@ fn directory_lookup_restores_pending_deletion_before_creating_subdirectories() {
     )
     .unwrap();
     fs::rename(&original, parent.join(&backup)).unwrap();
-    let repository = crate::core::metadata::MetadataRepository::with_deletion_directory(
+    let repository = ingot_core::metadata::MetadataRepository::with_deletion_directory(
         metadata,
         parent.clone(),
         |instance: &InstanceConfig| &instance.id,
@@ -102,7 +102,7 @@ fn directory_lookup_cannot_create_files_while_recovery_is_blocked() {
     let metadata = root.path().join("instances.json");
     let receipt = metadata.with_extension("deletion.json");
     fs::write(&receipt, b"malformed receipt").unwrap();
-    let repository = crate::core::metadata::MetadataRepository::with_deletion_directory(
+    let repository = ingot_core::metadata::MetadataRepository::with_deletion_directory(
         metadata,
         parent.clone(),
         |instance: &InstanceConfig| &instance.id,
@@ -116,7 +116,7 @@ fn directory_lookup_cannot_create_files_while_recovery_is_blocked() {
 
 #[test]
 fn deletion_commits_matching_metadata_and_files_only() {
-    use crate::core::metadata::MetadataRepository;
+    use ingot_core::metadata::MetadataRepository;
     let root = tempfile::tempdir().unwrap();
     let instances = root.path().join("instances");
     for id in ["delete", "keep"] {
@@ -145,7 +145,7 @@ fn deletion_commits_matching_metadata_and_files_only() {
 
 #[test]
 fn failed_deletion_metadata_write_restores_original_directory() {
-    use crate::core::metadata::{MetadataError, MetadataRepository};
+    use ingot_core::metadata::{MetadataError, MetadataRepository};
     use std::cell::Cell;
     let root = tempfile::tempdir().unwrap();
     let instances = root.path().join("instances");
@@ -198,7 +198,7 @@ fn failed_deletion_metadata_write_restores_original_directory() {
 
 #[test]
 fn failed_duplicate_copy_removes_unique_stage_and_keeps_source_metadata() {
-    use crate::core::metadata::MetadataRepository;
+    use ingot_core::metadata::MetadataRepository;
     let root = tempfile::tempdir().unwrap();
     let instances = root.path().join("instances");
     fs::create_dir(&instances).unwrap();

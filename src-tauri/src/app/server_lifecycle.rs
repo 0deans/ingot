@@ -1,4 +1,4 @@
-use crate::server::process::ServerLifecycleHooks;
+use ingot_server::process::ServerLifecycleHooks;
 use tauri::{AppHandle, Runtime};
 
 /// Adapter forwarding server lifecycle and crash events to Tauri application runtime.
@@ -27,28 +27,28 @@ impl<R: Runtime> ServerLifecycleHooks for TauriServerLifecycleHooks<R> {
         crate::running::remove(&self.app, crate::running::Kind::Server, server_id, pid);
     }
 
-    fn on_crash(&self, crash: crate::artifacts::crash::CrashReport) {
+    fn on_crash(&self, crash: ingot_artifacts::crash::CrashReport) {
         crate::app::events::version_change_crash(&self.app, crash);
     }
 }
 
-use crate::artifacts::java::ensure_java_runtime_in_dir;
-use crate::artifacts::java::get_required_java_version;
-use crate::server::config::{ServerConfig, ServerCoreType};
-use crate::server::downloader::ensure_server_jar;
-use crate::server::process::command::{build_aikar_gc_flags, build_java_version_flags};
-use crate::server::process::console::{find_java_console_bin, sandbox_progress};
-use crate::server::process::{ProcessError, ServerCommandBuilder};
+use ingot_artifacts::java::ensure_java_runtime_in_dir;
+use ingot_artifacts::java::get_required_java_version;
+use ingot_server::config::{ServerConfig, ServerCoreType};
+use ingot_server::downloader::ensure_server_jar;
+use ingot_server::process::command::{build_aikar_gc_flags, build_java_version_flags};
+use ingot_server::process::console::{find_java_console_bin, sandbox_progress};
+use ingot_server::process::{ProcessError, ServerCommandBuilder};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// Default implementation building the native command (Pumpkin, Bedrock, or Java).
 pub struct DefaultServerCommandBuilder {
-    sandbox: crate::sandbox::SandboxSetup,
+    sandbox: ingot_sandbox::SandboxSetup,
 }
 
 impl DefaultServerCommandBuilder {
-    pub fn new(sandbox: crate::sandbox::SandboxSetup) -> Self {
+    pub fn new(sandbox: ingot_sandbox::SandboxSetup) -> Self {
         Self { sandbox }
     }
 }
@@ -94,7 +94,7 @@ impl ServerCommandBuilder for DefaultServerCommandBuilder {
 
 /// Builds execution command for the server process (Pumpkin, Bedrock, or Java)
 async fn build_server_command<FStep>(
-    sandbox_setup: &crate::sandbox::SandboxSetup,
+    sandbox_setup: &ingot_sandbox::SandboxSetup,
     data_dir: &Path,
     client: &reqwest::Client,
     config: &ServerConfig,
@@ -109,8 +109,8 @@ where
     if config.core == ServerCoreType::Pumpkin {
         step("Preparing Pumpkin server...");
         step("Downloading Pumpkin (first start only)...");
-        let bin = crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
-        let sandbox = if crate::sandbox::is_android_sandbox() {
+        let bin = ingot_server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
+        let sandbox = if ingot_sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
             Some(
                 sandbox_setup
@@ -129,7 +129,7 @@ where
         } else {
             config.port
         };
-        crate::server::pumpkin::build_pumpkin_command(
+        ingot_server::pumpkin::build_pumpkin_command(
             &bin,
             server_dir,
             config.port,
@@ -142,10 +142,9 @@ where
     } else if config.core == ServerCoreType::Bedrock {
         step("Preparing Bedrock Dedicated Server...");
         step("Downloading Bedrock files (first start only)...");
-        let bin =
-            crate::server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_ver)
-                .await?;
-        crate::server::bedrock::configure_bedrock_properties(server_dir, config)?;
+        let bin = ingot_server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_ver)
+            .await?;
+        ingot_server::bedrock::configure_bedrock_properties(server_dir, config)?;
         let mut b_cmd = tokio::process::Command::new(bin);
         b_cmd.current_dir(server_dir);
         Ok(b_cmd)
@@ -164,7 +163,7 @@ where
         args.push("-Dterminal.jline=false".into());
         args.push("-Dterminal.ansi=false".into());
 
-        let (sandbox, java_bin) = if crate::sandbox::is_android_sandbox() {
+        let (sandbox, java_bin) = if ingot_sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
             let (sandbox_dir, rootfs, guest_java) = sandbox_setup
                 .ensure_java(data_dir, client, required_java, sandbox_progress(&step))
@@ -192,7 +191,7 @@ where
         };
 
         let java = |java_args: &[String]| {
-            crate::sandbox::build_server_command(
+            ingot_sandbox::build_server_command(
                 sandbox
                     .as_ref()
                     .map(|(dir, rootfs)| (dir.as_path(), rootfs.as_path())),
@@ -202,14 +201,14 @@ where
             )
         };
 
-        if crate::server::installer::uses_installer(&config.core) {
-            if crate::server::installer::launch_args(server_dir, &config.core)?.is_none() {
+        if ingot_server::installer::uses_installer(&config.core) {
+            if ingot_server::installer::launch_args(server_dir, &config.core)?.is_none() {
                 step(&format!(
                     "Installing {} (first start only, this can take a few minutes)...",
                     config.core
                 ));
             }
-            let launch = crate::server::installer::ensure_installed(
+            let launch = ingot_server::installer::ensure_installed(
                 client,
                 server_dir,
                 &config.core,

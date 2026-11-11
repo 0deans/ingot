@@ -83,7 +83,7 @@ pub(super) fn service(root: &Path) -> TransferService {
     fs::create_dir_all(&parent).unwrap();
     TransferService {
         repository: std::sync::Arc::new(
-            crate::core::metadata::MetadataRepository::with_deletion_directory(
+            ingot_core::metadata::MetadataRepository::with_deletion_directory(
                 root.join("servers.json"),
                 parent.clone(),
                 |server: &ServerConfig| &server.id,

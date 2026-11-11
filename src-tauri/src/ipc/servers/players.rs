@@ -1,8 +1,11 @@
 //! IPC procedures for server player queries.
 use super::{get_server_process_manager, is_server_running, server_with_config};
 use crate::ipc::ApiError;
-use crate::server::live::{KnownPlayer, PlayerDetails};
-use crate::server::{self, ServerCoreType};
+use ingot_server::{live_query, ServerCoreType};
+use ingot_server_map::{
+    live::{self, KnownPlayer, PlayerDetails},
+    map,
+};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "servers.players")]
@@ -42,7 +45,7 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<Vec<PlayerDetails>, ApiError> {
-        server::live_query::online_players(get_server_process_manager(&app_handle), &server_id)
+        live_query::online_players(get_server_process_manager(&app_handle), &server_id)
             .await
             .map_err(ApiError::from)
     }
@@ -66,7 +69,7 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         if config.core == ServerCoreType::Bedrock {
             if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-                if let Ok(details) = server::live_query::query_player(
+                if let Ok(details) = live_query::query_player(
                     get_server_process_manager(&app_handle),
                     &server_id,
                     &name,
@@ -76,27 +79,22 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
                     return Ok(details);
                 }
             }
-            return Ok(server::live::offline_bedrock_player(&dir, &name));
+            return Ok(live::offline_bedrock_player(&dir, &name));
         }
 
         if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-            if let Ok(details) = server::live_query::query_player(
-                get_server_process_manager(&app_handle),
-                &server_id,
-                &name,
-            )
-            .await
+            if let Ok(details) =
+                live_query::query_player(get_server_process_manager(&app_handle), &server_id, &name)
+                    .await
             {
                 return Ok(details);
             }
         }
-        let world = dir.join(server::map::level_name(&dir));
-        tauri::async_runtime::spawn_blocking(move || {
-            server::live::offline_player(&dir, &world, &name)
-        })
-        .await
-        .map_err(|e| ApiError::internal(e.to_string()))?
-        .map_err(ApiError::from)
+        let world = dir.join(map::level_name(&dir));
+        tauri::async_runtime::spawn_blocking(move || live::offline_player(&dir, &world, &name))
+            .await
+            .map_err(|e| ApiError::internal(e.to_string()))?
+            .map_err(ApiError::from)
     }
 
     async fn get_known_players(
@@ -106,19 +104,18 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
     ) -> Result<Vec<KnownPlayer>, ApiError> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         let mut known = if config.core == ServerCoreType::Bedrock {
-            tauri::async_runtime::spawn_blocking(move || server::live::known_bedrock_players(&dir))
+            tauri::async_runtime::spawn_blocking(move || live::known_bedrock_players(&dir))
                 .await
                 .map_err(|e| ApiError::internal(e.to_string()))?
         } else {
-            let world = dir.join(server::map::level_name(&dir));
-            tauri::async_runtime::spawn_blocking(move || server::live::known_players(&dir, &world))
+            let world = dir.join(map::level_name(&dir));
+            tauri::async_runtime::spawn_blocking(move || live::known_players(&dir, &world))
                 .await
                 .map_err(|e| ApiError::internal(e.to_string()))?
         };
         if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             if let Ok(online) =
-                server::live_query::list_online(get_server_process_manager(&app_handle), &server_id)
-                    .await
+                live_query::list_online(get_server_process_manager(&app_handle), &server_id).await
             {
                 for (name, uuid) in online {
                     match known

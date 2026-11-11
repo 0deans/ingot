@@ -48,8 +48,6 @@ pub fn check_port(servers: &[ServerConfig], server_id: &str, port: u16) -> Resul
     }
 }
 
-pub use check_port as check_port_typed;
-
 /// Lowest free port starting from base depending on core type (19132 for Bedrock, 25565 for Java)
 pub fn free_port_for_core(servers: &[ServerConfig], server_id: &str, core: &ServerCoreType) -> u16 {
     let mut port = if *core == ServerCoreType::Bedrock {

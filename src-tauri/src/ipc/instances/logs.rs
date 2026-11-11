@@ -2,7 +2,7 @@
 use super::{find_instance, get_http_client, get_process_manager};
 use crate::app::instances::ensure_instance_dir;
 use crate::ipc::ApiError;
-use crate::minecraft::logs::{
+use ingot_minecraft::logs::{
     list_instance_log_files, read_instance_log_file, sanitize_log_content, upload_sanitized_log,
     InstanceLogFileContent, InstanceLogFileSummary, InstanceLogLine, LogError, LogFileKind,
     PasteEndpoints, PasteProvider, PasteUploadResult, SanitizeContext,
@@ -154,7 +154,7 @@ impl InstanceLogsApi for InstanceLogsApiImpl {
 
         let target_path = match (kind, file_name) {
             (Some(LogFileKind::Log), Some(name)) => {
-                crate::minecraft::logs::reader::validate_safe_file_name(&name)
+                ingot_minecraft::logs::reader::validate_safe_file_name(&name)
                     .map_err(ApiError::from)?;
                 let file_path = instance_dir.join("logs").join(&name);
                 if file_path.exists() {
@@ -164,7 +164,7 @@ impl InstanceLogsApi for InstanceLogsApiImpl {
                 }
             }
             (Some(LogFileKind::CrashReport), Some(name)) => {
-                crate::minecraft::logs::reader::validate_safe_file_name(&name)
+                ingot_minecraft::logs::reader::validate_safe_file_name(&name)
                     .map_err(ApiError::from)?;
                 let file_path = instance_dir.join("crash-reports").join(&name);
                 if file_path.exists() {

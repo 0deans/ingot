@@ -8,8 +8,8 @@ use super::mrpack::build_mrpack_plan;
 use super::prism::build_prism_plan;
 use super::resolve::{classify_modrinth_files, ContentResolver};
 use super::selection::{collect_preview_entries, validate_included_paths};
-use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-use crate::minecraft::instance_content::tracking::read_tracking;
+use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
+use ingot_minecraft::instance_content::tracking::read_tracking;
 
 /// Generate preview of exportable files and metadata for an instance.
 pub fn preview_export(

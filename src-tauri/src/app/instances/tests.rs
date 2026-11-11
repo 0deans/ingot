@@ -1,5 +1,5 @@
 use super::run_maintenance;
-use crate::minecraft::launcher::ProcessManager;
+use ingot_minecraft::launcher::ProcessManager;
 use std::sync::Arc;
 use tokio::sync::Notify;
 
@@ -44,12 +44,12 @@ async fn failed_blocking_operation_releases_maintenance_and_preserves_error() {
     let manager = ProcessManager::new();
     let ownership = manager.reserve_maintenance("instance").unwrap();
     let result = run_maintenance::<()>(ownership, || {
-        Err(crate::minecraft::instance::InstanceError::EmptyName)
+        Err(ingot_minecraft::instance::InstanceError::EmptyName)
     })
     .await;
     assert!(matches!(
         result,
-        Err(crate::minecraft::instance::InstanceError::EmptyName)
+        Err(ingot_minecraft::instance::InstanceError::EmptyName)
     ));
     assert!(manager.reserve_maintenance("instance").is_ok());
 }
@@ -63,13 +63,15 @@ fn resolve_shortcut_directory_handles_all_locations() {
     {
         let desktop = super::resolve_shortcut_directory(
             handle,
-            crate::minecraft::instance::ShortcutLocation::Desktop,
+            ingot_minecraft::instance::ShortcutLocation::Desktop,
         );
         assert!(
             desktop.is_ok()
                 || matches!(
                     desktop,
-                    Err(crate::minecraft::instance::ShortcutError::DirectoryNotFound(_))
+                    Err(ingot_minecraft::instance::ShortcutError::DirectoryNotFound(
+                        _
+                    ))
                 )
         );
     }
@@ -78,20 +80,22 @@ fn resolve_shortcut_directory_handles_all_locations() {
     {
         let desktop = super::resolve_shortcut_directory(
             handle,
-            crate::minecraft::instance::ShortcutLocation::Desktop,
+            ingot_minecraft::instance::ShortcutLocation::Desktop,
         );
         assert!(matches!(
             desktop,
-            Err(crate::minecraft::instance::ShortcutError::UnsupportedPlatform(_))
+            Err(ingot_minecraft::instance::ShortcutError::UnsupportedPlatform(_))
         ));
     }
 
     let steam = super::resolve_shortcut_directory(
         handle,
-        crate::minecraft::instance::ShortcutLocation::Steam,
+        ingot_minecraft::instance::ShortcutLocation::Steam,
     );
     assert!(matches!(
         steam,
-        Err(crate::minecraft::instance::ShortcutError::DirectoryNotFound(_))
+        Err(ingot_minecraft::instance::ShortcutError::DirectoryNotFound(
+            _
+        ))
     ));
 }

@@ -1,4 +1,4 @@
-use crate::core::metadata::MetadataRepository;
+use ingot_core::metadata::MetadataRepository;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -41,7 +41,7 @@ pub fn patch_instance(
                 .iter_mut()
                 .find(|record| record.id == id)
                 .ok_or_else(|| {
-                    crate::core::metadata::MetadataError::Conflict("Instance not found".into())
+                    ingot_core::metadata::MetadataError::Conflict("Instance not found".into())
                 })?;
             change(record);
             Ok(())
@@ -127,7 +127,7 @@ pub fn update_last_played(
 }
 
 pub fn ensure_instance_directory(
-    repository: &crate::core::metadata::MetadataRepository<InstanceConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<InstanceConfig>,
     parent: &Path,
     id: &str,
 ) -> Result<PathBuf, InstanceError> {
@@ -136,11 +136,11 @@ pub fn ensure_instance_directory(
 
 fn create_instance_directory(parent: &Path, id: &str) -> Result<PathBuf, InstanceError> {
     let directory =
-        crate::core::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
     fs::create_dir_all(&directory)?;
     for name in ["mods", "config", "saves", "resourcepacks"] {
-        let child = crate::core::safe_enclosed_filename(&directory, name)
-            .ok_or(InstanceError::InvalidId)?;
+        let child =
+            ingot_core::safe_enclosed_filename(&directory, name).ok_or(InstanceError::InvalidId)?;
         fs::create_dir_all(child)?;
     }
     Ok(directory)

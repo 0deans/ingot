@@ -1,10 +1,10 @@
-use crate::server::config::creation::{prepare_server_config, ServerCreation};
-use crate::server::config::deletion::delete_server_record;
-use crate::server::config::error::ConfigError;
-use crate::server::config::models::{ServerConfig, ServerCoreType, ServerProperties};
-use crate::server::config::ports::check_port;
-use crate::server::config::properties::write_server_properties_to_dir;
-use crate::server::config::service::update_server_record;
+use ingot_server::config::creation::{prepare_server_config, ServerCreation};
+use ingot_server::config::deletion::delete_server_record;
+use ingot_server::config::error::ConfigError;
+use ingot_server::config::models::{ServerConfig, ServerCoreType, ServerProperties};
+use ingot_server::config::ports::check_port;
+use ingot_server::config::properties::write_server_properties_to_dir;
+use ingot_server::config::service::update_server_record;
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -37,13 +37,13 @@ pub fn get_server_dir<R: Runtime>(
 }
 
 fn ensure_server_directory(
-    repository: &crate::minecraft::metadata::MetadataRepository<ServerConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<ServerConfig>,
     parent: &std::path::Path,
     server_id: &str,
 ) -> Result<PathBuf, ConfigError> {
     repository.with_serialized(|| {
         let directory =
-            crate::core::safe_enclosed_filename(parent, server_id).ok_or(ConfigError::InvalidId)?;
+            ingot_core::safe_enclosed_filename(parent, server_id).ok_or(ConfigError::InvalidId)?;
         fs::create_dir_all(&directory)?;
         Ok(directory)
     })?
@@ -62,19 +62,19 @@ pub(crate) fn publish_staged_server<R: Runtime>(
 ) -> Result<ServerConfig, ConfigError> {
     let parent = get_servers_dir(app)?;
     let destination =
-        crate::core::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
     crate::app::state(app).server_configs.publish(
         staging,
         &destination,
         config.clone(),
         |records, candidate| {
             if records.iter().any(|record| record.id == candidate.id) {
-                return Err(crate::minecraft::metadata::MetadataError::Conflict(
+                return Err(ingot_core::metadata::MetadataError::Conflict(
                     "Server already exists".into(),
                 ));
             }
             check_port(records, &candidate.id, candidate.port).map_err(|error| {
-                crate::minecraft::metadata::MetadataError::Validation(Box::new(error))
+                ingot_core::metadata::MetadataError::Validation(Box::new(error))
             })?;
             Ok(())
         },
@@ -142,7 +142,7 @@ pub(crate) fn delete_server<R: Runtime>(
 ) -> Result<(), ConfigError> {
     let parent = get_servers_dir(app)?;
     let directory =
-        crate::core::safe_enclosed_filename(&parent, server_id).ok_or(ConfigError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(&parent, server_id).ok_or(ConfigError::InvalidId)?;
     delete_server_record(
         &crate::app::state(app).server_configs,
         server_id,
@@ -156,7 +156,7 @@ pub(crate) fn update_server<R: Runtime>(
 ) -> Result<(), ConfigError> {
     let parent = get_servers_dir(app)?;
     let directory =
-        crate::core::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
     update_server_record(&crate::app::state(app).server_configs, config, &directory)
 }
 

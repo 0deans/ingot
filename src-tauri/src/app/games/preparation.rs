@@ -1,5 +1,5 @@
 use crate::app::accounts as account;
-use crate::minecraft::launcher::{
+use ingot_minecraft::launcher::{
     models::LaunchError,
     prepare::{PreparationEffects, PreparationFuture, ResolvedAuth},
 };
@@ -20,7 +20,7 @@ impl<R: Runtime> PreparationEffects for NativePreparation<'_, R> {
         client: &'a reqwest::Client,
         major_version: u32,
         custom_path: Option<&'a str>,
-        progress: Option<crate::artifacts::java::JavaProgressFn>,
+        progress: Option<ingot_artifacts::java::JavaProgressFn>,
     ) -> PreparationFuture<'a, PathBuf> {
         Box::pin(async move {
             crate::app::java::ensure_java_runtime(
@@ -41,7 +41,7 @@ impl<R: Runtime> PreparationEffects for NativePreparation<'_, R> {
 
 async fn resolve_auth<R: Runtime>(app: &AppHandle<R>) -> Result<ResolvedAuth, LaunchError> {
     let accounts = account::load_accounts_file(app).map_err(|source| {
-        LaunchError::Account(crate::minecraft::launcher::models::LaunchAccountError::new(
+        LaunchError::Account(ingot_minecraft::launcher::models::LaunchAccountError::new(
             source,
         ))
     })?;
@@ -56,7 +56,7 @@ async fn resolve_auth<R: Runtime>(app: &AppHandle<R>) -> Result<ResolvedAuth, La
                     .await
                     .map_err(|source| {
                         LaunchError::Account(
-                            crate::minecraft::launcher::models::LaunchAccountError::new(source),
+                            ingot_minecraft::launcher::models::LaunchAccountError::new(source),
                         )
                     })?
             } else {
@@ -64,7 +64,7 @@ async fn resolve_auth<R: Runtime>(app: &AppHandle<R>) -> Result<ResolvedAuth, La
             };
             let user_type = if is_microsoft { "msa" } else { "mojang" };
             let xuid = if is_microsoft {
-                crate::auth::microsoft::xuid_from_token(&token)
+                ingot_accounts::auth::microsoft::xuid_from_token(&token)
             } else {
                 None
             };

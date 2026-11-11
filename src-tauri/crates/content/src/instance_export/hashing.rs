@@ -7,7 +7,7 @@ use sha1::{Digest as _, Sha1};
 use sha2::Sha512;
 
 use super::error::InstanceExportError;
-use crate::artifacts::sources::cf_fingerprint;
+use ingot_artifacts::sources::cf_fingerprint;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FileHashes {

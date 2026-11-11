@@ -118,7 +118,7 @@ fn validate_tracking(server: &Path, items: &[TrackedPlugin]) -> Result<(), Plugi
     let mut names = std::collections::HashSet::new();
     for item in items {
         if safe_jar_name(&item.file_name).is_err()
-            || crate::core::safe_enclosed_filename(server, &item.file_name).is_none()
+            || ingot_core::safe_enclosed_filename(server, &item.file_name).is_none()
             || item.project_id.trim().is_empty()
             || item.version_id.trim().is_empty()
             || !names.insert(&item.file_name)
@@ -143,7 +143,7 @@ fn split_path<'a>(server: &Path, relative: &'a str) -> Result<(&'a str, &'a str)
         .ok_or(PluginError::RecoveryBlocked("Unsafe plugin recovery path"))?;
     if !matches!(folder, "plugins" | "mods")
         || name.contains(['/', '\\'])
-        || crate::core::safe_enclosed_path(server, relative).is_none()
+        || ingot_core::safe_enclosed_path(server, relative).is_none()
     {
         return Err(PluginError::RecoveryBlocked("Unsafe plugin recovery path"));
     }

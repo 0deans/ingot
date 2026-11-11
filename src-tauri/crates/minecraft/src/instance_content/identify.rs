@@ -11,9 +11,9 @@ use super::models::{
     ContentCategory, ContentOrigin, IdentifyResult, ProviderSource, TrackedOrigin,
 };
 use super::tracking::{read_tracking, write_tracking};
-use crate::artifacts::models::sha1_hex;
-use crate::artifacts::sources::{cf_fingerprint, Scope, SourceClient};
-use crate::artifacts::targets::mod_scope;
+use ingot_artifacts::models::sha1_hex;
+use ingot_artifacts::sources::{cf_fingerprint, Scope, SourceClient};
+use ingot_artifacts::targets::mod_scope;
 
 pub fn category_scope(category: ContentCategory, loader_id: &str) -> Scope {
     match category {

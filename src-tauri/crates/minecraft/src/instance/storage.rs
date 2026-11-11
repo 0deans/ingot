@@ -1,5 +1,5 @@
 use super::{InstanceConfig, InstanceError};
-use crate::core::metadata::{DeletionFiles, MetadataError, MetadataRepository};
+use ingot_core::metadata::{DeletionFiles, MetadataError, MetadataRepository};
 use std::path::Path;
 
 pub(super) fn publish_instance(
@@ -9,7 +9,7 @@ pub(super) fn publish_instance(
     staging: &Path,
 ) -> Result<InstanceConfig, InstanceError> {
     let destination =
-        crate::core::safe_enclosed_filename(parent, &config.id).ok_or(InstanceError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(parent, &config.id).ok_or(InstanceError::InvalidId)?;
     repository.publish(
         staging,
         &destination,
@@ -53,7 +53,7 @@ pub(super) fn delete_instance_record(
     parent: &Path,
     id: &str,
 ) -> Result<(), InstanceError> {
-    crate::core::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
+    ingot_core::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
     repository.delete_record(id, DeletionFiles::Remove)?;
     Ok(())
 }
@@ -65,7 +65,7 @@ pub(super) fn delete_with_rename(
     id: &str,
     rename: impl Fn(&Path, &Path) -> std::io::Result<()>,
 ) -> Result<(), InstanceError> {
-    crate::core::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
+    ingot_core::safe_enclosed_filename(parent, id).ok_or(InstanceError::InvalidId)?;
     repository.delete_with_rename(id, DeletionFiles::Remove, rename)?;
     Ok(())
 }
@@ -74,7 +74,7 @@ pub(super) fn update_instance_record(
     parent: &Path,
     config: InstanceConfig,
 ) -> Result<(), InstanceError> {
-    crate::core::safe_enclosed_filename(parent, &config.id).ok_or(InstanceError::InvalidId)?;
+    ingot_core::safe_enclosed_filename(parent, &config.id).ok_or(InstanceError::InvalidId)?;
     repository.update(|records| {
         let existing = records
             .iter_mut()

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use super::error::InstanceExportError;
 use super::hashing::hash_file;
 use super::models::{EnvSupport, ExportOptions, FileSide};
-use crate::artifacts::sources::{ModrinthVersionFileMatch, Scope, SourceClient};
+use ingot_artifacts::sources::{ModrinthVersionFileMatch, Scope, SourceClient};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CurseForgeMatch {

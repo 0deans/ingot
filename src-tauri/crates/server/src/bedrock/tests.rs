@@ -35,9 +35,9 @@ fn unsafe_archive_preserves_error_and_existing_installation() {
 
     assert!(matches!(
         error,
-        BedrockServerError::Archive(crate::core::ArchiveError::UnsafeEntry)
+        BedrockServerError::Archive(ingot_core::ArchiveError::UnsafeEntry)
     ));
-    assert!(error.source().unwrap().is::<crate::core::ArchiveError>());
+    assert!(error.source().unwrap().is::<ingot_core::ArchiveError>());
     assert_eq!(std::fs::read(binary_path).unwrap(), b"original executable");
     assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 1);
 }
@@ -75,11 +75,11 @@ fn archive_write_failure_preserves_io_cause() {
     let error = prepare_failure(temp.path(), &bytes);
 
     match &error {
-        BedrockServerError::Archive(crate::core::ArchiveError::Io(_)) => {}
+        BedrockServerError::Archive(ingot_core::ArchiveError::Io(_)) => {}
         other => panic!("unexpected error: {other:?}"),
     }
     let archive_error = error.source().unwrap();
-    assert!(archive_error.is::<crate::core::ArchiveError>());
+    assert!(archive_error.is::<ingot_core::ArchiveError>());
     assert!(archive_error.source().unwrap().is::<std::io::Error>());
     assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 0);
 }

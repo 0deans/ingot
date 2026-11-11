@@ -1,8 +1,8 @@
 use super::ApiError;
 
-impl From<crate::artifacts::java::JavaError> for ApiError {
-    fn from(error: crate::artifacts::java::JavaError) -> Self {
-        use crate::artifacts::java::JavaError;
+impl From<ingot_artifacts::java::JavaError> for ApiError {
+    fn from(error: ingot_artifacts::java::JavaError) -> Self {
+        use ingot_artifacts::java::JavaError;
         match error {
             JavaError::ProbeCancelled => Self::cancelled(error.to_string()),
             JavaError::Io(_) => Self::storage_failure(error.to_string()),
@@ -22,16 +22,16 @@ impl From<crate::artifacts::java::JavaError> for ApiError {
     }
 }
 
-impl From<crate::server::config::service::ConfigError> for ApiError {
-    fn from(error: crate::server::config::service::ConfigError) -> Self {
-        use crate::server::config::service::ConfigError;
+impl From<ingot_server::config::service::ConfigError> for ApiError {
+    fn from(error: ingot_server::config::service::ConfigError) -> Self {
+        use ingot_server::config::service::ConfigError;
         match error {
             ConfigError::Metadata(error) => Self::from(error),
             ConfigError::File(error) => Self::from(error),
-            ConfigError::Port(crate::server::config::PortError::PortInUse { .. }) => {
+            ConfigError::Port(ingot_server::config::PortError::PortInUse { .. }) => {
                 Self::conflict(error.to_string())
             }
-            ConfigError::Port(crate::server::config::PortError::InvalidPortRange)
+            ConfigError::Port(ingot_server::config::PortError::InvalidPortRange)
             | ConfigError::EmptyName
             | ConfigError::InvalidMemory { .. }
             | ConfigError::InvalidId
@@ -43,9 +43,9 @@ impl From<crate::server::config::service::ConfigError> for ApiError {
     }
 }
 
-impl From<crate::server::files::ServerFileError> for ApiError {
-    fn from(error: crate::server::files::ServerFileError) -> Self {
-        use crate::server::files::ServerFileError;
+impl From<ingot_server::files::ServerFileError> for ApiError {
+    fn from(error: ingot_server::files::ServerFileError) -> Self {
+        use ingot_server::files::ServerFileError;
         match error {
             ServerFileError::InvalidProperty(_)
             | ServerFileError::InvalidPath(_)
@@ -58,18 +58,18 @@ impl From<crate::server::files::ServerFileError> for ApiError {
     }
 }
 
-impl From<crate::server::plugins::tracking::TrackingError> for ApiError {
-    fn from(error: crate::server::plugins::tracking::TrackingError) -> Self {
+impl From<ingot_server::plugins::tracking::TrackingError> for ApiError {
+    fn from(error: ingot_server::plugins::tracking::TrackingError) -> Self {
         match error {
-            crate::server::plugins::tracking::TrackingError::Recovery(error) => Self::from(*error),
+            ingot_server::plugins::tracking::TrackingError::Recovery(error) => Self::from(*error),
             error => Self::storage_failure(error.to_string()),
         }
     }
 }
 
-impl From<crate::server::process::models::ProcessError> for ApiError {
-    fn from(error: crate::server::process::models::ProcessError) -> Self {
-        use crate::server::process::models::ProcessError;
+impl From<ingot_server::process::models::ProcessError> for ApiError {
+    fn from(error: ingot_server::process::models::ProcessError) -> Self {
+        use ingot_server::process::models::ProcessError;
         match error {
             ProcessError::NotRunning(_)
             | ProcessError::ServerNotFound(_)
@@ -109,9 +109,9 @@ impl From<crate::server::process::models::ProcessError> for ApiError {
     }
 }
 
-impl From<crate::server::plugins::PluginError> for ApiError {
-    fn from(error: crate::server::plugins::PluginError) -> Self {
-        use crate::server::plugins::PluginError;
+impl From<ingot_server::plugins::PluginError> for ApiError {
+    fn from(error: ingot_server::plugins::PluginError) -> Self {
+        use ingot_server::plugins::PluginError;
         match error {
             PluginError::UnsupportedCore
             | PluginError::InvalidJarName(_)
@@ -134,9 +134,9 @@ impl From<crate::server::plugins::PluginError> for ApiError {
     }
 }
 
-impl From<crate::server::pumpkin::PumpkinError> for ApiError {
-    fn from(error: crate::server::pumpkin::PumpkinError) -> Self {
-        use crate::server::pumpkin::PumpkinError;
+impl From<ingot_server::pumpkin::PumpkinError> for ApiError {
+    fn from(error: ingot_server::pumpkin::PumpkinError) -> Self {
+        use ingot_server::pumpkin::PumpkinError;
         match error {
             PumpkinError::Network(_) | PumpkinError::HttpStatus { .. } => {
                 Self::provider_unavailable(error.to_string())
@@ -152,9 +152,9 @@ impl From<crate::server::pumpkin::PumpkinError> for ApiError {
     }
 }
 
-impl From<crate::server::bedrock::BedrockServerError> for ApiError {
-    fn from(error: crate::server::bedrock::BedrockServerError) -> Self {
-        use crate::server::bedrock::BedrockServerError;
+impl From<ingot_server::bedrock::BedrockServerError> for ApiError {
+    fn from(error: ingot_server::bedrock::BedrockServerError) -> Self {
+        use ingot_server::bedrock::BedrockServerError;
         match error {
             BedrockServerError::Network(_) | BedrockServerError::HttpStatus { .. } => {
                 Self::provider_unavailable(error.to_string())
@@ -174,9 +174,9 @@ impl From<crate::server::bedrock::BedrockServerError> for ApiError {
     }
 }
 
-impl From<crate::server::ServerCoreError> for ApiError {
-    fn from(error: crate::server::ServerCoreError) -> Self {
-        use crate::server::ServerCoreError;
+impl From<ingot_server::ServerCoreError> for ApiError {
+    fn from(error: ingot_server::ServerCoreError) -> Self {
+        use ingot_server::ServerCoreError;
         match error {
             ServerCoreError::Network(_) => Self::provider_unavailable(error.to_string()),
             ServerCoreError::Download(err) => Self::from(err),
@@ -189,9 +189,9 @@ impl From<crate::server::ServerCoreError> for ApiError {
     }
 }
 
-impl From<crate::server::installer::InstallerError> for ApiError {
-    fn from(error: crate::server::installer::InstallerError) -> Self {
-        use crate::server::installer::InstallerError;
+impl From<ingot_server::installer::InstallerError> for ApiError {
+    fn from(error: ingot_server::installer::InstallerError) -> Self {
+        use ingot_server::installer::InstallerError;
         match error {
             InstallerError::Cleanup { .. } => Self::incomplete_recovery(error.to_string()),
             InstallerError::ExecutionTimeout { .. } => Self::internal(error.to_string()),
@@ -211,9 +211,9 @@ impl From<crate::server::installer::InstallerError> for ApiError {
     }
 }
 
-impl From<crate::server::companion::CompanionError> for ApiError {
-    fn from(error: crate::server::companion::CompanionError) -> Self {
-        use crate::server::companion::CompanionError;
+impl From<ingot_server::companion::CompanionError> for ApiError {
+    fn from(error: ingot_server::companion::CompanionError) -> Self {
+        use ingot_server::companion::CompanionError;
         match error {
             CompanionError::UnsupportedPlatform => Self::invalid_input(error.to_string()),
             CompanionError::Plugin(error) => Self::from(error),
@@ -222,9 +222,9 @@ impl From<crate::server::companion::CompanionError> for ApiError {
     }
 }
 
-impl From<crate::server::bedrock_packs::BedrockPackError> for ApiError {
-    fn from(error: crate::server::bedrock_packs::BedrockPackError) -> Self {
-        use crate::server::bedrock_packs::BedrockPackError;
+impl From<ingot_server::bedrock_packs::BedrockPackError> for ApiError {
+    fn from(error: ingot_server::bedrock_packs::BedrockPackError) -> Self {
+        use ingot_server::bedrock_packs::BedrockPackError;
         match error {
             BedrockPackError::SystemPack
             | BedrockPackError::InvalidFolderName
@@ -248,9 +248,9 @@ impl From<crate::server::bedrock_packs::BedrockPackError> for ApiError {
     }
 }
 
-impl From<crate::core::ArchiveError> for ApiError {
-    fn from(error: crate::core::ArchiveError) -> Self {
-        use crate::core::ArchiveError;
+impl From<ingot_core::ArchiveError> for ApiError {
+    fn from(error: ingot_core::ArchiveError) -> Self {
+        use ingot_core::ArchiveError;
         match error {
             ArchiveError::UnsafeEntry => Self::invalid_input(error.to_string()),
             ArchiveError::Zip(_) => Self::internal(error.to_string()),
@@ -259,9 +259,9 @@ impl From<crate::core::ArchiveError> for ApiError {
     }
 }
 
-impl From<crate::server::map::MapError> for ApiError {
-    fn from(error: crate::server::map::MapError) -> Self {
-        use crate::server::map::MapError;
+impl From<ingot_server_map::map::MapError> for ApiError {
+    fn from(error: ingot_server_map::map::MapError) -> Self {
+        use ingot_server_map::map::MapError;
         match error {
             MapError::RegionRead { .. } | MapError::TileRead { .. } => {
                 Self::storage_failure(error.to_string())
@@ -273,9 +273,9 @@ impl From<crate::server::map::MapError> for ApiError {
     }
 }
 
-impl From<crate::server::live::LiveError> for ApiError {
-    fn from(error: crate::server::live::LiveError) -> Self {
-        use crate::server::live::LiveError;
+impl From<ingot_server_map::live::LiveError> for ApiError {
+    fn from(error: ingot_server_map::live::LiveError) -> Self {
+        use ingot_server_map::live::LiveError;
         match error {
             LiveError::InvalidPlayerName(_) => Self::invalid_input(error.to_string()),
             LiveError::PlayerNotOnline(_) => Self::conflict(error.to_string()),
@@ -286,9 +286,9 @@ impl From<crate::server::live::LiveError> for ApiError {
     }
 }
 
-impl From<crate::server::live_query::LiveQueryError> for ApiError {
-    fn from(error: crate::server::live_query::LiveQueryError) -> Self {
-        use crate::server::live_query::LiveQueryError;
+impl From<ingot_server::live_query::LiveQueryError> for ApiError {
+    fn from(error: ingot_server::live_query::LiveQueryError) -> Self {
+        use ingot_server::live_query::LiveQueryError;
         match error {
             LiveQueryError::InvalidPlayerName(_) => Self::invalid_input(error.to_string()),
             LiveQueryError::PlayerNotOnline(_) => Self::conflict(error.to_string()),
@@ -298,9 +298,9 @@ impl From<crate::server::live_query::LiveQueryError> for ApiError {
     }
 }
 
-impl From<crate::server::transfer::TransferError> for ApiError {
-    fn from(error: crate::server::transfer::TransferError) -> Self {
-        use crate::server::transfer::TransferError;
+impl From<ingot_server::transfer::TransferError> for ApiError {
+    fn from(error: ingot_server::transfer::TransferError) -> Self {
+        use ingot_server::transfer::TransferError;
         match error {
             TransferError::InvalidZip(_)
             | TransferError::NotAnIngotExport
@@ -330,9 +330,9 @@ impl From<crate::server::transfer::TransferError> for ApiError {
     }
 }
 
-impl From<crate::tunnel::PlayitError> for ApiError {
-    fn from(error: crate::tunnel::PlayitError) -> Self {
-        use crate::tunnel::PlayitError;
+impl From<ingot_tunnel::PlayitError> for ApiError {
+    fn from(error: ingot_tunnel::PlayitError) -> Self {
+        use ingot_tunnel::PlayitError;
         match error {
             PlayitError::Io(_)
             | PlayitError::Directory(_)
@@ -355,9 +355,9 @@ impl From<crate::tunnel::PlayitError> for ApiError {
     }
 }
 
-impl From<crate::server::slp::PingError> for ApiError {
-    fn from(error: crate::server::slp::PingError) -> Self {
-        use crate::server::slp::PingError;
+impl From<ingot_server::slp::PingError> for ApiError {
+    fn from(error: ingot_server::slp::PingError) -> Self {
+        use ingot_server::slp::PingError;
         match error {
             PingError::Timeout => Self::provider_unavailable("Server ping timed out"),
             PingError::Io(_) => Self::provider_unavailable(error.to_string()),
@@ -369,9 +369,9 @@ impl From<crate::server::slp::PingError> for ApiError {
     }
 }
 
-impl From<crate::sandbox::SandboxError> for ApiError {
-    fn from(error: crate::sandbox::SandboxError) -> Self {
-        use crate::sandbox::SandboxError;
+impl From<ingot_sandbox::SandboxError> for ApiError {
+    fn from(error: ingot_sandbox::SandboxError) -> Self {
+        use ingot_sandbox::SandboxError;
         match error {
             SandboxError::Io(_) => Self::storage_failure(error.to_string()),
             SandboxError::PublicationPending(_)
@@ -415,8 +415,8 @@ impl From<crate::app::lifecycle::LifecycleError> for ApiError {
     }
 }
 
-fn tree_termination_error(error: &crate::process_tree::TerminationError) -> ApiError {
-    use crate::process_tree::TerminationError;
+fn tree_termination_error(error: &ingot_core::process_tree::TerminationError) -> ApiError {
+    use ingot_core::process_tree::TerminationError;
     match error {
         TerminationError::Cleanup { .. }
         | TerminationError::Failures { .. }

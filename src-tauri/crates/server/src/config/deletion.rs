@@ -1,5 +1,5 @@
 use super::{error::ConfigError, models::ServerConfig};
-use crate::core::metadata::{DeletionFiles, MetadataRepository};
+use ingot_core::metadata::{DeletionFiles, MetadataRepository};
 use std::path::Path;
 
 pub fn delete_server_record(
@@ -10,7 +10,7 @@ pub fn delete_server_record(
     if let Some(directory) = directory {
         let parent = directory.parent().ok_or(ConfigError::InvalidId)?;
         let expected =
-            crate::core::safe_enclosed_filename(parent, server_id).ok_or(ConfigError::InvalidId)?;
+            ingot_core::safe_enclosed_filename(parent, server_id).ok_or(ConfigError::InvalidId)?;
         if expected != directory {
             return Err(ConfigError::InvalidId);
         }

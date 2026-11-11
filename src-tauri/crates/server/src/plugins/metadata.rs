@@ -14,5 +14,5 @@ pub fn safe_jar_name(name: &str) -> Result<&str, PluginError> {
 /// name/version/description/authors from plugin.yml, paper-plugin.yml, fabric.mod.json,
 /// quilt.mod.json or (neoforge.)mods.toml
 pub fn read_jar_metadata(path: &Path) -> Option<RawJarMetadata> {
-    crate::artifacts::metadata::read_raw_jar_metadata(path)
+    ingot_artifacts::metadata::read_raw_jar_metadata(path)
 }

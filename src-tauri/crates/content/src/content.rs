@@ -12,7 +12,7 @@ pub(crate) mod technic;
 mod tests;
 
 pub use atlauncher::AtLauncherClient;
-pub use curseforge::{CurseForgeClient, CURSEFORGE_API_KEY};
+pub use curseforge::CurseForgeClient;
 pub use error::ContentError;
 pub use ftb::FtbClient;
 pub use models::{

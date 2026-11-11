@@ -1,6 +1,6 @@
 use crate::app::sync;
 use crate::ipc::ApiError;
-use crate::minecraft::sync::{SharedSyncStatus, SyncConflictInfo, SyncError, SyncReport};
+use ingot_minecraft::sync::{SharedSyncStatus, SyncConflictInfo, SyncError, SyncReport};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "instances.sync")]

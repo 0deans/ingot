@@ -1,18 +1,18 @@
 use super::exit::{finish_game, handle_launcher_behavior_on_launch};
 use super::preparation::NativePreparation;
 use crate::app::instances::ensure_instance_dir;
-use crate::minecraft::instance::InstanceConfig;
-use crate::minecraft::launcher::models::{
+use crate::system;
+use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::launcher::models::{
     InstanceStatusEvent, LaunchError, LaunchProgressEvent, QuickPlayOptions, StatusFn,
 };
-use crate::minecraft::launcher::prepare::prepare_launch_environment;
-use crate::minecraft::launcher::process::ProcessManager;
-use crate::minecraft::launcher::progress::make_progress_reporter;
-use crate::minecraft::launcher::service::{
+use ingot_minecraft::launcher::prepare::prepare_launch_environment;
+use ingot_minecraft::launcher::process::ProcessManager;
+use ingot_minecraft::launcher::progress::make_progress_reporter;
+use ingot_minecraft::launcher::service::{
     prepare_game_command, spawn_and_commit_process, CommandContext,
 };
-use crate::minecraft::logs::{InstanceLogEvent, LogLevel};
-use crate::system;
+use ingot_minecraft::logs::{InstanceLogEvent, LogLevel};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, Runtime};
@@ -32,10 +32,10 @@ pub(crate) enum GameLaunchError {
     Launcher(#[from] LaunchError),
 
     #[error("Version change transaction is in incomplete state: {0:?}. Please recover or revert it first.")]
-    IncompleteTransaction(crate::version_change::TransactionPhase),
+    IncompleteTransaction(ingot_version_change::TransactionPhase),
 
     #[error("Cannot inspect version change recovery state: {0}")]
-    TransactionInspection(#[source] Box<crate::version_change::VersionChangeError>),
+    TransactionInspection(#[source] Box<ingot_version_change::VersionChangeError>),
 }
 
 impl GameLaunchError {
@@ -91,7 +91,7 @@ where
     let global_settings = system::load_settings(&app).map_err(LaunchError::Settings)?;
 
     let (mut command, _session_guard) =
-        if instance.loader == crate::minecraft::instance::ModLoaderType::Horizon {
+        if instance.loader == ingot_minecraft::instance::ModLoaderType::Horizon {
             super::horizon::prepare_horizon_game_command(
                 &app,
                 &client,
@@ -280,7 +280,7 @@ where
 }
 
 fn ensure_transaction_ready(instance_dir: &std::path::Path) -> Result<(), GameLaunchError> {
-    let incomplete = crate::version_change::detect_incomplete_transaction(instance_dir)
+    let incomplete = ingot_version_change::detect_incomplete_transaction(instance_dir)
         .map_err(|source| GameLaunchError::TransactionInspection(Box::new(source)))?;
     if let Some(transaction) = incomplete {
         return Err(GameLaunchError::IncompleteTransaction(transaction.phase));
@@ -289,12 +289,12 @@ fn ensure_transaction_ready(instance_dir: &std::path::Path) -> Result<(), GameLa
 }
 
 struct InstanceLaunchReservation {
-    ownership: crate::minecraft::launcher::process::StartingGuard,
+    ownership: ingot_minecraft::launcher::process::StartingGuard,
     instance: InstanceConfig,
 }
 
 async fn reserve_instance_launch(
-    repository: &crate::minecraft::metadata::MetadataRepository<InstanceConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<InstanceConfig>,
     processes: &ProcessManager,
     id: &str,
 ) -> Result<InstanceLaunchReservation, LaunchError> {
@@ -351,32 +351,30 @@ pub(crate) async fn launch_instance_with_options<R: Runtime>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::minecraft::{
-        instance::{prepare_instance, ModLoaderType},
-        metadata::MetadataRepository,
-    };
+    use ingot_core::metadata::MetadataRepository;
+    use ingot_minecraft::instance::{prepare_instance, ModLoaderType};
 
     #[test]
     fn transaction_inspection_preserves_decode_cause_and_blocks_launch() {
         use std::error::Error;
         let directory = tempfile::tempdir().unwrap();
-        let backup = crate::version_change::models::backup_dir(directory.path());
+        let backup = ingot_version_change::models::backup_dir(directory.path());
         std::fs::create_dir_all(&backup).unwrap();
         std::fs::write(backup.join("journal.json"), b"malformed").unwrap();
         let error = ensure_transaction_ready(directory.path()).unwrap_err();
         assert!(matches!(error, GameLaunchError::TransactionInspection(_)));
         let source = error.source().unwrap();
-        assert!(source.is::<Box<crate::version_change::VersionChangeError>>());
+        assert!(source.is::<Box<ingot_version_change::VersionChangeError>>());
         assert!(source.source().unwrap().is::<serde_json::Error>());
     }
 
     #[test]
     fn incomplete_transaction_retains_its_phase() {
         let directory = tempfile::tempdir().unwrap();
-        let backup = crate::version_change::models::backup_dir(directory.path());
+        let backup = ingot_version_change::models::backup_dir(directory.path());
         std::fs::create_dir_all(&backup).unwrap();
-        let journal = crate::version_change::journal::Journal {
-            phase: crate::version_change::TransactionPhase::Swapping,
+        let journal = ingot_version_change::journal::Journal {
+            phase: ingot_version_change::TransactionPhase::Swapping,
             ..Default::default()
         };
         std::fs::write(
@@ -387,7 +385,7 @@ mod tests {
         assert!(matches!(
             ensure_transaction_ready(directory.path()),
             Err(GameLaunchError::IncompleteTransaction(
-                crate::version_change::TransactionPhase::Swapping
+                ingot_version_change::TransactionPhase::Swapping
             ))
         ));
     }
@@ -395,10 +393,10 @@ mod tests {
     #[test]
     fn incomplete_transaction_maps_to_incomplete_recovery_api_error() {
         let directory = tempfile::tempdir().unwrap();
-        let backup = crate::version_change::models::backup_dir(directory.path());
+        let backup = ingot_version_change::models::backup_dir(directory.path());
         std::fs::create_dir_all(&backup).unwrap();
-        let journal = crate::version_change::journal::Journal {
-            phase: crate::version_change::TransactionPhase::Swapping,
+        let journal = ingot_version_change::journal::Journal {
+            phase: ingot_version_change::TransactionPhase::Swapping,
             ..Default::default()
         };
         std::fs::write(
@@ -419,7 +417,7 @@ mod tests {
     #[test]
     fn transaction_inspection_maps_to_incomplete_recovery_api_error() {
         let directory = tempfile::tempdir().unwrap();
-        let backup = crate::version_change::models::backup_dir(directory.path());
+        let backup = ingot_version_change::models::backup_dir(directory.path());
         std::fs::create_dir_all(&backup).unwrap();
         std::fs::write(backup.join("journal.json"), b"malformed").unwrap();
         let error = ensure_transaction_ready(directory.path()).unwrap_err();

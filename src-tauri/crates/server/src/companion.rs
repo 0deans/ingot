@@ -94,7 +94,7 @@ pub enum CompanionError {
     UnsupportedPlatform,
 
     #[error("Plugin error during companion installation: {0}")]
-    Plugin(#[from] crate::server::plugins::PluginError),
+    Plugin(#[from] crate::plugins::PluginError),
 
     #[error("I/O error during companion installation: {0}")]
     Io(#[from] std::io::Error),

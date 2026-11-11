@@ -64,14 +64,12 @@ fn write_varint(buf: &mut Vec<u8>, mut val: i32) {
 }
 
 async fn read_varint<R: AsyncReadExt + Unpin>(reader: &mut R) -> Result<i32, PingError> {
-    crate::server::proxy::read_varint(reader)
-        .await
-        .map_err(|error| {
-            if error.kind() == std::io::ErrorKind::InvalidData {
-                return PingError::InvalidVarInt(error);
-            }
-            PingError::Io(error)
-        })
+    crate::proxy::read_varint(reader).await.map_err(|error| {
+        if error.kind() == std::io::ErrorKind::InvalidData {
+            return PingError::InvalidVarInt(error);
+        }
+        PingError::Io(error)
+    })
 }
 
 fn extract_motd_text(desc_val: &serde_json::Value) -> String {

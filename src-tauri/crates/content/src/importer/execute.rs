@@ -1,7 +1,7 @@
 //! Staged instance import; publication is supplied by the application repository.
 use super::models::{ImportError, ImportInstanceOptions, ImportReport};
-use crate::core::metadata::MetadataError;
-use crate::minecraft::instance::InstanceConfig;
+use ingot_core::metadata::MetadataError;
+use ingot_minecraft::instance::InstanceConfig;
 use std::{fs, io, path::Path};
 
 pub(crate) const IGNORED_ENTRIES: &[&str] = &[
@@ -46,7 +46,7 @@ fn invalid_entry() -> io::Error {
 fn directory_exists(path: &Path) -> io::Result<bool> {
     match fs::symlink_metadata(path) {
         Ok(metadata) if metadata.is_dir() => {
-            if crate::core::safe_enclosed_filename(path, ".import-check").is_none() {
+            if ingot_core::safe_enclosed_filename(path, ".import-check").is_none() {
                 return Err(invalid_entry());
             }
             Ok(true)
@@ -62,10 +62,10 @@ fn checked_entry(entry: &fs::DirEntry, destination: &Path) -> io::Result<std::pa
     let name = name.to_str().ok_or_else(invalid_entry)?;
     let path = entry.path();
     let source_parent = path.parent().ok_or_else(invalid_entry)?;
-    if crate::core::safe_enclosed_filename(source_parent, name).is_none() {
+    if ingot_core::safe_enclosed_filename(source_parent, name).is_none() {
         return Err(invalid_entry());
     }
-    crate::core::safe_enclosed_filename(destination, name).ok_or_else(invalid_entry)
+    ingot_core::safe_enclosed_filename(destination, name).ok_or_else(invalid_entry)
 }
 
 pub(crate) fn copy_dir_all(source: &Path, destination: &Path) -> io::Result<()> {
@@ -105,7 +105,7 @@ fn copy_optional_file(source: &Path, destination: &Path) -> io::Result<()> {
             .file_name()
             .and_then(|name| name.to_str())
             .ok_or_else(invalid_entry)?;
-        if crate::core::safe_enclosed_filename(parent, name).is_none() {
+        if ingot_core::safe_enclosed_filename(parent, name).is_none() {
             return Err(invalid_entry());
         }
     }
@@ -243,7 +243,7 @@ pub fn execute_import_instance(
     if !directory_exists(source).map_err(ImportError::Io)? {
         return Err(ImportError::SourceNotFound(options.source_path));
     }
-    let config = crate::minecraft::instance::prepare_instance(
+    let config = ingot_minecraft::instance::prepare_instance(
         options.name.clone(),
         options.game_version.clone(),
         options.loader.clone(),

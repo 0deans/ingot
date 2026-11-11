@@ -9,8 +9,8 @@ fn metadata_io(
     operation: &'static str,
     path: &std::path::Path,
     source: std::io::Error,
-) -> crate::core::metadata::MetadataError {
-    crate::core::metadata::MetadataError::Io {
+) -> ingot_core::metadata::MetadataError {
+    ingot_core::metadata::MetadataError::Io {
         operation,
         path: path.to_owned(),
         source,
@@ -18,12 +18,12 @@ fn metadata_io(
 }
 
 pub fn update_server_record(
-    repository: &crate::core::metadata::MetadataRepository<ServerConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<ServerConfig>,
     mut config: ServerConfig,
     directory: &std::path::Path,
 ) -> Result<(), ConfigError> {
     super::creation::validate_server_settings(&config)?;
-    use crate::core::metadata::MetadataError;
+    use ingot_core::metadata::MetadataError;
     repository.update_compensated(
         |records| {
             let index = records
@@ -41,9 +41,9 @@ pub fn update_server_record(
                         return Err(metadata_io("read previous properties", &path, error))
                     }
                 };
-                crate::server::files::write_properties(
+                crate::files::write_properties(
                     directory,
-                    &[crate::server::files::PropertyEntry {
+                    &[crate::files::PropertyEntry {
                         key: "server-port".into(),
                         value: config.port.to_string(),
                     }],
@@ -66,14 +66,12 @@ pub fn update_server_record(
 
 fn restore_properties(
     previous: &Option<(std::path::PathBuf, Option<Vec<u8>>)>,
-) -> Result<(), crate::core::metadata::MetadataError> {
+) -> Result<(), ingot_core::metadata::MetadataError> {
     use std::io::Write;
     if let Some((path, bytes)) = previous {
         if let Some(bytes) = bytes {
             let directory = path.parent().ok_or_else(|| {
-                crate::core::metadata::MetadataError::Conflict(
-                    "Missing properties directory".into(),
-                )
+                ingot_core::metadata::MetadataError::Conflict("Missing properties directory".into())
             })?;
             let mut stage = tempfile::NamedTempFile::new_in(directory)
                 .map_err(|error| metadata_io("stage previous properties", path, error))?;
@@ -96,13 +94,13 @@ fn restore_properties(
 }
 
 pub fn update_properties(
-    repository: &crate::core::metadata::MetadataRepository<ServerConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<ServerConfig>,
     server_id: &str,
     directory: &std::path::Path,
-    entries: &[crate::server::files::PropertyEntry],
+    entries: &[crate::files::PropertyEntry],
 ) -> Result<(), ConfigError> {
-    use crate::core::metadata::MetadataError;
-    crate::server::files::validate_updates(entries)?;
+    use ingot_core::metadata::MetadataError;
+    crate::files::validate_updates(entries)?;
     let port = entries
         .iter()
         .find(|entry| entry.key == "server-port")
@@ -130,7 +128,7 @@ pub fn update_properties(
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
                 Err(error) => return Err(metadata_io("read previous properties", &path, error)),
             };
-            crate::server::files::write_properties(directory, entries).map_err(|error| {
+            crate::files::write_properties(directory, entries).map_err(|error| {
                 metadata_io("publish properties", &path, std::io::Error::other(error))
             })?;
             if let Some(port) = port {

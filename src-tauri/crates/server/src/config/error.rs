@@ -7,7 +7,7 @@ pub enum ConfigError {
     #[error("Invalid server memory range: {minimum_mb}–{maximum_mb} MiB")]
     InvalidMemory { minimum_mb: u32, maximum_mb: u32 },
     #[error(transparent)]
-    Metadata(crate::core::metadata::MetadataError),
+    Metadata(ingot_core::metadata::MetadataError),
     #[error("Server file I/O failed: {0}")]
     Io(#[from] std::io::Error),
     #[error("Invalid server identifier")]
@@ -15,14 +15,14 @@ pub enum ConfigError {
     #[error("Server directory resolution failed: {0}")]
     Directory(#[source] std::io::Error),
     #[error(transparent)]
-    File(#[from] crate::server::files::ServerFileError),
+    File(#[from] crate::files::ServerFileError),
     #[error("Invalid server port")]
     InvalidPort,
 }
 
-impl From<crate::core::metadata::MetadataError> for ConfigError {
-    fn from(error: crate::core::metadata::MetadataError) -> Self {
-        use crate::core::metadata::MetadataError;
+impl From<ingot_core::metadata::MetadataError> for ConfigError {
+    fn from(error: ingot_core::metadata::MetadataError) -> Self {
+        use ingot_core::metadata::MetadataError;
         match error {
             MetadataError::Validation(source) => {
                 match source.downcast::<super::models::PortError>() {

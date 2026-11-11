@@ -1,10 +1,10 @@
 //! Version and loader parser for vanilla and legacy profile version strings.
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 
 /// Cleans and normalizes a raw loader version string by trimming whitespace,
 /// stripping redundant game version prefix/suffix, and stripping redundant loader prefixes.
 pub(crate) fn clean_loader_version(loader_ver: &str, game_version: &str) -> String {
-    crate::minecraft::loader::normalize_loader_version(game_version, loader_ver)
+    ingot_minecraft::loader::normalize_loader_version(game_version, loader_ver)
 }
 
 /// Parses a version ID string (from launcher profiles or legacy version JSONs)

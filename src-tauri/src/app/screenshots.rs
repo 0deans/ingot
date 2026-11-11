@@ -1,6 +1,6 @@
 //! Native path and repository integration for screenshot operations.
-use crate::minecraft::screenshots::service::{self, ScreenshotKind, ScreenshotSource};
-use crate::minecraft::screenshots::{self, ScreenshotError, ScreenshotInfo};
+use ingot_minecraft::screenshots::service::{self, ScreenshotKind, ScreenshotSource};
+use ingot_minecraft::screenshots::{self, ScreenshotError, ScreenshotInfo};
 use std::path::{Path, PathBuf};
 use tauri::{Manager, Runtime};
 

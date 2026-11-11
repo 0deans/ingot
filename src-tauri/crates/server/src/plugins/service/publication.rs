@@ -11,7 +11,7 @@ use super::super::{
     models::{PluginError, TrackedPlugin},
     tracking::{read_tracking_raw, write_tracking_typed},
 };
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 use std::{
     collections::HashMap,
     fs, io,
@@ -49,7 +49,7 @@ pub(crate) fn with_plugin_lock<R>(
         .lock()
         .map_err(|_| PluginError::RecoveryBlocked("Plugin lock poisoned"))?;
     for relative in [".ingot/plugins.journal.json", ".ingot/plugins.json"] {
-        if crate::core::safe_enclosed_path(server_dir, relative).is_none() {
+        if ingot_core::safe_enclosed_path(server_dir, relative).is_none() {
             return Err(PluginError::RecoveryBlocked("Unsafe plugin metadata path"));
         }
     }
@@ -211,7 +211,7 @@ fn to_relative(server_dir: &Path, path: &Path) -> Result<String, PluginError> {
         .strip_prefix(server_dir)
         .map_err(|_| PluginError::InvalidPayload("path outside server directory"))?;
     let rel_str = rel.to_string_lossy().replace('\\', "/");
-    if crate::core::safe_enclosed_path(server_dir, &rel_str).is_none() {
+    if ingot_core::safe_enclosed_path(server_dir, &rel_str).is_none() {
         return Err(PluginError::InvalidPayload("unsafe relative path"));
     }
     Ok(rel_str)

@@ -41,7 +41,7 @@ pub type StatusFn = Arc<dyn Fn(InstanceStatusEvent) + Send + Sync>;
 #[derive(Debug, thiserror::Error)]
 pub enum LaunchError {
     #[error(transparent)]
-    Metadata(#[from] crate::core::metadata::MetadataError),
+    Metadata(#[from] ingot_core::metadata::MetadataError),
 
     #[error("Instance {0} not found")]
     InstanceNotFound(String),
@@ -61,25 +61,25 @@ pub enum LaunchError {
     AppDataDir(#[source] std::io::Error),
 
     #[error("Instance directory error: {0}")]
-    InstanceDir(#[source] crate::minecraft::instance::InstanceError),
+    InstanceDir(#[source] crate::instance::InstanceError),
 
     #[error("Version package error: {0}")]
-    VersionPackage(#[source] crate::minecraft::version::VersionError),
+    VersionPackage(#[source] crate::version::VersionError),
 
     #[error("Mod loader profile error: {0}")]
-    LoaderProfile(#[source] crate::minecraft::loader::LoaderError),
+    LoaderProfile(#[source] crate::loader::LoaderError),
 
     #[error("Java runtime error: {0}")]
-    JavaRuntime(#[source] crate::artifacts::java::JavaError),
+    JavaRuntime(#[source] ingot_artifacts::java::JavaError),
 
     #[error("Download error: {0}")]
-    Download(#[from] crate::artifacts::downloader::DownloadError),
+    Download(#[from] ingot_artifacts::downloader::DownloadError),
 
     #[error("Account error: {0}")]
     Account(#[source] LaunchAccountError),
 
     #[error("Settings error: {0}")]
-    Settings(#[source] crate::settings::SettingsError),
+    Settings(#[source] ingot_settings::SettingsError),
 
     #[error("Failed to spawn Minecraft process: {0}")]
     ProcessSpawn(#[source] std::io::Error),
@@ -100,7 +100,7 @@ pub enum LaunchError {
     Task(#[from] tokio::task::JoinError),
 
     #[error("Horizon engine error: {0}")]
-    Horizon(#[from] crate::minecraft::horizon::HorizonError),
+    Horizon(#[from] crate::horizon::HorizonError),
 }
 
 #[derive(Debug, thiserror::Error)]

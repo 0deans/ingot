@@ -39,7 +39,7 @@ pub fn read_tracking_raw(server_dir: &Path) -> Result<Vec<TrackedPlugin>, Tracki
         serde_json::from_slice(&bytes).map_err(|source| TrackingError::Decode { path, source })?;
     for item in &tracked {
         if super::metadata::safe_jar_name(&item.file_name).is_err()
-            || crate::core::safe_enclosed_filename(server_dir, &item.file_name).is_none()
+            || ingot_core::safe_enclosed_filename(server_dir, &item.file_name).is_none()
         {
             return Err(TrackingError::InvalidEntry("file_name"));
         }
@@ -67,7 +67,7 @@ pub fn write_tracking_typed(
     let raw = serde_json::to_string_pretty(tracked)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
 
-    crate::core::write_file_atomic_with_parent_sync(&path, raw.as_bytes(), true)
+    ingot_core::write_file_atomic_with_parent_sync(&path, raw.as_bytes(), true)
 }
 
 pub fn write_tracking(server_dir: &Path, tracked: &[TrackedPlugin]) -> Result<(), TrackingError> {
@@ -87,14 +87,14 @@ fn tracking_failure(error: super::models::PluginError) -> TrackingError {
 /// Hangar has no lookup by file, so version changes need the installed project's identity.
 pub fn tracked_hangar(
     server_dir: &Path,
-) -> Result<HashMap<String, crate::artifacts::models::TrackedHangarPlugin>, TrackingError> {
+) -> Result<HashMap<String, ingot_artifacts::models::TrackedHangarPlugin>, TrackingError> {
     Ok(read_tracking(server_dir)?
         .into_iter()
         .filter(|t| t.source == PluginSource::Hangar)
         .map(|t| {
             (
                 t.file_name,
-                crate::artifacts::models::TrackedHangarPlugin {
+                ingot_artifacts::models::TrackedHangarPlugin {
                     project_id: t.project_id,
                     version_id: t.version_id,
                     title: t.title,
@@ -109,10 +109,10 @@ pub fn tracked_hangar(
 /// in place of the ones they replaced
 pub fn track_version_change(
     server_dir: &Path,
-    items: &[crate::artifacts::models::PlanItem],
+    items: &[ingot_artifacts::models::PlanItem],
 ) -> Result<(), TrackingError> {
-    use crate::artifacts::models::ItemAction;
-    use crate::artifacts::sources::Source;
+    use ingot_artifacts::models::ItemAction;
+    use ingot_artifacts::sources::Source;
     super::service::with_plugin_lock(server_dir, || {
         let mut tracked = read_tracking_raw(server_dir)?;
         for item in items

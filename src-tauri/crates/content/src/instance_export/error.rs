@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 use thiserror::Error;
 
-use crate::artifacts::sources::SourceError;
-use crate::minecraft::instance::ModLoaderType;
-use crate::minecraft::instance_content::error::InstanceContentError;
+use ingot_artifacts::sources::SourceError;
+use ingot_minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance_content::error::InstanceContentError;
 
 #[derive(Error, Debug)]
 pub enum InstanceExportError {

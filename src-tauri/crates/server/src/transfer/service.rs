@@ -1,6 +1,6 @@
 use super::*;
-use crate::core::metadata::MetadataRepository;
-use crate::server::config::creation::{prepare_server_config, ServerCreation};
+use crate::config::creation::{prepare_server_config, ServerCreation};
+use ingot_core::metadata::MetadataRepository;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Clone)]
@@ -23,7 +23,7 @@ impl TransferService {
         )?)
     }
     fn publish(&self, config: ServerConfig, staging: &Path) -> Result<ServerConfig, TransferError> {
-        let destination = crate::core::safe_enclosed_filename(&self.servers_dir, &config.id)
+        let destination = ingot_core::safe_enclosed_filename(&self.servers_dir, &config.id)
             .ok_or(config::ConfigError::InvalidId)?;
         self.repository
             .publish(
@@ -32,12 +32,12 @@ impl TransferService {
                 config.clone(),
                 |records, candidate| {
                     if records.iter().any(|record| record.id == candidate.id) {
-                        return Err(crate::core::metadata::MetadataError::Conflict(
+                        return Err(ingot_core::metadata::MetadataError::Conflict(
                             "Server already exists".into(),
                         ));
                     }
                     config::ports::check_port(records, &candidate.id, candidate.port).map_err(
-                        |error| crate::core::metadata::MetadataError::Validation(Box::new(error)),
+                        |error| ingot_core::metadata::MetadataError::Validation(Box::new(error)),
                     )
                 },
             )
@@ -93,7 +93,7 @@ impl TransferService {
         let servers_dir = &self.servers_dir;
         let staging = tempfile::tempdir_in(servers_dir)?;
         let result = (|| {
-            crate::core::extract_zip_entries(&mut zip, staging.path(), "", Some(MANIFEST))?;
+            ingot_core::extract_zip_entries(&mut zip, staging.path(), "", Some(MANIFEST))?;
             set_port(staging.path(), created.port)?;
             checkpoint(&created)?;
             self.publish(created, staging.path())
@@ -124,7 +124,7 @@ impl TransferService {
             memory_min_mb: Some(source.memory_min_mb),
             memory_max_mb: Some(source.memory_max_mb),
         })?;
-        let from = crate::core::safe_enclosed_filename(&self.servers_dir, &source.id)
+        let from = ingot_core::safe_enclosed_filename(&self.servers_dir, &source.id)
             .ok_or(config::ConfigError::InvalidId)?;
         let parent = &self.servers_dir;
         let staging = tempfile::tempdir_in(parent)?;
@@ -133,7 +133,7 @@ impl TransferService {
             copy_dir(&from, to, version_changes)?;
             if version_changes {
                 // Forge, NeoForge and Quilt install themselves again for the new version
-                crate::server::installer::uninstall(to, &created.core)?;
+                crate::installer::uninstall(to, &created.core)?;
             }
             set_port(to, created.port)?;
 
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn publication_checks_fresh_ports_and_preserves_typed_conflict() {
-        use crate::server::config::{ConfigError, PortError};
+        use crate::config::{ConfigError, PortError};
         let root = tempfile::tempdir().unwrap();
         let service = super::super::tests::service(root.path());
         let candidate = service

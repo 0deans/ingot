@@ -1,5 +1,5 @@
 use super::models::{LaunchError, RunningInstanceSummary};
-use crate::minecraft::logs::{parse_log_line, InstanceLogLine, LogLevel};
+use crate::logs::{parse_log_line, InstanceLogLine, LogLevel};
 use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
@@ -73,7 +73,7 @@ impl StartingGuard {
     /// Commits the starting process to the Running state, matching the exact reservation identity.
     pub fn commit(mut self, pid: u32, started_at: u64) -> Result<(), LaunchError> {
         self.committed = true;
-        let proc_start = crate::core::process_start(pid);
+        let proc_start = ingot_core::process_start(pid);
         let mut lock = self
             .running
             .lock()
@@ -249,7 +249,7 @@ impl ProcessManager {
     }
 
     pub async fn register(&self, instance_id: &str, pid: u32, started_at: u64) {
-        let proc_start = crate::core::process_start(pid);
+        let proc_start = ingot_core::process_start(pid);
         let mut lock = self.running.lock().unwrap_or_else(|e| e.into_inner());
         lock.insert(
             instance_id.to_string(),
@@ -266,12 +266,7 @@ impl ProcessManager {
 
     #[cfg(test)]
     pub(crate) fn register_if_vacant(&self, instance_id: &str, pid: u32, started_at: u64) -> bool {
-        self.adopt_if_vacant(
-            instance_id,
-            pid,
-            started_at,
-            crate::core::process_start(pid),
-        )
+        self.adopt_if_vacant(instance_id, pid, started_at, ingot_core::process_start(pid))
     }
 
     pub fn adopt_if_vacant(

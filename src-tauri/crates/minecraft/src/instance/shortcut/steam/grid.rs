@@ -5,9 +5,9 @@ use image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
 use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 
-use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
-use crate::minecraft::instance::shortcut::icons::resolve_instance_icon_bytes;
-use crate::minecraft::instance::shortcut::ShortcutError;
+use crate::instance::models::{InstanceConfig, ModLoaderType};
+use crate::instance::shortcut::icons::resolve_instance_icon_bytes;
+use crate::instance::shortcut::ShortcutError;
 
 const PORTRAIT_WIDTH: u32 = 600;
 const PORTRAIT_HEIGHT: u32 = 900;

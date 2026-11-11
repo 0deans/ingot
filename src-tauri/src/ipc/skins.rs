@@ -19,7 +19,7 @@ pub(super) trait SkinsApi {
         sort: Option<String>,
         model: Option<String>,
         uploader: Option<String>,
-    ) -> Result<crate::auth::ely::ElySkinsCatalogResponse, ApiError>;
+    ) -> Result<ingot_accounts::auth::ely::ElySkinsCatalogResponse, ApiError>;
     async fn apply_ely_skin(
         app_handle: tauri::AppHandle<impl Runtime>,
         account_id: String,
@@ -81,7 +81,7 @@ impl SkinsApi for SkinsApiImpl {
         sort: Option<String>,
         model: Option<String>,
         uploader: Option<String>,
-    ) -> Result<crate::auth::ely::ElySkinsCatalogResponse, ApiError> {
+    ) -> Result<ingot_accounts::auth::ely::ElySkinsCatalogResponse, ApiError> {
         account::get_ely_skins_catalog(page, query, sort, model, uploader)
             .await
             .map_err(ApiError::from)

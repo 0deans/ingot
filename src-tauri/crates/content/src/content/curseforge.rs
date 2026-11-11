@@ -10,7 +10,6 @@ pub use models::CurseForgeFileDetail;
 use models::*;
 use reqwest::Client;
 
-pub use crate::artifacts::sources::CURSEFORGE_API_KEY;
 pub const DEFAULT_CURSEFORGE_BASE: &str = "https://api.curseforge.com/v1";
 
 pub struct CurseForgeClient {

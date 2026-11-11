@@ -2,7 +2,7 @@ use tauri::Runtime;
 
 use crate::app::instance_content;
 use crate::ipc::ApiError;
-use crate::minecraft::instance_content::{
+use ingot_minecraft::instance_content::{
     ContentApplyReport, ContentCategory, ContentListResult, ContentUpdateCandidate, IdentifyResult,
     UpdateCheckResult,
 };

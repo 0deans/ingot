@@ -1,5 +1,5 @@
 use super::models::{PluginDependency, PluginError, PluginProject, PluginSource, PluginVersion};
-use crate::USER_AGENT;
+use ingot_core::USER_AGENT;
 use serde_json::Value;
 
 pub const MODRINTH: &str = "https://api.modrinth.com/v2";

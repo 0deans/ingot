@@ -1,6 +1,9 @@
 //! Shared resolution and state helpers for server IPC handlers.
+use crate::app::server_config::{get_server_dir, load_servers};
 use crate::ipc::ApiError;
-use crate::server::{self, ServerConfig, ServerCoreType, ServerProcessManager, ServerStatus};
+use ingot_server::{
+    ServerConfig, ServerCoreType, ServerProcessManager, ServerStatus, ServerSupervisorManager,
+};
 use tauri::Runtime;
 
 pub(crate) fn get_server_process_manager<R: Runtime>(
@@ -11,7 +14,7 @@ pub(crate) fn get_server_process_manager<R: Runtime>(
 
 pub(crate) fn get_server_supervisor_manager<R: Runtime>(
     app: &tauri::AppHandle<R>,
-) -> &server::ServerSupervisorManager {
+) -> &ServerSupervisorManager {
     &crate::app::state(app).supervisor
 }
 
@@ -19,7 +22,7 @@ pub(crate) fn get_http_client<R: Runtime>(app: &tauri::AppHandle<R>) -> &reqwest
     &crate::app::state(app).http
 }
 
-pub(crate) fn core_has_tps(config: &server::ServerConfig) -> bool {
+pub(crate) fn core_has_tps(config: &ServerConfig) -> bool {
     matches!(
         config.core,
         ServerCoreType::Paper | ServerCoreType::Purpur | ServerCoreType::Folia
@@ -34,13 +37,13 @@ pub(crate) fn server_with_config<R: Runtime>(
     app_handle: &tauri::AppHandle<R>,
     server_id: &str,
 ) -> Result<(std::path::PathBuf, ServerConfig), ApiError> {
-    let config = server::load_servers(app_handle)
+    let config = load_servers(app_handle)
         .map_err(ApiError::from)?
         .into_iter()
         .find(|s| s.id == server_id)
         .ok_or_else(|| ApiError::not_found(format!("Server not found: {server_id}")))?;
     Ok((
-        server::get_server_dir(app_handle, server_id).map_err(ApiError::from)?,
+        get_server_dir(app_handle, server_id).map_err(ApiError::from)?,
         config,
     ))
 }
@@ -50,7 +53,7 @@ pub(crate) async fn resolve_profile(
     server_dir: &std::path::Path,
     name: &str,
 ) -> (String, String) {
-    let online_mode = server::read_server_properties_from_dir(server_dir)
+    let online_mode = ingot_server::read_server_properties_from_dir(server_dir)
         .map(|p| p.online_mode)
         .unwrap_or(false);
     if online_mode {
@@ -77,7 +80,10 @@ pub(crate) async fn resolve_profile(
             }
         }
     }
-    (name.to_string(), server::config::offline_uuid_for(name))
+    (
+        name.to_string(),
+        ingot_server::config::offline_uuid_for(name),
+    )
 }
 
 pub(crate) async fn validate_pre_launch<R: Runtime>(
@@ -85,7 +91,7 @@ pub(crate) async fn validate_pre_launch<R: Runtime>(
     config: &ServerConfig,
     dir: &std::path::Path,
 ) -> Result<(), ApiError> {
-    match crate::version_change::detect_incomplete_transaction(dir) {
+    match ingot_version_change::detect_incomplete_transaction(dir) {
         Ok(Some(incomplete)) => {
             return Err(ApiError::incomplete_recovery(format!(
                 "Cannot start server: version change transaction is in incomplete state ({:?}). Please recover or revert it first.",
@@ -114,12 +120,9 @@ pub(crate) async fn validate_pre_launch<R: Runtime>(
     }
 
     let pm = get_server_process_manager(app);
-    for other in server::load_servers(app)?
-        .iter()
-        .filter(|s| s.id != config.id)
-    {
-        let other_ports = server::config::ports_of(other);
-        let Some(port) = server::config::ports_of(config)
+    for other in load_servers(app)?.iter().filter(|s| s.id != config.id) {
+        let other_ports = ingot_server::config::ports_of(other);
+        let Some(port) = ingot_server::config::ports_of(config)
             .into_iter()
             .find(|p| other_ports.contains(p))
         else {

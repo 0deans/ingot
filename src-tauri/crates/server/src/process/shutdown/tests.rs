@@ -1,5 +1,5 @@
 use super::*;
-use crate::server::process::tests::server_fixture;
+use crate::process::tests::server_fixture;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::sync::Notify;
 
@@ -144,7 +144,7 @@ async fn cancelled_waiter_does_not_abandon_kill_or_block_registry_or_touch_repla
     completed.notified().await;
     assert_eq!(
         manager.get_server_status("server").await,
-        crate::server::ServerStatus::Running
+        crate::ServerStatus::Running
     );
     assert!(manager.owns("server", 10).await);
 }
@@ -243,7 +243,7 @@ async fn stale_cleanup_cannot_claim_same_pid_with_a_new_generation() {
     assert_eq!(calls.load(Ordering::SeqCst), 0);
     assert_eq!(
         manager.get_server_status("server").await,
-        crate::server::ServerStatus::Running
+        crate::ServerStatus::Running
     );
 }
 

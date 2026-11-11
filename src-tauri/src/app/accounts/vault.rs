@@ -1,5 +1,5 @@
 //! Native OS vault adapter; existing key names, chunking and service names are preserved.
-use crate::{
+use ingot_accounts::{
     account::credentials::{CredentialError, CredentialStore, VaultFailure},
     keyring_store,
 };

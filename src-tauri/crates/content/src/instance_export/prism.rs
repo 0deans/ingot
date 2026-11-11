@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use super::archive::{ArchivePlan, ArchivePlanItem, ArchiveSource};
 use super::error::InstanceExportError;
-use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-use crate::minecraft::loader::normalize_loader_version;
+use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
+use ingot_minecraft::loader::normalize_loader_version;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

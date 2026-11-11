@@ -1,4 +1,7 @@
-use super::super::pack::{fetch_with_progress, prepare_modpack, PrepareModpackParams};
+use super::super::{
+    pack::{prepare_modpack, prepare_modpack_with_cdn, PrepareModpackParams},
+    support::fetch_with_progress,
+};
 use super::binary_server;
 use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
 use sha1::Digest;
@@ -64,7 +67,7 @@ async fn prepare_modpack_ftb_downloads_client_files_and_skips_serveronly() {
     assert_eq!(prepared.game_version, "1.20.1");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::Fabric
+        ingot_minecraft::instance::ModLoaderType::Fabric
     );
     assert_eq!(prepared.loader_version, Some("0.15.7".to_string()));
 
@@ -112,7 +115,7 @@ async fn prepare_modpack_technic_direct_zip_extracts_and_detects_loader() {
     assert_eq!(prepared.game_version, "1.12.2");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::Forge
+        ingot_minecraft::instance::ModLoaderType::Forge
     );
     assert_eq!(prepared.loader_version, Some("14.23.5.2860".to_string()));
     assert!(prepared.stage.path().join("mods/example.jar").exists());
@@ -165,7 +168,7 @@ async fn prepare_modpack_technic_solder_downloads_and_extracts_modules() {
     assert_eq!(prepared.game_version, "1.7.10");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::Forge
+        ingot_minecraft::instance::ModLoaderType::Forge
     );
     assert!(prepared.stage.path().join("mods/solder-mod.jar").exists());
 }
@@ -229,7 +232,7 @@ async fn prepare_modpack_atlauncher_manifest_downloads_client_mods() {
     assert_eq!(prepared.game_version, "1.16.5");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::Forge
+        ingot_minecraft::instance::ModLoaderType::Forge
     );
     assert_eq!(prepared.loader_version, Some("36.2.39".to_string()));
 
@@ -321,7 +324,7 @@ async fn prepare_modpack_atlauncher_nested_loader_and_relative_server_url_with_c
     assert_eq!(prepared.game_version, "1.21.1");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::NeoForge
+        ingot_minecraft::instance::ModLoaderType::NeoForge
     );
     assert_eq!(prepared.loader_version, Some("21.1.264".to_string()));
 
@@ -370,7 +373,7 @@ async fn prepare_modpack_technic_direct_zip_mc_version_fallback() {
     assert_eq!(prepared.game_version, "1.7.10");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::Forge
+        ingot_minecraft::instance::ModLoaderType::Forge
     );
     assert!(prepared.stage.path().join("mods/sample.jar").exists());
 }
@@ -420,7 +423,7 @@ async fn prepare_modpack_technic_detects_loader_from_modpack_jar_and_tolerates_c
 
     let reports = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
     let reports_clone = std::sync::Arc::clone(&reports);
-    let reporter: crate::minecraft::launcher::progress::ProgressCallback =
+    let reporter: ingot_minecraft::launcher::progress::ProgressCallback =
         std::sync::Arc::new(move |phase: &str, current: u64, total: u64, detail: &str| {
             reports_clone.lock().unwrap().push((
                 phase.to_string(),
@@ -449,7 +452,7 @@ async fn prepare_modpack_technic_detects_loader_from_modpack_jar_and_tolerates_c
     assert_eq!(prepared.game_version, "1.12.2");
     assert_eq!(
         prepared.loader,
-        crate::minecraft::instance::ModLoaderType::Forge
+        ingot_minecraft::instance::ModLoaderType::Forge
     );
     assert_eq!(prepared.loader_version, Some("14.23.5.2860".to_string()));
 
@@ -482,7 +485,7 @@ async fn fetch_with_progress_reports_smooth_byte_progress() {
 
     let reports = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
     let reports_clone = std::sync::Arc::clone(&reports);
-    let reporter: crate::minecraft::launcher::progress::ProgressCallback =
+    let reporter: ingot_minecraft::launcher::progress::ProgressCallback =
         std::sync::Arc::new(move |phase: &str, current: u64, total: u64, detail: &str| {
             reports_clone.lock().unwrap().push((
                 phase.to_string(),
@@ -512,4 +515,595 @@ async fn fetch_with_progress_reports_smooth_byte_progress() {
     assert!(recorded
         .iter()
         .any(|(_, cur, tot, _)| *cur == 200_000 && *tot == 200_000));
+}
+
+#[tokio::test]
+async fn prepare_modpack_ftb_resolves_curseforge_refs_and_paths() {
+    let custom_bytes = b"ftb-cf-custom-file";
+    let custom_sha1 = hex_str(sha1::Sha1::digest(custom_bytes));
+    let fallback_bytes = b"ftb-cf-fallback-file";
+    let fallback_md5 = hex_str(md5::Md5::digest(fallback_bytes));
+    let config_bytes = b"ftb-cf-config-file";
+    let config_sha1 = hex_str(sha1::Sha1::digest(config_bytes));
+
+    let cdn = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+        "/4013/966/upstream-orig.jar",
+        ResponseSpec::bytes(200, custom_bytes.to_vec()),
+    )])
+    .await;
+
+    let download = LoopbackServer::exact_script(vec![
+        ScriptedExchange::expect_path(
+            "/files/fallback.jar",
+            ResponseSpec::bytes(200, fallback_bytes.to_vec()),
+        ),
+        ScriptedExchange::expect_path(
+            "/files/cfg.json",
+            ResponseSpec::bytes(200, config_bytes.to_vec()),
+        ),
+    ])
+    .await;
+
+    let fallback_url = download.url("/files/fallback.jar");
+    let config_url = download.url("/files/cfg.json");
+    let api = LoopbackServer::exact_script(vec![
+        ScriptedExchange::expect_path(
+            "/mods/101/files/4013966",
+            ResponseSpec::json(
+                200,
+                serde_json::json!({
+                    "data": {
+                        "id": 4013966,
+                        "fileName": "upstream-orig.jar",
+                        "downloadUrl": null,
+                        "fileLength": custom_bytes.len(),
+                        "hashes": [{"algo": 1, "value": custom_sha1}]
+                    }
+                })
+                .to_string(),
+            ),
+        ),
+        ScriptedExchange::expect_path(
+            "/mods/102/files/2002",
+            ResponseSpec::json(
+                200,
+                serde_json::json!({
+                    "data": {
+                        "id": 2002,
+                        "fileName": "resolved-default.jar",
+                        "downloadUrl": fallback_url,
+                        "fileLength": fallback_bytes.len(),
+                        "hashes": [{"algo": 2, "value": fallback_md5}]
+                    }
+                })
+                .to_string(),
+            ),
+        ),
+        ScriptedExchange::expect_path(
+            "/mods/103/files/2003",
+            ResponseSpec::json(
+                200,
+                serde_json::json!({
+                    "data": {
+                        "id": 2003,
+                        "fileName": "custom-config.json",
+                        "downloadUrl": config_url,
+                        "fileLength": config_bytes.len(),
+                        "hashes": [{"algo": 1, "value": config_sha1}]
+                    }
+                })
+                .to_string(),
+            ),
+        ),
+    ])
+    .await;
+
+    let manifest_json = serde_json::json!({
+        "name": "FTB CF Pack",
+        "targets": [{"name": "minecraft", "type": "game", "version": "1.20.1"}],
+        "files": [
+            {
+                "name": "named-override.jar",
+                "path": "./mods/",
+                "curseforge": {"project": 101, "file": 4013966}
+            },
+            {
+                "name": "",
+                "path": "",
+                "curseforge": {"project": 102, "file": 2002}
+            },
+            {
+                "name": "   ",
+                "path": "/config/custom",
+                "curseforge": {"project": 103, "file": 2003}
+            }
+        ]
+    });
+
+    let root = tempfile::tempdir().unwrap();
+    let prepared = prepare_modpack_with_cdn(
+        PrepareModpackParams {
+            client: &reqwest::Client::new(),
+            curseforge_base: api.base_url(),
+            root: root.path(),
+            bytes: serde_json::to_vec(&manifest_json).unwrap(),
+            source: "ftb",
+            filename: "ftb-99-1.json",
+            name: "",
+            manifest_url: None,
+            on_progress: None,
+        },
+        cdn.base_url(),
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(
+        std::fs::read(prepared.stage.path().join("mods/named-override.jar")).unwrap(),
+        custom_bytes
+    );
+    assert_eq!(
+        std::fs::read(prepared.stage.path().join("mods/resolved-default.jar")).unwrap(),
+        fallback_bytes
+    );
+    assert_eq!(
+        std::fs::read(
+            prepared
+                .stage
+                .path()
+                .join("config/custom/custom-config.json")
+        )
+        .unwrap(),
+        config_bytes
+    );
+    drop(prepared);
+    let _ = cdn.finish().await;
+    let _ = download.finish().await;
+    let _ = api.finish().await;
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+}
+
+#[tokio::test]
+async fn prepare_modpack_ftb_rejects_unsafe_paths_and_cf_errors_and_cleans_staging() {
+    let root = tempfile::tempdir().unwrap();
+
+    for (path, name) in [
+        ("../escape", "mod.jar"),
+        ("mods", "..\\escape.jar"),
+        ("C:\\Windows", "evil.jar"),
+        ("mods", "CON.jar"),
+        ("mods", "evil.jar:stream"),
+    ] {
+        let unused = LoopbackServer::exact_script(vec![]).await;
+        let manifest = serde_json::json!({
+            "name": "Bad FTB",
+            "targets": [{"name": "minecraft", "type": "game", "version": "1.20.1"}],
+            "files": [{"name": name, "path": path, "url": unused.base_url()}]
+        });
+        let err = prepare_modpack(PrepareModpackParams {
+            client: &reqwest::Client::new(),
+            curseforge_base: "unused",
+            root: root.path(),
+            bytes: serde_json::to_vec(&manifest).unwrap(),
+            source: "ftb",
+            filename: "ftb-bad.json",
+            name: "",
+            manifest_url: None,
+            on_progress: None,
+        })
+        .await;
+        assert!(
+            matches!(err, Err(crate::content::ContentError::UnsafePath(_))),
+            "expected UnsafePath for FTB path `{path}` name `{name}`"
+        );
+        let _ = unused.finish().await;
+        assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+    }
+
+    let api_err = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+        "/mods/1/files/2",
+        ResponseSpec::status(404),
+    )])
+    .await;
+    let manifest = serde_json::json!({
+        "name": "FTB CF 404",
+        "targets": [{"name": "minecraft", "type": "game", "version": "1.20.1"}],
+        "files": [{"name": "mod.jar", "path": "mods", "curseforge": {"project": 1, "file": 2}}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: api_err.base_url(),
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest).unwrap(),
+        source: "ftb",
+        filename: "ftb-404.json",
+        name: "",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(
+        err,
+        Err(crate::content::ContentError::HttpStatus(_))
+    ));
+    let _ = api_err.finish().await;
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+
+    let never_downloaded = LoopbackServer::exact_script(vec![]).await;
+    let cf_traversal_api = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+        "/mods/1/files/2",
+        ResponseSpec::json(
+            200,
+            serde_json::json!({
+                "data": {
+                    "id": 2,
+                    "fileName": "..\\escape.jar",
+                    "downloadUrl": never_downloaded.base_url(),
+                    "fileLength": 3,
+                    "hashes": []
+                }
+            })
+            .to_string(),
+        ),
+    )])
+    .await;
+    let manifest = serde_json::json!({
+        "name": "FTB CF Traversal",
+        "targets": [{"name": "minecraft", "type": "game", "version": "1.20.1"}],
+        "files": [{"name": "", "path": "", "curseforge": {"project": 1, "file": 2}}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: cf_traversal_api.base_url(),
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest).unwrap(),
+        source: "ftb",
+        filename: "ftb-cf-trav.json",
+        name: "",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(
+        err,
+        Err(crate::content::ContentError::UnsafePath(_))
+    ));
+    let _ = never_downloaded.finish().await;
+    let _ = cf_traversal_api.finish().await;
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+}
+
+#[tokio::test]
+async fn prepare_modpack_atlauncher_resolves_curseforge_refs_and_rejects_errors() {
+    let mod_bytes = b"atl-cf-override-bytes";
+    let mod_sha1 = hex_str(sha1::Sha1::digest(mod_bytes));
+    let pack_bytes = b"atl-cf-resourcepack-bytes";
+    let pack_md5 = hex_str(md5::Md5::digest(pack_bytes));
+
+    let cdn = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+        "/4013/966/upstream-mod.jar",
+        ResponseSpec::bytes(200, mod_bytes.to_vec()),
+    )])
+    .await;
+    let download = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+        "/rp.zip",
+        ResponseSpec::bytes(200, pack_bytes.to_vec()),
+    )])
+    .await;
+    let rp_url = download.url("/rp.zip");
+    let api = LoopbackServer::exact_script(vec![
+        ScriptedExchange::expect_path(
+            "/mods/50/files/4013966",
+            ResponseSpec::json(
+                200,
+                serde_json::json!({
+                    "data": {
+                        "id": 4013966,
+                        "fileName": "upstream-mod.jar",
+                        "downloadUrl": null,
+                        "fileLength": mod_bytes.len(),
+                        "hashes": [{"algo": 1, "value": mod_sha1}]
+                    }
+                })
+                .to_string(),
+            ),
+        ),
+        ScriptedExchange::expect_path(
+            "/mods/51/files/600",
+            ResponseSpec::json(
+                200,
+                serde_json::json!({
+                    "data": {
+                        "id": 600,
+                        "fileName": "fallback-rp.zip",
+                        "downloadUrl": rp_url,
+                        "fileLength": pack_bytes.len(),
+                        "hashes": [{"algo": 2, "value": pack_md5}]
+                    }
+                })
+                .to_string(),
+            ),
+        ),
+    ])
+    .await;
+
+    let manifest_json = serde_json::json!({
+        "minecraft": "1.20.1",
+        "loader": {"type": "fabric", "version": "0.15.7"},
+        "mods": [
+            {
+                "name": "Mod Override",
+                "file": "atl-override.jar",
+                "download": "curse",
+                "curse_id": 50,
+                "curse_file_id": 4013966,
+                "type": "mods"
+            },
+            {
+                "name": "Resource Fallback",
+                "download": "curseforge",
+                "curse_id": 51,
+                "curse_file_id": 600,
+                "type": "resourcepack"
+            }
+        ]
+    });
+
+    let root = tempfile::tempdir().unwrap();
+    let prepared = prepare_modpack_with_cdn(
+        PrepareModpackParams {
+            client: &reqwest::Client::new(),
+            curseforge_base: api.base_url(),
+            root: root.path(),
+            bytes: serde_json::to_vec(&manifest_json).unwrap(),
+            source: "atlauncher",
+            filename: "atl-cf.json",
+            name: "ATL CF",
+            manifest_url: None,
+            on_progress: None,
+        },
+        cdn.base_url(),
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(
+        std::fs::read(prepared.stage.path().join("mods/atl-override.jar")).unwrap(),
+        mod_bytes
+    );
+    assert_eq!(
+        std::fs::read(prepared.stage.path().join("resourcepacks/fallback-rp.zip")).unwrap(),
+        pack_bytes
+    );
+    drop(prepared);
+    let _ = cdn.finish().await;
+    let _ = download.finish().await;
+    let _ = api.finish().await;
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+
+    for bad_file in ["../escape.jar", "..\\escape.jar", "C:\\evil.jar", "CON.jar"] {
+        let never_downloaded = LoopbackServer::exact_script(vec![]).await;
+        let bad_api = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+            "/mods/50/files/60",
+            ResponseSpec::json(
+                200,
+                serde_json::json!({
+                    "data": {
+                        "id": 60,
+                        "fileName": bad_file,
+                        "downloadUrl": never_downloaded.base_url(),
+                        "fileLength": 3,
+                        "hashes": []
+                    }
+                })
+                .to_string(),
+            ),
+        )])
+        .await;
+        let bad_manifest = serde_json::json!({
+            "minecraft": "1.20.1",
+            "mods": [{
+                "name": "Bad Mod",
+                "download": "curseforge",
+                "curse_id": 50,
+                "curse_file_id": 60,
+                "type": "mods"
+            }]
+        });
+        let err = prepare_modpack(PrepareModpackParams {
+            client: &reqwest::Client::new(),
+            curseforge_base: bad_api.base_url(),
+            root: root.path(),
+            bytes: serde_json::to_vec(&bad_manifest).unwrap(),
+            source: "atlauncher",
+            filename: "atl-bad.json",
+            name: "ATL Bad",
+            manifest_url: None,
+            on_progress: None,
+        })
+        .await;
+        assert!(
+            matches!(err, Err(crate::content::ContentError::UnsafePath(_))),
+            "expected UnsafePath for ATLauncher file `{bad_file}`"
+        );
+        let _ = never_downloaded.finish().await;
+        let _ = bad_api.finish().await;
+        assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+    }
+
+    let unsupported_api = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+        "/mods/50/files/61",
+        ResponseSpec::json(
+            200,
+            serde_json::json!({
+                "data": {
+                    "id": 61,
+                    "fileName": "ok.jar",
+                    "downloadUrl": "http://127.0.0.1:1/unused",
+                    "fileLength": 3,
+                    "hashes": [{"algo": 99, "value": "abcd"}]
+                }
+            })
+            .to_string(),
+        ),
+    )])
+    .await;
+    let bad_algo_manifest = serde_json::json!({
+        "minecraft": "1.20.1",
+        "mods": [{
+            "name": "Bad Algo",
+            "download": "curse",
+            "curse_id": 50,
+            "curse_file_id": 61,
+            "type": "mods"
+        }]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: unsupported_api.base_url(),
+        root: root.path(),
+        bytes: serde_json::to_vec(&bad_algo_manifest).unwrap(),
+        source: "atlauncher",
+        filename: "atl-bad-algo.json",
+        name: "ATL Bad Algo",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(
+        err,
+        Err(crate::content::ContentError::Integrity(_))
+    ));
+    let _ = unsupported_api.finish().await;
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+}
+
+#[tokio::test]
+async fn prepare_modpack_technic_solder_propagates_http_checksum_zip_and_traversal_errors() {
+    let root = tempfile::tempdir().unwrap();
+
+    let http_fail = binary_server(b"bad gateway".to_vec(), 502).await;
+    let manifest_http = serde_json::json!({
+        "minecraft": "1.12.2",
+        "mods": [{"name": "broken", "md5": null, "url": http_fail.url}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: "unused",
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest_http).unwrap(),
+        source: "technic",
+        filename: "solder.json",
+        name: "Solder",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(
+        err,
+        Err(crate::content::ContentError::HttpStatus(_))
+    ));
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+
+    let md5_fail = binary_server(b"corrupt mod payload".to_vec(), 200).await;
+    let manifest_md5 = serde_json::json!({
+        "minecraft": "1.12.2",
+        "mods": [{"name": "bad-md5", "md5": "00000000000000000000000000000000", "url": md5_fail.url}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: "unused",
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest_md5).unwrap(),
+        source: "technic",
+        filename: "solder.json",
+        name: "Solder",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(
+        err,
+        Err(crate::content::ContentError::Integrity(_))
+    ));
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+
+    let bad_zip_bytes = b"not a zip archive".to_vec();
+    let bad_zip_md5 = hex_str(md5::Md5::digest(&bad_zip_bytes));
+    let bad_zip_server = binary_server(bad_zip_bytes, 200).await;
+    let manifest_zip = serde_json::json!({
+        "minecraft": "1.12.2",
+        "mods": [{"name": "bad-zip", "md5": bad_zip_md5, "url": bad_zip_server.url}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: "unused",
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest_zip).unwrap(),
+        source: "technic",
+        filename: "solder.json",
+        name: "Solder",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(err, Err(crate::content::ContentError::Zip(_))));
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+
+    let mut trav_writer = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    trav_writer
+        .start_file(
+            "mods\\..\\escape.jar",
+            zip::write::SimpleFileOptions::default(),
+        )
+        .unwrap();
+    trav_writer.write_all(b"evil").unwrap();
+    let trav_zip = trav_writer.finish().unwrap().into_inner();
+    let trav_md5 = hex_str(md5::Md5::digest(&trav_zip));
+    let trav_server = binary_server(trav_zip, 200).await;
+    let manifest_trav = serde_json::json!({
+        "minecraft": "1.12.2",
+        "mods": [{"name": "trav", "md5": trav_md5, "url": trav_server.url}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: "unused",
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest_trav).unwrap(),
+        source: "technic",
+        filename: "solder.json",
+        name: "Solder",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(err, Err(crate::content::ContentError::Io(_))));
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
+
+    let interrupted_server = LoopbackServer::exact_script(vec![ScriptedExchange::any_path(
+        ResponseSpec::bytes(200, b"partial".to_vec()).with_header("Content-Length", "10000"),
+    )])
+    .await;
+    let manifest_interrupted = serde_json::json!({
+        "minecraft": "1.12.2",
+        "mods": [{"name": "truncated", "md5": null, "url": interrupted_server.base_url()}]
+    });
+    let err = prepare_modpack(PrepareModpackParams {
+        client: &reqwest::Client::new(),
+        curseforge_base: "unused",
+        root: root.path(),
+        bytes: serde_json::to_vec(&manifest_interrupted).unwrap(),
+        source: "technic",
+        filename: "solder.json",
+        name: "Solder",
+        manifest_url: None,
+        on_progress: None,
+    })
+    .await;
+    assert!(matches!(
+        err,
+        Err(crate::content::ContentError::Response(_))
+    ));
+    let _ = interrupted_server.finish().await;
+    assert_eq!(std::fs::read_dir(root.path()).unwrap().count(), 0);
 }

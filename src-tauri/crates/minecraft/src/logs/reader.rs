@@ -2,8 +2,8 @@ use super::models::{
     InstanceCrashEvent, InstanceLogFileContent, InstanceLogFileSummary, LogError, LogFileKind,
 };
 use super::parser::parse_log_document;
-use crate::artifacts::crash::{crash_report, find_suspect_jars};
 use flate2::read::GzDecoder;
+use ingot_artifacts::crash::{crash_report, find_suspect_jars};
 use std::fs;
 use std::io::Read;
 use std::path::Path;

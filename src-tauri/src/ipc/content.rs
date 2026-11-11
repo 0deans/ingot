@@ -1,7 +1,7 @@
 use crate::app::content;
 use crate::ipc::ApiError;
-use crate::minecraft::content::{ContentSearchResult, UnifiedContentDetails};
-use crate::minecraft::instance::InstanceConfig;
+use ingot_content::content::{ContentSearchResult, UnifiedContentDetails};
+use ingot_minecraft::instance::InstanceConfig;
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "content")]
@@ -61,7 +61,7 @@ impl ContentApi for ContentApiImpl {
         page_size: u32,
     ) -> Result<ContentSearchResult, ApiError> {
         content::service(&app_handle)
-            .search_content(crate::minecraft::content::service::ContentSearchRequest {
+            .search_content(ingot_content::content::service::ContentSearchRequest {
                 source,
                 project_type,
                 query,

@@ -2,7 +2,7 @@ use super::models::{
     ActiveServer, PendingQueryGuard, ProcessError, ServerLaunchGeneration, StartAdmissionPause,
     StartingGuard,
 };
-use crate::server::config::{RunningServerSummary, ServerCoreType, ServerStatus};
+use crate::config::{RunningServerSummary, ServerCoreType, ServerStatus};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -271,10 +271,6 @@ impl ServerProcessManager {
         }
     }
 
-    pub async fn send_command(&self, server_id: &str, command: &str) -> Result<(), ProcessError> {
-        self.send_command_typed(server_id, command).await
-    }
-
     pub async fn send_command_typed(
         &self,
         server_id: &str,
@@ -342,17 +338,6 @@ impl ServerProcessManager {
         // Keep hiding briefly so a late reply doesn't leak into the user's console
         query_guard.complete_delayed(Duration::from_millis(300));
         result
-    }
-
-    pub async fn query(
-        &self,
-        server_id: &str,
-        command: &str,
-        is_reply: impl Fn(&str) -> bool,
-        timeout: Duration,
-    ) -> Result<String, ProcessError> {
-        self.query_typed(server_id, command, is_reply, timeout)
-            .await
     }
 
     /// Waits until the server's process has exited, up to `timeout`

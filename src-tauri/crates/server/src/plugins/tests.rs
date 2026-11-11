@@ -3,7 +3,7 @@ use super::models::{platform, PluginSource, PluginVersion, TrackedPlugin};
 use super::providers::pick_version;
 use super::service::{search, versions};
 use super::tracking::{read_tracking, write_tracking};
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 
 struct ProviderFixture {
     provider: super::providers::PluginProvider,

@@ -5,7 +5,7 @@ use super::console::{
 };
 use super::manager::ServerProcessManager;
 use super::models::StartingGuard;
-use crate::server::config::ServerStatus;
+use crate::config::ServerStatus;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -238,7 +238,7 @@ pub(super) async fn server_fixture(pid: u32) -> super::models::ActiveServer {
     let (line_tx, _) = tokio::sync::broadcast::channel(4);
     ActiveServer {
         server_id: "server".into(),
-        core: crate::server::ServerCoreType::Paper,
+        core: crate::ServerCoreType::Paper,
         pid,
         generation: super::models::ServerLaunchGeneration::default(),
         port: 25565,
@@ -289,10 +289,10 @@ async fn stale_stopped_observation_cannot_start_over_a_published_server() {
 
 #[tokio::test]
 async fn server_claim_reads_latest_metadata_and_releases_missing_target() {
-    use crate::core::metadata::MetadataRepository;
+    use ingot_core::metadata::MetadataRepository;
     let directory = tempfile::tempdir().unwrap();
     let repository = MetadataRepository::new(directory.path().join("servers.json"));
-    let config: crate::server::config::ServerConfig = serde_json::from_value(serde_json::json!({
+    let config: crate::config::ServerConfig = serde_json::from_value(serde_json::json!({
         "id": "server", "name": "Fixture", "core": "paper", "gameVersion": "1.20", "port": 25565,
         "createdAt": 0, "memoryMinMb": 1024, "memoryMaxMb": 2048
     }))

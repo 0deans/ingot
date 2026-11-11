@@ -1,6 +1,7 @@
 use crate::app::instances::ensure_instance_dir;
-use crate::minecraft::instance::InstanceConfig;
-use crate::minecraft::sync::{
+use crate::system::load_settings;
+use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::sync::{
     execute::{ensure_shared_directories, file_exists, inspect_shared_status},
     models::{
         ConflictResolution, SharedSyncStatus, SyncCategory, SyncConflictInfo, SyncError, SyncReport,
@@ -11,7 +12,6 @@ use crate::minecraft::sync::{
         import_shared_files_to_instance,
     },
 };
-use crate::system::load_settings;
 use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 use tauri::{Manager, Runtime};
@@ -197,8 +197,8 @@ pub fn resolve_sync_conflict<R: Runtime>(
 mod tests {
     use super::*;
     use crate::app::{AppPaths, AppState};
-    use crate::minecraft::instance::{prepare_instance, ModLoaderType};
-    use crate::settings::SettingsError;
+    use ingot_minecraft::instance::{prepare_instance, ModLoaderType};
+    use ingot_settings::SettingsError;
     use std::error::Error;
 
     fn instance() -> InstanceConfig {

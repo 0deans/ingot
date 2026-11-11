@@ -1,4 +1,4 @@
-use super::discovery::{dimensions, region_dirs, tile};
+use super::discovery::{dimensions, region_dirs, tile_typed};
 use super::java::has_terrain;
 use super::live::{apply_live_chunks, decode_live_chunk, live_dir};
 use super::models::{level_name, mix, Kind, TILE};
@@ -64,7 +64,9 @@ fn decodes_and_renders_live_chunks() {
     let lake = (3 * 16) * TILE + 31 * 16;
     assert!(raster.is_water[lake] && raster.heights[lake] == 62);
     assert!(!raster.is_water[lake + 1] && raster.heights[lake + 1] == 70);
-    assert!(tile(dir, "minecraft:overworld", -1, 0).unwrap().is_some());
+    assert!(tile_typed(dir, "minecraft:overworld", -1, 0)
+        .unwrap()
+        .is_some());
 }
 
 #[test]
@@ -168,13 +170,13 @@ fn renders_real_world() {
     }
     for d in &dims {
         for r in &d.regions {
-            tile(&dir, &d.id, r.x, r.z).unwrap();
+            tile_typed(&dir, &d.id, r.x, r.z).unwrap();
         }
     }
     let overworld = &dims[0];
     let r = &overworld.regions[0];
     let start = std::time::Instant::now();
-    let url = tile(&dir, &overworld.id, r.x, r.z).unwrap().unwrap();
+    let url = tile_typed(&dir, &overworld.id, r.x, r.z).unwrap().unwrap();
     println!(
         "tile r.{}.{} {} bytes in {:?}",
         r.x,
@@ -212,7 +214,7 @@ mod perf {
             );
         }
         let t = std::time::Instant::now();
-        let url = super::tile(&dir, "minecraft:overworld", 0, 0)
+        let url = super::tile_typed(&dir, "minecraft:overworld", 0, 0)
             .unwrap()
             .unwrap();
         println!(
@@ -221,7 +223,7 @@ mod perf {
             url.len() / 1024
         );
         let t = std::time::Instant::now();
-        super::tile(&dir, "minecraft:overworld", 0, 0).unwrap();
+        super::tile_typed(&dir, "minecraft:overworld", 0, 0).unwrap();
         println!("tile() cached {:?}", t.elapsed());
         std::fs::remove_dir_all(&dir).unwrap();
     }

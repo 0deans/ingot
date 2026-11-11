@@ -151,7 +151,7 @@ pub async fn stats(
         .await
         .unwrap_or((0.0, 0, 0, 0));
     let tps = if has_tps {
-        pm.query(
+        pm.query_typed(
             server_id,
             "tps",
             |l| l.contains("TPS from last"),

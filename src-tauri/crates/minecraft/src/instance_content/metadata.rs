@@ -9,8 +9,6 @@ use super::models::{ContentDependency, ContentMetadata};
 
 const MAX_ICON_BYTES: usize = 256 * 1024; // 256 KB max for embedded base64 icons
 
-pub use crate::artifacts::metadata::{read_raw_jar_metadata, RawJarTuple};
-
 pub fn read_content_metadata(path: &Path, is_pack: bool) -> Option<ContentMetadata> {
     if is_pack {
         read_pack_metadata(path)

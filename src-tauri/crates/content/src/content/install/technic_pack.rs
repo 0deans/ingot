@@ -1,8 +1,11 @@
 //! Technic Platform package planner (Solder manifest and direct zip).
-use super::{extract_zip_overrides, pack::PreparedModpack};
+use super::{
+    extract_zip_overrides,
+    support::{self, Integrity, PreparedModpack},
+};
 use crate::content::error::ContentError;
 use crate::importer::version_id::parse_vanilla_version_id;
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::{
     fs,
@@ -37,11 +40,7 @@ fn read_version_id_from_jar(jar_path: &Path) -> Option<String> {
     let mut entry = zip.by_name("version.json").ok()?;
     let mut content = Vec::new();
     if let Err(err) = entry.read_to_end(&mut content) {
-        if !err
-            .to_string()
-            .to_ascii_lowercase()
-            .contains("invalid checksum")
-        {
+        if !support::is_invalid_checksum_error(&err) {
             return None;
         }
     }
@@ -124,11 +123,7 @@ pub(crate) fn plan_technic_solder(
         .clone()
         .unwrap_or_else(|| "1.20.1".to_string());
 
-    let name = if requested_name.trim().is_empty() {
-        "Technic Modpack".to_string()
-    } else {
-        requested_name.trim().to_owned()
-    };
+    let name = support::resolve_pack_name(requested_name, "Technic Modpack".to_string());
 
     Ok((
         PreparedModpack {
@@ -147,7 +142,7 @@ pub(crate) fn plan_technic_zip(
     bytes: Vec<u8>,
     requested_name: &str,
     default_game_version: Option<&str>,
-    on_progress: Option<&crate::minecraft::launcher::progress::ProgressCallback>,
+    on_progress: Option<&ingot_minecraft::launcher::progress::ProgressCallback>,
 ) -> Result<PreparedModpack, ContentError> {
     if let Some(report) = on_progress {
         report("Installing Modpack", 0, 1, "Extracting modpack archive...");
@@ -167,11 +162,7 @@ pub(crate) fn plan_technic_zip(
         report("Installing Modpack", 1, 1, "Extracting modpack archive...");
     }
 
-    let name = if requested_name.trim().is_empty() {
-        "Technic Modpack".to_string()
-    } else {
-        requested_name.trim().to_owned()
-    };
+    let name = support::resolve_pack_name(requested_name, "Technic Modpack".to_string());
 
     Ok(PreparedModpack {
         stage: Arc::new(stage),
@@ -182,12 +173,37 @@ pub(crate) fn plan_technic_zip(
     })
 }
 
-pub(crate) async fn download_solder_mods(
+fn extract_mc_version_from_filename(filename: &str) -> Option<&str> {
+    filename
+        .rsplit_once("-mc")
+        .map(|(_, after)| after.strip_suffix(".zip").unwrap_or(after))
+        .filter(|s| !s.trim().is_empty())
+}
+
+pub(super) fn plan_technic(
+    root: &Path,
+    bytes: Vec<u8>,
+    filename: &str,
+    requested_name: &str,
+    on_progress: Option<&ingot_minecraft::launcher::progress::ProgressCallback>,
+) -> Result<(PreparedModpack, Option<Vec<SolderMod>>), ContentError> {
+    if let Ok(manifest) = serde_json::from_slice::<SolderBuildManifest>(&bytes) {
+        if manifest.minecraft.is_some() || !manifest.mods.is_empty() {
+            let (prepared, mods) = plan_technic_solder(root, manifest, requested_name)?;
+            return Ok((prepared, Some(mods)));
+        }
+    }
+    let default_mc = extract_mc_version_from_filename(filename);
+    let prepared = plan_technic_zip(root, bytes, requested_name, default_mc, on_progress)?;
+    Ok((prepared, None))
+}
+
+pub(super) async fn download_solder_mods(
     client: &reqwest::Client,
     stage: &Arc<tempfile::TempDir>,
     mods: Vec<SolderMod>,
     default_game_version: &str,
-    on_progress: Option<&crate::minecraft::launcher::progress::ProgressCallback>,
+    on_progress: Option<&ingot_minecraft::launcher::progress::ProgressCallback>,
 ) -> Result<(String, ModLoaderType, Option<String>), ContentError> {
     let total = mods.len() as u64;
     for (idx, smod) in mods.into_iter().enumerate() {
@@ -199,13 +215,13 @@ pub(crate) async fn download_solder_mods(
                 &format!("Downloading {} ({}/{})", smod.name, idx + 1, total),
             );
         }
-        let bytes = super::pack::fetch(client, &smod.url).await?;
+        let bytes = support::fetch(client, &smod.url).await?;
         let mut hashes = std::collections::HashMap::new();
         if let Some(md5) = smod.md5.filter(|s| !s.trim().is_empty()) {
             hashes.insert("md5".to_string(), md5);
         }
-        let integrity = super::pack::Integrity { hashes, size: None };
-        super::pack::verify(&bytes, &integrity)?;
+        let integrity = Integrity { hashes, size: None };
+        support::verify(&bytes, &integrity)?;
 
         let stage_clone = Arc::clone(stage);
         tokio::task::spawn_blocking(move || {
@@ -217,14 +233,7 @@ pub(crate) async fn download_solder_mods(
         .await
         .map_err(ContentError::Task)??;
     }
-    if let Some(report) = on_progress {
-        report(
-            "Installing Modpack",
-            total,
-            total.max(1),
-            "Finalizing modpack installation...",
-        );
-    }
+    support::report_finalizing(on_progress, total);
     Ok(detect_loader_from_dir(
         stage.path(),
         Some(default_game_version),

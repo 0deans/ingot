@@ -1,9 +1,8 @@
 //! IPC procedures for server metrics, storage, and networking.
 use super::{core_has_tps, get_server_process_manager, is_server_running, server_with_config};
 use crate::ipc::ApiError;
-use crate::server;
-use crate::server::stats::ServerStats;
-use crate::server::storage::ServerStorage;
+use ingot_server::stats::{self, ServerStats};
+use ingot_server::storage::{self, ServerStorage};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "servers.metrics")]
@@ -36,17 +35,17 @@ impl ServerMetricsApi for ServerMetricsApiImpl {
     ) -> Result<Vec<ServerStats>, ApiError> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
         if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-            server::stats::ensure_sampler(
+            stats::ensure_sampler(
                 get_server_process_manager(&app_handle).clone(),
                 &server_id,
                 core_has_tps(&config),
             );
         }
-        Ok(server::stats::history(&server_id))
+        Ok(stats::history(&server_id))
     }
 
     async fn get_lan_address(self) -> Result<Option<String>, ApiError> {
-        Ok(server::stats::lan_address())
+        Ok(stats::lan_address())
     }
 
     async fn get_server_storage(
@@ -55,7 +54,7 @@ impl ServerMetricsApi for ServerMetricsApiImpl {
         server_id: String,
     ) -> Result<ServerStorage, ApiError> {
         let (dir, _) = server_with_config(&app_handle, &server_id)?;
-        tauri::async_runtime::spawn_blocking(move || server::storage::storage(&dir))
+        tauri::async_runtime::spawn_blocking(move || storage::storage(&dir))
             .await
             .map_err(|e| ApiError::internal(e.to_string()))
     }

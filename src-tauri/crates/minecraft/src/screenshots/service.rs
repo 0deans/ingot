@@ -86,7 +86,7 @@ pub fn resolve_screenshot(
     instance_id: &str,
     file_name: &str,
 ) -> Result<ScreenshotInfo, ScreenshotError> {
-    if crate::core::safe_enclosed_filename(cache, file_name).is_none() {
+    if ingot_core::safe_enclosed_filename(cache, file_name).is_none() {
         return Err(ScreenshotError::InvalidFilename(file_name.to_string()));
     }
     let items = get_all_screenshots(sources, cache)?;

@@ -1,11 +1,11 @@
 //! FTB version JSON manifest parser and plan generator.
-use super::pack::PreparedModpack;
+use super::curseforge_resolver::{self, CurseForgeEndpoints};
+use super::support::{self, Integrity, PreparedModpack};
 use crate::content::{
-    curseforge::CURSEFORGE_API_KEY,
     error::ContentError,
     ftb::{deserialize_opt_u64_or_string, deserialize_u32_or_string},
 };
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::{path::Path, sync::Arc};
 
@@ -94,11 +94,7 @@ pub(crate) fn plan_ftb(
         .map_err(ContentError::Io)?;
 
     let fallback_name = manifest.name.unwrap_or_else(|| "FTB Modpack".to_string());
-    let name = if requested_name.trim().is_empty() {
-        fallback_name
-    } else {
-        requested_name.trim().to_owned()
-    };
+    let name = support::resolve_pack_name(requested_name, fallback_name);
 
     Ok((
         PreparedModpack {
@@ -112,12 +108,12 @@ pub(crate) fn plan_ftb(
     ))
 }
 
-pub(crate) async fn download_ftb_files(
+pub(super) async fn download_ftb_files(
     client: &reqwest::Client,
-    curseforge_base: &str,
+    endpoints: CurseForgeEndpoints<'_>,
     stage: &Arc<tempfile::TempDir>,
     files: Vec<FtbVersionFile>,
-    on_progress: Option<&crate::minecraft::launcher::progress::ProgressCallback>,
+    on_progress: Option<&ingot_minecraft::launcher::progress::ProgressCallback>,
 ) -> Result<(), ContentError> {
     let client_files: Vec<_> = files.into_iter().filter(|f| !f.serveronly).collect();
     let total = client_files.len() as u64;
@@ -147,78 +143,42 @@ pub(crate) async fn download_ftb_files(
             } else {
                 format!("{}/{}", clean_path.trim_end_matches('/'), file.name)
             };
-            if crate::core::safe_enclosed_path(stage.path(), &relative).is_none() {
-                return Err(ContentError::UnsafePath(relative));
-            }
+            support::validate_stage_path(stage.path(), &relative)?;
             let mut hashes = std::collections::HashMap::new();
             if let Some(sha1) = file.sha1.filter(|s| !s.trim().is_empty()) {
                 hashes.insert("sha1".to_string(), sha1);
             }
-            let integrity = super::pack::Integrity {
+            let integrity = Integrity {
                 hashes,
                 size: file.size.filter(|&s| s > 0),
             };
-            super::pack::write_download(client, &url, stage, &relative, integrity).await?;
+            support::write_download(client, &url, stage, &relative, integrity).await?;
         } else if let Some(cf) = file.curseforge {
-            let url = format!(
-                "{}/mods/{}/files/{}",
-                curseforge_base.trim_end_matches('/'),
-                cf.project,
-                cf.file
-            );
-            let response = client
-                .get(url)
-                .header("x-api-key", CURSEFORGE_API_KEY)
-                .send()
-                .await
-                .map_err(ContentError::Transport)?;
-            if !response.status().is_success() {
-                return Err(ContentError::HttpStatus(response.status()));
-            }
-            let item = response
-                .json::<super::pack::CurseForgeResponse>()
-                .await
-                .map_err(ContentError::Response)?
-                .data;
+            let resolved = curseforge_resolver::resolve_curseforge_file_with_cdn(
+                client, endpoints, cf.project, cf.file,
+            )
+            .await?;
             let fname = if !file.name.trim().is_empty() {
                 file.name.as_str()
             } else {
-                item.file_name.as_str()
+                resolved.file_name.as_str()
             };
             let relative = if clean_path.is_empty() {
-                format!("mods/{}", fname)
+                format!("mods/{fname}")
             } else {
-                format!("{}/{}", clean_path.trim_end_matches('/'), fname)
+                format!("{}/{fname}", clean_path.trim_end_matches('/'))
             };
-            if crate::core::safe_enclosed_path(stage.path(), &relative).is_none() {
-                return Err(ContentError::UnsafePath(relative));
-            }
-            let download = item
-                .download_url
-                .filter(|value| !value.is_empty())
-                .unwrap_or_else(|| super::construct_curseforge_cdn_url(item.id, &item.file_name));
-            let mut integrity = super::pack::Integrity {
-                size: item.file_length,
-                hashes: std::collections::HashMap::new(),
-            };
-            for hash in item.hashes {
-                let algorithm = match hash.algo {
-                    1 => "sha1",
-                    2 => "md5",
-                    _ => return Err(ContentError::Integrity("unsupported hash algorithm")),
-                };
-                integrity.hashes.insert(algorithm.into(), hash.value);
-            }
-            super::pack::write_download(client, &download, stage, &relative, integrity).await?;
+            support::validate_stage_path(stage.path(), &relative)?;
+            support::write_download(
+                client,
+                &resolved.download_url,
+                stage,
+                &relative,
+                resolved.integrity,
+            )
+            .await?;
         }
     }
-    if let Some(report) = on_progress {
-        report(
-            "Installing Modpack",
-            total,
-            total.max(1),
-            "Finalizing modpack installation...",
-        );
-    }
+    support::report_finalizing(on_progress, total);
     Ok(())
 }

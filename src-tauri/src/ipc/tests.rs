@@ -5,10 +5,8 @@ use super::{
     events::TauRpcEventsApiEventTrigger,
     settings::{SettingsApi, SettingsApiImpl},
 };
-use crate::{
-    app::{AppPaths, AppState},
-    settings::MemorySettings,
-};
+use crate::app::{AppPaths, AppState};
+use ingot_settings::MemorySettings;
 
 #[path = "pending_login_tests.rs"]
 mod pending_login_tests;
@@ -70,7 +68,7 @@ fn invoke(
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn credential_status_route_distinguishes_missing_corrupt_and_unavailable_vault_data() {
-    use crate::account::credentials::tests::FakeCredentialStore;
+    use ingot_accounts::account::credentials::tests::FakeCredentialStore;
     let dir = tempfile::tempdir().unwrap();
     let app = tauri::test::mock_builder()
         .invoke_handler(super::router::<MockRuntime>().into_handler())
@@ -212,7 +210,7 @@ async fn application_shutdown_uses_managed_state_and_existing_root_commands_shar
     let state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
     let servers = state.servers.clone();
     servers
-        .set_server_status("sleeping", crate::server::ServerStatus::Sleeping)
+        .set_server_status("sleeping", ingot_server::ServerStatus::Sleeping)
         .await;
     app.manage(state);
     let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
@@ -225,7 +223,7 @@ async fn application_shutdown_uses_managed_state_and_existing_root_commands_shar
     );
     assert_eq!(
         servers.get_server_status("sleeping").await,
-        crate::server::ServerStatus::Stopped
+        ingot_server::ServerStatus::Stopped
     );
     assert_eq!(
         invoke(&webview, "TauRPC__servers.get_running_servers", json!({})).unwrap(),
@@ -247,7 +245,7 @@ async fn account_and_skin_routes_preserve_profiles_arguments_and_rejections() {
         .build(tauri::test::mock_context(tauri::test::noop_assets()))
         .unwrap();
     let mut state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
-    let vault = crate::account::credentials::tests::FakeCredentialStore::default();
+    let vault = ingot_accounts::account::credentials::tests::FakeCredentialStore::default();
     state.credentials = Box::new(vault.clone());
     app.manage(state);
     let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
@@ -347,15 +345,15 @@ async fn launch_instance_with_incomplete_transaction_returns_incomplete_recovery
     let app_paths = AppPaths::new(dir.path().to_owned());
     let instances_file = app_paths.instances_file();
 
-    let mut instance = crate::minecraft::instance::prepare_instance(
+    let mut instance = ingot_minecraft::instance::prepare_instance(
         "Test".into(),
         "1.20".into(),
-        crate::minecraft::instance::ModLoaderType::Vanilla,
+        ingot_minecraft::instance::ModLoaderType::Vanilla,
         None,
     )
     .unwrap();
     instance.id = "test-inst".into();
-    let repository = crate::minecraft::metadata::MetadataRepository::new(instances_file);
+    let repository = ingot_core::metadata::MetadataRepository::new(instances_file);
     repository
         .update(|records| {
             records.push(instance);
@@ -371,10 +369,10 @@ async fn launch_instance_with_incomplete_transaction_returns_incomplete_recovery
 
     let instance_dir =
         crate::app::instances::ensure_instance_dir(app.handle(), "test-inst").unwrap();
-    let backup = crate::version_change::models::backup_dir(&instance_dir);
+    let backup = ingot_version_change::models::backup_dir(&instance_dir);
     std::fs::create_dir_all(&backup).unwrap();
-    let journal = crate::version_change::journal::Journal {
-        phase: crate::version_change::TransactionPhase::Swapping,
+    let journal = ingot_version_change::journal::Journal {
+        phase: ingot_version_change::TransactionPhase::Swapping,
         ..Default::default()
     };
     std::fs::write(

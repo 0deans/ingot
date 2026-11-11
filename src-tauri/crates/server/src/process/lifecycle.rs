@@ -4,11 +4,11 @@ use super::monitoring::{
     spawn_exit_monitor, spawn_stderr_reader, spawn_stdout_reader, ExitMonitorContext,
     StdoutReaderContext,
 };
-use crate::core::metadata::MetadataRepository;
-use crate::server::config::{
+use crate::config::{
     read_server_properties_from_dir, write_server_properties_to_dir, ServerConfig, ServerLogEvent,
     ServerStatus, ServerStatusEvent,
 };
+use ingot_core::metadata::MetadataRepository;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -20,7 +20,7 @@ use tokio::sync::Mutex;
 pub trait ServerLifecycleHooks: Send + Sync + 'static {
     fn on_process_started(&self, server_id: &str, pid: u32, started_at: u64);
     fn on_process_exited(&self, server_id: &str, pid: u32);
-    fn on_crash(&self, crash: crate::artifacts::crash::CrashReport);
+    fn on_crash(&self, crash: ingot_artifacts::crash::CrashReport);
 }
 
 /// Strategy for constructing the server execution command.
@@ -49,7 +49,7 @@ impl ClaimedServerLaunch {
 }
 
 pub async fn claim_server_launch(
-    repository: &crate::core::metadata::MetadataRepository<ServerConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<ServerConfig>,
     processes: &ServerProcessManager,
     server_id: &str,
 ) -> Result<ClaimedServerLaunch, ProcessError> {
@@ -82,9 +82,9 @@ pub fn setup_server_environment(
     } else {
         ""
     };
-    crate::server::files::write_properties(
+    crate::files::write_properties(
         server_dir,
-        &[crate::server::files::PropertyEntry {
+        &[crate::files::PropertyEntry {
             key: "server-ip".to_string(),
             value: bind_ip.to_string(),
         }],
@@ -185,7 +185,7 @@ async fn launch_server_inner(
     };
 
     repository.with_serialized(|| {
-        crate::server::config::repair_offline_uuids(server_dir)?;
+        crate::config::repair_offline_uuids(server_dir)?;
         setup_server_environment(server_dir, &config)
     })??;
 

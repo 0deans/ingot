@@ -7,7 +7,7 @@ use super::super::{
         required_string, s, strings, PluginProvider, HANGAR, MODRINTH,
     },
 };
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 use serde_json::Value;
 #[allow(clippy::too_many_arguments)]
 pub async fn search(

@@ -1,4 +1,4 @@
-use crate::artifacts::java::{JavaError, JavaProgressFn};
+use ingot_artifacts::java::{JavaError, JavaProgressFn};
 use std::path::PathBuf;
 use tauri::{Manager, Runtime};
 
@@ -10,7 +10,7 @@ pub(crate) async fn ensure_java_runtime<R: Runtime>(
     progress: Option<JavaProgressFn>,
 ) -> Result<PathBuf, JavaError> {
     let data_dir = app.path().app_data_dir().map_err(std::io::Error::other)?;
-    crate::artifacts::java::ensure_java_runtime_in_dir(
+    ingot_artifacts::java::ensure_java_runtime_in_dir(
         data_dir,
         client,
         major_version,

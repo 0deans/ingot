@@ -1,7 +1,7 @@
-use crate::account::pending_login::PendingMicrosoftLogin;
-use crate::account::AccountProfile;
 use crate::app::accounts as account;
 use crate::ipc::ApiError;
+use ingot_accounts::account::pending_login::PendingMicrosoftLogin;
+use ingot_accounts::account::AccountProfile;
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "accounts")]
@@ -24,10 +24,10 @@ pub(super) trait AccountsApi {
     ) -> Result<AccountProfile, ApiError>;
     async fn microsoft_login_start(
         app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<crate::auth::microsoft::MicrosoftDeviceCode, ApiError>;
+    ) -> Result<ingot_accounts::auth::microsoft::MicrosoftDeviceCode, ApiError>;
     async fn microsoft_login_finish(
         app_handle: tauri::AppHandle<impl Runtime>,
-        code: crate::auth::microsoft::MicrosoftDeviceCode,
+        code: ingot_accounts::auth::microsoft::MicrosoftDeviceCode,
     ) -> Result<AccountProfile, ApiError>;
     async fn microsoft_login_cancel(
         app_handle: tauri::AppHandle<impl Runtime>,
@@ -95,7 +95,7 @@ impl AccountsApi for AccountsApiImpl {
     async fn microsoft_login_start(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<crate::auth::microsoft::MicrosoftDeviceCode, ApiError> {
+    ) -> Result<ingot_accounts::auth::microsoft::MicrosoftDeviceCode, ApiError> {
         account::microsoft_login_start(app_handle)
             .await
             .map_err(ApiError::from)
@@ -104,7 +104,7 @@ impl AccountsApi for AccountsApiImpl {
     async fn microsoft_login_finish(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
-        code: crate::auth::microsoft::MicrosoftDeviceCode,
+        code: ingot_accounts::auth::microsoft::MicrosoftDeviceCode,
     ) -> Result<AccountProfile, ApiError> {
         account::microsoft_login_finish(app_handle, code)
             .await

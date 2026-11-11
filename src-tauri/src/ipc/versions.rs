@@ -1,8 +1,8 @@
 use crate::ipc::ApiError;
-use crate::minecraft::instance::ModLoaderType;
-use crate::minecraft::loader;
-use crate::minecraft::version::{self, VersionManifestEntry};
-use crate::server::{self, ServerCoreType};
+use ingot_minecraft::instance::ModLoaderType;
+use ingot_minecraft::loader;
+use ingot_minecraft::version::{self, VersionManifestEntry};
+use ingot_server::ServerCoreType;
 use tauri::{Manager, Runtime};
 
 fn get_http_client<R: Runtime>(app: &tauri::AppHandle<R>) -> &reqwest::Client {
@@ -54,7 +54,7 @@ pub trait VersionsApi {
 
     async fn get_available_horizon_releases(
         app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<Vec<crate::minecraft::horizon::HorizonRelease>, ApiError>;
+    ) -> Result<Vec<ingot_minecraft::horizon::HorizonRelease>, ApiError>;
 }
 
 #[derive(Clone)]
@@ -87,7 +87,7 @@ impl VersionsApi for VersionsApiImpl {
                 ApiError::storage_failure(format!("Failed to get app data directory: {e}"))
             })?;
             let cache_dir = data_dir.join("cache");
-            let releases = crate::minecraft::horizon::fetch_horizon_releases(
+            let releases = ingot_minecraft::horizon::fetch_horizon_releases(
                 get_http_client(&app_handle),
                 &cache_dir,
             )
@@ -105,7 +105,7 @@ impl VersionsApi for VersionsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         core: ServerCoreType,
     ) -> Result<Vec<String>, ApiError> {
-        server::fetch_core_versions(get_http_client(&app_handle), &core)
+        ingot_server::fetch_core_versions(get_http_client(&app_handle), &core)
             .await
             .map_err(ApiError::from)
     }
@@ -113,12 +113,12 @@ impl VersionsApi for VersionsApiImpl {
     async fn get_available_horizon_releases(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
-    ) -> Result<Vec<crate::minecraft::horizon::HorizonRelease>, ApiError> {
+    ) -> Result<Vec<ingot_minecraft::horizon::HorizonRelease>, ApiError> {
         let data_dir = app_handle.path().app_data_dir().map_err(|e| {
             ApiError::storage_failure(format!("Failed to get app data directory: {e}"))
         })?;
         let cache_dir = data_dir.join("cache");
-        crate::minecraft::horizon::fetch_horizon_releases(get_http_client(&app_handle), &cache_dir)
+        ingot_minecraft::horizon::fetch_horizon_releases(get_http_client(&app_handle), &cache_dir)
             .await
             .map_err(ApiError::from)
     }

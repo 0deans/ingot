@@ -1,6 +1,6 @@
 //! ATLauncher instance discovery and manifest parser.
 use super::{count_instance_stats, ImportableInstance};
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;

@@ -61,7 +61,7 @@ fn collect_configs(
             .map_err(|_| ServerFileError::InvalidPath(path.display().to_string()))?;
         let relative = relative.to_string_lossy().replace('\\', "/");
         if metadata.file_type().is_symlink()
-            || crate::core::safe_enclosed_path(root, &relative).is_none()
+            || ingot_core::safe_enclosed_path(root, &relative).is_none()
         {
             return Err(ServerFileError::InvalidPath(relative));
         }
@@ -96,7 +96,7 @@ pub fn list_config_files(server_dir: &Path) -> Result<Vec<ConfigFile>, ServerFil
 
 /// Resolves a relative config path, refusing anything outside the server folder
 pub(super) fn config_path(server_dir: &Path, rel: &str) -> Result<PathBuf, ServerFileError> {
-    let path = crate::core::safe_enclosed_path(server_dir, rel)
+    let path = ingot_core::safe_enclosed_path(server_dir, rel)
         .ok_or_else(|| ServerFileError::InvalidPath(rel.into()))?;
     if !is_config_file(&path) {
         return Err(ServerFileError::InvalidPath(rel.into()));

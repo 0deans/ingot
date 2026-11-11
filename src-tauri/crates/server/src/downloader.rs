@@ -1,5 +1,5 @@
-use crate::artifacts::downloader::download_file_chunked;
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
+use ingot_artifacts::downloader::download_file_chunked;
 use serde::Deserialize;
 use std::path::Path;
 
@@ -84,16 +84,16 @@ pub enum ServerCoreError {
     Json(#[from] serde_json::Error),
 
     #[error("Installer error: {0}")]
-    Installer(#[from] crate::server::installer::InstallerError),
+    Installer(#[from] crate::installer::InstallerError),
 
     #[error("Pumpkin error: {0}")]
-    Pumpkin(#[from] crate::server::pumpkin::PumpkinError),
+    Pumpkin(#[from] crate::pumpkin::PumpkinError),
 
     #[error("Bedrock error: {0}")]
-    Bedrock(#[from] crate::server::bedrock::BedrockServerError),
+    Bedrock(#[from] crate::bedrock::BedrockServerError),
 
     #[error("Download error: {0}")]
-    Download(#[from] crate::artifacts::downloader::DownloadError),
+    Download(#[from] ingot_artifacts::downloader::DownloadError),
 
     #[error("Version not found: {0}")]
     NotFound(String),
@@ -169,14 +169,10 @@ pub async fn fetch_core_versions(
                 .collect();
             Ok(versions)
         }
-        ServerCoreType::Pumpkin => {
-            Ok(crate::server::pumpkin::fetch_pumpkin_versions(client).await?)
-        }
-        ServerCoreType::Bedrock => {
-            Ok(crate::server::bedrock::fetch_bedrock_versions(client).await?)
-        }
+        ServerCoreType::Pumpkin => Ok(crate::pumpkin::fetch_pumpkin_versions(client).await?),
+        ServerCoreType::Bedrock => Ok(crate::bedrock::fetch_bedrock_versions(client).await?),
         ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {
-            Ok(crate::server::installer::fetch_game_versions(client, core).await?)
+            Ok(crate::installer::fetch_game_versions(client, core).await?)
         }
     }
 }
@@ -190,7 +186,7 @@ pub async fn ensure_server_jar(
     build_number: Option<&str>,
 ) -> Result<String, ServerCoreError> {
     // Installed on start instead: their installers need Java
-    if crate::server::installer::uses_installer(core) {
+    if crate::installer::uses_installer(core) {
         return Ok(format!("{core} is installed when the server starts"));
     }
     let dest_jar = server_dir.join("server.jar");
@@ -339,12 +335,11 @@ pub async fn ensure_server_jar(
             Ok(format!("Vanilla server {} installed", game_version))
         }
         ServerCoreType::Pumpkin => {
-            crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
+            crate::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
             Ok("Pumpkin binary ready".to_string())
         }
         ServerCoreType::Bedrock => {
-            crate::server::bedrock::ensure_bedrock_server_binary(client, server_dir, game_version)
-                .await?;
+            crate::bedrock::ensure_bedrock_server_binary(client, server_dir, game_version).await?;
             Ok("Bedrock server binary ready".to_string())
         }
         ServerCoreType::NeoForge | ServerCoreType::Forge | ServerCoreType::Quilt => {

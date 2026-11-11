@@ -10,7 +10,7 @@ use super::super::models::{
     ContentCategory, ContentUpdateCandidate, ProviderSource, UpdateCheckResult,
 };
 use super::super::tracking::read_tracking;
-use crate::artifacts::sources::{Channel, SourceClient};
+use ingot_artifacts::sources::{Channel, SourceClient};
 
 pub async fn check_updates(
     instance_dir: &Path,

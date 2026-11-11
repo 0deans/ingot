@@ -8,15 +8,15 @@ async fn process_state_is_shared_by_clones_but_isolated_between_applications() {
     let second = AppState::new(AppPaths::new(second_dir.path().to_owned())).unwrap();
     let servers = first.servers.clone();
     servers
-        .set_server_status("same-id", crate::server::ServerStatus::Sleeping)
+        .set_server_status("same-id", ingot_server::ServerStatus::Sleeping)
         .await;
     assert_eq!(
         first.servers.get_server_status("same-id").await,
-        crate::server::ServerStatus::Sleeping
+        ingot_server::ServerStatus::Sleeping
     );
     assert_eq!(
         second.servers.get_server_status("same-id").await,
-        crate::server::ServerStatus::Stopped
+        ingot_server::ServerStatus::Stopped
     );
     first.lifecycle.mark_quitting();
     assert!(first.lifecycle.is_quitting());

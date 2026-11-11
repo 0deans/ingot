@@ -51,7 +51,7 @@ pub fn create_thumbnail(source_path: &Path, dest_path: &Path) -> Result<(), Scre
             path: dest_path.display().to_string(),
             source,
         })?;
-    crate::core::persist_staged_file(staged, dest_path, false).map_err(ScreenshotError::Io)?;
+    ingot_core::persist_staged_file(staged, dest_path, false).map_err(ScreenshotError::Io)?;
     Ok(())
 }
 

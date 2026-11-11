@@ -21,7 +21,8 @@ fn import_options(source: &std::path::Path) -> ImportInstanceOptions {
 
 #[test]
 fn staged_import_publishes_complete_files_and_matching_metadata() {
-    use crate::minecraft::{instance::InstanceConfig, metadata::MetadataRepository};
+    use ingot_core::metadata::MetadataRepository;
+    use ingot_minecraft::instance::InstanceConfig;
     let source = tempfile::tempdir().unwrap();
     let destination = tempfile::tempdir().unwrap();
     let instances = destination.path().join("instances");
@@ -54,7 +55,8 @@ fn staged_import_publishes_complete_files_and_matching_metadata() {
 
 #[test]
 fn unreadable_metadata_after_failed_import_retains_material_until_recovery() {
-    use crate::minecraft::{instance::InstanceConfig, metadata::MetadataRepository};
+    use ingot_core::metadata::MetadataRepository;
+    use ingot_minecraft::instance::InstanceConfig;
     let source = tempfile::tempdir().unwrap();
     let destination = tempfile::tempdir().unwrap();
     fs::write(source.path().join("options.txt"), b"original").unwrap();
@@ -151,7 +153,7 @@ use super::{
     models::ImportInstanceOptions,
     version_id::parse_vanilla_version_id,
 };
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use std::fs;
 
 #[test]
@@ -570,7 +572,7 @@ fn test_execute_import_instance_cleans_up_on_metadata_failure() {
     };
 
     let res = super::execute::execute_import_instance(instances_dir, options, |_stage, _cfg| {
-        Err(crate::core::metadata::MetadataError::Conflict(
+        Err(ingot_core::metadata::MetadataError::Conflict(
             "Injected metadata persistence failure".to_string(),
         ))
     });

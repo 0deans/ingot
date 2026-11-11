@@ -1,6 +1,7 @@
 //! IPC procedures for Bedrock server pack management.
+use crate::app::server_config::get_server_dir;
 use crate::ipc::ApiError;
-use crate::server::{self, bedrock_packs::BedrockPackInfo};
+use ingot_server::bedrock_packs::{self, BedrockPackInfo};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "servers.packs")]
@@ -49,8 +50,8 @@ impl ServerPacksApi for ServerPacksApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<Vec<BedrockPackInfo>, ApiError> {
-        let dir = server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        server::bedrock_packs::list_installed_packs(&dir).map_err(ApiError::from)
+        let dir = get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
+        bedrock_packs::list_installed_packs(&dir).map_err(ApiError::from)
     }
 
     async fn set_bedrock_pack_enabled(
@@ -61,9 +62,8 @@ impl ServerPacksApi for ServerPacksApiImpl {
         pack_type: String,
         enabled: bool,
     ) -> Result<(), ApiError> {
-        let dir = server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        server::bedrock_packs::set_pack_enabled(&dir, &pack_id, &pack_type, enabled)
-            .map_err(ApiError::from)
+        let dir = get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
+        bedrock_packs::set_pack_enabled(&dir, &pack_id, &pack_type, enabled).map_err(ApiError::from)
     }
 
     async fn install_bedrock_pack(
@@ -73,8 +73,8 @@ impl ServerPacksApi for ServerPacksApiImpl {
         download_url: String,
         filename: String,
     ) -> Result<String, ApiError> {
-        let dir = server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        server::bedrock_packs::install_bedrock_pack(&dir, &download_url, &filename)
+        let dir = get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
+        bedrock_packs::install_bedrock_pack(&dir, &download_url, &filename)
             .await
             .map_err(ApiError::from)
     }
@@ -86,8 +86,8 @@ impl ServerPacksApi for ServerPacksApiImpl {
         folder_name: String,
         pack_type: String,
     ) -> Result<(), ApiError> {
-        let dir = server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        server::bedrock_packs::delete_pack(&dir, &folder_name, &pack_type).map_err(ApiError::from)
+        let dir = get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
+        bedrock_packs::delete_pack(&dir, &folder_name, &pack_type).map_err(ApiError::from)
     }
 
     async fn open_bedrock_server_subfolder(
@@ -96,9 +96,8 @@ impl ServerPacksApi for ServerPacksApiImpl {
         server_id: String,
         subfolder: String,
     ) -> Result<(), ApiError> {
-        let server_directory =
-            server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        let directory = crate::core::safe_enclosed_path(&server_directory, &subfolder)
+        let server_directory = get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
+        let directory = ingot_core::safe_enclosed_path(&server_directory, &subfolder)
             .ok_or_else(|| ApiError::invalid_input("Invalid server subfolder"))?;
         std::fs::create_dir_all(&directory)
             .map_err(|error| ApiError::storage_failure(error.to_string()))?;

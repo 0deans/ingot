@@ -1,5 +1,5 @@
 use super::progress::ProgressCallback;
-use crate::artifacts::downloader::download_file_chunked;
+use ingot_artifacts::downloader::download_file_chunked;
 use std::path::{Path, PathBuf};
 
 pub async fn setup_ely_authlib_agent(

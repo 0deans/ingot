@@ -3,7 +3,7 @@ use super::super::super::{
     tracking::{read_tracking_raw, write_tracking_typed},
 };
 use super::*;
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 use std::{
     fs,
     path::{Path, PathBuf},

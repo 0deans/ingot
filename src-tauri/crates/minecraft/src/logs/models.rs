@@ -1,4 +1,4 @@
-use crate::artifacts::crash::CrashSuspect;
+use ingot_artifacts::crash::CrashSuspect;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -105,7 +105,7 @@ pub enum LogError {
     Io(#[from] std::io::Error),
 
     #[error("Instance error: {0}")]
-    Instance(#[from] crate::minecraft::instance::InstanceError),
+    Instance(#[from] crate::instance::InstanceError),
 
     #[error("Background worker failed: {0}")]
     Task(#[from] tokio::task::JoinError),

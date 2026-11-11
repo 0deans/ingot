@@ -1,3 +1,4 @@
+use crate::launcher::rules::RuleEntry;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -42,8 +43,6 @@ pub struct VersionDownloads {
     pub client: Option<DownloadArtifact>,
     pub server: Option<DownloadArtifact>,
 }
-
-pub use crate::minecraft::launcher::rules::{OsRule, RuleEntry};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LibraryDownloads {
@@ -120,11 +119,8 @@ pub struct AssetIndex {
     pub objects: HashMap<String, AssetObject>,
 }
 
-pub use crate::minecraft::launcher::classpath::maven_coordinate_to_path as maven_to_path;
-pub use crate::minecraft::launcher::rules::check_rules;
-
 pub fn should_include_library(lib: &LibraryEntry) -> bool {
-    crate::minecraft::launcher::rules::should_include_library_rules(lib.rules.as_deref())
+    crate::launcher::rules::should_include_library_rules(lib.rules.as_deref())
 }
 
 #[derive(Debug, thiserror::Error)]

@@ -67,8 +67,8 @@ pub fn sync_resourcepacks_dir(source: &Path, target: &Path) -> std::io::Result<u
                 "Invalid resource-pack name",
             )
         })?;
-        if crate::core::safe_enclosed_filename(source, name).is_none()
-            || crate::core::safe_enclosed_filename(target, name).is_none()
+        if ingot_core::safe_enclosed_filename(source, name).is_none()
+            || ingot_core::safe_enclosed_filename(target, name).is_none()
         {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -110,7 +110,7 @@ pub fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
                 "Invalid resource-pack name",
             )
         })?;
-        if crate::core::safe_enclosed_filename(src, name).is_none()
+        if ingot_core::safe_enclosed_filename(src, name).is_none()
             || (!ty.is_dir() && !ty.is_file())
         {
             return Err(std::io::Error::new(
@@ -156,14 +156,14 @@ pub(super) fn copy_file_atomic(source: &Path, destination: &Path) -> std::io::Re
             .ok_or_else(|| {
                 std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid sync filename")
             })?;
-        if crate::core::safe_enclosed_filename(parent, name).is_none() {
+        if ingot_core::safe_enclosed_filename(parent, name).is_none() {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "Linked sync files are unsupported",
             ));
         }
     }
-    crate::core::copy_file_atomic(source, destination)
+    ingot_core::copy_file_atomic(source, destination)
 }
 
 pub fn inspect_shared_status(shared: &Path) -> std::io::Result<SharedSyncStatus> {

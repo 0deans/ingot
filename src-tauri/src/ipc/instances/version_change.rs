@@ -1,9 +1,9 @@
 use super::{find_instance, get_http_client};
 use crate::ipc::versions::is_downgrade;
 use crate::ipc::ApiError;
-use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-use crate::version_change::targets::{self as change_targets, loader_id};
-use crate::version_change::{self, PlanRequest, TargetKind, VersionBackup, VersionPlan};
+use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
+use ingot_version_change::targets::{self as change_targets, loader_id};
+use ingot_version_change::{PlanRequest, TargetKind, VersionBackup, VersionPlan};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "instances.version_change")]
@@ -52,7 +52,7 @@ pub trait InstanceVersionChangeApi {
     async fn get_instance_version_transaction_status(
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
-    ) -> Result<version_change::VersionTransactionStatus, ApiError>;
+    ) -> Result<ingot_version_change::VersionTransactionStatus, ApiError>;
 }
 
 #[derive(Clone)]
@@ -70,7 +70,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
     ) -> Result<VersionPlan, ApiError> {
         let instance = find_instance(&app_handle, &instance_id)?;
         if loader != ModLoaderType::Vanilla && loader_version.is_none() {
-            let name = version_change::loader_label(&loader_id(&loader));
+            let name = ingot_version_change::loader_label(&loader_id(&loader));
             return Err(ApiError::invalid_input(format!(
                 "Pick a {name} version for Minecraft {game_version}"
             )));
@@ -91,7 +91,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
             to_loader_version: loader_version.filter(|_| loader != ModLoaderType::Vanilla),
             downgrade,
         };
-        version_change::check_typed(get_http_client(&app_handle), &target, request)
+        ingot_version_change::check_typed(get_http_client(&app_handle), &target, request)
             .await
             .map_err(ApiError::from)
     }
@@ -105,7 +105,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         let directory = crate::app::instances::ensure_instance_dir(&app_handle, &plan.target_id)
             .map_err(ApiError::from)?;
         let state = crate::app::state(&app_handle);
-        version_change::service::apply_instance(
+        ingot_version_change::service::apply_instance(
             &state.instances,
             &state.games,
             &state.http,
@@ -124,7 +124,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
     ) -> Result<Option<VersionBackup>, ApiError> {
         let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
             .map_err(ApiError::from)?;
-        version_change::last_backup(&instance_dir).map_err(ApiError::from)
+        ingot_version_change::last_backup(&instance_dir).map_err(ApiError::from)
     }
 
     async fn undo_instance_version_change(
@@ -135,12 +135,12 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
             .map_err(ApiError::from)?;
         let state = crate::app::state(&app_handle);
-        version_change::service::restore_instance(
+        ingot_version_change::service::restore_instance(
             &state.instances,
             &state.games,
             &directory,
             &instance_id,
-            version_change::service::Restoration::Undo,
+            ingot_version_change::service::Restoration::Undo,
         )
         .map_err(ApiError::from)
     }
@@ -158,7 +158,7 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         find_instance(&app_handle, &instance_id)?;
         let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
             .map_err(ApiError::from)?;
-        version_change::discard_backup_typed(&directory).map_err(ApiError::from)
+        ingot_version_change::discard_backup_typed(&directory).map_err(ApiError::from)
     }
 
     async fn recover_instance_version_change(
@@ -169,12 +169,12 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         let directory = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
             .map_err(ApiError::from)?;
         let state = crate::app::state(&app_handle);
-        version_change::service::restore_instance(
+        ingot_version_change::service::restore_instance(
             &state.instances,
             &state.games,
             &directory,
             &instance_id,
-            version_change::service::Restoration::Recover,
+            ingot_version_change::service::Restoration::Recover,
         )
         .map_err(ApiError::from)
     }
@@ -183,9 +183,9 @@ impl InstanceVersionChangeApi for InstanceVersionChangeApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         instance_id: String,
-    ) -> Result<version_change::VersionTransactionStatus, ApiError> {
+    ) -> Result<ingot_version_change::VersionTransactionStatus, ApiError> {
         let instance_dir = crate::app::instances::ensure_instance_dir(&app_handle, &instance_id)
             .map_err(ApiError::from)?;
-        Ok(version_change::transaction_status(&instance_dir))
+        Ok(ingot_version_change::transaction_status(&instance_dir))
     }
 }

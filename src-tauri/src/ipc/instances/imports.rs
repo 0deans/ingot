@@ -1,6 +1,6 @@
 use crate::app::importer;
 use crate::ipc::ApiError;
-use crate::minecraft::importer::{
+use ingot_content::importer::{
     DetectedLauncher, ImportInstanceOptions, ImportReport, ImportableInstance,
 };
 use tauri::Runtime;

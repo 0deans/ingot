@@ -1,11 +1,13 @@
-use crate::server::config::{ServerConfig, ServerStatus, ServerStatusEvent};
-use crate::server::process::{
+mod sleep;
+
+use crate::config::{ServerConfig, ServerStatus, ServerStatusEvent};
+use crate::process::{
     claim_server_launch, launch_claimed_server, ClaimedServerLaunch, ProcessError,
     ServerLaunchContext, ServerProcessManager,
 };
-use crate::server::proxy::{start_server_proxy, ProxyConfig, ServerProxyHandle};
+use crate::proxy::{start_server_proxy, ProxyConfig, ServerProxyHandle};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::TcpStream;
@@ -27,7 +29,7 @@ pub struct SupervisedServer {
 struct WakeControl {
     released: bool,
     task: Option<tokio::task::AbortHandle>,
-    publication: crate::server::process::ServerLaunchGeneration,
+    publication: crate::process::ServerLaunchGeneration,
 }
 impl WakeControl {
     fn release(&mut self) {
@@ -56,7 +58,7 @@ struct StartupProcessGuard {
     manager: ServerProcessManager,
     server_id: String,
     pid: u32,
-    launch_generation: crate::server::process::ServerLaunchGeneration,
+    launch_generation: crate::process::ServerLaunchGeneration,
     complete: bool,
 }
 impl StartupProcessGuard {
@@ -64,7 +66,7 @@ impl StartupProcessGuard {
         manager: ServerProcessManager,
         server_id: String,
         pid: u32,
-        launch_generation: crate::server::process::ServerLaunchGeneration,
+        launch_generation: crate::process::ServerLaunchGeneration,
     ) -> Self {
         Self {
             manager,
@@ -182,13 +184,85 @@ static GENERATION: AtomicU64 = AtomicU64::new(1);
 #[derive(Clone, Default)]
 pub struct ServerSupervisorManager {
     supervised: Arc<Mutex<HashMap<String, SupervisedServer>>>,
+    sleep: sleep::SleepCoordinator,
 }
 
 impl ServerSupervisorManager {
     pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[cfg(test)]
+    fn with_test_stop(stopper: Arc<dyn sleep::TestSleepStop>) -> Self {
         Self {
             supervised: Arc::new(Mutex::new(HashMap::new())),
+            sleep: sleep::SleepCoordinator::with_test_stop(stopper),
         }
+    }
+
+    #[cfg(test)]
+    async fn supervise_idle_for_test(
+        &self,
+        pm: ServerProcessManager,
+        config: ServerConfig,
+        idle_timeout: u64,
+        active_conns: Arc<AtomicUsize>,
+        proxy_handle: Option<ServerProxyHandle>,
+        on_status: Arc<dyn Fn(ServerStatusEvent) + Send + Sync + 'static>,
+    ) -> u64 {
+        let server_id = config.id.clone();
+        self.release(&server_id).await;
+        let generation = GENERATION.fetch_add(1, Ordering::SeqCst);
+        self.register_supervised(SupervisedRegistration {
+            config,
+            generation,
+            idle_timeout,
+            pm,
+            active_conns,
+            proxy_handle,
+            last_active_timestamp: Arc::new(AtomicU64::new(0)),
+            wake_task: Arc::new(std::sync::Mutex::new(WakeControl::default())),
+            on_status,
+        })
+        .await;
+        generation
+    }
+
+    #[cfg(test)]
+    async fn generation_of(&self, server_id: &str) -> Option<u64> {
+        self.supervised
+            .lock()
+            .await
+            .get(server_id)
+            .map(|server| server.generation)
+    }
+
+    async fn register_supervised(&self, registration: SupervisedRegistration) {
+        let server_id = registration.config.id.clone();
+        // No task is spawned until its registry entry can be published without
+        // another cancellation point.
+        let mut registry = self.supervised.lock().await;
+        let idle_task = sleep::spawn_idle_monitor(sleep::IdleMonitorParams {
+            server_id: server_id.clone(),
+            generation: registration.generation,
+            idle_timeout: registration.idle_timeout,
+            pm: registration.pm,
+            active_conns: registration.active_conns,
+            on_status: registration.on_status,
+            supervised: self.supervised.clone(),
+            sleep: self.sleep.clone(),
+        });
+        registry.insert(
+            server_id,
+            SupervisedServer {
+                config: registration.config,
+                proxy_handle: registration.proxy_handle,
+                last_active_timestamp: registration.last_active_timestamp,
+                generation: registration.generation,
+                idle_task: Some(idle_task),
+                wake_task: registration.wake_task,
+            },
+        );
     }
 
     /// Starts a claimed process and owns its proxy, idle monitor, and wake tasks.
@@ -198,7 +272,6 @@ impl ServerSupervisorManager {
         mut claimed: ClaimedServerLaunch,
     ) -> Result<u32, ProcessError> {
         let pm = context.processes.clone();
-        let on_status = context.on_status.clone();
         let config = claimed.config.clone();
         let server_id = config.id.clone();
         let sleep_enabled = if config.core == super::config::ServerCoreType::Bedrock {
@@ -206,8 +279,6 @@ impl ServerSupervisorManager {
         } else {
             config.sleep_enabled.unwrap_or(true)
         };
-        let public_port = config.port;
-        let internal_port = super::config::internal_port(&config);
         let idle_timeout = config.idle_timeout_seconds.unwrap_or(600); // 10 minutes default
 
         let last_active = Arc::new(AtomicU64::new(
@@ -219,7 +290,7 @@ impl ServerSupervisorManager {
 
         // If sleep/proxy is enabled, launch internal server on internal_port
         if sleep_enabled {
-            claimed.config.port = internal_port;
+            claimed.config.port = super::config::internal_port(&config);
         }
 
         // A proxy left from an earlier run (crash, or waking a sleeping server) still
@@ -235,163 +306,25 @@ impl ServerSupervisorManager {
         }
 
         let mut startup =
-            StartupProcessGuard::new(pm.clone(), server_id.clone(), pid, claimed.generation());
+            StartupProcessGuard::new(pm.clone(), server_id, pid, claimed.generation());
 
         let wake_task = Arc::new(std::sync::Mutex::new(WakeControl::default()));
-
-        // Start the Smart TCP Proxy on public_port (e.g. 25565)
-        let proxy_cfg = ProxyConfig {
-            server_id: server_id.clone(),
-            server_name: config.name.clone(),
-            public_port,
-            internal_port,
-            max_players: 20,
-            sleep_enabled: true,
-        };
-
-        let wake_fn = wake_callback(
-            context.clone(),
-            server_id.clone(),
-            internal_port,
-            wake_task.clone(),
-        );
-
-        let pm_running = pm.clone();
-        let s_id_running = server_id.clone();
-        let is_running_fn =
-            move || pm_running.observed_status(&s_id_running) == ServerStatus::Running;
-        let pm_sleeping = pm.clone();
-        let s_id_sleeping = server_id.clone();
-        let is_sleeping_fn =
-            move || pm_sleeping.observed_status(&s_id_sleeping) == ServerStatus::Sleeping;
-
         let proxy_handle =
-            match start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn).await {
-                Ok(handle) => handle,
-                Err(source) => {
-                    let error = proxy_start_failure(public_port, source, async {
-                        pm.stop_owned_and_wait(
-                            &server_id,
-                            pid,
-                            &startup.launch_generation,
-                            Duration::from_secs(10),
-                        )
-                        .await?;
-                        startup.complete = true;
-                        Ok(())
-                    })
-                    .await;
-                    return Err(error);
-                }
-            };
+            start_proxy_for_server(&context, &config, pid, &mut startup, wake_task.clone()).await?;
 
         let active_conns = proxy_handle.active_connections.clone();
-        // No task is spawned until its registry entry can be published without
-        // another cancellation point.
-        let mut registry = self.supervised.lock().await;
-
-        // Spawn background Idle Monitor Loop (checks every 10 seconds)
-        let s_id_idle = server_id.clone();
-        let pm_idle = pm.clone();
-        let on_status_idle = on_status.clone();
-        let supervised = self.supervised.clone();
-        let idle_task = tokio::spawn(async move {
-            eprintln!("[Supervisor] Idle detection loop started for {s_id_idle} (Timeout: {idle_timeout}s)");
-            let mut idle_seconds = 0u64;
-
-            loop {
-                tokio::time::sleep(Duration::from_secs(10)).await;
-
-                // A newer start (or a manual stop) replaced this run: nothing left to watch
-                let current = supervised
-                    .lock()
-                    .await
-                    .get(&s_id_idle)
-                    .map(|s| s.generation);
-                if current != Some(generation) {
-                    break;
-                }
-
-                let status = pm_idle.get_server_status(&s_id_idle).await;
-                if status == ServerStatus::Stopped {
-                    // Going to sleep passes through "stopped" for a moment; still stopped a
-                    // bit later means the server exited on its own (crash, failed start)
-                    tokio::time::sleep(Duration::from_secs(12)).await;
-                    if pm_idle.get_server_status(&s_id_idle).await == ServerStatus::Stopped {
-                        let mut guard = supervised.lock().await;
-                        if guard.get(&s_id_idle).map(|s| s.generation) == Some(generation) {
-                            guard.remove(&s_id_idle);
-                            eprintln!("[Supervisor] {s_id_idle} exited; released its port");
-                        }
-                        break;
-                    }
-                    continue;
-                }
-
-                if status == ServerStatus::Running {
-                    let conns = active_conns.load(Ordering::SeqCst);
-                    let online_players = pm_idle.get_server_online_players(&s_id_idle).await;
-
-                    if conns == 0 && online_players.is_empty() {
-                        idle_seconds += 10;
-                        if idle_seconds >= idle_timeout {
-                            eprintln!(
-                                "[Supervisor] Server {s_id_idle} has been idle for {idle_seconds}s. Entering sleep mode..."
-                            );
-
-                            // Send graceful stop to save battery and RAM
-                            let _ = pm_idle
-                                .stop_server_within_typed(&s_id_idle, Duration::from_secs(10))
-                                .await;
-
-                            // Wait for process to terminate
-                            for _ in 0..20 {
-                                tokio::time::sleep(Duration::from_millis(500)).await;
-                                if pm_idle.get_server_status(&s_id_idle).await
-                                    == ServerStatus::Stopped
-                                {
-                                    break;
-                                }
-                            }
-
-                            if pm_idle.get_server_status(&s_id_idle).await != ServerStatus::Stopped
-                            {
-                                continue;
-                            }
-                            // Transition status to Sleeping
-                            pm_idle
-                                .set_server_status(&s_id_idle, ServerStatus::Sleeping)
-                                .await;
-                            on_status_idle(ServerStatusEvent {
-                                server_id: s_id_idle.clone(),
-                                status: ServerStatus::Sleeping,
-                                pid: None,
-                            });
-
-                            idle_seconds = 0;
-                        }
-                    } else {
-                        // Reset idle counter if players are connected
-                        idle_seconds = 0;
-                    }
-                }
-            }
-        });
-
-        // Register in supervisor
-        {
-            registry.insert(
-                server_id.clone(),
-                SupervisedServer {
-                    config: config.clone(),
-                    proxy_handle: Some(proxy_handle),
-                    last_active_timestamp: last_active,
-                    generation,
-                    idle_task: Some(idle_task.abort_handle()),
-                    wake_task,
-                },
-            );
-        }
+        self.register_supervised(SupervisedRegistration {
+            config,
+            generation,
+            idle_timeout,
+            pm,
+            active_conns,
+            proxy_handle: Some(proxy_handle),
+            last_active_timestamp: last_active,
+            wake_task,
+            on_status: context.on_status,
+        })
+        .await;
 
         startup.complete = true;
         Ok(pid)
@@ -407,43 +340,15 @@ impl ServerSupervisorManager {
     where
         FStatus: Fn(ServerStatusEvent) + Send + Sync + 'static,
     {
-        let status = pm.get_server_status(server_id).await;
-        if status != ServerStatus::Running {
-            return Err(ProcessError::MustBeRunningToSleep);
-        }
-
-        // Gracefully stop internal process
-        pm.stop_server_within_typed(server_id, Duration::from_secs(10))
-            .await?;
-
-        // Wait for shutdown
-        for _ in 0..20 {
-            tokio::time::sleep(Duration::from_millis(500)).await;
-            if pm.get_server_status(server_id).await == ServerStatus::Stopped {
-                break;
-            }
-        }
-
-        if pm.get_server_status(server_id).await != ServerStatus::Stopped {
-            return Err(ProcessError::ShutdownTimeout {
-                server_id: server_id.to_string(),
-                timeout: Duration::from_secs(10),
-            });
-        }
-        pm.set_server_status(server_id, ServerStatus::Sleeping)
-            .await;
-        on_status(ServerStatusEvent {
-            server_id: server_id.to_string(),
-            status: ServerStatus::Sleeping,
-            pid: None,
-        });
-
-        Ok(())
+        self.sleep
+            .put_to_sleep(&self.supervised, pm, server_id, &on_status)
+            .await
     }
 
     /// Shuts down the server's proxy (freeing its public port) and forgets it
     pub async fn release(&self, server_id: &str) {
         let removed = self.supervised.lock().await.remove(server_id);
+        self.sleep.invalidate(server_id).await;
         if let Some(mut server) = removed {
             let proxy = server.proxy_handle.take();
             drop(server);
@@ -460,6 +365,7 @@ impl ServerSupervisorManager {
         server_id: &str,
     ) -> Result<(), ProcessError> {
         pm.cancel_start(server_id);
+        self.sleep.invalidate(server_id).await;
         self.release(server_id).await;
 
         match pm
@@ -473,6 +379,66 @@ impl ServerSupervisorManager {
             Err(error) => return Err(error),
         }
         Ok(())
+    }
+}
+
+struct SupervisedRegistration {
+    config: ServerConfig,
+    generation: u64,
+    idle_timeout: u64,
+    pm: ServerProcessManager,
+    active_conns: Arc<AtomicUsize>,
+    proxy_handle: Option<ServerProxyHandle>,
+    last_active_timestamp: Arc<AtomicU64>,
+    wake_task: Arc<std::sync::Mutex<WakeControl>>,
+    on_status: Arc<dyn Fn(ServerStatusEvent) + Send + Sync + 'static>,
+}
+
+async fn start_proxy_for_server(
+    context: &ServerLaunchContext,
+    config: &ServerConfig,
+    pid: u32,
+    startup: &mut StartupProcessGuard,
+    wake_task: Arc<std::sync::Mutex<WakeControl>>,
+) -> Result<ServerProxyHandle, ProcessError> {
+    let pm = context.processes.clone();
+    let server_id = config.id.clone();
+    let public_port = config.port;
+    let internal_port = super::config::internal_port(config);
+
+    let proxy_cfg = ProxyConfig {
+        server_id: server_id.clone(),
+        server_name: config.name.clone(),
+        public_port,
+        internal_port,
+        max_players: 20,
+        sleep_enabled: true,
+    };
+
+    let wake_fn = wake_callback(context.clone(), server_id.clone(), internal_port, wake_task);
+
+    let pm_running = pm.clone();
+    let s_id_running = server_id.clone();
+    let is_running_fn = move || pm_running.observed_status(&s_id_running) == ServerStatus::Running;
+    let pm_sleeping = pm.clone();
+    let s_id_sleeping = server_id.clone();
+    let is_sleeping_fn =
+        move || pm_sleeping.observed_status(&s_id_sleeping) == ServerStatus::Sleeping;
+
+    match start_server_proxy(proxy_cfg, wake_fn, is_running_fn, is_sleeping_fn).await {
+        Ok(handle) => Ok(handle),
+        Err(source) => Err(proxy_start_failure(public_port, source, async {
+            pm.stop_owned_and_wait(
+                &server_id,
+                pid,
+                &startup.launch_generation,
+                Duration::from_secs(10),
+            )
+            .await?;
+            startup.complete = true;
+            Ok(())
+        })
+        .await),
     }
 }
 

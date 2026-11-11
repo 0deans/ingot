@@ -1,8 +1,8 @@
 //! Native lifecycle orchestration; transport handlers only delegate here.
 use super::{events, state};
-use crate::minecraft::launcher::{self, InstanceStatusEvent};
 use crate::running::{BusyServer, LeftoverServer, QuitRequest};
-use crate::server;
+use ingot_core::process_tree;
+use ingot_minecraft::launcher::{self, InstanceStatusEvent};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::Runtime;
 
@@ -45,13 +45,13 @@ fn get_process_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &launcher::Proc
 
 fn get_server_process_manager<R: Runtime>(
     app: &tauri::AppHandle<R>,
-) -> &server::ServerProcessManager {
+) -> &ingot_server::ServerProcessManager {
     &state(app).servers
 }
 
 fn get_server_supervisor_manager<R: Runtime>(
     app: &tauri::AppHandle<R>,
-) -> &server::ServerSupervisorManager {
+) -> &ingot_server::ServerSupervisorManager {
     &state(app).supervisor
 }
 
@@ -77,7 +77,7 @@ pub(crate) async fn adopt_running_games<R: Runtime>(app: &tauri::AppHandle<R>) {
 /// Servers that are running, starting or sleeping
 pub(crate) async fn busy_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<BusyServer> {
     let pm = get_server_process_manager(app);
-    let configs = server::load_servers(app).unwrap_or_default();
+    let configs = crate::app::server_config::load_servers(app).unwrap_or_default();
     let mut busy = Vec::new();
     for config in configs {
         let status = pm.get_server_status(&config.id).await;
@@ -91,15 +91,15 @@ pub(crate) async fn busy_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<B
 fn quit_blocker(
     server_id: String,
     name: String,
-    status: server::ServerStatus,
+    status: ingot_server::ServerStatus,
 ) -> Option<BusyServer> {
-    if status == server::ServerStatus::Stopped {
+    if status == ingot_server::ServerStatus::Stopped {
         return None;
     }
     Some(BusyServer {
         server_id,
         name,
-        sleeping: status == server::ServerStatus::Sleeping,
+        sleeping: status == ingot_server::ServerStatus::Sleeping,
     })
 }
 
@@ -122,7 +122,7 @@ pub(crate) async fn stop_all_servers<R: Runtime>(
         let supervisor = get_server_supervisor_manager(&app);
         for id in pm.sleeping_ids().await {
             supervisor.release(&id).await;
-            pm.set_server_status(&id, server::ServerStatus::Stopped)
+            pm.set_server_status(&id, ingot_server::ServerStatus::Stopped)
                 .await;
         }
         let mut jobs = Vec::new();
@@ -136,7 +136,7 @@ pub(crate) async fn stop_all_servers<R: Runtime>(
                     .await
                 {
                     // A process may exit normally before this worker claims its shutdown.
-                    Err(server::process::ProcessError::NotRunning(_)) => Ok(()),
+                    Err(ingot_server::process::ProcessError::NotRunning(_)) => Ok(()),
                     result => result,
                 }
             });
@@ -153,7 +153,7 @@ pub(crate) async fn stop_all_servers<R: Runtime>(
 
 struct ShutdownJob {
     server_id: String,
-    work: tokio::task::JoinHandle<Result<(), server::process::ProcessError>>,
+    work: tokio::task::JoinHandle<Result<(), ingot_server::process::ProcessError>>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -161,7 +161,7 @@ struct ShutdownJob {
 pub(crate) struct ServerShutdownFailure {
     server_id: String,
     #[source]
-    source: server::process::ProcessError,
+    source: ingot_server::process::ProcessError,
 }
 
 #[derive(Debug)]
@@ -192,7 +192,7 @@ async fn collect_shutdowns(jobs: Vec<ShutdownJob>) -> Result<(), LifecycleError>
     for job in jobs {
         let result = match job.work.await {
             Ok(result) => result,
-            Err(source) => Err(server::process::ProcessError::ShutdownWorker(source)),
+            Err(source) => Err(ingot_server::process::ProcessError::ShutdownWorker(source)),
         };
         if let Err(source) = result {
             failures.push(ServerShutdownFailure {
@@ -266,7 +266,7 @@ pub(crate) fn request_quit<R: Runtime>(app: &tauri::AppHandle<R>) {
 /// Servers from the saved list that are still running but aren't Ingot's children now
 pub(crate) async fn leftover_servers<R: Runtime>(app: &tauri::AppHandle<R>) -> Vec<LeftoverServer> {
     let pm = get_server_process_manager(app);
-    let configs = server::load_servers(app).unwrap_or_default();
+    let configs = crate::app::server_config::load_servers(app).unwrap_or_default();
     let mut leftovers = Vec::new();
     for entry in crate::running::load(app, crate::running::Kind::Server) {
         if pm.owns(&entry.id, entry.pid).await {
@@ -296,7 +296,7 @@ pub(crate) enum LifecycleError {
     #[error("That server isn't running any more")]
     LeftoverServerMissing,
     #[error("Failed to terminate leftover server: {0}")]
-    Termination(#[source] crate::process_tree::TerminationError),
+    Termination(#[source] process_tree::TerminationError),
     #[error("Leftover server shutdown worker failed: {0}")]
     ShutdownWorker(#[source] tokio::task::JoinError),
     #[error("Some servers remain unconfirmed: {0}")]
@@ -318,7 +318,7 @@ pub(crate) async fn stop_leftover_server<R: Runtime>(
         return Err(LifecycleError::LeftoverServerMissing);
     }
     let app = app.clone();
-    stop_leftover_owned(entry, crate::process_tree::terminate, move |original| {
+    stop_leftover_owned(entry, process_tree::terminate, move |original| {
         crate::running::remove_original(&app, crate::running::Kind::Server, &original)
     })
     .await
@@ -330,15 +330,13 @@ async fn stop_leftover_owned<F, Fut, A>(
     acknowledge: A,
 ) -> Result<(), LifecycleError>
 where
-    F: FnOnce(crate::process_tree::ProcessIdentity) -> Fut + Send + 'static,
-    Fut: std::future::Future<Output = Result<(), crate::process_tree::TerminationError>>
-        + Send
-        + 'static,
+    F: FnOnce(process_tree::ProcessIdentity) -> Fut + Send + 'static,
+    Fut: std::future::Future<Output = Result<(), process_tree::TerminationError>> + Send + 'static,
     A: FnOnce(crate::running::Entry) + Send + 'static,
 {
     // The worker owns both termination and acknowledgement after a caller disconnects.
     tokio::spawn(async move {
-        let identity = crate::process_tree::ProcessIdentity::new(original.pid, original.proc_start);
+        let identity = process_tree::ProcessIdentity::new(original.pid, original.proc_start);
         if let Err(error) = terminate(identity).await {
             eprintln!(
                 "Leftover server {} termination failed: {error}",

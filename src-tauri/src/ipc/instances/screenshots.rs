@@ -1,6 +1,6 @@
 use crate::app::screenshots;
 use crate::ipc::ApiError;
-use crate::minecraft::screenshots::ScreenshotInfo;
+use ingot_minecraft::screenshots::ScreenshotInfo;
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "instances.screenshots")]

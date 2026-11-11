@@ -3,7 +3,7 @@ use std::sync::{atomic::AtomicUsize, Arc};
 
 #[test]
 fn every_non_stopped_server_blocks_quitting_and_only_sleeping_is_marked_as_sleeping() {
-    use crate::server::ServerStatus;
+    use ingot_server::ServerStatus;
     assert!(quit_blocker("id".into(), "name".into(), ServerStatus::Stopped).is_none());
     for status in [
         ServerStatus::Starting,
@@ -77,7 +77,7 @@ async fn failed_leftover_termination_preserves_the_discovery_record_and_cause() 
     let error = stop_leftover_owned(
         leftover_entry(),
         |_| async {
-            Err(crate::process_tree::TerminationError::Spawn {
+            Err(ingot_core::process_tree::TerminationError::Spawn {
                 pid: 10,
                 source: std::io::ErrorKind::PermissionDenied.into(),
             })
@@ -89,7 +89,7 @@ async fn failed_leftover_termination_preserves_the_discovery_record_and_cause() 
     .await
     .unwrap_err();
     assert!(matches!(error,
-        LifecycleError::Termination(crate::process_tree::TerminationError::Spawn { pid: 10, ref source })
+        LifecycleError::Termination(ingot_core::process_tree::TerminationError::Spawn { pid: 10, ref source })
             if source.kind() == std::io::ErrorKind::PermissionDenied));
     assert!(!acknowledged.load(Ordering::SeqCst));
     assert!(std::error::Error::source(&error).is_some());
@@ -124,7 +124,7 @@ async fn cancelled_leftover_caller_does_not_abandon_termination_acknowledgement(
 
 #[tokio::test]
 async fn shutdown_batch_waits_for_every_server_and_retains_all_failures() {
-    use crate::server::process::ProcessError;
+    use ingot_server::process::ProcessError;
     let finished = Arc::new(AtomicUsize::new(0));
     let completed = finished.clone();
     let jobs = vec![
@@ -173,7 +173,7 @@ async fn shutdown_batch_waits_for_every_server_and_retains_all_failures() {
 #[tokio::test]
 async fn shutdown_batch_reports_abandoned_worker_instead_of_success() {
     let work = tokio::spawn(std::future::pending::<
-        Result<(), server::process::ProcessError>,
+        Result<(), ingot_server::process::ProcessError>,
     >());
     work.abort();
     let result = collect_shutdowns(vec![ShutdownJob {
@@ -186,6 +186,6 @@ async fn shutdown_batch_reports_abandoned_worker_instead_of_success() {
     };
     assert_eq!(failures.0[0].server_id, "worker");
     assert!(
-        matches!(failures.0[0].source, server::process::ProcessError::ShutdownWorker(ref source) if source.is_cancelled())
+        matches!(failures.0[0].source, ingot_server::process::ProcessError::ShutdownWorker(ref source) if source.is_cancelled())
     );
 }

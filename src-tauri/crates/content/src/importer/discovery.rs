@@ -7,7 +7,7 @@ use super::{
     },
     models::{DetectedLauncher, ImportError, ImportableInstance},
 };
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use std::path::PathBuf;
 
 pub struct DiscoveryRoots {

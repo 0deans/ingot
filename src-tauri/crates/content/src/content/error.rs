@@ -18,7 +18,7 @@ pub enum ContentError {
         curseforge: Box<ContentError>,
     },
     #[error("Instance metadata publication failed: {0}")]
-    Metadata(#[source] crate::core::metadata::MetadataError),
+    Metadata(#[source] ingot_core::metadata::MetadataError),
     #[error("Network transport failure: {0}")]
     Transport(#[source] reqwest::Error),
 
@@ -50,7 +50,7 @@ pub enum ContentError {
     MissingManifest(&'static str),
 
     #[error("Instance error: {0}")]
-    Instance(#[source] crate::minecraft::instance::InstanceError),
+    Instance(#[source] ingot_minecraft::instance::InstanceError),
 
     #[error("Modpack contains an invalid or unsafe path: {0}")]
     UnsafePath(String),
@@ -61,7 +61,7 @@ pub enum ContentError {
     #[error("Instance '{instance}' with loader {loader:?} does not support {category}")]
     UnsupportedLoader {
         instance: String,
-        loader: crate::minecraft::instance::ModLoaderType,
+        loader: ingot_minecraft::instance::ModLoaderType,
         category: &'static str,
     },
 

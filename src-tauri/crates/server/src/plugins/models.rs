@@ -1,4 +1,4 @@
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]

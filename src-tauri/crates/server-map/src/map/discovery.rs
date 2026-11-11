@@ -164,12 +164,3 @@ pub fn tile_typed(
         base64::engine::general_purpose::STANDARD.encode(png)
     )))
 }
-
-pub fn tile(
-    server_dir: &Path,
-    dimension: &str,
-    x: i32,
-    z: i32,
-) -> Result<Option<String>, MapError> {
-    tile_typed(server_dir, dimension, x, z)
-}

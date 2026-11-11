@@ -1,5 +1,5 @@
 use super::*;
-use crate::minecraft::metadata::{MetadataError, MetadataRepository};
+use ingot_core::metadata::{MetadataError, MetadataRepository};
 
 #[test]
 fn directory_lookup_restores_pending_deletion_before_creating_a_directory() {

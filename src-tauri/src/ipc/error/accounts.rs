@@ -28,7 +28,7 @@ impl From<crate::app::accounts::SkinError> for ApiError {
             SkinError::MetadataAfterProvider(_) | SkinError::CredentialsAfterProvider(_) => {
                 Self::incomplete_recovery(error.to_string())
             }
-            SkinError::Ely(crate::auth::ely::ElyError::UploadedNotApplied { .. }) => {
+            SkinError::Ely(ingot_accounts::auth::ely::ElyError::UploadedNotApplied { .. }) => {
                 Self::incomplete_recovery(error.to_string())
             }
             SkinError::Microsoft(_) | SkinError::Ely(_) => {
@@ -57,117 +57,91 @@ impl From<crate::app::accounts::DownloadError> for ApiError {
     }
 }
 
-impl From<crate::account::credentials::CredentialError> for ApiError {
-    fn from(error: crate::account::credentials::CredentialError) -> Self {
+impl From<ingot_accounts::account::credentials::CredentialError> for ApiError {
+    fn from(error: ingot_accounts::account::credentials::CredentialError) -> Self {
+        use ingot_accounts::account::credentials::CredentialError;
         match error {
-            crate::account::credentials::CredentialError::Missing => {
-                Self::not_found("No credentials found")
-            }
-            crate::account::credentials::CredentialError::Vault { .. } => {
-                Self::provider_unavailable(error.to_string())
-            }
-            crate::account::credentials::CredentialError::Decode(_)
-            | crate::account::credentials::CredentialError::Encode(_) => {
+            CredentialError::Missing => Self::not_found("No credentials found"),
+            CredentialError::Vault { .. } => Self::provider_unavailable(error.to_string()),
+            CredentialError::Decode(_) | CredentialError::Encode(_) => {
                 Self::storage_failure(error.to_string())
             }
         }
     }
 }
 
-impl From<crate::account::AccountError> for ApiError {
-    fn from(error: crate::account::AccountError) -> Self {
+impl From<ingot_accounts::account::AccountError> for ApiError {
+    fn from(error: ingot_accounts::account::AccountError) -> Self {
+        use ingot_accounts::account::{policy::AccountPolicyError, AccountError};
         match error {
-            crate::account::AccountError::Policy(
-                crate::account::policy::AccountPolicyError::NotFound,
-            ) => Self::not_found("Account not found"),
-            crate::account::AccountError::Policy(
-                crate::account::policy::AccountPolicyError::DuplicateReorderId(id),
-            ) => Self::invalid_input(format!("Duplicate account ID in reorder list: {id}")),
-            crate::account::AccountError::Validation { .. } => {
-                Self::storage_failure(error.to_string())
-            }
-            crate::account::AccountError::Io { .. }
-            | crate::account::AccountError::Decode { .. }
-            | crate::account::AccountError::Encode(_) => Self::storage_failure(error.to_string()),
-            crate::account::AccountError::LockPoisoned => Self::internal(error.to_string()),
-        }
-    }
-}
-
-impl From<crate::account::recovery::RecoveryError> for ApiError {
-    fn from(error: crate::account::recovery::RecoveryError) -> Self {
-        match error {
-            crate::account::recovery::RecoveryError::Credentials(e) => Self::from(e),
-            crate::account::recovery::RecoveryError::Account(e) => Self::from(e),
-            crate::account::recovery::RecoveryError::PendingGrant(e) => Self::from(e),
-            crate::account::recovery::RecoveryError::PendingCredentials(_)
-            | crate::account::recovery::RecoveryError::Profile(_) => {
-                Self::incomplete_recovery(error.to_string())
-            }
-            crate::account::recovery::RecoveryError::Discovery(_)
-            | crate::account::recovery::RecoveryError::Invalid => {
-                Self::storage_failure(error.to_string())
-            }
-            crate::account::recovery::RecoveryError::LockPoisoned => {
-                Self::internal(error.to_string())
-            }
-        }
-    }
-}
-
-impl From<crate::account::pending_login::PendingGrantError> for ApiError {
-    fn from(error: crate::account::pending_login::PendingGrantError) -> Self {
-        match error {
-            crate::account::pending_login::PendingGrantError::Credentials(e) => Self::from(e),
-            crate::account::pending_login::PendingGrantError::NotFound => {
-                Self::not_found(error.to_string())
-            }
-            crate::account::pending_login::PendingGrantError::AlreadyPending => {
-                Self::conflict(error.to_string())
-            }
-            crate::account::pending_login::PendingGrantError::Invalid
-            | crate::account::pending_login::PendingGrantError::Expired
-            | crate::account::pending_login::PendingGrantError::Legacy => {
-                Self::invalid_input(error.to_string())
-            }
-        }
-    }
-}
-
-impl From<crate::account::session::SessionError> for ApiError {
-    fn from(error: crate::account::session::SessionError) -> Self {
-        match error {
-            crate::account::session::SessionError::Credentials(e) => Self::from(e),
-            crate::account::session::SessionError::Recovery(e) => Self::from(e),
-            crate::account::session::SessionError::PendingGrant(e) => Self::from(e),
-            crate::account::session::SessionError::RotationCheckpoint(e) => {
-                Self::incomplete_recovery(e.to_string())
-            }
-            crate::account::session::SessionError::PendingGrantCleanup(e)
-            | crate::account::session::SessionError::ResumeCheckpoint(e) => {
-                Self::incomplete_recovery(e.to_string())
-            }
-            crate::account::session::SessionError::AccountNotFound => {
+            AccountError::Policy(AccountPolicyError::NotFound) => {
                 Self::not_found("Account not found")
             }
-            crate::account::session::SessionError::NoActiveAccount => {
-                Self::not_found("No active account selected")
+            AccountError::Policy(AccountPolicyError::DuplicateReorderId(id)) => {
+                Self::invalid_input(format!("Duplicate account ID in reorder list: {id}"))
             }
-            crate::account::session::SessionError::Cancelled => Self::cancelled("Cancelled"),
-            crate::account::session::SessionError::Validation(e) => {
-                Self::invalid_input(e.to_string())
+            AccountError::Validation { .. } => Self::storage_failure(error.to_string()),
+            AccountError::Io { .. } | AccountError::Decode { .. } | AccountError::Encode(_) => {
+                Self::storage_failure(error.to_string())
             }
-            crate::account::session::SessionError::InvalidLogin
-            | crate::account::session::SessionError::MissingMinecraftProfile
-            | crate::account::session::SessionError::NotMicrosoft
-            | crate::account::session::SessionError::MissingRefreshToken => {
+            AccountError::LockPoisoned => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<ingot_accounts::account::recovery::RecoveryError> for ApiError {
+    fn from(error: ingot_accounts::account::recovery::RecoveryError) -> Self {
+        use ingot_accounts::account::recovery::RecoveryError;
+        match error {
+            RecoveryError::Credentials(e) => Self::from(e),
+            RecoveryError::Account(e) => Self::from(e),
+            RecoveryError::PendingGrant(e) => Self::from(e),
+            RecoveryError::PendingCredentials(_) | RecoveryError::Profile(_) => {
+                Self::incomplete_recovery(error.to_string())
+            }
+            RecoveryError::Discovery(_) | RecoveryError::Invalid => {
+                Self::storage_failure(error.to_string())
+            }
+            RecoveryError::LockPoisoned => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<ingot_accounts::account::pending_login::PendingGrantError> for ApiError {
+    fn from(error: ingot_accounts::account::pending_login::PendingGrantError) -> Self {
+        use ingot_accounts::account::pending_login::PendingGrantError;
+        match error {
+            PendingGrantError::Credentials(e) => Self::from(e),
+            PendingGrantError::NotFound => Self::not_found(error.to_string()),
+            PendingGrantError::AlreadyPending => Self::conflict(error.to_string()),
+            PendingGrantError::Invalid | PendingGrantError::Expired | PendingGrantError::Legacy => {
                 Self::invalid_input(error.to_string())
             }
-            crate::account::session::SessionError::Ownership(_) => {
-                Self::conflict(error.to_string())
+        }
+    }
+}
+
+impl From<ingot_accounts::account::session::SessionError> for ApiError {
+    fn from(error: ingot_accounts::account::session::SessionError) -> Self {
+        use ingot_accounts::account::session::SessionError;
+        match error {
+            SessionError::Credentials(e) => Self::from(e),
+            SessionError::Recovery(e) => Self::from(e),
+            SessionError::PendingGrant(e) => Self::from(e),
+            SessionError::RotationCheckpoint(e) => Self::incomplete_recovery(e.to_string()),
+            SessionError::PendingGrantCleanup(e) | SessionError::ResumeCheckpoint(e) => {
+                Self::incomplete_recovery(e.to_string())
             }
-            crate::account::session::SessionError::Provider(_)
-            | crate::account::session::SessionError::Login(_) => {
+            SessionError::AccountNotFound => Self::not_found("Account not found"),
+            SessionError::NoActiveAccount => Self::not_found("No active account selected"),
+            SessionError::Cancelled => Self::cancelled("Cancelled"),
+            SessionError::Validation(e) => Self::invalid_input(e.to_string()),
+            SessionError::InvalidLogin
+            | SessionError::MissingMinecraftProfile
+            | SessionError::NotMicrosoft
+            | SessionError::MissingRefreshToken => Self::invalid_input(error.to_string()),
+            SessionError::Ownership(_) => Self::conflict(error.to_string()),
+            SessionError::Provider(_) | SessionError::Login(_) => {
                 Self::provider_unavailable(error.to_string())
             }
         }
@@ -182,7 +156,7 @@ mod tests {
     fn corrupt_persisted_account_semantics_are_a_storage_failure() {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("accounts.json");
-        let invalid = crate::account::AccountProfile {
+        let invalid = ingot_accounts::account::AccountProfile {
             id: "unknown:id".into(),
             account_type: "unknown".into(),
             username: "Player".into(),
@@ -193,14 +167,14 @@ mod tests {
         };
         let bytes = serde_json::to_vec(&[invalid]).unwrap();
         std::fs::write(&path, &bytes).unwrap();
-        let repository = crate::account::repository::AccountRepository::new(path.clone());
+        let repository = ingot_accounts::account::repository::AccountRepository::new(path.clone());
         let error = repository.load().unwrap_err();
         assert!(matches!(
             error,
-            crate::account::AccountError::Validation { .. }
+            ingot_accounts::account::AccountError::Validation { .. }
         ));
         let ipc = ApiError::from(crate::app::accounts::ProfileError::Recovery(
-            crate::account::recovery::RecoveryError::Account(error),
+            ingot_accounts::account::recovery::RecoveryError::Account(error),
         ));
         assert!(matches!(ipc, ApiError::StorageFailure { .. }));
         assert_eq!(std::fs::read(path).unwrap(), bytes);
@@ -208,8 +182,9 @@ mod tests {
 
     #[test]
     fn invalid_profile_input_remains_distinct_from_storage_corruption() {
+        use ingot_accounts::account::validation::AccountValidationError;
         let invalid = crate::app::accounts::ProfileError::Validation(
-            crate::account::validation::AccountValidationError::UnsupportedKind("unknown".into()),
+            AccountValidationError::UnsupportedKind("unknown".into()),
         );
         assert!(matches!(
             ApiError::from(invalid),

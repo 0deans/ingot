@@ -1,5 +1,5 @@
-use crate::minecraft::instance::InstanceConfig;
-use crate::settings::SyncSettings;
+use crate::instance::InstanceConfig;
+use ingot_settings::SyncSettings;
 use std::time::SystemTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

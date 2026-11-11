@@ -1,9 +1,9 @@
 //! IPC procedures for server plugin management.
 use super::server_with_config;
 use crate::ipc::ApiError;
-use crate::server;
-use crate::server::plugins::{
-    InstallReport, InstalledPlugin, PluginSearchResult, PluginSource, PluginUpdate, PluginVersion,
+use ingot_server::plugins::{
+    self, InstallReport, InstalledPlugin, PluginSearchResult, PluginSource, PluginUpdate,
+    PluginVersion,
 };
 use tauri::Runtime;
 
@@ -84,7 +84,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         page: u32,
     ) -> Result<PluginSearchResult, ApiError> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::search(
+        plugins::search(
             &config.core,
             &config.game_version,
             source,
@@ -103,7 +103,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         source: PluginSource,
         project_id: String,
     ) -> Result<String, ApiError> {
-        server::plugins::page(source, &project_id)
+        plugins::page(source, &project_id)
             .await
             .map_err(ApiError::from)
     }
@@ -117,7 +117,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         compatible_only: bool,
     ) -> Result<Vec<PluginVersion>, ApiError> {
         let (_, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::versions(
+        plugins::versions(
             &config.core,
             &config.game_version,
             source,
@@ -142,7 +142,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
             .await
             .map_err(ApiError::from)?;
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::install(
+        plugins::install(
             &dir,
             &config.core,
             &config.game_version,
@@ -160,12 +160,10 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         server_id: String,
     ) -> Result<Vec<InstalledPlugin>, ApiError> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        tauri::async_runtime::spawn_blocking(move || {
-            server::plugins::list_installed(&dir, &config.core)
-        })
-        .await
-        .map_err(|e| ApiError::internal(e.to_string()))?
-        .map_err(ApiError::from)
+        tauri::async_runtime::spawn_blocking(move || plugins::list_installed(&dir, &config.core))
+            .await
+            .map_err(|e| ApiError::internal(e.to_string()))?
+            .map_err(ApiError::from)
     }
 
     async fn set_server_plugin_enabled(
@@ -181,8 +179,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
             .await
             .map_err(ApiError::from)?;
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::set_enabled(&dir, &config.core, &file_name, enabled)
-            .map_err(ApiError::from)
+        plugins::set_enabled(&dir, &config.core, &file_name, enabled).map_err(ApiError::from)
     }
 
     async fn remove_server_plugin(
@@ -197,7 +194,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
             .await
             .map_err(ApiError::from)?;
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::remove(&dir, &config.core, &file_name).map_err(ApiError::from)
+        plugins::remove(&dir, &config.core, &file_name).map_err(ApiError::from)
     }
 
     async fn check_server_plugin_updates(
@@ -206,7 +203,7 @@ impl ServerPluginsApi for ServerPluginsApiImpl {
         server_id: String,
     ) -> Result<Vec<PluginUpdate>, ApiError> {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
-        server::plugins::check_updates(&dir, &config.core, &config.game_version)
+        plugins::check_updates(&dir, &config.core, &config.game_version)
             .await
             .map_err(ApiError::from)
     }

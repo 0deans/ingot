@@ -48,7 +48,7 @@ pub enum BedrockPackError {
     Zip(#[from] zip::result::ZipError),
 
     #[error("Archive extraction error: {0}")]
-    Archive(#[from] crate::core::ArchiveError),
+    Archive(#[from] ingot_core::ArchiveError),
 
     #[error("No manifest.json found in pack archive")]
     MissingManifest,
@@ -390,7 +390,7 @@ pub fn delete_pack(
     } else {
         "behavior_packs"
     };
-    let target = crate::core::safe_enclosed_filename(&server_dir.join(sub), folder_name)
+    let target = ingot_core::safe_enclosed_filename(&server_dir.join(sub), folder_name)
         .ok_or(BedrockPackError::InvalidFolderName)?;
     if !target.exists() {
         return Err(BedrockPackError::NotFound(folder_name.to_string()));

@@ -1,5 +1,5 @@
 use super::{InstanceConfig, InstanceError};
-use crate::core::metadata::MetadataRepository;
+use ingot_core::metadata::MetadataRepository;
 use std::{
     fs,
     path::Path,
@@ -21,15 +21,15 @@ pub(super) fn copy_instance_tree(
         let name = name.to_str().ok_or(InstanceError::InvalidId)?;
         let metadata = fs::symlink_metadata(entry.path())?;
         // Quick Play links intentionally point back into the original instance.
-        if crate::core::is_link_or_reparse_point(&metadata)
+        if ingot_core::is_link_or_reparse_point(&metadata)
             || name == "session.lock"
             || (top && NOT_COPIED.contains(&name))
         {
             continue;
         }
-        crate::core::safe_enclosed_filename(from, name).ok_or(InstanceError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(from, name).ok_or(InstanceError::InvalidId)?;
         let destination =
-            crate::core::safe_enclosed_filename(to, name).ok_or(InstanceError::InvalidId)?;
+            ingot_core::safe_enclosed_filename(to, name).ok_or(InstanceError::InvalidId)?;
         if metadata.is_dir() {
             if top && name == "saves" && !include_worlds {
                 fs::create_dir_all(destination)?;
@@ -60,7 +60,7 @@ pub(super) fn duplicate_instance_record(
         return Err(InstanceError::EmptyName);
     }
     let source_path =
-        crate::core::safe_enclosed_filename(parent, source_id).ok_or(InstanceError::InvalidId)?;
+        ingot_core::safe_enclosed_filename(parent, source_id).ok_or(InstanceError::InvalidId)?;
     let source = repository
         .load()?
         .into_iter()

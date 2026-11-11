@@ -9,7 +9,7 @@ use super::{
     modrinth::ModrinthClient,
     parse_content_source_and_id,
 };
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use ingot_test_support::{LoopbackServer, ResponseSpec};
 use reqwest::Client;
 use std::{

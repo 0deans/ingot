@@ -31,7 +31,7 @@ pub enum TerminationError {
 }
 
 pub(super) async fn terminate(child: super::process::ActiveChild) -> Result<(), TerminationError> {
-    terminate_identity(child, run_command(child.pid), crate::core::process_start).await
+    terminate_identity(child, run_command(child.pid), ingot_core::process_start).await
 }
 
 async fn terminate_identity<F, Inspect>(

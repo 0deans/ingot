@@ -1,9 +1,10 @@
 //! Thin native adapters; account::session owns provider/session orchestration.
 use super::storage::current_timestamp;
-use crate::account::pending_login::PendingMicrosoftLogin;
-use crate::account::session::SessionError;
-use crate::account::{operations::AccountOperation, session::SessionService, AccountProfile};
-use crate::auth::microsoft::MicrosoftDeviceCode;
+use ingot_accounts::account::pending_login::PendingMicrosoftLogin;
+use ingot_accounts::account::session::SessionError;
+use ingot_accounts::account::AccountProfile;
+use ingot_accounts::account::{operations::AccountOperation, session::SessionService};
+use ingot_accounts::auth::microsoft::MicrosoftDeviceCode;
 
 fn service<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> SessionService<'_> {
     let state = crate::app::state(app);

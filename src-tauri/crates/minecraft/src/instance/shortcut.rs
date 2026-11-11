@@ -74,7 +74,7 @@ pub fn sanitize_shortcut_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
+    use crate::instance::models::{InstanceConfig, ModLoaderType};
     use std::path::Path;
 
     fn sample_instance(id: &str, name: &str, loader: ModLoaderType) -> InstanceConfig {

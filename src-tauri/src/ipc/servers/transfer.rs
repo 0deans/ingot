@@ -1,8 +1,9 @@
 //! IPC procedures for server export, import, and duplication.
 use super::server_with_config;
+use crate::app::server_config::get_server_dir;
 use crate::ipc::ApiError;
-use crate::server::transfer::{ExportMode, ImportedServer};
-use crate::server::{self, ServerConfig};
+use ingot_server::transfer::{self, ExportMode, ImportedServer};
+use ingot_server::{plugins, ServerConfig};
 use tauri::{Manager, Runtime};
 
 #[taurpc::procedures(path = "servers.transfer")]
@@ -59,10 +60,10 @@ impl ServerTransferApi for ServerTransferApiImpl {
                 .app_cache_dir()
                 .map_err(|e| ApiError::storage_failure(e.to_string()))?
                 .join("exports")
-                .join(server::transfer::export_file_name(&config, mode)),
+                .join(transfer::export_file_name(&config, mode)),
         };
         let path = tauri::async_runtime::spawn_blocking(move || {
-            server::transfer::export(&dir, &config, mode, &dest)
+            transfer::export(&dir, &config, mode, &dest)
         })
         .await
         .map_err(|e| ApiError::internal(e.to_string()))?
@@ -89,7 +90,7 @@ impl ServerTransferApi for ServerTransferApiImpl {
         let path = crate::app::server_transfer::upload_path(&app_handle, &upload_id)
             .map_err(ApiError::from)?;
         tokio::task::spawn_blocking(move || {
-            server::transfer::uploads::write_chunk(ownership, &path, &bytes, first)
+            transfer::uploads::write_chunk(ownership, &path, &bytes, first)
         })
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?
@@ -104,9 +105,8 @@ impl ServerTransferApi for ServerTransferApiImpl {
         let created = crate::app::server_transfer::import(&app_handle, &upload_id)
             .await
             .map_err(ApiError::from)?;
-        let dir = server::get_server_dir(&app_handle, &created.id).map_err(ApiError::from)?;
-        let warnings =
-            server::plugins::restore_missing(&dir, &created.core, &created.game_version).await;
+        let dir = get_server_dir(&app_handle, &created.id).map_err(ApiError::from)?;
+        let warnings = plugins::restore_missing(&dir, &created.core, &created.game_version).await;
         Ok(ImportedServer {
             server: created,
             warnings,

@@ -15,12 +15,12 @@ pub async fn install_bedrock_pack(
         .replace([' ', '(', ')', '[', ']', '+'], "_");
 
     let client = reqwest::Client::builder()
-        .user_agent(crate::USER_AGENT)
+        .user_agent(ingot_core::USER_AGENT)
         .build()?;
 
     let mut req = client.get(download_url);
     if download_url.contains("curseforge.com") {
-        req = req.header("x-api-key", crate::artifacts::sources::CURSEFORGE_API_KEY);
+        req = req.header("x-api-key", ingot_artifacts::sources::CURSEFORGE_API_KEY);
     }
 
     let resp = req.send().await?;
@@ -129,7 +129,7 @@ fn prepare_single_pack<R: Read + std::io::Seek>(
         "behavior_packs"
     };
     let parent = server_dir.join(sub);
-    let out_dir = crate::core::safe_enclosed_filename(&parent, pack_name)
+    let out_dir = ingot_core::safe_enclosed_filename(&parent, pack_name)
         .ok_or(BedrockPackError::InvalidFolderName)?;
     if out_dir.exists() {
         return Err(BedrockPackError::AlreadyExists(pack_name.to_string()));
@@ -149,7 +149,7 @@ fn prepare_single_pack<R: Read + std::io::Seek>(
         }
     }
 
-    crate::core::extract_zip_entries(zip, staging.path(), &prefix, None)?;
+    ingot_core::extract_zip_entries(zip, staging.path(), &prefix, None)?;
     Ok(PreparedPack {
         staging,
         destination: out_dir,

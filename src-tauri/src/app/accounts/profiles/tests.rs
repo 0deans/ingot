@@ -1,8 +1,6 @@
 use super::*;
-use crate::{
-    account::credentials::{tests::FakeCredentialStore, CredentialStore},
-    app::{AppPaths, AppState},
-};
+use crate::app::{AppPaths, AppState};
+use ingot_accounts::account::credentials::{tests::FakeCredentialStore, CredentialStore};
 use tauri::Manager;
 
 #[tokio::test]
@@ -56,7 +54,7 @@ async fn failed_profile_removal_does_not_delete_credentials() {
 
 #[tokio::test]
 async fn account_read_recovers_pending_login_when_application_state_is_recreated() {
-    use crate::account::{recovery::ProfileChange, AccountSecrets};
+    use ingot_accounts::account::{recovery::ProfileChange, AccountSecrets};
     let dir = tempfile::tempdir().unwrap();
     let paths = || AppPaths::new(dir.path().to_owned());
     let vault = FakeCredentialStore::default();

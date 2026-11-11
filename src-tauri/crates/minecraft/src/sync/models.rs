@@ -102,10 +102,10 @@ pub enum SyncError {
     InstanceNotFound(String),
 
     #[error("Settings error: {0}")]
-    Settings(#[source] crate::settings::SettingsError),
+    Settings(#[source] ingot_settings::SettingsError),
 
     #[error("Instances error: {0}")]
-    Instances(#[source] crate::minecraft::instance::InstanceError),
+    Instances(#[source] crate::instance::InstanceError),
 
     #[error("Unknown sync category: {0}")]
     InvalidCategory(String),

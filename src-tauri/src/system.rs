@@ -1,9 +1,7 @@
-pub(crate) use crate::settings::LauncherSettings;
-pub use crate::settings::{MemorySettings, SyncSettings, WindowSettings};
-use crate::{
-    app::AppState,
-    settings::{service, SettingsError},
-};
+use crate::app::AppState;
+pub(crate) use ingot_settings::LauncherSettings;
+use ingot_settings::{service, SettingsError};
+pub use ingot_settings::{MemorySettings, SyncSettings, WindowSettings};
 use tauri::Manager;
 
 pub const BEHAVIOR_KEEP_OPEN: &str = "keepOpen";

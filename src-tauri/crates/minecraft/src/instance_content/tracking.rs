@@ -35,7 +35,7 @@ pub fn write_tracking(
     let json = serde_json::to_vec_pretty(tracking)
         .map_err(|e| InstanceContentError::Serialization(e.to_string()))?;
 
-    crate::core::write_file_atomic(&path, &json).map_err(|e| InstanceContentError::io(&path, e))?;
+    ingot_core::write_file_atomic(&path, &json).map_err(|e| InstanceContentError::io(&path, e))?;
 
     Ok(())
 }

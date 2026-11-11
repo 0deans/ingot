@@ -9,7 +9,7 @@ use super::super::models::{
     ContentApplyReport, ContentCategory, ContentUpdateCandidate, TrackedOrigin,
 };
 use super::super::tracking::{read_tracking, write_tracking};
-use crate::artifacts::models::sha1_hex;
+use ingot_artifacts::models::sha1_hex;
 
 pub async fn apply_updates(
     instance_dir: &Path,

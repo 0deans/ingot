@@ -1,11 +1,7 @@
 use super::super::models::HorizonError;
-use crate::artifacts::downloader::{
-    download_file_chunked, download_files_concurrent, DownloadTask,
-};
-use crate::minecraft::launcher::classpath::{maven_coordinate_to_path, resolve_library_path};
-use crate::minecraft::version::{
-    fetch_asset_index, should_include_library, AssetObject, VersionPackage,
-};
+use crate::launcher::classpath::{maven_coordinate_to_path, resolve_library_path};
+use crate::version::{fetch_asset_index, should_include_library, AssetObject, VersionPackage};
+use ingot_artifacts::downloader::{download_file_chunked, download_files_concurrent, DownloadTask};
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -51,7 +47,7 @@ pub(super) async fn ensure_pinned_manifest(
         .bytes()
         .await?;
 
-    crate::core::write_file_atomic(&manifest_path, &bytes)?;
+    ingot_core::write_file_atomic(&manifest_path, &bytes)?;
     Ok(manifest_path)
 }
 
@@ -330,7 +326,7 @@ pub(super) async fn resolve_java_home(
     data_dir: &Path,
     major_version: u32,
 ) -> Result<PathBuf, HorizonError> {
-    let java_bin = crate::artifacts::java::ensure_java_runtime_in_dir(
+    let java_bin = ingot_artifacts::java::ensure_java_runtime_in_dir(
         data_dir.to_path_buf(),
         client,
         major_version,

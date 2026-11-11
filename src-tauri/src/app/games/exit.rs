@@ -1,8 +1,8 @@
 use crate::app::instances::{ensure_instance_dir, update_last_played};
-use crate::minecraft::instance::InstanceConfig;
-use crate::minecraft::launcher::models::{InstanceStatusEvent, StatusFn};
-use crate::minecraft::launcher::process::ProcessManager;
-use crate::minecraft::launcher::quick_play::cleanup_quick_play_junction;
+use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::launcher::models::{InstanceStatusEvent, StatusFn};
+use ingot_minecraft::launcher::process::ProcessManager;
+use ingot_minecraft::launcher::quick_play::cleanup_quick_play_junction;
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, Runtime};
@@ -114,10 +114,10 @@ pub async fn finish_game<R: Runtime>(
         }
 
         let since = UNIX_EPOCH + std::time::Duration::from_secs(started_at.saturating_sub(1));
-        if let Some(crash) = crate::artifacts::crash::after_exit(
+        if let Some(crash) = ingot_artifacts::crash::after_exit(
             &instance_dir,
             clean,
-            crate::version_change::TargetKind::Instance,
+            ingot_version_change::TargetKind::Instance,
             &instance_id,
             &instance.name,
             &["mods"],
@@ -125,7 +125,7 @@ pub async fn finish_game<R: Runtime>(
         ) {
             had_version_crash = true;
             crate::app::events::version_change_crash(app, crash);
-        } else if let Some(crash) = crate::minecraft::logs::analyze_instance_crash(
+        } else if let Some(crash) = ingot_minecraft::logs::analyze_instance_crash(
             &instance_dir,
             &instance_id,
             &instance.name,

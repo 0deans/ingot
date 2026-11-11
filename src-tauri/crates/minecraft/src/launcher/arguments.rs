@@ -1,4 +1,5 @@
-use crate::minecraft::version::{check_rules, ArgumentValue, VersionArguments};
+use super::rules::check_rules;
+use crate::version::{ArgumentValue, VersionArguments};
 use std::path::Path;
 
 pub fn is_version_at_least(version_str: &str, target_major: u32, target_minor: u32) -> bool {

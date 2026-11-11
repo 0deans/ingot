@@ -1,7 +1,11 @@
 //! ATLauncher modpack planner (manifest and zip archive).
-use super::{extract_zip_overrides, pack::PreparedModpack};
+use super::{
+    curseforge_resolver::{self, CurseForgeEndpoints},
+    extract_zip_overrides,
+    support::{self, Integrity, PreparedModpack},
+};
 use crate::content::error::ContentError;
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::{io::Cursor, path::Path, sync::Arc};
 use zip::ZipArchive;
@@ -147,7 +151,7 @@ pub(crate) fn extract_loader(
         .or(ldr.version.as_deref());
 
     let loader_version = raw_ver.and_then(|v| {
-        let cleaned = crate::minecraft::loader::normalize_loader_version(game_version, v);
+        let cleaned = ingot_minecraft::loader::normalize_loader_version(game_version, v);
         if cleaned.is_empty() {
             None
         } else {
@@ -172,11 +176,7 @@ pub(crate) fn plan_atlauncher_manifest(
 
     let (loader, loader_version) = extract_loader(manifest.loader.as_ref(), &game_version);
 
-    let name = if requested_name.trim().is_empty() {
-        "ATLauncher Modpack".to_string()
-    } else {
-        requested_name.trim().to_owned()
-    };
+    let name = support::resolve_pack_name(requested_name, "ATLauncher Modpack".to_string());
 
     Ok((
         PreparedModpack {
@@ -203,11 +203,7 @@ pub(crate) fn plan_atlauncher_zip(
 
     extract_zip_overrides(&mut zip, &[""], stage.path()).map_err(ContentError::Io)?;
 
-    let name = if requested_name.trim().is_empty() {
-        "ATLauncher Modpack".to_string()
-    } else {
-        requested_name.trim().to_owned()
-    };
+    let name = support::resolve_pack_name(requested_name, "ATLauncher Modpack".to_string());
 
     Ok(PreparedModpack {
         stage: Arc::new(stage),
@@ -218,15 +214,41 @@ pub(crate) fn plan_atlauncher_zip(
     })
 }
 
-pub(crate) async fn download_atlauncher_mods(
+pub(super) fn plan_atlauncher(
+    root: &Path,
+    bytes: Vec<u8>,
+    requested_name: &str,
+) -> Result<(PreparedModpack, Option<Vec<AtLauncherMod>>), ContentError> {
+    if let Ok(manifest) = serde_json::from_slice::<AtLauncherVersionManifest>(&bytes) {
+        if manifest.minecraft.is_some() || manifest.loader.is_some() || !manifest.mods.is_empty() {
+            let (prepared, mods) = plan_atlauncher_manifest(root, manifest, requested_name)?;
+            return Ok((prepared, Some(mods)));
+        }
+    }
+    let prepared = plan_atlauncher_zip(root, bytes, requested_name)?;
+    Ok((prepared, None))
+}
+
+fn resolve_manifest_endpoints(manifest_url: Option<&str>) -> (&str, Option<String>) {
+    let configs_zip_url = manifest_url.and_then(|url| {
+        url.strip_suffix("/Configs.json")
+            .map(|prefix| format!("{prefix}/Configs.zip"))
+    });
+    let atlauncher_base = manifest_url
+        .and_then(|url| url.split("/packs/").next())
+        .unwrap_or(crate::content::atlauncher::DEFAULT_ATLAUNCHER_BASE);
+    (atlauncher_base, configs_zip_url)
+}
+
+pub(super) async fn download_atlauncher_mods(
     client: &reqwest::Client,
-    curseforge_base: &str,
-    atlauncher_base: &str,
+    endpoints: CurseForgeEndpoints<'_>,
+    manifest_url: Option<&str>,
     stage: &Arc<tempfile::TempDir>,
     mods: Vec<AtLauncherMod>,
-    configs_zip_url: Option<&str>,
-    on_progress: Option<&crate::minecraft::launcher::progress::ProgressCallback>,
+    on_progress: Option<&ingot_minecraft::launcher::progress::ProgressCallback>,
 ) -> Result<(), ContentError> {
+    let (atlauncher_base, configs_zip_url) = resolve_manifest_endpoints(manifest_url);
     let client_mods: Vec<_> = mods
         .into_iter()
         .filter(|m| !(m.optional && !m.selected) && !(m.server && !m.client))
@@ -255,9 +277,7 @@ pub(crate) async fn download_atlauncher_mods(
             };
             let filename = m.file.as_deref().unwrap_or(m.name.as_str());
             let destination = format!("{subfolder}/{filename}");
-            if crate::core::safe_enclosed_path(stage.path(), &destination).is_none() {
-                return Err(ContentError::UnsafePath(destination));
-            }
+            support::validate_stage_path(stage.path(), &destination)?;
             let mut hashes = std::collections::HashMap::new();
             if let Some(sha1) = m.sha1.filter(|s| !s.trim().is_empty()) {
                 hashes.insert("sha1".to_string(), sha1);
@@ -265,59 +285,34 @@ pub(crate) async fn download_atlauncher_mods(
             if let Some(md5) = m.md5.filter(|s| !s.trim().is_empty()) {
                 hashes.insert("md5".to_string(), md5);
             }
-            let integrity = super::pack::Integrity {
+            let integrity = Integrity {
                 hashes,
                 size: m.filesize.filter(|&s| s > 0),
             };
-            super::pack::write_download(client, &download_url, stage, &destination, integrity)
-                .await?;
+            support::write_download(client, &download_url, stage, &destination, integrity).await?;
         } else if let (Some(curse_id), Some(curse_file_id)) = (m.curse_id, m.curse_file_id) {
-            let url = format!(
-                "{}/mods/{}/files/{}",
-                curseforge_base.trim_end_matches('/'),
+            let resolved = curseforge_resolver::resolve_curseforge_file_with_cdn(
+                client,
+                endpoints,
                 curse_id,
-                curse_file_id
-            );
-            let response = client
-                .get(url)
-                .header("x-api-key", crate::content::curseforge::CURSEFORGE_API_KEY)
-                .send()
-                .await
-                .map_err(ContentError::Transport)?;
-            if !response.status().is_success() {
-                return Err(ContentError::HttpStatus(response.status()));
-            }
-            let item = response
-                .json::<super::pack::CurseForgeResponse>()
-                .await
-                .map_err(ContentError::Response)?
-                .data;
-            let fname = m.file.as_deref().unwrap_or(item.file_name.as_str());
+                curse_file_id,
+            )
+            .await?;
+            let fname = m.file.as_deref().unwrap_or(resolved.file_name.as_str());
             let destination = format!("{subfolder}/{fname}");
-            if crate::core::safe_enclosed_path(stage.path(), &destination).is_none() {
-                return Err(ContentError::UnsafePath(destination));
-            }
-            let download = item
-                .download_url
-                .filter(|value| !value.is_empty())
-                .unwrap_or_else(|| super::construct_curseforge_cdn_url(item.id, &item.file_name));
-            let mut integrity = super::pack::Integrity {
-                size: item.file_length,
-                hashes: std::collections::HashMap::new(),
-            };
-            for hash in item.hashes {
-                let algorithm = match hash.algo {
-                    1 => "sha1",
-                    2 => "md5",
-                    _ => return Err(ContentError::Integrity("unsupported hash algorithm")),
-                };
-                integrity.hashes.insert(algorithm.into(), hash.value);
-            }
-            super::pack::write_download(client, &download, stage, &destination, integrity).await?;
+            support::validate_stage_path(stage.path(), &destination)?;
+            support::write_download(
+                client,
+                &resolved.download_url,
+                stage,
+                &destination,
+                resolved.integrity,
+            )
+            .await?;
         }
     }
 
-    if let Some(zip_url) = configs_zip_url {
+    if let Some(zip_url) = configs_zip_url.as_deref() {
         if let Some(report) = on_progress {
             report(
                 "Installing Modpack",
@@ -343,14 +338,7 @@ pub(crate) async fn download_atlauncher_mods(
         }
     }
 
-    if let Some(report) = on_progress {
-        report(
-            "Installing Modpack",
-            total,
-            total.max(1),
-            "Finalizing modpack installation...",
-        );
-    }
+    support::report_finalizing(on_progress, total);
 
     Ok(())
 }

@@ -4,9 +4,9 @@ use super::lifecycle::{
 };
 use super::manager::ServerProcessManager;
 use super::models::ProcessError;
-use crate::core::metadata::MetadataRepository;
-use crate::server::config::{ServerConfig, ServerStatus, ServerStatusEvent};
-use crate::server::supervisor::ServerSupervisorManager;
+use crate::config::{ServerConfig, ServerStatus, ServerStatusEvent};
+use crate::supervisor::ServerSupervisorManager;
+use ingot_core::metadata::MetadataRepository;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -148,7 +148,7 @@ impl ServerLifecycleHooks for RecordingHooks {
         self.transitions.lock().unwrap().push("exited");
         self.exited.notify_one();
     }
-    fn on_crash(&self, _crash: crate::artifacts::crash::CrashReport) {}
+    fn on_crash(&self, _crash: ingot_artifacts::crash::CrashReport) {}
 }
 
 fn config() -> ServerConfig {
@@ -348,7 +348,7 @@ async fn readiness_graceful_exit_and_restart_preserve_event_order() {
         .ready
         .load(std::sync::atomic::Ordering::SeqCst));
     manager
-        .stop_server_within("server", Duration::from_secs(10))
+        .stop_server_within_typed("server", Duration::from_secs(10))
         .await
         .unwrap();
     fixture.await_stopped().await;
@@ -397,7 +397,7 @@ async fn force_kill_keeps_exit_owner_alive_and_allows_restart() {
     fixture
         .context
         .processes
-        .stop_server_within("server", Duration::from_secs(10))
+        .stop_server_within_typed("server", Duration::from_secs(10))
         .await
         .unwrap();
     fixture.await_stopped().await;
@@ -534,7 +534,7 @@ async fn stale_native_exit_monitor_cannot_remove_a_replacement() {
         server_id: "server".into(),
         server_dir: fixture.context.server_dir.clone(),
         server_name: "Fixture".into(),
-        core: crate::server::config::ServerCoreType::Paper,
+        core: crate::config::ServerCoreType::Paper,
         pid,
         ready_flag: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         hooks: fixture.hooks.clone(),

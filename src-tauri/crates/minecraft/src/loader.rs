@@ -1,5 +1,6 @@
-use crate::minecraft::instance::ModLoaderType;
-use crate::minecraft::version::{maven_to_path, DownloadArtifact, LibraryDownloads, LibraryEntry};
+use crate::instance::ModLoaderType;
+use crate::launcher::classpath::maven_coordinate_to_path as maven_to_path;
+use crate::version::{DownloadArtifact, LibraryDownloads, LibraryEntry};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -49,7 +50,7 @@ struct PrismLibrary {
     name: String,
     url: Option<String>,
     downloads: Option<LibraryDownloads>,
-    rules: Option<Vec<crate::minecraft::version::RuleEntry>>,
+    rules: Option<Vec<crate::launcher::rules::RuleEntry>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -453,7 +454,7 @@ pub async fn resolve_loader_profile(
     };
 
     if let Ok(data) = serde_json::to_string(&profile) {
-        let _ = crate::core::write_file_atomic(&profile_file, data.as_bytes());
+        let _ = ingot_core::write_file_atomic(&profile_file, data.as_bytes());
     }
 
     Ok(profile)

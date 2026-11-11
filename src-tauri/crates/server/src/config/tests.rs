@@ -164,7 +164,7 @@ fn corrupt_whitelist_is_preserved_by_failed_mutation() {
 
 #[test]
 fn properties_failures_do_not_replace_existing_bytes() {
-    use crate::server::files::ServerFileError;
+    use crate::files::ServerFileError;
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("server.properties");
     std::fs::write(&path, [0xff, 0xfe]).unwrap();
@@ -195,7 +195,7 @@ fn bedrock_aliases_and_custom_properties_survive_atomic_updates() {
         ..Default::default()
     };
     write_server_properties_to_dir(directory.path(), &properties).unwrap();
-    let entries = crate::server::files::read_properties(directory.path()).unwrap();
+    let entries = crate::files::read_properties(directory.path()).unwrap();
     let value = |key: &str| {
         entries
             .iter()
@@ -213,8 +213,8 @@ fn bedrock_aliases_and_custom_properties_survive_atomic_updates() {
 #[test]
 fn property_updates_reject_missing_server_and_invalid_port_before_writing() {
     use super::service::{update_properties, ConfigError};
-    use crate::core::metadata::MetadataRepository;
-    use crate::server::files::PropertyEntry;
+    use crate::files::PropertyEntry;
+    use ingot_core::metadata::MetadataRepository;
     let directory = tempfile::tempdir().unwrap();
     let repository = MetadataRepository::<ServerConfig>::new(directory.path().join("servers.json"));
     let properties = directory.path().join("server.properties");
@@ -242,8 +242,8 @@ fn property_updates_reject_missing_server_and_invalid_port_before_writing() {
 #[test]
 fn property_port_update_publishes_metadata_and_preserves_unrelated_fields() {
     use super::service::update_properties;
-    use crate::core::metadata::MetadataRepository;
-    use crate::server::files::PropertyEntry;
+    use crate::files::PropertyEntry;
+    use ingot_core::metadata::MetadataRepository;
     let directory = tempfile::tempdir().unwrap();
     let repository = MetadataRepository::<ServerConfig>::new(directory.path().join("servers.json"));
     let server = make_server("a", 25565, Some(35565));
@@ -344,7 +344,7 @@ fn creation_rejects_empty_names_invalid_memory_and_occupied_explicit_ports() {
 
 #[test]
 fn invalid_server_update_preserves_metadata_and_properties() {
-    use crate::core::metadata::MetadataRepository;
+    use ingot_core::metadata::MetadataRepository;
     let root = tempfile::tempdir().unwrap();
     let metadata_path = root.path().join("servers.json");
     let repository = MetadataRepository::new(metadata_path.clone());
@@ -376,8 +376,8 @@ fn invalid_server_update_preserves_metadata_and_properties() {
 #[test]
 fn port_conflicts_at_record_and_property_commit_keep_details_and_previous_data() {
     use super::{error::ConfigError, models::PortError, service};
-    use crate::core::metadata::MetadataRepository;
-    use crate::server::files::PropertyEntry;
+    use crate::files::PropertyEntry;
+    use ingot_core::metadata::MetadataRepository;
     let root = tempfile::tempdir().unwrap();
     let metadata = root.path().join("servers.json");
     let repository = MetadataRepository::new(metadata.clone());
@@ -427,8 +427,8 @@ fn port_conflicts_at_record_and_property_commit_keep_details_and_previous_data()
 #[test]
 fn property_port_range_failure_remains_typed_inside_metadata_transaction() {
     use super::{error::ConfigError, models::PortError, service};
-    use crate::core::metadata::MetadataRepository;
-    use crate::server::files::PropertyEntry;
+    use crate::files::PropertyEntry;
+    use ingot_core::metadata::MetadataRepository;
     let root = tempfile::tempdir().unwrap();
     let repository = MetadataRepository::new(root.path().join("servers.json"));
     repository
@@ -457,7 +457,7 @@ fn property_port_range_failure_remains_typed_inside_metadata_transaction() {
 #[test]
 fn unknown_metadata_validation_causes_survive_config_conversion() {
     use super::error::ConfigError;
-    use crate::core::metadata::MetadataError;
+    use ingot_core::metadata::MetadataError;
     use std::error::Error;
     let original = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "validation denied");
     let error = ConfigError::from(MetadataError::Validation(Box::new(original)));

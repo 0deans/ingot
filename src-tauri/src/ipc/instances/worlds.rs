@@ -1,6 +1,6 @@
 use crate::app::worlds;
 use crate::ipc::ApiError;
-use crate::minecraft::worlds::models::{
+use ingot_minecraft::worlds::models::{
     WorldBackupInfo, WorldDimension, WorldResetResult, WorldSummary,
 };
 use tauri::Runtime;

@@ -1,5 +1,5 @@
 use crate::ipc::ApiError;
-use crate::minecraft::news::{NewsArticleDetails, NewsFeedResponse, NewsService, PatchNoteDetails};
+use ingot_minecraft::news::{NewsArticleDetails, NewsFeedResponse, NewsService, PatchNoteDetails};
 use tauri::Runtime;
 
 fn news_service<R: Runtime>(app: &tauri::AppHandle<R>) -> NewsService {

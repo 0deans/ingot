@@ -14,5 +14,5 @@ mod error_tests;
 #[cfg(test)]
 mod tests;
 
-pub use discovery::{dimensions, region_dirs, tile, tile_typed};
+pub use discovery::{dimensions, region_dirs, tile_typed};
 pub use models::{level_name, MapDimension, MapError, MapRegion};

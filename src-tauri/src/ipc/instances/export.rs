@@ -2,7 +2,7 @@ use tauri::Runtime;
 
 use crate::app::instance_export;
 use crate::ipc::ApiError;
-use crate::minecraft::instance_export::{ExportOptions, ExportPreview, ExportReport};
+use ingot_content::instance_export::{ExportOptions, ExportPreview, ExportReport};
 
 #[taurpc::procedures(path = "instances.export")]
 pub trait InstanceExportApi {

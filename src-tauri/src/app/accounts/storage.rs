@@ -1,4 +1,5 @@
-use crate::account::{recovery::RecoveryError, repository::AccountRepository, AccountProfile};
+use ingot_accounts::account::recovery::RecoveryError;
+use ingot_accounts::account::{repository::AccountRepository, AccountProfile};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn load_accounts_file<R: tauri::Runtime>(
@@ -9,7 +10,7 @@ pub(crate) fn load_accounts_file<R: tauri::Runtime>(
 
 pub(super) fn with_recovered<R: tauri::Runtime, T>(
     app: &tauri::AppHandle<R>,
-    action: impl FnOnce(&AccountRepository) -> Result<T, crate::account::AccountError>,
+    action: impl FnOnce(&AccountRepository) -> Result<T, ingot_accounts::account::AccountError>,
 ) -> Result<T, RecoveryError> {
     let state = crate::app::state(app);
     state

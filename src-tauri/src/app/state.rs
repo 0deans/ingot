@@ -1,51 +1,52 @@
-use crate::minecraft::launcher::ProcessManager;
-use crate::server::{ServerProcessManager, ServerSupervisorManager};
-use crate::settings::repository::SettingsRepository;
-use crate::tunnel::PlayitManager;
+use ingot_accounts::auth::session_provider::NativeSessionProvider;
+use ingot_minecraft::launcher::ProcessManager;
+use ingot_server::{ServerProcessManager, ServerSupervisorManager};
+use ingot_settings::repository::SettingsRepository;
+use ingot_tunnel::PlayitManager;
 use tauri::Manager;
 
 use super::{lifecycle::LifecycleState, AppPaths};
 
 pub(crate) struct AppState {
     pub(crate) instances: std::sync::Arc<
-        crate::minecraft::metadata::MetadataRepository<crate::minecraft::instance::InstanceConfig>,
+        ingot_core::metadata::MetadataRepository<ingot_minecraft::instance::InstanceConfig>,
     >,
     pub(crate) server_configs:
-        std::sync::Arc<crate::minecraft::metadata::MetadataRepository<crate::server::ServerConfig>>,
+        std::sync::Arc<ingot_core::metadata::MetadataRepository<ingot_server::ServerConfig>>,
     pub(crate) settings: SettingsRepository,
     pub(crate) games: ProcessManager,
     pub(crate) servers: ServerProcessManager,
     pub(crate) supervisor: ServerSupervisorManager,
-    pub(crate) sandbox_setup: crate::sandbox::SandboxSetup,
-    pub(crate) server_uploads: crate::server::transfer::uploads::UploadManager,
+    pub(crate) sandbox_setup: ingot_sandbox::SandboxSetup,
+    pub(crate) server_uploads: ingot_server::transfer::uploads::UploadManager,
     pub(crate) playit: PlayitManager,
     pub(crate) http: reqwest::Client,
     pub(crate) news_cache_dir: std::path::PathBuf,
     pub(crate) lifecycle: LifecycleState,
-    pub(crate) account_login: crate::account::login::LoginAttempts,
-    pub(crate) pending_login: crate::account::pending_login::PendingLoginGrants,
-    pub(crate) accounts: crate::account::repository::AccountRepository,
-    pub(crate) account_operations: crate::account::operations::AccountOperations,
-    pub(crate) account_recovery: crate::account::recovery::AccountRecovery,
-    pub(crate) credentials: Box<dyn crate::account::credentials::CredentialStore>,
-    pub(crate) session_provider: Box<dyn crate::account::provider::SessionProvider>,
+    pub(crate) account_login: ingot_accounts::account::login::LoginAttempts,
+    pub(crate) pending_login: ingot_accounts::account::pending_login::PendingLoginGrants,
+    pub(crate) accounts: ingot_accounts::account::repository::AccountRepository,
+    pub(crate) account_operations: ingot_accounts::account::operations::AccountOperations,
+    pub(crate) account_recovery: ingot_accounts::account::recovery::AccountRecovery,
+    pub(crate) credentials: Box<dyn ingot_accounts::account::credentials::CredentialStore>,
+    pub(crate) session_provider: Box<dyn ingot_accounts::account::provider::SessionProvider>,
 }
 
 impl AppState {
     pub(crate) fn new(paths: AppPaths) -> Result<Self, reqwest::Error> {
         let http = reqwest::Client::builder()
-            .user_agent(crate::USER_AGENT)
+            .user_agent(ingot_core::USER_AGENT)
             .build()?;
         Ok(Self {
             instances: std::sync::Arc::new(
-                crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+                ingot_core::metadata::MetadataRepository::with_deletion_directory(
                     paths.instances_file(),
                     paths.instances_dir(),
                     |instance| &instance.id,
                 ),
             ),
             server_configs: std::sync::Arc::new(
-                crate::minecraft::metadata::MetadataRepository::with_deletion_directory(
+                ingot_core::metadata::MetadataRepository::with_deletion_directory(
                     paths.servers_file(),
                     paths.servers_dir(),
                     |server| &server.id,
@@ -55,23 +56,25 @@ impl AppState {
             games: ProcessManager::new(),
             servers: ServerProcessManager::new(),
             supervisor: ServerSupervisorManager::new(),
-            sandbox_setup: crate::sandbox::SandboxSetup::default(),
-            server_uploads: crate::server::transfer::uploads::UploadManager::default(),
+            sandbox_setup: ingot_sandbox::SandboxSetup::default(),
+            server_uploads: ingot_server::transfer::uploads::UploadManager::default(),
             playit: PlayitManager::new(),
-            session_provider: Box::new(crate::auth::session_provider::NativeSessionProvider::new(
+            session_provider: Box::new(NativeSessionProvider::new(
                 http.clone(),
                 option_env!("INGOT_MSA_CLIENT_ID").map(str::to_owned),
             )),
             http: http.clone(),
             news_cache_dir: paths.news_cache_dir(),
             lifecycle: LifecycleState::default(),
-            account_login: crate::account::login::LoginAttempts::default(),
-            pending_login: crate::account::pending_login::PendingLoginGrants::new(
+            account_login: ingot_accounts::account::login::LoginAttempts::default(),
+            pending_login: ingot_accounts::account::pending_login::PendingLoginGrants::new(
                 &paths.accounts_file(),
             ),
-            accounts: crate::account::repository::AccountRepository::new(paths.accounts_file()),
-            account_operations: crate::account::operations::AccountOperations::default(),
-            account_recovery: crate::account::recovery::AccountRecovery::new(
+            accounts: ingot_accounts::account::repository::AccountRepository::new(
+                paths.accounts_file(),
+            ),
+            account_operations: ingot_accounts::account::operations::AccountOperations::default(),
+            account_recovery: ingot_accounts::account::recovery::AccountRecovery::new(
                 paths.accounts_file().with_extension("recovery"),
             ),
             credentials: Box::new(super::accounts::vault::OsCredentialStore),

@@ -15,19 +15,19 @@ impl From<crate::app::platform::OpenDirectoryError> for ApiError {
     }
 }
 
-impl From<crate::settings::SettingsError> for ApiError {
-    fn from(error: crate::settings::SettingsError) -> Self {
+impl From<ingot_settings::SettingsError> for ApiError {
+    fn from(error: ingot_settings::SettingsError) -> Self {
         match error {
-            crate::settings::SettingsError::InvalidMemory { .. }
-            | crate::settings::SettingsError::InvalidWindow { .. }
-            | crate::settings::SettingsError::InvalidBehavior(_) => {
+            ingot_settings::SettingsError::InvalidMemory { .. }
+            | ingot_settings::SettingsError::InvalidWindow { .. }
+            | ingot_settings::SettingsError::InvalidBehavior(_) => {
                 Self::invalid_input(error.to_string())
             }
-            crate::settings::SettingsError::Decode { .. }
-            | crate::settings::SettingsError::Encode(_)
-            | crate::settings::SettingsError::Io { .. } => Self::storage_failure(error.to_string()),
-            crate::settings::SettingsError::LockPoisoned
-            | crate::settings::SettingsError::StateUnavailable => Self::internal(error.to_string()),
+            ingot_settings::SettingsError::Decode { .. }
+            | ingot_settings::SettingsError::Encode(_)
+            | ingot_settings::SettingsError::Io { .. } => Self::storage_failure(error.to_string()),
+            ingot_settings::SettingsError::LockPoisoned
+            | ingot_settings::SettingsError::StateUnavailable => Self::internal(error.to_string()),
         }
     }
 }

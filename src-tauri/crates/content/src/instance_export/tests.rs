@@ -9,8 +9,8 @@ use super::models::ExportFormat;
 use super::selection::{
     collect_preview_entries, is_default_included, is_permanently_excluded, validate_included_paths,
 };
-use crate::artifacts::models::sha1_hex;
-use crate::artifacts::sources::cf_fingerprint;
+use ingot_artifacts::models::sha1_hex;
+use ingot_artifacts::sources::cf_fingerprint;
 
 #[test]
 fn test_export_format_extension() {
@@ -268,7 +268,7 @@ fn test_atomic_archive_keeps_existing_on_failure() {
 fn test_prism_export_all_loaders_and_horizon_rejection() {
     use super::error::InstanceExportError;
     use super::prism::{build_prism_plan, generate_instance_cfg, generate_mmc_pack};
-    use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
+    use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
 
     let base_config = InstanceConfig {
         id: "test-id".to_string(),
@@ -383,7 +383,7 @@ fn test_prism_export_all_loaders_and_horizon_rejection() {
 }
 
 use super::resolve::{ContentResolver, CurseForgeMatch};
-use crate::artifacts::sources::{ModrinthVersionFileMatch, Source, SourceError};
+use ingot_artifacts::sources::{ModrinthVersionFileMatch, Source, SourceError};
 
 #[derive(Default)]
 struct FakeContentResolver {
@@ -446,7 +446,7 @@ async fn test_mrpack_resolved_unknown_disallowed_and_disabled_files() {
     use super::models::{EnvSupport, ExportFormat, ExportOptions, FileSide};
     use super::mrpack::build_mrpack_plan;
     use super::resolve::classify_modrinth_files;
-    use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
+    use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
 
     let dir = tempdir().unwrap();
     let instance_dir = dir.path();
@@ -639,7 +639,7 @@ fn test_mrpack_round_trip_with_modrinth_index_parser() {
     use super::mrpack::build_modrinth_index;
     use super::resolve::ResolvedModrinthFile;
     use crate::content::install::{parse_modrinth_loader, ModrinthIndex};
-    use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
+    use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
 
     let config = InstanceConfig {
         id: "inst-1".to_string(),
@@ -710,8 +710,8 @@ async fn test_curseforge_export_tracking_fingerprint_modlist_and_roundtrip() {
     };
     use super::models::{ExportFormat, ExportOptions};
     use crate::content::install::{parse_curseforge_loader, CurseForgeManifest};
-    use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-    use crate::minecraft::instance_content::models::{ProviderSource, TrackedOrigin};
+    use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
+    use ingot_minecraft::instance_content::models::{ProviderSource, TrackedOrigin};
 
     let dir = tempdir().unwrap();
     let instance_dir = dir.path();

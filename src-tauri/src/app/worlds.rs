@@ -1,8 +1,8 @@
-use crate::minecraft::instance::InstanceConfig;
-use crate::minecraft::worlds::models::{
+use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::worlds::models::{
     validate_world_folder_name, WorldBackupInfo, WorldDimension, WorldResetResult, WorldSummary,
 };
-use crate::minecraft::worlds::{dimensions, discovery, transfer, WorldError};
+use ingot_minecraft::worlds::{dimensions, discovery, transfer, WorldError};
 use std::path::PathBuf;
 use tauri::{Manager, Runtime};
 

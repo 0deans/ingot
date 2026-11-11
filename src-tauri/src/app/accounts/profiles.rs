@@ -1,17 +1,17 @@
 //! Native profile commands; pure list decisions live in account::policy.
 use super::storage::{current_timestamp, with_recovered_typed as with_recovered};
-use crate::account::AccountProfile;
+use ingot_accounts::account::AccountProfile;
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum ProfileError {
     #[error("Player nickname cannot be empty")]
     EmptyNickname,
     #[error(transparent)]
-    Validation(#[from] crate::account::validation::AccountValidationError),
+    Validation(#[from] ingot_accounts::account::validation::AccountValidationError),
     #[error(transparent)]
-    Ownership(#[from] crate::account::operations::OperationError),
+    Ownership(#[from] ingot_accounts::account::operations::OperationError),
     #[error(transparent)]
-    Recovery(#[from] crate::account::recovery::RecoveryError),
+    Recovery(#[from] ingot_accounts::account::recovery::RecoveryError),
 }
 
 pub(crate) async fn add_offline_account<R: tauri::Runtime>(
@@ -41,7 +41,8 @@ pub(crate) async fn add_offline_account<R: tauri::Runtime>(
         is_active: true,
         created_at: current_timestamp(),
     };
-    crate::account::validation::validate_profile(&new_profile).map_err(ProfileError::from)?;
+    ingot_accounts::account::validation::validate_profile(&new_profile)
+        .map_err(ProfileError::from)?;
 
     let _operation = crate::app::state(&app)
         .account_operations
@@ -73,7 +74,7 @@ pub(crate) fn set_active_account<R: tauri::Runtime>(
 ) -> Result<(), ProfileError> {
     with_recovered(&app, |repository| {
         repository.update(|accounts| {
-            crate::account::policy::select(accounts, &account_id)?;
+            ingot_accounts::account::policy::select(accounts, &account_id)?;
             Ok(())
         })
     })
@@ -97,7 +98,7 @@ pub(crate) async fn remove_account<R: tauri::Runtime>(
     {
         return with_recovered(&app, |repository| {
             repository.update(|accounts| {
-                crate::account::policy::remove(accounts, &account_id)?;
+                ingot_accounts::account::policy::remove(accounts, &account_id)?;
                 Ok(())
             })
         })
@@ -117,7 +118,7 @@ pub(crate) fn reorder_accounts<R: tauri::Runtime>(
 ) -> Result<(), ProfileError> {
     with_recovered(&app, |repository| {
         repository.update(|accounts| {
-            *accounts = crate::account::policy::reorder(accounts, &account_ids)?;
+            *accounts = ingot_accounts::account::policy::reorder(accounts, &account_ids)?;
             Ok(())
         })
     })

@@ -1,7 +1,7 @@
 //! Shutdown ownership belongs to the original process, independently of RPC waiters.
 use super::manager::ServerProcessManager;
 use super::models::{ActiveServer, ProcessError, ServerLaunchGeneration, ServerTerminationError};
-use crate::core::process_tree::{self, ProcessIdentity, TerminationError};
+use ingot_core::process_tree::{self, ProcessIdentity, TerminationError};
 use std::{future::Future, pin::Pin, sync::Arc, time::Duration};
 use tokio::{
     io::AsyncWriteExt,
@@ -76,7 +76,7 @@ struct StopTarget {
 }
 impl StopTarget {
     fn claim(server: &mut ActiveServer) -> Self {
-        server.status = crate::server::config::ServerStatus::Stopping;
+        server.status = crate::config::ServerStatus::Stopping;
         Self {
             server_id: server.server_id.clone(),
             pid: server.pid,
@@ -151,10 +151,6 @@ impl ServerProcessManager {
             })
     }
 
-    pub async fn kill_server(&self, server_id: &str) -> Result<(), ProcessError> {
-        self.kill_server_typed(server_id).await
-    }
-
     pub async fn kill_server_typed(&self, server_id: &str) -> Result<(), ProcessError> {
         let target = self.shutdown_target(server_id).await?;
         let manager = self.clone();
@@ -175,19 +171,6 @@ impl ServerProcessManager {
         };
         let manager = self.clone();
         owned(async move { manager.force_target(&target).await }).await
-    }
-
-    pub async fn stop_server(&self, server_id: &str) -> Result<(), ProcessError> {
-        self.stop_server_within(server_id, Duration::from_secs(10))
-            .await
-    }
-
-    pub async fn stop_server_within(
-        &self,
-        server_id: &str,
-        timeout: Duration,
-    ) -> Result<(), ProcessError> {
-        self.stop_server_within_typed(server_id, timeout).await
     }
 
     pub async fn stop_server_within_typed(

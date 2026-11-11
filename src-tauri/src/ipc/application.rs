@@ -21,7 +21,7 @@ pub(super) trait ApplicationApi {
     /// Turns off a mod or plugin blamed for crashing after a version change.
     async fn turn_off_after_version_change(
         app_handle: tauri::AppHandle<impl Runtime>,
-        target_kind: crate::version_change::TargetKind,
+        target_kind: ingot_version_change::TargetKind,
         target_id: String,
         folder: String,
         file_name: String,
@@ -81,13 +81,13 @@ impl ApplicationApi for ApplicationApiImpl {
     async fn turn_off_after_version_change(
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
-        target_kind: crate::version_change::TargetKind,
+        target_kind: ingot_version_change::TargetKind,
         target_id: String,
         folder: String,
         file_name: String,
     ) -> Result<(), ApiError> {
         let root = match target_kind {
-            crate::version_change::TargetKind::Instance => {
+            ingot_version_change::TargetKind::Instance => {
                 if crate::app::state(&app_handle)
                     .games
                     .is_running(&target_id)
@@ -97,19 +97,19 @@ impl ApplicationApi for ApplicationApiImpl {
                 }
                 crate::app::instances::ensure_instance_dir(&app_handle, &target_id)?
             }
-            crate::version_change::TargetKind::Server => {
+            ingot_version_change::TargetKind::Server => {
                 if crate::app::state(&app_handle)
                     .servers
                     .get_server_status(&target_id)
                     .await
-                    != crate::server::ServerStatus::Stopped
+                    != ingot_server::ServerStatus::Stopped
                 {
                     return Err(ApiError::conflict("Stop the server first"));
                 }
-                crate::server::get_server_dir(&app_handle, &target_id)?
+                crate::app::server_config::get_server_dir(&app_handle, &target_id)?
             }
         };
-        crate::artifacts::crash::disable(&root, &folder, &file_name).map_err(ApiError::from)
+        ingot_artifacts::crash::disable(&root, &folder, &file_name).map_err(ApiError::from)
     }
 
     async fn should_show_window_on_startup(self) -> Result<bool, ApiError> {

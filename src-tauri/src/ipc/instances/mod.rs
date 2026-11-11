@@ -10,8 +10,8 @@ pub(crate) mod worlds;
 
 use crate::app::lifecycle::adopt_running_games;
 use crate::ipc::ApiError;
-use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
-use crate::minecraft::launcher::{self, ProcessManager, RunningInstanceSummary};
+use ingot_minecraft::instance::{self, InstanceConfig, ModLoaderType};
+use ingot_minecraft::launcher::{self, ProcessManager, RunningInstanceSummary};
 use tauri::Runtime;
 
 pub(super) fn get_process_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &ProcessManager {

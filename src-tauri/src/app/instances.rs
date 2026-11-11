@@ -1,5 +1,5 @@
 //! Native path and managed-repository wiring for instance services.
-use crate::minecraft::instance::{self, InstanceConfig, InstanceError, ModLoaderType};
+use ingot_minecraft::instance::{self, InstanceConfig, InstanceError, ModLoaderType};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager, Runtime};
 
@@ -96,7 +96,7 @@ pub(crate) fn update_instance<R: Runtime>(
 
 /// The blocking worker owns maintenance even when its caller is cancelled.
 pub(crate) async fn run_maintenance<T: Send + 'static>(
-    ownership: crate::minecraft::launcher::process::MaintenanceGuard,
+    ownership: ingot_minecraft::launcher::process::MaintenanceGuard,
     operation: impl FnOnce() -> Result<T, InstanceError> + Send + 'static,
 ) -> Result<T, InstanceError> {
     tokio::task::spawn_blocking(move || {

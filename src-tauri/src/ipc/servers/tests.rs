@@ -1,4 +1,3 @@
-use super::*;
 use crate::app::{AppPaths, AppState};
 use serde_json::{json, Value};
 use tauri::{ipc::InvokeBody, test::MockRuntime, webview::InvokeRequest, Manager};
@@ -28,7 +27,7 @@ async fn server_mutations_reject_busy_owners_before_touching_files_or_metadata()
     for sleeping in [false, true] {
         let ownership = if sleeping {
             manager
-                .set_server_status("server", server::ServerStatus::Sleeping)
+                .set_server_status("server", ingot_server::ServerStatus::Sleeping)
                 .await;
             None
         } else {

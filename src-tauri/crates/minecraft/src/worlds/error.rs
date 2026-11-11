@@ -37,8 +37,8 @@ pub enum WorldError {
     TaskJoin(#[from] tokio::task::JoinError),
 
     #[error("Failed to load instances: {0}")]
-    LoadInstances(#[source] crate::minecraft::instance::InstanceError),
+    LoadInstances(#[source] crate::instance::InstanceError),
 
     #[error("Failed to locate instance directory: {0}")]
-    InstanceDir(#[source] crate::minecraft::instance::InstanceError),
+    InstanceDir(#[source] crate::instance::InstanceError),
 }

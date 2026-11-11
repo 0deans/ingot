@@ -1,8 +1,3 @@
-pub(crate) use self as minecraft;
-pub(crate) use ingot_artifacts as artifacts;
-pub(crate) use ingot_core as core;
-pub(crate) use ingot_settings as settings;
-
 pub mod bedrock;
 pub mod horizon;
 pub mod instance;
@@ -15,7 +10,3 @@ pub mod screenshots;
 pub mod sync;
 pub mod version;
 pub mod worlds;
-
-pub use artifacts::downloader;
-pub use artifacts::java;
-pub use core::metadata;

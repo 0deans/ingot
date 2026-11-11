@@ -1,7 +1,7 @@
 //! LegacyLauncher / TLauncher instance discovery and version JSON scanner.
 use super::{count_instance_stats, ImportableInstance};
 use crate::importer::version_id::parse_vanilla_version_id;
-use crate::minecraft::instance::ModLoaderType;
+use ingot_minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;

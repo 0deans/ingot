@@ -37,7 +37,7 @@ pub enum TransferError {
     Zip(#[from] zip::result::ZipError),
 
     #[error("Archive extraction error: {0}")]
-    Archive(#[from] crate::core::ArchiveError),
+    Archive(#[from] ingot_core::ArchiveError),
 
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
@@ -199,7 +199,7 @@ fn collect(
         let relative = relative
             .to_str()
             .ok_or(TransferError::InvalidPathEncoding)?;
-        if crate::core::safe_enclosed_path(root, relative).is_none()
+        if ingot_core::safe_enclosed_path(root, relative).is_none()
             || (!kind.is_dir() && !kind.is_file())
         {
             return Err(TransferError::UnsupportedEntry);
@@ -332,7 +332,7 @@ fn copy_dir(from: &Path, to: &Path, skip_jar: bool) -> Result<(), TransferError>
         let name = entry.file_name();
         let name_str = name.to_string_lossy();
         let kind = entry.file_type()?;
-        if crate::core::safe_enclosed_filename(from, &name_str).is_none()
+        if ingot_core::safe_enclosed_filename(from, &name_str).is_none()
             || (!kind.is_dir() && !kind.is_file())
         {
             return Err(TransferError::UnsupportedEntry);

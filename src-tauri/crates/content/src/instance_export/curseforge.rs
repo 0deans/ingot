@@ -8,9 +8,9 @@ use super::error::InstanceExportError;
 use super::hashing::hash_file;
 use super::models::ExportOptions;
 use super::resolve::{is_candidate_for_lookup, ContentResolver};
-use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-use crate::minecraft::instance_content::models::{ProviderSource, TrackedOrigin};
-use crate::minecraft::loader::normalize_loader_version;
+use ingot_minecraft::instance::{InstanceConfig, ModLoaderType};
+use ingot_minecraft::instance_content::models::{ProviderSource, TrackedOrigin};
+use ingot_minecraft::loader::normalize_loader_version;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

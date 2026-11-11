@@ -1,10 +1,10 @@
 //! Native launcher paths and import repository publication.
-use crate::minecraft::importer::{
+use ingot_content::importer::{
     discovery::{self, DiscoveryRoots},
     execute::execute_import_instance,
     DetectedLauncher, ImportError, ImportInstanceOptions, ImportReport, ImportableInstance,
 };
-use crate::minecraft::metadata::MetadataError;
+use ingot_core::metadata::MetadataError;
 use std::path::PathBuf;
 use tauri::{Manager, Runtime};
 

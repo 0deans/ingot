@@ -159,12 +159,12 @@ fn recover_or_import(
         let records = service
             .repository
             .load()
-            .map_err(crate::server::config::ConfigError::from)?;
+            .map_err(crate::config::ConfigError::from)?;
         if let Some(server) = records
             .into_iter()
             .find(|server| server.id == receipt.server_id)
         {
-            let directory = crate::core::safe_enclosed_filename(&service.servers_dir, &server.id)
+            let directory = ingot_core::safe_enclosed_filename(&service.servers_dir, &server.id)
                 .ok_or(TransferError::UnsupportedEntry)?;
             if !directory.is_dir() {
                 return Err(std::io::Error::new(
@@ -199,13 +199,13 @@ fn validate_upload_paths(archive: &Path) -> Result<(), TransferError> {
         .file_name()
         .and_then(|name| name.to_str())
         .ok_or(TransferError::InvalidPathEncoding)?;
-    crate::core::safe_enclosed_filename(cache, directory).ok_or(TransferError::UnsupportedEntry)?;
+    ingot_core::safe_enclosed_filename(cache, directory).ok_or(TransferError::UnsupportedEntry)?;
     for path in [archive.to_path_buf(), archive.with_extension("import.json")] {
         let filename = path
             .file_name()
             .and_then(|name| name.to_str())
             .ok_or(TransferError::InvalidPathEncoding)?;
-        crate::core::safe_enclosed_filename(imports, filename)
+        ingot_core::safe_enclosed_filename(imports, filename)
             .ok_or(TransferError::UnsupportedEntry)?;
     }
     Ok(())

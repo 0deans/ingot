@@ -3,9 +3,9 @@ use super::models::{LaunchError, QuickPlayOptions};
 use super::prepare::{setup_ely_authlib_agent, LaunchPreparation};
 use super::progress::ProgressCallback;
 use super::quick_play::apply_quick_play_arguments;
-use crate::minecraft::instance::InstanceConfig;
-use crate::minecraft::version::LibraryEntry;
-use crate::settings::LauncherSettings;
+use crate::instance::InstanceConfig;
+use crate::version::LibraryEntry;
+use ingot_settings::LauncherSettings;
 use std::{
     fs,
     path::{Path, PathBuf},

@@ -261,7 +261,7 @@ async fn test_resolve_loader_profile_forge_1_16_5_live() {
 #[tokio::test]
 #[ignore = "requires public network to download Log4j jars"]
 async fn test_download_log4j_libraries_live() {
-    use crate::artifacts::downloader::{download_files_concurrent, DownloadTask};
+    use ingot_artifacts::downloader::{download_files_concurrent, DownloadTask};
 
     let temp_dir = tempfile::tempdir().unwrap();
     let client = reqwest::Client::new();

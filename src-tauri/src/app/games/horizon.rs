@@ -1,12 +1,12 @@
 use super::preparation::NativePreparation;
-use crate::minecraft::horizon::{
+use ingot_minecraft::horizon::{
     build_horizon_command, create_session_file, ensure_horizon_engine, fetch_horizon_releases,
     prepare_horizon_resources, HorizonChannel, HorizonError, HorizonRelease, HorizonSessionGuard,
 };
-use crate::minecraft::instance::InstanceConfig;
-use crate::minecraft::launcher::models::LaunchError;
-use crate::minecraft::launcher::prepare::PreparationEffects;
-use crate::minecraft::launcher::progress::ProgressCallback;
+use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::launcher::models::LaunchError;
+use ingot_minecraft::launcher::prepare::PreparationEffects;
+use ingot_minecraft::launcher::progress::ProgressCallback;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Runtime};
 
@@ -44,10 +44,10 @@ pub(super) async fn prepare_horizon_game_command<R: Runtime>(
                 asset_url: Some(format!(
                     "https://github.com/horizon-rust/horizon/releases/download/{}/{}",
                     ver,
-                    crate::minecraft::horizon::manifest::target_platform_asset_name()
+                    ingot_minecraft::horizon::manifest::target_platform_asset_name()
                 )),
                 asset_name: Some(
-                    crate::minecraft::horizon::manifest::target_platform_asset_name().to_string(),
+                    ingot_minecraft::horizon::manifest::target_platform_asset_name().to_string(),
                 ),
                 asset_size: None,
             })

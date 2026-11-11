@@ -2,18 +2,18 @@
 use super::profiles::{save_skin_url, ProfileError};
 use super::session::microsoft_token_for_locked;
 use super::storage::{current_timestamp, with_recovered_typed};
-use crate::account::{
+use base64::Engine;
+use ingot_accounts::account::{
     credentials::{self, CredentialError},
     operations::OperationError,
     recovery::RecoveryError,
     session::SessionError,
     AccountProfile, AccountSecrets,
 };
-use crate::auth::{
+use ingot_accounts::auth::{
     ely::{ElyAuthService, ElyError, ElySkinsCatalogResponse},
     microsoft::{self, MicrosoftSkinError},
 };
-use base64::Engine;
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum SkinError {

@@ -62,7 +62,7 @@ pub async fn fetch_pumpkin_versions(client: &reqwest::Client) -> Result<Vec<Stri
     let url = "https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases?per_page=10";
     let res = client
         .get(url)
-        .header("User-Agent", crate::USER_AGENT)
+        .header("User-Agent", ingot_core::USER_AGENT)
         .send()
         .await?;
 
@@ -98,7 +98,7 @@ pub async fn ensure_pumpkin_binary(
     let url = "https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases/latest";
     let res = client
         .get(url)
-        .header("User-Agent", crate::USER_AGENT)
+        .header("User-Agent", ingot_core::USER_AGENT)
         .send()
         .await?;
 
@@ -142,7 +142,7 @@ pub async fn ensure_pumpkin_binary(
 
     let download_res = client
         .get(&asset.browser_download_url)
-        .header("User-Agent", crate::USER_AGENT)
+        .header("User-Agent", ingot_core::USER_AGENT)
         .send()
         .await?;
 

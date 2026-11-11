@@ -4,7 +4,7 @@ use super::super::{
     tracking::read_tracking_raw,
 };
 use super::publication::{publish_plugin_transaction_locked, with_plugin_lock};
-use crate::server::config::ServerCoreType;
+use crate::config::ServerCoreType;
 use std::path::{Path, PathBuf};
 pub fn folder(server_dir: &Path, core: &ServerCoreType) -> Result<PathBuf, PluginError> {
     let platform = platform(core).ok_or(PluginError::UnsupportedCore)?;
@@ -63,7 +63,7 @@ fn list_installed_locked(
             source: track.map(|item| item.source),
             project_id: track.map(|item| item.project_id.clone()),
             icon_url: track.and_then(|item| item.icon_url.clone()),
-            system: name == crate::server::companion::PLUGIN_NAME,
+            system: name == crate::companion::PLUGIN_NAME,
             name,
         });
     }
@@ -89,9 +89,9 @@ pub fn set_enabled(
         if dir.join(&to).exists() {
             return Ok(());
         }
-        let from = crate::core::safe_enclosed_filename(&dir, &from)
+        let from = ingot_core::safe_enclosed_filename(&dir, &from)
             .ok_or_else(|| PluginError::InvalidJarName(from))?;
-        let to = crate::core::safe_enclosed_filename(&dir, &to)
+        let to = ingot_core::safe_enclosed_filename(&dir, &to)
             .ok_or_else(|| PluginError::InvalidJarName(to))?;
         std::fs::rename(from, to).map_err(PluginError::Io)
     })
@@ -106,7 +106,7 @@ pub fn remove(
         let dir = folder(server_dir, core)?;
         let file_name = safe_jar_name(file_name)?;
         let mut tracked = read_tracking_raw(server_dir)?;
-        let path = crate::core::safe_enclosed_filename(&dir, file_name)
+        let path = ingot_core::safe_enclosed_filename(&dir, file_name)
             .ok_or_else(|| PluginError::InvalidJarName(file_name.into()))?;
         let jar = file_name.trim_end_matches(".disabled");
         tracked.retain(|item| item.file_name != jar);

@@ -1,7 +1,6 @@
-use crate::minecraft::{
-    content::{self, ContentError},
-    instance::InstanceConfig,
-};
+use ingot_content::content::{self, ContentError};
+use ingot_minecraft::instance::InstanceConfig;
+use ingot_minecraft::launcher::progress::make_progress_reporter;
 use tauri::{AppHandle, Runtime};
 
 pub(crate) fn service<R: Runtime>(app: &AppHandle<R>) -> content::service::ContentService {
@@ -19,7 +18,7 @@ pub(crate) async fn install_content_file<R: Runtime>(
     let id = instance_id.to_owned();
     let (instance, directory) = tokio::task::spawn_blocking(move || {
         let parent = crate::app::instances::ensure_instances_dir(&handle)?;
-        let dir = crate::minecraft::instance::ensure_instance_directory(
+        let dir = ingot_minecraft::instance::ensure_instance_directory(
             &super::state(&handle).instances,
             &parent,
             &id,
@@ -28,8 +27,8 @@ pub(crate) async fn install_content_file<R: Runtime>(
         let inst = instances
             .into_iter()
             .find(|i| i.id == id)
-            .ok_or_else(|| crate::minecraft::instance::InstanceError::NotFound(id))?;
-        Ok::<_, crate::minecraft::instance::InstanceError>((inst, dir))
+            .ok_or_else(|| ingot_minecraft::instance::InstanceError::NotFound(id))?;
+        Ok::<_, ingot_minecraft::instance::InstanceError>((inst, dir))
     })
     .await
     .map_err(ContentError::Task)?
@@ -69,10 +68,9 @@ pub(crate) async fn install_modpack_instance<R: Runtime>(
     let state = super::state(app);
     let tracking_id = format!("installing:{}", name.trim());
     let app_prog = app.clone();
-    let on_progress =
-        crate::minecraft::launcher::progress::make_progress_reporter(tracking_id, move |ev| {
-            crate::app::events::launch_progress(&app_prog, ev);
-        });
+    let on_progress = make_progress_reporter(tracking_id, move |ev| {
+        crate::app::events::launch_progress(&app_prog, ev);
+    });
     let installer = content::install::ModpackInstaller {
         client: state.http.clone(),
         instances: std::sync::Arc::clone(&state.instances),

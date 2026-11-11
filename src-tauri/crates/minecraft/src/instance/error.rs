@@ -1,4 +1,4 @@
-use crate::core::metadata::MetadataError;
+use ingot_core::metadata::MetadataError;
 use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]

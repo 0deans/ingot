@@ -6,7 +6,7 @@ use std::path::Path;
 /// Parses server.properties from a key=value file format
 pub fn read_server_properties_from_dir(
     server_dir: &Path,
-) -> Result<ServerProperties, crate::server::files::ServerFileError> {
+) -> Result<ServerProperties, crate::files::ServerFileError> {
     let file_path = server_dir.join("server.properties");
     let contents = match fs::read_to_string(&file_path) {
         Ok(contents) => contents,
@@ -25,7 +25,7 @@ pub fn read_server_properties_from_dir(
         if let Some((k, v)) = line.split_once('=') {
             map.insert(
                 k.trim().to_string(),
-                crate::server::files::unescape_property(v.trim()),
+                crate::files::unescape_property(v.trim()),
             );
         }
     }
@@ -71,16 +71,16 @@ pub fn level_name(server_dir: &Path) -> String {
 pub fn write_server_properties_to_dir(
     server_dir: &Path,
     props: &ServerProperties,
-) -> Result<(), crate::server::files::ServerFileError> {
+) -> Result<(), crate::files::ServerFileError> {
     let entries = property_updates(server_dir, props)?;
-    crate::server::files::write_properties(server_dir, &entries)
+    crate::files::write_properties(server_dir, &entries)
 }
 
 pub fn property_updates(
     server_dir: &Path,
     props: &ServerProperties,
-) -> Result<Vec<crate::server::files::PropertyEntry>, crate::server::files::ServerFileError> {
-    use crate::server::files::{read_properties, PropertyEntry};
+) -> Result<Vec<crate::files::PropertyEntry>, crate::files::ServerFileError> {
+    use crate::files::{read_properties, PropertyEntry};
     let existing = read_properties(server_dir)?;
     let values = [
         ("server-port", props.server_port.to_string()),
@@ -126,11 +126,11 @@ fn parse_setting<T: std::str::FromStr>(
     values: &HashMap<String, String>,
     key: &str,
     default: T,
-) -> Result<T, crate::server::files::ServerFileError> {
+) -> Result<T, crate::files::ServerFileError> {
     match values.get(key) {
         Some(value) => value
             .parse()
-            .map_err(|_| crate::server::files::ServerFileError::InvalidProperty(key.into())),
+            .map_err(|_| crate::files::ServerFileError::InvalidProperty(key.into())),
         None => Ok(default),
     }
 }

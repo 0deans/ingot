@@ -42,10 +42,10 @@ pub enum ScreenshotError {
     },
 
     #[error("Failed to resolve instance directory: {0}")]
-    InstanceDir(#[source] crate::minecraft::instance::InstanceError),
+    InstanceDir(#[source] crate::instance::InstanceError),
 
     #[error("Failed to load instances: {0}")]
-    LoadInstances(#[source] crate::minecraft::instance::InstanceError),
+    LoadInstances(#[source] crate::instance::InstanceError),
 
     #[error("Cache directory resolution error: {0}")]
     CacheDir(#[source] std::io::Error),

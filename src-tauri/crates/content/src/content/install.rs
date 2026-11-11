@@ -1,6 +1,6 @@
 //! Installation routines for individual content files and full modpack instances.
 use super::error::ContentError;
-use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
+use ingot_minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -11,10 +11,14 @@ use std::{
 use zip::ZipArchive;
 
 pub(crate) mod atlauncher_pack;
+mod curseforge_pack;
+mod curseforge_resolver;
 pub(crate) mod ftb_pack;
+mod modrinth_pack;
 pub(crate) mod pack;
 #[cfg(test)]
 mod pack_tests;
+mod support;
 pub(crate) mod technic_pack;
 
 #[derive(Debug, Deserialize)]
@@ -30,7 +34,7 @@ pub(crate) struct ModrinthIndexFile {
     pub(crate) path: String,
     pub(crate) downloads: Vec<String>,
     #[serde(flatten)]
-    integrity: pack::Integrity,
+    integrity: support::Integrity,
     pub(super) env: Option<HashMap<String, String>>,
 }
 
@@ -113,22 +117,13 @@ pub(crate) fn parse_curseforge_loader(
 }
 
 /// Constructs a fallback CDN URL for a CurseForge file if none was directly provided.
+#[cfg(test)]
 pub(crate) fn construct_curseforge_cdn_url(file_id: u32, file_name: &str) -> String {
-    let id_str = file_id.to_string();
-    let (part1, part2) = if id_str.len() > 4 {
-        let split = id_str.len() - 3;
-        (&id_str[..split], &id_str[split..])
-    } else {
-        ("0", id_str.as_str())
-    };
-    format!("https://edge.forgecdn.net/files/{part1}/{part2}/{file_name}")
-}
-
-fn is_invalid_checksum_error(error: &std::io::Error) -> bool {
-    error
-        .to_string()
-        .to_ascii_lowercase()
-        .contains("invalid checksum")
+    curseforge_resolver::construct_curseforge_cdn_url_with_base(
+        curseforge_resolver::DEFAULT_CURSEFORGE_CDN_BASE,
+        file_id,
+        file_name,
+    )
 }
 
 /// Extracts overrides directory from a modpack archive to the target instance directory.
@@ -160,7 +155,7 @@ pub(crate) fn extract_zip_overrides<R: Read + Seek>(
                 ));
             }
         }
-        let out_path = crate::core::safe_enclosed_path(dest_dir, subpath)
+        let out_path = ingot_core::safe_enclosed_path(dest_dir, subpath)
             .ok_or_else(|| std::io::Error::other("Unsafe modpack override path"))?;
 
         if file.is_dir() {
@@ -174,7 +169,7 @@ pub(crate) fn extract_zip_overrides<R: Read + Seek>(
             // checksums despite valid uncompressed payload bytes. Since Crc32Reader only returns
             // this error at EOF after writing all uncompressed bytes, we tolerate it.
             if let Err(error) = std::io::copy(&mut file, &mut outfile) {
-                if !is_invalid_checksum_error(&error) {
+                if !support::is_invalid_checksum_error(&error) {
                     return Err(error);
                 }
             }
@@ -197,7 +192,7 @@ pub async fn install_content_file(
     let filename = filename.to_owned();
     let clean_name = filename.clone();
     let target_file = tokio::task::spawn_blocking(move || {
-        let target = crate::core::safe_enclosed_filename(&directory, &filename)
+        let target = ingot_core::safe_enclosed_filename(&directory, &filename)
             .ok_or_else(|| ContentError::InvalidFilename(filename.clone()))?;
         fs::create_dir_all(&directory).map_err(ContentError::Io)?;
         Ok::<_, ContentError>(target)
@@ -205,7 +200,7 @@ pub async fn install_content_file(
     .await
     .map_err(ContentError::Task)??;
 
-    let bytes = pack::fetch(client, download_url).await?;
+    let bytes = support::fetch(client, download_url).await?;
     tokio::task::spawn_blocking(move || publish_content_file(&target_file, &bytes))
         .await
         .map_err(ContentError::Task)??;
@@ -229,10 +224,10 @@ fn publish_content_file(destination: &Path, bytes: &[u8]) -> Result<(), ContentE
 
 pub struct ModpackInstaller {
     pub client: reqwest::Client,
-    pub instances: std::sync::Arc<crate::core::metadata::MetadataRepository<InstanceConfig>>,
+    pub instances: std::sync::Arc<ingot_core::metadata::MetadataRepository<InstanceConfig>>,
     pub root: std::path::PathBuf,
     pub curseforge_base: String,
-    pub on_progress: Option<crate::minecraft::launcher::progress::ProgressCallback>,
+    pub on_progress: Option<ingot_minecraft::launcher::progress::ProgressCallback>,
 }
 
 impl ModpackInstaller {
@@ -243,7 +238,7 @@ impl ModpackInstaller {
         download_url: &str,
         filename: &str,
     ) -> Result<InstanceConfig, ContentError> {
-        let bytes = pack::fetch_with_progress(
+        let bytes = support::fetch_with_progress(
             &self.client,
             download_url,
             "Installing Modpack",
@@ -272,7 +267,7 @@ impl ModpackInstaller {
                 .unwrap_or("")
                 .is_empty()
         {
-            if let Ok(versions) = crate::minecraft::loader::fetch_loader_versions(
+            if let Ok(versions) = ingot_minecraft::loader::fetch_loader_versions(
                 &self.client,
                 &prepared.loader,
                 &prepared.game_version,
@@ -305,12 +300,12 @@ impl ModpackInstaller {
 }
 
 fn publish_modpack(
-    repository: &crate::core::metadata::MetadataRepository<InstanceConfig>,
+    repository: &ingot_core::metadata::MetadataRepository<InstanceConfig>,
     parent: &Path,
     config: InstanceConfig,
     staging: &Path,
 ) -> Result<InstanceConfig, ContentError> {
-    let destination = crate::core::safe_enclosed_filename(parent, &config.id)
+    let destination = ingot_core::safe_enclosed_filename(parent, &config.id)
         .ok_or_else(|| ContentError::InvalidFilename(config.id.clone()))?;
     repository
         .publish(
@@ -319,7 +314,7 @@ fn publish_modpack(
             config.clone(),
             |records, candidate| {
                 if records.iter().any(|record| record.id == candidate.id) {
-                    return Err(crate::core::metadata::MetadataError::Conflict(
+                    return Err(ingot_core::metadata::MetadataError::Conflict(
                         "Instance already exists".into(),
                     ));
                 }

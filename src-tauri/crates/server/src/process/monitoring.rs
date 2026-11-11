@@ -3,7 +3,7 @@ use super::console::{
 };
 use super::lifecycle::ServerLifecycleHooks;
 use super::manager::ServerProcessManager;
-use crate::server::config::{ServerCoreType, ServerLogEvent, ServerStatus, ServerStatusEvent};
+use crate::config::{ServerCoreType, ServerLogEvent, ServerStatus, ServerStatusEvent};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -46,7 +46,7 @@ pub(crate) fn spawn_stdout_reader(ctx: StdoutReaderContext) -> tokio::task::Join
                 || line.contains("Server started")
             {
                 ready.store(true, std::sync::atomic::Ordering::SeqCst);
-                crate::artifacts::crash::first_start_ok(&server_dir);
+                ingot_artifacts::crash::first_start_ok(&server_dir);
             }
             let _ = line_tx.send(line.clone());
             if pending_queries.load(std::sync::atomic::Ordering::SeqCst) > 0
@@ -202,11 +202,11 @@ pub(crate) fn spawn_exit_monitor(ctx: ExitMonitorContext) -> tokio::task::JoinHa
         let started = ready_flag.load(std::sync::atomic::Ordering::SeqCst);
         if !started && !stopping {
             let clean = exited.is_ok_and(|s| s.success());
-            let folder = crate::server::plugins::platform(&core).map(|p| p.folder);
-            if let Some(crash) = crate::artifacts::crash::after_exit(
+            let folder = crate::plugins::platform(&core).map(|p| p.folder);
+            if let Some(crash) = ingot_artifacts::crash::after_exit(
                 &server_dir,
                 clean,
-                crate::artifacts::models::TargetKind::Server,
+                ingot_artifacts::models::TargetKind::Server,
                 &server_id,
                 &server_name,
                 folder.as_slice(),

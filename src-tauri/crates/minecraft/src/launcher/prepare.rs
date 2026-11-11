@@ -1,13 +1,11 @@
-use crate::artifacts::downloader::{
+use crate::instance::{InstanceConfig, ModLoaderType};
+use crate::loader::{resolve_loader_profile, LoaderProfile};
+use crate::version::{fetch_asset_index, fetch_version_package, VersionPackage};
+use ingot_artifacts::downloader::{
     download_file_chunked, download_files_concurrent, is_download_task_cached, DownloadError,
     DownloadTask,
 };
-use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
-use crate::minecraft::loader::{resolve_loader_profile, LoaderProfile};
-use crate::minecraft::version::{
-    fetch_asset_index, fetch_version_package, should_include_library, LibraryEntry, VersionPackage,
-};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -22,7 +20,7 @@ pub trait PreparationEffects: Sync {
         client: &'a reqwest::Client,
         major_version: u32,
         custom_path: Option<&'a str>,
-        progress: Option<crate::artifacts::java::JavaProgressFn>,
+        progress: Option<ingot_artifacts::java::JavaProgressFn>,
     ) -> PreparationFuture<'a, PathBuf>;
     fn resolve_auth(&self) -> PreparationFuture<'_, ResolvedAuth>;
 }
@@ -76,7 +74,7 @@ pub async fn prepare_launch_environment(
             let resolved_version = match instance.loader_version.as_deref().map(str::trim) {
                 Some(v) if !v.is_empty() => v.to_string(),
                 _ => {
-                    let versions = crate::minecraft::loader::fetch_loader_versions(
+                    let versions = crate::loader::fetch_loader_versions(
                         client,
                         loader,
                         &instance.game_version,
@@ -121,7 +119,7 @@ pub async fn prepare_launch_environment(
         .filter(|j| j.major_version > 0)
         .map(|j| j.major_version)
         .unwrap_or_else(|| {
-            crate::artifacts::java::get_required_java_version(&instance.game_version, None)
+            ingot_artifacts::java::get_required_java_version(&instance.game_version, None)
         });
 
     let java_prog = {
@@ -190,191 +188,15 @@ pub async fn prepare_launch_environment(
     }
 
     // Step 5: Libraries
-    let mut all_libraries: Vec<LibraryEntry> = Vec::new();
-
-    if let Some(ref prof) = loader_profile {
-        all_libraries.extend(
-            prof.libraries
-                .iter()
-                .filter(|l| should_include_library(l))
-                .cloned(),
-        );
-    }
-
-    all_libraries.extend(
-        version_pkg
-            .libraries
-            .iter()
-            .filter(|l| should_include_library(l))
-            .cloned(),
+    let library_plan = super::library_plan::build_library_plan(
+        &version_pkg,
+        loader_profile.as_ref(),
+        libraries_dir,
+        super::library_plan::LibraryTargetPlatform::host(),
     );
-
-    let mut library_tasks = Vec::new();
-    let mut classpath_entries = Vec::new();
-    let mut native_jars = Vec::new();
-    let mut seen_classpath_paths = HashSet::new();
-    let mut seen_download_dests = HashSet::new();
-    let mut seen_native_dests = HashSet::new();
-    let mut seen_maven_keys = HashSet::new();
-
-    let os_key = current_os_key();
-    let arch_str = if std::mem::size_of::<usize>() == 8 {
-        "64"
-    } else {
-        "32"
-    };
-
-    for lib in &all_libraries {
-        if let Some(ref natives_map) = lib.natives {
-            if let Some(classifier_tmpl) = get_native_classifier_template(natives_map, os_key) {
-                let classifier = classifier_tmpl.replace("${arch}", arch_str);
-                let (classifier_artifact, rel_path) = if let Some(ref dl) = lib.downloads {
-                    let art = dl.classifiers.as_ref().and_then(|c| c.get(&classifier));
-                    let path = art.and_then(|a| a.path.clone()).or_else(|| {
-                        super::classpath::maven_coordinate_to_path(&lib.name, Some(&classifier))
-                    });
-                    (art, path)
-                } else {
-                    let path =
-                        super::classpath::maven_coordinate_to_path(&lib.name, Some(&classifier));
-                    (None, path)
-                };
-
-                if let Some(path) = rel_path {
-                    let dest = libraries_dir.join(&path);
-                    if seen_native_dests.insert(dest.clone()) {
-                        native_jars.push(dest.clone());
-                    }
-                    if seen_download_dests.insert(dest.clone()) {
-                        let (url, sha1, size) = if let Some(art) = classifier_artifact {
-                            (art.url.clone(), art.sha1.clone(), art.size)
-                        } else {
-                            let base_url = lib
-                                .url
-                                .as_deref()
-                                .unwrap_or("https://libraries.minecraft.net/");
-                            let full_url = if base_url.ends_with('/') {
-                                format!("{}{}", base_url, path)
-                            } else {
-                                format!("{}/{}", base_url, path)
-                            };
-                            (full_url, None, None)
-                        };
-                        library_tasks.push(DownloadTask {
-                            url,
-                            dest,
-                            sha1,
-                            size,
-                        });
-                    }
-                }
-            }
-        }
-
-        if let Some(downloads) = &lib.downloads {
-            if let Some(artifact) = &downloads.artifact {
-                if let Some(dest) = super::classpath::resolve_library_path(
-                    &lib.name,
-                    artifact.path.as_deref(),
-                    None,
-                    libraries_dir,
-                ) {
-                    let should_add = match parse_maven_artifact_key(&lib.name) {
-                        Some(key) => {
-                            seen_maven_keys.insert(key) && seen_classpath_paths.insert(dest.clone())
-                        }
-                        None => seen_classpath_paths.insert(dest.clone()),
-                    };
-                    if should_add {
-                        classpath_entries.push(dest.clone());
-                    }
-                    if should_add && seen_download_dests.insert(dest.clone()) {
-                        library_tasks.push(DownloadTask {
-                            url: artifact.url.clone(),
-                            dest,
-                            sha1: artifact.sha1.clone(),
-                            size: artifact.size,
-                        });
-                    }
-                }
-            }
-        } else if let Some(path) = super::classpath::maven_coordinate_to_path(&lib.name, None) {
-            let base_url = lib
-                .url
-                .as_deref()
-                .unwrap_or("https://libraries.minecraft.net/");
-            let full_url = if base_url.ends_with('/') {
-                format!("{}{}", base_url, path)
-            } else {
-                format!("{}/{}", base_url, path)
-            };
-            let dest = libraries_dir.join(&path);
-            let should_add = match parse_maven_artifact_key(&lib.name) {
-                Some(key) => {
-                    seen_maven_keys.insert(key) && seen_classpath_paths.insert(dest.clone())
-                }
-                None => seen_classpath_paths.insert(dest.clone()),
-            };
-            if should_add {
-                classpath_entries.push(dest.clone());
-            }
-            if should_add && seen_download_dests.insert(dest.clone()) {
-                library_tasks.push(DownloadTask {
-                    url: full_url,
-                    dest,
-                    sha1: None,
-                    size: None,
-                });
-            }
-        }
-    }
-
-    if let Some(ref prof) = loader_profile {
-        for lib in prof
-            .maven_files
-            .iter()
-            .filter(|l| should_include_library(l))
-        {
-            if let Some(downloads) = &lib.downloads {
-                if let Some(artifact) = &downloads.artifact {
-                    if let Some(dest) = super::classpath::resolve_library_path(
-                        &lib.name,
-                        artifact.path.as_deref(),
-                        None,
-                        libraries_dir,
-                    ) {
-                        if seen_download_dests.insert(dest.clone()) {
-                            library_tasks.push(DownloadTask {
-                                url: artifact.url.clone(),
-                                dest,
-                                sha1: artifact.sha1.clone(),
-                                size: artifact.size,
-                            });
-                        }
-                    }
-                }
-            } else if let Some(path) = super::classpath::maven_coordinate_to_path(&lib.name, None) {
-                let dest = libraries_dir.join(&path);
-                if seen_download_dests.insert(dest.clone()) {
-                    let base_url = lib
-                        .url
-                        .as_deref()
-                        .unwrap_or("https://libraries.minecraft.net/");
-                    let full_url = if base_url.ends_with('/') {
-                        format!("{}{}", base_url, path)
-                    } else {
-                        format!("{}/{}", base_url, path)
-                    };
-                    library_tasks.push(DownloadTask {
-                        url: full_url,
-                        dest,
-                        sha1: None,
-                        size: None,
-                    });
-                }
-            }
-        }
-    }
+    let library_tasks = library_plan.downloads;
+    let classpath_entries = library_plan.classpath_entries;
+    let native_jars = library_plan.native_jars;
 
     let missing_libs: Vec<DownloadTask> = filter_uncached_tasks(library_tasks).await;
 
@@ -458,7 +280,7 @@ pub async fn prepare_launch_environment(
 
 fn prepare_asset_task(
     assets_dir: &Path,
-    object: crate::minecraft::version::AssetObject,
+    object: crate::version::AssetObject,
 ) -> Result<DownloadTask, DownloadError> {
     if object.hash.len() != 40 {
         return Err(DownloadError::InvalidAssetHash);
@@ -520,46 +342,6 @@ async fn filter_uncached_tasks(tasks: Vec<DownloadTask>) -> Vec<DownloadTask> {
         }
     }
     missing
-}
-
-fn current_os_key() -> &'static str {
-    #[cfg(target_os = "windows")]
-    {
-        "windows"
-    }
-    #[cfg(target_os = "macos")]
-    {
-        "osx"
-    }
-    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
-    {
-        "linux"
-    }
-}
-
-fn get_native_classifier_template<'a>(
-    natives_map: &'a HashMap<String, String>,
-    os_key: &str,
-) -> Option<&'a String> {
-    natives_map.get(os_key).or_else(|| {
-        if os_key == "osx" {
-            natives_map.get("macos")
-        } else {
-            None
-        }
-    })
-}
-
-fn parse_maven_artifact_key(coord: &str) -> Option<String> {
-    let (name, _) = coord.split_once('@').unwrap_or((coord, ""));
-    let parts: Vec<&str> = name.split(':').collect();
-    if parts.len() < 2 {
-        return None;
-    }
-    let group = parts[0];
-    let artifact = parts[1];
-    let classifier = parts.get(3).copied().unwrap_or("");
-    Some(format!("{}:{}:{}", group, artifact, classifier))
 }
 
 #[cfg(test)]

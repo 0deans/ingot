@@ -1,5 +1,5 @@
 use super::*;
-use crate::minecraft::launcher::models::LaunchError;
+use crate::launcher::models::LaunchError;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Clone, Copy)]
@@ -35,14 +35,14 @@ impl PreparationEffects for FakePreparation {
         _: &'a reqwest::Client,
         major_version: u32,
         _: Option<&'a str>,
-        _: Option<crate::artifacts::java::JavaProgressFn>,
+        _: Option<ingot_artifacts::java::JavaProgressFn>,
     ) -> PreparationFuture<'a, PathBuf> {
         Box::pin(async move {
             self.java_calls.fetch_add(1, Ordering::SeqCst);
             assert_eq!(major_version, 21);
             if matches!(self.failure, Failure::Java) {
                 return Err(LaunchError::JavaRuntime(
-                    crate::artifacts::java::JavaError::MissingBinary,
+                    ingot_artifacts::java::JavaError::MissingBinary,
                 ));
             }
             Ok(PathBuf::from("fixture-java"))
@@ -58,9 +58,7 @@ impl PreparationEffects for FakePreparation {
                 struct MockAccountNotFound;
 
                 return Err(LaunchError::Account(
-                    crate::minecraft::launcher::models::LaunchAccountError::new(
-                        MockAccountNotFound,
-                    ),
+                    crate::launcher::models::LaunchAccountError::new(MockAccountNotFound),
                 ));
             }
             Ok(ResolvedAuth {
@@ -122,7 +120,7 @@ fn fixture() -> (tempfile::TempDir, InstanceConfig) {
     let directory = tempfile::tempdir().unwrap();
     let package = serde_json::json!({ "id": "fixture", "libraries": [], "mainClass": "fixture.Main", "javaVersion": { "component": "fixture", "majorVersion": 21 } });
     write_version_package(directory.path(), "fixture", &package);
-    let instance = crate::minecraft::instance::prepare_instance(
+    let instance = crate::instance::prepare_instance(
         "fixture".into(),
         "fixture".into(),
         ModLoaderType::Vanilla,
@@ -189,7 +187,7 @@ async fn authentication_failure_is_not_converted_to_offline_credentials() {
 fn asset_task_rejects_invalid_hashes_before_constructing_paths_or_requests() {
     let directory = tempfile::tempdir().unwrap();
     for hash in ["", "a", "../unsafe", &"z".repeat(40), &"é".repeat(20)] {
-        let object = crate::minecraft::version::AssetObject {
+        let object = crate::version::AssetObject {
             hash: hash.into(),
             size: 1,
         };
@@ -205,7 +203,7 @@ fn asset_task_rejects_invalid_hashes_before_constructing_paths_or_requests() {
 fn asset_task_preserves_valid_hash_url_path_and_integrity_metadata() {
     let directory = tempfile::tempdir().unwrap();
     let hash = "ab01234567890123456789012345678901234567";
-    let object = crate::minecraft::version::AssetObject {
+    let object = crate::version::AssetObject {
         hash: hash.into(),
         size: 12,
     };
@@ -346,7 +344,7 @@ async fn preparation_missing_loader_version_unresolvable_fails_with_loader_versi
         .build()
         .unwrap();
 
-    let instance = crate::minecraft::instance::prepare_instance(
+    let instance = crate::instance::prepare_instance(
         "forge-fixture".into(),
         "fixture".into(),
         ModLoaderType::Forge,
@@ -417,7 +415,7 @@ async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
         b"0123456789",
     );
 
-    let forge_instance = crate::minecraft::instance::prepare_instance(
+    let forge_instance = crate::instance::prepare_instance(
         "forge-fixture".into(),
         "fixture".into(),
         ModLoaderType::Forge,
@@ -443,7 +441,7 @@ async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
 #[tokio::test]
 async fn preparation_collects_natives_into_native_jars_and_not_classpath() {
     let (directory, instance) = fixture();
-    let os_key = current_os_key();
+    let os_key = crate::launcher::rules::current_os_name();
     let package = serde_json::json!({
         "id": "fixture",
         "libraries": [
@@ -603,7 +601,7 @@ async fn preparation_downloads_maven_files_without_adding_to_classpath_or_shadow
         write_library_jar(directory.path(), rel_path, b"0123456789");
     }
 
-    let forge_instance = crate::minecraft::instance::prepare_instance(
+    let forge_instance = crate::instance::prepare_instance(
         "forge-fixture".into(),
         "fixture".into(),
         ModLoaderType::Forge,

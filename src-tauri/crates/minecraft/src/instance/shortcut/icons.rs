@@ -6,7 +6,7 @@ use image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
-use crate::minecraft::instance::models::{InstanceConfig, ModLoaderType};
+use crate::instance::models::{InstanceConfig, ModLoaderType};
 
 /// Retrieves the bundled multi-resolution ICO icon for a mod loader if available.
 pub fn get_default_loader_icon_ico(loader: &ModLoaderType) -> Option<&'static [u8]> {

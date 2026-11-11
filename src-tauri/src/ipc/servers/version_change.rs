@@ -2,9 +2,9 @@
 use super::{get_http_client, server_with_config};
 use crate::ipc::versions::is_downgrade;
 use crate::ipc::ApiError;
-use crate::server::{ServerConfig, ServerCoreType};
-use crate::version_change::targets::{self as change_targets, loader_id};
-use crate::version_change::{self, PlanRequest, TargetKind, VersionBackup, VersionPlan};
+use ingot_server::{ServerConfig, ServerCoreType};
+use ingot_version_change::targets::{self as change_targets, loader_id};
+use ingot_version_change::{PlanRequest, TargetKind, VersionBackup, VersionPlan};
 use tauri::Runtime;
 
 #[taurpc::procedures(path = "servers.version_change")]
@@ -52,7 +52,7 @@ pub trait ServerVersionChangeApi {
     async fn get_server_version_transaction_status(
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
-    ) -> Result<version_change::VersionTransactionStatus, ApiError>;
+    ) -> Result<ingot_version_change::VersionTransactionStatus, ApiError>;
 }
 
 #[derive(Clone)]
@@ -87,7 +87,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
             to_loader_version: None,
             downgrade,
         };
-        version_change::check_typed(get_http_client(&app_handle), &target, request)
+        ingot_version_change::check_typed(get_http_client(&app_handle), &target, request)
             .await
             .map_err(ApiError::from)
     }
@@ -100,7 +100,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
     ) -> Result<ServerConfig, ApiError> {
         let (directory, _) = server_with_config(&app_handle, &plan.target_id)?;
         let state = crate::app::state(&app_handle);
-        version_change::service::apply_server(
+        ingot_version_change::service::apply_server(
             &state.server_configs,
             &state.servers,
             &state.http,
@@ -118,7 +118,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
         server_id: String,
     ) -> Result<Option<VersionBackup>, ApiError> {
         let (dir, _) = server_with_config(&app_handle, &server_id)?;
-        version_change::last_backup(&dir).map_err(ApiError::from)
+        ingot_version_change::last_backup(&dir).map_err(ApiError::from)
     }
 
     async fn undo_server_version_change(
@@ -128,12 +128,12 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
     ) -> Result<ServerConfig, ApiError> {
         let (directory, _) = server_with_config(&app_handle, &server_id)?;
         let state = crate::app::state(&app_handle);
-        version_change::service::restore_server(
+        ingot_version_change::service::restore_server(
             &state.server_configs,
             &state.servers,
             &directory,
             &server_id,
-            version_change::service::Restoration::Undo,
+            ingot_version_change::service::Restoration::Undo,
         )
         .await
         .map_err(ApiError::from)
@@ -151,7 +151,7 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
             .await
             .map_err(|_| ApiError::conflict("Server is busy"))?;
         let (directory, _) = server_with_config(&app_handle, &server_id)?;
-        version_change::discard_backup_typed(&directory).map_err(ApiError::from)
+        ingot_version_change::discard_backup_typed(&directory).map_err(ApiError::from)
     }
 
     async fn recover_server_version_change(
@@ -161,12 +161,12 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
     ) -> Result<ServerConfig, ApiError> {
         let (directory, _) = server_with_config(&app_handle, &server_id)?;
         let state = crate::app::state(&app_handle);
-        version_change::service::restore_server(
+        ingot_version_change::service::restore_server(
             &state.server_configs,
             &state.servers,
             &directory,
             &server_id,
-            version_change::service::Restoration::Recover,
+            ingot_version_change::service::Restoration::Recover,
         )
         .await
         .map_err(ApiError::from)
@@ -176,8 +176,8 @@ impl ServerVersionChangeApi for ServerVersionChangeApiImpl {
         self,
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
-    ) -> Result<version_change::VersionTransactionStatus, ApiError> {
+    ) -> Result<ingot_version_change::VersionTransactionStatus, ApiError> {
         let (dir, _) = server_with_config(&app_handle, &server_id)?;
-        Ok(version_change::transaction_status(&dir))
+        Ok(ingot_version_change::transaction_status(&dir))
     }
 }

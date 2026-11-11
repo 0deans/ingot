@@ -1,4 +1,4 @@
-use crate::server::config::ServerConfig;
+use crate::config::ServerConfig;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -65,7 +65,7 @@ pub enum BedrockServerError {
     Task(#[from] tokio::task::JoinError),
 
     #[error("Bedrock archive extraction failed: {0}")]
-    Archive(#[from] crate::core::ArchiveError),
+    Archive(#[from] ingot_core::ArchiveError),
 
     #[error("Invalid Bedrock executable path: {0}")]
     InvalidBinaryPath(PathBuf),
@@ -243,7 +243,7 @@ pub async fn ensure_bedrock_server_binary(
         let name = relative
             .to_str()
             .ok_or_else(|| BedrockServerError::InvalidArchivePath(relative.clone()))?;
-        let output = crate::core::safe_enclosed_path(server_dir, name)
+        let output = ingot_core::safe_enclosed_path(server_dir, name)
             .ok_or_else(|| BedrockServerError::UnsafeDestination(server_dir.join(&relative)))?;
         let filename = output
             .file_name()
@@ -289,7 +289,7 @@ fn prepare_archive(
 ) -> Result<PreparedArchive, BedrockServerError> {
     let staging = tempfile::tempdir_in(parent)?;
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes))?;
-    crate::core::extract_zip_entries(&mut archive, staging.path(), "", None)?;
+    ingot_core::extract_zip_entries(&mut archive, staging.path(), "", None)?;
     let binary_path = staging.path().join(binary_name);
     if !binary_path.is_file() {
         return Err(BedrockServerError::BinaryNotFound(binary_path));

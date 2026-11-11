@@ -5,7 +5,7 @@ use super::models::QuickPlayOptions;
 use super::process::ProcessManager;
 use super::progress::ProgressThrottler;
 use super::quick_play::{apply_quick_play_arguments, cleanup_quick_play_junction};
-use crate::minecraft::version::{ArgumentValue, VersionArguments};
+use crate::version::{ArgumentValue, VersionArguments};
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
@@ -75,7 +75,7 @@ async fn test_process_manager_starting_reservation_and_commit() {
     let second = pm.reserve_starting("inst-1").await;
     assert!(matches!(
         second,
-        Err(crate::minecraft::launcher::LaunchError::AlreadyRunning)
+        Err(crate::launcher::LaunchError::AlreadyRunning)
     ));
 
     // Commit transitions to Running
@@ -420,7 +420,7 @@ async fn test_cancellation_between_validation_and_commit_terminates_and_reaps_ch
     // 5. Assert that the actual spawned child has exited and been reaped by production cleanup
     let mut exited = false;
     for _ in 0..50 {
-        if crate::core::process_start(spawned_pid).is_none() {
+        if ingot_core::process_start(spawned_pid).is_none() {
             exited = true;
             break;
         }
@@ -500,15 +500,15 @@ async fn test_prepare_game_command_injects_forgewrapper_arguments() {
     fs::create_dir_all(client_jar.parent().unwrap()).unwrap();
     fs::write(&client_jar, b"fake client").unwrap();
 
-    let instance = crate::minecraft::instance::prepare_instance(
+    let instance = crate::instance::prepare_instance(
         "forge-1.16.5".into(),
         "1.16.5".into(),
-        crate::minecraft::instance::ModLoaderType::Forge,
+        crate::instance::ModLoaderType::Forge,
         Some("36.2.39".into()),
     )
     .unwrap();
 
-    let version_pkg = crate::minecraft::version::VersionPackage {
+    let version_pkg = crate::version::VersionPackage {
         id: "1.16.5".into(),
         main_class: "net.minecraft.client.main.Main".into(),
         minecraft_arguments: None,
@@ -519,14 +519,14 @@ async fn test_prepare_game_command_injects_forgewrapper_arguments() {
         java_version: None,
     };
 
-    let loader_profile = crate::minecraft::loader::LoaderProfile {
+    let loader_profile = crate::loader::LoaderProfile {
         id: "forge-1.16.5-36.2.39".into(),
         main_class: "io.github.zekerzhayard.forgewrapper.installer.Main".into(),
         libraries: Vec::new(),
-        maven_files: vec![crate::minecraft::version::LibraryEntry {
+        maven_files: vec![crate::version::LibraryEntry {
             name: "net.minecraftforge:forge:1.16.5-36.2.39:installer".into(),
-            downloads: Some(crate::minecraft::version::LibraryDownloads {
-                artifact: Some(crate::minecraft::version::DownloadArtifact {
+            downloads: Some(crate::version::LibraryDownloads {
+                artifact: Some(crate::version::DownloadArtifact {
                     path: Some(
                         "net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar"
                             .into(),
@@ -563,7 +563,7 @@ async fn test_prepare_game_command_injects_forgewrapper_arguments() {
         },
     };
 
-    let settings = crate::settings::LauncherSettings::default();
+    let settings = ingot_settings::LauncherSettings::default();
     let client = reqwest::Client::new();
     let context = super::service::CommandContext {
         instance: &instance,
