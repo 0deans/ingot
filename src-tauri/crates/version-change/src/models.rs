@@ -143,17 +143,9 @@ pub fn safe_file_name_typed(name: &str, kind: ContentKind) -> Result<&str, Versi
         .map_err(VersionChangeError::InvalidFileName)
 }
 
-pub fn safe_file_name(name: &str, kind: ContentKind) -> Result<&str, VersionChangeError> {
-    safe_file_name_typed(name, kind)
-}
-
 /// A path inside the target given by the frontend or the journal: relative, no ".."
 pub fn safe_rel_typed(rel: &str) -> Result<&str, VersionChangeError> {
     crate::artifacts::models::safe_rel_typed(rel).map_err(VersionChangeError::InvalidPath)
-}
-
-pub fn safe_rel(rel: &str) -> Result<&str, VersionChangeError> {
-    safe_rel_typed(rel)
 }
 
 pub fn now_secs() -> u64 {

@@ -42,7 +42,7 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         server_id: String,
     ) -> Result<Vec<PlayerDetails>, ApiError> {
-        server::live::online_players(get_server_process_manager(&app_handle), &server_id)
+        server::live_query::online_players(get_server_process_manager(&app_handle), &server_id)
             .await
             .map_err(ApiError::from)
     }
@@ -66,7 +66,7 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         let (dir, config) = server_with_config(&app_handle, &server_id)?;
         if config.core == ServerCoreType::Bedrock {
             if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-                if let Ok(details) = server::live::query_player(
+                if let Ok(details) = server::live_query::query_player(
                     get_server_process_manager(&app_handle),
                     &server_id,
                     &name,
@@ -80,7 +80,7 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         }
 
         if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
-            if let Ok(details) = server::live::query_player(
+            if let Ok(details) = server::live_query::query_player(
                 get_server_process_manager(&app_handle),
                 &server_id,
                 &name,
@@ -117,7 +117,8 @@ impl ServerPlayersApi for ServerPlayersApiImpl {
         };
         if is_server_running(get_server_process_manager(&app_handle), &server_id).await {
             if let Ok(online) =
-                server::live::list_online(get_server_process_manager(&app_handle), &server_id).await
+                server::live_query::list_online(get_server_process_manager(&app_handle), &server_id)
+                    .await
             {
                 for (name, uuid) in online {
                     match known

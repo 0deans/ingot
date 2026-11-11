@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use super::error::InstanceContentError;
@@ -36,18 +35,7 @@ pub fn write_tracking(
     let json = serde_json::to_vec_pretty(tracking)
         .map_err(|e| InstanceContentError::Serialization(e.to_string()))?;
 
-    let mut staged = tempfile::NamedTempFile::new_in(&parent)
-        .map_err(|e| InstanceContentError::io(&parent, e))?;
-    staged
-        .write_all(&json)
-        .map_err(|e| InstanceContentError::io(staged.path(), e))?;
-    staged
-        .as_file()
-        .sync_all()
-        .map_err(|e| InstanceContentError::io(staged.path(), e))?;
-    staged
-        .persist(&path)
-        .map_err(|e| InstanceContentError::io(&path, e.error))?;
+    crate::core::write_file_atomic(&path, &json).map_err(|e| InstanceContentError::io(&path, e))?;
 
     Ok(())
 }

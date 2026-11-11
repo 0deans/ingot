@@ -1,3 +1,5 @@
+pub(crate) use ingot_core as core;
+
 pub mod bootstrap;
 pub mod error;
 mod package;

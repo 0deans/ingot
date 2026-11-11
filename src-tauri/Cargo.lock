@@ -2130,35 +2130,23 @@ name = "ingot"
 version = "0.5.17"
 dependencies = [
  "base64 0.23.1",
- "bedrock-world",
  "dotenvy",
- "fastnbt",
- "flate2",
- "if-addrs",
- "image",
- "indexmap 2.14.2",
  "ingot-accounts",
  "ingot-artifacts",
  "ingot-content",
  "ingot-core",
  "ingot-minecraft",
+ "ingot-sandbox",
  "ingot-server",
  "ingot-server-map",
  "ingot-settings",
+ "ingot-tunnel",
  "ingot-version-change",
- "keyring",
- "libc",
- "md-5 0.11.0",
- "mslnk",
- "png 0.18.1",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
- "sha1",
- "sha2 0.11.0",
  "specta",
  "sysinfo",
- "tar",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
@@ -2170,7 +2158,6 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.20",
  "tokio",
- "toml_edit 0.25.15+spec-1.1.0",
  "uuid",
  "zip 8.6.0",
 ]
@@ -2180,6 +2167,8 @@ name = "ingot-accounts"
 version = "0.5.17"
 dependencies = [
  "base64 0.23.1",
+ "ingot-core",
+ "ingot-test-support",
  "keyring",
  "reqwest 0.12.28",
  "serde",
@@ -2197,6 +2186,7 @@ version = "0.5.17"
 dependencies = [
  "flate2",
  "ingot-core",
+ "ingot-test-support",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -2216,12 +2206,10 @@ dependencies = [
 name = "ingot-content"
 version = "0.5.17"
 dependencies = [
- "base64 0.23.1",
- "flate2",
  "ingot-artifacts",
  "ingot-core",
  "ingot-minecraft",
- "ingot-settings",
+ "ingot-test-support",
  "md-5 0.11.0",
  "reqwest 0.12.28",
  "serde",
@@ -2229,11 +2217,9 @@ dependencies = [
  "sha1",
  "sha2 0.11.0",
  "specta",
- "tar",
  "tempfile",
  "thiserror 2.0.20",
  "tokio",
- "toml_edit 0.25.15+spec-1.1.0",
  "uuid",
  "zip 8.6.0",
 ]
@@ -2260,17 +2246,16 @@ dependencies = [
  "fastnbt",
  "flate2",
  "image",
- "ingot-accounts",
  "ingot-artifacts",
  "ingot-core",
  "ingot-settings",
+ "ingot-test-support",
  "md-5 0.11.0",
  "mslnk",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
  "sha1",
- "sha2 0.11.0",
  "specta",
  "tar",
  "tempfile",
@@ -2282,15 +2267,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "ingot-sandbox"
+version = "0.5.17"
+dependencies = [
+ "flate2",
+ "ingot-core",
+ "ingot-test-support",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+]
+
+[[package]]
 name = "ingot-server"
 version = "0.5.17"
 dependencies = [
  "base64 0.23.1",
- "flate2",
  "if-addrs",
  "indexmap 2.14.2",
  "ingot-artifacts",
  "ingot-core",
+ "ingot-sandbox",
+ "ingot-server-map",
+ "ingot-test-support",
  "libc",
  "md-5 0.11.0",
  "reqwest 0.12.28",
@@ -2298,7 +2301,6 @@ dependencies = [
  "serde_json",
  "specta",
  "sysinfo",
- "tar",
  "tempfile",
  "thiserror 2.0.20",
  "tokio",
@@ -2315,15 +2317,12 @@ dependencies = [
  "bedrock-world",
  "fastnbt",
  "flate2",
- "ingot-core",
- "ingot-server",
  "png 0.18.1",
  "serde",
  "serde_json",
  "specta",
  "tempfile",
  "thiserror 2.0.20",
- "tokio",
 ]
 
 [[package]]
@@ -2338,6 +2337,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "ingot-test-support"
+version = "0.5.17"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
+name = "ingot-tunnel"
+version = "0.5.17"
+dependencies = [
+ "ingot-core",
+ "ingot-sandbox",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "specta",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "ingot-version-change"
 version = "0.5.17"
 dependencies = [
@@ -2345,6 +2367,7 @@ dependencies = [
  "ingot-core",
  "ingot-minecraft",
  "ingot-server",
+ "ingot-test-support",
  "reqwest 0.12.28",
  "serde",
  "serde_json",

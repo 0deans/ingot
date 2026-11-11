@@ -8,20 +8,6 @@ use std::{
 
 const NOT_COPIED: &[&str] = &["logs", "crash-reports", "screenshots", ".ingot"];
 
-fn linked_entry(metadata: &fs::Metadata) -> bool {
-    if metadata.file_type().is_symlink() {
-        return true;
-    }
-    #[cfg(windows)]
-    {
-        use std::os::windows::fs::MetadataExt;
-        if metadata.file_attributes() & 0x400 != 0 {
-            return true;
-        }
-    }
-    false
-}
-
 pub(super) fn copy_instance_tree(
     from: &Path,
     to: &Path,
@@ -35,7 +21,9 @@ pub(super) fn copy_instance_tree(
         let name = name.to_str().ok_or(InstanceError::InvalidId)?;
         let metadata = fs::symlink_metadata(entry.path())?;
         // Quick Play links intentionally point back into the original instance.
-        if linked_entry(&metadata) || name == "session.lock" || (top && NOT_COPIED.contains(&name))
+        if crate::core::is_link_or_reparse_point(&metadata)
+            || name == "session.lock"
+            || (top && NOT_COPIED.contains(&name))
         {
             continue;
         }

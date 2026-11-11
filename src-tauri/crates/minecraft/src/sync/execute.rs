@@ -163,18 +163,7 @@ pub(super) fn copy_file_atomic(source: &Path, destination: &Path) -> std::io::Re
             ));
         }
     }
-    let parent = destination.parent().ok_or_else(|| {
-        std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            "Sync destination has no parent",
-        )
-    })?;
-    let mut staged = tempfile::NamedTempFile::new_in(parent)?;
-    let mut input = fs::File::open(source)?;
-    std::io::copy(&mut input, &mut staged)?;
-    staged.as_file().sync_all()?;
-    staged.persist(destination).map_err(|error| error.error)?;
-    Ok(())
+    crate::core::copy_file_atomic(source, destination)
 }
 
 pub fn inspect_shared_status(shared: &Path) -> std::io::Result<SharedSyncStatus> {

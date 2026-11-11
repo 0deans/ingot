@@ -12,8 +12,7 @@ use crate::app::lifecycle::adopt_running_games;
 use crate::ipc::ApiError;
 use crate::minecraft::instance::{self, InstanceConfig, ModLoaderType};
 use crate::minecraft::launcher::{self, ProcessManager, RunningInstanceSummary};
-use crate::minecraft::version;
-use tauri::{Manager, Runtime};
+use tauri::Runtime;
 
 pub(super) fn get_process_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &ProcessManager {
     &crate::app::state(app).games
@@ -32,32 +31,6 @@ pub(super) fn find_instance<R: Runtime>(
         .into_iter()
         .find(|i| i.id == instance_id)
         .ok_or_else(|| ApiError::not_found(format!("Instance not found: {instance_id}")))
-}
-
-pub(super) async fn is_downgrade<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    from: &str,
-    to: &str,
-) -> Result<bool, ApiError> {
-    let cache_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| ApiError::storage_failure(e.to_string()))?
-        .join("cache");
-    let manifest = version::fetch_version_manifest(get_http_client(app), &cache_dir)
-        .await
-        .map_err(ApiError::from)?;
-    let released = |id: &str| {
-        manifest
-            .versions
-            .iter()
-            .find(|v| v.id == id)
-            .map(|v| v.release_time.clone())
-    };
-    Ok(matches!(
-        (released(from), released(to)),
-        (Some(from), Some(to)) if to < from
-    ))
 }
 
 #[taurpc::procedures(path = "instances")]

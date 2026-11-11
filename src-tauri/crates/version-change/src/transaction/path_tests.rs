@@ -1,5 +1,5 @@
 use super::{paths::rooted_path, swap::swap};
-use crate::version_change::{journal::Journal, models::*};
+use crate::{journal::Journal, models::*};
 use std::{collections::HashMap, fs, path::Path};
 
 fn directory_link(source: &Path, destination: &Path) -> bool {

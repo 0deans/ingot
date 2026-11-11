@@ -14,9 +14,12 @@ ingot-artifacts = { path = "crates/artifacts" }
 ingot-content = { path = "crates/content" }
 ingot-core = { path = "crates/core" }
 ingot-minecraft = { path = "crates/minecraft" }
+ingot-sandbox = { path = "crates/sandbox" }
 ingot-server = { path = "crates/server" }
 ingot-server-map = { path = "crates/server-map" }
 ingot-settings = { path = "crates/settings" }
+ingot-test-support = { path = "crates/test-support" }
+ingot-tunnel = { path = "crates/tunnel" }
 ingot-version-change = { path = "crates/version-change" }
 tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
 tauri-build = { version = "2", features = [] }
@@ -28,11 +31,11 @@ serde_json = "1"
 thiserror = "2"
 tempfile = "3"
 keyring = "4.2.0"
-reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "cookies", "rustls-tls", "http2", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "http2", "stream"] }
 uuid = { version = "1", features = ["v4", "v3"] }
 taurpc = "0.8.2"
 specta = { version = "=2.0.0-rc.25", features = ["derive"] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "process", "rt", "rt-multi-thread", "sync", "time"] }
 sysinfo = { version = "0.39", default-features = false, features = ["system", "disk"] }
 base64 = "0.23.1"
 tauri-plugin-dialog = "2"
@@ -78,9 +81,11 @@ ingot-artifacts = { workspace = true }
 ingot-content = { workspace = true }
 ingot-core = { workspace = true }
 ingot-minecraft = { workspace = true }
+ingot-sandbox = { workspace = true }
 ingot-server = { workspace = true }
 ingot-server-map = { workspace = true }
 ingot-settings = { workspace = true }
+ingot-tunnel = { workspace = true }
 ingot-version-change = { workspace = true }
 tauri = { workspace = true }
 tauri-plugin-opener = { workspace = true }
@@ -89,7 +94,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tempfile = { workspace = true }
-keyring = { workspace = true }
 reqwest = { workspace = true }
 uuid = { workspace = true }
 taurpc = { workspace = true }
@@ -98,29 +102,11 @@ tokio = { workspace = true }
 sysinfo = { workspace = true }
 base64 = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
-sha1 = { workspace = true }
-toml_edit = { workspace = true }
-zip = { workspace = true }
-flate2 = { workspace = true }
-indexmap = { workspace = true }
-tar = { workspace = true }
-fastnbt = { workspace = true }
-png = { workspace = true }
-image = { workspace = true }
-md5 = { workspace = true }
-if-addrs = { workspace = true }
-sha2 = { workspace = true }
-bedrock-world = { workspace = true }
-
-[target.'cfg(target_os = "android")'.dependencies]
-libc = { workspace = true }
 
 [dev-dependencies]
 tauri = { workspace = true, features = ["test"] }
 tokio = { workspace = true, features = ["test-util"] }
-
-[target.'cfg(windows)'.dependencies]
-mslnk = { workspace = true }
+zip = { workspace = true }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { workspace = true }

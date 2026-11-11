@@ -112,10 +112,6 @@ pub fn write_journal_typed(root: &Path, journal: &Journal) -> Result<(), Version
     Ok(())
 }
 
-pub fn write_journal(root: &Path, journal: &Journal) -> Result<(), VersionChangeError> {
-    write_journal_typed(root, journal)
-}
-
 /// The last version change, if it can be undone
 pub fn last_backup(root: &Path) -> Result<Option<VersionBackup>, VersionChangeError> {
     let journal = match read_journal_state(root) {
@@ -162,10 +158,6 @@ pub fn discard_backup_typed(root: &Path) -> Result<(), VersionChangeError> {
             .map_err(|source| super::error::file_io("delete backup", &backup, source))?;
     }
     Ok(())
-}
-
-pub fn discard_backup(root: &Path) -> Result<(), VersionChangeError> {
-    discard_backup_typed(root)
 }
 
 /// Reports the current transaction and recovery status for a target root.

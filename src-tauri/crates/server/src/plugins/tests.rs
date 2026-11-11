@@ -7,64 +7,58 @@ use crate::server::config::ServerCoreType;
 
 struct ProviderFixture {
     provider: super::providers::PluginProvider,
-    task: tokio::task::JoinHandle<()>,
-}
-
-impl Drop for ProviderFixture {
-    fn drop(&mut self) {
-        self.task.abort();
-    }
+    _server: ingot_test_support::LoopbackServer,
 }
 
 async fn provider_fixture(dependency_fails: bool, malformed: bool) -> ProviderFixture {
-    use tokio::io::{AsyncReadExt, AsyncWriteExt};
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let endpoint = format!("http://{}", listener.local_addr().unwrap());
+    let endpoint_slot = std::sync::Arc::new(std::sync::OnceLock::<String>::new());
+    let endpoint_for_handler = std::sync::Arc::clone(&endpoint_slot);
+    let server = ingot_test_support::LoopbackServer::with_handler(move |request| {
+        let endpoint = endpoint_for_handler
+            .get()
+            .expect("plugin fixture endpoint initialized");
+        let path = request.path.split('?').next().unwrap_or("");
+        let (status, body) = if path == "/project/dependency" && dependency_fails {
+            (500, "failed".into())
+        } else if path.ends_with("/version") {
+            if malformed {
+                (200, r#"{"unexpected":[]}"#.into())
+            } else {
+                let id = path.split('/').nth(2).unwrap();
+                let dependencies = if id == "root" {
+                    serde_json::json!([{"dependency_type":"required","project_id":"dependency"}])
+                } else {
+                    serde_json::json!([])
+                };
+                (
+                    200,
+                    serde_json::json!([{"id":format!("{id}-v2"),"version_number":"2","version_type":"release","files":[{"filename":format!("{id}.jar"),"url":format!("{endpoint}/download/{id}"),"size":3}],"dependencies":dependencies}]).to_string(),
+                )
+            }
+        } else if path.starts_with("/download/") {
+            (200, "new".into())
+        } else {
+            (
+                200,
+                serde_json::json!({"title":path.split('/').next_back().unwrap()}).to_string(),
+            )
+        };
+        ingot_test_support::ResponseSpec::bytes(status, body.into_bytes())
+    })
+    .await;
+    let endpoint = server.base_url().to_string();
+    endpoint_slot
+        .set(endpoint.clone())
+        .expect("plugin fixture endpoint initialized once");
     let provider = super::providers::PluginProvider::with_endpoints(
         reqwest::Client::new(),
         &endpoint,
         &endpoint,
     );
-    let task = tokio::spawn(async move {
-        loop {
-            let (mut socket, _) = listener.accept().await.unwrap();
-            let mut buffer = [0; 8192];
-            let count = socket.read(&mut buffer).await.unwrap();
-            let request = String::from_utf8_lossy(&buffer[..count]);
-            let path = request
-                .split_whitespace()
-                .nth(1)
-                .unwrap()
-                .split('?')
-                .next()
-                .unwrap();
-            let (status, body) = if path == "/project/dependency" && dependency_fails {
-                (500, "failed".into())
-            } else if path.ends_with("/version") {
-                if malformed {
-                    (200, r#"{"unexpected":[]}"#.into())
-                } else {
-                    let id = path.split('/').nth(2).unwrap();
-                    let dependencies = if id == "root" {
-                        serde_json::json!([{"dependency_type":"required","project_id":"dependency"}])
-                    } else {
-                        serde_json::json!([])
-                    };
-                    (200,serde_json::json!([{"id":format!("{id}-v2"),"version_number":"2","version_type":"release","files":[{"filename":format!("{id}.jar"),"url":format!("{endpoint}/download/{id}"),"size":3}],"dependencies":dependencies}]).to_string())
-                }
-            } else if path.starts_with("/download/") {
-                (200, "new".into())
-            } else {
-                (
-                    200,
-                    serde_json::json!({"title":path.split('/').next_back().unwrap()}).to_string(),
-                )
-            };
-            let response=format!("HTTP/1.1 {status} Response\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",body.len());
-            socket.write_all(response.as_bytes()).await.unwrap();
-        }
-    });
-    ProviderFixture { provider, task }
+    ProviderFixture {
+        provider,
+        _server: server,
+    }
 }
 
 #[tokio::test]

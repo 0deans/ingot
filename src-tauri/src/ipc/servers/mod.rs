@@ -363,24 +363,7 @@ impl ServersApi for ServersApiImpl {
         server_id: String,
     ) -> Result<(), ApiError> {
         let dir = server::get_server_dir(&app_handle, &server_id)?;
-        let _path_str = dir.to_string_lossy().to_string();
-        #[cfg(target_os = "windows")]
-        {
-            let _ = std::process::Command::new("explorer")
-                .arg(&_path_str)
-                .spawn();
-        }
-        #[cfg(target_os = "macos")]
-        {
-            let _ = std::process::Command::new("open").arg(&_path_str).spawn();
-        }
-        #[cfg(target_os = "linux")]
-        {
-            let _ = std::process::Command::new("xdg-open")
-                .arg(&_path_str)
-                .spawn();
-        }
-        Ok(())
+        crate::app::platform::open_directory(&dir).map_err(ApiError::from)
     }
 
     async fn get_server_icon(

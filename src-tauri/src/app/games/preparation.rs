@@ -40,8 +40,11 @@ impl<R: Runtime> PreparationEffects for NativePreparation<'_, R> {
 }
 
 async fn resolve_auth<R: Runtime>(app: &AppHandle<R>) -> Result<ResolvedAuth, LaunchError> {
-    let accounts =
-        account::load_accounts_file(app).map_err(|source| LaunchError::Account(source.into()))?;
+    let accounts = account::load_accounts_file(app).map_err(|source| {
+        LaunchError::Account(crate::minecraft::launcher::models::LaunchAccountError::new(
+            source,
+        ))
+    })?;
     let active_account = accounts.into_iter().find(|a| a.is_active);
 
     let auth = match active_account {
@@ -51,7 +54,11 @@ async fn resolve_auth<R: Runtime>(app: &AppHandle<R>) -> Result<ResolvedAuth, La
             let token = if is_microsoft || is_ely {
                 account::get_account_token(app, &acc.id)
                     .await
-                    .map_err(|source| LaunchError::Account(source.into()))?
+                    .map_err(|source| {
+                        LaunchError::Account(
+                            crate::minecraft::launcher::models::LaunchAccountError::new(source),
+                        )
+                    })?
             } else {
                 "0".to_string()
             };

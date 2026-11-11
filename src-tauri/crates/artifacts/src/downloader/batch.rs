@@ -210,26 +210,15 @@ mod tests {
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
 
-    async fn response_server(body: &'static [u8]) -> (String, tokio::task::JoinHandle<()>) {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let url = format!("http://{}/file", listener.local_addr().unwrap());
-        let handle = tokio::spawn(async move {
-            let (mut socket, _) = listener.accept().await.unwrap();
-            let mut request = [0; 2048];
-            assert!(socket.read(&mut request).await.unwrap() > 0);
-            socket
-                .write_all(
-                    format!(
-                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-                        body.len()
-                    )
-                    .as_bytes(),
-                )
-                .await
-                .unwrap();
-            socket.write_all(body).await.unwrap();
-        });
-        (url, handle)
+    async fn response_server(body: &'static [u8]) -> (String, ingot_test_support::LoopbackServer) {
+        let server = ingot_test_support::LoopbackServer::exact_script(vec![
+            ingot_test_support::ScriptedExchange::expect_path(
+                "/file",
+                ingot_test_support::ResponseSpec::bytes(200, body.to_vec()),
+            ),
+        ])
+        .await;
+        (server.url("/file"), server)
     }
 
     #[tokio::test]
@@ -260,7 +249,7 @@ mod tests {
             .await
             .unwrap()
             .unwrap();
-        server.await.unwrap();
+        server.finish().await;
         assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 2);
         worker.abort();
         match worker.await {
@@ -308,7 +297,7 @@ mod tests {
         };
         let result = run_batch(&reqwest::Client::new(), vec![task], 2, None).await;
         assert!(matches!(result, Err(DownloadError::Integrity("size"))));
-        server.await.unwrap();
+        server.finish().await;
         assert_eq!(std::fs::read(&dest).unwrap(), b"previous");
         assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 1);
     }
@@ -328,7 +317,7 @@ mod tests {
         run_batch(&reqwest::Client::new(), vec![task], 1, None)
             .await
             .unwrap();
-        server.await.unwrap();
+        server.finish().await;
         assert_eq!(std::fs::read(&dest).unwrap(), b"new");
         assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 1);
     }

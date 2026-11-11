@@ -1,7 +1,4 @@
 pub(crate) use self as minecraft;
-pub(crate) use ingot_accounts as account;
-#[allow(unused_imports)]
-pub(crate) use ingot_accounts as accounts;
 pub(crate) use ingot_artifacts as artifacts;
 pub(crate) use ingot_core as core;
 pub(crate) use ingot_settings as settings;

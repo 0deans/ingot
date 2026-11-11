@@ -44,11 +44,11 @@ use std::sync::Arc;
 
 /// Default implementation building the native command (Pumpkin, Bedrock, or Java).
 pub struct DefaultServerCommandBuilder {
-    sandbox: crate::server::sandbox::SandboxSetup,
+    sandbox: crate::sandbox::SandboxSetup,
 }
 
 impl DefaultServerCommandBuilder {
-    pub fn new(sandbox: crate::server::sandbox::SandboxSetup) -> Self {
+    pub fn new(sandbox: crate::sandbox::SandboxSetup) -> Self {
         Self { sandbox }
     }
 }
@@ -94,7 +94,7 @@ impl ServerCommandBuilder for DefaultServerCommandBuilder {
 
 /// Builds execution command for the server process (Pumpkin, Bedrock, or Java)
 async fn build_server_command<FStep>(
-    sandbox_setup: &crate::server::sandbox::SandboxSetup,
+    sandbox_setup: &crate::sandbox::SandboxSetup,
     data_dir: &Path,
     client: &reqwest::Client,
     config: &ServerConfig,
@@ -110,7 +110,7 @@ where
         step("Preparing Pumpkin server...");
         step("Downloading Pumpkin (first start only)...");
         let bin = crate::server::pumpkin::ensure_pumpkin_binary(client, server_dir).await?;
-        let sandbox = if crate::server::sandbox::is_android_sandbox() {
+        let sandbox = if crate::sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
             Some(
                 sandbox_setup
@@ -164,7 +164,7 @@ where
         args.push("-Dterminal.jline=false".into());
         args.push("-Dterminal.ansi=false".into());
 
-        let (sandbox, java_bin) = if crate::server::sandbox::is_android_sandbox() {
+        let (sandbox, java_bin) = if crate::sandbox::is_android_sandbox() {
             step("Preparing Linux sandbox...");
             let (sandbox_dir, rootfs, guest_java) = sandbox_setup
                 .ensure_java(data_dir, client, required_java, sandbox_progress(&step))
@@ -192,7 +192,7 @@ where
         };
 
         let java = |java_args: &[String]| {
-            crate::server::sandbox::build_server_command(
+            crate::sandbox::build_server_command(
                 sandbox
                     .as_ref()
                     .map(|(dir, rootfs)| (dir.as_path(), rootfs.as_path())),

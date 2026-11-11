@@ -11,8 +11,6 @@ name = "ingot_server_map"
 path = "src/lib.rs"
 
 [dependencies]
-ingot-core = { workspace = true }
-ingot-server = { workspace = true }
 base64 = { workspace = true }
 bedrock-world = { workspace = true }
 fastnbt = { workspace = true }
@@ -22,8 +20,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
-tokio = { workspace = true, features = ["test-util"] }

@@ -1,8 +1,8 @@
 use super::*;
 use crate::artifacts::downloader::DownloadError;
-use crate::version_change::{ContentKind, ItemAction, ItemStatus};
+use crate::{ContentKind, ItemAction, ItemStatus};
+use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
 use std::error::Error;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[tokio::test]
 async fn failed_staging_removal_preserves_existing_file_and_io_cause() {
@@ -22,22 +22,12 @@ async fn failed_staging_removal_preserves_existing_file_and_io_cause() {
 
 #[tokio::test]
 async fn staging_preserves_download_failure_category_and_redacted_source() {
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let address = listener.local_addr().unwrap();
-    let provider = tokio::spawn(async move {
-        for _ in 0..2 {
-            let (mut socket, _) = listener.accept().await.unwrap();
-            let mut request = Vec::new();
-            while !request.ends_with(b"\r\n\r\n") {
-                assert!(request.len() < 8192, "Request headers exceed fixture limit");
-                request.push(socket.read_u8().await.unwrap());
-            }
-            socket
-                .write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
-                .await
-                .unwrap();
-        }
-    });
+    let fixture = LoopbackServer::exact_script(vec![
+        ScriptedExchange::any_path(ResponseSpec::status(503)),
+        ScriptedExchange::any_path(ResponseSpec::status(503)),
+    ])
+    .await;
+    let address = fixture.addr();
     let client = reqwest::Client::builder()
         .no_proxy()
         .resolve("cdn.modrinth.com", address)
@@ -83,5 +73,5 @@ async fn staging_preserves_download_failure_category_and_redacted_source() {
     assert!(error.source().unwrap().is::<DownloadError>());
     assert!(!format!("{error:?}").contains("staging-secret"));
     assert!(!directory.path().join("mods/artifact.jar").exists());
-    provider.await.unwrap();
+    let _ = fixture.finish().await;
 }

@@ -1,0 +1,10 @@
+[package]
+name = "ingot-test-support"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+tokio = { workspace = true }

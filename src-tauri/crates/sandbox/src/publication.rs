@@ -213,13 +213,7 @@ fn validate_paths(sandbox: &Path) -> Result<(), SandboxError> {
     ] {
         match fs::symlink_metadata(path) {
             Ok(metadata) => {
-                let linked = metadata.file_type().is_symlink();
-                #[cfg(windows)]
-                let linked = {
-                    use std::os::windows::fs::MetadataExt;
-                    linked || metadata.file_attributes() & 0x400 != 0
-                };
-                if linked {
+                if crate::core::is_link_or_reparse_point(&metadata) {
                     return Err(SandboxError::RecoveryBlocked("linked publication path"));
                 }
             }

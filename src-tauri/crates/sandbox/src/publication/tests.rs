@@ -157,26 +157,22 @@ fn publication_commits_replacement_then_acknowledges() {
 
 #[tokio::test]
 async fn malformed_download_preserves_existing_rootfs() {
-    use tokio::io::{AsyncReadExt, AsyncWriteExt};
     let temp = tempfile::tempdir().unwrap();
     rootfs(&temp.path().join("rootfs"), "original");
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let endpoint = format!("http://{}/rootfs", listener.local_addr().unwrap());
-    let server = tokio::spawn(async move {
-        let (mut stream, _) = listener.accept().await.unwrap();
-        let mut request = [0; 4096];
-        assert!(stream.read(&mut request).await.unwrap() > 0);
-        stream
-            .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 7\r\nConnection: close\r\n\r\ninvalid")
-            .await
-            .unwrap();
-    });
+    let server = ingot_test_support::LoopbackServer::exact_script(vec![
+        ingot_test_support::ScriptedExchange::expect_path(
+            "/rootfs",
+            ingot_test_support::ResponseSpec::text(200, "invalid"),
+        ),
+    ])
+    .await;
+    let endpoint = server.url("/rootfs");
     assert!(
         install(&reqwest::Client::new(), temp.path(), &endpoint, &|_, _| {})
             .await
             .is_err()
     );
-    server.await.unwrap();
+    let _ = server.finish().await;
     assert_eq!(
         fs::read_to_string(temp.path().join("rootfs/sbin/apk")).unwrap(),
         "original"
@@ -250,7 +246,6 @@ fn linked_publication_target_is_rejected_without_touching_destination() {
 
 #[tokio::test]
 async fn injected_rootfs_download_validates_and_publishes_complete_tree() {
-    use tokio::io::{AsyncReadExt, AsyncWriteExt};
     let temp = tempfile::tempdir().unwrap();
     rootfs(&temp.path().join("rootfs"), "original");
     let gzip = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
@@ -271,23 +266,18 @@ async fn injected_rootfs_download_validates_and_publishes_complete_tree() {
         .append_data(&mut header, "etc/apk", io::empty())
         .unwrap();
     let bytes = archive.into_inner().unwrap().finish().unwrap();
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let endpoint = format!("http://{}/rootfs", listener.local_addr().unwrap());
-    let server = tokio::spawn(async move {
-        let (mut stream, _) = listener.accept().await.unwrap();
-        let mut request = [0; 4096];
-        assert!(stream.read(&mut request).await.unwrap() > 0);
-        let response = format!(
-            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-            bytes.len()
-        );
-        stream.write_all(response.as_bytes()).await.unwrap();
-        stream.write_all(&bytes).await.unwrap();
-    });
+    let server = ingot_test_support::LoopbackServer::exact_script(vec![
+        ingot_test_support::ScriptedExchange::expect_path(
+            "/rootfs",
+            ingot_test_support::ResponseSpec::bytes(200, bytes),
+        ),
+    ])
+    .await;
+    let endpoint = server.url("/rootfs");
     install(&reqwest::Client::new(), temp.path(), &endpoint, &|_, _| {})
         .await
         .unwrap();
-    server.await.unwrap();
+    let _ = server.finish().await;
     assert!(is_rootfs_installed(&temp.path().join("rootfs")).unwrap());
     assert_eq!(
         fs::read_to_string(temp.path().join("rootfs/sbin/apk")).unwrap(),

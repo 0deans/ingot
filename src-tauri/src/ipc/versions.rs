@@ -9,6 +9,32 @@ fn get_http_client<R: Runtime>(app: &tauri::AppHandle<R>) -> &reqwest::Client {
     &crate::app::state(app).http
 }
 
+pub(crate) async fn is_downgrade<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    from: &str,
+    to: &str,
+) -> Result<bool, ApiError> {
+    let cache_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| ApiError::storage_failure(e.to_string()))?
+        .join("cache");
+    let manifest = version::fetch_version_manifest(get_http_client(app), &cache_dir)
+        .await
+        .map_err(ApiError::from)?;
+    let released = |id: &str| {
+        manifest
+            .versions
+            .iter()
+            .find(|v| v.id == id)
+            .map(|v| v.release_time.clone())
+    };
+    Ok(matches!(
+        (released(from), released(to)),
+        (Some(from), Some(to)) if to < from
+    ))
+}
+
 #[taurpc::procedures(path = "versions")]
 pub trait VersionsApi {
     async fn get_available_game_versions(

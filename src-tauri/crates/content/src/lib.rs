@@ -1,15 +1,6 @@
-#[allow(unused_imports)]
 pub(crate) use ingot_artifacts as artifacts;
 pub(crate) use ingot_core as core;
-#[allow(unused_imports)]
-pub(crate) use ingot_settings as settings;
-
-pub mod minecraft {
-    pub use crate::content;
-    pub use crate::importer;
-    pub use crate::instance_export;
-    pub use ingot_minecraft::*;
-}
+pub(crate) use ingot_minecraft as minecraft;
 
 pub mod content;
 pub mod importer;

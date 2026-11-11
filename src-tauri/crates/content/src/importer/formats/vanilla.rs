@@ -1,6 +1,6 @@
 //! Vanilla Minecraft Launcher profiles scanner.
 use super::{count_instance_stats, ImportableInstance};
-use crate::minecraft::importer::version_id::parse_vanilla_version_id;
+use crate::importer::version_id::parse_vanilla_version_id;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;

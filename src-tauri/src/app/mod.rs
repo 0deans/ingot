@@ -12,8 +12,7 @@ pub(crate) mod instance_export;
 pub(crate) mod instances;
 pub(crate) mod java;
 pub(crate) mod lifecycle;
-pub(crate) mod news;
-mod paths;
+pub(crate) mod paths;
 pub(crate) mod platform;
 pub(crate) mod screenshots;
 pub(crate) mod server_config;
@@ -23,11 +22,6 @@ mod state;
 pub(crate) mod sync;
 pub(crate) mod worlds;
 
-#[allow(unused_imports)]
-pub(crate) use crate::core::archive::extract_zip_entries;
-pub use crate::core::archive::ArchiveError;
-#[allow(unused_imports)]
-pub(crate) use crate::core::paths::{safe_enclosed_filename, safe_enclosed_path};
 pub(crate) use paths::AppPaths;
 pub(crate) use server_lifecycle::TauriServerLifecycleHooks;
 pub(crate) use state::state;

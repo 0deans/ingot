@@ -1,0 +1,27 @@
+[package]
+name = "ingot-sandbox"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+name = "ingot_sandbox"
+path = "src/lib.rs"
+
+[dependencies]
+ingot-core = { workspace = true }
+flate2 = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tar = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+ingot-test-support = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }

@@ -50,18 +50,6 @@ pub enum ServerStatus {
     Sleeping,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct PlayitTunnelStatus {
-    pub is_running: bool,
-    pub status: String,
-    pub claim_url: Option<String>,
-    pub public_address: Option<String>,
-    pub ping_ms: Option<u32>,
-    /// Human-readable detail for "no_tunnel" / "error" states
-    pub message: Option<String>,
-}
-
 #[derive(Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerConfig {

@@ -1,7 +1,11 @@
-use crate::app::news;
 use crate::ipc::ApiError;
-use crate::minecraft::news::{NewsArticleDetails, NewsFeedResponse, PatchNoteDetails};
+use crate::minecraft::news::{NewsArticleDetails, NewsFeedResponse, NewsService, PatchNoteDetails};
 use tauri::Runtime;
+
+fn news_service<R: Runtime>(app: &tauri::AppHandle<R>) -> NewsService {
+    let state = crate::app::state(app);
+    NewsService::new(state.http.clone(), state.news_cache_dir.clone())
+}
 
 #[taurpc::procedures(path = "news")]
 pub trait NewsApi {
@@ -31,7 +35,8 @@ impl NewsApi for NewsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         force_refresh: bool,
     ) -> Result<NewsFeedResponse, ApiError> {
-        news::get_news_feed(&app_handle, force_refresh)
+        news_service(&app_handle)
+            .get_news_feed(force_refresh)
             .await
             .map_err(ApiError::from)
     }
@@ -41,7 +46,8 @@ impl NewsApi for NewsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         content_path: String,
     ) -> Result<PatchNoteDetails, ApiError> {
-        news::get_patch_note_details(&app_handle, &content_path)
+        news_service(&app_handle)
+            .get_patch_note_details(&content_path)
             .await
             .map_err(ApiError::from)
     }
@@ -51,7 +57,8 @@ impl NewsApi for NewsApiImpl {
         app_handle: tauri::AppHandle<impl Runtime>,
         article_id: String,
     ) -> Result<NewsArticleDetails, ApiError> {
-        news::get_article_details(&app_handle, &article_id)
+        news_service(&app_handle)
+            .get_article_details(&article_id)
             .await
             .map_err(ApiError::from)
     }

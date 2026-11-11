@@ -70,7 +70,7 @@ pub(crate) async fn ensure_playit_binary_with_dir(
         _ = cancel_rx.changed() => return Err(PlayitError::Cancelled),
         res = client
             .get(download_url)
-            .header("User-Agent", crate::USER_AGENT)
+            .header("User-Agent", ingot_core::USER_AGENT)
             .send() => {
             res.map_err(|error| PlayitError::Network(error.without_url()))?
         }

@@ -1,6 +1,7 @@
 //! ATLauncher modpack planner (manifest and zip archive).
 use super::{extract_zip_overrides, pack::PreparedModpack};
-use crate::minecraft::{content::error::ContentError, instance::ModLoaderType};
+use crate::content::error::ContentError;
+use crate::minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::{io::Cursor, path::Path, sync::Arc};
 use zip::ZipArchive;
@@ -69,12 +70,12 @@ pub(crate) struct AtLauncherMod {
     pub(crate) filesize: Option<u64>,
     #[serde(
         default,
-        deserialize_with = "crate::minecraft::content::ftb::deserialize_opt_u32_or_string"
+        deserialize_with = "crate::content::ftb::deserialize_opt_u32_or_string"
     )]
     pub(crate) curse_id: Option<u32>,
     #[serde(
         default,
-        deserialize_with = "crate::minecraft::content::ftb::deserialize_opt_u32_or_string"
+        deserialize_with = "crate::content::ftb::deserialize_opt_u32_or_string"
     )]
     pub(crate) curse_file_id: Option<u32>,
     #[serde(default)]
@@ -279,10 +280,7 @@ pub(crate) async fn download_atlauncher_mods(
             );
             let response = client
                 .get(url)
-                .header(
-                    "x-api-key",
-                    crate::minecraft::content::curseforge::CURSEFORGE_API_KEY,
-                )
+                .header("x-api-key", crate::content::curseforge::CURSEFORGE_API_KEY)
                 .send()
                 .await
                 .map_err(ContentError::Transport)?;

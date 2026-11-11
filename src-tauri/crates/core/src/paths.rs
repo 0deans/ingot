@@ -52,15 +52,8 @@ fn existing_components_are_unlinked(base: &Path, relative: &Path) -> bool {
         }
         match std::fs::symlink_metadata(&current) {
             Ok(metadata) => {
-                if metadata.file_type().is_symlink() {
+                if super::fs::is_link_or_reparse_point(&metadata) {
                     return false;
-                }
-                #[cfg(windows)]
-                {
-                    use std::os::windows::fs::MetadataExt;
-                    if metadata.file_attributes() & 0x400 != 0 {
-                        return false;
-                    }
                 }
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}

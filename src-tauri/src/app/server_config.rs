@@ -43,7 +43,7 @@ fn ensure_server_directory(
 ) -> Result<PathBuf, ConfigError> {
     repository.with_serialized(|| {
         let directory =
-            crate::app::safe_enclosed_filename(parent, server_id).ok_or(ConfigError::InvalidId)?;
+            crate::core::safe_enclosed_filename(parent, server_id).ok_or(ConfigError::InvalidId)?;
         fs::create_dir_all(&directory)?;
         Ok(directory)
     })?
@@ -62,7 +62,7 @@ pub(crate) fn publish_staged_server<R: Runtime>(
 ) -> Result<ServerConfig, ConfigError> {
     let parent = get_servers_dir(app)?;
     let destination =
-        crate::app::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
+        crate::core::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
     crate::app::state(app).server_configs.publish(
         staging,
         &destination,
@@ -142,7 +142,7 @@ pub(crate) fn delete_server<R: Runtime>(
 ) -> Result<(), ConfigError> {
     let parent = get_servers_dir(app)?;
     let directory =
-        crate::app::safe_enclosed_filename(&parent, server_id).ok_or(ConfigError::InvalidId)?;
+        crate::core::safe_enclosed_filename(&parent, server_id).ok_or(ConfigError::InvalidId)?;
     delete_server_record(
         &crate::app::state(app).server_configs,
         server_id,
@@ -156,7 +156,7 @@ pub(crate) fn update_server<R: Runtime>(
 ) -> Result<(), ConfigError> {
     let parent = get_servers_dir(app)?;
     let directory =
-        crate::app::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
+        crate::core::safe_enclosed_filename(&parent, &config.id).ok_or(ConfigError::InvalidId)?;
     update_server_record(&crate::app::state(app).server_configs, config, &directory)
 }
 

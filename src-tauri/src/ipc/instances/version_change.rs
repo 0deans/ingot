@@ -1,4 +1,5 @@
-use super::{find_instance, get_http_client, is_downgrade};
+use super::{find_instance, get_http_client};
+use crate::ipc::versions::is_downgrade;
 use crate::ipc::ApiError;
 use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
 use crate::version_change::targets::{self as change_targets, loader_id};

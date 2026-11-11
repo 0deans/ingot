@@ -61,23 +61,6 @@ pub fn undo_typed(
     })
 }
 
-pub fn undo_with_commit<F, E>(
-    root: &Path,
-    game_version: &str,
-    loader: &str,
-    commit_metadata: F,
-) -> Result<Restored, VersionChangeError>
-where
-    F: FnOnce(&Restored) -> Result<(), E>,
-    E: std::error::Error + Send + Sync + 'static,
-{
-    undo_typed_with_commit(root, game_version, loader, commit_metadata)
-}
-
-pub fn undo(root: &Path, game_version: &str, loader: &str) -> Result<Restored, VersionChangeError> {
-    undo_typed(root, game_version, loader)
-}
-
 /// Recovers an interrupted version change transaction left in Swapping or RollbackFailed state,
 /// restoring files and updating configuration metadata.
 pub fn recover_interrupted_transaction_with_commit<F, E>(

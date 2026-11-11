@@ -248,9 +248,9 @@ impl From<crate::server::bedrock_packs::BedrockPackError> for ApiError {
     }
 }
 
-impl From<crate::app::ArchiveError> for ApiError {
-    fn from(error: crate::app::ArchiveError) -> Self {
-        use crate::app::ArchiveError;
+impl From<crate::core::ArchiveError> for ApiError {
+    fn from(error: crate::core::ArchiveError) -> Self {
+        use crate::core::ArchiveError;
         match error {
             ArchiveError::UnsafeEntry => Self::invalid_input(error.to_string()),
             ArchiveError::Zip(_) => Self::internal(error.to_string()),
@@ -281,8 +281,19 @@ impl From<crate::server::live::LiveError> for ApiError {
             LiveError::PlayerNotOnline(_) => Self::conflict(error.to_string()),
             LiveError::NoSavedData(_) => Self::not_found(error.to_string()),
             LiveError::Io(_) => Self::storage_failure(error.to_string()),
-            LiveError::Query(source) => Self::from(*source),
             LiveError::Snbt(_) => Self::internal(error.to_string()),
+        }
+    }
+}
+
+impl From<crate::server::live_query::LiveQueryError> for ApiError {
+    fn from(error: crate::server::live_query::LiveQueryError) -> Self {
+        use crate::server::live_query::LiveQueryError;
+        match error {
+            LiveQueryError::InvalidPlayerName(_) => Self::invalid_input(error.to_string()),
+            LiveQueryError::PlayerNotOnline(_) => Self::conflict(error.to_string()),
+            LiveQueryError::Query(source) => Self::from(*source),
+            LiveQueryError::Snbt(_) => Self::internal(error.to_string()),
         }
     }
 }
@@ -319,9 +330,9 @@ impl From<crate::server::transfer::TransferError> for ApiError {
     }
 }
 
-impl From<crate::server::tunnel::PlayitError> for ApiError {
-    fn from(error: crate::server::tunnel::PlayitError) -> Self {
-        use crate::server::tunnel::PlayitError;
+impl From<crate::tunnel::PlayitError> for ApiError {
+    fn from(error: crate::tunnel::PlayitError) -> Self {
+        use crate::tunnel::PlayitError;
         match error {
             PlayitError::Io(_)
             | PlayitError::Directory(_)
@@ -358,9 +369,9 @@ impl From<crate::server::slp::PingError> for ApiError {
     }
 }
 
-impl From<crate::server::sandbox::SandboxError> for ApiError {
-    fn from(error: crate::server::sandbox::SandboxError) -> Self {
-        use crate::server::sandbox::SandboxError;
+impl From<crate::sandbox::SandboxError> for ApiError {
+    fn from(error: crate::sandbox::SandboxError) -> Self {
+        use crate::sandbox::SandboxError;
         match error {
             SandboxError::Io(_) => Self::storage_failure(error.to_string()),
             SandboxError::PublicationPending(_)

@@ -282,10 +282,12 @@ impl From<crate::minecraft::launcher::LaunchError> for ApiError {
             crate::minecraft::launcher::LaunchError::Download(err) => Self::from(err),
             crate::minecraft::launcher::LaunchError::JavaRuntime(err) => Self::from(err),
             crate::minecraft::launcher::LaunchError::Account(error) => {
-                use crate::minecraft::launcher::models::LaunchAccountCause;
-                match *error.source {
-                    LaunchAccountCause::Recovery(source) => Self::from(source),
-                    LaunchAccountCause::Session(source) => Self::from(source),
+                match error.downcast::<crate::account::recovery::RecoveryError>() {
+                    Ok(source) => Self::from(*source),
+                    Err(error) => match error.downcast::<crate::account::session::SessionError>() {
+                        Ok(source) => Self::from(*source),
+                        Err(error) => Self::internal(error.to_string()),
+                    },
                 }
             }
             crate::minecraft::launcher::LaunchError::Settings(source) => Self::from(source),

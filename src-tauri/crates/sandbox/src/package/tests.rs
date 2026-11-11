@@ -22,7 +22,7 @@ fn helper_command(address: std::net::SocketAddr) -> Command {
     command.args([
         "--ignored",
         "--exact",
-        "sandbox::package::tests::package_process_fixture",
+        "package::tests::package_process_fixture",
         "--nocapture",
     ]);
     command.env("INGOT_SANDBOX_TEST_LISTENER", address.to_string());

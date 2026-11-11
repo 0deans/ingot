@@ -1,9 +1,8 @@
 //! Technic Platform package planner (Solder manifest and direct zip).
 use super::{extract_zip_overrides, pack::PreparedModpack};
-use crate::minecraft::{
-    content::error::ContentError, importer::version_id::parse_vanilla_version_id,
-    instance::ModLoaderType,
-};
+use crate::content::error::ContentError;
+use crate::importer::version_id::parse_vanilla_version_id;
+use crate::minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::{
     fs,

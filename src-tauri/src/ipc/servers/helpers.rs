@@ -1,7 +1,7 @@
 //! Shared resolution and state helpers for server IPC handlers.
 use crate::ipc::ApiError;
 use crate::server::{self, ServerConfig, ServerCoreType, ServerProcessManager, ServerStatus};
-use tauri::{Manager, Runtime};
+use tauri::Runtime;
 
 pub(crate) fn get_server_process_manager<R: Runtime>(
     app: &tauri::AppHandle<R>,
@@ -42,33 +42,6 @@ pub(crate) fn server_with_config<R: Runtime>(
     Ok((
         server::get_server_dir(app_handle, server_id).map_err(ApiError::from)?,
         config,
-    ))
-}
-
-pub(crate) async fn is_downgrade<R: Runtime>(
-    app: &tauri::AppHandle<R>,
-    from: &str,
-    to: &str,
-) -> Result<bool, ApiError> {
-    let cache_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| ApiError::storage_failure(e.to_string()))?
-        .join("cache");
-    let manifest =
-        crate::minecraft::version::fetch_version_manifest(get_http_client(app), &cache_dir)
-            .await
-            .map_err(ApiError::from)?;
-    let released = |id: &str| {
-        manifest
-            .versions
-            .iter()
-            .find(|v| v.id == id)
-            .map(|v| v.release_time.clone())
-    };
-    Ok(matches!(
-        (released(from), released(to)),
-        (Some(from), Some(to)) if to < from
     ))
 }
 

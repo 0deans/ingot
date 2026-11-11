@@ -3,17 +3,13 @@ use super::super::{
     clock::{ProtocolClock, Sleep},
     MicrosoftDeviceCode, MicrosoftSession,
 };
+use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex,
     },
     time::Duration,
-};
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpListener,
-    task::JoinHandle,
 };
 
 pub(super) const DEVICE: &str = include_str!(concat!(
@@ -112,72 +108,35 @@ pub(super) struct Request {
     pub body: String,
 }
 pub(super) struct Server {
-    base: String,
-    task: JoinHandle<Vec<Request>>,
+    inner: LoopbackServer,
 }
 impl Server {
     pub async fn new(script: Vec<Reply>) -> Self {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let base = format!("http://{}", listener.local_addr().unwrap());
-        let task = tokio::spawn(async move {
-            let mut requests = Vec::new();
-            for reply in script {
-                let (mut stream, _) = listener.accept().await.unwrap();
-                let mut bytes = Vec::new();
-                let mut buffer = [0; 2048];
-                let (headers, offset, length) = loop {
-                    let count = stream.read(&mut buffer).await.unwrap();
-                    assert!(count > 0);
-                    bytes.extend_from_slice(&buffer[..count]);
-                    if let Some(offset) = bytes.windows(4).position(|w| w == b"\r\n\r\n") {
-                        let headers = String::from_utf8(bytes[..offset].to_vec()).unwrap();
-                        let length = headers
-                            .lines()
-                            .find_map(|line| {
-                                let (name, value) = line.split_once(':')?;
-                                name.eq_ignore_ascii_case("content-length")
-                                    .then(|| value.trim().parse::<usize>().unwrap())
-                            })
-                            .unwrap_or(0);
-                        break (headers, offset + 4, length);
-                    }
+        let exchanges = script
+            .into_iter()
+            .map(|reply| {
+                let mut spec = if reply.status == 0 {
+                    ResponseSpec::close_connection()
+                } else {
+                    ResponseSpec::json(reply.status, reply.body.into_bytes())
                 };
-                while bytes.len() < offset + length {
-                    let count = stream.read(&mut buffer).await.unwrap();
-                    assert!(count > 0);
-                    bytes.extend_from_slice(&buffer[..count]);
-                }
-                assert!(
-                    headers
-                        .lines()
-                        .next()
-                        .unwrap()
-                        .split_whitespace()
-                        .nth(1)
-                        .unwrap()
-                        == reply.path
-                );
-                requests.push(Request {
-                    headers,
-                    body: String::from_utf8(bytes[offset..offset + length].to_vec()).unwrap(),
-                });
                 if let Some(effect) = reply.effect {
-                    effect();
+                    let slot = Arc::new(Mutex::new(Some(effect)));
+                    spec = spec.with_effect(move |_| {
+                        if let Some(callback) = slot.lock().unwrap().take() {
+                            callback();
+                        }
+                    });
                 }
-                if reply.status == 0 {
-                    drop(stream);
-                    continue;
-                }
-                let response = format!("HTTP/1.1 {} Fixture\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", reply.status, reply.body.len(), reply.body);
-                stream.write_all(response.as_bytes()).await.unwrap();
-                stream.shutdown().await.unwrap();
-            }
-            requests
-        });
-        Self { base, task }
+                ScriptedExchange::expect_path(reply.path, spec)
+            })
+            .collect();
+        Self {
+            inner: LoopbackServer::exact_script(exchanges).await,
+        }
     }
     pub fn session(&self, clock: Arc<Clock>, client_id: Option<String>) -> MicrosoftSession {
-        let endpoint = |path: &str| format!("{}{path}", self.base);
+        let endpoint = |path: &str| self.inner.url(path);
         let endpoints = Endpoints {
             device_code: endpoint("/device"),
             token: endpoint("/token"),
@@ -190,9 +149,14 @@ impl Server {
         MicrosoftSession::new(client, endpoints, client_id, clock)
     }
     pub async fn requests(self) -> Vec<Request> {
-        tokio::time::timeout(Duration::from_secs(5), self.task)
+        self.inner
+            .finish()
             .await
-            .unwrap()
-            .unwrap()
+            .into_iter()
+            .map(|captured| Request {
+                headers: captured.raw_headers.clone(),
+                body: captured.body_str().into_owned(),
+            })
+            .collect()
     }
 }

@@ -2,10 +2,8 @@ use super::{
     construct_curseforge_cdn_url, extract_zip_overrides, parse_curseforge_loader,
     parse_modrinth_loader, CurseForgeManifest, ModrinthIndex,
 };
-use crate::minecraft::{
-    content::{curseforge::CURSEFORGE_API_KEY, error::ContentError},
-    instance::ModLoaderType,
-};
+use crate::content::{curseforge::CURSEFORGE_API_KEY, error::ContentError};
+use crate::minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use sha1::Digest;
 use std::{
@@ -541,7 +539,7 @@ pub(crate) async fn prepare_modpack(
                 });
                 let atl_base = manifest_url
                     .and_then(|u| u.split("/packs/").next())
-                    .unwrap_or(crate::minecraft::content::atlauncher::DEFAULT_ATLAUNCHER_BASE);
+                    .unwrap_or(crate::content::atlauncher::DEFAULT_ATLAUNCHER_BASE);
                 super::atlauncher_pack::download_atlauncher_mods(
                     client,
                     curseforge_base,

@@ -2,31 +2,12 @@ use super::*;
 use sha1::{Digest, Sha1};
 use std::fs;
 use std::sync::atomic::Ordering;
-use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpListener;
 
-async fn unavailable_provider(requests: usize) -> (String, tokio::task::JoinHandle<()>) {
-    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let address = listener.local_addr().unwrap();
-    let server = tokio::spawn(async move {
-        for _ in 0..requests {
-            let (mut connection, _) = listener.accept().await.unwrap();
-            let mut request = Vec::new();
-            while !request.ends_with(b"\r\n\r\n") {
-                assert!(request.len() < 8192, "Request headers exceed fixture limit");
-                request.push(connection.read_u8().await.unwrap());
-            }
-            connection
-                .write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
-                .await
-                .unwrap();
-        }
-    });
-    (
-        format!("http://{address}/private-artifact?token=download-secret"),
-        server,
-    )
+async fn unavailable_provider() -> (String, ingot_test_support::LoopbackServer) {
+    let server = ingot_test_support::LoopbackServer::status_code(503).await;
+    let url = server.url("private-artifact?token=download-secret");
+    (url, server)
 }
 
 fn assert_download_diagnostics_are_redacted(error: DownloadError) {
@@ -39,7 +20,7 @@ fn assert_download_diagnostics_are_redacted(error: DownloadError) {
 #[tokio::test]
 async fn batch_download_preserves_transport_cause_without_signed_url() {
     let directory = tempfile::tempdir().unwrap();
-    let (url, server) = unavailable_provider(1).await;
+    let (url, server) = unavailable_provider().await;
     let task = DownloadTask {
         url,
         dest: directory.path().join("artifact.jar"),
@@ -60,13 +41,13 @@ async fn batch_download_preserves_transport_cause_without_signed_url() {
     assert!(source.url().is_none());
     assert_download_diagnostics_are_redacted(error);
     assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 0);
-    server.await.unwrap();
+    drop(server);
 }
 
 #[tokio::test]
 async fn single_download_status_diagnostics_exclude_signed_url() {
     let directory = tempfile::tempdir().unwrap();
-    let (url, server) = unavailable_provider(2).await;
+    let (url, server) = unavailable_provider().await;
     let error = download_file_chunked(
         &reqwest::Client::new(),
         &url,
@@ -84,7 +65,7 @@ async fn single_download_status_diagnostics_exclude_signed_url() {
     ));
     assert_download_diagnostics_are_redacted(error);
     assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 0);
-    server.await.unwrap();
+    drop(server);
 }
 
 #[test]
@@ -189,7 +170,7 @@ fn verify_sha1_works() {
 
 struct DownloadMockServer {
     base_url: String,
-    _handle: tokio::task::JoinHandle<()>,
+    _server: ingot_test_support::LoopbackServer,
 }
 
 impl DownloadMockServer {
@@ -197,50 +178,14 @@ impl DownloadMockServer {
     where
         F: Fn(&str, &str, &str) -> (u16, Vec<(String, String)>, Vec<u8>) + Send + Sync + 'static,
     {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let addr = listener.local_addr().unwrap();
-        let base_url = format!("http://{addr}");
-        let handler = Arc::new(handler);
-
-        let handle = tokio::spawn(async move {
-            loop {
-                let Ok((mut stream, _)) = listener.accept().await else {
-                    break;
-                };
-                let handler = Arc::clone(&handler);
-
-                tokio::spawn(async move {
-                    let mut buffer = [0u8; 4096];
-                    let count = match stream.read(&mut buffer).await {
-                        Ok(c) if c > 0 => c,
-                        _ => return,
-                    };
-                    let req_str = String::from_utf8_lossy(&buffer[..count]).to_string();
-                    let mut lines = req_str.lines();
-                    let req_line = lines.next().unwrap_or("");
-                    let mut parts = req_line.split_whitespace();
-                    let method = parts.next().unwrap_or("GET");
-                    let path = parts.next().unwrap_or("/");
-
-                    let (status, headers, body) = handler(method, path, &req_str);
-                    let mut resp_str = format!("HTTP/1.1 {status} OK\r\nConnection: close\r\n");
-                    for (k, v) in headers {
-                        resp_str.push_str(&format!("{k}: {v}\r\n"));
-                    }
-                    resp_str.push_str(&format!("Content-Length: {}\r\n\r\n", body.len()));
-
-                    let _ = stream.write_all(resp_str.as_bytes()).await;
-                    if !body.is_empty() {
-                        let _ = stream.write_all(&body).await;
-                    }
-                    let _ = stream.shutdown().await;
-                });
-            }
-        });
-
+        let server = ingot_test_support::LoopbackServer::with_handler(move |req| {
+            handler(&req.method, &req.path, &req.raw_request)
+        })
+        .await;
+        let base_url = server.base_url().to_string();
         Self {
             base_url,
-            _handle: handle,
+            _server: server,
         }
     }
 }
@@ -340,30 +285,20 @@ async fn test_download_file_chunked_fails_and_cleans_up_on_mismatched_range_chun
 
 #[tokio::test]
 async fn test_download_file_chunked_dropped_future_cleans_up_staging() {
-    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let addr = listener.local_addr().unwrap();
-    let server_url = format!("http://{addr}");
-
-    let _server_handle = tokio::spawn(async move {
-        while let Ok((mut stream, _)) = listener.accept().await {
-            let mut buffer = [0u8; 1024];
-            let _ = stream.read(&mut buffer).await;
-            let req_str = String::from_utf8_lossy(&buffer);
-            if req_str.starts_with("HEAD") {
-                let resp = "HTTP/1.1 200 OK\r\nContent-Length: 1000\r\nConnection: close\r\n\r\n";
-                let _ = stream.write_all(resp.as_bytes()).await;
-                let _ = stream.shutdown().await;
-            } else {
-                tokio::time::sleep(std::time::Duration::from_secs(60)).await;
-            }
+    let _server = ingot_test_support::LoopbackServer::with_handler(|req| {
+        if req.method == "HEAD" {
+            ingot_test_support::ResponseSpec::status(200).with_header("Content-Length", "1000")
+        } else {
+            ingot_test_support::ResponseSpec::stall()
         }
-    });
+    })
+    .await;
 
     let temp = tempfile::tempdir().unwrap();
     let dest_path = temp.path().join("dropped.bin");
     let client = reqwest::Client::new();
 
-    let file_url = format!("{server_url}/dropped.bin");
+    let file_url = _server.url("/dropped.bin");
     let download_future = download_file_chunked(&client, &file_url, &dest_path, None, None);
 
     let _ = tokio::time::timeout(std::time::Duration::from_millis(50), download_future).await;

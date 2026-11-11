@@ -5,7 +5,6 @@ use super::{ensure_java_runtime, get_required_java_version, JavaError};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use super::probe::{JavaProbe, JavaProbeFuture};
 
@@ -43,22 +42,15 @@ fn zip_bytes(path: &str) -> Vec<u8> {
     zip.finish().unwrap().into_inner()
 }
 
-async fn serve(body: Vec<u8>, status: &str) -> (String, tokio::task::JoinHandle<()>) {
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let url = format!("http://{}/runtime", listener.local_addr().unwrap());
-    let status = status.to_owned();
-    let task = tokio::spawn(async move {
-        let (mut connection, _) = listener.accept().await.unwrap();
-        let mut buffer = [0; 4096];
-        let _count = connection.read(&mut buffer).await.unwrap();
-        let header = format!(
-            "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-            body.len()
-        );
-        connection.write_all(header.as_bytes()).await.unwrap();
-        connection.write_all(&body).await.unwrap();
-    });
-    (url, task)
+async fn serve(body: Vec<u8>, status: u16) -> (String, ingot_test_support::LoopbackServer) {
+    let server = ingot_test_support::LoopbackServer::exact_script(vec![
+        ingot_test_support::ScriptedExchange::expect_path(
+            "/runtime",
+            ingot_test_support::ResponseSpec::bytes(status, body),
+        ),
+    ])
+    .await;
+    (server.url("/runtime"), server)
 }
 
 #[test]
@@ -145,11 +137,7 @@ async fn invalid_explicit_java_path_is_not_silently_replaced() {
 #[tokio::test]
 async fn runtime_download_publishes_only_after_archive_and_version_validation() {
     let temp = tempfile::tempdir().unwrap();
-    let (url, server) = serve(
-        zip_bytes(&format!("jdk-21/bin/{}", executable_name())),
-        "200 OK",
-    )
-    .await;
+    let (url, server) = serve(zip_bytes(&format!("jdk-21/bin/{}", executable_name())), 200).await;
     let mut request = request(temp.path());
     request.download_url = url;
     let binary = ensure_java_runtime(
@@ -160,7 +148,7 @@ async fn runtime_download_publishes_only_after_archive_and_version_validation() 
     )
     .await
     .unwrap();
-    server.await.unwrap();
+    server.finish().await;
     assert_eq!(std::fs::read(binary).unwrap(), b"binary");
     assert_eq!(
         std::fs::read_dir(temp.path().join("runtimes"))
@@ -176,7 +164,7 @@ async fn rejected_download_preserves_existing_incomplete_runtime() {
     let old = temp.path().join("runtimes/java-21");
     std::fs::create_dir_all(&old).unwrap();
     std::fs::write(old.join("recovery-data"), b"keep").unwrap();
-    let (url, server) = serve(zip_bytes("../escaped"), "200 OK").await;
+    let (url, server) = serve(zip_bytes("../escaped"), 200).await;
     let mut request = request(temp.path());
     request.download_url = url;
     let result = ensure_java_runtime(
@@ -186,7 +174,7 @@ async fn rejected_download_preserves_existing_incomplete_runtime() {
         None,
     )
     .await;
-    server.await.unwrap();
+    server.finish().await;
     assert!(matches!(result, Err(JavaError::UnsafeArchive)));
     assert_eq!(std::fs::read(old.join("recovery-data")).unwrap(), b"keep");
     assert!(!temp.path().join("escaped").exists());
@@ -201,7 +189,7 @@ async fn rejected_download_preserves_existing_incomplete_runtime() {
 #[tokio::test]
 async fn http_failure_retains_typed_cause_and_never_publishes() {
     let temp = tempfile::tempdir().unwrap();
-    let (url, server) = serve(Vec::new(), "503 Service Unavailable").await;
+    let (url, server) = serve(Vec::new(), 503).await;
     let mut request = request(temp.path());
     request.download_url = url;
     let result = ensure_java_runtime(
@@ -211,7 +199,7 @@ async fn http_failure_retains_typed_cause_and_never_publishes() {
         None,
     )
     .await;
-    server.await.unwrap();
+    server.finish().await;
     assert!(
         matches!(result, Err(JavaError::Http(error)) if error.status() == Some(reqwest::StatusCode::SERVICE_UNAVAILABLE))
     );
@@ -373,11 +361,7 @@ async fn cancelling_during_runtime_validation_never_publishes() {
         }
     }
     let temp = tempfile::tempdir().unwrap();
-    let (url, server) = serve(
-        zip_bytes(&format!("jdk/bin/{}", executable_name())),
-        "200 OK",
-    )
-    .await;
+    let (url, server) = serve(zip_bytes(&format!("jdk/bin/{}", executable_name())), 200).await;
     let mut request = request(temp.path());
     request.download_url = url;
     let probe = Arc::new(ControlledProbe {
@@ -390,6 +374,6 @@ async fn cancelling_during_runtime_validation_never_publishes() {
     watcher.entered.notified().await;
     installation.abort();
     assert!(installation.await.unwrap_err().is_cancelled());
-    server.await.unwrap();
+    drop(server);
     assert!(!temp.path().join("runtimes/java-21").exists());
 }

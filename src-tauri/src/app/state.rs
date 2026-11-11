@@ -1,6 +1,7 @@
 use crate::minecraft::launcher::ProcessManager;
-use crate::server::{PlayitManager, ServerProcessManager, ServerSupervisorManager};
+use crate::server::{ServerProcessManager, ServerSupervisorManager};
 use crate::settings::repository::SettingsRepository;
+use crate::tunnel::PlayitManager;
 use tauri::Manager;
 
 use super::{lifecycle::LifecycleState, AppPaths};
@@ -15,7 +16,7 @@ pub(crate) struct AppState {
     pub(crate) games: ProcessManager,
     pub(crate) servers: ServerProcessManager,
     pub(crate) supervisor: ServerSupervisorManager,
-    pub(crate) sandbox_setup: crate::server::sandbox::SandboxSetup,
+    pub(crate) sandbox_setup: crate::sandbox::SandboxSetup,
     pub(crate) server_uploads: crate::server::transfer::uploads::UploadManager,
     pub(crate) playit: PlayitManager,
     pub(crate) http: reqwest::Client,
@@ -54,7 +55,7 @@ impl AppState {
             games: ProcessManager::new(),
             servers: ServerProcessManager::new(),
             supervisor: ServerSupervisorManager::new(),
-            sandbox_setup: crate::server::sandbox::SandboxSetup::default(),
+            sandbox_setup: crate::sandbox::SandboxSetup::default(),
             server_uploads: crate::server::transfer::uploads::UploadManager::default(),
             playit: PlayitManager::new(),
             session_provider: Box::new(crate::auth::session_provider::NativeSessionProvider::new(

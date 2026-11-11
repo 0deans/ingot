@@ -25,5 +25,6 @@ tokio = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
+ingot-test-support = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }

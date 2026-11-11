@@ -360,7 +360,7 @@ fn test_server_domain_error_boundary_mappings() {
     use crate::server::map::MapError;
     use crate::server::slp::PingError;
     use crate::server::transfer::TransferError;
-    use crate::server::tunnel::PlayitError;
+    use crate::tunnel::PlayitError;
 
     assert!(matches!(
         ApiError::from(LiveError::InvalidPlayerName("bad!name".into())),
@@ -438,7 +438,7 @@ fn server_port_collision_is_a_conflict() {
 
 #[test]
 fn native_boundary_failures_keep_actionable_api_categories() {
-    use crate::server::{sandbox::SandboxError, transfer::TransferError};
+    use crate::{sandbox::SandboxError, server::transfer::TransferError};
     assert!(matches!(
         ApiError::from(TransferError::UnsupportedManifestFormat(99)),
         ApiError::InvalidInput { .. }
@@ -486,9 +486,11 @@ fn launcher_account_failures_preserve_causes_and_categories() {
         SessionError::RotationCheckpoint(RecoveryError::Invalid),
     ];
     for session in sessions {
-        let launch = LaunchError::Account(session.into());
+        let launch = LaunchError::Account(
+            crate::minecraft::launcher::models::LaunchAccountError::new(session),
+        );
         let account = launch.source().unwrap();
-        let cause = account.source().unwrap().source().unwrap();
+        let cause = account.source().unwrap();
         let session = cause.downcast_ref::<SessionError>().unwrap();
         let expected = match session {
             SessionError::AccountNotFound => ApiError::from(SessionError::AccountNotFound),
@@ -507,10 +509,11 @@ fn launcher_account_failures_preserve_causes_and_categories() {
         };
         assert_eq!(ApiError::from(launch), expected);
     }
-    let recovery = LaunchError::Account(RecoveryError::Profile(AccountError::LockPoisoned).into());
+    let recovery =
+        LaunchError::Account(crate::minecraft::launcher::models::LaunchAccountError::new(
+            RecoveryError::Profile(AccountError::LockPoisoned),
+        ));
     assert!(recovery
-        .source()
-        .unwrap()
         .source()
         .unwrap()
         .source()
@@ -775,15 +778,15 @@ fn download_error_diagnostics_are_redacted_at_api_boundary() {
 
 #[test]
 fn live_queries_delegate_process_failure_categories() {
-    use crate::server::{live::LiveError, process::ProcessError};
-    let stopped = LiveError::Query(Box::new(ProcessError::NotRunning("srv1".into())));
+    use crate::server::{live_query::LiveQueryError, process::ProcessError};
+    let stopped = LiveQueryError::Query(Box::new(ProcessError::NotRunning("srv1".into())));
     assert!(matches!(ApiError::from(stopped), ApiError::NotFound { .. }));
-    let timeout = LiveError::Query(Box::new(ProcessError::NoReply("list".into())));
+    let timeout = LiveQueryError::Query(Box::new(ProcessError::NoReply("list".into())));
     assert!(matches!(
         ApiError::from(timeout),
         ApiError::ProviderUnavailable { .. }
     ));
-    let storage = LiveError::Query(Box::new(ProcessError::StdinWrite(
+    let storage = LiveQueryError::Query(Box::new(ProcessError::StdinWrite(
         std::io::ErrorKind::BrokenPipe.into(),
     )));
     assert!(matches!(
@@ -818,7 +821,7 @@ fn sync_settings_delegate_validation_and_state_categories() {
 #[test]
 fn bedrock_archive_and_protocol_errors_keep_categories() {
     use crate::{
-        app::ArchiveError,
+        core::ArchiveError,
         server::{
             bedrock::BedrockServerError, bedrock_packs::BedrockPackError, files::ServerFileError,
             slp::PingError,

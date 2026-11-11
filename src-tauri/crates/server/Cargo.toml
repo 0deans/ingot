@@ -13,8 +13,9 @@ path = "src/lib.rs"
 [dependencies]
 ingot-core = { workspace = true }
 ingot-artifacts = { workspace = true }
+ingot-sandbox = { workspace = true }
+ingot-server-map = { workspace = true }
 base64 = { workspace = true }
-flate2 = { workspace = true }
 if-addrs = { workspace = true }
 indexmap = { workspace = true }
 md5 = { workspace = true }
@@ -23,7 +24,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 sysinfo = { workspace = true }
-tar = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
@@ -35,5 +35,6 @@ zip = { workspace = true }
 libc = { workspace = true }
 
 [dev-dependencies]
+ingot-test-support = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }

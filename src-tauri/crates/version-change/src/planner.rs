@@ -353,11 +353,3 @@ pub(super) async fn check_with_sources(
         worlds,
     })
 }
-
-pub async fn check(
-    client: &reqwest::Client,
-    target: &Target,
-    request: PlanRequest,
-) -> Result<VersionPlan, VersionChangeError> {
-    check_typed(client, target, request).await
-}

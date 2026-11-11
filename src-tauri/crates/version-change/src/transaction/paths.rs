@@ -44,14 +44,7 @@ fn reject_link_ancestor(path: &Path) -> Result<(), VersionChangeError> {
             ));
         }
     };
-    #[cfg(windows)]
-    let is_link = {
-        use std::os::windows::fs::MetadataExt;
-        metadata.file_attributes() & 0x400 != 0
-    };
-    #[cfg(not(windows))]
-    let is_link = metadata.file_type().is_symlink();
-    if is_link {
+    if crate::core::is_link_or_reparse_point(&metadata) {
         return Err(VersionChangeError::InvalidPath(format!(
             "Linked transaction ancestor: {}",
             path.display()

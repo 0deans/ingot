@@ -1,5 +1,6 @@
 //! IPC procedures for server version changes.
-use super::{get_http_client, is_downgrade, server_with_config};
+use super::{get_http_client, server_with_config};
+use crate::ipc::versions::is_downgrade;
 use crate::ipc::ApiError;
 use crate::server::{ServerConfig, ServerCoreType};
 use crate::version_change::targets::{self as change_targets, loader_id};

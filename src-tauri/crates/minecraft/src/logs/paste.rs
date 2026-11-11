@@ -219,35 +219,24 @@ async fn upload_to_pasteee(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio::io::{AsyncReadExt, AsyncWriteExt};
-    use tokio::net::TcpListener;
+    use ingot_test_support::{LoopbackServer, ResponseSpec, ScriptedExchange};
 
     async fn spawn_mock_server(
-        response_status: &str,
+        status: u16,
         response_body: &'static str,
-    ) -> (String, tokio::task::JoinHandle<String>) {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let addr = listener.local_addr().unwrap();
-        let status = response_status.to_string();
-        let handle = tokio::spawn(async move {
-            let (mut stream, _) = listener.accept().await.unwrap();
-            let mut buf = vec![0u8; 8192];
-            let n = stream.read(&mut buf).await.unwrap();
-            let req = String::from_utf8_lossy(&buf[..n]).to_string();
-            let reply = format!(
-                "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{response_body}",
-                response_body.len()
-            );
-            stream.write_all(reply.as_bytes()).await.unwrap();
-            req
-        });
-        (format!("http://{addr}/upload"), handle)
+    ) -> (String, LoopbackServer) {
+        let server = LoopbackServer::exact_script(vec![ScriptedExchange::expect_path(
+            "/upload",
+            ResponseSpec::json(status, response_body),
+        )])
+        .await;
+        (server.url("/upload"), server)
     }
 
     #[tokio::test]
     async fn uploads_sanitized_log_to_mclogs_endpoint() {
-        let (url, req_task) = spawn_mock_server(
-            "200 OK",
+        let (url, server) = spawn_mock_server(
+            200,
             r#"{"success":true,"id":"AbCdEf1","url":"https://mclo.gs/AbCdEf1","raw":"https://api.mclo.gs/1/raw/AbCdEf1"}"#,
         )
         .await;
@@ -281,7 +270,9 @@ mod tests {
             Some("https://api.mclo.gs/1/raw/AbCdEf1")
         );
 
-        let request_payload = req_task.await.unwrap();
+        let captured = server.finish().await;
+        assert_eq!(captured.len(), 1);
+        let request_payload = &captured[0].raw_request;
         assert!(!request_payload.contains("SecretPlayer"));
         assert!(!request_payload.contains("secret_tok_999"));
         assert!(request_payload.contains("REDACTED"));
@@ -289,8 +280,8 @@ mod tests {
 
     #[tokio::test]
     async fn uploads_sanitized_log_to_pasteee_endpoint() {
-        let (url, req_task) = spawn_mock_server(
-            "201 Created",
+        let (url, server) = spawn_mock_server(
+            201,
             r#"{"success":true,"id":"XyZ987","link":"https://paste.ee/p/XyZ987"}"#,
         )
         .await;
@@ -317,7 +308,9 @@ mod tests {
         assert_eq!(res.url, "https://paste.ee/p/XyZ987");
         assert_eq!(res.raw_url.as_deref(), Some("https://paste.ee/r/XyZ987"));
 
-        let request_payload = req_task.await.unwrap();
+        let captured = server.finish().await;
+        assert_eq!(captured.len(), 1);
+        let request_payload = &captured[0].raw_request;
         assert!(!request_payload.contains("198.51.100.24"));
         assert!(request_payload.contains("[REDACTED_IP]"));
     }

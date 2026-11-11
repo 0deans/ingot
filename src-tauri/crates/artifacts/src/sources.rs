@@ -8,7 +8,7 @@ mod modrinth;
 #[cfg(test)]
 mod tests;
 
-use super::TargetFile;
+use crate::models::TargetFile;
 pub use fingerprint::cf_fingerprint;
 pub use http::{SourceClient, SourceError};
 pub use modrinth::ModrinthVersionFileMatch;

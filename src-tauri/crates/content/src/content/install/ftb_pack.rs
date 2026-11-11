@@ -1,12 +1,11 @@
 //! FTB version JSON manifest parser and plan generator.
 use super::pack::PreparedModpack;
-use crate::minecraft::{
-    content::{
-        error::ContentError,
-        ftb::{deserialize_opt_u64_or_string, deserialize_u32_or_string},
-    },
-    instance::ModLoaderType,
+use crate::content::{
+    curseforge::CURSEFORGE_API_KEY,
+    error::ContentError,
+    ftb::{deserialize_opt_u64_or_string, deserialize_u32_or_string},
 };
+use crate::minecraft::instance::ModLoaderType;
 use serde::Deserialize;
 use std::{path::Path, sync::Arc};
 
@@ -175,10 +174,7 @@ pub(crate) async fn download_ftb_files(
             );
             let response = client
                 .get(url)
-                .header(
-                    "x-api-key",
-                    crate::minecraft::content::curseforge::CURSEFORGE_API_KEY,
-                )
+                .header("x-api-key", CURSEFORGE_API_KEY)
                 .send()
                 .await
                 .map_err(ContentError::Transport)?;

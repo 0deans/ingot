@@ -15,6 +15,20 @@ struct FakePreparation {
     auth_calls: AtomicUsize,
 }
 
+impl FakePreparation {
+    fn new(failure: Failure) -> Self {
+        Self {
+            failure,
+            java_calls: AtomicUsize::new(0),
+            auth_calls: AtomicUsize::new(0),
+        }
+    }
+
+    fn success() -> Self {
+        Self::new(Failure::None)
+    }
+}
+
 impl PreparationEffects for FakePreparation {
     fn ensure_java<'a>(
         &'a self,
@@ -39,8 +53,14 @@ impl PreparationEffects for FakePreparation {
         Box::pin(async move {
             self.auth_calls.fetch_add(1, Ordering::SeqCst);
             if matches!(self.failure, Failure::Authentication) {
+                #[derive(Debug, thiserror::Error)]
+                #[error("fixture account not found")]
+                struct MockAccountNotFound;
+
                 return Err(LaunchError::Account(
-                    crate::account::session::SessionError::AccountNotFound.into(),
+                    crate::minecraft::launcher::models::LaunchAccountError::new(
+                        MockAccountNotFound,
+                    ),
                 ));
             }
             Ok(ResolvedAuth {
@@ -55,16 +75,53 @@ impl PreparationEffects for FakePreparation {
     }
 }
 
-fn fixture() -> (tempfile::TempDir, InstanceConfig) {
-    let directory = tempfile::tempdir().unwrap();
-    let package_directory = directory.path().join("cache/versions/fixture");
+fn write_version_package(directory: &Path, id: &str, package: &serde_json::Value) {
+    let package_directory = directory.join(format!("cache/versions/{id}"));
     fs::create_dir_all(&package_directory).unwrap();
-    let package = serde_json::json!({ "id": "fixture", "libraries": [], "mainClass": "fixture.Main", "javaVersion": { "component": "fixture", "majorVersion": 21 } });
     fs::write(
-        package_directory.join("fixture.json"),
-        serde_json::to_vec(&package).unwrap(),
+        package_directory.join(format!("{id}.json")),
+        serde_json::to_vec(package).unwrap(),
     )
     .unwrap();
+}
+
+fn write_asset_index(directory: &Path, id: &str, index: &serde_json::Value) {
+    let indexes = directory.join("assets/indexes");
+    fs::create_dir_all(&indexes).unwrap();
+    fs::write(
+        indexes.join(format!("{id}.json")),
+        serde_json::to_vec(index).unwrap(),
+    )
+    .unwrap();
+}
+
+fn write_asset_object(directory: &Path, hash: &str, content: &[u8]) {
+    let prefix = &hash[..2];
+    let obj_dest = directory.join("assets/objects").join(prefix).join(hash);
+    fs::create_dir_all(obj_dest.parent().unwrap()).unwrap();
+    fs::write(&obj_dest, content).unwrap();
+}
+
+fn write_library_jar(directory: &Path, rel_path: &str, content: &[u8]) {
+    let lib_dest = directory.join("libraries").join(rel_path);
+    fs::create_dir_all(lib_dest.parent().unwrap()).unwrap();
+    fs::write(&lib_dest, content).unwrap();
+}
+
+fn write_loader_profile(directory: &Path, filename: &str, profile: &serde_json::Value) {
+    let profiles_dir = directory.join("cache/loader_profiles");
+    fs::create_dir_all(&profiles_dir).unwrap();
+    fs::write(
+        profiles_dir.join(filename),
+        serde_json::to_vec(profile).unwrap(),
+    )
+    .unwrap();
+}
+
+fn fixture() -> (tempfile::TempDir, InstanceConfig) {
+    let directory = tempfile::tempdir().unwrap();
+    let package = serde_json::json!({ "id": "fixture", "libraries": [], "mainClass": "fixture.Main", "javaVersion": { "component": "fixture", "majorVersion": 21 } });
+    write_version_package(directory.path(), "fixture", &package);
     let instance = crate::minecraft::instance::prepare_instance(
         "fixture".into(),
         "fixture".into(),
@@ -96,11 +153,7 @@ async fn prepare(
 #[tokio::test]
 async fn preparation_uses_injected_java_and_auth_without_native_runtime() {
     let (directory, instance) = fixture();
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
     let result = prepare(directory.path(), &instance, &effects)
         .await
         .unwrap();
@@ -114,11 +167,7 @@ async fn preparation_uses_injected_java_and_auth_without_native_runtime() {
 #[tokio::test]
 async fn java_failure_prevents_authentication_and_launch() {
     let (directory, instance) = fixture();
-    let effects = FakePreparation {
-        failure: Failure::Java,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::new(Failure::Java);
     assert!(matches!(
         prepare(directory.path(), &instance, &effects).await,
         Err(LaunchError::JavaRuntime(_))
@@ -129,11 +178,7 @@ async fn java_failure_prevents_authentication_and_launch() {
 #[tokio::test]
 async fn authentication_failure_is_not_converted_to_offline_credentials() {
     let (directory, instance) = fixture();
-    let effects = FakePreparation {
-        failure: Failure::Authentication,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::new(Failure::Authentication);
     assert!(matches!(
         prepare(directory.path(), &instance, &effects).await,
         Err(LaunchError::Account(_))
@@ -185,16 +230,8 @@ async fn invalid_cached_asset_stops_preparation_without_network_or_authenticatio
     let indexes = directory.path().join("assets/indexes");
     fs::create_dir_all(&indexes).unwrap();
     let index = serde_json::json!({"objects": {"invalid": {"hash": "../unsafe", "size": 1}}});
-    fs::write(
-        indexes.join("fixture.json"),
-        serde_json::to_vec(&index).unwrap(),
-    )
-    .unwrap();
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    write_asset_index(directory.path(), "fixture", &index);
+    let effects = FakePreparation::success();
     // Route any accidental external request to an observable loopback listener.
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let proxy = reqwest::Proxy::all(format!("http://{}", listener.local_addr().unwrap())).unwrap();
@@ -227,7 +264,6 @@ async fn invalid_cached_asset_stops_preparation_without_network_or_authenticatio
 #[tokio::test]
 async fn preparation_deduplicates_duplicate_libraries() {
     let (directory, instance) = fixture();
-    let package_path = directory.path().join("cache/versions/fixture/fixture.json");
     let lib_artifact = serde_json::json!({
         "path": "com/mojang/text2speech/1.10.3/text2speech-1.10.3.jar",
         "url": "https://libraries.minecraft.net/com/mojang/text2speech/1.10.3/text2speech-1.10.3.jar",
@@ -249,19 +285,14 @@ async fn preparation_deduplicates_duplicate_libraries() {
         "mainClass": "fixture.Main",
         "javaVersion": { "component": "fixture", "majorVersion": 21 }
     });
-    fs::write(package_path, serde_json::to_vec(&package).unwrap()).unwrap();
+    write_version_package(directory.path(), "fixture", &package);
+    write_library_jar(
+        directory.path(),
+        "com/mojang/text2speech/1.10.3/text2speech-1.10.3.jar",
+        b"dummy jar content",
+    );
 
-    let lib_dest = directory
-        .path()
-        .join("libraries/com/mojang/text2speech/1.10.3/text2speech-1.10.3.jar");
-    fs::create_dir_all(lib_dest.parent().unwrap()).unwrap();
-    fs::write(&lib_dest, b"dummy jar content").unwrap();
-
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
     let result = prepare(directory.path(), &instance, &effects)
         .await
         .unwrap();
@@ -286,10 +317,8 @@ async fn preparation_deduplicates_duplicate_asset_hashes() {
         "size": 100,
         "url": "http://127.0.0.1:9/unused"
     });
-    fs::write(package_path, serde_json::to_vec(&package).unwrap()).unwrap();
+    write_version_package(directory.path(), "fixture", &package);
 
-    let indexes = directory.path().join("assets/indexes");
-    fs::create_dir_all(&indexes).unwrap();
     // SHA-1 of b"test" is a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 (size 4)
     let shared_hash = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3";
     let index = serde_json::json!({
@@ -298,26 +327,10 @@ async fn preparation_deduplicates_duplicate_asset_hashes() {
             "minecraft/sounds/sound2.ogg": { "hash": shared_hash, "size": 4 }
         }
     });
-    fs::write(
-        indexes.join("fixture.json"),
-        serde_json::to_vec(&index).unwrap(),
-    )
-    .unwrap();
+    write_asset_index(directory.path(), "fixture", &index);
+    write_asset_object(directory.path(), shared_hash, b"test");
 
-    let prefix = &shared_hash[..2];
-    let obj_dest = directory
-        .path()
-        .join("assets/objects")
-        .join(prefix)
-        .join(shared_hash);
-    fs::create_dir_all(obj_dest.parent().unwrap()).unwrap();
-    fs::write(&obj_dest, b"test").unwrap();
-
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
     let result = prepare(directory.path(), &instance, &effects).await;
     assert!(result.is_ok());
 }
@@ -341,11 +354,7 @@ async fn preparation_missing_loader_version_unresolvable_fails_with_loader_versi
     )
     .unwrap();
 
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
 
     let result = prepare_launch_environment(
         &effects,
@@ -364,7 +373,6 @@ async fn preparation_missing_loader_version_unresolvable_fails_with_loader_versi
 #[tokio::test]
 async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
     let (directory, _) = fixture();
-    let package_path = directory.path().join("cache/versions/fixture/fixture.json");
     let package = serde_json::json!({
         "id": "fixture",
         "libraries": [
@@ -382,10 +390,8 @@ async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
         "mainClass": "fixture.Main",
         "javaVersion": { "component": "fixture", "majorVersion": 21 }
     });
-    fs::write(package_path, serde_json::to_vec(&package).unwrap()).unwrap();
+    write_version_package(directory.path(), "fixture", &package);
 
-    let profiles_dir = directory.path().join("cache/loader_profiles");
-    fs::create_dir_all(&profiles_dir).unwrap();
     let profile = serde_json::json!({
         "id": "forge-profile",
         "main_class": "net.minecraft.launchwrapper.Launch",
@@ -404,17 +410,12 @@ async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
         "jvm_args": [],
         "game_args": []
     });
-    fs::write(
-        profiles_dir.join("v5_Forge_fixture_1.0.json"),
-        serde_json::to_vec(&profile).unwrap(),
-    )
-    .unwrap();
-
-    let guava17_dest = directory
-        .path()
-        .join("libraries/com/google/guava/guava/17.0/guava-17.0.jar");
-    fs::create_dir_all(guava17_dest.parent().unwrap()).unwrap();
-    fs::write(&guava17_dest, b"0123456789").unwrap();
+    write_loader_profile(directory.path(), "v5_Forge_fixture_1.0.json", &profile);
+    write_library_jar(
+        directory.path(),
+        "com/google/guava/guava/17.0/guava-17.0.jar",
+        b"0123456789",
+    );
 
     let forge_instance = crate::minecraft::instance::prepare_instance(
         "forge-fixture".into(),
@@ -424,11 +425,7 @@ async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
     )
     .unwrap();
 
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
     let result = prepare(directory.path(), &forge_instance, &effects)
         .await
         .unwrap();
@@ -446,7 +443,6 @@ async fn preparation_loader_libraries_take_precedence_over_vanilla_libraries() {
 #[tokio::test]
 async fn preparation_collects_natives_into_native_jars_and_not_classpath() {
     let (directory, instance) = fixture();
-    let package_path = directory.path().join("cache/versions/fixture/fixture.json");
     let os_key = current_os_key();
     let package = serde_json::json!({
         "id": "fixture",
@@ -470,19 +466,14 @@ async fn preparation_collects_natives_into_native_jars_and_not_classpath() {
         "mainClass": "fixture.Main",
         "javaVersion": { "component": "fixture", "majorVersion": 21 }
     });
-    fs::write(package_path, serde_json::to_vec(&package).unwrap()).unwrap();
-
-    let native_jar_dest = directory.path().join(
-        "libraries/org/lwjgl/lwjgl/lwjgl-platform/2.9.4/lwjgl-platform-2.9.4-natives-windows.jar",
+    write_version_package(directory.path(), "fixture", &package);
+    write_library_jar(
+        directory.path(),
+        "org/lwjgl/lwjgl/lwjgl-platform/2.9.4/lwjgl-platform-2.9.4-natives-windows.jar",
+        b"0123456789",
     );
-    fs::create_dir_all(native_jar_dest.parent().unwrap()).unwrap();
-    fs::write(&native_jar_dest, b"0123456789").unwrap();
 
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
     let result = prepare(directory.path(), &instance, &effects)
         .await
         .unwrap();
@@ -498,7 +489,6 @@ async fn preparation_collects_natives_into_native_jars_and_not_classpath() {
 #[tokio::test]
 async fn preparation_downloads_maven_files_without_adding_to_classpath_or_shadowing_vanilla() {
     let (directory, _) = fixture();
-    let package_path = directory.path().join("cache/versions/fixture/fixture.json");
     let package = serde_json::json!({
         "id": "fixture",
         "libraries": [
@@ -536,10 +526,8 @@ async fn preparation_downloads_maven_files_without_adding_to_classpath_or_shadow
         "mainClass": "fixture.Main",
         "javaVersion": { "component": "fixture", "majorVersion": 21 }
     });
-    fs::write(package_path, serde_json::to_vec(&package).unwrap()).unwrap();
+    write_version_package(directory.path(), "fixture", &package);
 
-    let profiles_dir = directory.path().join("cache/loader_profiles");
-    fs::create_dir_all(&profiles_dir).unwrap();
     let profile = serde_json::json!({
         "id": "forge-fixture-1.0",
         "main_class": "io.github.zekerzhayard.forgewrapper.installer.Main",
@@ -600,59 +588,20 @@ async fn preparation_downloads_maven_files_without_adding_to_classpath_or_shadow
         "jvm_args": [],
         "game_args": []
     });
-    fs::write(
-        profiles_dir.join("v5_Forge_fixture_1.0.json"),
-        serde_json::to_vec(&profile).unwrap(),
-    )
-    .unwrap();
+    write_loader_profile(directory.path(), "v5_Forge_fixture_1.0.json", &profile);
 
-    let guava21_dest = directory
-        .path()
-        .join("libraries/com/google/guava/guava/21.0/guava-21.0.jar");
-    fs::create_dir_all(guava21_dest.parent().unwrap()).unwrap();
-    fs::write(&guava21_dest, b"0123456789").unwrap();
-
-    let guava20_dest = directory
-        .path()
-        .join("libraries/com/google/guava/guava/20.0/guava-20.0.jar");
-    fs::create_dir_all(guava20_dest.parent().unwrap()).unwrap();
-    fs::write(&guava20_dest, b"0123456789").unwrap();
-
-    let log4j_api_215_dest = directory
-        .path()
-        .join("libraries/org/apache/logging/log4j/log4j-api/2.15.0/log4j-api-2.15.0.jar");
-    fs::create_dir_all(log4j_api_215_dest.parent().unwrap()).unwrap();
-    fs::write(&log4j_api_215_dest, b"0123456789").unwrap();
-
-    let log4j_core_215_dest = directory
-        .path()
-        .join("libraries/org/apache/logging/log4j/log4j-core/2.15.0/log4j-core-2.15.0.jar");
-    fs::create_dir_all(log4j_core_215_dest.parent().unwrap()).unwrap();
-    fs::write(&log4j_core_215_dest, b"0123456789").unwrap();
-
-    let log4j_slf4j_215_dest = directory
-        .path()
-        .join("libraries/org/apache/logging/log4j/log4j-slf4j18-impl/2.15.0/log4j-slf4j18-impl-2.15.0.jar");
-    fs::create_dir_all(log4j_slf4j_215_dest.parent().unwrap()).unwrap();
-    fs::write(&log4j_slf4j_215_dest, b"0123456789").unwrap();
-
-    let log4j_api_281_dest = directory
-        .path()
-        .join("libraries/org/apache/logging/log4j/log4j-api/2.8.1/log4j-api-2.8.1.jar");
-    fs::create_dir_all(log4j_api_281_dest.parent().unwrap()).unwrap();
-    fs::write(&log4j_api_281_dest, b"0123456789").unwrap();
-
-    let log4j_core_281_dest = directory
-        .path()
-        .join("libraries/org/apache/logging/log4j/log4j-core/2.8.1/log4j-core-2.8.1.jar");
-    fs::create_dir_all(log4j_core_281_dest.parent().unwrap()).unwrap();
-    fs::write(&log4j_core_281_dest, b"0123456789").unwrap();
-
-    let installer_dest = directory.path().join(
-        "libraries/net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar",
-    );
-    fs::create_dir_all(installer_dest.parent().unwrap()).unwrap();
-    fs::write(&installer_dest, b"0123456789").unwrap();
+    for rel_path in [
+        "com/google/guava/guava/21.0/guava-21.0.jar",
+        "com/google/guava/guava/20.0/guava-20.0.jar",
+        "org/apache/logging/log4j/log4j-api/2.15.0/log4j-api-2.15.0.jar",
+        "org/apache/logging/log4j/log4j-core/2.15.0/log4j-core-2.15.0.jar",
+        "org/apache/logging/log4j/log4j-slf4j18-impl/2.15.0/log4j-slf4j18-impl-2.15.0.jar",
+        "org/apache/logging/log4j/log4j-api/2.8.1/log4j-api-2.8.1.jar",
+        "org/apache/logging/log4j/log4j-core/2.8.1/log4j-core-2.8.1.jar",
+        "net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar",
+    ] {
+        write_library_jar(directory.path(), rel_path, b"0123456789");
+    }
 
     let forge_instance = crate::minecraft::instance::prepare_instance(
         "forge-fixture".into(),
@@ -662,11 +611,7 @@ async fn preparation_downloads_maven_files_without_adding_to_classpath_or_shadow
     )
     .unwrap();
 
-    let effects = FakePreparation {
-        failure: Failure::None,
-        java_calls: AtomicUsize::new(0),
-        auth_calls: AtomicUsize::new(0),
-    };
+    let effects = FakePreparation::success();
     let result = prepare(directory.path(), &forge_instance, &effects)
         .await
         .unwrap();

@@ -148,39 +148,6 @@ pub async fn apply_typed(
     .await
 }
 
-pub async fn apply_with_commit<F, E>(
-    client: &reqwest::Client,
-    target: &Target,
-    plan: &VersionPlan,
-    backup_worlds: bool,
-    progress: impl Fn(String) + Sync,
-    commit_metadata: F,
-) -> Result<(), VersionChangeError>
-where
-    F: FnOnce() -> Result<(), E>,
-    E: std::error::Error + Send + Sync + 'static,
-{
-    apply_typed_with_commit(
-        client,
-        target,
-        plan,
-        backup_worlds,
-        progress,
-        commit_metadata,
-    )
-    .await
-}
-
-pub async fn apply(
-    client: &reqwest::Client,
-    target: &Target,
-    plan: &VersionPlan,
-    backup_worlds: bool,
-    progress: impl Fn(String) + Sync,
-) -> Result<(), VersionChangeError> {
-    apply_typed(client, target, plan, backup_worlds, progress).await
-}
-
 fn with_staging_cleanup(
     primary: VersionChangeError,
     staging: &std::path::Path,

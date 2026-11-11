@@ -98,7 +98,7 @@ impl ServerPacksApi for ServerPacksApiImpl {
     ) -> Result<(), ApiError> {
         let server_directory =
             server::get_server_dir(&app_handle, &server_id).map_err(ApiError::from)?;
-        let directory = crate::app::safe_enclosed_path(&server_directory, &subfolder)
+        let directory = crate::core::safe_enclosed_path(&server_directory, &subfolder)
             .ok_or_else(|| ApiError::invalid_input("Invalid server subfolder"))?;
         std::fs::create_dir_all(&directory)
             .map_err(|error| ApiError::storage_failure(error.to_string()))?;

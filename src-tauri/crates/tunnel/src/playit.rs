@@ -1,5 +1,5 @@
-pub use crate::server::config::PlayitTunnelStatus;
 pub use generation::Generation;
+use serde::{Deserialize, Serialize};
 
 pub(crate) mod adapter;
 pub(crate) mod api;
@@ -22,6 +22,18 @@ use generation::StartingGuard;
 use process::PlayitProcess;
 
 pub(crate) const PLAYIT_API: &str = "https://api.playit.gg";
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayitTunnelStatus {
+    pub is_running: bool,
+    pub status: String,
+    pub claim_url: Option<String>,
+    pub public_address: Option<String>,
+    pub ping_ms: Option<u32>,
+    /// Human-readable detail for "no_tunnel" / "error" states
+    pub message: Option<String>,
+}
 
 /// Manages the playit.gg agent lifecycle with generation identity and explicit ownership.
 #[derive(Clone)]
@@ -83,7 +95,7 @@ pub enum PlayitError {
     #[error("I/O error during playit tunnel operation: {0}")]
     Io(#[from] std::io::Error),
     #[error("Sandbox error: {0}")]
-    Sandbox(#[from] crate::server::sandbox::SandboxError),
+    Sandbox(#[from] ingot_sandbox::SandboxError),
     #[error("Playit claim was rejected")]
     ClaimRejected,
     #[error("Playit claim expired; connect again to request a new claim")]
@@ -167,7 +179,7 @@ impl PlayitManager {
     ) -> Result<PlayitTunnelStatus, PlayitError> {
         let playit_dir = app_data_dir.join("playit");
         let sandbox_dir = if cfg!(target_os = "android") {
-            Some(crate::server::sandbox::get_sandbox_dir_in(app_data_dir)?)
+            Some(ingot_sandbox::get_sandbox_dir_in(app_data_dir)?)
         } else {
             None
         };

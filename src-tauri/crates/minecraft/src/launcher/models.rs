@@ -1,4 +1,3 @@
-use crate::account::{recovery::RecoveryError, session::SessionError};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -108,29 +107,27 @@ pub enum LaunchError {
 #[error("{source}")]
 pub struct LaunchAccountError {
     #[source]
-    pub source: Box<LaunchAccountCause>,
+    pub source: Box<dyn std::error::Error + Send + Sync>,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum LaunchAccountCause {
-    #[error("Account loading failed: {0}")]
-    Recovery(#[source] RecoveryError),
-    #[error("Account authentication failed: {0}")]
-    Session(#[source] SessionError),
-}
-
-impl From<RecoveryError> for LaunchAccountError {
-    fn from(source: RecoveryError) -> Self {
+impl LaunchAccountError {
+    pub fn new<E>(source: E) -> Self
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
         Self {
-            source: Box::new(LaunchAccountCause::Recovery(source)),
+            source: Box::new(source),
         }
     }
-}
 
-impl From<SessionError> for LaunchAccountError {
-    fn from(source: SessionError) -> Self {
-        Self {
-            source: Box::new(LaunchAccountCause::Session(source)),
+    pub fn downcast_ref<T: std::error::Error + 'static>(&self) -> Option<&T> {
+        self.source.downcast_ref::<T>()
+    }
+
+    pub fn downcast<T: std::error::Error + 'static>(self) -> Result<Box<T>, Self> {
+        match self.source.downcast::<T>() {
+            Ok(val) => Ok(val),
+            Err(source) => Err(Self { source }),
         }
     }
 }

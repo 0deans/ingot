@@ -56,7 +56,7 @@ pub enum PumpkinError {
     InvalidBinaryPath,
 
     #[error("Sandbox error: {0}")]
-    Sandbox(#[from] crate::server::sandbox::SandboxError),
+    Sandbox(#[from] ingot_sandbox::SandboxError),
 }
 
 /// Fetches available Pumpkin versions from GitHub Releases
@@ -240,7 +240,7 @@ pub fn build_pumpkin_command(
                 .ok_or(PumpkinError::InvalidBinaryPath)?
                 .to_string_lossy()
                 .into_owned();
-            let mut cmd = crate::server::sandbox::proot_command(
+            let mut cmd = ingot_sandbox::proot_command(
                 sandbox_dir,
                 Some(rootfs),
                 false,

@@ -125,7 +125,7 @@ pub(crate) fn build_agent_command(
     let mut cmd = if let Some(sandbox_dir) = sandbox_dir {
         let resolv = playit_dir.join("resolv.conf");
         std::fs::write(&resolv, "nameserver 1.1.1.1\nnameserver 8.8.8.8\n")?;
-        let mut cmd = crate::server::sandbox::proot_command(
+        let mut cmd = ingot_sandbox::proot_command(
             sandbox_dir,
             None,
             false,

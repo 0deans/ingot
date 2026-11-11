@@ -1,4 +1,3 @@
-use std::io::Write;
 use std::path::Path;
 
 use super::PlayitError;
@@ -37,21 +36,7 @@ pub fn write_secret(playit_dir: &Path, secret: &str) -> Result<(), PlayitError> 
     }
     std::fs::create_dir_all(playit_dir).map_err(PlayitError::CredentialWrite)?;
     let secret_path = playit_dir.join(SECRET_FILE);
-    let mut staged =
-        tempfile::NamedTempFile::new_in(playit_dir).map_err(PlayitError::CredentialWrite)?;
-    staged
-        .write_all(trimmed.as_bytes())
-        .map_err(PlayitError::CredentialWrite)?;
-    staged
-        .as_file()
-        .sync_all()
-        .map_err(PlayitError::CredentialWrite)?;
-    staged
-        .persist(secret_path)
-        .map_err(|error| PlayitError::CredentialWrite(error.error))?;
-    #[cfg(unix)]
-    std::fs::File::open(playit_dir)
-        .and_then(|directory| directory.sync_all())
+    ingot_core::write_file_atomic_with_parent_sync(&secret_path, trimmed.as_bytes(), true)
         .map_err(PlayitError::CredentialWrite)?;
     Ok(())
 }

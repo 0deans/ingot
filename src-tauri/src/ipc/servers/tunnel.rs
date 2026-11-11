@@ -1,10 +1,10 @@
 //! IPC procedures for Playit tunnel management.
 use super::get_http_client;
 use crate::ipc::ApiError;
-use crate::server::{self, PlayitTunnelStatus};
+use crate::tunnel::{self, PlayitTunnelStatus};
 use tauri::{Manager, Runtime};
 
-fn get_playit_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &server::PlayitManager {
+fn get_playit_manager<R: Runtime>(app: &tauri::AppHandle<R>) -> &tunnel::PlayitManager {
     &crate::app::state(app).playit
 }
 

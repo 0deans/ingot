@@ -160,8 +160,6 @@ pub enum LiveError {
     NoSavedData(String),
     #[error("SNBT parse error: {0}")]
     Snbt(#[from] super::snbt::SnbtError),
-    #[error("Server query error: {0}")]
-    Query(#[source] Box<crate::server::process::ProcessError>),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 }

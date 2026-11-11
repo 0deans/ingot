@@ -1,4 +1,4 @@
-use crate::minecraft::content::models::{
+use crate::content::models::{
     ContentScreenshot, UnifiedContentDetails, UnifiedContentItem, UnifiedContentVersion,
 };
 use serde::Deserialize;

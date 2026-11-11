@@ -1,11 +1,8 @@
 //! Unit and hermetic loopback tests for Ely.by auth, catalog, web session, and skin management.
 use super::*;
+use ingot_test_support::{LoopbackServer, ResponseSpec};
 use reqwest::StatusCode;
 use std::sync::Arc;
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpListener,
-};
 
 #[test]
 fn test_build_oauth_complete_url() {
@@ -112,7 +109,7 @@ fn test_check_ely_web_response() {
 
 struct MockServer {
     base_url: String,
-    _handle: tokio::task::JoinHandle<()>,
+    _server: LoopbackServer,
 }
 
 impl MockServer {
@@ -123,74 +120,20 @@ impl MockServer {
             + Sync
             + 'static,
     {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let addr = listener.local_addr().unwrap();
-        let base_url = format!("http://{addr}");
-        let handler = Arc::new(handler);
-
-        let handle = tokio::spawn(async move {
-            loop {
-                let Ok((mut stream, _)) = listener.accept().await else {
-                    break;
-                };
-                let handler = Arc::clone(&handler);
-
-                tokio::spawn(async move {
-                    let mut buffer = [0u8; 4096];
-                    let mut bytes = Vec::new();
-                    let (method, path, body) = loop {
-                        let count = match stream.read(&mut buffer).await {
-                            Ok(c) if c > 0 => c,
-                            _ => return,
-                        };
-                        bytes.extend_from_slice(&buffer[..count]);
-
-                        if let Some(pos) = bytes.windows(4).position(|w| w == b"\r\n\r\n") {
-                            let header_str = String::from_utf8_lossy(&bytes[..pos]);
-                            let mut lines = header_str.lines();
-                            let req_line = lines.next().unwrap_or("");
-                            let mut parts = req_line.split_whitespace();
-                            let method = parts.next().unwrap_or("GET").to_string();
-                            let path = parts.next().unwrap_or("/").to_string();
-
-                            let mut content_length = 0;
-                            for line in lines {
-                                if let Some((k, v)) = line.split_once(':') {
-                                    if k.trim().eq_ignore_ascii_case("content-length") {
-                                        content_length = v.trim().parse().unwrap_or(0);
-                                    }
-                                }
-                            }
-
-                            let body_start = pos + 4;
-                            let remaining = bytes.len() - body_start;
-                            if remaining >= content_length {
-                                let body = bytes[body_start..body_start + content_length].to_vec();
-                                break (method, path, body);
-                            }
-                        }
-                    };
-
-                    let (status, extra_headers, resp_body) = handler(&method, &path, &body);
-                    let mut response = format!(
-                        "HTTP/1.1 {status} OK\r\nContent-Length: {}\r\nConnection: close\r\n",
-                        resp_body.len()
-                    );
-                    for (k, v) in extra_headers {
-                        response.push_str(&format!("{k}: {v}\r\n"));
-                    }
-                    response.push_str("\r\n");
-                    response.push_str(&resp_body);
-
-                    let _ = stream.write_all(response.as_bytes()).await;
-                    let _ = stream.shutdown().await;
-                });
+        let server = LoopbackServer::with_handler(move |request| {
+            let (status, extra_headers, resp_body) =
+                handler(&request.method, &request.path, &request.body);
+            let mut spec = ResponseSpec::bytes(status, resp_body.into_bytes());
+            for (k, v) in extra_headers {
+                spec = spec.with_header(k, v);
             }
-        });
+            spec
+        })
+        .await;
 
         Self {
-            base_url,
-            _handle: handle,
+            base_url: server.base_url().to_string(),
+            _server: server,
         }
     }
 }

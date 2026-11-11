@@ -23,16 +23,10 @@ pub enum ServerFileError {
 }
 
 pub(super) fn publish_file(path: &Path, bytes: &[u8]) -> Result<(), ServerFileError> {
-    use std::io::Write;
-    let parent = path
-        .parent()
-        .ok_or_else(|| ServerFileError::InvalidPath(path.display().to_string()))?;
-    let mut staged = tempfile::NamedTempFile::new_in(parent)?;
-    staged.write_all(bytes)?;
-    staged.as_file().sync_all()?;
-    staged
-        .persist(path)
-        .map_err(|error| ServerFileError::Io(error.error))?;
+    if path.parent().is_none() {
+        return Err(ServerFileError::InvalidPath(path.display().to_string()));
+    }
+    crate::core::write_file_atomic(path, bytes)?;
     Ok(())
 }
 

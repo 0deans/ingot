@@ -36,7 +36,7 @@ impl AtLauncherPackListResponse {
 pub(crate) struct AtLauncherPackSummary {
     #[serde(
         default,
-        deserialize_with = "crate::minecraft::content::ftb::deserialize_opt_u64_or_string"
+        deserialize_with = "crate::content::ftb::deserialize_opt_u64_or_string"
     )]
     pub(crate) id: Option<u64>,
     pub(crate) position: Option<u64>,

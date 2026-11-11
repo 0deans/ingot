@@ -1,66 +1,24 @@
 use std::error::Error;
 
 use serde_json::json;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
-use tokio::task::JoinHandle;
 
 use super::*;
 
 struct Fixture {
-    endpoint: String,
-    task: JoinHandle<Vec<String>>,
-}
-
-impl Drop for Fixture {
-    fn drop(&mut self) {
-        self.task.abort();
-    }
+    server: ingot_test_support::LoopbackServer,
 }
 
 impl Fixture {
     async fn new(responses: Vec<(u16, String)>) -> Self {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let endpoint = format!("http://{}", listener.local_addr().unwrap());
-        let task = tokio::spawn(async move {
-            let mut requests = Vec::new();
-            for (status, body) in responses {
-                let (mut stream, _) = listener.accept().await.unwrap();
-                let mut bytes = Vec::new();
-                let mut buffer = [0; 4096];
-                loop {
-                    let size = stream.read(&mut buffer).await.unwrap();
-                    assert!(size > 0);
-                    bytes.extend_from_slice(&buffer[..size]);
-                    let Some(offset) = bytes.windows(4).position(|window| window == b"\r\n\r\n")
-                    else {
-                        continue;
-                    };
-                    let headers = String::from_utf8(bytes[..offset].to_vec()).unwrap();
-                    let length = headers
-                        .lines()
-                        .find_map(|line| {
-                            let (name, value) = line.split_once(':')?;
-                            name.eq_ignore_ascii_case("content-length")
-                                .then(|| value.trim().parse::<usize>().unwrap())
-                        })
-                        .unwrap_or(0);
-                    if bytes.len() < offset + 4 + length {
-                        continue;
-                    }
-                    requests.push(headers.lines().next().unwrap().to_owned());
-                    break;
-                }
-                let response = format!("HTTP/1.1 {status} Fixture\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
-                stream.write_all(response.as_bytes()).await.unwrap();
-            }
-            requests
-        });
-        Self { endpoint, task }
+        Self {
+            server: ingot_test_support::LoopbackServer::scripted(responses).await,
+        }
     }
 
     fn sources<'a>(&self, client: &'a reqwest::Client) -> SourceClient<'a> {
-        SourceClient::with_endpoints(client, &self.endpoint, &self.endpoint, &self.endpoint)
+        let endpoint = self.server.base_url();
+        SourceClient::with_endpoints(client, endpoint, endpoint, endpoint)
     }
 }
 

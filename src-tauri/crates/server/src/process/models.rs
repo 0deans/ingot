@@ -239,7 +239,7 @@ pub enum ProcessError {
     #[error("Bedrock server error: {0}")]
     Bedrock(#[from] crate::server::bedrock::BedrockServerError),
     #[error("Sandbox error: {0}")]
-    Sandbox(#[from] crate::server::sandbox::SandboxError),
+    Sandbox(#[from] ingot_sandbox::SandboxError),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 }

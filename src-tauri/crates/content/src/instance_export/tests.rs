@@ -638,7 +638,7 @@ fn test_mrpack_round_trip_with_modrinth_index_parser() {
     use super::models::{EnvSupport, ExportFormat, ExportOptions};
     use super::mrpack::build_modrinth_index;
     use super::resolve::ResolvedModrinthFile;
-    use crate::minecraft::content::install::{parse_modrinth_loader, ModrinthIndex};
+    use crate::content::install::{parse_modrinth_loader, ModrinthIndex};
     use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
 
     let config = InstanceConfig {
@@ -708,7 +708,7 @@ async fn test_curseforge_export_tracking_fingerprint_modlist_and_roundtrip() {
         build_curseforge_modloaders, build_curseforge_plan, classify_curseforge_files, html_escape,
     };
     use super::models::{ExportFormat, ExportOptions};
-    use crate::minecraft::content::install::{parse_curseforge_loader, CurseForgeManifest};
+    use crate::content::install::{parse_curseforge_loader, CurseForgeManifest};
     use crate::minecraft::instance::{InstanceConfig, ModLoaderType};
     use crate::minecraft::instance_content::models::{ProviderSource, TrackedOrigin};
 

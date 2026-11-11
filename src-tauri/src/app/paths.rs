@@ -1,8 +1,5 @@
 use std::path::PathBuf;
 
-#[allow(unused_imports)]
-pub(crate) use crate::core::paths::{safe_enclosed_filename, safe_enclosed_path};
-
 pub(crate) struct AppPaths {
     data_dir: PathBuf,
 }

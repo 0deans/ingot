@@ -61,20 +61,13 @@ pub fn write_tracking_typed(
     server_dir: &Path,
     tracked: &[TrackedPlugin],
 ) -> Result<(), std::io::Error> {
-    use std::io::Write;
     let path = tracking_path(server_dir);
     let parent = path.parent().unwrap_or(server_dir);
     std::fs::create_dir_all(parent)?;
     let raw = serde_json::to_string_pretty(tracked)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
 
-    let mut staged = tempfile::NamedTempFile::new_in(parent)?;
-    staged.write_all(raw.as_bytes())?;
-    staged.as_file().sync_all()?;
-    staged.persist(&path).map_err(|e| e.error)?;
-    #[cfg(unix)]
-    std::fs::File::open(parent)?.sync_all()?;
-    Ok(())
+    crate::core::write_file_atomic_with_parent_sync(&path, raw.as_bytes(), true)
 }
 
 pub fn write_tracking(server_dir: &Path, tracked: &[TrackedPlugin]) -> Result<(), TrackingError> {
