@@ -32,7 +32,6 @@ impl AtLauncherPackListResponse {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(dead_code)]
 pub(crate) struct AtLauncherPackSummary {
     #[serde(
         default,
@@ -53,14 +52,11 @@ pub(crate) struct AtLauncherPackSummary {
     pub(crate) support_url: Option<String>,
     #[serde(rename = "websiteURL")]
     pub(crate) website_url: Option<String>,
-    #[serde(rename = "discordInviteURL")]
-    pub(crate) discord_url: Option<String>,
     #[serde(default)]
     pub(crate) categories: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(dead_code)]
 pub(crate) struct AtLauncherVersionRef {
     pub(crate) version: String,
     pub(crate) minecraft: Option<String>,
@@ -69,8 +65,6 @@ pub(crate) struct AtLauncherVersionRef {
     pub(crate) version_type: Option<String>,
     #[serde(rename = "hasLoader")]
     pub(crate) has_loader: Option<bool>,
-    #[serde(rename = "isRecommended")]
-    pub(crate) is_recommended: Option<bool>,
     #[serde(rename = "downloadUrl")]
     pub(crate) download_url: Option<String>,
 }
@@ -92,9 +86,7 @@ impl AtLauncherPackDetailResponse {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(dead_code)]
 pub(crate) struct AtLauncherPackDetail {
-    pub(crate) id: Option<u64>,
     pub(crate) name: String,
     #[serde(rename = "safeName")]
     pub(crate) safe_name: Option<String>,

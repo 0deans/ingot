@@ -86,12 +86,9 @@ struct PackHeader {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct PackModule {
     #[serde(rename = "type")]
     module_type: Option<String>,
-    uuid: Option<String>,
-    version: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

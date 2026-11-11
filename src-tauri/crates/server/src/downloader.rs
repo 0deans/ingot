@@ -15,14 +15,9 @@ struct PaperBuildResponseV3 {
     downloads: std::collections::HashMap<String, PaperDownloadItemV3>,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct PaperDownloadItemV3 {
-    #[serde(default)]
-    name: Option<String>,
     url: String,
-    #[serde(default)]
-    size: Option<u64>,
 }
 
 #[derive(Debug, Deserialize)]

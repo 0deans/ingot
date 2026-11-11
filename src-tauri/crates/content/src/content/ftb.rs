@@ -113,12 +113,10 @@ struct FtbPackId(#[serde(deserialize_with = "deserialize_u64_or_string")] u64);
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-#[allow(dead_code)]
 enum FtbPackListResponse {
     Object {
         #[serde(default)]
         packs: Option<Vec<FtbPackId>>,
-        total: Option<u64>,
     },
     Array(Vec<FtbPackId>),
 }

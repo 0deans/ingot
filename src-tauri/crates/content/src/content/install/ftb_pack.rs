@@ -10,10 +10,7 @@ use serde::Deserialize;
 use std::{path::Path, sync::Arc};
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 pub(crate) struct FtbVersionManifest {
-    #[serde(default, deserialize_with = "deserialize_opt_u64_or_string")]
-    pub(crate) id: Option<u64>,
     pub(crate) name: Option<String>,
     #[serde(default)]
     pub(crate) targets: Vec<FtbVersionTarget>,
@@ -31,10 +28,7 @@ pub(crate) struct FtbVersionTarget {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(dead_code)]
 pub(crate) struct FtbVersionFile {
-    #[serde(default, deserialize_with = "deserialize_opt_u64_or_string")]
-    pub(crate) id: Option<u64>,
     #[serde(default)]
     pub(crate) name: String,
     #[serde(default)]

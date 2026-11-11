@@ -13,11 +13,6 @@ pub(crate) struct CurseForgeSearchResponse {
 pub(crate) struct CurseForgePagination {
     #[serde(rename = "totalCount")]
     pub(crate) total_count: u64,
-    #[allow(dead_code)]
-    pub(crate) index: u32,
-    #[allow(dead_code)]
-    #[serde(rename = "pageSize")]
-    pub(crate) page_size: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -127,7 +122,6 @@ pub struct CurseForgeFileDetail {
     pub file_length: Option<u64>,
     pub download_count: Option<u64>,
     pub download_url: Option<String>,
-    #[allow(dead_code)]
     pub game_versions: Option<Vec<String>>,
 }
 

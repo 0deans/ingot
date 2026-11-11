@@ -19,9 +19,7 @@ pub(crate) mod technic_pack;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
 pub(crate) struct ModrinthIndex {
-    pub(crate) game: Option<String>,
     pub(crate) name: Option<String>,
     pub(crate) dependencies: Option<HashMap<String, String>>,
     pub(crate) files: Option<Vec<ModrinthIndexFile>>,

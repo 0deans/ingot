@@ -12,8 +12,6 @@ struct GithubRelease {
 struct GithubReleaseAsset {
     name: String,
     browser_download_url: String,
-    #[allow(dead_code)]
-    size: u64,
 }
 
 /// Resolves the Pumpkin executable name for the current platform

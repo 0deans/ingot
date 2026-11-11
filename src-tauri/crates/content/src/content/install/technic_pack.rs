@@ -20,10 +20,8 @@ pub(crate) struct SolderBuildManifest {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(dead_code)]
 pub(crate) struct SolderMod {
     pub(crate) name: String,
-    pub(crate) version: Option<String>,
     pub(crate) md5: Option<String>,
     pub(crate) url: String,
 }

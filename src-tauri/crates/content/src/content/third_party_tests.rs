@@ -555,8 +555,7 @@ async fn test_ftb_string_number_deserialization_and_concurrent_hydration() {
         ]
     });
     let parsed: FtbVersionManifest = serde_json::from_value(manifest_json).unwrap();
-    assert_eq!(parsed.id, Some(1001));
-    assert_eq!(parsed.files[0].id, Some(5001));
+    assert_eq!(parsed.name.as_deref(), Some("FTB String Manifest"));
     assert_eq!(parsed.files[0].size, Some(99999));
     let cf = parsed.files[0].curseforge.as_ref().unwrap();
     assert_eq!(cf.project, 459929);

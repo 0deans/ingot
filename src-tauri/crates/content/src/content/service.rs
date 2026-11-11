@@ -38,7 +38,7 @@ impl ContentService {
         )
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub(crate) fn with_providers(modrinth: ModrinthClient, curseforge: CurseForgeClient) -> Self {
         let client = reqwest::Client::new();
         Self::with_all_providers(

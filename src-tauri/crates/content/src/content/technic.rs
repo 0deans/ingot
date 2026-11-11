@@ -52,7 +52,6 @@ struct TechnicSearchResponse {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(dead_code)]
 struct TechnicSearchEntry {
     name: String,
     slug: Option<String>,
@@ -60,7 +59,6 @@ struct TechnicSearchEntry {
     display_name: Option<String>,
     user: Option<String>,
     description: Option<String>,
-    url: Option<String>,
     #[serde(alias = "iconUrl")]
     icon_url: Option<String>,
     icon: Option<TechnicImage>,

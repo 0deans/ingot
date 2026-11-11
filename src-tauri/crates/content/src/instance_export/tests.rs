@@ -690,11 +690,12 @@ fn test_mrpack_round_trip_with_modrinth_index_parser() {
 
     let index = build_modrinth_index(&config, &options, &resolved).unwrap();
     let index_json = serde_json::to_vec_pretty(&index).unwrap();
+    let exported: super::mrpack::ModrinthIndex = serde_json::from_slice(&index_json).unwrap();
+    assert_eq!(exported.game, "minecraft");
 
     // Round-trip into installer parser
     let parsed: ModrinthIndex = serde_json::from_slice(&index_json).unwrap();
     assert_eq!(parsed.name.as_deref(), Some("My Pack"));
-    assert_eq!(parsed.game.as_deref(), Some("minecraft"));
 
     let deps = parsed.dependencies.as_ref().unwrap();
     let (loader, loader_ver) = parse_modrinth_loader(deps);
