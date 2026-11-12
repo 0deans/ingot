@@ -3,11 +3,11 @@ import { memo, useMemo } from "react"
 import SearchableSelect from "@/components/common/searchable-select"
 import { SectionCardHeader } from "@/components/common/section-card"
 import { Card, CardContent } from "@/components/ui/card"
-import { useLanguage } from "@/i18n/use-language"
+import { useLanguage } from "@/lib/i18n/use-language"
 
 /** One searchable dropdown: there are too many languages for a grid of cards */
 export const LanguageSettings = () => {
-	const { language, locales, systemLanguage, setLanguage, t } = useLanguage()
+	const { language, locales, systemLanguage, confirmLanguage, t } = useLanguage()
 
 	const options = useMemo(
 		() =>
@@ -30,7 +30,7 @@ export const LanguageSettings = () => {
 			<CardContent>
 				<SearchableSelect
 					value={language}
-					onValueChange={setLanguage}
+					onValueChange={confirmLanguage}
 					options={options}
 					searchPlaceholder={t("common.search")}
 					className="sm:w-72"

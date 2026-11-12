@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Swedish",
-		"nativeName": "Svenska"
-	},
 	"common": {
 		"cancel": "Avbryt",
 		"continue": "Fortsätt",

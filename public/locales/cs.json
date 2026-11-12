@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Czech",
-		"nativeName": "Čeština"
-	},
 	"common": {
 		"cancel": "Zrušit",
 		"continue": "Pokračovat",

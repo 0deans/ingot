@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "French",
-		"nativeName": "Français"
-	},
 	"common": {
 		"cancel": "Annuler",
 		"continue": "Continuer",

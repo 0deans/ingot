@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Turkish",
-		"nativeName": "Türkçe"
-	},
 	"common": {
 		"cancel": "İptal",
 		"continue": "Devam Et",

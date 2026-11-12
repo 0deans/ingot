@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Hungarian",
-		"nativeName": "Magyar"
-	},
 	"common": {
 		"cancel": "Mégse",
 		"continue": "Folytatás",

@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "German",
-		"nativeName": "Deutsch"
-	},
 	"common": {
 		"cancel": "Abbrechen",
 		"continue": "Weiter",

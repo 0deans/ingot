@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useLanguage } from "@/i18n/use-language"
+import { useLanguage } from "@/lib/i18n/use-language"
 import { useTheme } from "@/lib/theme"
 
 const THEMES = [

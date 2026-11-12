@@ -1,6 +1,6 @@
 import i18n from "i18next"
-import type { TranslationKey } from "@/i18n"
 import { formatPercent } from "@/lib/format"
+import type { TranslationKey } from "@/lib/i18n"
 
 /**
  * Progress texts come from the Rust side in English. The known ones are matched here

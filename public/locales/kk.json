@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Kazakh",
-		"nativeName": "Қазақша"
-	},
 	"common": {
 		"cancel": "Бас тарту",
 		"continue": "Жалғастыру",

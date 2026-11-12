@@ -6,7 +6,7 @@ import { alertTone } from "@/components/common/alert-tones"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import type { TranslationKey } from "@/i18n"
+import type { TranslationKey } from "@/lib/i18n"
 import { useMicrosoftLogin } from "./use-microsoft-login"
 
 const pendingMessages: Record<PendingLoginStatus, TranslationKey> = {

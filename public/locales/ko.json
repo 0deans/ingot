@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Korean",
-		"nativeName": "한국어"
-	},
 	"common": {
 		"cancel": "취소",
 		"continue": "계속",

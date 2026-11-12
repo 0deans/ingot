@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Polish",
-		"nativeName": "Polski"
-	},
 	"common": {
 		"cancel": "Anuluj",
 		"continue": "Kontynuuj",

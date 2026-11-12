@@ -1,11 +1,11 @@
 import "i18next"
-import type en from "@/locales/en.json"
+import type en from "../../../public/locales/en.json"
 
 declare module "i18next" {
 	interface CustomTypeOptions {
 		defaultNS: "translation"
 		resources: {
-			translation: Omit<typeof en, "_meta">
+			translation: typeof en
 		}
 	}
 }

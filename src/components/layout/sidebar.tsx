@@ -14,7 +14,7 @@ import {
 import { type ComponentProps, memo, type ReactNode, useCallback } from "react"
 import AccountSwitcher from "@/components/accounts/account-switcher"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useLanguage } from "@/i18n/use-language"
+import { useLanguage } from "@/lib/i18n/use-language"
 import { resetScroll } from "@/lib/scroll-restoration"
 import { getTabDestination, getTopLevelSection } from "@/lib/tab-history"
 

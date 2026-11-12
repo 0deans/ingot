@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Spanish",
-		"nativeName": "Español"
-	},
 	"common": {
 		"cancel": "Cancelar",
 		"continue": "Continuar",

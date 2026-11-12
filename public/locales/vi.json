@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Vietnamese",
-		"nativeName": "Tiếng Việt"
-	},
 	"common": {
 		"cancel": "Hủy",
 		"continue": "Tiếp tục",

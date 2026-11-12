@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next"
-import type { TranslationKey } from "@/i18n"
+import type { TranslationKey } from "@/lib/i18n"
 
 /**
  * Friendly descriptions of common server.properties keys. The texts live in the locale

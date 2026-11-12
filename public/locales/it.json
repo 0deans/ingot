@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Italian",
-		"nativeName": "Italiano"
-	},
 	"common": {
 		"cancel": "Annulla",
 		"continue": "Continua",

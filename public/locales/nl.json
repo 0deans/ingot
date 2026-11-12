@@ -1,8 +1,4 @@
 {
-	"_meta": {
-		"name": "Dutch",
-		"nativeName": "Nederlands"
-	},
 	"common": {
 		"cancel": "Annuleren",
 		"continue": "Doorgaan",
