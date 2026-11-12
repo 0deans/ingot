@@ -2,8 +2,9 @@
 	"compilerOptions": {
 		"target": "ES2020",
 		"useDefineForClassFields": true,
-		"lib": ["ES2020", "DOM"],
+		"lib": ["ES2024", "DOM"],
 		"module": "ESNext",
+		"allowJs": true,
 		"skipLibCheck": true,
 
 		/* Bundler mode */
@@ -24,6 +25,6 @@
 			"@/*": ["./src/*"]
 		}
 	},
-	"include": ["src"],
-	"references": [{ "path": "./tsconfig.node.json" }]
+	"include": ["**/*"],
+	"exclude": ["src-tauri", "dist"]
 }

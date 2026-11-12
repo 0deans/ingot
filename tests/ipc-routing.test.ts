@@ -1,36 +1,64 @@
-import assert from "node:assert/strict"
-import { afterEach, beforeEach, test } from "node:test"
 import { emit } from "@tauri-apps/api/event"
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks"
-import { createTauRPCProxy } from "../src/bindings.ts"
+import { afterEach, expect, test } from "vitest"
+import { createTauRPCProxy } from "@/bindings"
 
-// Exercise the generated proxy and installed TauRPC runtime without a browser.
-beforeEach(() => {
-	globalThis.window = globalThis
-})
+interface RecordedIpcCall {
+	command: string
+	args: unknown
+}
+
+interface TauriInternalsWithCallback {
+	runCallback: (id: number, data: unknown) => void
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+	return typeof value === "object" && value !== null
+}
+
+const hasRunCallback = (value: unknown): value is TauriInternalsWithCallback => {
+	return isRecord(value) && typeof value.runCallback === "function"
+}
+
+const getStringProperty = (args: unknown, key: string): string | undefined => {
+	if (!isRecord(args)) {
+		return undefined
+	}
+	const value = args[key]
+	return typeof value === "string" ? value : undefined
+}
+
+const getNumberProperty = (args: unknown, key: string): number | undefined => {
+	if (!isRecord(args)) {
+		return undefined
+	}
+	const value = args[key]
+	return typeof value === "number" ? value : undefined
+}
+
 afterEach(() => {
 	clearMocks()
-	delete globalThis.window
 })
 
 test("settings namespace sends the existing named arguments and unwraps success", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	const memory = { minRamMb: 1024, maxRamMb: 8192 }
 	mockIPC((command, args) => {
 		calls.push({ command, args })
 		return memory
 	})
+
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.settings.set_memory_settings(1024, 8192), memory)
-	assert.deepEqual(calls, [
+	await expect(rpc.settings.set_memory_settings(1024, 8192)).resolves.toEqual(memory)
+	expect(calls).toEqual([
 		{
 			command: "TauRPC__settings.set_memory_settings",
 			args: { min_ram_mb: 1024, max_ram_mb: 8192 },
 		},
 	])
-	assert.throws(() => {
-		return rpc.set_memory_settings
-	}, /not found/)
+	expect(() => {
+		return Reflect.get(rpc, "set_memory_settings")
+	}).toThrow(/not found/)
 })
 
 test("expected settings failures return typed error envelopes", async () => {
@@ -38,66 +66,86 @@ test("expected settings failures return typed error envelopes", async () => {
 	mockIPC(() => {
 		return Promise.reject(apiError)
 	})
+
 	const rpc = createTauRPCProxy()
-	await assert.rejects(rpc.settings.set_launcher_behavior("typo"), (error) => {
-		assert.deepEqual(error, apiError)
-		return true
-	})
+	await expect(rpc.settings.set_launcher_behavior("typo")).rejects.toEqual(apiError)
 })
 
 test("namespaced events deliver payloads, filter other routes, and unsubscribe", async () => {
-	const listeners = new Set()
-	const removals = []
+	const listeners = new Set<number>()
+	const removals: RecordedIpcCall["args"][] = []
+
 	// The installed event mock uses `id` for unlisten; the real API sends
 	// `eventId`. Model the actual event-plugin contract at the invoke boundary.
 	mockIPC((command, args) => {
 		if (command === "plugin:event|listen") {
-			listeners.add(args.handler)
-			return args.handler
+			const handler = getNumberProperty(args, "handler")
+			if (handler !== undefined) {
+				listeners.add(handler)
+			}
+			return handler
 		}
 		if (command === "plugin:event|emit") {
+			const internals: unknown = Reflect.get(window, "__TAURI_INTERNALS__")
+			if (!hasRunCallback(internals)) {
+				throw new Error("Missing __TAURI_INTERNALS__.runCallback")
+			}
 			for (const id of listeners) {
-				window.__TAURI_INTERNALS__.runCallback(id, args)
+				internals.runCallback(id, args)
 			}
 			return
 		}
 		if (command === "plugin:event|unlisten") {
 			removals.push(args)
-			listeners.delete(args.eventId)
+			const eventId = getNumberProperty(args, "eventId")
+			if (eventId !== undefined) {
+				listeners.delete(eventId)
+			}
 			return
 		}
 		throw new Error(`Unexpected invoke: ${command}`)
 	})
+
 	const rpc = createTauRPCProxy()
-	const received = []
-	const unlisten = await rpc.events.on_memory_changed.on((memory) => received.push(memory))
+	const received: Array<{ minRamMb: number; maxRamMb: number }> = []
+	const unlisten = await rpc.events.on_memory_changed.on((memory) => {
+		received.push(memory)
+	})
 	const memory = { minRamMb: 2048, maxRamMb: 4096 }
-	const payload = (eventName) => ({ event_name: eventName, event: { input_type: memory } })
+	const payload = (eventName: string) => {
+		return { event_name: eventName, event: { input_type: memory } }
+	}
+
 	await emit("TauRpc_event", payload("on_memory_changed"))
-	assert.deepEqual(received, [])
+	expect(received).toEqual([])
 	await emit("TauRpc_event", payload("events.on_memory_changed"))
-	assert.deepEqual(received, [memory])
+	expect(received).toEqual([memory])
+
 	await unlisten()
-	assert.equal(listeners.size, 0)
-	assert.equal(removals.length, 1)
-	assert.equal(removals[0].event, "TauRpc_event")
+	expect(listeners.size).toBe(0)
+	expect(removals).toHaveLength(1)
+	expect(getStringProperty(removals[0], "event")).toBe("TauRpc_event")
+
 	await emit("TauRpc_event", payload("events.on_memory_changed"))
-	assert.deepEqual(received, [memory])
-	assert.throws(() => rpc.on_memory_changed, /not found/)
+	expect(received).toEqual([memory])
+	expect(() => {
+		return Reflect.get(rpc, "on_memory_changed")
+	}).toThrow(/not found/)
 })
 
 test("application commands use their new namespace", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	mockIPC((command, args) => {
 		calls.push({ command, args })
 		return "hello"
 	})
-	assert.equal(await createTauRPCProxy().app.greet("world"), "hello")
-	assert.deepEqual(calls, [{ command: "TauRPC__app.greet", args: { name: "world" } }])
+
+	await expect(createTauRPCProxy().app.greet("world")).resolves.toBe("hello")
+	expect(calls).toEqual([{ command: "TauRPC__app.greet", args: { name: "world" } }])
 })
 
 test("account and skin namespaces preserve positional arguments and typed error envelopes", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	const apiError = { kind: "notFound", message: "Account not found" }
 	mockIPC((command, args) => {
 		calls.push({ command, args })
@@ -106,16 +154,15 @@ test("account and skin namespaces preserve positional arguments and typed error 
 		}
 		return null
 	})
+
 	const rpc = createTauRPCProxy()
-	assert.equal(await rpc.accounts.reorder_accounts(["offline:b", "offline:a"]), null)
-	assert.equal(await rpc.accounts.microsoft_login_cancel(), null)
-	assert.equal(await rpc.skins.apply_ely_skin("ely:123", 42, null), null)
-	assert.equal(await rpc.skins.upload_microsoft_skin("microsoft:123", "image", true), null)
-	await assert.rejects(rpc.accounts.set_active_account("missing"), (error) => {
-		assert.deepEqual(error, apiError)
-		return true
-	})
-	assert.deepEqual(calls, [
+	await expect(rpc.accounts.reorder_accounts(["offline:b", "offline:a"])).resolves.toBeNull()
+	await expect(rpc.accounts.microsoft_login_cancel()).resolves.toBeNull()
+	await expect(rpc.skins.apply_ely_skin("ely:123", 42, null)).resolves.toBeNull()
+	await expect(rpc.skins.upload_microsoft_skin("microsoft:123", "image", true)).resolves.toBeNull()
+	await expect(rpc.accounts.set_active_account("missing")).rejects.toEqual(apiError)
+
+	expect(calls).toEqual([
 		{
 			command: "TauRPC__accounts.reorder_accounts",
 			args: { account_ids: ["offline:b", "offline:a"] },
@@ -131,33 +178,34 @@ test("account and skin namespaces preserve positional arguments and typed error 
 		},
 		{ command: "TauRPC__accounts.set_active_account", args: { account_id: "missing" } },
 	])
-	assert.throws(() => {
-		return rpc.get_accounts
-	}, /not found/)
-	assert.throws(() => {
-		return rpc.apply_ely_skin
-	}, /not found/)
+	expect(() => {
+		return Reflect.get(rpc, "get_accounts")
+	}).toThrow(/not found/)
+	expect(() => {
+		return Reflect.get(rpc, "apply_ely_skin")
+	}).toThrow(/not found/)
 })
 
 test("instance and server commands route through their namespaces", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	mockIPC((command, args) => {
 		calls.push({ command, args })
 		return null
 	})
+
 	const rpc = createTauRPCProxy()
-	assert.equal(await rpc.instances.kill_instance("instance-id"), null)
-	assert.equal(await rpc.instances.create_instance_shortcut("instance-id", "desktop"), null)
-	assert.deepEqual(calls, [
+	await expect(rpc.instances.kill_instance("instance-id")).resolves.toBeNull()
+	await expect(rpc.instances.create_instance_shortcut("instance-id", "desktop")).resolves.toBeNull()
+	expect(calls).toEqual([
 		{ command: "TauRPC__instances.kill_instance", args: { instance_id: "instance-id" } },
 		{
 			command: "TauRPC__instances.create_instance_shortcut",
 			args: { instance_id: "instance-id", location: "desktop" },
 		},
 	])
-	assert.throws(() => {
-		return rpc.kill_instance
-	}, /not found/)
+	expect(() => {
+		return Reflect.get(rpc, "kill_instance")
+	}).toThrow(/not found/)
 })
 
 test("Microsoft cancellation cleanup failures return typed error envelopes", async () => {
@@ -165,14 +213,12 @@ test("Microsoft cancellation cleanup failures return typed error envelopes", asy
 	mockIPC(() => {
 		return Promise.reject(apiError)
 	})
-	await assert.rejects(createTauRPCProxy().accounts.microsoft_login_cancel(), (error) => {
-		assert.deepEqual(error, apiError)
-		return true
-	})
+
+	await expect(createTauRPCProxy().accounts.microsoft_login_cancel()).rejects.toEqual(apiError)
 })
 
 test("pending Microsoft sign-in metadata and explicit tickets use the accounts namespace", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	const pending = { ticket: "opaque-ticket", createdAt: 1000, expiresAt: 87400, status: "Ready" }
 	const apiError = { kind: "invalidInput", message: "sign-in expired" }
 	mockIPC((command, args) => {
@@ -185,14 +231,12 @@ test("pending Microsoft sign-in metadata and explicit tickets use the accounts n
 		}
 		return null
 	})
+
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.accounts.get_pending_microsoft_login(), pending)
-	await assert.rejects(rpc.accounts.resume_microsoft_login(pending.ticket), (error) => {
-		assert.deepEqual(error, apiError)
-		return true
-	})
-	assert.equal(await rpc.accounts.discard_pending_microsoft_login(pending.ticket), null)
-	assert.deepEqual(calls, [
+	await expect(rpc.accounts.get_pending_microsoft_login()).resolves.toEqual(pending)
+	await expect(rpc.accounts.resume_microsoft_login(pending.ticket)).rejects.toEqual(apiError)
+	await expect(rpc.accounts.discard_pending_microsoft_login(pending.ticket)).resolves.toBeNull()
+	expect(calls).toEqual([
 		{ command: "TauRPC__accounts.get_pending_microsoft_login", args: {} },
 		{ command: "TauRPC__accounts.resume_microsoft_login", args: { ticket: pending.ticket } },
 		{
@@ -203,20 +247,22 @@ test("pending Microsoft sign-in metadata and explicit tickets use the accounts n
 })
 
 test("version change recovery commands route to their instances and servers namespaces", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	const dummyConfig = { id: "test-id", name: "Test", gameVersion: "1.20.1" }
 	mockIPC((command, args) => {
 		calls.push({ command, args })
 		return dummyConfig
 	})
+
 	const rpc = createTauRPCProxy()
-	const instRes = await rpc.instances.version_change.recover_instance_version_change("inst-1")
-	assert.deepEqual(instRes, dummyConfig)
+	await expect(
+		rpc.instances.version_change.recover_instance_version_change("inst-1"),
+	).resolves.toEqual(dummyConfig)
+	await expect(rpc.servers.version_change.recover_server_version_change("srv-1")).resolves.toEqual(
+		dummyConfig,
+	)
 
-	const srvRes = await rpc.servers.version_change.recover_server_version_change("srv-1")
-	assert.deepEqual(srvRes, dummyConfig)
-
-	assert.deepEqual(calls, [
+	expect(calls).toEqual([
 		{
 			command: "TauRPC__instances.version_change.recover_instance_version_change",
 			args: { instance_id: "inst-1" },
@@ -229,7 +275,7 @@ test("version change recovery commands route to their instances and servers name
 })
 
 test("version change transaction status commands route to instances and servers namespaces", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	const dummyStatus = {
 		phase: "rollbackFailed",
 		isIncomplete: true,
@@ -241,15 +287,16 @@ test("version change transaction status commands route to instances and servers 
 		calls.push({ command, args })
 		return dummyStatus
 	})
+
 	const rpc = createTauRPCProxy()
-	const instRes =
-		await rpc.instances.version_change.get_instance_version_transaction_status("inst-1")
-	assert.deepEqual(instRes, dummyStatus)
+	await expect(
+		rpc.instances.version_change.get_instance_version_transaction_status("inst-1"),
+	).resolves.toEqual(dummyStatus)
+	await expect(
+		rpc.servers.version_change.get_server_version_transaction_status("srv-1"),
+	).resolves.toEqual(dummyStatus)
 
-	const srvRes = await rpc.servers.version_change.get_server_version_transaction_status("srv-1")
-	assert.deepEqual(srvRes, dummyStatus)
-
-	assert.deepEqual(calls, [
+	expect(calls).toEqual([
 		{
 			command: "TauRPC__instances.version_change.get_instance_version_transaction_status",
 			args: { instance_id: "inst-1" },
@@ -262,7 +309,7 @@ test("version change transaction status commands route to instances and servers 
 })
 
 test("instances.logs commands route through their namespace and preserve arguments", async () => {
-	const calls = []
+	const calls: RecordedIpcCall[] = []
 	const pasteResult = {
 		provider: "mclogs",
 		id: "abc1234",
@@ -276,11 +323,15 @@ test("instances.logs commands route through their namespace and preserve argumen
 		}
 		return []
 	})
+
 	const rpc = createTauRPCProxy()
-	assert.deepEqual(await rpc.instances.logs.get_live_instance_logs("inst-1"), [])
-	assert.deepEqual(await rpc.instances.logs.list_instance_log_files("inst-1"), [])
-	assert.deepEqual(await rpc.instances.logs.upload_log_paste("log text", "mclogs"), pasteResult)
-	assert.deepEqual(calls, [
+	await expect(rpc.instances.logs.get_live_instance_logs("inst-1")).resolves.toEqual([])
+	await expect(rpc.instances.logs.list_instance_log_files("inst-1")).resolves.toEqual([])
+	await expect(rpc.instances.logs.upload_log_paste("log text", "mclogs")).resolves.toEqual(
+		pasteResult,
+	)
+
+	expect(calls).toEqual([
 		{
 			command: "TauRPC__instances.logs.get_live_instance_logs",
 			args: { instance_id: "inst-1" },

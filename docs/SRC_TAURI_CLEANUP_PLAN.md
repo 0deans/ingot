@@ -4,7 +4,7 @@
 
 - Scope: `src-tauri` only. No frontend, generated Android, vendor, bundled binary, or unrelated CI changes.
 - This document plans implementation; creating it does not authorize starting implementation. When assigned to execute it, the orchestrator may delegate the bounded tasks below.
-- Read root `AGENTS.md`, `src-tauri/AGENTS.md`, and relevant sections of `RUST_REFACTOR_PLAN.md`. Preserve the historical baseline in the existing plan.
+- Read root `AGENTS.md`, `src-tauri/AGENTS.md`, and relevant sections of `docs/RUST_REFACTOR_PLAN.md`. Preserve the historical baseline in the existing plan.
 - Preserve IPC contracts, stored formats, platform behavior, credential recovery, and cancellation guarantees.
 - Reduce duplicated behavior and unnecessary dependencies. Line count and crate count are not success criteria by themselves.
 - Findings are based on source inspection, not an exhaustive duplication scan or a verified test baseline. Revalidate against current code before editing.

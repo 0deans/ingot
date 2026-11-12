@@ -251,7 +251,7 @@ If multiple agents are explicitly assigned, identify one integration owner for s
 
 Current checkpoints (update after implementation, retaining the historical baseline above):
 
-Implementation evidence and handoff: [src-tauri/REFACTOR_PROGRESS.md](src-tauri/REFACTOR_PROGRESS.md).
+Implementation evidence and handoff: [docs/REFACTOR_PROGRESS.md](REFACTOR_PROGRESS.md).
 
 | Work | Status | Evidence / exit condition |
 | --- | --- | --- |
