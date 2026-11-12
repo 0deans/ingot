@@ -222,6 +222,7 @@ pub(crate) fn is_direct_launch_session<R: Runtime>(app: &tauri::AppHandle<R>) ->
 /// Quits for real, past the checks
 pub(crate) fn quit_now<R: Runtime>(app: &tauri::AppHandle<R>) {
     state(app).lifecycle.mark_quitting();
+    #[cfg(desktop)]
     super::cli_waiter::cleanup_endpoint_file(app);
     app.exit(0);
 }

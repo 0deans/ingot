@@ -74,12 +74,12 @@ pub(crate) struct AtLauncherMod {
     pub(crate) filesize: Option<u64>,
     #[serde(
         default,
-        deserialize_with = "crate::content::ftb::deserialize_opt_u32_or_string"
+        deserialize_with = "crate::content::serde_helpers::deserialize_opt_u32_or_string"
     )]
     pub(crate) curse_id: Option<u32>,
     #[serde(
         default,
-        deserialize_with = "crate::content::ftb::deserialize_opt_u32_or_string"
+        deserialize_with = "crate::content::serde_helpers::deserialize_opt_u32_or_string"
     )]
     pub(crate) curse_file_id: Option<u32>,
     #[serde(default)]

@@ -3,7 +3,7 @@ use super::curseforge_resolver::{self, CurseForgeEndpoints};
 use super::support::{self, Integrity, PreparedModpack};
 use crate::content::{
     error::ContentError,
-    ftb::{deserialize_opt_u64_or_string, deserialize_u32_or_string},
+    serde_helpers::{deserialize_opt_u64_or_string, deserialize_u32_or_string},
 };
 use ingot_minecraft::instance::ModLoaderType;
 use serde::Deserialize;

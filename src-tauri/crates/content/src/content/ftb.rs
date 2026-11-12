@@ -11,11 +11,6 @@ use reqwest::Client;
 
 pub const DEFAULT_FTB_BASE: &str = "https://api.modpacks.ch/public";
 
-// Transitional re-export for `content/install/{ftb_pack,atlauncher_pack}.rs` outside this refactor slice.
-pub(crate) use super::serde_helpers::{
-    deserialize_opt_u32_or_string, deserialize_opt_u64_or_string, deserialize_u32_or_string,
-};
-
 #[derive(Clone)]
 pub struct FtbClient {
     client: Client,

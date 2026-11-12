@@ -2,6 +2,7 @@
 
 pub(crate) mod accounts;
 pub(crate) mod cli;
+#[cfg(any(desktop, test))]
 pub(crate) mod cli_waiter;
 pub(crate) mod content;
 pub(crate) mod events;

@@ -1,5 +1,6 @@
 //! IPC procedures for server metrics, storage, and networking.
-use super::{core_has_tps, get_server_process_manager, is_server_running, server_with_config};
+use super::{get_server_process_manager, is_server_running, server_with_config};
+use crate::app::server_lifecycle::core_has_tps;
 use crate::ipc::ApiError;
 use ingot_server::stats::{self, ServerStats};
 use ingot_server::storage::{self, ServerStorage};

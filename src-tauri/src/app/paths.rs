@@ -37,15 +37,18 @@ impl AppPaths {
         self.data_dir.join("cache").join("news")
     }
 
+    #[cfg(any(desktop, test))]
     pub(crate) fn cli_waiter_file(&self) -> PathBuf {
         self.data_dir.join("cli-waiter.json")
     }
 }
 
+#[cfg(any(desktop, test))]
 pub(crate) fn default_cli_waiter_file() -> Option<PathBuf> {
     default_app_data_dir().map(|dir| dir.join("cli-waiter.json"))
 }
 
+#[cfg(any(desktop, test))]
 pub(crate) fn default_app_data_dir() -> Option<PathBuf> {
     #[cfg(target_os = "windows")]
     {

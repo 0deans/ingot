@@ -13,7 +13,10 @@ pub(crate) mod version_change;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use helpers::*;
+pub(crate) use helpers::{
+    get_http_client, get_server_process_manager, get_server_supervisor_manager, is_server_running,
+    resolve_profile, server_with_config,
+};
 
 use crate::app::server_config::{create_server, get_server_dir, load_servers};
 use crate::app::server_lifecycle::{self, ServerLaunchError, ServerMaintenanceError};

@@ -1,6 +1,5 @@
 //! Shared resolution and state helpers for server IPC handlers.
 use crate::app::server_config::{get_server_dir, load_servers};
-pub(crate) use crate::app::server_lifecycle::core_has_tps;
 use crate::ipc::ApiError;
 use ingot_server::{ServerConfig, ServerProcessManager, ServerStatus, ServerSupervisorManager};
 use tauri::Runtime;
