@@ -45,16 +45,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: pnpm exec tsc --noEmit -p .
+        run: pnpm typecheck
 
-      - name: Test generated IPC routing
-        run: pnpm test:ipc
+      - name: Run tests
+        run: pnpm test
 
-      - name: Lint check
-        run: pnpm exec oxlint
-
-      - name: Format check
-        run: pnpm exec oxfmt --check
+      - name: Lint and format check
+        run: pnpm check
 
   rust:
     name: Rust tests (${{ matrix.platform }})
@@ -86,7 +83,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy, rustfmt, llvm-tools-preview
+          components: clippy, rustfmt
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -98,7 +95,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          [ -f dist/index.html ] || echo '<!doctype html><title>Ingot</title>' > dist/index.html
+          echo '<!doctype html><title>Ingot</title>' > dist/index.html
 
       # Rust formatting is platform-independent; run only once on Linux
       - name: Check formatting
@@ -117,16 +114,15 @@ jobs:
       - name: Test native desktop vault
         working-directory: src-tauri
         if: runner.os != 'Linux'
-        run: cargo test --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
+        run: cargo test -p ingot-accounts --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
 
       - name: Test Linux Secret Service
         working-directory: src-tauri
         if: runner.os == 'Linux'
-        shell: bash
         run: |
           dbus-run-session -- bash -e -c '
             printf "%s" "ci-test-keyring" | gnome-keyring-daemon --unlock --components=secrets
-            cargo test --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
+            cargo test -p ingot-accounts --lib --locked keyring_store::tests::native_vault_round_trip -- --ignored --exact
           '
 
   android:
@@ -139,23 +135,10 @@ jobs:
 
       - name: Setup Android NDK
         run: |
-          NDK_BASE="/usr/local/lib/android/sdk/ndk"
-          if [ -d "$NDK_BASE" ] && [ "$(ls -A $NDK_BASE 2>/dev/null)" ]; then
-            SELECTED_NDK=$(ls -d $NDK_BASE/* | sort -V | tail -n 1)
-          elif [ -n "$ANDROID_NDK_LATEST_HOME" ] && [ -d "$ANDROID_NDK_LATEST_HOME" ]; then
-            SELECTED_NDK="$ANDROID_NDK_LATEST_HOME"
-          elif [ -n "$ANDROID_NDK_HOME" ] && [ -d "$ANDROID_NDK_HOME" ]; then
-            SELECTED_NDK="$ANDROID_NDK_HOME"
-          else
-            /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
-            SELECTED_NDK="$NDK_BASE/26.1.10909125"
-          fi
-          echo "Using Android NDK at: $SELECTED_NDK"
-          echo "NDK_HOME=$SELECTED_NDK" >> $GITHUB_ENV
-          echo "$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
-          echo "TARGET_AR=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
-          echo "AR_aarch64_linux_android=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> $GITHUB_ENV
-          echo "CC_aarch64_linux_android=$SELECTED_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" >> $GITHUB_ENV
+          TOOLCHAIN="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          echo "$TOOLCHAIN" >> $GITHUB_PATH
+          echo "AR_aarch64_linux_android=$TOOLCHAIN/llvm-ar" >> $GITHUB_ENV
+          echo "CC_aarch64_linux_android=$TOOLCHAIN/aarch64-linux-android24-clang" >> $GITHUB_ENV
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -168,10 +151,9 @@ jobs:
           workspaces: "./src-tauri -> target"
 
       - name: Placeholder frontend build
-        shell: bash
         run: |
           mkdir -p dist
-          [ -f dist/index.html ] || echo '<!doctype html><title>Ingot</title>' > dist/index.html
+          echo '<!doctype html><title>Ingot</title>' > dist/index.html
 
       - name: Check Android compilation
         working-directory: src-tauri

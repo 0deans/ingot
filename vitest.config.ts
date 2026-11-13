@@ -14,8 +14,8 @@ export default defineConfig(() => {
 			environment: "jsdom",
 			globals: true,
 			setupFiles: ["./tests/setup.ts"],
-			include: ["tests/**/*.test.tsx", "tests/**/*.test.ts"],
-			exclude: ["tests/**/*.test.mjs", "node_modules/**"],
+			include: ["**/*.test.{ts,tsx}"],
+			exclude: ["node_modules/**", "dist/**", "src-tauri/**"],
 		},
 	}
 })

@@ -1,6 +1,6 @@
 **Rust backend coding and refactor rules**
 
-These rules apply to work under `src-tauri`. For backend-driven frontend/CI changes, also follow the contract and verification rules below. Read the relevant phase of `../docs/RUST_REFACTOR_PLAN.md` before refactoring. Existing code is being migrated incrementally: apply these rules to new and substantially refactored code, and record remaining migration work rather than rewriting unrelated modules.
+These rules apply to work under `src-tauri`. For backend-driven frontend/CI changes, also follow the contract and verification rules below. Existing code is being migrated incrementally: apply these rules to new and substantially refactored code, and record remaining migration work rather than rewriting unrelated modules.
 
 The current user request determines scope. Resolve routine design choices using these rules and the code; record material tradeoffs with the change. This file does not require additional approval for ordinary refactoring already requested by the user.
 
@@ -90,7 +90,7 @@ The current user request determines scope. Resolve routine design choices using 
 - Use controlled time for polling, expiry, throttling, and stop timeouts. Avoid arbitrary sleeps, shared temp paths, fixed ports, global environment mutation, and dependence on test execution order. Add Tokio `test-util` when paused time is needed.
 - Keep pure tests local to their feature. Use local integration tests for adapters, transactions, and the IPC contract. Keep real-vault/provider/platform smoke tests explicitly opt-in.
 - Cover failure injection for destructive workflows: download, copy, write, rename, commit, rollback, and cancellation. Verify the previous data or recovery material survives.
-- Follow the plan's test matrix and coverage ratchet. Coverage targets complement scenario coverage; do not inflate percentages with trivial tests or exclude difficult feature code. Do not claim measured coverage without a report.
+- Follow the plan's test matrix. Coverage targets complement scenario coverage; do not inflate percentages with trivial tests or exclude difficult feature code. Do not claim measured coverage without a report.
 
 **9. Verify and leave a useful handoff**
 
@@ -101,7 +101,7 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --all-targets --locked
 pnpm exec tsc --noEmit -p .
-pnpm test:ipc
+pnpm test
 ```
 
 - The five live API tests are explicitly ignored smoke tests. Default tests run without skip filters; opt in to a specific live test by name with `--ignored --exact`. Cargo's `--offline` restricts dependency access; it does not disable network calls made by tests.
@@ -112,7 +112,7 @@ cargo test --lib --locked ipc_contract::export_bindings -- --ignored --exact
 ```
 
 - Register APIs through the single list in `src/ipc/mod.rs`; runtime routing and metadata-only export both consume it. During each namespace migration, update inventory `currentPath`, backend event triggers, frontend callers, and generated bindings together. Keep unmigrated commands in `ipc/legacy.rs` only until their feature migrates.
-- IPC changes run both the Rust mock-runtime boundary tests and `pnpm test:ipc`, which exercises generated bindings through the installed TauRPC runtime. Use the Node version in `.nvmrc` for the latter; it reads generated TypeScript directly.
+- IPC changes run both the Rust mock-runtime boundary tests and `pnpm test`, which exercises generated bindings through the installed TauRPC runtime. Use the Node version in `.nvmrc` for the latter.
 
 - Run TypeScript checks and binding freshness verification for IPC/DTO/consumer changes. Run applicable frontend lint checks for changed frontend files. Add platform build checks and coverage measurement when the task changes those areas or completes the corresponding milestone.
 - Record pre-existing formatting/lint/test failures separately from regressions. Fix regressions; do not add broad lint allowances, change assertions, or disable tests to obtain a green run. Keep unrelated formatting cleanup out of the change.

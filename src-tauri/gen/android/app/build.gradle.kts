@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.Properties
 
 plugins {
@@ -13,6 +14,47 @@ val tauriProperties = Properties().apply {
     }
 }
 
+data class ReleaseSigningInput(
+    val storeFile: File,
+    val storePassword: String,
+    val keyAlias: String,
+    val keyPassword: String,
+)
+
+val releaseSigning: ReleaseSigningInput? = run {
+    val envPath = System.getenv("ANDROID_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+    val envStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+    if (envPath != null && envStorePassword != null) {
+        val envAlias = System.getenv("ANDROID_KEY_ALIAS")?.takeIf { it.isNotBlank() } ?: "ingot"
+        val envKeyPassword =
+            System.getenv("ANDROID_KEY_PASSWORD")?.takeIf { it.isNotBlank() } ?: envStorePassword
+        return@run ReleaseSigningInput(
+            storeFile = file(envPath),
+            storePassword = envStorePassword,
+            keyAlias = envAlias,
+            keyPassword = envKeyPassword,
+        )
+    }
+
+    val propFile = rootProject.file("keystore.properties")
+    if (!propFile.exists()) {
+        return@run null
+    }
+    val props = Properties().apply { propFile.inputStream().use { load(it) } }
+    val propPath = props.getProperty("storeFile")?.takeIf { it.isNotBlank() } ?: return@run null
+    val propStorePassword =
+        props.getProperty("storePassword")?.takeIf { it.isNotBlank() } ?: return@run null
+    val propAlias = props.getProperty("keyAlias")?.takeIf { it.isNotBlank() } ?: "ingot"
+    val propKeyPassword =
+        props.getProperty("keyPassword")?.takeIf { it.isNotBlank() } ?: propStorePassword
+    ReleaseSigningInput(
+        storeFile = rootProject.file(propPath),
+        storePassword = propStorePassword,
+        keyAlias = propAlias,
+        keyPassword = propKeyPassword,
+    )
+}
+
 android {
     compileSdk = 36
     namespace = "me.odean.ingot"
@@ -23,6 +65,16 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+    signingConfigs {
+        releaseSigning?.let { signing ->
+            create("release") {
+                storeFile = signing.storeFile
+                storePassword = signing.storePassword
+                keyAlias = signing.keyAlias
+                keyPassword = signing.keyPassword
+            }
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -37,6 +89,9 @@ android {
             }
         }
         getByName("release") {
+            if (releaseSigning != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

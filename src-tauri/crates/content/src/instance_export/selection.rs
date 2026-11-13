@@ -55,17 +55,14 @@ pub fn is_default_included(rel_path: &str) -> bool {
     let normalized = rel_path.replace('\\', "/");
     let trimmed = normalized.trim_matches('/');
 
-    if trimmed == "saves"
+    let excluded_by_default = trimmed == "saves"
         || trimmed.starts_with("saves/")
         || trimmed == "screenshots"
         || trimmed.starts_with("screenshots/")
         || trimmed.eq_ignore_ascii_case("options.txt")
-        || trimmed.eq_ignore_ascii_case("servers.dat")
-    {
-        return false;
-    }
+        || trimmed.eq_ignore_ascii_case("servers.dat");
 
-    true
+    !excluded_by_default
 }
 
 /// Recursively scan an instance directory and collect exportable file entries.
