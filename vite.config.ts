@@ -31,7 +31,15 @@ export default defineConfig(() => ({
 	define: {
 		APP_VERSION: JSON.stringify(pkg.version),
 	},
-	plugins: [tanstackRouter({ autoCodeSplitting: true }), react(), tailwindcss(), i18nHmrPlugin()],
+	plugins: [
+		tanstackRouter({
+			target: "react",
+			autoCodeSplitting: true,
+		}),
+		react(),
+		tailwindcss(),
+		i18nHmrPlugin(),
+	],
 	resolve: {
 		alias: {
 			"@": path.resolve(import.meta.dirname, "./src"),

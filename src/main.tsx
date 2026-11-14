@@ -1,87 +1,65 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router"
-import { getCurrentWindow } from "@tauri-apps/api/window"
-import React from "react"
+import { RouterProvider } from "@tanstack/react-router"
+import React, { useEffect } from "react"
 import ReactDOM from "react-dom/client"
-import RootErrorBoundary from "@/components/layout/root-error-boundary"
-import RouteErrorView from "@/components/layout/route-error-view"
-import "@/lib/i18n"
-import { rpc } from "@/lib/rpc"
-import "@/lib/theme"
-import "./index.css"
-import { isMobileEnvironment } from "./lib/platform"
-import { recordLocation } from "./lib/tab-history"
-import { routeTree } from "./routeTree.gen"
+import { router } from "./router"
+import "./styles/globals.css"
 
-// Lets CSS tell the desktop window (with its custom title bar) from the phone layout
-document.documentElement.dataset.platform = isMobileEnvironment() ? "mobile" : "desktop"
+const IngotApp = () => {
+	useEffect(() => {
+		const handleContextMenu = (e: MouseEvent) => {
+			if (!import.meta.env.DEV) {
+				e.preventDefault()
+			}
+		}
 
-export const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			gcTime: 1000 * 60 * 30, // 30 minutes
-			refetchOnWindowFocus: false,
-		},
-	},
-})
+		document.addEventListener("contextmenu", handleContextMenu)
 
-const memoryHistory = createMemoryHistory({
-	initialEntries: ["/"],
-})
+		let unlistenDeepLink: (() => void) | undefined
 
-export const router = createRouter({
-	routeTree,
-	history: memoryHistory,
-	scrollRestoration: true,
-	defaultPreload: "intent",
-	defaultPreloadDelay: 50,
-	defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
-	defaultErrorComponent: RouteErrorView,
-	context: {
-		queryClient,
-	},
-})
+		import("@tauri-apps/plugin-deep-link")
+			.then(({ onOpenUrl }) => {
+				return onOpenUrl((urls) => {
+					for (const rawUrl of urls) {
+						try {
+							const parsed = new URL(rawUrl)
+							const targetPath = `/${parsed.host}${parsed.pathname}`.replace(/\/+$/, "") || "/"
 
-// Automatically track section locations across all navigations
-recordLocation(router.history.location.href, router.history.location.pathname)
-router.history.subscribe((event) => {
-	recordLocation(event.location.href, event.location.pathname)
-})
+							router.navigate({
+								to: targetPath as never,
+								search: Object.fromEntries(parsed.searchParams.entries()) as never,
+							})
+						} catch (err) {
+							console.error("[Ingot] Invalid deep-link URL:", rawUrl, err)
+						}
+					}
+				})
+			})
+			.then((unlisten) => {
+				unlistenDeepLink = unlisten
+			})
+			.catch(() => {
+				// Safely ignored when running in browser preview without Tauri runtime
+			})
 
-declare module "@tanstack/react-router" {
-	interface Register {
-		router: typeof router
-	}
+		return () => {
+			document.removeEventListener("contextmenu", handleContextMenu)
+			unlistenDeepLink?.()
+		}
+	}, [])
+
+	return <RouterProvider router={router} />
 }
 
 const rootElement = document.getElementById("root")
-if (rootElement) {
+
+if (!rootElement) {
+	throw new Error("Root element #root not found in index.html")
+}
+
+if (!rootElement.innerHTML) {
 	ReactDOM.createRoot(rootElement).render(
 		<React.StrictMode>
-			<RootErrorBoundary>
-				<QueryClientProvider client={queryClient}>
-					<RouterProvider router={router} />
-				</QueryClientProvider>
-			</RootErrorBoundary>
+			<IngotApp />
 		</React.StrictMode>,
 	)
 }
-
-router.load().finally(async () => {
-	const shouldShow = await rpc.app.should_show_window_on_startup().catch(() => {
-		return true
-	})
-	if (!shouldShow) {
-		return
-	}
-	requestAnimationFrame(() => {
-		const appWindow = getCurrentWindow()
-		appWindow
-			.show()
-			.then(() => {
-				appWindow.setFocus().catch(() => {})
-			})
-			.catch(() => {})
-	})
-})

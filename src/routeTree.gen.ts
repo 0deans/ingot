@@ -10,166 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ModpacksRouteImport } from './routes/modpacks'
-import { Route as NewsRouteImport } from './routes/news'
-import { Route as ScreenshotsRouteImport } from './routes/screenshots'
-import { Route as ServersRouteImport } from './routes/servers'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SkinsRouteImport } from './routes/skins'
-import { Route as UiTestRouteImport } from './routes/ui-test'
-import { Route as WorldsRouteImport } from './routes/worlds'
-import { Route as InstancesIdRouteImport } from './routes/instances/$id'
-import { Route as InstancesIdExportRouteImport } from './routes/instances/$id.export'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ModpacksRoute = ModpacksRouteImport.update({
-  id: '/modpacks',
-  path: '/modpacks',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NewsRoute = NewsRouteImport.update({
-  id: '/news',
-  path: '/news',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScreenshotsRoute = ScreenshotsRouteImport.update({
-  id: '/screenshots',
-  path: '/screenshots',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServersRoute = ServersRouteImport.update({
-  id: '/servers',
-  path: '/servers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SkinsRoute = SkinsRouteImport.update({
-  id: '/skins',
-  path: '/skins',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UiTestRoute = UiTestRouteImport.update({
-  id: '/ui-test',
-  path: '/ui-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WorldsRoute = WorldsRouteImport.update({
-  id: '/worlds',
-  path: '/worlds',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstancesIdRoute = InstancesIdRouteImport.update({
-  id: '/instances/$id',
-  path: '/instances/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstancesIdExportRoute = InstancesIdExportRouteImport.update({
-  id: '/export',
-  path: '/export',
-  getParentRoute: () => InstancesIdRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/modpacks': typeof ModpacksRoute
-  '/news': typeof NewsRoute
-  '/screenshots': typeof ScreenshotsRoute
-  '/servers': typeof ServersRoute
-  '/settings': typeof SettingsRoute
-  '/skins': typeof SkinsRoute
-  '/ui-test': typeof UiTestRoute
-  '/worlds': typeof WorldsRoute
-  '/instances/$id': typeof InstancesIdRouteWithChildren
-  '/instances/$id/export': typeof InstancesIdExportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/modpacks': typeof ModpacksRoute
-  '/news': typeof NewsRoute
-  '/screenshots': typeof ScreenshotsRoute
-  '/servers': typeof ServersRoute
-  '/settings': typeof SettingsRoute
-  '/skins': typeof SkinsRoute
-  '/ui-test': typeof UiTestRoute
-  '/worlds': typeof WorldsRoute
-  '/instances/$id': typeof InstancesIdRouteWithChildren
-  '/instances/$id/export': typeof InstancesIdExportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/modpacks': typeof ModpacksRoute
-  '/news': typeof NewsRoute
-  '/screenshots': typeof ScreenshotsRoute
-  '/servers': typeof ServersRoute
-  '/settings': typeof SettingsRoute
-  '/skins': typeof SkinsRoute
-  '/ui-test': typeof UiTestRoute
-  '/worlds': typeof WorldsRoute
-  '/instances/$id': typeof InstancesIdRouteWithChildren
-  '/instances/$id/export': typeof InstancesIdExportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/modpacks'
-    | '/news'
-    | '/screenshots'
-    | '/servers'
-    | '/settings'
-    | '/skins'
-    | '/ui-test'
-    | '/worlds'
-    | '/instances/$id'
-    | '/instances/$id/export'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/modpacks'
-    | '/news'
-    | '/screenshots'
-    | '/servers'
-    | '/settings'
-    | '/skins'
-    | '/ui-test'
-    | '/worlds'
-    | '/instances/$id'
-    | '/instances/$id/export'
-  id:
-    | '__root__'
-    | '/'
-    | '/modpacks'
-    | '/news'
-    | '/screenshots'
-    | '/servers'
-    | '/settings'
-    | '/skins'
-    | '/ui-test'
-    | '/worlds'
-    | '/instances/$id'
-    | '/instances/$id/export'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ModpacksRoute: typeof ModpacksRoute
-  NewsRoute: typeof NewsRoute
-  ScreenshotsRoute: typeof ScreenshotsRoute
-  ServersRoute: typeof ServersRoute
-  SettingsRoute: typeof SettingsRoute
-  SkinsRoute: typeof SkinsRoute
-  UiTestRoute: typeof UiTestRoute
-  WorldsRoute: typeof WorldsRoute
-  InstancesIdRoute: typeof InstancesIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -181,102 +48,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/modpacks': {
-      id: '/modpacks'
-      path: '/modpacks'
-      fullPath: '/modpacks'
-      preLoaderRoute: typeof ModpacksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/news': {
-      id: '/news'
-      path: '/news'
-      fullPath: '/news'
-      preLoaderRoute: typeof NewsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/screenshots': {
-      id: '/screenshots'
-      path: '/screenshots'
-      fullPath: '/screenshots'
-      preLoaderRoute: typeof ScreenshotsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/servers': {
-      id: '/servers'
-      path: '/servers'
-      fullPath: '/servers'
-      preLoaderRoute: typeof ServersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/skins': {
-      id: '/skins'
-      path: '/skins'
-      fullPath: '/skins'
-      preLoaderRoute: typeof SkinsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ui-test': {
-      id: '/ui-test'
-      path: '/ui-test'
-      fullPath: '/ui-test'
-      preLoaderRoute: typeof UiTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/worlds': {
-      id: '/worlds'
-      path: '/worlds'
-      fullPath: '/worlds'
-      preLoaderRoute: typeof WorldsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/instances/$id': {
-      id: '/instances/$id'
-      path: '/instances/$id'
-      fullPath: '/instances/$id'
-      preLoaderRoute: typeof InstancesIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/instances/$id/export': {
-      id: '/instances/$id/export'
-      path: '/export'
-      fullPath: '/instances/$id/export'
-      preLoaderRoute: typeof InstancesIdExportRouteImport
-      parentRoute: typeof InstancesIdRoute
-    }
   }
 }
 
-interface InstancesIdRouteChildren {
-  InstancesIdExportRoute: typeof InstancesIdExportRoute
-}
-
-const InstancesIdRouteChildren: InstancesIdRouteChildren = {
-  InstancesIdExportRoute: InstancesIdExportRoute,
-}
-
-const InstancesIdRouteWithChildren = InstancesIdRoute._addFileChildren(
-  InstancesIdRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ModpacksRoute: ModpacksRoute,
-  NewsRoute: NewsRoute,
-  ScreenshotsRoute: ScreenshotsRoute,
-  ServersRoute: ServersRoute,
-  SettingsRoute: SettingsRoute,
-  SkinsRoute: SkinsRoute,
-  UiTestRoute: UiTestRoute,
-  WorldsRoute: WorldsRoute,
-  InstancesIdRoute: InstancesIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

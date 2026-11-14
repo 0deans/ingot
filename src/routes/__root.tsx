@@ -1,90 +1,44 @@
-import type { QueryClient } from "@tanstack/react-query"
-import {
-	createRootRouteWithContext,
-	Outlet,
-	useNavigate,
-	useRouterState,
-} from "@tanstack/react-router"
-import { memo, useEffect } from "react"
-import { PageTransition } from "@/components/layout/page-transition"
-import QuitDialog from "@/components/layout/quit-dialog"
-import RootErrorView from "@/components/layout/root-error-view"
-import Sidebar from "@/components/layout/sidebar"
-import UpdateBanner from "@/components/layout/update-banner"
-import WindowFrame from "@/components/layout/window-frame"
-import LeftoverServersDialog from "@/components/servers/leftover-servers-dialog"
-import FirstLaunchLanguageDialog from "@/components/settings/first-launch-language-dialog"
-import { Toaster } from "@/components/ui/sonner"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import VersionChangeCrashDialog from "@/components/version-change/crash-dialog"
-import { isMobileEnvironment } from "@/lib/platform"
-import { useScrollRestoration } from "@/lib/scroll-restoration"
-import { getTopLevelSection } from "@/lib/tab-history"
-import { useTheme } from "@/lib/theme"
+import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router"
+import { useEffect } from "react"
 
-export interface RouterContext {
-	queryClient: QueryClient
-}
-
-const RootLayout = () => {
-	const mainRef = useScrollRestoration()
-	const isMobile = isMobileEnvironment()
-	const navigate = useNavigate()
-	const currentPath = useRouterState({ select: (s) => s.location.pathname })
-	const { resolvedTheme } = useTheme()
+const RootShellComponent = () => {
+	const pathname = useRouterState({
+		select: (s) => {
+			return s.location.pathname
+		},
+	})
 
 	useEffect(() => {
-		if (isMobile && currentPath !== "/servers") {
-			navigate({ to: "/servers" })
-		}
-	}, [isMobile, currentPath, navigate])
-
-	const currentSection = getTopLevelSection(currentPath)
-
-	if (isMobile) {
-		return (
-			<TooltipProvider>
-				<main
-					ref={mainRef}
-					className="flex h-dvh min-h-0 w-full flex-1 flex-col overflow-hidden bg-background"
-				>
-					<PageTransition transitionKey={currentSection}>
-						<Outlet />
-					</PageTransition>
-				</main>
-				<FirstLaunchLanguageDialog />
-				<VersionChangeCrashDialog />
-				<LeftoverServersDialog />
-				<Toaster theme={resolvedTheme} />
-			</TooltipProvider>
-		)
-	}
+		import("@tauri-apps/api/window")
+			.then(({ getCurrentWindow }) => {
+				return getCurrentWindow().show()
+			})
+			.catch(() => {
+				// Ignored when running in a standard web browser
+			})
+	}, [])
 
 	return (
-		<TooltipProvider>
-			<WindowFrame title="Ingot">
-				<Sidebar />
-				<main ref={mainRef} className="flex size-full min-h-0 flex-1 flex-col overflow-hidden">
-					<UpdateBanner />
-					<PageTransition transitionKey={currentSection}>
-						<Outlet />
-					</PageTransition>
-				</main>
-			</WindowFrame>
-			<FirstLaunchLanguageDialog />
-			<VersionChangeCrashDialog />
-			<LeftoverServersDialog />
-			<Toaster theme={resolvedTheme} />
-			<QuitDialog />
-		</TooltipProvider>
+		<div className="h-screen w-screen overflow-hidden bg-[#09090b] text-zinc-100 flex flex-col select-none [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+			<header
+				data-tauri-drag-region
+				className="h-9 shrink-0 bg-zinc-950/80 backdrop-blur-xl border-b border-white/[0.07] px-3 flex items-center justify-between"
+			>
+				<div className="flex items-center gap-2 pointer-events-none">
+					<div className="w-4 h-4 rounded-md bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center font-black text-zinc-950 text-[10px]">
+						I
+					</div>
+					<span className="text-xs font-semibold tracking-tight text-zinc-100">Ingot</span>
+				</div>
+				<span className="text-[10px] font-mono text-zinc-500 pointer-events-none">{pathname}</span>
+			</header>
+			<main id="ingot-scroll-viewport" className="flex-1 overflow-y-auto overflow-x-clip min-h-0">
+				<Outlet />
+			</main>
+		</div>
 	)
 }
 
-RootLayout.displayName = "RootLayout"
-
-const MemoizedRootLayout = memo(RootLayout)
-
-export const Route = createRootRouteWithContext<RouterContext>()({
-	component: MemoizedRootLayout,
-	errorComponent: RootErrorView,
+export const Route = createRootRoute({
+	component: RootShellComponent,
 })
