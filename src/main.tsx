@@ -2,6 +2,8 @@ import { RouterProvider } from "@tanstack/react-router"
 import { ThemeProvider } from "next-themes"
 import React, { useCallback, useEffect } from "react"
 import ReactDOM from "react-dom/client"
+import ErrorBoundary from "@/shared/components/ErrorBoundary"
+import RootErrorFallback from "@/shared/components/RootErrorFallback"
 import { useTauriDeepLinks } from "@/shared/hooks/useTauriDeepLinks"
 import { registerNotificationNavigator } from "@/shared/lib/notify"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
@@ -45,9 +47,15 @@ const IngotApp = () => {
 			enableSystem={false}
 			storageKey="ingot-theme"
 		>
-			<CustomThemeSync />
-			<RouterProvider router={router} />
-			<Toaster position={toastPosition} />
+			<ErrorBoundary
+				fallback={({ error, reset }) => {
+					return <RootErrorFallback error={error} reset={reset} />
+				}}
+			>
+				<CustomThemeSync />
+				<RouterProvider router={router} />
+				<Toaster position={toastPosition} />
+			</ErrorBoundary>
 		</ThemeProvider>
 	)
 }

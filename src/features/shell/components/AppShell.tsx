@@ -7,10 +7,14 @@ import DesktopSidebar from "@/features/shell/components/DesktopSidebar"
 import MobileBottomBar from "@/features/shell/components/MobileBottomBar"
 import MobileTopBar from "@/features/shell/components/MobileTopBar"
 import ShellOverlays from "@/features/shell/components/ShellOverlays"
+import SidebarErrorFallback from "@/features/shell/components/SidebarErrorFallback"
 import WindowsTitlebar from "@/features/shell/components/WindowsTitlebar"
 import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
 import { getPageTransitionKey } from "@/features/shell/navigation"
+import ErrorBoundary from "@/shared/components/ErrorBoundary"
+import ErrorFallbackView from "@/shared/components/ErrorFallbackView"
 import PageTransition from "@/shared/components/motion/PageTransition"
+import SafeTitlebar from "@/shared/components/SafeTitlebar"
 import { useScrollRestoration } from "@/shared/hooks/useScrollRestoration"
 import { cn } from "@/shared/lib/utils"
 import { findActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
@@ -91,23 +95,40 @@ const AppShell = () => {
 		<div className="relative flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
 			<div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
 				{isMobile ? (
-					<MobileTopBar currentPath={pathname} layoutKey={currentLayoutKey} />
+					<ErrorBoundary
+						resetKey={currentLayoutKey}
+						fallback={<SafeTitlebar statusLabel="Recovery" />}
+					>
+						<MobileTopBar currentPath={pathname} layoutKey={currentLayoutKey} />
+					</ErrorBoundary>
 				) : (
-					<WindowsTitlebar currentPath={pathname} layoutKey={currentLayoutKey} />
+					<ErrorBoundary
+						resetKey={currentLayoutKey}
+						fallback={<SafeTitlebar statusLabel="Titlebar Fallback" />}
+					>
+						<WindowsTitlebar currentPath={pathname} layoutKey={currentLayoutKey} />
+					</ErrorBoundary>
 				)}
 
 				<div className="flex min-h-0 flex-1 overflow-hidden">
-					<AnimatePresence initial={false}>
-						{showDesktopSidebar ? (
-							<DesktopSidebar
-								key="desktop-sidebar"
-								variant={navVariant}
-								compact={isTablet}
-								currentPath={pathname}
-								layoutKey={currentLayoutKey}
-							/>
-						) : null}
-					</AnimatePresence>
+					<ErrorBoundary
+						resetKey={currentLayoutKey}
+						fallback={({ reset }) => {
+							return <SidebarErrorFallback onRetry={reset} />
+						}}
+					>
+						<AnimatePresence initial={false}>
+							{showDesktopSidebar ? (
+								<DesktopSidebar
+									key="desktop-sidebar"
+									variant={navVariant}
+									compact={isTablet}
+									currentPath={pathname}
+									layoutKey={currentLayoutKey}
+								/>
+							) : null}
+						</AnimatePresence>
+					</ErrorBoundary>
 
 					<div className={contentColumnClass}>
 						<main
@@ -115,31 +136,46 @@ const AppShell = () => {
 							style={{ overflowAnchor: "none", scrollbarGutter: "stable" }}
 							className="custom-scrollbar min-h-0 min-w-0 flex-1 scroll-fade-y overflow-x-clip overflow-y-auto px-4 py-4 md:px-6 md:py-5"
 						>
-							<PageTransition routeKey={pageTransitionKey}>
-								<Outlet />
-							</PageTransition>
+							<ErrorBoundary
+								resetKey={pathname}
+								fallback={({ error, reset }) => {
+									return <ErrorFallbackView error={error} reset={reset} />
+								}}
+							>
+								<PageTransition routeKey={pageTransitionKey}>
+									<Outlet />
+								</PageTransition>
+							</ErrorBoundary>
 						</main>
 
 						{!isMobile ? (
-							<AnimatePresence initial={false}>
-								{pathname === "/" && selectedInstance ? (
-									<DockedLaunchBar
-										instance={selectedInstance}
-										username={activeAccount.username}
-										ramGb={ramGb}
-										isLaunching={isLaunching}
-										onLaunch={handleLaunchSelected}
-									/>
-								) : null}
-							</AnimatePresence>
+							<ErrorBoundary resetKey={currentLayoutKey} fallback={null}>
+								<AnimatePresence initial={false}>
+									{pathname === "/" && selectedInstance ? (
+										<DockedLaunchBar
+											instance={selectedInstance}
+											username={activeAccount.username}
+											ramGb={ramGb}
+											isLaunching={isLaunching}
+											onLaunch={handleLaunchSelected}
+										/>
+									) : null}
+								</AnimatePresence>
+							</ErrorBoundary>
 						) : null}
 					</div>
 				</div>
 
-				{isMobile ? <MobileBottomBar currentPath={pathname} /> : null}
+				{isMobile ? (
+					<ErrorBoundary resetKey={pathname} fallback={null}>
+						<MobileBottomBar currentPath={pathname} />
+					</ErrorBoundary>
+				) : null}
 			</div>
 
-			<ShellOverlays currentPath={pathname} layoutKey={currentLayoutKey} isMobile={isMobile} />
+			<ErrorBoundary resetKey={currentLayoutKey} fallback={null}>
+				<ShellOverlays currentPath={pathname} layoutKey={currentLayoutKey} isMobile={isMobile} />
+			</ErrorBoundary>
 		</div>
 	)
 }
