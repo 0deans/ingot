@@ -1,8 +1,9 @@
 import { RouterProvider } from "@tanstack/react-router"
 import { ThemeProvider } from "next-themes"
-import React, { useCallback } from "react"
+import React, { useCallback, useEffect } from "react"
 import ReactDOM from "react-dom/client"
 import { useTauriDeepLinks } from "@/shared/hooks/useTauriDeepLinks"
+import { registerNotificationNavigator } from "@/shared/lib/notify"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import CustomThemeSync from "@/shared/theme/CustomThemeSync"
 import { Toaster } from "@/shared/ui/sonner"
@@ -23,6 +24,13 @@ const IngotApp = () => {
 	const handleNavigatePath = useCallback((path: string) => {
 		router.history.push(path)
 	}, [])
+
+	useEffect(() => {
+		registerNotificationNavigator(handleNavigatePath)
+		return () => {
+			registerNotificationNavigator(null)
+		}
+	}, [handleNavigatePath])
 
 	useTauriDeepLinks({
 		onPreloadRoutes: handlePreloadRoutes,

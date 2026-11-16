@@ -201,3 +201,21 @@ export const useProcessStore = create<ProcessState>((set, get) => {
 		},
 	}
 })
+
+export const calculateTotalProcessRamMb = (processes: readonly RunningProcess[]): number => {
+	return processes.reduce((sum, proc) => {
+		const match = /^([\d.]+)\s*(GB|MB)/i.exec(proc.ram)
+		if (!match) {
+			return sum
+		}
+		const numeric = Number(match[1])
+		if (Number.isNaN(numeric)) {
+			return sum
+		}
+		const unit = match[2]?.toUpperCase()
+		if (unit === "GB") {
+			return sum + Math.round(numeric * 1024)
+		}
+		return sum + Math.round(numeric)
+	}, 0)
+}

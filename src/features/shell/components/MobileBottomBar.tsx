@@ -1,31 +1,72 @@
-import { Link } from "@tanstack/react-router"
 import { MoreHorizontal, Play } from "lucide-react"
 import { motion } from "motion/react"
-import { PRIMARY_MOBILE_PATHS, isNavItemActive, type NavItem } from "@/features/shell/navigation"
+import { useCallback, useMemo } from "react"
+import { useShallow } from "zustand/react/shallow"
+import MobileBottomNavItem from "@/features/shell/components/MobileBottomNavItem"
+import {
+	PRIMARY_MOBILE_PATHS,
+	getVisibleNavItems,
+	isNavItemActive,
+	type NavItem,
+} from "@/features/shell/navigation"
+import { useShellOverlayStore } from "@/features/shell/stores/useShellOverlayStore"
 import { cn } from "@/shared/lib/utils"
-import { COLOR_TAGS, type GameInstance } from "@/shared/stores/useInstancesStore"
+import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
+import {
+	COLOR_TAGS,
+	selectSelectedInstance,
+	useInstancesStore,
+} from "@/shared/stores/useInstancesStore"
+import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
+import { useProcessStore } from "@/shared/stores/useProcessStore"
 
 interface MobileBottomBarProps {
 	currentPath: string
-	allItems: NavItem[]
-	moreOpen: boolean
-	selectedInstance: GameInstance | undefined
-	ramGb: number
-	isLaunching: boolean
-	onLaunch: () => void
-	onToggleMore: () => void
 }
 
-const MobileBottomBar = ({
-	currentPath,
-	allItems,
-	moreOpen,
-	selectedInstance,
-	ramGb,
-	isLaunching,
-	onLaunch,
-	onToggleMore,
-}: MobileBottomBarProps) => {
+const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
+	const { showDeveloperPages, ramGb } = useLauncherPrefsStore(
+		useShallow((s) => {
+			return {
+				showDeveloperPages: s.showDeveloperPages,
+				ramGb: s.ramGb,
+			}
+		}),
+	)
+	const selectedInstance = useInstancesStore(selectSelectedInstance)
+	const activeAccount = useAccountStore(selectActiveAccount)
+	const { isLaunching, launchInstance } = useProcessStore(
+		useShallow((s) => {
+			return {
+				isLaunching: s.isLaunching,
+				launchInstance: s.launchInstance,
+			}
+		}),
+	)
+	const { moreOpen, toggleMore } = useShellOverlayStore(
+		useShallow((s) => {
+			return {
+				moreOpen: s.activeOverlay.kind === "mobileMore",
+				toggleMore: s.toggleMore,
+			}
+		}),
+	)
+
+	const allItems = useMemo(() => {
+		return getVisibleNavItems(showDeveloperPages)
+	}, [showDeveloperPages])
+
+	const handleLaunch = useCallback(() => {
+		if (!selectedInstance) {
+			return
+		}
+		launchInstance({
+			instance: selectedInstance,
+			username: activeAccount.username,
+			ramGb,
+		})
+	}, [activeAccount.username, launchInstance, ramGb, selectedInstance])
+
 	const matchedItems = PRIMARY_MOBILE_PATHS.map((path) => {
 		return allItems.find((item) => {
 			return item.path === path
@@ -63,7 +104,7 @@ const MobileBottomBar = ({
 					<button
 						type="button"
 						disabled={isLaunching}
-						onClick={onLaunch}
+						onClick={handleLaunch}
 						className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-[12px] font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:opacity-90 disabled:opacity-60"
 					>
 						<Play className="size-3.5 fill-current" />
@@ -74,33 +115,13 @@ const MobileBottomBar = ({
 
 			<nav aria-label="Mobile Navigation" className="grid grid-cols-5 gap-1 px-2 py-1.5">
 				{primaryItems.map((item) => {
-					const Icon = item.icon
 					const isActive = isNavItemActive(currentPath, item.path) && !moreOpen
-					return (
-						<Link
-							key={item.path}
-							to={item.path}
-							className={cn(
-								"relative flex flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[10px] font-medium",
-								isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
-							)}
-						>
-							{isActive ? (
-								<motion.span
-									layoutId="mobile-tab-pill"
-									transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-									className="absolute inset-0 rounded-xl bg-foreground/10"
-								/>
-							) : null}
-							<Icon className="relative z-10 size-4" />
-							<span className="relative z-10 truncate">{item.shortLabel}</span>
-						</Link>
-					)
+					return <MobileBottomNavItem key={item.path} item={item} isActive={isActive} />
 				})}
 
 				<button
 					type="button"
-					onClick={onToggleMore}
+					onClick={toggleMore}
 					aria-expanded={moreOpen}
 					className={cn(
 						"relative flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[10px] font-medium",

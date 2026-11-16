@@ -5,6 +5,7 @@ import ToastPositionPicker, {
 	type ToastPosition,
 } from "@/features/ui-test/components/ToastPositionPicker"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
+import { notifyBackgroundEvent } from "@/shared/lib/notify"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { appleToast } from "@/shared/ui/sonner"
 
@@ -565,6 +566,74 @@ const ToastLabSection = () => {
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
 						Stack Burst (4x)
+					</button>
+				</div>
+			</div>
+
+			<div className="flex flex-col gap-2">
+				<span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+					Titlebar Bell Alerts (Persistent Inbox + Action)
+				</span>
+				<div className="flex flex-wrap gap-2">
+					<button
+						type="button"
+						onClick={() => {
+							notifyBackgroundEvent({
+								level: "error",
+								category: "instance",
+								title: "1.21.4 Fabric exited with code 1",
+								message: "Mixin apply failure detected during mod init.",
+								action: { label: "View Logs", route: "/instances/inst-1/logs" },
+							})
+						}}
+						className="cursor-pointer rounded-xl border border-rose-500/30 bg-rose-500/12 px-3 py-1.5 text-[12px] font-medium text-rose-600 transition-colors hover:bg-rose-500/20 dark:text-rose-300"
+					>
+						Instance Crash
+					</button>
+					<button
+						type="button"
+						onClick={() => {
+							notifyBackgroundEvent({
+								level: "warning",
+								category: "server",
+								title: "Paper Server failed on :25565",
+								message: "Another local process is already listening on TCP 25565.",
+								action: { label: "Open Servers", route: "/servers" },
+							})
+						}}
+						className="cursor-pointer rounded-xl border border-amber-500/30 bg-amber-500/12 px-3 py-1.5 text-[12px] font-medium text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
+					>
+						Server Port Alert
+					</button>
+					<button
+						type="button"
+						onClick={() => {
+							notifyBackgroundEvent({
+								level: "success",
+								category: "download",
+								title: "Fabulously Optimized installed",
+								message: "48 mods & shader configurations ready to launch.",
+								action: { label: "Open Packs", route: "/modpacks" },
+							})
+						}}
+						className="cursor-pointer rounded-xl border border-emerald-500/30 bg-emerald-500/12 px-3 py-1.5 text-[12px] font-medium text-emerald-600 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
+					>
+						Pack Installed
+					</button>
+					<button
+						type="button"
+						onClick={() => {
+							notifyBackgroundEvent({
+								level: "warning",
+								category: "auth",
+								title: "Microsoft session expired",
+								message: "Refresh Alex_Craft credentials before launching online.",
+								action: { label: "Accounts", route: "/settings/accounts" },
+							})
+						}}
+						className="cursor-pointer rounded-xl border border-sky-500/30 bg-sky-500/12 px-3 py-1.5 text-[12px] font-medium text-sky-600 transition-colors hover:bg-sky-500/20 dark:text-sky-300"
+					>
+						Session Warning
 					</button>
 				</div>
 			</div>

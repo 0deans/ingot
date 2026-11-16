@@ -1,24 +1,58 @@
 import { Boxes } from "lucide-react"
-import { type MouseEvent } from "react"
+import { useMemo } from "react"
+import { useShallow } from "zustand/react/shallow"
+import NotificationBellButton from "@/features/shell/components/NotificationBellButton"
 import { findNavItem } from "@/features/shell/navigation"
+import {
+	isAnchoredOverlayOpen,
+	useShellOverlayStore,
+} from "@/features/shell/stores/useShellOverlayStore"
 import { cn } from "@/shared/lib/utils"
-import { getAccountInitials, type AccountProfile } from "@/shared/stores/useAccountStore"
+import {
+	getAccountInitials,
+	selectActiveAccount,
+	useAccountStore,
+} from "@/shared/stores/useAccountStore"
+import {
+	countUnreadNotifications,
+	hasUnreadByLevel,
+	useNotificationStore,
+} from "@/shared/stores/useNotificationStore"
+import { useProcessStore } from "@/shared/stores/useProcessStore"
 
 interface MobileTopBarProps {
 	currentPath: string
-	activeProcessesCount: number
-	activeAccount: AccountProfile
-	onToggleProcesses: (event: MouseEvent<HTMLButtonElement>) => void
-	onToggleAccount: (event: MouseEvent<HTMLButtonElement>) => void
+	layoutKey: string
 }
 
-const MobileTopBar = ({
-	currentPath,
-	activeProcessesCount,
-	activeAccount,
-	onToggleProcesses,
-	onToggleAccount,
-}: MobileTopBarProps) => {
+const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
+	const activeAccount = useAccountStore(selectActiveAccount)
+	const activeProcessesCount = useProcessStore((s) => {
+		return s.runningProcesses.length
+	})
+	const notifications = useNotificationStore((s) => {
+		return s.notifications
+	})
+	const { activeOverlay, toggleAnchored } = useShellOverlayStore(
+		useShallow((s) => {
+			return {
+				activeOverlay: s.activeOverlay,
+				toggleAnchored: s.toggleAnchored,
+			}
+		}),
+	)
+
+	const notificationsOpen = isAnchoredOverlayOpen(activeOverlay, "notifications", layoutKey)
+	const unreadCount = useMemo(() => {
+		return countUnreadNotifications(notifications)
+	}, [notifications])
+	const hasUnreadError = useMemo(() => {
+		return hasUnreadByLevel(notifications, "error")
+	}, [notifications])
+	const hasUnreadWarning = useMemo(() => {
+		return hasUnreadByLevel(notifications, "warning")
+	}, [notifications])
+
 	const currentItem = findNavItem(currentPath)
 
 	return (
@@ -38,7 +72,9 @@ const MobileTopBar = ({
 			<div className="flex shrink-0 items-center gap-2">
 				<button
 					type="button"
-					onClick={onToggleProcesses}
+					onClick={(event) => {
+						toggleAnchored("processes", layoutKey, event.currentTarget)
+					}}
 					aria-label="Toggle active processes"
 					className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-foreground/5 px-2.5 text-[11px] font-medium text-foreground transition-colors hover:bg-foreground/10"
 				>
@@ -51,9 +87,22 @@ const MobileTopBar = ({
 					<span className="tabular-nums">{activeProcessesCount}</span>
 				</button>
 
+				<NotificationBellButton
+					open={notificationsOpen}
+					unreadCount={unreadCount}
+					hasUnreadError={hasUnreadError}
+					hasUnreadWarning={hasUnreadWarning}
+					size="md"
+					onClick={(event) => {
+						toggleAnchored("notifications", layoutKey, event.currentTarget)
+					}}
+				/>
+
 				<button
 					type="button"
-					onClick={onToggleAccount}
+					onClick={(event) => {
+						toggleAnchored("account", layoutKey, event.currentTarget)
+					}}
 					aria-label={`Account ${activeAccount.username}`}
 					className={cn(
 						"flex size-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-br text-[11px] font-bold text-white shadow-inner ring-1 ring-border",

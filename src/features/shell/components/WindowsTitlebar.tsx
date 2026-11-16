@@ -1,8 +1,14 @@
-import { Link } from "@tanstack/react-router"
 import { ChevronDown, Copy, Minus, Square, X } from "lucide-react"
 import { AnimatePresence, LayoutGroup, motion } from "motion/react"
-import { useCallback, useEffect, useState, type MouseEvent } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useShallow } from "zustand/react/shallow"
+import CapsuleNavItem from "@/features/shell/components/CapsuleNavItem"
+import NotificationBellButton from "@/features/shell/components/NotificationBellButton"
 import { getVisibleNavItems, isNavItemActive, type NavItem } from "@/features/shell/navigation"
+import {
+	isAnchoredOverlayOpen,
+	useShellOverlayStore,
+} from "@/features/shell/stores/useShellOverlayStore"
 import {
 	closeMainWindow,
 	isTauriRuntime,
@@ -12,35 +18,67 @@ import {
 } from "@/shared/lib/tauriCommands"
 import { subscribeWindowResized } from "@/shared/lib/tauriEvents"
 import { cn } from "@/shared/lib/utils"
-import { getAccountInitials, type AccountProfile } from "@/shared/stores/useAccountStore"
-import { type NavVariant } from "@/shared/stores/useLauncherPrefsStore"
+import {
+	getAccountInitials,
+	selectActiveAccount,
+	useAccountStore,
+} from "@/shared/stores/useAccountStore"
+import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
+import {
+	countUnreadNotifications,
+	hasUnreadByLevel,
+	useNotificationStore,
+} from "@/shared/stores/useNotificationStore"
+import { calculateTotalProcessRamMb, useProcessStore } from "@/shared/stores/useProcessStore"
 
 interface WindowsTitlebarProps {
-	navVariant: NavVariant
-	showDeveloperPages: boolean
 	currentPath: string
-	activeProcessesCount: number
-	totalProcessRamMb: number
-	processesOpen: boolean
-	accountOpen: boolean
-	activeAccount: AccountProfile
-	onToggleProcesses: (event: MouseEvent<HTMLButtonElement>) => void
-	onToggleAccount: (event: MouseEvent<HTMLButtonElement>) => void
+	layoutKey: string
 }
 
-const WindowsTitlebar = ({
-	navVariant,
-	showDeveloperPages,
-	currentPath,
-	activeProcessesCount,
-	totalProcessRamMb,
-	processesOpen,
-	accountOpen,
-	activeAccount,
-	onToggleProcesses,
-	onToggleAccount,
-}: WindowsTitlebarProps) => {
+const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
+	const { navVariant, showDeveloperPages } = useLauncherPrefsStore(
+		useShallow((s) => {
+			return {
+				navVariant: s.navVariant,
+				showDeveloperPages: s.showDeveloperPages,
+			}
+		}),
+	)
+	const activeAccount = useAccountStore(selectActiveAccount)
+	const runningProcesses = useProcessStore((s) => {
+		return s.runningProcesses
+	})
+	const notifications = useNotificationStore((s) => {
+		return s.notifications
+	})
+	const { activeOverlay, toggleAnchored } = useShellOverlayStore(
+		useShallow((s) => {
+			return {
+				activeOverlay: s.activeOverlay,
+				toggleAnchored: s.toggleAnchored,
+			}
+		}),
+	)
+
 	const [isMaximized, setIsMaximized] = useState(false)
+
+	const processesOpen = isAnchoredOverlayOpen(activeOverlay, "processes", layoutKey)
+	const notificationsOpen = isAnchoredOverlayOpen(activeOverlay, "notifications", layoutKey)
+	const accountOpen = isAnchoredOverlayOpen(activeOverlay, "account", layoutKey)
+	const activeProcessesCount = runningProcesses.length
+	const totalProcessRamMb = useMemo(() => {
+		return calculateTotalProcessRamMb(runningProcesses)
+	}, [runningProcesses])
+	const unreadNotificationsCount = useMemo(() => {
+		return countUnreadNotifications(notifications)
+	}, [notifications])
+	const hasUnreadNotificationError = useMemo(() => {
+		return hasUnreadByLevel(notifications, "error")
+	}, [notifications])
+	const hasUnreadNotificationWarning = useMemo(() => {
+		return hasUnreadByLevel(notifications, "warning")
+	}, [notifications])
 
 	useEffect(() => {
 		if (!isTauriRuntime()) {
@@ -154,57 +192,12 @@ const WindowsTitlebar = ({
 								className="no-scrollbar flex max-w-full min-w-0 items-center gap-0.5 overflow-x-auto rounded-full border border-border bg-foreground/5 p-0.5 backdrop-blur-md"
 							>
 								{capsuleItems.map((item) => {
-									const Icon = item.icon
-									const isActive = isNavItemActive(currentPath, item.path)
 									return (
-										<Link
+										<CapsuleNavItem
 											key={item.path}
-											to={item.path}
-											title={item.label}
-											aria-label={item.label}
-											className={cn(
-												"relative flex shrink-0 items-center justify-center gap-1 rounded-full px-1.5 py-1 text-[11.5px] font-medium @2xl:px-2 @3xl:gap-1.5 @3xl:px-2.5",
-												isActive
-													? "text-foreground"
-													: "text-muted-foreground hover:bg-foreground/6 hover:text-foreground",
-											)}
-										>
-											{isActive ? (
-												<motion.span
-													layoutId="capsule-active-pill"
-													transition={{
-														type: "spring",
-														stiffness: 440,
-														damping: 34,
-														mass: 0.85,
-													}}
-													className="absolute inset-0 rounded-full bg-foreground/12 shadow-xs ring-1 ring-border"
-												/>
-											) : null}
-											<span className="relative z-10 flex shrink-0 items-center justify-center">
-												<Icon className={cn("size-3.5", isActive && "text-primary")} />
-												{item.badge ? (
-													<span
-														aria-hidden="true"
-														className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary ring-1 ring-sidebar/90 @2xl:hidden"
-													/>
-												) : null}
-											</span>
-											<span className="relative z-10 hidden whitespace-nowrap @2xl:inline">
-												{item.shortLabel}
-											</span>
-											{item.badge ? (
-												<>
-													<span
-														aria-hidden="true"
-														className="relative z-10 hidden size-1.5 shrink-0 rounded-full bg-primary @2xl:inline-block @3xl:hidden"
-													/>
-													<span className="py-0.2 relative z-10 hidden rounded-full bg-primary/20 px-1.5 text-[9px] font-semibold text-primary @3xl:inline-flex">
-														{item.badge}
-													</span>
-												</>
-											) : null}
-										</Link>
+											item={item}
+											isActive={isNavItemActive(currentPath, item.path)}
+										/>
 									)
 								})}
 							</motion.nav>
@@ -222,7 +215,9 @@ const WindowsTitlebar = ({
 							aria-expanded={accountOpen}
 							aria-haspopup="dialog"
 							title={`${activeAccount.username} (${activeAccount.type})`}
-							onClick={onToggleAccount}
+							onClick={(event) => {
+								toggleAnchored("account", layoutKey, event.currentTarget)
+							}}
 							initial={{ opacity: 0, scale: 0.94 }}
 							animate={{ opacity: 1, scale: 1 }}
 							exit={{ opacity: 0, scale: 0.94 }}
@@ -247,7 +242,9 @@ const WindowsTitlebar = ({
 					type="button"
 					aria-expanded={processesOpen}
 					aria-haspopup="dialog"
-					onClick={onToggleProcesses}
+					onClick={(event) => {
+						toggleAnchored("processes", layoutKey, event.currentTarget)
+					}}
 					className={cn(
 						"flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium whitespace-nowrap transition-colors",
 						processesOpen
@@ -266,6 +263,16 @@ const WindowsTitlebar = ({
 						{hasRunning ? <span className="hidden md:inline"> · {totalRamLabel}</span> : null}
 					</span>
 				</button>
+
+				<NotificationBellButton
+					open={notificationsOpen}
+					unreadCount={unreadNotificationsCount}
+					hasUnreadError={hasUnreadNotificationError}
+					hasUnreadWarning={hasUnreadNotificationWarning}
+					onClick={(event) => {
+						toggleAnchored("notifications", layoutKey, event.currentTarget)
+					}}
+				/>
 
 				<div className="ml-1 flex h-10 items-center">
 					<button
