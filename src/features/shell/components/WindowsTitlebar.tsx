@@ -100,13 +100,15 @@ const WindowsTitlebar = ({
 		})
 	}, [])
 
+	const isCapsule = navVariant === "capsule"
 	const capsuleItems: NavItem[] = getVisibleNavItems(import.meta.env.DEV)
 	const hasRunning = activeProcessesCount > 0
 	const totalRamLabel =
 		totalProcessRamMb >= 1024
 			? `${(totalProcessRamMb / 1024).toFixed(1)} GB`
 			: `${totalProcessRamMb} MB`
-	const statusLabel = hasRunning ? `${activeProcessesCount} Active · ${totalRamLabel}` : "Idle"
+	const statusLabel = hasRunning ? `${activeProcessesCount} Active` : "Idle"
+	const versionVisibilityClass = isCapsule ? "hidden md:inline-block" : "inline-block"
 
 	return (
 		<header
@@ -120,15 +122,25 @@ const WindowsTitlebar = ({
 					draggable={false}
 					className="pointer-events-none size-5 shrink-0 object-contain"
 				/>
-				<span className="text-[12.5px] font-semibold tracking-tight text-foreground">Ingot</span>
-				<span className="hidden rounded-full border border-border bg-foreground/5 px-1.5 py-0.5 text-[9.5px] font-medium text-muted-foreground xl:inline-block">
-					v2.4
+				<span className="pointer-events-none text-[12.5px] font-semibold tracking-tight text-foreground">
+					Ingot
+				</span>
+				<span
+					className={cn(
+						"pointer-events-none rounded-full border border-border bg-foreground/5 px-1.5 py-0.5 text-[9.5px] font-medium text-muted-foreground",
+						versionVisibilityClass,
+					)}
+				>
+					v{APP_VERSION}
 				</span>
 			</div>
 
-			<div data-tauri-drag-region className="flex min-w-0 flex-1 items-center justify-center px-2">
+			<div
+				data-tauri-drag-region
+				className="@container flex min-w-0 flex-1 items-center justify-center overflow-hidden px-1"
+			>
 				<AnimatePresence initial={false}>
-					{navVariant === "capsule" ? (
+					{isCapsule ? (
 						<LayoutGroup id="windows-titlebar-capsule">
 							<motion.nav
 								key="top-capsule-nav"
@@ -137,7 +149,7 @@ const WindowsTitlebar = ({
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.96, y: -3 }}
 								transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-								className="flex max-w-full min-w-0 items-center gap-0.5 rounded-full border border-border bg-foreground/5 p-0.5 backdrop-blur-md"
+								className="no-scrollbar flex max-w-full min-w-0 items-center gap-0.5 overflow-x-auto rounded-full border border-border bg-foreground/5 p-0.5 backdrop-blur-md"
 							>
 								{capsuleItems.map((item) => {
 									const Icon = item.icon
@@ -149,7 +161,7 @@ const WindowsTitlebar = ({
 											title={item.label}
 											aria-label={item.label}
 											className={cn(
-												"relative flex shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium lg:px-2 xl:px-2.5",
+												"relative flex shrink-0 items-center justify-center gap-1 rounded-full px-1.5 py-1 text-[11.5px] font-medium @2xl:px-2 @3xl:gap-1.5 @3xl:px-2.5",
 												isActive
 													? "text-foreground"
 													: "text-muted-foreground hover:bg-foreground/6 hover:text-foreground",
@@ -172,20 +184,20 @@ const WindowsTitlebar = ({
 												{item.badge ? (
 													<span
 														aria-hidden="true"
-														className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary ring-1 ring-sidebar/90 lg:hidden"
+														className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary ring-1 ring-sidebar/90 @2xl:hidden"
 													/>
 												) : null}
 											</span>
-											<span className="relative z-10 hidden whitespace-nowrap lg:inline">
+											<span className="relative z-10 hidden whitespace-nowrap @2xl:inline">
 												{item.shortLabel}
 											</span>
 											{item.badge ? (
 												<>
 													<span
 														aria-hidden="true"
-														className="relative z-10 hidden size-1.5 shrink-0 rounded-full bg-primary lg:inline-block xl:hidden"
+														className="relative z-10 hidden size-1.5 shrink-0 rounded-full bg-primary @2xl:inline-block @3xl:hidden"
 													/>
-													<span className="py-0.2 relative z-10 hidden rounded-full bg-primary/20 px-1.5 text-[9px] font-semibold text-primary xl:inline-flex">
+													<span className="py-0.2 relative z-10 hidden rounded-full bg-primary/20 px-1.5 text-[9px] font-semibold text-primary @3xl:inline-flex">
 														{item.badge}
 													</span>
 												</>
@@ -199,9 +211,9 @@ const WindowsTitlebar = ({
 				</AnimatePresence>
 			</div>
 
-			<div className="flex shrink-0 items-center gap-1.5">
+			<div data-tauri-drag-region className="flex shrink-0 items-center gap-1.5">
 				<AnimatePresence initial={false}>
-					{navVariant === "capsule" ? (
+					{isCapsule ? (
 						<motion.button
 							key="capsule-account-trigger"
 							type="button"
@@ -247,7 +259,10 @@ const WindowsTitlebar = ({
 							hasRunning ? "animate-pulse bg-primary" : "bg-muted-foreground",
 						)}
 					/>
-					<span className="tabular-nums">{statusLabel}</span>
+					<span className="tabular-nums">
+						{statusLabel}
+						{hasRunning ? <span className="hidden md:inline"> · {totalRamLabel}</span> : null}
+					</span>
 				</button>
 
 				<div className="ml-1 flex h-10 items-center">
