@@ -1,53 +1,42 @@
 import { RouterProvider } from "@tanstack/react-router"
-import React, { useEffect } from "react"
+import { ThemeProvider } from "next-themes"
+import React, { useCallback } from "react"
 import ReactDOM from "react-dom/client"
+import { useTauriDeepLinks } from "@/shared/hooks/useTauriDeepLinks"
+import CustomThemeSync from "@/shared/theme/CustomThemeSync"
+import { Toaster } from "@/shared/ui/sonner"
 import { router } from "./router"
 import "./styles/globals.css"
 
+const APP_THEMES = ["light", "dark", "purple", "custom"]
+
 const IngotApp = () => {
-	useEffect(() => {
-		const handleContextMenu = (e: MouseEvent) => {
-			if (!import.meta.env.DEV) {
-				e.preventDefault()
-			}
-		}
-
-		document.addEventListener("contextmenu", handleContextMenu)
-
-		let unlistenDeepLink: (() => void) | undefined
-
-		import("@tauri-apps/plugin-deep-link")
-			.then(({ onOpenUrl }) => {
-				return onOpenUrl((urls) => {
-					for (const rawUrl of urls) {
-						try {
-							const parsed = new URL(rawUrl)
-							const targetPath = `/${parsed.host}${parsed.pathname}`.replace(/\/+$/, "") || "/"
-
-							router.navigate({
-								to: targetPath as never,
-								search: Object.fromEntries(parsed.searchParams.entries()) as never,
-							})
-						} catch (err) {
-							console.error("[Ingot] Invalid deep-link URL:", rawUrl, err)
-						}
-					}
-				})
-			})
-			.then((unlisten) => {
-				unlistenDeepLink = unlisten
-			})
-			.catch(() => {
-				// Safely ignored when running in browser preview without Tauri runtime
-			})
-
-		return () => {
-			document.removeEventListener("contextmenu", handleContextMenu)
-			unlistenDeepLink?.()
-		}
+	const handlePreloadRoutes = useCallback(async () => {
+		await router.load()
 	}, [])
 
-	return <RouterProvider router={router} />
+	const handleNavigatePath = useCallback((path: string) => {
+		router.history.push(path)
+	}, [])
+
+	useTauriDeepLinks({
+		onPreloadRoutes: handlePreloadRoutes,
+		onNavigatePath: handleNavigatePath,
+	})
+
+	return (
+		<ThemeProvider
+			attribute="class"
+			themes={APP_THEMES}
+			defaultTheme="dark"
+			enableSystem={false}
+			storageKey="ingot-theme"
+		>
+			<CustomThemeSync />
+			<RouterProvider router={router} />
+			<Toaster position="bottom-right" />
+		</ThemeProvider>
+	)
 }
 
 const rootElement = document.getElementById("root")

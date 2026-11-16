@@ -1,1 +1,319 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+@custom-variant dark (&:is(.dark *, .purple *, .custom-dark *));
+
+@theme inline {
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", "Inter", system-ui,
+		sans-serif;
+	--font-heading: var(--font-sans);
+	--font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar: var(--sidebar);
+	--color-chart-5: var(--chart-5);
+	--color-chart-4: var(--chart-4);
+	--color-chart-3: var(--chart-3);
+	--color-chart-2: var(--chart-2);
+	--color-chart-1: var(--chart-1);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+	color-scheme: light;
+	--radius: 0.75rem;
+
+	/* Shadcn OKLCH Tokens (Light) */
+	--background: oklch(0.955 0.005 247);
+	--foreground: oklch(0.145 0.015 255);
+	--card: oklch(1 0 0 / 88%);
+	--card-foreground: oklch(0.145 0.015 255);
+	--popover: oklch(1 0 0 / 96%);
+	--popover-foreground: oklch(0.145 0.015 255);
+	--primary: oklch(0.58 0.16 162.5);
+	--primary-foreground: oklch(0.99 0 0);
+	--secondary: oklch(0.93 0.006 247);
+	--secondary-foreground: oklch(0.205 0.015 255);
+	--muted: oklch(0.925 0.006 247);
+	--muted-foreground: oklch(0.46 0.015 255);
+	--accent: oklch(0.145 0.015 255 / 6%);
+	--accent-foreground: oklch(0.145 0.015 255);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.145 0.015 255 / 11%);
+	--input: oklch(0.145 0.015 255 / 14%);
+	--ring: oklch(0.58 0.16 162.5 / 50%);
+
+	--chart-1: oklch(0.58 0.16 162.5);
+	--chart-2: oklch(0.556 0 0);
+	--chart-3: oklch(0.439 0 0);
+	--chart-4: oklch(0.371 0 0);
+	--chart-5: oklch(0.269 0 0);
+
+	--sidebar: oklch(0.975 0.004 247 / 86%);
+	--sidebar-foreground: oklch(0.145 0.015 255);
+	--sidebar-primary: oklch(0.58 0.16 162.5);
+	--sidebar-primary-foreground: oklch(0.99 0 0);
+	--sidebar-accent: oklch(0.145 0.015 255 / 6%);
+	--sidebar-accent-foreground: oklch(0.145 0.015 255);
+	--sidebar-border: oklch(0.145 0.015 255 / 10%);
+	--sidebar-ring: oklch(0.58 0.16 162.5 / 50%);
+
+	/* Ingot Glass & Scrollbar Tokens (Light) */
+	--ingot-surface: rgba(255, 255, 255, 0.84);
+	--ingot-surface-elevated: rgba(255, 255, 255, 0.96);
+	--ingot-border: rgba(15, 23, 42, 0.1);
+	--ingot-border-strong: rgba(15, 23, 42, 0.16);
+	--ingot-scrollbar-thumb: rgba(15, 23, 42, 0.18);
+	--ingot-scrollbar-thumb-hover: rgba(15, 23, 42, 0.3);
+}
+
+.dark {
+	color-scheme: dark;
+	/* Shadcn OKLCH Tokens (Dark - Deep Obsidian & Emerald) */
+	--background: oklch(0.145 0.008 255);
+	--foreground: oklch(0.965 0.004 247);
+	--card: oklch(0.195 0.01 255 / 72%);
+	--card-foreground: oklch(0.965 0.004 247);
+	--popover: oklch(0.215 0.012 255 / 92%);
+	--popover-foreground: oklch(0.965 0.004 247);
+	--primary: oklch(0.765 0.155 163.2);
+	--primary-foreground: oklch(0.145 0.02 165);
+	--secondary: oklch(0.245 0.01 255);
+	--secondary-foreground: oklch(0.965 0.004 247);
+	--muted: oklch(0.245 0.01 255);
+	--muted-foreground: oklch(0.68 0.012 255);
+	--accent: oklch(1 0 0 / 7%);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(1 0 0 / 9%);
+	--input: oklch(1 0 0 / 12%);
+	--ring: oklch(0.765 0.155 163.2 / 45%);
+
+	--chart-1: oklch(0.765 0.155 163.2);
+	--chart-2: oklch(0.556 0 0);
+	--chart-3: oklch(0.439 0 0);
+	--chart-4: oklch(0.371 0 0);
+	--chart-5: oklch(0.269 0 0);
+
+	--sidebar: oklch(0.165 0.01 255 / 78%);
+	--sidebar-foreground: oklch(0.965 0.004 247);
+	--sidebar-primary: oklch(0.765 0.155 163.2);
+	--sidebar-primary-foreground: oklch(0.145 0.02 165);
+	--sidebar-accent: oklch(1 0 0 / 7%);
+	--sidebar-accent-foreground: oklch(0.985 0 0);
+	--sidebar-border: oklch(1 0 0 / 9%);
+	--sidebar-ring: oklch(0.765 0.155 163.2 / 45%);
+
+	/* Ingot Glass & Scrollbar Tokens (Dark) */
+	--ingot-surface: rgba(20, 22, 28, 0.78);
+	--ingot-surface-elevated: rgba(24, 27, 34, 0.94);
+	--ingot-border: rgba(255, 255, 255, 0.09);
+	--ingot-border-strong: rgba(255, 255, 255, 0.16);
+	--ingot-scrollbar-thumb: rgba(255, 255, 255, 0.15);
+	--ingot-scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
+}
+
+.purple {
+	color-scheme: dark;
+	/* Shadcn OKLCH Tokens (Purple - Midnight Amethyst) */
+	--background: oklch(0.15 0.032 292);
+	--foreground: oklch(0.96 0.014 292);
+	--card: oklch(0.21 0.042 292 / 74%);
+	--card-foreground: oklch(0.96 0.014 292);
+	--popover: oklch(0.22 0.045 292 / 94%);
+	--popover-foreground: oklch(0.96 0.014 292);
+	--primary: oklch(0.715 0.195 296);
+	--primary-foreground: oklch(0.985 0.005 296);
+	--secondary: oklch(0.25 0.045 292);
+	--secondary-foreground: oklch(0.96 0.014 292);
+	--muted: oklch(0.245 0.04 292);
+	--muted-foreground: oklch(0.72 0.03 292);
+	--accent: oklch(0.88 0.06 292 / 10%);
+	--accent-foreground: oklch(0.98 0.01 292);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(0.84 0.06 292 / 12%);
+	--input: oklch(0.84 0.06 292 / 16%);
+	--ring: oklch(0.715 0.195 296 / 50%);
+
+	--chart-1: oklch(0.715 0.195 296);
+	--chart-2: oklch(0.65 0.15 260);
+	--chart-3: oklch(0.55 0.12 310);
+	--chart-4: oklch(0.45 0.1 285);
+	--chart-5: oklch(0.35 0.08 295);
+
+	--sidebar: oklch(0.175 0.038 292 / 80%);
+	--sidebar-foreground: oklch(0.96 0.014 292);
+	--sidebar-primary: oklch(0.715 0.195 296);
+	--sidebar-primary-foreground: oklch(0.985 0.005 296);
+	--sidebar-accent: oklch(0.88 0.06 292 / 10%);
+	--sidebar-accent-foreground: oklch(0.98 0.01 292);
+	--sidebar-border: oklch(0.84 0.06 292 / 12%);
+	--sidebar-ring: oklch(0.715 0.195 296 / 50%);
+
+	/* Ingot Glass & Scrollbar Tokens (Purple) */
+	--ingot-surface: rgba(24, 17, 42, 0.78);
+	--ingot-surface-elevated: rgba(28, 20, 48, 0.94);
+	--ingot-border: rgba(196, 181, 253, 0.14);
+	--ingot-border-strong: rgba(196, 181, 253, 0.22);
+	--ingot-scrollbar-thumb: rgba(196, 181, 253, 0.2);
+	--ingot-scrollbar-thumb-hover: rgba(196, 181, 253, 0.34);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	html,
+	body,
+	#root {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		@apply bg-background font-sans text-foreground;
+		font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		user-select: none;
+		-webkit-user-select: none;
+	}
+
+	/* Re-enable text selection inside inputs, logs, and selectable blocks */
+	input,
+	textarea,
+	[contenteditable="true"],
+	.select-text {
+		user-select: text;
+		-webkit-user-select: text;
+	}
+}
+
+@layer components {
+	/* Translucent Apple-inspired glass panel for sidebars, titlebars, and cards */
+	.ingot-glass {
+		background-color: var(--ingot-surface);
+		backdrop-filter: blur(20px) saturate(160%);
+		-webkit-backdrop-filter: blur(20px) saturate(160%);
+		border: 1px solid var(--ingot-border);
+	}
+
+	/* Higher-opacity glass for floating popovers, modals, and context menus */
+	.ingot-glass-elevated {
+		background-color: var(--ingot-surface-elevated);
+		backdrop-filter: blur(28px) saturate(180%);
+		-webkit-backdrop-filter: blur(28px) saturate(180%);
+		border: 1px solid var(--ingot-border-strong);
+		box-shadow: 0 18px 44px -10px rgba(0, 0, 0, 0.38);
+	}
+}
+
+@layer utilities {
+	/* Sleek overlay-style scrollbar for desktop & mobile containers */
+	.custom-scrollbar {
+		scrollbar-width: thin;
+		scrollbar-color: var(--ingot-scrollbar-thumb) transparent;
+		scrollbar-gutter: stable;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background-color: var(--ingot-scrollbar-thumb);
+		border-radius: 9999px;
+		border: 1px solid transparent;
+		background-clip: content-box;
+		transition: background-color 150ms ease;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background-color: var(--ingot-scrollbar-thumb-hover);
+	}
+
+	/* Smooth top & bottom edge fade masks for scrollable lists and viewports */
+	.scroll-fade-y {
+		-webkit-mask-image: linear-gradient(
+			to bottom,
+			transparent 0px,
+			black 16px,
+			black calc(100% - 16px),
+			transparent 100%
+		);
+		mask-image: linear-gradient(
+			to bottom,
+			transparent 0px,
+			black 16px,
+			black calc(100% - 16px),
+			transparent 100%
+		);
+	}
+
+	.scroll-fade-y-sm {
+		-webkit-mask-image: linear-gradient(
+			to bottom,
+			transparent 0px,
+			black 8px,
+			black calc(100% - 8px),
+			transparent 100%
+		);
+		mask-image: linear-gradient(
+			to bottom,
+			transparent 0px,
+			black 8px,
+			black calc(100% - 8px),
+			transparent 100%
+		);
+	}
+
+	/* Hide scrollbars cleanly on horizontal pill bars */
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+}

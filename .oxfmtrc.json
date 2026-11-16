@@ -17,7 +17,7 @@
 		"**/*.md"
 	],
 	"sortTailwindcss": {
-		"stylesheet": "./src/index.css",
+		"stylesheet": "./src/styles/globals.css",
 		"attributes": ["classList"],
 		"functions": ["cn", "cva", "clsx", "twMerge", "tw"]
 	},

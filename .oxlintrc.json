@@ -1,6 +1,12 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
 	"plugins": ["react", "typescript", "unicorn", "import"],
+	"jsPlugins": ["oxlint-tailwindcss"],
+	"settings": {
+		"tailwindcss": {
+			"entryPoint": "src/styles/globals.css"
+		}
+	},
 	"ignorePatterns": [
 		"dist/**",
 		"node_modules/**",
@@ -18,6 +24,13 @@
 		"react/self-closing-comp": "warn",
 		"react/jsx-fragments": "warn",
 		"react/jsx-no-duplicate-props": "error",
-		"react/jsx-no-comment-textnodes": "error"
+		"react/jsx-no-comment-textnodes": "error",
+
+		"tailwindcss/enforce-canonical": "warn",
+		"tailwindcss/no-unnecessary-arbitrary-value": "warn",
+		"tailwindcss/no-deprecated-classes": "error",
+		"tailwindcss/enforce-consistent-variable-syntax": "warn",
+		"tailwindcss/enforce-consistent-important-position": "warn",
+		"tailwindcss/prefer-scale-token": ["warn", { "step": 0.25 }]
 	}
 }
