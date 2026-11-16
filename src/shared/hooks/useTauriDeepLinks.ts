@@ -5,6 +5,7 @@ import {
 	showAndFocusMainWindow,
 } from "@/shared/lib/tauriCommands"
 import { subscribeDeepLinkUrls } from "@/shared/lib/tauriEvents"
+import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 
 interface UseTauriDeepLinksOptions {
 	onPreloadRoutes: () => Promise<void>
@@ -36,7 +37,7 @@ export const useTauriDeepLinks = ({
 		let unlistenDeepLink: (() => void) | undefined
 
 		const handleContextMenu = (event: MouseEvent) => {
-			if (!import.meta.env.DEV) {
+			if (!useLauncherPrefsStore.getState().enableDevContextMenu) {
 				event.preventDefault()
 			}
 		}

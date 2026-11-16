@@ -18,6 +18,7 @@ interface DesktopSidebarProps {
 	variant: Exclude<NavVariant, "capsule">
 	compact: boolean
 	railExpanded: boolean
+	showDeveloperPages: boolean
 	currentPath: string
 	activeAccount: AccountProfile
 	ramGb: number
@@ -31,6 +32,7 @@ const DesktopSidebar = ({
 	variant,
 	compact,
 	railExpanded,
+	showDeveloperPages,
 	currentPath,
 	activeAccount,
 	ramGb,
@@ -39,7 +41,7 @@ const DesktopSidebar = ({
 	onToggleRailExpanded,
 	onToggleAccount,
 }: DesktopSidebarProps) => {
-	const items = getSidebarNavItems(import.meta.env.DEV)
+	const items = getSidebarNavItems(showDeveloperPages)
 	const isIconOnly = variant === "rail" && !railExpanded
 	const isSequoia = variant === "sequoia"
 	const targetWidth = isIconOnly ? 64 : compact ? 196 : 224

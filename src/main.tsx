@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes"
 import React, { useCallback } from "react"
 import ReactDOM from "react-dom/client"
 import { useTauriDeepLinks } from "@/shared/hooks/useTauriDeepLinks"
+import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import CustomThemeSync from "@/shared/theme/CustomThemeSync"
 import { Toaster } from "@/shared/ui/sonner"
 import { router } from "./router"
@@ -11,6 +12,10 @@ import "./styles/globals.css"
 const APP_THEMES = ["light", "dark", "purple", "custom"]
 
 const IngotApp = () => {
+	const toastPosition = useLauncherPrefsStore((s) => {
+		return s.toastPosition
+	})
+
 	const handlePreloadRoutes = useCallback(async () => {
 		await router.load()
 	}, [])
@@ -34,7 +39,7 @@ const IngotApp = () => {
 		>
 			<CustomThemeSync />
 			<RouterProvider router={router} />
-			<Toaster position="bottom-right" />
+			<Toaster position={toastPosition} />
 		</ThemeProvider>
 	)
 }

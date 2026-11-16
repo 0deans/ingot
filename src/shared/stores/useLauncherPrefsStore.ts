@@ -15,13 +15,31 @@ import {
 } from "@/shared/theme/customTheme"
 
 export type NavVariant = "sonoma" | "rail" | "sequoia" | "capsule"
+export type ToastPosition =
+	| "top-left"
+	| "top-center"
+	| "top-right"
+	| "bottom-left"
+	| "bottom-center"
+	| "bottom-right"
 
 const navVariantSchema = z.enum(["sonoma", "rail", "sequoia", "capsule"])
+const toastPositionSchema = z.enum([
+	"top-left",
+	"top-center",
+	"top-right",
+	"bottom-left",
+	"bottom-center",
+	"bottom-right",
+])
 const ramGbSchema = z.number().min(1).max(64)
 const persistedObjectSchema = z.record(z.string(), z.unknown())
 
 interface PersistedLauncherPrefs {
 	navVariant: NavVariant
+	toastPosition: ToastPosition
+	showDeveloperPages: boolean
+	enableDevContextMenu: boolean
 	ramGb: number
 	railExpanded: boolean
 	customTheme: CustomThemeConfig
@@ -29,6 +47,9 @@ interface PersistedLauncherPrefs {
 
 interface LauncherPrefsState extends PersistedLauncherPrefs {
 	setNavVariant: (variant: NavVariant) => void
+	setToastPosition: (position: ToastPosition) => void
+	setShowDeveloperPages: (enabled: boolean) => void
+	setEnableDevContextMenu: (enabled: boolean) => void
 	setRamGb: (ramGb: number) => void
 	toggleRailExpanded: () => void
 	setCustomTheme: (config: CustomThemeConfig) => void
@@ -43,6 +64,9 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 		(set) => {
 			return {
 				navVariant: "sonoma",
+				toastPosition: "bottom-right",
+				showDeveloperPages: import.meta.env.DEV,
+				enableDevContextMenu: import.meta.env.DEV,
 				ramGb: 6,
 				railExpanded: false,
 				customTheme: DEFAULT_CUSTOM_THEME,
@@ -52,6 +76,19 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 						return
 					}
 					set({ navVariant: parsed.data })
+				},
+				setToastPosition: (toastPosition) => {
+					const parsed = toastPositionSchema.safeParse(toastPosition)
+					if (!parsed.success) {
+						return
+					}
+					set({ toastPosition: parsed.data })
+				},
+				setShowDeveloperPages: (showDeveloperPages) => {
+					set({ showDeveloperPages: Boolean(showDeveloperPages) })
+				},
+				setEnableDevContextMenu: (enableDevContextMenu) => {
+					set({ enableDevContextMenu: Boolean(enableDevContextMenu) })
 				},
 				setRamGb: (ramGb) => {
 					const parsed = ramGbSchema.safeParse(ramGb)
@@ -137,6 +174,9 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 			partialize: (state): PersistedLauncherPrefs => {
 				return {
 					navVariant: state.navVariant,
+					toastPosition: state.toastPosition,
+					showDeveloperPages: state.showDeveloperPages,
+					enableDevContextMenu: state.enableDevContextMenu,
 					ramGb: state.ramGb,
 					railExpanded: state.railExpanded,
 					customTheme: state.customTheme,
@@ -150,6 +190,9 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 
 				const raw = parsedRecord.data
 				const parsedNav = navVariantSchema.safeParse(raw.navVariant)
+				const parsedToastPos = toastPositionSchema.safeParse(raw.toastPosition)
+				const parsedDevPages = z.boolean().safeParse(raw.showDeveloperPages)
+				const parsedDevMenu = z.boolean().safeParse(raw.enableDevContextMenu)
 				const parsedRam = ramGbSchema.safeParse(raw.ramGb)
 				const parsedRail = z.boolean().safeParse(raw.railExpanded)
 				const parsedTheme = customThemeConfigSchema.safeParse(raw.customTheme)
@@ -157,6 +200,13 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				return {
 					...currentState,
 					navVariant: parsedNav.success ? parsedNav.data : currentState.navVariant,
+					toastPosition: parsedToastPos.success ? parsedToastPos.data : currentState.toastPosition,
+					showDeveloperPages: parsedDevPages.success
+						? parsedDevPages.data
+						: currentState.showDeveloperPages,
+					enableDevContextMenu: parsedDevMenu.success
+						? parsedDevMenu.data
+						: currentState.enableDevContextMenu,
 					ramGb: parsedRam.success ? parsedRam.data : currentState.ramGb,
 					railExpanded: parsedRail.success ? parsedRail.data : currentState.railExpanded,
 					customTheme: parsedTheme.success ? parsedTheme.data : currentState.customTheme,

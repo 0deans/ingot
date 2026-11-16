@@ -1,10 +1,9 @@
-import { Link, Outlet, useRouterState } from "@tanstack/react-router"
-import { Globe2, Package, Settings, Terminal } from "lucide-react"
-import { motion } from "motion/react"
+import { Outlet, useRouterState } from "@tanstack/react-router"
+import { Globe2, Package, Settings, Terminal, type LucideIcon } from "lucide-react"
 import { useShallow } from "zustand/react/shallow"
 import InstanceHeader from "@/features/instance-detail/components/InstanceHeader"
+import RouteNavTabs, { type RouteNavTabItem } from "@/shared/components/motion/RouteNavTabs"
 import NotFoundView from "@/shared/components/NotFoundView"
-import { cn } from "@/shared/lib/utils"
 import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { selectInstanceById, useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
@@ -24,7 +23,7 @@ interface InstanceTabItem {
 		| "/instances/$instanceId/settings"
 	suffix: InstanceTabSuffix
 	label: string
-	icon: typeof Package
+	icon: LucideIcon
 }
 
 const INSTANCE_TABS: readonly InstanceTabItem[] = [
@@ -78,6 +77,17 @@ const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
 		})
 	}
 
+	const tabItems: RouteNavTabItem[] = INSTANCE_TABS.map((tab) => {
+		const targetSuffix = `/instances/${instanceId}/${tab.suffix}`
+		return {
+			key: tab.suffix,
+			label: tab.label,
+			icon: tab.icon,
+			isActive: pathname === targetSuffix,
+			link: { to: tab.to, params: { instanceId } },
+		}
+	})
+
 	return (
 		<div className="flex flex-col gap-4">
 			<InstanceHeader
@@ -86,37 +96,7 @@ const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
 				onToggleLaunch={handleToggleLaunch}
 			/>
 
-			<nav
-				aria-label="Instance Sections"
-				className="inline-flex w-fit items-center gap-1 rounded-xl border border-border bg-sidebar/80 p-1"
-			>
-				{INSTANCE_TABS.map((tab) => {
-					const Icon = tab.icon
-					const targetSuffix = `/instances/${instanceId}/${tab.suffix}`
-					const isActive = pathname === targetSuffix
-					return (
-						<Link
-							key={tab.suffix}
-							to={tab.to}
-							params={{ instanceId }}
-							className={cn(
-								"relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
-								isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
-							)}
-						>
-							{isActive ? (
-								<motion.span
-									layoutId="instance-detail-tab"
-									transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-									className="absolute inset-0 rounded-lg border border-primary/30 bg-primary/15"
-								/>
-							) : null}
-							<Icon className="relative z-10 size-3.5" />
-							<span className="relative z-10">{tab.label}</span>
-						</Link>
-					)
-				})}
-			</nav>
+			<RouteNavTabs ariaLabel="Instance Sections" layoutId="instance-detail-tab" items={tabItems} />
 
 			<Outlet />
 		</div>

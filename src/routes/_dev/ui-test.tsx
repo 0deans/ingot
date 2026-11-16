@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router"
 import UiTestPage from "@/features/ui-test/UiTestPage"
 import NotFoundView from "@/shared/components/NotFoundView"
+import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 
 const UiTestRouteComponent = () => {
-	if (!import.meta.env.DEV) {
+	const showDeveloperPages = useLauncherPrefsStore((s) => {
+		return s.showDeveloperPages
+	})
+
+	if (!showDeveloperPages) {
 		return <NotFoundView />
 	}
 	return <UiTestPage />

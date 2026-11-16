@@ -2,6 +2,7 @@ import { Activity, FlaskConical, Layers, Trash2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useState } from "react"
 import { useShallow } from "zustand/react/shallow"
+import ToastLabSection from "@/features/ui-test/components/ToastLabSection"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
 import { cn } from "@/shared/lib/utils"
 import { COLOR_TAGS, TAG_ORDER } from "@/shared/stores/useInstancesStore"
@@ -182,6 +183,8 @@ const UiTestPage = () => {
 					})}
 				</div>
 			</section>
+
+			<ToastLabSection />
 		</div>
 	)
 }

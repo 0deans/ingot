@@ -4,9 +4,11 @@ import { useCallback, useState } from "react"
 import { toast } from "sonner"
 import { useShallow } from "zustand/react/shallow"
 import CustomThemeEditor from "@/features/settings/components/CustomThemeEditor"
+import DeveloperSettingsCard from "@/features/settings/components/DeveloperSettingsCard"
 import NavVariantCard, {
 	type NavVariantOption,
 } from "@/features/settings/components/NavVariantCard"
+import NotificationSettingsCard from "@/features/settings/components/NotificationSettingsCard"
 import ThemeOptionCard, {
 	type ThemeOptionMeta,
 } from "@/features/settings/components/ThemeOptionCard"
@@ -169,6 +171,10 @@ const AppearanceSettingsPage = () => {
 					})}
 				</div>
 			</section>
+
+			<NotificationSettingsCard />
+
+			<DeveloperSettingsCard />
 		</div>
 	)
 }

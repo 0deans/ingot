@@ -17,6 +17,7 @@ import { type NavVariant } from "@/shared/stores/useLauncherPrefsStore"
 
 interface WindowsTitlebarProps {
 	navVariant: NavVariant
+	showDeveloperPages: boolean
 	currentPath: string
 	activeProcessesCount: number
 	totalProcessRamMb: number
@@ -29,6 +30,7 @@ interface WindowsTitlebarProps {
 
 const WindowsTitlebar = ({
 	navVariant,
+	showDeveloperPages,
 	currentPath,
 	activeProcessesCount,
 	totalProcessRamMb,
@@ -101,7 +103,7 @@ const WindowsTitlebar = ({
 	}, [])
 
 	const isCapsule = navVariant === "capsule"
-	const capsuleItems: NavItem[] = getVisibleNavItems(import.meta.env.DEV)
+	const capsuleItems: NavItem[] = getVisibleNavItems(showDeveloperPages)
 	const hasRunning = activeProcessesCount > 0
 	const totalRamLabel =
 		totalProcessRamMb >= 1024

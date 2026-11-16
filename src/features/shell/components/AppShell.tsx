@@ -48,16 +48,18 @@ const AppShell = () => {
 	const mainRef = useRef<HTMLElement | null>(null)
 	useScrollRestoration(mainRef, pathname)
 
-	const { navVariant, ramGb, railExpanded, toggleRailExpanded } = useLauncherPrefsStore(
-		useShallow((s) => {
-			return {
-				navVariant: s.navVariant,
-				ramGb: s.ramGb,
-				railExpanded: s.railExpanded,
-				toggleRailExpanded: s.toggleRailExpanded,
-			}
-		}),
-	)
+	const { navVariant, showDeveloperPages, ramGb, railExpanded, toggleRailExpanded } =
+		useLauncherPrefsStore(
+			useShallow((s) => {
+				return {
+					navVariant: s.navVariant,
+					showDeveloperPages: s.showDeveloperPages,
+					ramGb: s.ramGb,
+					railExpanded: s.railExpanded,
+					toggleRailExpanded: s.toggleRailExpanded,
+				}
+			}),
+		)
 
 	const { accounts, activeAccountId, setActiveAccountId, addAccount } = useAccountStore(
 		useShallow((s) => {
@@ -121,8 +123,8 @@ const AppShell = () => {
 	}, [runningProcesses])
 
 	const visibleNavItems = useMemo(() => {
-		return getVisibleNavItems(import.meta.env.DEV)
-	}, [])
+		return getVisibleNavItems(showDeveloperPages)
+	}, [showDeveloperPages])
 
 	const secondaryMobileItems = useMemo(() => {
 		return visibleNavItems.filter((item) => {
@@ -266,6 +268,7 @@ const AppShell = () => {
 				) : (
 					<WindowsTitlebar
 						navVariant={navVariant}
+						showDeveloperPages={showDeveloperPages}
 						currentPath={pathname}
 						activeProcessesCount={runningProcesses.length}
 						totalProcessRamMb={totalProcessRamMb}
@@ -285,6 +288,7 @@ const AppShell = () => {
 								variant={navVariant}
 								compact={isTablet}
 								railExpanded={railExpanded}
+								showDeveloperPages={showDeveloperPages}
 								currentPath={pathname}
 								activeAccount={activeAccount}
 								ramGb={ramGb}
