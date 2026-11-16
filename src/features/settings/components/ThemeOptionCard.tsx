@@ -26,7 +26,7 @@ const ThemeOptionCard = ({ option, colors, isSelected, onSelect }: ThemeOptionCa
 			}}
 			aria-pressed={isSelected}
 			className={cn(
-				"flex cursor-pointer flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-colors",
+				"flex min-w-0 cursor-pointer flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-colors",
 				isSelected
 					? "border-primary/50 bg-primary/12 ring-1 ring-primary/25"
 					: "border-border bg-foreground/3 hover:border-foreground/20 hover:bg-foreground/6",
@@ -40,7 +40,7 @@ const ThemeOptionCard = ({ option, colors, isSelected, onSelect }: ThemeOptionCa
 				{isSelected ? <Check className="size-3.5 text-primary" /> : null}
 			</div>
 
-			<div className="flex items-center gap-1.5">
+			<div className="flex flex-wrap items-center gap-1.5">
 				<span
 					aria-hidden="true"
 					className="h-4 w-8 shrink-0 rounded-full border border-border"

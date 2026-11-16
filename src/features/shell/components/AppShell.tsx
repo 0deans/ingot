@@ -21,6 +21,7 @@ import {
 } from "@/features/shell/navigation"
 import PageTransition from "@/shared/components/motion/PageTransition"
 import { useScrollRestoration } from "@/shared/hooks/useScrollRestoration"
+import { cn } from "@/shared/lib/utils"
 import { findActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { selectSelectedInstance, useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
@@ -242,9 +243,14 @@ const AppShell = () => {
 	const showDesktopSidebar = !isMobile && navVariant !== "capsule"
 	const isSequoiaDesktop = showDesktopSidebar && navVariant === "sequoia"
 	const pageTransitionKey = getPageTransitionKey(pathname)
-	const contentColumnClass = isSequoiaDesktop
-		? "my-2.5 mr-2.5 ml-2.5 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 shadow-xl backdrop-blur-xl transition-[margin,border-radius,border-color,background-color] duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-		: "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-none border border-transparent bg-transparent transition-[margin,border-radius,border-color,background-color] duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+	const baseColumnClass =
+		"flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border transition-[margin,border-radius,border-color,background-color] duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+	const sequoiaColumnClass = cn(
+		baseColumnClass,
+		"m-2.5 rounded-2xl border-border bg-card/75 shadow-xl backdrop-blur-xl",
+	)
+	const standardColumnClass = cn(baseColumnClass, "rounded-none border-transparent bg-transparent")
+	const contentColumnClass = isSequoiaDesktop ? sequoiaColumnClass : standardColumnClass
 
 	return (
 		<div className="relative flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">

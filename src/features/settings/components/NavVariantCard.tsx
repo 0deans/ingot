@@ -23,7 +23,7 @@ const NavVariantCard = ({ variant, isSelected, onSelect }: NavVariantCardProps) 
 			}}
 			aria-pressed={isSelected}
 			className={cn(
-				"flex cursor-pointer flex-col items-start gap-1 rounded-xl border p-3.5 text-left transition-colors",
+				"flex min-w-0 cursor-pointer flex-col items-start gap-1 rounded-xl border p-3.5 text-left transition-colors",
 				isSelected
 					? "border-primary/45 bg-primary/12 ring-1 ring-primary/25"
 					: "border-border bg-foreground/3 hover:border-foreground/20 hover:bg-foreground/6",

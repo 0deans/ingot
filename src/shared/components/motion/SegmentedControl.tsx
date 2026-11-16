@@ -31,7 +31,7 @@ const SegmentedControl = <T extends string>({
 
 	return (
 		<div
-			className="no-scrollbar inline-flex items-center gap-0.5 overflow-x-auto rounded-xl border border-border bg-card/80 p-1"
+			className="no-scrollbar inline-flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-border bg-card/80 p-1"
 			role="tablist"
 		>
 			{options.map((opt) => {
@@ -49,7 +49,7 @@ const SegmentedControl = <T extends string>({
 							onChange(opt.value)
 						}}
 						className={cn(
-							"relative flex cursor-pointer items-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors select-none",
+							"relative flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors select-none",
 							sizeClass,
 							textClass,
 						)}

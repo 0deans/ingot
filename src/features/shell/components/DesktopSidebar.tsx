@@ -58,12 +58,18 @@ const DesktopSidebar = ({
 		return section.items.length > 0
 	})
 
-	const containerClass = isSequoia
-		? "flex shrink-0 flex-col overflow-hidden rounded-2xl border border-sidebar-border bg-sidebar/90 p-2 shadow-xl backdrop-blur-2xl transition-[border-radius,border-color,background-color,padding] duration-200"
-		: cn(
-				"flex shrink-0 flex-col overflow-hidden rounded-none border border-transparent border-r-sidebar-border bg-sidebar/80 backdrop-blur-xl transition-[border-radius,border-color,background-color,padding] duration-200",
-				isIconOnly ? "p-2" : "p-2.5",
-			)
+	const baseContainerClass =
+		"flex shrink-0 flex-col overflow-hidden border transition-[border-radius,border-color,background-color,padding] duration-200"
+	const sequoiaContainerClass = cn(
+		baseContainerClass,
+		"rounded-2xl border-sidebar-border bg-sidebar/90 p-2 shadow-xl backdrop-blur-2xl",
+	)
+	const dockedContainerClass = cn(
+		baseContainerClass,
+		"rounded-none border-transparent border-r-sidebar-border bg-sidebar/80 backdrop-blur-xl",
+		isIconOnly ? "p-2" : "p-2.5",
+	)
+	const containerClass = isSequoia ? sequoiaContainerClass : dockedContainerClass
 
 	const isSettingsActive = isNavItemActive(currentPath, "/settings")
 	const outerTargetWidth = isSequoia ? targetWidth + 10 : targetWidth

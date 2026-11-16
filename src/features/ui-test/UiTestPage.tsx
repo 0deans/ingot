@@ -58,10 +58,10 @@ const UiTestPage = () => {
 	const activeTheme: AppThemeId = isAppThemeId(theme) ? theme : "dark"
 
 	return (
-		<div className="flex flex-col gap-5">
+		<div className="@container flex min-w-0 flex-col gap-5">
 			<div className="flex items-center justify-between gap-3">
-				<div>
-					<div className="flex items-center gap-2">
+				<div className="min-w-0">
+					<div className="flex flex-wrap items-center gap-2">
 						<FlaskConical className="size-4.5 text-primary" />
 						<h1 className="text-lg font-semibold tracking-tight text-foreground">UI Design Lab</h1>
 						<span className="rounded-full border border-primary/30 bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
@@ -75,13 +75,13 @@ const UiTestPage = () => {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<section className="flex flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4">
+			<div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
+				<section className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4">
 					<div className="flex items-center gap-2">
 						<Layers className="size-4 text-primary" />
 						<h2 className="text-[13.5px] font-semibold text-foreground">Live Shell Controls</h2>
 					</div>
-					<div className="flex flex-col gap-2">
+					<div className="flex min-w-0 flex-col gap-2">
 						<span className="text-[11px] text-muted-foreground">Navigation Variant</span>
 						<SegmentedControl
 							layoutId="uitest-nav-variant"
@@ -91,7 +91,7 @@ const UiTestPage = () => {
 							tone="emerald"
 						/>
 					</div>
-					<div className="flex flex-col gap-2">
+					<div className="flex min-w-0 flex-col gap-2">
 						<span className="text-[11px] text-muted-foreground">Active Theme</span>
 						<SegmentedControl
 							layoutId="uitest-theme"
@@ -105,7 +105,7 @@ const UiTestPage = () => {
 					</div>
 				</section>
 
-				<section className="flex flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4">
+				<section className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4">
 					<div className="flex items-center gap-2">
 						<Activity className="size-4 text-primary" />
 						<h2 className="text-[13.5px] font-semibold text-foreground">

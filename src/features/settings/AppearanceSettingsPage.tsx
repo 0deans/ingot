@@ -110,7 +110,7 @@ const AppearanceSettingsPage = () => {
 
 	return (
 		<div className="flex flex-col gap-5">
-			<section className="rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
+			<section className="@container rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 				<div className="mb-3 flex flex-wrap items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<Palette className="size-4 text-primary" />
@@ -133,7 +133,7 @@ const AppearanceSettingsPage = () => {
 					</button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="grid grid-cols-1 gap-2.5 @md:grid-cols-2 @3xl:grid-cols-4">
 					{THEME_OPTIONS.map((option) => {
 						return (
 							<ThemeOptionCard
