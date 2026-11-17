@@ -1,4 +1,4 @@
-import { Check, Copy, Layout, Palette } from "lucide-react"
+import { Check, Copy, Layout, Monitor, Palette } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
@@ -12,6 +12,8 @@ import NotificationSettingsCard from "@/features/settings/components/Notificatio
 import ThemeOptionCard, {
 	type ThemeOptionMeta,
 } from "@/features/settings/components/ThemeOptionCard"
+import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
+import { cn } from "@/shared/lib/utils"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import {
 	THEME_PRESETS,
@@ -78,6 +80,7 @@ const getThemeColors = (themeId: AppThemeId, customTheme: CustomThemeConfig): Cu
 
 const AppearanceSettingsPage = () => {
 	const { theme, setTheme } = useTheme()
+	const breakpoint = useBreakpoint()
 	const { navVariant, setNavVariant, customTheme } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -90,6 +93,7 @@ const AppearanceSettingsPage = () => {
 
 	const [copiedActiveJson, setCopiedActiveJson] = useState<boolean>(false)
 
+	const isMobile = breakpoint === "mobile"
 	const activeTheme: AppThemeId = isAppThemeId(theme) ? theme : "dark"
 
 	const handleCopyActiveThemeJson = useCallback(async () => {
@@ -153,12 +157,21 @@ const AppearanceSettingsPage = () => {
 			{activeTheme === "custom" ? <CustomThemeEditor /> : null}
 
 			<section className="rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
-				<div className="mb-3 flex items-center gap-2">
-					<Layout className="size-4 text-primary" />
-					<h2 className="text-[13.5px] font-semibold text-foreground">Navigation Layout</h2>
+				<div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+					<div className="flex items-center gap-2">
+						<Layout className="size-4 text-primary" />
+						<h2 className="text-[13.5px] font-semibold text-foreground">Navigation Layout</h2>
+					</div>
+
+					{isMobile ? (
+						<span className="inline-flex items-center gap-1 rounded-full border border-border bg-foreground/5 px-2.5 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+							<Monitor className="size-3 shrink-0" />
+							<span>Tablet &amp; Desktop only · No effect on mobile</span>
+						</span>
+					) : null}
 				</div>
 
-				<div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+				<div className={cn("grid grid-cols-1 gap-2.5 sm:grid-cols-2", isMobile && "opacity-75")}>
 					{NAV_VARIANTS.map((variant) => {
 						return (
 							<NavVariantCard

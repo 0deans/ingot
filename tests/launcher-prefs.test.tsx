@@ -1,11 +1,32 @@
-import { fireEvent, render, screen } from "@testing-library/react"
-import { beforeEach, describe, expect, it } from "vitest"
+import { act, fireEvent, render, screen } from "@testing-library/react"
+import { type ReactNode } from "react"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import AppearanceSettingsPage from "@/features/settings/AppearanceSettingsPage"
 import NotificationSettingsCard from "@/features/settings/components/NotificationSettingsCard"
 import { getSidebarNavItems, getVisibleNavItems } from "@/features/shell/navigation"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 
+interface MockLinkProps {
+	to: string
+	children?: ReactNode
+	className?: string
+}
+
+vi.mock("@tanstack/react-router", () => {
+	return {
+		Link: ({ to, children, className }: MockLinkProps) => {
+			return (
+				<a href={to} className={className}>
+					{children}
+				</a>
+			)
+		},
+	}
+})
+
 beforeEach(() => {
 	useLauncherPrefsStore.setState({
+		navVariant: "sonoma",
 		toastPosition: "bottom-right",
 		showDeveloperPages: true,
 		enableDevContextMenu: true,
@@ -59,5 +80,27 @@ describe("Launcher toast & developer preferences", () => {
 		expect(screen.getByRole("button", { name: "Top Right" }).getAttribute("aria-pressed")).toBe(
 			"true",
 		)
+	})
+
+	it("shows a tablet/desktop-only notice on Navigation Layout on mobile while keeping preference selection working", () => {
+		Object.defineProperty(window, "innerWidth", {
+			configurable: true,
+			writable: true,
+			value: 420,
+		})
+
+		render(<AppearanceSettingsPage />)
+
+		expect(screen.getByText(/Tablet & Desktop only/i)).toBeTruthy()
+
+		fireEvent.click(screen.getByRole("button", { name: /Top Capsule/i }))
+		expect(useLauncherPrefsStore.getState().navVariant).toBe("capsule")
+
+		act(() => {
+			window.innerWidth = 1024
+			window.dispatchEvent(new Event("resize"))
+		})
+
+		expect(screen.queryByText(/Tablet & Desktop only/i)).toBeNull()
 	})
 })
