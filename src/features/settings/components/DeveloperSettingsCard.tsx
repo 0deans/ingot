@@ -57,9 +57,9 @@ const DeveloperSettingsCard = () => {
 			</div>
 
 			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
-				<div className="min-w-0">
+				<div className="min-w-0 flex-1">
 					<p className="text-[12.5px] font-medium text-foreground">Show Developer Pages</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-[11px] leading-relaxed text-muted-foreground">
 						Expose UI Design Lab and internal sandboxes in sidebar, capsule bar, and mobile menus.
 					</p>
 				</div>
@@ -69,7 +69,7 @@ const DeveloperSettingsCard = () => {
 					aria-checked={showDeveloperPages}
 					onClick={handleToggleDeveloperPages}
 					className={cn(
-						"shrink-0 cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+						"shrink-0 cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors",
 						showDeveloperPages
 							? "bg-primary text-primary-foreground"
 							: "bg-foreground/10 text-muted-foreground",
@@ -80,9 +80,9 @@ const DeveloperSettingsCard = () => {
 			</div>
 
 			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
-				<div className="min-w-0">
+				<div className="min-w-0 flex-1">
 					<p className="text-[12.5px] font-medium text-foreground">Allow Inspect Context Menu</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-[11px] leading-relaxed text-muted-foreground">
 						Keep the native right-click context menu enabled for element inspection inside desktop
 						windows.
 					</p>
@@ -93,7 +93,7 @@ const DeveloperSettingsCard = () => {
 					aria-checked={enableDevContextMenu}
 					onClick={handleToggleContextMenu}
 					className={cn(
-						"shrink-0 cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+						"shrink-0 cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors",
 						enableDevContextMenu
 							? "bg-primary text-primary-foreground"
 							: "bg-foreground/10 text-muted-foreground",

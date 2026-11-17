@@ -60,7 +60,7 @@ const JavaSettingsPage = () => {
 				})}
 			</div>
 
-			<div className="rounded-xl border border-border bg-foreground/4 p-3 font-mono text-[11px] text-muted-foreground">
+			<div className="rounded-xl border border-border bg-foreground/4 p-3 font-mono text-[11px] leading-relaxed wrap-break-word text-muted-foreground">
 				-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions -Xms{Math.max(1, Math.floor(ramGb / 2))}G -Xmx
 				{ramGb}G
 			</div>

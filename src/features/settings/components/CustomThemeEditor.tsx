@@ -169,9 +169,9 @@ const CustomThemeEditor = () => {
 	return (
 		<section className="flex flex-col gap-5 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 			<div className="flex flex-wrap items-center justify-between gap-3">
-				<div className="flex items-center gap-2">
-					<SlidersHorizontal className="size-4 text-primary" />
-					<div>
+				<div className="flex min-w-0 items-center gap-2">
+					<SlidersHorizontal className="size-4 shrink-0 text-primary" />
+					<div className="min-w-0">
 						<h2 className="text-[13.5px] font-semibold text-foreground">Custom Theme Builder</h2>
 						<p className="text-[11.5px] text-muted-foreground">
 							Tune color tokens live or import/export portable JSON themes.
@@ -296,8 +296,8 @@ const CustomThemeEditor = () => {
 			</div>
 
 			<div className="flex flex-col gap-2.5 rounded-xl border border-border bg-foreground/3 p-3.5">
-				<div className="flex flex-wrap items-center justify-between gap-2">
-					<div>
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<div className="min-w-0 flex-1">
 						<h3 className="text-[12.5px] font-semibold text-foreground">JSON Import / Export</h3>
 						<p className="text-[11px] text-muted-foreground">
 							Copy your current configuration or paste shared JSON styles to apply them.
@@ -310,7 +310,7 @@ const CustomThemeEditor = () => {
 							onClick={() => {
 								void handleCopyJson()
 							}}
-							className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium text-foreground transition-colors hover:bg-foreground/12"
+							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium whitespace-nowrap text-foreground transition-colors hover:bg-foreground/12"
 						>
 							{copiedJson ? (
 								<Check className="size-3.5 text-primary" />
@@ -325,7 +325,7 @@ const CustomThemeEditor = () => {
 							onClick={() => {
 								void handlePasteClipboard()
 							}}
-							className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium text-foreground transition-colors hover:bg-foreground/12"
+							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium whitespace-nowrap text-foreground transition-colors hover:bg-foreground/12"
 						>
 							<ClipboardPaste className="size-3.5 text-muted-foreground" />
 							<span>Paste Clipboard</span>
@@ -334,7 +334,7 @@ const CustomThemeEditor = () => {
 						<button
 							type="button"
 							onClick={handleApplyJson}
-							className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11.5px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
 						>
 							<span>Apply JSON</span>
 						</button>

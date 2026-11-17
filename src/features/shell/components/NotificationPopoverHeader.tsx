@@ -54,7 +54,7 @@ const NotificationPopoverHeader = ({
 							type="button"
 							onClick={onClearAll}
 							aria-label="Clear all notifications"
-							className="inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[10.5px] font-medium text-muted-foreground transition-colors hover:bg-rose-500/12 hover:text-rose-400"
+							className="inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[10.5px] font-medium text-muted-foreground transition-colors hover:bg-rose-500/12 hover:text-rose-600 dark:hover:text-rose-400"
 						>
 							<Trash2 className="size-3" />
 							<span>Clear</span>

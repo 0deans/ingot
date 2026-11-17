@@ -40,9 +40,11 @@ const VersionInstallDrawer = ({
 						transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
 						className="ingot-glass-elevated relative z-10 w-full max-w-md rounded-t-2xl p-4 shadow-2xl sm:rounded-2xl"
 					>
-						<div className="mb-3 flex items-center justify-between border-b border-border pb-2.5">
-							<div>
-								<h2 className="text-sm font-semibold text-foreground">Install {pack.name}</h2>
+						<div className="mb-3 flex items-center justify-between gap-3 border-b border-border pb-2.5">
+							<div className="min-w-0 flex-1">
+								<h2 className="truncate text-sm font-semibold text-foreground">
+									Install {pack.name}
+								</h2>
 								<p className="text-[11px] text-muted-foreground">
 									{pack.loader} · {pack.engine}
 								</p>
@@ -51,7 +53,7 @@ const VersionInstallDrawer = ({
 								type="button"
 								onClick={onClose}
 								aria-label="Dismiss version drawer"
-								className="cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-foreground/8 hover:text-foreground"
+								className="shrink-0 cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-4" />
 							</button>
@@ -62,10 +64,12 @@ const VersionInstallDrawer = ({
 								return (
 									<div
 										key={ver.label}
-										className="flex items-center justify-between rounded-xl border border-border bg-foreground/4 px-3 py-2.5"
+										className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/4 px-3 py-2.5"
 									>
-										<div>
-											<p className="font-mono text-xs font-semibold text-foreground">{ver.label}</p>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-mono text-xs font-semibold text-foreground">
+												{ver.label}
+											</p>
 											<p className="text-[10.5px] text-muted-foreground">
 												{ver.channel} · {ver.date}
 											</p>
@@ -76,7 +80,7 @@ const VersionInstallDrawer = ({
 												onInstallVersion(ver.label)
 												onClose()
 											}}
-											className="flex h-7 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+											className="flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2.5 text-[11px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
 										>
 											<Download className="size-3" />
 											<span>Install</span>

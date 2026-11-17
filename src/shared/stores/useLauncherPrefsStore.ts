@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { languagePreferenceSchema, type LauncherLanguagePreference } from "@/shared/i18n/languages"
 import {
 	DEFAULT_CUSTOM_THEME,
 	THEME_PRESETS,
@@ -14,6 +15,7 @@ import {
 	type CustomThemeConfig,
 } from "@/shared/theme/customTheme"
 
+export type { LauncherLanguagePreference }
 export type NavVariant = "sonoma" | "rail" | "sequoia" | "capsule"
 export type ToastPosition =
 	| "top-left"
@@ -38,6 +40,7 @@ const persistedObjectSchema = z.record(z.string(), z.unknown())
 interface PersistedLauncherPrefs {
 	navVariant: NavVariant
 	toastPosition: ToastPosition
+	language: LauncherLanguagePreference
 	showDeveloperPages: boolean
 	enableDevContextMenu: boolean
 	ramGb: number
@@ -48,6 +51,7 @@ interface PersistedLauncherPrefs {
 interface LauncherPrefsState extends PersistedLauncherPrefs {
 	setNavVariant: (variant: NavVariant) => void
 	setToastPosition: (position: ToastPosition) => void
+	setLanguage: (language: LauncherLanguagePreference) => void
 	setShowDeveloperPages: (enabled: boolean) => void
 	setEnableDevContextMenu: (enabled: boolean) => void
 	setRamGb: (ramGb: number) => void
@@ -65,6 +69,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 			return {
 				navVariant: "sonoma",
 				toastPosition: "bottom-right",
+				language: "system",
 				showDeveloperPages: import.meta.env.DEV,
 				enableDevContextMenu: import.meta.env.DEV,
 				ramGb: 6,
@@ -83,6 +88,13 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 						return
 					}
 					set({ toastPosition: parsed.data })
+				},
+				setLanguage: (language) => {
+					const parsed = languagePreferenceSchema.safeParse(language)
+					if (!parsed.success) {
+						return
+					}
+					set({ language: parsed.data })
 				},
 				setShowDeveloperPages: (showDeveloperPages) => {
 					set({ showDeveloperPages: Boolean(showDeveloperPages) })
@@ -175,6 +187,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				return {
 					navVariant: state.navVariant,
 					toastPosition: state.toastPosition,
+					language: state.language,
 					showDeveloperPages: state.showDeveloperPages,
 					enableDevContextMenu: state.enableDevContextMenu,
 					ramGb: state.ramGb,
@@ -191,6 +204,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				const raw = parsedRecord.data
 				const parsedNav = navVariantSchema.safeParse(raw.navVariant)
 				const parsedToastPos = toastPositionSchema.safeParse(raw.toastPosition)
+				const parsedLanguage = languagePreferenceSchema.safeParse(raw.language)
 				const parsedDevPages = z.boolean().safeParse(raw.showDeveloperPages)
 				const parsedDevMenu = z.boolean().safeParse(raw.enableDevContextMenu)
 				const parsedRam = ramGbSchema.safeParse(raw.ramGb)
@@ -201,6 +215,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 					...currentState,
 					navVariant: parsedNav.success ? parsedNav.data : currentState.navVariant,
 					toastPosition: parsedToastPos.success ? parsedToastPos.data : currentState.toastPosition,
+					language: parsedLanguage.success ? parsedLanguage.data : currentState.language,
 					showDeveloperPages: parsedDevPages.success
 						? parsedDevPages.data
 						: currentState.showDeveloperPages,

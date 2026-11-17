@@ -14,10 +14,10 @@ const NetworkSettingsPage = () => {
 				<h2 className="text-[13.5px] font-semibold text-foreground">Network &amp; Behavior</h2>
 			</div>
 
-			<div className="flex items-center justify-between rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
-				<div>
+			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
+				<div className="min-w-0 flex-1">
 					<p className="text-[12.5px] font-medium text-foreground">Discord Rich Presence</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-[11px] leading-relaxed text-muted-foreground">
 						Broadcast active instance &amp; pack details while playing.
 					</p>
 				</div>
@@ -31,7 +31,7 @@ const NetworkSettingsPage = () => {
 						})
 					}}
 					className={cn(
-						"cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+						"shrink-0 cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors",
 						discordRpc
 							? "bg-primary text-primary-foreground"
 							: "bg-foreground/10 text-muted-foreground",
@@ -41,10 +41,10 @@ const NetworkSettingsPage = () => {
 				</button>
 			</div>
 
-			<div className="flex items-center justify-between rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
-				<div>
+			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
+				<div className="min-w-0 flex-1">
 					<p className="text-[12.5px] font-medium text-foreground">Minimize on Game Launch</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-[11px] leading-relaxed text-muted-foreground">
 						Hide main Ingot window until the active game process exits.
 					</p>
 				</div>
@@ -58,7 +58,7 @@ const NetworkSettingsPage = () => {
 						})
 					}}
 					className={cn(
-						"cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+						"shrink-0 cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors",
 						closeOnLaunch
 							? "bg-primary text-primary-foreground"
 							: "bg-foreground/10 text-muted-foreground",
@@ -68,14 +68,14 @@ const NetworkSettingsPage = () => {
 				</button>
 			</div>
 
-			<div className="flex items-center justify-between rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
-				<div>
+			<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
+				<div className="min-w-0 flex-1">
 					<p className="text-[12.5px] font-medium text-foreground">Concurrent Asset Workers</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-[11px] leading-relaxed text-muted-foreground">
 						Parallel HTTP/2 streams during mod sync.
 					</p>
 				</div>
-				<div className="flex items-center gap-1.5">
+				<div className="flex shrink-0 items-center gap-1.5">
 					{[4, 8, 12].map((count) => {
 						return (
 							<button

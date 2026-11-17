@@ -2,12 +2,18 @@ import { Outlet, useRouterState } from "@tanstack/react-router"
 import RouteNavTabs, { type RouteNavTabItem } from "@/shared/components/motion/RouteNavTabs"
 
 interface SettingsTabDef {
-	to: "/settings" | "/settings/java" | "/settings/accounts" | "/settings/network"
+	to:
+		| "/settings"
+		| "/settings/language"
+		| "/settings/java"
+		| "/settings/accounts"
+		| "/settings/network"
 	label: string
 }
 
 const SETTINGS_TABS: readonly SettingsTabDef[] = [
 	{ to: "/settings", label: "Appearance" },
+	{ to: "/settings/language", label: "Language" },
 	{ to: "/settings/java", label: "Java & Memory" },
 	{ to: "/settings/accounts", label: "Accounts" },
 	{ to: "/settings/network", label: "Network" },

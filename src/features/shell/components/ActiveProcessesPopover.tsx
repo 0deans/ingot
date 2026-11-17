@@ -19,8 +19,10 @@ interface ActiveProcessesPopoverProps {
 }
 
 const KIND_BADGE_CLASS: Record<RunningProcess["kind"], string> = {
-	instance: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-	server: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+	instance:
+		"border-emerald-600/25 bg-emerald-500/12 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300",
+	server:
+		"border-sky-600/25 bg-sky-500/12 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300",
 }
 
 const KIND_LABEL: Record<RunningProcess["kind"], string> = {
@@ -78,13 +80,13 @@ const ActiveProcessesPopover = ({
 							fallbackClass,
 						)}
 					>
-						<div className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
-							<div className="flex items-center gap-2">
-								<Activity className="size-3.5 text-primary" />
-								<span className="text-[12.5px] font-semibold text-popover-foreground">
+						<div className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5">
+							<div className="flex min-w-0 items-center gap-2">
+								<Activity className="size-3.5 shrink-0 text-primary" />
+								<span className="truncate text-[12.5px] font-semibold text-popover-foreground">
 									Background & Game Processes
 								</span>
-								<span className="rounded-full bg-foreground/8 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+								<span className="shrink-0 rounded-full bg-foreground/8 px-1.5 py-0.5 text-[10px] font-medium text-foreground/75">
 									{processes.length}
 								</span>
 							</div>
@@ -92,7 +94,7 @@ const ActiveProcessesPopover = ({
 								type="button"
 								onClick={onClose}
 								aria-label="Dismiss processes popover"
-								className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
+								className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-3.5" />
 							</button>
@@ -131,13 +133,13 @@ const ActiveProcessesPopover = ({
 															{KIND_LABEL[proc.kind]}
 														</span>
 													</div>
-													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+													<p className="mt-0.5 truncate text-[11px] text-foreground/70">
 														{proc.engine} · {proc.uptime}
 													</p>
-													<div className="mt-1 flex items-center gap-3 text-[10.5px] text-muted-foreground">
-														<span>RAM {proc.ram}</span>
-														<span>CPU {proc.cpu}</span>
-														{proc.account ? <span>{proc.account}</span> : null}
+													<div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10.5px] font-medium text-foreground/75">
+														<span className="whitespace-nowrap">RAM {proc.ram}</span>
+														<span className="whitespace-nowrap">CPU {proc.cpu}</span>
+														{proc.account ? <span className="truncate">{proc.account}</span> : null}
 													</div>
 												</div>
 												<button
@@ -145,7 +147,7 @@ const ActiveProcessesPopover = ({
 													onClick={() => {
 														onStopProcess(proc.id)
 													}}
-													className="flex shrink-0 items-center gap-1 rounded-lg border border-rose-500/25 bg-rose-500/12 px-2 py-1 text-[11px] font-medium text-rose-600 transition-colors hover:bg-rose-500/22 dark:text-rose-300"
+													className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-rose-600/25 bg-rose-500/12 px-2 py-1 text-[11px] font-medium whitespace-nowrap text-rose-700 transition-colors hover:bg-rose-500/22 dark:border-rose-500/25 dark:text-rose-300"
 												>
 													<Square className="size-2.5 fill-current" />
 													<span>Stop</span>

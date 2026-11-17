@@ -23,6 +23,7 @@ import { Route as ModpacksProjectIdRouteImport } from './routes/modpacks/$projec
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SettingsAccountsRouteImport } from './routes/settings/accounts'
 import { Route as SettingsJavaRouteImport } from './routes/settings/java'
+import { Route as SettingsLanguageRouteImport } from './routes/settings/language'
 import { Route as SettingsNetworkRouteImport } from './routes/settings/network'
 import { Route as InstancesInstanceIdLogsRouteImport } from './routes/instances/$instanceId/logs'
 import { Route as InstancesInstanceIdModsRouteImport } from './routes/instances/$instanceId/mods'
@@ -100,6 +101,11 @@ const SettingsJavaRoute = SettingsJavaRouteImport.update({
   path: '/java',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
+const SettingsLanguageRoute = SettingsLanguageRouteImport.update({
+  id: '/language',
+  path: '/language',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
 const SettingsNetworkRoute = SettingsNetworkRouteImport.update({
   id: '/network',
   path: '/network',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
   '/settings/java': typeof SettingsJavaRoute
+  '/settings/language': typeof SettingsLanguageRoute
   '/settings/network': typeof SettingsNetworkRoute
   '/modpacks/': typeof ModpacksIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
   '/settings/java': typeof SettingsJavaRoute
+  '/settings/language': typeof SettingsLanguageRoute
   '/settings/network': typeof SettingsNetworkRoute
   '/modpacks': typeof ModpacksIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
   '/settings/java': typeof SettingsJavaRoute
+  '/settings/language': typeof SettingsLanguageRoute
   '/settings/network': typeof SettingsNetworkRoute
   '/modpacks/': typeof ModpacksIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/modpacks/$projectId'
     | '/settings/accounts'
     | '/settings/java'
+    | '/settings/language'
     | '/settings/network'
     | '/modpacks/'
     | '/settings/'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/modpacks/$projectId'
     | '/settings/accounts'
     | '/settings/java'
+    | '/settings/language'
     | '/settings/network'
     | '/modpacks'
     | '/settings'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/modpacks/$projectId'
     | '/settings/accounts'
     | '/settings/java'
+    | '/settings/language'
     | '/settings/network'
     | '/modpacks/'
     | '/settings/'
@@ -370,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsJavaRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/language': {
+      id: '/settings/language'
+      path: '/language'
+      fullPath: '/settings/language'
+      preLoaderRoute: typeof SettingsLanguageRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/network': {
       id: '/settings/network'
       path: '/network'
@@ -411,6 +430,7 @@ declare module '@tanstack/react-router' {
 interface SettingsRouteRouteChildren {
   SettingsAccountsRoute: typeof SettingsAccountsRoute
   SettingsJavaRoute: typeof SettingsJavaRoute
+  SettingsLanguageRoute: typeof SettingsLanguageRoute
   SettingsNetworkRoute: typeof SettingsNetworkRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
@@ -418,6 +438,7 @@ interface SettingsRouteRouteChildren {
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAccountsRoute: SettingsAccountsRoute,
   SettingsJavaRoute: SettingsJavaRoute,
+  SettingsLanguageRoute: SettingsLanguageRoute,
   SettingsNetworkRoute: SettingsNetworkRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
