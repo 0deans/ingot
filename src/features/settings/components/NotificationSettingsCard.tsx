@@ -1,5 +1,6 @@
 import { Bell } from "lucide-react"
 import { useShallow } from "zustand/react/shallow"
+import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
 import ToastPositionPicker from "@/features/ui-test/components/ToastPositionPicker"
 import { useLauncherPrefsStore, type ToastPosition } from "@/shared/stores/useLauncherPrefsStore"
 import { appleToast } from "@/shared/ui/sonner"
@@ -13,7 +14,15 @@ const POSITION_LABELS: Record<ToastPosition, string> = {
 	"bottom-right": "Bottom Right",
 }
 
+const formatToastPositionLabel = (position: ToastPosition, isMobile: boolean): string => {
+	if (!isMobile) {
+		return POSITION_LABELS[position]
+	}
+	return position.startsWith("top-") ? "Top" : "Bottom"
+}
+
 const NotificationSettingsCard = () => {
+	const breakpoint = useBreakpoint()
 	const { toastPosition, setToastPosition } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -23,9 +32,11 @@ const NotificationSettingsCard = () => {
 		}),
 	)
 
+	const isMobile = breakpoint === "mobile"
+
 	const handleChangePosition = (nextPosition: ToastPosition) => {
 		setToastPosition(nextPosition)
-		appleToast.info(`Notifications set to ${POSITION_LABELS[nextPosition]}`, {
+		appleToast.info(`Notifications set to ${formatToastPositionLabel(nextPosition, isMobile)}`, {
 			description: "Launcher alerts will now appear here.",
 			position: nextPosition,
 		})
@@ -33,7 +44,7 @@ const NotificationSettingsCard = () => {
 
 	const handleTriggerPreview = () => {
 		appleToast.success("Sample notification preview", {
-			description: `Anchored at ${POSITION_LABELS[toastPosition]}.`,
+			description: `Anchored at ${formatToastPositionLabel(toastPosition, isMobile)}.`,
 			position: toastPosition,
 		})
 	}
@@ -66,8 +77,9 @@ const NotificationSettingsCard = () => {
 				<div className="flex min-w-0 flex-col gap-2 @xl:border-l @xl:border-border/50 @xl:pl-5">
 					<p className="text-[12.5px] font-medium text-foreground">Preferred Toast Placement</p>
 					<p className="text-[11.5px] leading-relaxed text-muted-foreground">
-						Choose which corner or edge of the launcher window displays frosted status banners,
-						download progress cards, and stacked alerts.
+						{isMobile
+							? "Choose Top or Bottom placement on mobile. Left, Center, and Right alignment applies on tablet and desktop."
+							: "Choose which corner or edge of the launcher window displays frosted status banners, download progress cards, and stacked alerts."}
 					</p>
 				</div>
 			</div>

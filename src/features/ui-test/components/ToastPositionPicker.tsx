@@ -1,4 +1,5 @@
 import { motion } from "motion/react"
+import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
 import { cn } from "@/shared/lib/utils"
 import {
 	useLauncherPrefsStore,
@@ -8,11 +9,18 @@ import {
 
 export type { ToastPosition }
 
+type VerticalEdge = "top" | "bottom"
+
 interface PositionSlot {
 	value: ToastPosition
 	label: string
 	shortLabel: string
 	alignClass: string
+}
+
+interface MobileEdgeSlot {
+	edge: VerticalEdge
+	label: string
 }
 
 const POSITION_SLOTS: PositionSlot[] = [
@@ -54,11 +62,37 @@ const POSITION_SLOTS: PositionSlot[] = [
 	},
 ]
 
+const MOBILE_EDGE_SLOTS: MobileEdgeSlot[] = [
+	{ edge: "top", label: "Top" },
+	{ edge: "bottom", label: "Bottom" },
+]
+
 const findPositionLabel = (position: ToastPosition): string => {
 	const found = POSITION_SLOTS.find((slot) => {
 		return slot.value === position
 	})
 	return found ? found.label : "Bottom Right"
+}
+
+const getVerticalEdge = (position: ToastPosition): VerticalEdge => {
+	return position.startsWith("top-") ? "top" : "bottom"
+}
+
+const replaceVerticalEdge = (position: ToastPosition, edge: VerticalEdge): ToastPosition => {
+	if (position.endsWith("-left")) {
+		return edge === "top" ? "top-left" : "bottom-left"
+	}
+	if (position.endsWith("-center")) {
+		return edge === "top" ? "top-center" : "bottom-center"
+	}
+	return edge === "top" ? "top-right" : "bottom-right"
+}
+
+const resolveActivePositionLabel = (position: ToastPosition, isMobile: boolean): string => {
+	if (!isMobile) {
+		return findPositionLabel(position)
+	}
+	return getVerticalEdge(position) === "top" ? "Top" : "Bottom"
 }
 
 interface MiniAppShellChromeProps {
@@ -72,10 +106,10 @@ const MiniAppShellChrome = ({ navVariant }: MiniAppShellChromeProps) => {
 
 	return (
 		<div aria-hidden="true" className="pointer-events-none flex flex-1 flex-col">
-			<div className="flex h-5 shrink-0 items-center justify-between border-b border-border/70 bg-sidebar/85 px-2.5">
+			<div className="flex h-6 shrink-0 items-center justify-between border-b border-border/70 bg-sidebar/85 px-3">
 				<div className="flex items-center gap-1.5">
-					<img src="/ingot.svg" alt="" draggable={false} className="size-2.5 object-contain" />
-					<span className="text-[8.5px] font-semibold tracking-tight text-foreground/90">
+					<img src="/ingot.svg" alt="" draggable={false} className="size-3 object-contain" />
+					<span className="text-[9.5px] font-semibold tracking-tight text-foreground/90">
 						Ingot
 					</span>
 				</div>
@@ -136,6 +170,95 @@ const MiniAppShellChrome = ({ navVariant }: MiniAppShellChromeProps) => {
 	)
 }
 
+const MiniMobileShellChrome = () => {
+	return (
+		<div aria-hidden="true" className="pointer-events-none flex flex-1 flex-col">
+			<div className="flex h-8 shrink-0 items-center justify-between border-b border-border/70 bg-sidebar/85 px-3">
+				<div className="flex items-center gap-1.5">
+					<span className="size-3 rounded-md bg-primary/30 ring-1 ring-primary/45" />
+					<span className="h-1.5 w-9 rounded-full bg-foreground/70" />
+				</div>
+
+				<div className="flex items-center gap-1">
+					<span className="h-2.5 w-4 rounded-full border border-border/60 bg-foreground/6" />
+					<span className="size-2.5 rounded-full border border-border/60 bg-foreground/6" />
+					<span className="size-3 rounded-full bg-primary/35" />
+				</div>
+			</div>
+
+			<div className="flex flex-1 flex-col items-center justify-center gap-2 bg-background/30 px-4">
+				<span className="h-1.5 w-2/3 rounded-full bg-foreground/8" />
+				<span className="h-1.5 w-1/2 rounded-full bg-foreground/6" />
+			</div>
+
+			<div className="flex h-8 shrink-0 items-center justify-around border-t border-border/70 bg-sidebar/85 px-3">
+				<span className="h-2.5 w-6 rounded-full bg-primary/45" />
+				<span className="size-2 rounded-full bg-foreground/15" />
+				<span className="size-2 rounded-full bg-foreground/15" />
+				<span className="size-2 rounded-full bg-foreground/15" />
+			</div>
+		</div>
+	)
+}
+
+interface PositionSlotButtonProps {
+	label: string
+	shortLabel: string
+	isSelected: boolean
+	layoutId: string
+	showDetails: boolean
+	fullWidth?: boolean
+	onSelect: () => void
+}
+
+const PositionSlotButton = ({
+	label,
+	shortLabel,
+	isSelected,
+	layoutId,
+	showDetails,
+	fullWidth = false,
+	onSelect,
+}: PositionSlotButtonProps) => {
+	if (isSelected) {
+		return (
+			<motion.button
+				type="button"
+				aria-label={label}
+				aria-pressed={true}
+				layoutId={layoutId}
+				transition={{ type: "spring", stiffness: 460, damping: 32 }}
+				onClick={onSelect}
+				className={cn(
+					"flex cursor-pointer items-center gap-1.5 rounded-lg border border-primary/50 bg-(--ingot-surface-elevated) shadow-[0_6px_16px_rgba(0,0,0,0.35)] backdrop-blur-md focus-visible:ring-1 focus-visible:ring-primary/70 focus-visible:outline-none",
+					fullWidth ? "w-full px-2.5 py-2" : "w-24 px-2 py-1.5",
+				)}
+			>
+				<span className="size-2 shrink-0 rounded-sm bg-primary shadow-[0_0_6px_var(--primary)]" />
+				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
+					<span className="h-1 w-full rounded-full bg-foreground/85" />
+					{showDetails ? <span className="h-1 w-2/3 rounded-full bg-foreground/35" /> : null}
+				</span>
+			</motion.button>
+		)
+	}
+
+	return (
+		<button
+			type="button"
+			aria-label={label}
+			aria-pressed={false}
+			onClick={onSelect}
+			className={cn(
+				"flex cursor-pointer items-center justify-center rounded-lg border border-border/75 bg-background/55 px-1.5 font-medium text-muted-foreground/85 transition-[transform,border-color,background-color,color,box-shadow] duration-150 ease-out hover:scale-[1.04] hover:border-primary/65 hover:bg-primary/14 hover:text-foreground hover:shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_24%,transparent)] focus-visible:ring-1 focus-visible:ring-primary/70 focus-visible:outline-none active:scale-95",
+				fullWidth ? "h-8 w-full text-[10px]" : "h-7.5 w-19 text-[10px]",
+			)}
+		>
+			{shortLabel}
+		</button>
+	)
+}
+
 interface ToastPositionPickerProps {
 	value: ToastPosition
 	showDetails?: boolean
@@ -149,11 +272,14 @@ const ToastPositionPicker = ({
 	layoutId = "toast-position-card",
 	onChange,
 }: ToastPositionPickerProps) => {
+	const breakpoint = useBreakpoint()
 	const navVariant = useLauncherPrefsStore((s) => {
 		return s.navVariant
 	})
 
-	const activeLabel = findPositionLabel(value)
+	const isMobile = breakpoint === "mobile"
+	const activeVerticalEdge = getVerticalEdge(value)
+	const activeLabel = resolveActivePositionLabel(value, isMobile)
 
 	return (
 		<div className="flex min-w-0 flex-col gap-2">
@@ -164,60 +290,66 @@ const ToastPositionPicker = ({
 				</span>
 			</div>
 
-			<div
-				role="group"
-				aria-label="Notification screen position"
-				className="relative flex h-34 w-74 max-w-full flex-col overflow-hidden rounded-xl border border-border bg-background/90 shadow-inner select-none"
-			>
-				<MiniAppShellChrome navVariant={navVariant} />
+			{isMobile ? (
+				<div
+					role="group"
+					aria-label="Notification screen position"
+					className="relative mx-auto flex h-76 w-46 max-w-full flex-col overflow-hidden rounded-3xl border-2 border-border/90 bg-background/90 shadow-inner select-none"
+				>
+					<MiniMobileShellChrome />
 
-				<div className="absolute inset-x-0 top-5 bottom-0 grid grid-cols-3 grid-rows-2 gap-1.5 p-2">
-					{POSITION_SLOTS.map((slot) => {
-						const isSelected = slot.value === value
-
-						return (
-							<div key={slot.value} className={cn("flex p-0.5", slot.alignClass)}>
-								{isSelected ? (
-									<motion.button
-										type="button"
-										aria-label={slot.label}
-										aria-pressed={true}
-										layoutId={layoutId}
-										transition={{ type: "spring", stiffness: 460, damping: 32 }}
-										onClick={() => {
-											onChange(slot.value)
-										}}
-										className="flex w-19 cursor-pointer items-center gap-1.5 rounded-lg border border-primary/50 bg-(--ingot-surface-elevated) px-1.5 py-1 shadow-[0_6px_16px_rgba(0,0,0,0.35)] backdrop-blur-md focus-visible:ring-1 focus-visible:ring-primary/70 focus-visible:outline-none"
-									>
-										<span className="size-2 shrink-0 rounded-sm bg-primary shadow-[0_0_6px_var(--primary)]" />
-										<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-											<span className="h-1 w-full rounded-full bg-foreground/85" />
-											{showDetails ? (
-												<span className="h-1 w-2/3 rounded-full bg-foreground/35" />
-											) : null}
-										</span>
-									</motion.button>
-								) : (
-									<button
-										type="button"
-										aria-label={slot.label}
-										aria-pressed={false}
-										onClick={() => {
-											onChange(slot.value)
-										}}
-										className="flex h-6.5 w-15.5 cursor-pointer items-center justify-center rounded-lg border border-border/75 bg-background/55 px-1.5 text-[9.5px] font-medium text-muted-foreground/85 transition-[transform,border-color,background-color,color,box-shadow] duration-150 ease-out hover:scale-[1.04] hover:border-primary/65 hover:bg-primary/14 hover:text-foreground hover:shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_24%,transparent)] focus-visible:ring-1 focus-visible:ring-primary/70 focus-visible:outline-none active:scale-95"
-									>
-										{slot.shortLabel}
-									</button>
-								)}
-							</div>
-						)
-					})}
+					<div className="absolute inset-x-0 top-8 bottom-8 flex flex-col justify-between p-2.5">
+						{MOBILE_EDGE_SLOTS.map((slot) => {
+							return (
+								<PositionSlotButton
+									key={slot.edge}
+									label={slot.label}
+									shortLabel={slot.label}
+									isSelected={activeVerticalEdge === slot.edge}
+									layoutId={`${layoutId}-mobile`}
+									showDetails={showDetails}
+									fullWidth={true}
+									onSelect={() => {
+										onChange(replaceVerticalEdge(value, slot.edge))
+									}}
+								/>
+							)
+						})}
+					</div>
 				</div>
-			</div>
+			) : (
+				<div
+					role="group"
+					aria-label="Notification screen position"
+					className="relative flex h-48 w-96 max-w-full flex-col overflow-hidden rounded-xl border border-border bg-background/90 shadow-inner select-none"
+				>
+					<MiniAppShellChrome navVariant={navVariant} />
+
+					<div className="absolute inset-x-0 top-6 bottom-0 grid grid-cols-3 grid-rows-2 gap-2 p-3">
+						{POSITION_SLOTS.map((slot) => {
+							return (
+								<div key={slot.value} className={cn("flex p-0.5", slot.alignClass)}>
+									<PositionSlotButton
+										label={slot.label}
+										shortLabel={slot.shortLabel}
+										isSelected={slot.value === value}
+										layoutId={layoutId}
+										showDetails={showDetails}
+										onSelect={() => {
+											onChange(slot.value)
+										}}
+									/>
+								</div>
+							)
+						})}
+					</div>
+				</div>
+			)}
 
 			<span className="text-[11px] text-muted-foreground">
-				Click any corner or edge inside the window frame.
+				{isMobile
+					? "Tap Top or Bottom inside the phone frame."
+					: "Click any corner or edge inside the window frame."}
 			</span>
 		</div>
 	)

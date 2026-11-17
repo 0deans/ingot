@@ -207,4 +207,32 @@ describe("Apple-style Toaster", () => {
 		fireEvent.click(topCenterBtn)
 		expect(onChange).toHaveBeenCalledWith("top-center")
 	})
+
+	it("renders Top and Bottom phone-frame slots on mobile while preserving horizontal alignment", () => {
+		const previousWidth = window.innerWidth
+		Object.defineProperty(window, "innerWidth", {
+			configurable: true,
+			writable: true,
+			value: 400,
+		})
+
+		try {
+			const onChange = vi.fn()
+			render(<ToastPositionPicker value="bottom-right" onChange={onChange} />)
+
+			expect(screen.getByRole("button", { name: "Bottom" }).getAttribute("aria-pressed")).toBe(
+				"true",
+			)
+			expect(screen.queryByRole("button", { name: "Top Left" })).toBeNull()
+
+			fireEvent.click(screen.getByRole("button", { name: "Top" }))
+			expect(onChange).toHaveBeenCalledWith("top-right")
+		} finally {
+			Object.defineProperty(window, "innerWidth", {
+				configurable: true,
+				writable: true,
+				value: previousWidth,
+			})
+		}
+	})
 })
