@@ -6,6 +6,7 @@ import AccountSwitcherPopover, {
 	type AccountPopoverAnchor,
 } from "@/features/shell/components/popovers/AccountSwitcherPopover"
 import ActiveProcessesPopover from "@/features/shell/components/popovers/ActiveProcessesPopover"
+import UpdateAvailablePopover from "@/features/shell/components/popovers/UpdateAvailablePopover"
 import { PRIMARY_MOBILE_PATHS, getVisibleNavItems } from "@/features/shell/navigation"
 import {
 	isAnchoredOverlayOpen,
@@ -13,6 +14,7 @@ import {
 } from "@/features/shell/stores/useShellOverlayStore"
 import { navigateFromNotification } from "@/shared/lib/notify"
 import { useAccountStore } from "@/shared/stores/useAccountStore"
+import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import { useLauncherPrefsStore, type NavVariant } from "@/shared/stores/useLauncherPrefsStore"
 import { useNotificationStore } from "@/shared/stores/useNotificationStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
@@ -96,9 +98,21 @@ const ShellOverlays = ({ currentPath, layoutKey, isMobile }: ShellOverlaysProps)
 			}),
 		)
 
+	const { availableUpdate, isInstalling, dismissUpdate, startInstall } = useAppUpdateStore(
+		useShallow((s) => {
+			return {
+				availableUpdate: s.availableUpdate,
+				isInstalling: s.isInstalling,
+				dismissUpdate: s.dismissUpdate,
+				startInstall: s.startInstall,
+			}
+		}),
+	)
+
 	const processesOpen = isAnchoredOverlayOpen(activeOverlay, "processes", layoutKey)
 	const notificationsOpen = isAnchoredOverlayOpen(activeOverlay, "notifications", layoutKey)
 	const accountOpen = isAnchoredOverlayOpen(activeOverlay, "account", layoutKey)
+	const updateOpen = isAnchoredOverlayOpen(activeOverlay, "update", layoutKey)
 	const moreOpen = activeOverlay.kind === "mobileMore"
 
 	const secondaryMobileItems = useMemo(() => {
@@ -123,17 +137,27 @@ const ShellOverlays = ({ currentPath, layoutKey, isMobile }: ShellOverlaysProps)
 	)
 
 	useEffect(() => {
-		if (!processesOpen && !notificationsOpen && !accountOpen) {
+		if (!processesOpen && !notificationsOpen && !accountOpen && !updateOpen) {
 			return
 		}
 		window.addEventListener("resize", closeAll)
 		return () => {
 			window.removeEventListener("resize", closeAll)
 		}
-	}, [accountOpen, closeAll, notificationsOpen, processesOpen])
+	}, [accountOpen, closeAll, notificationsOpen, processesOpen, updateOpen])
 
 	return (
 		<>
+			<UpdateAvailablePopover
+				open={updateOpen}
+				anchorRect={anchorsByKind.update ?? null}
+				update={availableUpdate}
+				isInstalling={isInstalling}
+				onClose={closeAll}
+				onInstall={startInstall}
+				onDismiss={dismissUpdate}
+			/>
+
 			<ActiveProcessesPopover
 				open={processesOpen}
 				anchorRect={anchorsByKind.processes ?? null}

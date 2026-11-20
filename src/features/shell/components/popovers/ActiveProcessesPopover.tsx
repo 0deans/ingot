@@ -164,7 +164,7 @@ const ActiveProcessesPopover = ({
 														</span>
 													</div>
 													<p className="mt-0.5 truncate text-[11px] text-foreground/70">
-														{proc.engine} Â· {proc.uptime}
+														{proc.engine} · {proc.uptime}
 													</p>
 													<div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10.5px] font-medium text-foreground/75">
 														<span className="whitespace-nowrap">

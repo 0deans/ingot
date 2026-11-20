@@ -25,6 +25,37 @@ export type ToastPosition =
 	| "bottom-center"
 	| "bottom-right"
 
+export type LauncherBehavior = "keepOpen" | "hideToTray" | "close"
+export type UpdateChannel = "stable" | "nightly"
+
+export interface WindowPrefs {
+	fullscreen: boolean
+	width: number
+	height: number
+}
+
+export interface SyncPrefs {
+	syncOptions: boolean
+	syncServers: boolean
+	syncResourcePacks: boolean
+	syncCommandHistory: boolean
+	syncCreativeHotbars: boolean
+}
+
+export const DEFAULT_WINDOW_PREFS: WindowPrefs = {
+	fullscreen: false,
+	width: 854,
+	height: 480,
+}
+
+export const DEFAULT_SYNC_PREFS: SyncPrefs = {
+	syncOptions: true,
+	syncServers: true,
+	syncResourcePacks: true,
+	syncCommandHistory: true,
+	syncCreativeHotbars: true,
+}
+
 const appThemeSchema = z.enum(["light", "dark", "purple", "custom"])
 const navVariantSchema = z.enum(["sonoma", "rail", "sequoia", "capsule"])
 const toastPositionSchema = z.enum([
@@ -35,6 +66,20 @@ const toastPositionSchema = z.enum([
 	"bottom-center",
 	"bottom-right",
 ])
+const launcherBehaviorSchema = z.enum(["keepOpen", "hideToTray", "close"])
+const updateChannelSchema = z.enum(["stable", "nightly"])
+const windowPrefsSchema = z.object({
+	fullscreen: z.boolean(),
+	width: z.number().int().min(320).max(7680),
+	height: z.number().int().min(240).max(4320),
+})
+const syncPrefsSchema = z.object({
+	syncOptions: z.boolean(),
+	syncServers: z.boolean(),
+	syncResourcePacks: z.boolean(),
+	syncCommandHistory: z.boolean(),
+	syncCreativeHotbars: z.boolean(),
+})
 const ramGbSchema = z.number().min(1).max(64)
 const persistedObjectSchema = z.record(z.string(), z.unknown())
 
@@ -48,6 +93,10 @@ interface PersistedLauncherPrefs {
 	ramGb: number
 	railExpanded: boolean
 	customTheme: CustomThemeConfig
+	launcherBehavior: LauncherBehavior
+	windowSettings: WindowPrefs
+	syncSettings: SyncPrefs
+	updateChannel: UpdateChannel
 }
 
 interface LauncherPrefsState extends PersistedLauncherPrefs {
@@ -64,6 +113,10 @@ interface LauncherPrefsState extends PersistedLauncherPrefs {
 	setCustomThemeBaseMode: (baseMode: CustomThemeBaseMode) => void
 	setCustomThemeRadius: (radiusRem: number) => void
 	resetCustomTheme: (fromPreset?: Exclude<AppThemeId, "custom">) => void
+	setLauncherBehavior: (behavior: LauncherBehavior) => void
+	setWindowSettings: (settings: WindowPrefs) => void
+	setSyncSetting: (key: keyof SyncPrefs, enabled: boolean) => void
+	setUpdateChannel: (channel: UpdateChannel) => void
 }
 
 export const useLauncherPrefsStore = create<LauncherPrefsState>()(
@@ -79,6 +132,10 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				ramGb: 6,
 				railExpanded: false,
 				customTheme: DEFAULT_CUSTOM_THEME,
+				launcherBehavior: "keepOpen",
+				windowSettings: DEFAULT_WINDOW_PREFS,
+				syncSettings: DEFAULT_SYNC_PREFS,
+				updateChannel: "stable",
 				setTheme: (theme) => {
 					const parsed = appThemeSchema.safeParse(theme)
 					if (!parsed.success) {
@@ -190,6 +247,37 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 						},
 					})
 				},
+				setLauncherBehavior: (launcherBehavior) => {
+					const parsed = launcherBehaviorSchema.safeParse(launcherBehavior)
+					if (!parsed.success) {
+						return
+					}
+					set({ launcherBehavior: parsed.data })
+				},
+				setWindowSettings: (windowSettings) => {
+					const parsed = windowPrefsSchema.safeParse(windowSettings)
+					if (!parsed.success) {
+						return
+					}
+					set({ windowSettings: parsed.data })
+				},
+				setSyncSetting: (key, enabled) => {
+					set((state) => {
+						return {
+							syncSettings: {
+								...state.syncSettings,
+								[key]: Boolean(enabled),
+							},
+						}
+					})
+				},
+				setUpdateChannel: (updateChannel) => {
+					const parsed = updateChannelSchema.safeParse(updateChannel)
+					if (!parsed.success) {
+						return
+					}
+					set({ updateChannel: parsed.data })
+				},
 			}
 		},
 		{
@@ -205,6 +293,10 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 					ramGb: state.ramGb,
 					railExpanded: state.railExpanded,
 					customTheme: state.customTheme,
+					launcherBehavior: state.launcherBehavior,
+					windowSettings: state.windowSettings,
+					syncSettings: state.syncSettings,
+					updateChannel: state.updateChannel,
 				}
 			},
 			merge: (persistedState, currentState) => {
@@ -223,6 +315,10 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				const parsedRam = ramGbSchema.safeParse(raw.ramGb)
 				const parsedRail = z.boolean().safeParse(raw.railExpanded)
 				const parsedTheme = customThemeConfigSchema.safeParse(raw.customTheme)
+				const parsedBehavior = launcherBehaviorSchema.safeParse(raw.launcherBehavior)
+				const parsedWindow = windowPrefsSchema.safeParse(raw.windowSettings)
+				const parsedSync = syncPrefsSchema.safeParse(raw.syncSettings)
+				const parsedChannel = updateChannelSchema.safeParse(raw.updateChannel)
 
 				return {
 					...currentState,
@@ -239,6 +335,12 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 					ramGb: parsedRam.success ? parsedRam.data : currentState.ramGb,
 					railExpanded: parsedRail.success ? parsedRail.data : currentState.railExpanded,
 					customTheme: parsedTheme.success ? parsedTheme.data : currentState.customTheme,
+					launcherBehavior: parsedBehavior.success
+						? parsedBehavior.data
+						: currentState.launcherBehavior,
+					windowSettings: parsedWindow.success ? parsedWindow.data : currentState.windowSettings,
+					syncSettings: parsedSync.success ? parsedSync.data : currentState.syncSettings,
+					updateChannel: parsedChannel.success ? parsedChannel.data : currentState.updateChannel,
 				}
 			},
 		},

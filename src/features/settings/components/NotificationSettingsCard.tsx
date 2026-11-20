@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow"
 import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
 import ToastPositionPicker from "@/features/ui-test/components/ToastPositionPicker"
 import { useLauncherPrefsStore, type ToastPosition } from "@/shared/stores/useLauncherPrefsStore"
+import { Button } from "@/shared/ui/button"
 import { appleToast } from "@/shared/ui/sonner"
 
 type ToastPositionLabelKey =
@@ -83,14 +84,16 @@ const NotificationSettingsCard = () => {
 					</h2>
 				</div>
 
-				<button
+				<Button
 					type="button"
+					variant="outline"
+					size="sm"
 					onClick={handleTriggerPreview}
-					className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/5 px-2.5 py-1 text-[11.5px] font-medium text-foreground transition-colors hover:bg-foreground/10"
+					className="cursor-pointer bg-foreground/5 text-[11.5px] hover:bg-foreground/10"
 				>
 					<Bell className="size-3.5 text-primary" />
 					<span>{t("settings.notifications.testToast")}</span>
-				</button>
+				</Button>
 			</div>
 
 			<div className="grid grid-cols-1 gap-4 rounded-xl border border-border/60 bg-foreground/2 p-3.5 @xl:grid-cols-[auto_1fr] @xl:items-center">

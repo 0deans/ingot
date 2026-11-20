@@ -1,7 +1,8 @@
 import { ArrowUpCircle, Package, Search } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { cn } from "@/shared/lib/utils"
+import { Input } from "@/shared/ui/input"
+import { Switch } from "@/shared/ui/switch"
 
 interface ModEntry {
 	id: string
@@ -57,14 +58,14 @@ const ModListVirtual = () => {
 		<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 			<div className="relative">
 				<Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
-				<input
+				<Input
 					type="search"
 					value={query}
 					onChange={(event) => {
 						setQuery(event.target.value)
 					}}
 					placeholder={t("instanceDetail.mods.filterPlaceholder")}
-					className="h-8 w-full rounded-xl border border-border bg-background/80 pr-3 pl-8 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
+					className="h-8 rounded-xl border-border bg-background/80 pr-3 pl-8 text-xs md:text-xs"
 				/>
 			</div>
 
@@ -90,22 +91,13 @@ const ModListVirtual = () => {
 								</div>
 							</div>
 
-							<button
-								type="button"
-								role="switch"
-								aria-checked={mod.enabled}
-								onClick={() => {
+							<Switch
+								checked={mod.enabled}
+								onCheckedChange={() => {
 									toggleMod(mod.id)
 								}}
-								className={cn(
-									"cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
-									mod.enabled
-										? "bg-primary text-primary-foreground"
-										: "bg-foreground/10 text-muted-foreground",
-								)}
-							>
-								{mod.enabled ? t("common.enabled") : t("common.disabled")}
-							</button>
+								aria-label={mod.name}
+							/>
 						</div>
 					)
 				})}

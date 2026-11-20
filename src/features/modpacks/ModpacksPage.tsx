@@ -10,6 +10,7 @@ import ModpackCard, {
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
 import { useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
+import { Input } from "@/shared/ui/input"
 
 type ProviderFilter = "all" | "Modrinth" | "CurseForge"
 
@@ -101,14 +102,14 @@ const ModpacksPage = () => {
 
 			<div className="relative">
 				<Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
-				<input
+				<Input
 					type="search"
 					value={query}
 					onChange={(event) => {
 						setQuery(event.target.value)
 					}}
 					placeholder={t("modpacks.searchPlaceholder")}
-					className="h-9 w-full rounded-xl border border-border bg-card/70 pr-3 pl-8.5 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
+					className="h-9 rounded-xl border-border bg-card/70 pr-3 pl-8.5 text-[12.5px] md:text-[12.5px]"
 				/>
 			</div>
 

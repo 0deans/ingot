@@ -90,6 +90,15 @@
 		"closeNavigationSheet": "Close navigation sheet",
 		"toggleActiveProcesses": "Toggle active processes",
 		"switchAccountAria": "Account {{username}}",
+		"update": {
+			"pillAria": "Update available: Ingot v{{version}}",
+			"popoverTitle": "Ingot v{{version}} available",
+			"currentVersion": "Current: v{{version}}",
+			"closePopoverAria": "Close update details",
+			"later": "Later",
+			"updateNow": "Update now",
+			"installing": "Installing..."
+		},
 		"window": {
 			"minimize": "Minimize window",
 			"maximize": "Maximize window",
@@ -554,11 +563,11 @@
 		"subtitle": "Customize theme colors, navigation layout, language, notifications, JVM memory, network, and developer tools.",
 		"sectionsAria": "Settings Sections",
 		"tabs": {
+			"general": "General",
 			"appearance": "Appearance",
-			"language": "Language",
-			"java": "Java & Memory",
+			"game": "Game",
 			"accounts": "Accounts",
-			"network": "Network"
+			"language": "Language"
 		},
 		"appearance": {
 			"colorTheme": "Color Theme",
@@ -740,13 +749,90 @@
 			}
 		},
 		"network": {
-			"title": "Network & Behavior",
+			"title": "Integrations & Downloads",
 			"discordTitle": "Discord Rich Presence",
 			"discordDescription": "Broadcast active instance & pack details while playing.",
-			"minimizeTitle": "Minimize on Game Launch",
-			"minimizeDescription": "Hide main Ingot window until the active game process exits.",
 			"workersTitle": "Concurrent Asset Workers",
 			"workersDescription": "Parallel HTTP/2 streams during mod sync."
+		},
+		"general": {
+			"behavior": {
+				"title": "Launcher Behavior",
+				"description": "Choose what should happen after launching an instance.",
+				"options": {
+					"keepOpen": {
+						"title": "Keep open",
+						"description": "Keep the launcher open in the background while playing"
+					},
+					"hideToTray": {
+						"title": "Hide to tray",
+						"description": "Minimize to the system tray and restore after exiting the game"
+					},
+					"close": {
+						"title": "Close launcher",
+						"description": "Completely close Ingot after launching the game (minimizes to tray while a server is running)"
+					}
+				}
+			},
+			"window": {
+				"title": "Window & Display",
+				"description": "Configure the default window size and fullscreen launch mode for your instances.",
+				"fullscreenTitle": "Launch in fullscreen",
+				"fullscreenDescription": "Launch Minecraft directly in fullscreen mode",
+				"resolutionTitle": "Default window resolution",
+				"resolutionDescription": "Set a custom width and height for the game window",
+				"widthAriaLabel": "Default window width",
+				"heightAriaLabel": "Default window height",
+				"resetAriaLabel": "Reset window resolution to default",
+				"presetsLabel": "Presets:",
+				"presetDefault": "Default"
+			},
+			"sync": {
+				"title": "Game Data Sync",
+				"description": "Synchronize Minecraft settings, server list, and resources across all instances.",
+				"items": {
+					"options": {
+						"title": "Sync game settings",
+						"description": "Graphics settings, audio volume, field of view (FOV), controls, and accessibility"
+					},
+					"servers": {
+						"title": "Sync server list",
+						"description": "Unified list of saved multiplayer servers for all instances"
+					},
+					"resourcePacks": {
+						"title": "Sync resource packs",
+						"description": "Shared downloaded textures and resource packs across all instances"
+					},
+					"commandHistory": {
+						"title": "Sync command history",
+						"description": "Keep chat and console command history across launches"
+					},
+					"creativeHotbars": {
+						"title": "Sync creative hotbars",
+						"description": "Shared saved creative mode hotbars across worlds"
+					}
+				}
+			},
+			"updates": {
+				"title": "Updates & Version",
+				"description": "Manage Ingot updates to always have the latest features and security fixes.",
+				"appName": "Ingot v{{version}}",
+				"channelLabel": "Update channel",
+				"channelDescription": "Choose between tested stable releases or early nightly builds.",
+				"channels": {
+					"stable": "Stable",
+					"nightly": "Nightly"
+				},
+				"lastCheckedNever": "Last checked: never",
+				"lastCheckedJustNow": "Last checked: just now",
+				"lastCheckedAt": "Last checked: {{time}}",
+				"checkForUpdates": "Check for updates",
+				"checking": "Checking...",
+				"upToDateBadge": "Up to date",
+				"availableTitle": "Version v{{version}} available!",
+				"changelog": "Changelog",
+				"downloadAndInstall": "Download and install update"
+			}
 		}
 	},
 	"uiLab": {
@@ -774,6 +860,8 @@
 		"debugHorizonProcess": "Debug Horizon Session",
 		"modrinthSyncServerProcess": "Modrinth Sync Server",
 		"clearAll": "Clear All",
+		"simulateUpdate": "Simulate Update Pill",
+		"clearUpdate": "Hide Update Pill",
 		"segmentedControlsHeading": "Segmented Controls & Color Tags",
 		"demoOptions": {
 			"alpha": "Alpha",

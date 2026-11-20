@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import { cn } from "@/shared/lib/utils"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
+import { Button } from "@/shared/ui/button"
 
 const RAM_PRESETS = [4, 6, 8, 12, 16]
 
-const JavaSettingsPage = () => {
+const JavaMemoryCard = () => {
 	const { t } = useTranslation()
 	const { ramGb, setRamGb } = useLauncherPrefsStore(
 		useShallow((s) => {
@@ -18,9 +19,11 @@ const JavaSettingsPage = () => {
 	)
 
 	return (
-		<section className="flex flex-col gap-4 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
-			<div className="flex items-center gap-2">
-				<Cpu className="size-4 text-primary" />
+		<section className="@container flex flex-col gap-4 rounded-2xl border border-border bg-card/65 p-3.5 backdrop-blur-md sm:p-4">
+			<div className="flex items-center gap-2.5">
+				<div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border bg-foreground/5 text-primary">
+					<Cpu className="size-4" />
+				</div>
 				<h2 className="text-[13.5px] font-semibold text-foreground">
 					{t("settings.java.title", { ramGb })}
 				</h2>
@@ -43,21 +46,23 @@ const JavaSettingsPage = () => {
 				{RAM_PRESETS.map((preset) => {
 					const isSelected = ramGb === preset
 					return (
-						<button
+						<Button
 							key={preset}
 							type="button"
+							variant="outline"
+							size="sm"
 							onClick={() => {
 								setRamGb(preset)
 							}}
 							className={cn(
-								"cursor-pointer rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors",
+								"cursor-pointer rounded-md text-[12px]",
 								isSelected
-									? "border-primary/45 bg-primary/18 text-primary"
-									: "border-border bg-foreground/5 text-foreground/80 hover:bg-foreground/10",
+									? "border-primary/45 bg-primary/18 text-primary hover:bg-primary/22 hover:text-primary"
+									: "bg-foreground/5 text-foreground/80 hover:bg-foreground/10",
 							)}
 						>
 							{preset} GB
-						</button>
+						</Button>
 					)
 				})}
 			</div>
@@ -70,4 +75,4 @@ const JavaSettingsPage = () => {
 	)
 }
 
-export default JavaSettingsPage
+export default JavaMemoryCard

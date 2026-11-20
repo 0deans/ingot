@@ -1,8 +1,10 @@
-import { Server, X } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
+import { Server } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ServerEntry } from "@/features/servers/components/ServerRow"
+import { Button } from "@/shared/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
+import { Input } from "@/shared/ui/input"
 
 interface LocalServerCreatorModalProps {
 	open: boolean
@@ -20,6 +22,12 @@ const LocalServerCreatorModal = ({
 	const [name, setName] = useState("")
 	const [address, setAddress] = useState("127.0.0.1:25565")
 	const [version, setVersion] = useState("1.21.4")
+
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (!nextOpen) {
+			onClose()
+		}
+	}
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
@@ -44,89 +52,65 @@ const LocalServerCreatorModal = ({
 	const modalTitle = t("servers.creatorModal.title")
 
 	return (
-		<AnimatePresence>
-			{open ? (
-				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-					<button
-						type="button"
-						aria-label={t("servers.creatorModal.closeAria")}
-						onClick={onClose}
-						className="fixed inset-0 cursor-default bg-black/60 backdrop-blur-xs"
+		<Dialog open={open} onOpenChange={handleOpenChange}>
+			<DialogContent
+				aria-label={modalTitle}
+				className="ingot-glass-elevated rounded-2xl p-4 shadow-2xl sm:max-w-md"
+			>
+				<DialogHeader className="border-b border-border pb-2.5">
+					<DialogTitle className="flex items-center gap-2 text-sm font-semibold text-foreground">
+						<Server className="size-4 text-primary" />
+						<span>{modalTitle}</span>
+					</DialogTitle>
+				</DialogHeader>
+
+				<form onSubmit={handleSubmit} className="space-y-3">
+					<Input
+						type="text"
+						value={name}
+						onChange={(event) => {
+							setName(event.target.value)
+						}}
+						placeholder={t("servers.creatorModal.namePlaceholder")}
+						className="h-9 rounded-xl border-border bg-background/80 px-3 text-xs md:text-xs"
 					/>
-					<motion.form
-						role="dialog"
-						aria-label={modalTitle}
-						initial={{ opacity: 0, scale: 0.96 }}
-						animate={{ opacity: 1, scale: 1 }}
-						exit={{ opacity: 0, scale: 0.96 }}
-						transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-						onSubmit={handleSubmit}
-						className="ingot-glass-elevated relative z-10 w-full max-w-md space-y-3 rounded-2xl p-4 shadow-2xl"
-					>
-						<div className="flex items-center justify-between border-b border-border pb-2.5">
-							<div className="flex items-center gap-2">
-								<Server className="size-4 text-primary" />
-								<h2 className="text-sm font-semibold text-foreground">{modalTitle}</h2>
-							</div>
-							<button
-								type="button"
-								onClick={onClose}
-								aria-label={t("servers.creatorModal.dismissAria")}
-								className="cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-foreground/8 hover:text-foreground"
-							>
-								<X className="size-4" />
-							</button>
-						</div>
-
-						<input
+					<div className="grid grid-cols-2 gap-2">
+						<Input
 							type="text"
-							value={name}
+							value={address}
 							onChange={(event) => {
-								setName(event.target.value)
+								setAddress(event.target.value)
 							}}
-							placeholder={t("servers.creatorModal.namePlaceholder")}
-							className="h-9 w-full rounded-xl border border-border bg-background/80 px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
+							placeholder={t("servers.creatorModal.hostPlaceholder")}
+							className="h-9 rounded-xl border-border bg-background/80 px-3 text-xs md:text-xs"
 						/>
-						<div className="grid grid-cols-2 gap-2">
-							<input
-								type="text"
-								value={address}
-								onChange={(event) => {
-									setAddress(event.target.value)
-								}}
-								placeholder={t("servers.creatorModal.hostPlaceholder")}
-								className="h-9 rounded-xl border border-border bg-background/80 px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
-							/>
-							<input
-								type="text"
-								value={version}
-								onChange={(event) => {
-									setVersion(event.target.value)
-								}}
-								placeholder={t("servers.creatorModal.versionPlaceholder")}
-								className="h-9 rounded-xl border border-border bg-background/80 px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
-							/>
-						</div>
+						<Input
+							type="text"
+							value={version}
+							onChange={(event) => {
+								setVersion(event.target.value)
+							}}
+							placeholder={t("servers.creatorModal.versionPlaceholder")}
+							className="h-9 rounded-xl border-border bg-background/80 px-3 text-xs md:text-xs"
+						/>
+					</div>
 
-						<div className="flex justify-end gap-2 pt-1">
-							<button
-								type="button"
-								onClick={onClose}
-								className="h-8 cursor-pointer rounded-xl border border-border bg-foreground/5 px-3 text-xs font-medium text-foreground/80 hover:bg-foreground/10"
-							>
-								{t("common.cancel")}
-							</button>
-							<button
-								type="submit"
-								className="h-8 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-							>
-								{t("servers.creatorModal.saveServer")}
-							</button>
-						</div>
-					</motion.form>
-				</div>
-			) : null}
-		</AnimatePresence>
+					<div className="flex justify-end gap-2 pt-1">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onClose}
+							className="cursor-pointer rounded-xl bg-foreground/5 px-3 text-xs hover:bg-foreground/10"
+						>
+							{t("common.cancel")}
+						</Button>
+						<Button type="submit" className="cursor-pointer rounded-xl px-4 text-xs font-semibold">
+							{t("servers.creatorModal.saveServer")}
+						</Button>
+					</div>
+				</form>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

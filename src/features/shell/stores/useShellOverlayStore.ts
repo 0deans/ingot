@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { type PopoverAnchorRect } from "@/features/shell/components/popovers/AccountSwitcherPopover"
 
-export type AnchoredOverlayKind = "processes" | "notifications" | "account"
+export type AnchoredOverlayKind = "processes" | "notifications" | "account" | "update"
 
 interface ClosedOverlayState {
 	kind: "none"

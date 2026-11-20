@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Sparkles } from "lucide-react"
 import { AnimatePresence, LayoutGroup, motion } from "motion/react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
@@ -18,6 +18,7 @@ import {
 	selectActiveAccount,
 	useAccountStore,
 } from "@/shared/stores/useAccountStore"
+import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import {
 	countUnreadNotifications,
@@ -58,9 +59,20 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 	)
 	const { activeOverlay, toggleAnchored } = activeOverlayResult
 
+	const { availableUpdate, dismissed } = useAppUpdateStore(
+		useShallow((s) => {
+			return {
+				availableUpdate: s.availableUpdate,
+				dismissed: s.dismissed,
+			}
+		}),
+	)
+
 	const processesOpen = isAnchoredOverlayOpen(activeOverlay, "processes", layoutKey)
 	const notificationsOpen = isAnchoredOverlayOpen(activeOverlay, "notifications", layoutKey)
 	const accountOpen = isAnchoredOverlayOpen(activeOverlay, "account", layoutKey)
+	const updateOpen = isAnchoredOverlayOpen(activeOverlay, "update", layoutKey)
+	const showUpdatePill = availableUpdate !== null && !dismissed
 	const activeProcessesCount = runningProcesses.length
 	const totalProcessRamMb = useMemo(() => {
 		return calculateTotalProcessRamMb(runningProcesses)
@@ -85,7 +97,16 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 	const statusLabel = hasRunning
 		? t("shell.statusActive", { count: activeProcessesCount })
 		: t("shell.statusIdle")
-	const versionVisibilityClass = isCapsule ? "hidden md:inline-block" : "inline-block"
+	const getVersionPillToneClass = (): string => {
+		if (!showUpdatePill) {
+			return "pointer-events-none border-border bg-foreground/5 text-muted-foreground"
+		}
+		if (updateOpen) {
+			return "cursor-pointer border-primary/50 bg-primary/22 text-primary"
+		}
+		return "cursor-pointer border-primary/35 bg-primary/12 text-primary hover:bg-primary/20"
+	}
+	const versionPillToneClass = getVersionPillToneClass()
 
 	return (
 		<header
@@ -102,14 +123,54 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 				<span className="pointer-events-none text-[12.5px] font-semibold tracking-tight text-foreground">
 					Ingot
 				</span>
-				<span
+				<button
+					type="button"
+					disabled={!showUpdatePill}
+					aria-expanded={showUpdatePill ? updateOpen : undefined}
+					aria-haspopup={showUpdatePill ? "dialog" : undefined}
+					aria-label={
+						showUpdatePill && availableUpdate
+							? t("shell.update.pillAria", { version: availableUpdate.version })
+							: undefined
+					}
+					onClick={(event) => {
+						if (!showUpdatePill) {
+							return
+						}
+						toggleAnchored("update", layoutKey, event.currentTarget)
+					}}
 					className={cn(
-						"pointer-events-none rounded-full border border-border bg-foreground/5 px-1.5 py-0.5 text-[9.5px] font-medium text-muted-foreground",
-						versionVisibilityClass,
+						"inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium whitespace-nowrap transition-colors",
+						versionPillToneClass,
+						isCapsule ? "hidden md:inline-flex" : "inline-flex",
 					)}
 				>
-					v{APP_VERSION}
-				</span>
+					<AnimatePresence mode="wait" initial={false}>
+						{showUpdatePill && availableUpdate ? (
+							<motion.span
+								key={`update-${availableUpdate.version}`}
+								initial={{ opacity: 0, y: 3 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -3 }}
+								transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+								className="inline-flex items-center gap-1 font-semibold text-primary"
+							>
+								<Sparkles className="size-2.5 shrink-0" />
+								<span>v{availableUpdate.version}</span>
+							</motion.span>
+						) : (
+							<motion.span
+								key="current-version"
+								initial={{ opacity: 0, y: 3 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -3 }}
+								transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+							>
+								v{APP_VERSION}
+							</motion.span>
+						)}
+					</AnimatePresence>
+				</button>
 			</div>
 
 			<div
@@ -197,7 +258,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 					/>
 					<span className="tabular-nums">
 						{statusLabel}
-						{hasRunning ? <span className="hidden md:inline"> Ã‚Â· {totalRamLabel}</span> : null}
+						{hasRunning ? <span className="hidden md:inline"> · {totalRamLabel}</span> : null}
 					</span>
 				</button>
 

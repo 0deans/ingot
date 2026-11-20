@@ -22,9 +22,9 @@ import { Route as ModpacksIndexRouteImport } from './routes/modpacks/index'
 import { Route as ModpacksProjectIdRouteImport } from './routes/modpacks/$projectId'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SettingsAccountsRouteImport } from './routes/settings/accounts'
-import { Route as SettingsJavaRouteImport } from './routes/settings/java'
+import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
+import { Route as SettingsGameRouteImport } from './routes/settings/game'
 import { Route as SettingsLanguageRouteImport } from './routes/settings/language'
-import { Route as SettingsNetworkRouteImport } from './routes/settings/network'
 import { Route as InstancesInstanceIdLogsRouteImport } from './routes/instances/$instanceId/logs'
 import { Route as InstancesInstanceIdModsRouteImport } from './routes/instances/$instanceId/mods'
 import { Route as InstancesInstanceIdSettingsRouteImport } from './routes/instances/$instanceId/settings'
@@ -96,19 +96,19 @@ const SettingsAccountsRoute = SettingsAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
-const SettingsJavaRoute = SettingsJavaRouteImport.update({
-  id: '/java',
-  path: '/java',
+const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsGameRoute = SettingsGameRouteImport.update({
+  id: '/game',
+  path: '/game',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsLanguageRoute = SettingsLanguageRouteImport.update({
   id: '/language',
   path: '/language',
-  getParentRoute: () => SettingsRouteRoute,
-} as any)
-const SettingsNetworkRoute = SettingsNetworkRouteImport.update({
-  id: '/network',
-  path: '/network',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const InstancesInstanceIdLogsRoute = InstancesInstanceIdLogsRouteImport.update({
@@ -146,9 +146,9 @@ export interface FileRoutesByFullPath {
   '/ui-test': typeof DevUiTestRoute
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
-  '/settings/java': typeof SettingsJavaRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/game': typeof SettingsGameRoute
   '/settings/language': typeof SettingsLanguageRoute
-  '/settings/network': typeof SettingsNetworkRoute
   '/modpacks/': typeof ModpacksIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/instances/$instanceId/logs': typeof InstancesInstanceIdLogsRoute
@@ -167,9 +167,9 @@ export interface FileRoutesByTo {
   '/ui-test': typeof DevUiTestRoute
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
-  '/settings/java': typeof SettingsJavaRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/game': typeof SettingsGameRoute
   '/settings/language': typeof SettingsLanguageRoute
-  '/settings/network': typeof SettingsNetworkRoute
   '/modpacks': typeof ModpacksIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/instances/$instanceId/logs': typeof InstancesInstanceIdLogsRoute
@@ -190,9 +190,9 @@ export interface FileRoutesById {
   '/_dev/ui-test': typeof DevUiTestRoute
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
-  '/settings/java': typeof SettingsJavaRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/game': typeof SettingsGameRoute
   '/settings/language': typeof SettingsLanguageRoute
-  '/settings/network': typeof SettingsNetworkRoute
   '/modpacks/': typeof ModpacksIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/instances/$instanceId/logs': typeof InstancesInstanceIdLogsRoute
@@ -214,9 +214,9 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/modpacks/$projectId'
     | '/settings/accounts'
-    | '/settings/java'
+    | '/settings/appearance'
+    | '/settings/game'
     | '/settings/language'
-    | '/settings/network'
     | '/modpacks/'
     | '/settings/'
     | '/instances/$instanceId/logs'
@@ -235,9 +235,9 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/modpacks/$projectId'
     | '/settings/accounts'
-    | '/settings/java'
+    | '/settings/appearance'
+    | '/settings/game'
     | '/settings/language'
-    | '/settings/network'
     | '/modpacks'
     | '/settings'
     | '/instances/$instanceId/logs'
@@ -257,9 +257,9 @@ export interface FileRouteTypes {
     | '/_dev/ui-test'
     | '/modpacks/$projectId'
     | '/settings/accounts'
-    | '/settings/java'
+    | '/settings/appearance'
+    | '/settings/game'
     | '/settings/language'
-    | '/settings/network'
     | '/modpacks/'
     | '/settings/'
     | '/instances/$instanceId/logs'
@@ -375,11 +375,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAccountsRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
-    '/settings/java': {
-      id: '/settings/java'
-      path: '/java'
-      fullPath: '/settings/java'
-      preLoaderRoute: typeof SettingsJavaRouteImport
+    '/settings/appearance': {
+      id: '/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof SettingsAppearanceRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/game': {
+      id: '/settings/game'
+      path: '/game'
+      fullPath: '/settings/game'
+      preLoaderRoute: typeof SettingsGameRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
     '/settings/language': {
@@ -387,13 +394,6 @@ declare module '@tanstack/react-router' {
       path: '/language'
       fullPath: '/settings/language'
       preLoaderRoute: typeof SettingsLanguageRouteImport
-      parentRoute: typeof SettingsRouteRoute
-    }
-    '/settings/network': {
-      id: '/settings/network'
-      path: '/network'
-      fullPath: '/settings/network'
-      preLoaderRoute: typeof SettingsNetworkRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
     '/instances/$instanceId/logs': {
@@ -429,17 +429,17 @@ declare module '@tanstack/react-router' {
 
 interface SettingsRouteRouteChildren {
   SettingsAccountsRoute: typeof SettingsAccountsRoute
-  SettingsJavaRoute: typeof SettingsJavaRoute
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
+  SettingsGameRoute: typeof SettingsGameRoute
   SettingsLanguageRoute: typeof SettingsLanguageRoute
-  SettingsNetworkRoute: typeof SettingsNetworkRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAccountsRoute: SettingsAccountsRoute,
-  SettingsJavaRoute: SettingsJavaRoute,
+  SettingsAppearanceRoute: SettingsAppearanceRoute,
+  SettingsGameRoute: SettingsGameRoute,
   SettingsLanguageRoute: SettingsLanguageRoute,
-  SettingsNetworkRoute: SettingsNetworkRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 

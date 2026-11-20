@@ -2,6 +2,8 @@ import { Cpu, Save } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
 
 interface JvmOverridesFormProps {
 	defaultArgs: string
@@ -53,13 +55,13 @@ const JvmOverridesForm = ({ defaultArgs }: JvmOverridesFormProps) => {
 				<span className="text-[11.5px] font-medium text-foreground/80">
 					{t("instanceDetail.jvm.customArgs")}
 				</span>
-				<input
+				<Input
 					type="text"
 					value={customArgs}
 					onChange={(event) => {
 						setCustomArgs(event.target.value)
 					}}
-					className="h-9 rounded-xl border border-border bg-background/80 px-3 font-mono text-xs text-foreground focus:border-primary/40 focus:outline-none"
+					className="h-9 rounded-xl border-border bg-background/80 px-3 font-mono text-xs md:text-xs"
 				/>
 			</label>
 
@@ -69,13 +71,10 @@ const JvmOverridesForm = ({ defaultArgs }: JvmOverridesFormProps) => {
 						{t("instanceDetail.jvm.savedNotice")}
 					</span>
 				) : null}
-				<button
-					type="submit"
-					className="flex h-8 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-				>
+				<Button type="submit" className="cursor-pointer rounded-xl px-3.5 text-xs font-semibold">
 					<Save className="size-3.5" />
 					<span>{t("instanceDetail.jvm.saveOverrides")}</span>
-				</button>
+				</Button>
 			</div>
 		</form>
 	)

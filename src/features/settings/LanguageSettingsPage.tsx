@@ -25,6 +25,7 @@ import {
 } from "@/shared/i18n/languages"
 import { cn } from "@/shared/lib/utils"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
+import { Input } from "@/shared/ui/input"
 import { appleToast } from "@/shared/ui/sonner"
 
 const LanguageSettingsPage = () => {
@@ -193,7 +194,7 @@ const LanguageSettingsPage = () => {
 
 				<div className="relative min-w-0 sm:max-w-xs">
 					<Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
-					<input
+					<Input
 						type="text"
 						value={searchQuery}
 						onChange={(event) => {
@@ -203,7 +204,7 @@ const LanguageSettingsPage = () => {
 							count: APP_LANGUAGES.length,
 						})}
 						aria-label={t("settings.language.searchAriaLabel")}
-						className="h-9 w-full rounded-xl border border-border bg-foreground/4 pr-8 pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
+						className="h-9 rounded-xl border-border bg-foreground/4 pr-8 pl-8.5 text-xs md:text-xs"
 					/>
 					{searchQuery ? (
 						<button

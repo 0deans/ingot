@@ -59,7 +59,7 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 					<div className="min-w-0">
 						<h1 className="truncate text-base font-semibold text-foreground">{pack.name}</h1>
 						<p className="truncate text-[11.5px] text-muted-foreground">
-							{pack.provider} Â· {t("modpacks.byAuthor", { author: pack.author })} Â·{" "}
+							{pack.provider} · {t("modpacks.byAuthor", { author: pack.author })} ·{" "}
 							{t("modpacks.downloadsCount", { downloads: pack.downloads })}
 						</p>
 					</div>

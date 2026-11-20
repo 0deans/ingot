@@ -5,24 +5,24 @@ import RouteNavTabs, { type RouteNavTabItem } from "@/shared/components/motion/R
 interface SettingsTabDef {
 	to:
 		| "/settings"
-		| "/settings/language"
-		| "/settings/java"
+		| "/settings/appearance"
+		| "/settings/game"
 		| "/settings/accounts"
-		| "/settings/network"
+		| "/settings/language"
 	labelKey:
+		| "settings.tabs.general"
 		| "settings.tabs.appearance"
-		| "settings.tabs.language"
-		| "settings.tabs.java"
+		| "settings.tabs.game"
 		| "settings.tabs.accounts"
-		| "settings.tabs.network"
+		| "settings.tabs.language"
 }
 
 const SETTINGS_TABS: readonly SettingsTabDef[] = [
-	{ to: "/settings", labelKey: "settings.tabs.appearance" },
-	{ to: "/settings/language", labelKey: "settings.tabs.language" },
-	{ to: "/settings/java", labelKey: "settings.tabs.java" },
+	{ to: "/settings", labelKey: "settings.tabs.general" },
+	{ to: "/settings/appearance", labelKey: "settings.tabs.appearance" },
+	{ to: "/settings/game", labelKey: "settings.tabs.game" },
 	{ to: "/settings/accounts", labelKey: "settings.tabs.accounts" },
-	{ to: "/settings/network", labelKey: "settings.tabs.network" },
+	{ to: "/settings/language", labelKey: "settings.tabs.language" },
 ]
 
 const SettingsLayout = () => {

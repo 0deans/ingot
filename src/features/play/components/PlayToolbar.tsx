@@ -10,6 +10,7 @@ import {
 } from "@/features/play/types"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
 import { COLOR_TAGS, TAG_ORDER } from "@/shared/stores/useInstancesStore"
+import { Input } from "@/shared/ui/input"
 
 interface PlayToolbarProps {
 	query: string
@@ -80,12 +81,12 @@ const PlayToolbar = ({
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="relative min-w-40 flex-1">
 					<Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-					<input
+					<Input
 						type="text"
 						value={query}
 						onChange={handleQueryInputChange}
 						placeholder={t("play.searchPlaceholder")}
-						className="h-8 w-full rounded-xl border border-border bg-background/80 pr-7 pl-8 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
+						className="h-8 rounded-xl border-border bg-background/80 pr-7 pl-8 text-xs md:text-xs"
 					/>
 					{query && (
 						<button

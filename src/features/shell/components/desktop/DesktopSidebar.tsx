@@ -34,12 +34,11 @@ interface DesktopSidebarProps {
 
 const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSidebarProps) => {
 	const { t } = useTranslation()
-	const { railExpanded, showDeveloperPages, ramGb, toggleRailExpanded } = useLauncherPrefsStore(
+	const { railExpanded, showDeveloperPages, toggleRailExpanded } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
 				railExpanded: s.railExpanded,
 				showDeveloperPages: s.showDeveloperPages,
-				ramGb: s.ramGb,
 				toggleRailExpanded: s.toggleRailExpanded,
 			}
 		}),
@@ -195,7 +194,6 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 								icon={Settings}
 								isActive={isSettingsActive}
 								isIconOnly={isIconOnly}
-								badgeText={`${ramGb}GB`}
 							/>
 						</div>
 					</motion.nav>

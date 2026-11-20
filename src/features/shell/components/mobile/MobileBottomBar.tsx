@@ -99,7 +99,7 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 								{selectedInstance.name}
 							</p>
 							<p className="truncate text-[10.5px] text-muted-foreground">
-								{selectedInstance.version} Â· {t("shell.mobileRam", { ramGb })}
+								{selectedInstance.version} · {t("shell.mobileRam", { ramGb })}
 							</p>
 						</div>
 					</div>

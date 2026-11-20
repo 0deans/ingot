@@ -8,6 +8,7 @@ import {
 	type CustomThemeColors,
 	type CustomThemeFieldDescriptor,
 } from "@/shared/theme/customTheme"
+import { Input } from "@/shared/ui/input"
 
 type CustomThemeFieldLabelKey =
 	| "settings.customTheme.fields.background"
@@ -131,7 +132,7 @@ const CustomThemeColorField = ({
 					fallback={fallbackValue}
 					onChange={handlePickerChange}
 				/>
-				<input
+				<Input
 					id={inputId}
 					type="text"
 					value={displayValue}
@@ -150,10 +151,8 @@ const CustomThemeColorField = ({
 					spellCheck={false}
 					placeholder={fallbackValue}
 					className={cn(
-						"h-8 min-w-0 flex-1 rounded-lg border bg-background/70 px-2.5 font-mono text-[11.5px] text-foreground transition-colors outline-none",
-						error
-							? "border-destructive focus:border-destructive"
-							: "border-border focus:border-primary/60",
+						"flex-1 bg-background/70 font-mono text-[11.5px] md:text-[11.5px]",
+						error ? "border-destructive" : "border-border",
 					)}
 				/>
 			</div>

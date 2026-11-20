@@ -3,6 +3,7 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import NotificationBellButton from "@/features/shell/components/notifications/NotificationBellButton"
+import UpdatePillButton from "@/features/shell/components/UpdatePillButton"
 import { findNavItem } from "@/features/shell/navigation"
 import {
 	isAnchoredOverlayOpen,
@@ -14,6 +15,7 @@ import {
 	selectActiveAccount,
 	useAccountStore,
 } from "@/shared/stores/useAccountStore"
+import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import {
 	countUnreadNotifications,
 	hasUnreadByLevel,
@@ -44,7 +46,18 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 		}),
 	)
 
+	const { availableUpdate, dismissed } = useAppUpdateStore(
+		useShallow((s) => {
+			return {
+				availableUpdate: s.availableUpdate,
+				dismissed: s.dismissed,
+			}
+		}),
+	)
+
 	const notificationsOpen = isAnchoredOverlayOpen(activeOverlay, "notifications", layoutKey)
+	const updateOpen = isAnchoredOverlayOpen(activeOverlay, "update", layoutKey)
+	const showUpdatePill = availableUpdate !== null && !dismissed
 	const unreadCount = useMemo(() => {
 		return countUnreadNotifications(notifications)
 	}, [notifications])
@@ -74,6 +87,16 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 			</div>
 
 			<div className="flex shrink-0 items-center gap-2">
+				<UpdatePillButton
+					visible={showUpdatePill}
+					version={availableUpdate?.version ?? ""}
+					open={updateOpen}
+					size="md"
+					onClick={(event) => {
+						toggleAnchored("update", layoutKey, event.currentTarget)
+					}}
+				/>
+
 				<button
 					type="button"
 					onClick={(event) => {

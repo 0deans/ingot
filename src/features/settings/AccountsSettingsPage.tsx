@@ -7,6 +7,7 @@ import {
 	getAccountInitials,
 	useAccountStore,
 } from "@/shared/stores/useAccountStore"
+import { Button } from "@/shared/ui/button"
 
 const AccountsSettingsPage = () => {
 	const { t } = useTranslation()
@@ -32,14 +33,14 @@ const AccountsSettingsPage = () => {
 						{t("settings.accounts.description")}
 					</p>
 				</div>
-				<button
+				<Button
 					type="button"
 					onClick={addAccount}
-					className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3 text-[12px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
+					className="cursor-pointer rounded-xl px-3 text-[12px] font-semibold"
 				>
 					<Plus className="size-3.5 shrink-0" />
 					<span>{t("settings.accounts.addAccount")}</span>
-				</button>
+				</Button>
 			</div>
 
 			<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">

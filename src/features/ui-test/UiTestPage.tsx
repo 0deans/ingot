@@ -1,4 +1,4 @@
-import { Activity, FlaskConical, Layers, Trash2 } from "lucide-react"
+import { Activity, FlaskConical, Layers, Sparkles, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
@@ -6,10 +6,12 @@ import { TAG_LABEL_KEYS } from "@/features/play/types"
 import ToastLabSection from "@/features/ui-test/components/ToastLabSection"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
 import { cn } from "@/shared/lib/utils"
+import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import { COLOR_TAGS, TAG_ORDER } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore, type NavVariant } from "@/shared/stores/useLauncherPrefsStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
 import { type AppThemeId } from "@/shared/theme/customTheme"
+import { Button } from "@/shared/ui/button"
 
 type DemoTone = "alpha" | "beta" | "gamma"
 
@@ -32,6 +34,17 @@ const UiTestPage = () => {
 				runningProcesses: s.runningProcesses,
 				spawnMockProcess: s.spawnMockProcess,
 				stopAllProcesses: s.stopAllProcesses,
+			}
+		}),
+	)
+
+	const { availableUpdate, dismissed, simulateMockUpdate, clearUpdate } = useAppUpdateStore(
+		useShallow((s) => {
+			return {
+				availableUpdate: s.availableUpdate,
+				dismissed: s.dismissed,
+				simulateMockUpdate: s.simulateMockUpdate,
+				clearUpdate: s.clearUpdate,
 			}
 		}),
 	)
@@ -148,6 +161,23 @@ const UiTestPage = () => {
 							<Trash2 className="size-3.5" />
 							<span>{t("uiLab.clearAll")}</span>
 						</button>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => {
+								if (availableUpdate && !dismissed) {
+									clearUpdate()
+									return
+								}
+								simulateMockUpdate()
+							}}
+							className="cursor-pointer rounded-xl border-primary/35 bg-primary/12 text-[12px] font-medium text-primary hover:bg-primary/20 hover:text-primary"
+						>
+							<Sparkles className="size-3.5" />
+							<span>
+								{availableUpdate && !dismissed ? t("uiLab.clearUpdate") : t("uiLab.simulateUpdate")}
+							</span>
+						</Button>
 					</div>
 				</section>
 			</div>

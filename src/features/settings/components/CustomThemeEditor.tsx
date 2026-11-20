@@ -16,6 +16,8 @@ import {
 	type CustomThemeBaseMode,
 	type CustomThemeColors,
 } from "@/shared/theme/customTheme"
+import { Button } from "@/shared/ui/button"
+import { Textarea } from "@/shared/ui/textarea"
 
 type SeedPresetId = Exclude<AppThemeId, "custom">
 
@@ -325,12 +327,14 @@ const CustomThemeEditor = () => {
 					</div>
 
 					<div className="flex flex-wrap items-center gap-1.5">
-						<button
+						<Button
 							type="button"
+							variant="outline"
+							size="sm"
 							onClick={() => {
 								void handleCopyJson()
 							}}
-							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium whitespace-nowrap text-foreground transition-colors hover:bg-foreground/12"
+							className="cursor-pointer bg-foreground/6 text-[11.5px] hover:bg-foreground/12"
 						>
 							{copiedJson ? (
 								<Check className="size-3.5 text-primary" />
@@ -338,30 +342,33 @@ const CustomThemeEditor = () => {
 								<Copy className="size-3.5 text-muted-foreground" />
 							)}
 							<span>{copiedJson ? t("common.copied") : t("settings.customTheme.copyJson")}</span>
-						</button>
+						</Button>
 
-						<button
+						<Button
 							type="button"
+							variant="outline"
+							size="sm"
 							onClick={() => {
 								void handlePasteClipboard()
 							}}
-							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium whitespace-nowrap text-foreground transition-colors hover:bg-foreground/12"
+							className="cursor-pointer bg-foreground/6 text-[11.5px] hover:bg-foreground/12"
 						>
 							<ClipboardPaste className="size-3.5 text-muted-foreground" />
 							<span>{t("settings.customTheme.pasteClipboard")}</span>
-						</button>
+						</Button>
 
-						<button
+						<Button
 							type="button"
+							size="sm"
 							onClick={handleApplyJson}
-							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11.5px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
+							className="cursor-pointer px-3 text-[11.5px] font-semibold"
 						>
 							<span>{t("settings.customTheme.applyJson")}</span>
-						</button>
+						</Button>
 					</div>
 				</div>
 
-				<textarea
+				<Textarea
 					aria-label={t("settings.customTheme.jsonTitle")}
 					value={displayedJson}
 					onChange={(event) => {
@@ -372,7 +379,7 @@ const CustomThemeEditor = () => {
 					}}
 					rows={10}
 					spellCheck={false}
-					className="w-full resize-y rounded-xl border border-border bg-background/80 p-3 font-mono text-[11.5px] leading-relaxed text-foreground outline-none focus:border-primary/60"
+					className="resize-y rounded-xl border-border bg-background/80 p-3 font-mono text-[11.5px] leading-relaxed md:text-[11.5px]"
 				/>
 
 				{jsonErrors.length > 0 ? (

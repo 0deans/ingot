@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useShallow } from "zustand/react/shallow"
 import CustomThemeEditor from "@/features/settings/components/CustomThemeEditor"
-import DeveloperSettingsCard from "@/features/settings/components/DeveloperSettingsCard"
 import NavVariantCard, {
 	type NavVariantOption,
 } from "@/features/settings/components/NavVariantCard"
@@ -22,6 +21,7 @@ import {
 	type CustomThemeColors,
 	type CustomThemeConfig,
 } from "@/shared/theme/customTheme"
+import { Button } from "@/shared/ui/button"
 
 type ThemeTitleKey =
 	| "settings.appearance.themes.light.title"
@@ -146,12 +146,14 @@ const AppearanceSettingsPage = () => {
 						</h2>
 					</div>
 
-					<button
+					<Button
 						type="button"
+						variant="outline"
+						size="sm"
 						onClick={() => {
 							void handleCopyActiveThemeJson()
 						}}
-						className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/5 px-2.5 py-1 text-[11.5px] font-medium text-foreground transition-colors hover:bg-foreground/10"
+						className="cursor-pointer bg-foreground/5 text-[11.5px] hover:bg-foreground/10"
 					>
 						<CopyJsonIcon
 							className={
@@ -159,7 +161,7 @@ const AppearanceSettingsPage = () => {
 							}
 						/>
 						<span>{copyJsonLabel}</span>
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-2.5 @md:grid-cols-2 @3xl:grid-cols-4">
@@ -211,8 +213,6 @@ const AppearanceSettingsPage = () => {
 			</section>
 
 			<NotificationSettingsCard />
-
-			<DeveloperSettingsCard />
 		</div>
 	)
 }
