@@ -37,6 +37,33 @@ export interface AppLanguageMeta {
 	englishName: string
 }
 
+export type LanguageNameKey = `settings.language.names.${AppLocaleCode}`
+
+export const LANGUAGE_NAME_KEYS: Record<AppLocaleCode, LanguageNameKey> = {
+	en: "settings.language.names.en",
+	be: "settings.language.names.be",
+	zh: "settings.language.names.zh",
+	cs: "settings.language.names.cs",
+	nl: "settings.language.names.nl",
+	fr: "settings.language.names.fr",
+	de: "settings.language.names.de",
+	hu: "settings.language.names.hu",
+	id: "settings.language.names.id",
+	it: "settings.language.names.it",
+	ja: "settings.language.names.ja",
+	kk: "settings.language.names.kk",
+	ko: "settings.language.names.ko",
+	pl: "settings.language.names.pl",
+	pt: "settings.language.names.pt",
+	ro: "settings.language.names.ro",
+	ru: "settings.language.names.ru",
+	es: "settings.language.names.es",
+	sv: "settings.language.names.sv",
+	tr: "settings.language.names.tr",
+	uk: "settings.language.names.uk",
+	vi: "settings.language.names.vi",
+}
+
 export const APP_LANGUAGES: readonly AppLanguageMeta[] = [
 	{ code: "en", nativeName: "English", englishName: "English" },
 	{ code: "be", nativeName: "Беларуская", englishName: "Belarusian" },

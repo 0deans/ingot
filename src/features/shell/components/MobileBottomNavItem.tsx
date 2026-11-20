@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { motion } from "motion/react"
+import { useTranslation } from "react-i18next"
 import { type NavItem } from "@/features/shell/navigation"
 import { cn } from "@/shared/lib/utils"
 
@@ -9,6 +10,7 @@ interface MobileBottomNavItemProps {
 }
 
 const MobileBottomNavItem = ({ item, isActive }: MobileBottomNavItemProps) => {
+	const { t } = useTranslation()
 	const Icon = item.icon
 
 	return (
@@ -27,7 +29,7 @@ const MobileBottomNavItem = ({ item, isActive }: MobileBottomNavItemProps) => {
 				/>
 			) : null}
 			<Icon className="relative z-10 size-4" />
-			<span className="relative z-10 truncate">{item.shortLabel}</span>
+			<span className="relative z-10 truncate">{t(item.shortLabelKey)}</span>
 		</Link>
 	)
 }

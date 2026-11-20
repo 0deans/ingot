@@ -1,6 +1,7 @@
 import { Camera, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import type { ScreenshotItem } from "@/features/screenshots/components/ScreenshotGrid"
 import { cn } from "@/shared/lib/utils"
 
@@ -10,6 +11,8 @@ interface LightboxModalProps {
 }
 
 const LightboxModal = ({ shot, onClose }: LightboxModalProps) => {
+	const { t } = useTranslation()
+
 	useEffect(() => {
 		if (!shot) {
 			return
@@ -25,19 +28,21 @@ const LightboxModal = ({ shot, onClose }: LightboxModalProps) => {
 		}
 	}, [onClose, shot])
 
+	const shotTitle = shot ? t(shot.titleKey) : ""
+
 	return (
 		<AnimatePresence>
 			{shot ? (
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 					<button
 						type="button"
-						aria-label="Close lightbox"
+						aria-label={t("screenshots.closeLightboxAria")}
 						onClick={onClose}
 						className="fixed inset-0 cursor-default bg-black/75 backdrop-blur-sm"
 					/>
 					<motion.div
 						role="dialog"
-						aria-label={shot.title}
+						aria-label={shotTitle}
 						initial={{ opacity: 0, scale: 0.96 }}
 						animate={{ opacity: 1, scale: 1 }}
 						exit={{ opacity: 0, scale: 0.96 }}
@@ -48,7 +53,7 @@ const LightboxModal = ({ shot, onClose }: LightboxModalProps) => {
 							<button
 								type="button"
 								onClick={onClose}
-								aria-label="Dismiss screenshot preview"
+								aria-label={t("screenshots.dismissPreviewAria")}
 								className="absolute top-3 right-3 flex size-8 cursor-pointer items-center justify-center rounded-xl border border-white/15 bg-black/50 text-zinc-200 hover:bg-black/75"
 							>
 								<X className="size-4" />
@@ -60,9 +65,9 @@ const LightboxModal = ({ shot, onClose }: LightboxModalProps) => {
 						</div>
 						<div className="flex items-center justify-between p-4">
 							<div>
-								<h2 className="text-sm font-semibold text-foreground">{shot.title}</h2>
+								<h2 className="text-sm font-semibold text-foreground">{shotTitle}</h2>
 								<p className="text-xs text-muted-foreground">
-									{shot.instance} · {shot.shaderPack} · {shot.capturedAt}
+									{shot.instance} · {shot.shaderPack} · {t(shot.capturedAtKey)}
 								</p>
 							</div>
 						</div>

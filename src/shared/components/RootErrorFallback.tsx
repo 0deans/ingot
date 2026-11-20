@@ -1,4 +1,5 @@
 import { useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import ErrorFallbackCard from "@/shared/components/ErrorFallbackCard"
 import SafeTitlebar from "@/shared/components/SafeTitlebar"
 
@@ -10,13 +11,15 @@ interface RootErrorFallbackProps {
 }
 
 const RootErrorFallback = ({ error, reset, routePath, onGoHome }: RootErrorFallbackProps) => {
+	const { t } = useTranslation()
+
 	const handleReloadApp = useCallback(() => {
 		window.location.reload()
 	}, [])
 
 	return (
 		<div className="relative flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
-			<SafeTitlebar statusLabel="Recovery Mode" onReload={handleReloadApp} />
+			<SafeTitlebar statusLabel={t("shell.window.recoveryMode")} onReload={handleReloadApp} />
 
 			<main className="relative flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-6">
 				<div

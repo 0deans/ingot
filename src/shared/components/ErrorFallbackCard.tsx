@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next"
 import {
 	AlertTriangle,
 	Check,
@@ -9,6 +10,7 @@ import {
 	RotateCcw,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
 	buildErrorDiagnosticReport,
 	type ErrorScope,
@@ -24,32 +26,31 @@ interface ErrorCopySpec {
 	description: string
 }
 
-const getErrorCopy = (scope: ErrorScope, isBackendLike: boolean): ErrorCopySpec => {
+const getErrorCopy = (t: TFunction, scope: ErrorScope, isBackendLike: boolean): ErrorCopySpec => {
 	if (scope === "root") {
 		return {
-			badge: "Recovery Mode",
-			title: "The launcher interface encountered an error",
+			badge: t("errors.fallback.root.badge"),
+			title: t("errors.fallback.root.title"),
 			description: isBackendLike
-				? "A core service or data request failed while initializing the launcher window. Window controls remain active above."
-				: "A layout component failed to render. Window controls remain active above so you can retry or reload safely.",
+				? t("errors.fallback.root.backendDescription")
+				: t("errors.fallback.root.renderDescription"),
 		}
 	}
 
 	if (scope === "shell") {
 		return {
-			badge: "Shell Recovery",
-			title: "A shell panel failed to render",
-			description:
-				"The rest of the window stayed responsive. You can retry this section or continue using the launcher.",
+			badge: t("errors.fallback.shell.badge"),
+			title: t("errors.fallback.shell.title"),
+			description: t("errors.fallback.shell.description"),
 		}
 	}
 
 	return {
-		badge: "View Error",
-		title: "Something went wrong in this view",
+		badge: t("errors.fallback.route.badge"),
+		title: t("errors.fallback.route.title"),
 		description: isBackendLike
-			? "An unexpected error occurred while communicating with the launcher backend."
-			: "This page ran into a rendering error. The titlebar and navigation remain active so you can retry or switch views.",
+			? t("errors.fallback.route.backendDescription")
+			: t("errors.fallback.route.renderDescription"),
 	}
 }
 
@@ -70,6 +71,8 @@ const ErrorFallbackCard = ({
 	onGoHome,
 	onReloadApp,
 }: ErrorFallbackCardProps) => {
+	const { t } = useTranslation()
+
 	const copyResetTimerRef = useRef<number | null>(null)
 
 	const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle")
@@ -115,7 +118,7 @@ const ErrorFallbackCard = ({
 		void copyDiagnostics()
 	}
 
-	const copySpec = getErrorCopy(scope, details.isBackendLike)
+	const copySpec = getErrorCopy(t, scope, details.isBackendLike)
 	const hasTechnicalDetails = Boolean(details.stack || routePath)
 
 	return (
@@ -168,10 +171,12 @@ const ErrorFallbackCard = ({
 							) : (
 								<ChevronRight className="size-3.5" />
 							)}
-							<span>Technical details</span>
+							<span>{t("errors.fallback.technicalDetails")}</span>
 						</button>
 					) : (
-						<span className="text-[11px] font-medium text-muted-foreground">Diagnostics</span>
+						<span className="text-[11px] font-medium text-muted-foreground">
+							{t("errors.fallback.diagnostics")}
+						</span>
 					)}
 
 					<button
@@ -187,12 +192,16 @@ const ErrorFallbackCard = ({
 						{copyStatus === "copied" ? (
 							<>
 								<Check className="size-3" />
-								<span>Copied</span>
+								<span>{t("common.copied")}</span>
 							</>
 						) : (
 							<>
 								<Copy className="size-3" />
-								<span>{copyStatus === "failed" ? "Copy failed" : "Copy diagnostics"}</span>
+								<span>
+									{copyStatus === "failed"
+										? t("common.copyFailed")
+										: t("errors.fallback.copyDiagnostics")}
+								</span>
 							</>
 						)}
 					</button>
@@ -215,7 +224,7 @@ const ErrorFallbackCard = ({
 						className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-foreground/5 px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 					>
 						<Home className="size-3.5" />
-						<span>Go to Play</span>
+						<span>{t("common.goToPlay")}</span>
 					</button>
 				) : null}
 
@@ -226,7 +235,7 @@ const ErrorFallbackCard = ({
 						className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-foreground/5 px-3 text-xs font-medium text-foreground transition-colors hover:bg-foreground/10"
 					>
 						<RefreshCw className="size-3.5" />
-						<span>Reload App</span>
+						<span>{t("common.reloadApp")}</span>
 					</button>
 				) : null}
 
@@ -237,7 +246,7 @@ const ErrorFallbackCard = ({
 						className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
 					>
 						<RotateCcw className="size-3.5" />
-						<span>Try Again</span>
+						<span>{t("common.tryAgain")}</span>
 					</button>
 				) : null}
 			</div>

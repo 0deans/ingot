@@ -1,23 +1,29 @@
 import { Shirt } from "lucide-react"
+import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
 import { cn } from "@/shared/lib/utils"
 
 export type ArmModel = "classic" | "slim"
+export type CapeId = "Migrator" | "15th Anniversary" | "Cherry Blossom" | "None"
+export type CapeLabelKey = `skins.capes.${CapeId}`
+
+export const CAPE_LABEL_KEYS: Record<CapeId, CapeLabelKey> = {
+	Migrator: "skins.capes.Migrator",
+	"15th Anniversary": "skins.capes.15th Anniversary",
+	"Cherry Blossom": "skins.capes.Cherry Blossom",
+	None: "skins.capes.None",
+}
 
 interface SkinCanvas3DProps {
 	skinName: string
 	gradient: string
 	armModel: ArmModel
-	selectedCape: string
-	capes: readonly string[]
+	selectedCape: CapeId
+	capes: readonly CapeId[]
 	onArmModelChange: (model: ArmModel) => void
-	onSelectCape: (cape: string) => void
+	onSelectCape: (cape: CapeId) => void
 }
-
-const MODEL_OPTIONS: SegmentedOption<ArmModel>[] = [
-	{ value: "classic", label: "Classic (4px)" },
-	{ value: "slim", label: "Slim (3px)" },
-]
 
 const SkinCanvas3D = ({
 	skinName,
@@ -28,6 +34,15 @@ const SkinCanvas3D = ({
 	onArmModelChange,
 	onSelectCape,
 }: SkinCanvas3DProps) => {
+	const { t } = useTranslation()
+
+	const modelOptions: SegmentedOption<ArmModel>[] = useMemo(() => {
+		return [
+			{ value: "classic", label: t("skins.classic4px") },
+			{ value: "slim", label: t("skins.slim3px") },
+		]
+	}, [t])
+
 	return (
 		<section className="flex flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 			<div
@@ -41,15 +56,18 @@ const SkinCanvas3D = ({
 				</div>
 				<p className="mt-3 text-[13.5px] font-semibold text-white">{skinName}</p>
 				<p className="text-[11px] text-zinc-200">
-					{armModel === "classic" ? "Classic 4px" : "Slim 3px"} · Cape: {selectedCape}
+					{armModel === "classic" ? t("skins.classicShort") : t("skins.slimShort")} ·{" "}
+					{t("skins.capeLabel", { cape: t(CAPE_LABEL_KEYS[selectedCape]) })}
 				</p>
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<span className="text-[11px] font-medium text-muted-foreground">Arm Geometry</span>
+				<span className="text-[11px] font-medium text-muted-foreground">
+					{t("skins.armGeometry")}
+				</span>
 				<SegmentedControl
 					layoutId="skins-arm-model"
-					options={MODEL_OPTIONS}
+					options={modelOptions}
 					value={armModel}
 					onChange={onArmModelChange}
 					tone="emerald"
@@ -57,7 +75,9 @@ const SkinCanvas3D = ({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<span className="text-[11px] font-medium text-muted-foreground">Equipped Cape</span>
+				<span className="text-[11px] font-medium text-muted-foreground">
+					{t("skins.equippedCape")}
+				</span>
 				<div className="grid grid-cols-2 gap-1.5">
 					{capes.map((cape) => {
 						const active = cape === selectedCape
@@ -75,7 +95,7 @@ const SkinCanvas3D = ({
 										: "border-border bg-foreground/4 text-foreground/80 hover:bg-foreground/8",
 								)}
 							>
-								{cape}
+								{t(CAPE_LABEL_KEYS[cape])}
 							</button>
 						)
 					})}

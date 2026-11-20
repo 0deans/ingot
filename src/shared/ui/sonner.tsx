@@ -1,5 +1,6 @@
 import { AnimatePresence } from "motion/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast, useSonner, type ToasterProps, type ToastT } from "sonner"
 import { cn } from "@/shared/lib/utils"
 import AppleToastCard from "@/shared/ui/AppleToastCard"
@@ -139,8 +140,9 @@ const Toaster = ({
 	toastOptions,
 	className,
 	customAriaLabel,
-	containerAriaLabel = "Notifications",
+	containerAriaLabel,
 }: ToasterProps) => {
+	const { t } = useTranslation()
 	const { toasts: rawToasts } = useSonner()
 
 	const listRef = useRef<HTMLOListElement | null>(null)
@@ -276,10 +278,11 @@ const Toaster = ({
 	}, [hotkey])
 
 	const hotkeyLabel = hotkey.join("+").replace(/Key/g, "")
+	const resolvedContainerAriaLabel = containerAriaLabel ?? t("shell.notifications.title")
 
 	return (
 		<section
-			aria-label={customAriaLabel ?? `${containerAriaLabel} ${hotkeyLabel}`}
+			aria-label={customAriaLabel ?? `${resolvedContainerAriaLabel} ${hotkeyLabel}`}
 			aria-live="polite"
 			aria-relevant="additions text"
 			aria-atomic="false"

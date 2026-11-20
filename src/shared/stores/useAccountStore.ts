@@ -2,6 +2,21 @@ import { create } from "zustand"
 
 export type AccountType = "Microsoft" | "Horizon Auth" | "Offline" | "Ely.by" | "Xbox Live"
 
+export type AccountTypeLabelKey =
+	| "settings.accounts.types.microsoft"
+	| "settings.accounts.types.horizonAuth"
+	| "settings.accounts.types.offline"
+	| "settings.accounts.types.elyBy"
+	| "settings.accounts.types.xboxLive"
+
+export const ACCOUNT_TYPE_LABEL_KEYS: Record<AccountType, AccountTypeLabelKey> = {
+	Microsoft: "settings.accounts.types.microsoft",
+	"Horizon Auth": "settings.accounts.types.horizonAuth",
+	Offline: "settings.accounts.types.offline",
+	"Ely.by": "settings.accounts.types.elyBy",
+	"Xbox Live": "settings.accounts.types.xboxLive",
+}
+
 export interface AccountProfile {
 	id: string
 	username: string

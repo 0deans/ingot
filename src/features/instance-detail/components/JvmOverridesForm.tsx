@@ -1,5 +1,6 @@
 import { Cpu, Save } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 
 interface JvmOverridesFormProps {
@@ -7,9 +8,11 @@ interface JvmOverridesFormProps {
 }
 
 const JvmOverridesForm = ({ defaultArgs }: JvmOverridesFormProps) => {
+	const { t } = useTranslation()
 	const globalRamGb = useLauncherPrefsStore((s) => {
 		return s.ramGb
 	})
+
 	const [overrideRam, setOverrideRam] = useState(globalRamGb)
 	const [customArgs, setCustomArgs] = useState(defaultArgs)
 	const [savedNotice, setSavedNotice] = useState(false)
@@ -30,7 +33,7 @@ const JvmOverridesForm = ({ defaultArgs }: JvmOverridesFormProps) => {
 			<div className="flex items-center gap-2">
 				<Cpu className="size-4 text-primary" />
 				<h2 className="text-[13.5px] font-semibold text-foreground">
-					Per-Instance Memory Override ({overrideRam} GB)
+					{t("instanceDetail.jvm.title", { ram: overrideRam })}
 				</h2>
 			</div>
 
@@ -48,7 +51,7 @@ const JvmOverridesForm = ({ defaultArgs }: JvmOverridesFormProps) => {
 
 			<label className="flex flex-col gap-1.5">
 				<span className="text-[11.5px] font-medium text-foreground/80">
-					Custom Runtime Arguments
+					{t("instanceDetail.jvm.customArgs")}
 				</span>
 				<input
 					type="text"
@@ -62,14 +65,16 @@ const JvmOverridesForm = ({ defaultArgs }: JvmOverridesFormProps) => {
 
 			<div className="flex items-center justify-end gap-2">
 				{savedNotice ? (
-					<span className="text-[11.5px] font-medium text-primary">Overrides saved</span>
+					<span className="text-[11.5px] font-medium text-primary">
+						{t("instanceDetail.jvm.savedNotice")}
+					</span>
 				) : null}
 				<button
 					type="submit"
 					className="flex h-8 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
 				>
 					<Save className="size-3.5" />
-					<span>Save Overrides</span>
+					<span>{t("instanceDetail.jvm.saveOverrides")}</span>
 				</button>
 			</div>
 		</form>

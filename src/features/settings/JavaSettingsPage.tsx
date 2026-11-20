@@ -1,4 +1,5 @@
 import { Cpu } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import { cn } from "@/shared/lib/utils"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
@@ -6,6 +7,7 @@ import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 const RAM_PRESETS = [4, 6, 8, 12, 16]
 
 const JavaSettingsPage = () => {
+	const { t } = useTranslation()
 	const { ramGb, setRamGb } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -20,7 +22,7 @@ const JavaSettingsPage = () => {
 			<div className="flex items-center gap-2">
 				<Cpu className="size-4 text-primary" />
 				<h2 className="text-[13.5px] font-semibold text-foreground">
-					Default Memory Allocation ({ramGb} GB)
+					{t("settings.java.title", { ramGb })}
 				</h2>
 			</div>
 
@@ -33,7 +35,7 @@ const JavaSettingsPage = () => {
 				onChange={(event) => {
 					setRamGb(Number(event.target.value))
 				}}
-				aria-label="Allocated RAM in GB"
+				aria-label={t("settings.java.sliderAriaLabel")}
 				className="w-full accent-primary"
 			/>
 

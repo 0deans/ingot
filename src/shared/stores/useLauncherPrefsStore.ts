@@ -25,6 +25,7 @@ export type ToastPosition =
 	| "bottom-center"
 	| "bottom-right"
 
+const appThemeSchema = z.enum(["light", "dark", "purple", "custom"])
 const navVariantSchema = z.enum(["sonoma", "rail", "sequoia", "capsule"])
 const toastPositionSchema = z.enum([
 	"top-left",
@@ -38,6 +39,7 @@ const ramGbSchema = z.number().min(1).max(64)
 const persistedObjectSchema = z.record(z.string(), z.unknown())
 
 interface PersistedLauncherPrefs {
+	theme: AppThemeId
 	navVariant: NavVariant
 	toastPosition: ToastPosition
 	language: LauncherLanguagePreference
@@ -49,6 +51,7 @@ interface PersistedLauncherPrefs {
 }
 
 interface LauncherPrefsState extends PersistedLauncherPrefs {
+	setTheme: (theme: AppThemeId) => void
 	setNavVariant: (variant: NavVariant) => void
 	setToastPosition: (position: ToastPosition) => void
 	setLanguage: (language: LauncherLanguagePreference) => void
@@ -67,6 +70,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 	persist(
 		(set) => {
 			return {
+				theme: "dark",
 				navVariant: "sonoma",
 				toastPosition: "bottom-right",
 				language: "system",
@@ -75,6 +79,13 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				ramGb: 6,
 				railExpanded: false,
 				customTheme: DEFAULT_CUSTOM_THEME,
+				setTheme: (theme) => {
+					const parsed = appThemeSchema.safeParse(theme)
+					if (!parsed.success) {
+						return
+					}
+					set({ theme: parsed.data })
+				},
 				setNavVariant: (navVariant) => {
 					const parsed = navVariantSchema.safeParse(navVariant)
 					if (!parsed.success) {
@@ -185,6 +196,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 			name: "ingot-launcher-prefs",
 			partialize: (state): PersistedLauncherPrefs => {
 				return {
+					theme: state.theme,
 					navVariant: state.navVariant,
 					toastPosition: state.toastPosition,
 					language: state.language,
@@ -202,6 +214,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				}
 
 				const raw = parsedRecord.data
+				const parsedThemeId = appThemeSchema.safeParse(raw.theme)
 				const parsedNav = navVariantSchema.safeParse(raw.navVariant)
 				const parsedToastPos = toastPositionSchema.safeParse(raw.toastPosition)
 				const parsedLanguage = languagePreferenceSchema.safeParse(raw.language)
@@ -213,6 +226,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 
 				return {
 					...currentState,
+					theme: parsedThemeId.success ? parsedThemeId.data : currentState.theme,
 					navVariant: parsedNav.success ? parsedNav.data : currentState.navVariant,
 					toastPosition: parsedToastPos.success ? parsedToastPos.data : currentState.toastPosition,
 					language: parsedLanguage.success ? parsedLanguage.data : currentState.language,

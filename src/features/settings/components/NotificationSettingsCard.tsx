@@ -1,27 +1,44 @@
+import type { TFunction } from "i18next"
 import { Bell } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
 import ToastPositionPicker from "@/features/ui-test/components/ToastPositionPicker"
 import { useLauncherPrefsStore, type ToastPosition } from "@/shared/stores/useLauncherPrefsStore"
 import { appleToast } from "@/shared/ui/sonner"
 
-const POSITION_LABELS: Record<ToastPosition, string> = {
-	"top-left": "Top Left",
-	"top-center": "Top Center",
-	"top-right": "Top Right",
-	"bottom-left": "Bottom Left",
-	"bottom-center": "Bottom Center",
-	"bottom-right": "Bottom Right",
+type ToastPositionLabelKey =
+	| "toastPicker.positions.topLeft"
+	| "toastPicker.positions.topCenter"
+	| "toastPicker.positions.topRight"
+	| "toastPicker.positions.bottomLeft"
+	| "toastPicker.positions.bottomCenter"
+	| "toastPicker.positions.bottomRight"
+
+const POSITION_LABEL_KEYS: Record<ToastPosition, ToastPositionLabelKey> = {
+	"top-left": "toastPicker.positions.topLeft",
+	"top-center": "toastPicker.positions.topCenter",
+	"top-right": "toastPicker.positions.topRight",
+	"bottom-left": "toastPicker.positions.bottomLeft",
+	"bottom-center": "toastPicker.positions.bottomCenter",
+	"bottom-right": "toastPicker.positions.bottomRight",
 }
 
-const formatToastPositionLabel = (position: ToastPosition, isMobile: boolean): string => {
+const formatToastPositionLabel = (
+	position: ToastPosition,
+	isMobile: boolean,
+	t: TFunction,
+): string => {
 	if (!isMobile) {
-		return POSITION_LABELS[position]
+		return t(POSITION_LABEL_KEYS[position])
 	}
-	return position.startsWith("top-") ? "Top" : "Bottom"
+	return position.startsWith("top-")
+		? t("toastPicker.positions.top")
+		: t("toastPicker.positions.bottom")
 }
 
 const NotificationSettingsCard = () => {
+	const { t } = useTranslation()
 	const breakpoint = useBreakpoint()
 	const { toastPosition, setToastPosition } = useLauncherPrefsStore(
 		useShallow((s) => {
@@ -36,15 +53,22 @@ const NotificationSettingsCard = () => {
 
 	const handleChangePosition = (nextPosition: ToastPosition) => {
 		setToastPosition(nextPosition)
-		appleToast.info(`Notifications set to ${formatToastPositionLabel(nextPosition, isMobile)}`, {
-			description: "Launcher alerts will now appear here.",
-			position: nextPosition,
-		})
+		appleToast.info(
+			t("settings.notifications.updatedToast", {
+				position: formatToastPositionLabel(nextPosition, isMobile, t),
+			}),
+			{
+				description: t("settings.notifications.updatedToastDescription"),
+				position: nextPosition,
+			},
+		)
 	}
 
 	const handleTriggerPreview = () => {
-		appleToast.success("Sample notification preview", {
-			description: `Anchored at ${formatToastPositionLabel(toastPosition, isMobile)}.`,
+		appleToast.success(t("settings.notifications.previewToast"), {
+			description: t("settings.notifications.previewToastDescription", {
+				position: formatToastPositionLabel(toastPosition, isMobile, t),
+			}),
 			position: toastPosition,
 		})
 	}
@@ -54,7 +78,9 @@ const NotificationSettingsCard = () => {
 			<div className="mb-3 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<Bell className="size-4 text-primary" />
-					<h2 className="text-[13.5px] font-semibold text-foreground">Notifications</h2>
+					<h2 className="text-[13.5px] font-semibold text-foreground">
+						{t("settings.notifications.title")}
+					</h2>
 				</div>
 
 				<button
@@ -63,7 +89,7 @@ const NotificationSettingsCard = () => {
 					className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/5 px-2.5 py-1 text-[11.5px] font-medium text-foreground transition-colors hover:bg-foreground/10"
 				>
 					<Bell className="size-3.5 text-primary" />
-					<span>Test Toast</span>
+					<span>{t("settings.notifications.testToast")}</span>
 				</button>
 			</div>
 
@@ -75,11 +101,13 @@ const NotificationSettingsCard = () => {
 				/>
 
 				<div className="flex min-w-0 flex-col gap-2 @xl:border-l @xl:border-border/50 @xl:pl-5">
-					<p className="text-[12.5px] font-medium text-foreground">Preferred Toast Placement</p>
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.notifications.preferredPlacement")}
+					</p>
 					<p className="text-[11.5px] leading-relaxed text-muted-foreground">
 						{isMobile
-							? "Choose Top or Bottom placement on mobile. Left, Center, and Right alignment applies on tablet and desktop."
-							: "Choose which corner or edge of the launcher window displays frosted status banners, download progress cards, and stacked alerts."}
+							? t("settings.notifications.mobilePlacementDescription")
+							: t("settings.notifications.desktopPlacementDescription")}
 					</p>
 				</div>
 			</div>

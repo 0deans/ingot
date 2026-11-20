@@ -1,5 +1,6 @@
 import { Copy, Minus, Square, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
 	closeMainWindow,
 	isTauriRuntime,
@@ -15,6 +16,7 @@ interface WindowControlButtonsProps {
 }
 
 const WindowControlButtons = ({ className }: WindowControlButtonsProps) => {
+	const { t } = useTranslation()
 	const [isMaximized, setIsMaximized] = useState(false)
 
 	const handleMinimize = useCallback(() => {
@@ -83,7 +85,7 @@ const WindowControlButtons = ({ className }: WindowControlButtonsProps) => {
 			<button
 				type="button"
 				onClick={handleMinimize}
-				aria-label="Minimize window"
+				aria-label={t("shell.window.minimize")}
 				className="flex h-10 w-10 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 			>
 				<Minus className="size-3.5" />
@@ -91,7 +93,7 @@ const WindowControlButtons = ({ className }: WindowControlButtonsProps) => {
 			<button
 				type="button"
 				onClick={handleToggleMaximize}
-				aria-label={isMaximized ? "Restore window" : "Maximize window"}
+				aria-label={isMaximized ? t("shell.window.restore") : t("shell.window.maximize")}
 				className="flex h-10 w-10 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 			>
 				{isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
@@ -99,7 +101,7 @@ const WindowControlButtons = ({ className }: WindowControlButtonsProps) => {
 			<button
 				type="button"
 				onClick={handleClose}
-				aria-label="Close window"
+				aria-label={t("shell.window.close")}
 				className="flex h-10 w-10 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-rose-600 hover:text-white"
 			>
 				<X className="size-3.5" />

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import BackupSnapshotModal from "@/features/worlds/components/BackupSnapshotModal"
 import WorldCard, { type WorldSave } from "@/features/worlds/components/WorldCard"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
@@ -8,13 +9,6 @@ import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
 
 type GameModeFilter = "all" | "Survival" | "Creative" | "Hardcore"
-
-const MODE_OPTIONS: SegmentedOption<GameModeFilter>[] = [
-	{ value: "all", label: "All Worlds" },
-	{ value: "Survival", label: "Survival" },
-	{ value: "Creative", label: "Creative" },
-	{ value: "Hardcore", label: "Hardcore" },
-]
 
 const WORLD_SAVES: WorldSave[] = [
 	{
@@ -68,6 +62,7 @@ const WORLD_SAVES: WorldSave[] = [
 ]
 
 const WorldsPage = () => {
+	const { t } = useTranslation()
 	const selectOrCreateByName = useInstancesStore((s) => {
 		return s.selectOrCreateByName
 	})
@@ -81,6 +76,15 @@ const WorldsPage = () => {
 
 	const [modeFilter, setModeFilter] = useState<GameModeFilter>("all")
 	const [backupWorld, setBackupWorld] = useState<WorldSave | null>(null)
+
+	const modeOptions: SegmentedOption<GameModeFilter>[] = useMemo(() => {
+		return [
+			{ value: "all", label: t("worlds.modes.all") },
+			{ value: "Survival", label: t("worlds.modes.survival") },
+			{ value: "Creative", label: t("worlds.modes.creative") },
+			{ value: "Hardcore", label: t("worlds.modes.hardcore") },
+		]
+	}, [t])
 
 	const filteredWorlds = useMemo(() => {
 		if (modeFilter === "all") {
@@ -116,14 +120,14 @@ const WorldsPage = () => {
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
-					<h1 className="text-lg font-semibold tracking-tight text-foreground">Worlds</h1>
-					<p className="text-[12px] text-muted-foreground">
-						Direct singleplayer saves indexed across your Java, Horizon, and Bedrock profiles.
-					</p>
+					<h1 className="text-lg font-semibold tracking-tight text-foreground">
+						{t("worlds.title")}
+					</h1>
+					<p className="text-[12px] text-muted-foreground">{t("worlds.subtitle")}</p>
 				</div>
 				<SegmentedControl
 					layoutId="worlds-mode-filter"
-					options={MODE_OPTIONS}
+					options={modeOptions}
 					value={modeFilter}
 					onChange={setModeFilter}
 					tone="emerald"

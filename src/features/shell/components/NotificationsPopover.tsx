@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
 	resolveCenteredTitlebarPopoverStyle,
 	type PopoverAnchorRect,
@@ -38,6 +39,7 @@ const NotificationsPopover = ({
 	onClearAll,
 	onNavigateAction,
 }: NotificationsPopoverProps) => {
+	const { t } = useTranslation()
 	const [filter, setFilter] = useState<NotificationFilter>("all")
 
 	const unreadCount = useMemo(() => {
@@ -71,7 +73,9 @@ const NotificationsPopover = ({
 	const anchoredStyle = resolveCenteredTitlebarPopoverStyle(anchorRect, 384)
 	const fallbackClass = anchoredStyle ? "" : "top-11 right-4"
 	const emptyHeading =
-		filter === "unread" && notifications.length > 0 ? "No unread alerts" : "All caught up"
+		filter === "unread" && notifications.length > 0
+			? t("shell.notifications.emptyUnread")
+			: t("shell.notifications.emptyAll")
 
 	return (
 		<AnimatePresence>
@@ -79,13 +83,13 @@ const NotificationsPopover = ({
 				<div className="fixed inset-0 z-50">
 					<button
 						type="button"
-						aria-label="Close notifications"
+						aria-label={t("shell.notifications.closeAria")}
 						onClick={onClose}
 						className="fixed inset-0 cursor-default bg-black/25"
 					/>
 					<motion.div
 						role="dialog"
-						aria-label="Notification Center"
+						aria-label={t("shell.notifications.centerAria")}
 						style={anchoredStyle}
 						initial={{ opacity: 0, y: -8, scale: 0.97 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -114,8 +118,7 @@ const NotificationsPopover = ({
 										{emptyHeading}
 									</p>
 									<p className="mt-0.5 max-w-64 text-[11px] text-muted-foreground">
-										Important crash reports, server alerts, account warnings, and completed
-										downloads appear here.
+										{t("shell.notifications.emptyDescription")}
 									</p>
 								</div>
 							) : (

@@ -6,6 +6,7 @@ import {
 	type KeyboardEvent,
 	type PointerEvent,
 } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 import {
 	hsvToRgb,
@@ -41,6 +42,8 @@ const clamp = (value: number, min: number, max: number): number => {
 }
 
 const ColorPicker = ({ value, fallback = "#000000", label, onChange }: ColorPickerProps) => {
+	const { t } = useTranslation()
+
 	const svAreaRef = useRef<HTMLDivElement | null>(null)
 	const hueTrackRef = useRef<HTMLDivElement | null>(null)
 
@@ -237,7 +240,7 @@ const ColorPicker = ({ value, fallback = "#000000", label, onChange }: ColorPick
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger
 				type="button"
-				aria-label={`${label} color picker`}
+				aria-label={t("settings.customTheme.picker.triggerAria", { label })}
 				className="flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-background/70 p-1 transition-colors outline-none hover:border-foreground/30 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
 			>
 				<span
@@ -258,7 +261,7 @@ const ColorPicker = ({ value, fallback = "#000000", label, onChange }: ColorPick
 						ref={svAreaRef}
 						role="slider"
 						tabIndex={0}
-						aria-label={`${label} saturation and brightness`}
+						aria-label={t("settings.customTheme.picker.svAria", { label })}
 						aria-valuemin={0}
 						aria-valuemax={100}
 						aria-valuenow={Math.round(parsedHsv.s)}
@@ -300,7 +303,7 @@ const ColorPicker = ({ value, fallback = "#000000", label, onChange }: ColorPick
 							ref={hueTrackRef}
 							role="slider"
 							tabIndex={0}
-							aria-label={`${label} hue`}
+							aria-label={t("settings.customTheme.picker.hueAria", { label })}
 							aria-valuemin={0}
 							aria-valuemax={359}
 							aria-valuenow={Math.round(effectiveHue)}
@@ -336,7 +339,10 @@ const ColorPicker = ({ value, fallback = "#000000", label, onChange }: ColorPick
 										inputMode="numeric"
 										pattern="[0-9]*"
 										maxLength={3}
-										aria-label={`${label} ${channel.toUpperCase()} channel`}
+										aria-label={t("settings.customTheme.picker.channelAria", {
+											label,
+											channel: channel.toUpperCase(),
+										})}
 										value={String(resolvedRgb[channel])}
 										onChange={(event) => {
 											handleChannelChange(channel, event.currentTarget.value)
@@ -361,7 +367,7 @@ const ColorPicker = ({ value, fallback = "#000000", label, onChange }: ColorPick
 								<button
 									key={swatchHex}
 									type="button"
-									aria-label={`Select swatch ${swatchHex}`}
+									aria-label={t("settings.customTheme.picker.swatchAria", { hex: swatchHex })}
 									onClick={() => {
 										const rgb = parseCssColorToRgb(swatchHex)
 										if (rgb) {

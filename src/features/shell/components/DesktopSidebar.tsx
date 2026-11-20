@@ -1,9 +1,10 @@
 import { ChevronLeft, ChevronRight, ChevronsUpDown, Settings } from "lucide-react"
 import { LayoutGroup, motion } from "motion/react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import SidebarNavItem from "@/features/shell/components/SidebarNavItem"
 import {
-	NAV_GROUP_LABELS,
+	NAV_GROUP_LABEL_KEYS,
 	NAV_GROUP_ORDER,
 	getSidebarNavItems,
 	isNavItemActive,
@@ -16,6 +17,7 @@ import {
 } from "@/features/shell/stores/useShellOverlayStore"
 import { cn } from "@/shared/lib/utils"
 import {
+	ACCOUNT_TYPE_LABEL_KEYS,
 	getAccountInitials,
 	selectActiveAccount,
 	useAccountStore,
@@ -31,6 +33,7 @@ interface DesktopSidebarProps {
 }
 
 const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSidebarProps) => {
+	const { t } = useTranslation()
 	const { railExpanded, showDeveloperPages, ramGb, toggleRailExpanded } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -100,7 +103,7 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 			className="flex shrink-0 overflow-hidden"
 		>
 			<motion.aside
-				aria-label="Primary Sidebar"
+				aria-label={t("shell.primarySidebarAria")}
 				initial={false}
 				animate={{
 					width: targetWidth,
@@ -120,14 +123,16 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 					>
 						{!isIconOnly ? (
 							<span className="overflow-hidden text-[10.5px] font-semibold tracking-wider whitespace-nowrap text-muted-foreground uppercase">
-								Navigation
+								{t("nav.groups.navigation")}
 							</span>
 						) : null}
 						<button
 							type="button"
 							onClick={toggleRailExpanded}
-							aria-label={railExpanded ? "Collapse sidebar rail" : "Expand sidebar rail"}
-							title={railExpanded ? "Collapse sidebar" : "Expand sidebar"}
+							aria-label={
+								railExpanded ? t("shell.collapseSidebarAria") : t("shell.expandSidebarAria")
+							}
+							title={railExpanded ? t("shell.collapseSidebar") : t("shell.expandSidebar")}
 							className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-sidebar-border bg-foreground/4 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
 						>
 							{railExpanded ? (
@@ -149,7 +154,7 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 								<div key={section.id} className="flex flex-col gap-0.5">
 									{!isIconOnly ? (
 										<div className="overflow-hidden px-2.5 pt-1 pb-1 text-[10px] font-semibold tracking-wider whitespace-nowrap text-muted-foreground uppercase">
-											{NAV_GROUP_LABELS[section.id]}
+											{t(NAV_GROUP_LABEL_KEYS[section.id])}
 										</div>
 									) : (
 										<div className="mx-auto my-1 h-px w-6 bg-sidebar-border first:hidden" />
@@ -157,13 +162,19 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 
 									{section.items.map((item) => {
 										const showPlayRunningCount = item.path === "/" && runningCount > 0
-										const badgeText = showPlayRunningCount ? String(runningCount) : item.badge
+										let badgeText = item.badge
+										if (item.badgeKey) {
+											badgeText = t(item.badgeKey)
+										}
+										if (showPlayRunningCount) {
+											badgeText = String(runningCount)
+										}
 
 										return (
 											<SidebarNavItem
 												key={item.path}
 												path={item.path}
-												label={item.label}
+												label={t(item.labelKey)}
 												icon={item.icon}
 												isActive={isNavItemActive(currentPath, item.path)}
 												isIconOnly={isIconOnly}
@@ -180,7 +191,7 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 						<div className="mt-auto border-t border-sidebar-border pt-2">
 							<SidebarNavItem
 								path="/settings"
-								label="Settings"
+								label={t("nav.items.settings.label")}
 								icon={Settings}
 								isActive={isSettingsActive}
 								isIconOnly={isIconOnly}
@@ -198,7 +209,11 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 						onClick={(event) => {
 							toggleAnchored("account", layoutKey, event.currentTarget)
 						}}
-						title={isIconOnly ? `${activeAccount.username} (${activeAccount.type})` : undefined}
+						title={
+							isIconOnly
+								? `${activeAccount.username} (${t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])})`
+								: undefined
+						}
 						className={cn(
 							"flex cursor-pointer items-center rounded-xl border border-sidebar-border bg-foreground/4 transition-colors hover:bg-foreground/8",
 							isIconOnly ? "justify-center p-1.5" : "gap-2.5 px-2 py-1.5 text-left",
@@ -219,7 +234,7 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 										{activeAccount.username}
 									</p>
 									<p className="truncate text-[10px] whitespace-nowrap text-muted-foreground">
-										{activeAccount.type}
+										{t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])}
 									</p>
 								</div>
 								<ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />

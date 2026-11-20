@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import NewsArticleCard, {
 	type NewsArticle,
 	type NewsArticleCategory,
@@ -7,63 +8,60 @@ import SegmentedControl, { type SegmentedOption } from "@/shared/components/moti
 
 type NewsCategory = "all" | NewsArticleCategory
 
-const NEWS_FILTERS: SegmentedOption<NewsCategory>[] = [
-	{ value: "all", label: "All Updates" },
-	{ value: "Release", label: "Releases" },
-	{ value: "Snapshot", label: "Snapshots" },
-	{ value: "Community", label: "Community" },
-]
-
 const NEWS_ARTICLES: NewsArticle[] = [
 	{
 		id: "news-horizon-094",
-		title: "Ingot Horizon 0.9.4: Parallel Chunk Meshing & Metal/Vulkan Parity",
+		titleKey: "news.articles.news-horizon-094.title",
 		category: "Release",
-		date: "Today",
+		dateKey: "news.articles.news-horizon-094.date",
 		versionBadge: "v0.9.4",
-		summary:
-			"Our Rust-native runtime cuts cold chunk upload latency by 42% and introduces unified frame pacing.",
-		details:
-			"Horizon 0.9.4 ships lock-free staging buffers on Windows Vulkan, improved entity culling for dense redstone districts, and automatic profile migration from Java resource packs.",
+		summaryKey: "news.articles.news-horizon-094.summary",
+		detailsKey: "news.articles.news-horizon-094.details",
 		featured: true,
 	},
 	{
 		id: "news-1215-snapshot",
-		title: "Snapshot 25w14a Brings New Ambient Fireflies & Fallen Logs",
+		titleKey: "news.articles.news-1215-snapshot.title",
 		category: "Snapshot",
-		date: "2 days ago",
+		dateKey: "news.articles.news-1215-snapshot.date",
 		versionBadge: "25w14a",
-		summary:
-			"Forest and swamp biomes gain atmospheric particle clusters and mossy fallen timber variants.",
-		details:
-			"Test worlds created on 25w14a include toggleable Lodestone recipes and subtle leaf-fall particles beneath dense birch canopies.",
+		summaryKey: "news.articles.news-1215-snapshot.summary",
+		detailsKey: "news.articles.news-1215-snapshot.details",
 	},
 	{
 		id: "news-modrinth-sync",
-		title: "Modrinth Dependency Resolver Now Caches Lockfiles Offline",
+		titleKey: "news.articles.news-modrinth-sync.title",
 		category: "Community",
-		date: "5 days ago",
+		dateKey: "news.articles.news-modrinth-sync.date",
 		versionBadge: "Ingot Core",
-		summary:
-			"Export and share reproducible .ingotpack bundles with deterministic SHA-512 verification.",
-		details:
-			"Team servers can pin exact transitive mod dependencies so every player joins with zero mismatch errors.",
+		summaryKey: "news.articles.news-modrinth-sync.summary",
+		detailsKey: "news.articles.news-modrinth-sync.details",
 	},
 	{
 		id: "news-1214-patch",
-		title: "Java Edition 1.21.4 Hotfix Notes: Resin Bricks & Pale Garden Polish",
+		titleKey: "news.articles.news-1214-patch.title",
 		category: "Release",
-		date: "1 week ago",
+		dateKey: "news.articles.news-1214-patch.date",
 		versionBadge: "1.21.4",
-		summary:
-			"Fixes creaking heart light sensitivity edge cases and smooths winter lighting transitions.",
-		details: "Recommended upgrade for all Fabric 0.16.10 and NeoForge 21.4 survival worlds.",
+		summaryKey: "news.articles.news-1214-patch.summary",
+		detailsKey: "news.articles.news-1214-patch.details",
 	},
 ]
 
 const NewsPage = () => {
+	const { t } = useTranslation()
+
 	const [category, setCategory] = useState<NewsCategory>("all")
 	const [expandedId, setExpandedId] = useState<string | null>("news-horizon-094")
+
+	const newsFilters: SegmentedOption<NewsCategory>[] = useMemo(() => {
+		return [
+			{ value: "all", label: t("news.filters.all") },
+			{ value: "Release", label: t("news.filters.releases") },
+			{ value: "Snapshot", label: t("news.filters.snapshots") },
+			{ value: "Community", label: t("news.filters.community") },
+		]
+	}, [t])
 
 	const visibleArticles = useMemo(() => {
 		if (category === "all") {
@@ -88,14 +86,14 @@ const NewsPage = () => {
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
-					<h1 className="text-lg font-semibold tracking-tight text-foreground">News & Events</h1>
-					<p className="text-[12px] text-muted-foreground">
-						Release notes, Horizon engine milestones, and community highlights.
-					</p>
+					<h1 className="text-lg font-semibold tracking-tight text-foreground">
+						{t("news.title")}
+					</h1>
+					<p className="text-[12px] text-muted-foreground">{t("news.subtitle")}</p>
 				</div>
 				<SegmentedControl
 					layoutId="news-category-filter"
-					options={NEWS_FILTERS}
+					options={newsFilters}
 					value={category}
 					onChange={setCategory}
 					tone="emerald"

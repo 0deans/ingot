@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react"
 import { AnimatePresence, LayoutGroup, motion } from "motion/react"
 import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import CapsuleNavItem from "@/features/shell/components/CapsuleNavItem"
 import NotificationBellButton from "@/features/shell/components/NotificationBellButton"
@@ -12,6 +13,7 @@ import {
 import WindowControlButtons from "@/shared/components/WindowControlButtons"
 import { cn } from "@/shared/lib/utils"
 import {
+	ACCOUNT_TYPE_LABEL_KEYS,
 	getAccountInitials,
 	selectActiveAccount,
 	useAccountStore,
@@ -30,6 +32,7 @@ interface WindowsTitlebarProps {
 }
 
 const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
+	const { t } = useTranslation()
 	const { navVariant, showDeveloperPages } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -79,7 +82,9 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 		totalProcessRamMb >= 1024
 			? `${(totalProcessRamMb / 1024).toFixed(1)} GB`
 			: `${totalProcessRamMb} MB`
-	const statusLabel = hasRunning ? `${activeProcessesCount} Active` : "Idle"
+	const statusLabel = hasRunning
+		? t("shell.statusActive", { count: activeProcessesCount })
+		: t("shell.statusIdle")
 	const versionVisibilityClass = isCapsule ? "hidden md:inline-block" : "inline-block"
 
 	return (
@@ -90,7 +95,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 			<div data-tauri-drag-region className="flex shrink-0 items-center gap-2">
 				<img
 					src="/ingot.svg"
-					alt="Ingot logo"
+					alt={t("shell.logoAlt")}
 					draggable={false}
 					className="pointer-events-none size-5 shrink-0 object-contain"
 				/>
@@ -116,7 +121,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 						<LayoutGroup id="windows-titlebar-capsule">
 							<motion.nav
 								key="top-capsule-nav"
-								aria-label="Primary Navigation"
+								aria-label={t("shell.primaryNavigationAria")}
 								initial={{ opacity: 0, scale: 0.96, y: -3 }}
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.96, y: -3 }}
@@ -146,7 +151,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 							type="button"
 							aria-expanded={accountOpen}
 							aria-haspopup="dialog"
-							title={`${activeAccount.username} (${activeAccount.type})`}
+							title={`${activeAccount.username} (${t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])})`}
 							onClick={(event) => {
 								toggleAnchored("account", layoutKey, event.currentTarget)
 							}}

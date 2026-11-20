@@ -10,6 +10,7 @@ import {
 	type MouseEvent,
 	type ReactNode,
 } from "react"
+import { useTranslation } from "react-i18next"
 import { type Action, type ToastT } from "sonner"
 import { cn } from "@/shared/lib/utils"
 import {
@@ -263,6 +264,7 @@ const AppleToastCard = ({
 	onAutoClose,
 	onDismiss,
 }: AppleToastCardProps) => {
+	const { t } = useTranslation()
 	const progressState = useToastProgress(toastItem.id)
 
 	const cardRef = useRef<HTMLLIElement | null>(null)
@@ -631,7 +633,7 @@ const AppleToastCard = ({
 									<button
 										type="button"
 										onClick={handleDismissClick}
-										aria-label="Dismiss notification"
+										aria-label={t("shell.notifications.dismissToastAria")}
 										className={cn(
 											"flex size-5.5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/50 bg-foreground/8 text-muted-foreground transition-all hover:border-border hover:bg-foreground/15 hover:text-foreground focus-visible:opacity-100",
 											closeButtonVisible

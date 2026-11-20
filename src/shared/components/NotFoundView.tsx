@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Compass } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const NotFoundView = () => {
+	const { t } = useTranslation()
+
 	return (
 		<div className="flex h-full w-full flex-col items-center justify-center p-6 text-center select-none">
 			<div className="ingot-glass flex max-w-md flex-col items-center rounded-2xl p-6">
@@ -10,15 +13,15 @@ const NotFoundView = () => {
 				</div>
 
 				<span className="mt-4 rounded-full bg-black/5 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-muted-foreground dark:bg-white/6">
-					404 • ROUTE NOT FOUND
+					{t("errors.notFound.badge")}
 				</span>
 
 				<h1 className="mt-2.5 text-base font-semibold text-foreground">
-					This chunk hasn&apos;t been generated
+					{t("errors.notFound.title")}
 				</h1>
 
 				<p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-					The page or instance you tried to open doesn&apos;t exist or may have been moved.
+					{t("errors.notFound.description")}
 				</p>
 
 				<Link
@@ -26,7 +29,7 @@ const NotFoundView = () => {
 					className="mt-5 inline-flex h-8 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
 				>
 					<ArrowLeft className="h-3.5 w-3.5" />
-					<span>Return to Play</span>
+					<span>{t("errors.notFound.returnToPlay")}</span>
 				</Link>
 			</div>
 		</div>

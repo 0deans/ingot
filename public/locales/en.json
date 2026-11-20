@@ -1,0 +1,906 @@
+{
+	"common": {
+		"enabled": "Enabled",
+		"disabled": "Disabled",
+		"tryAgain": "Try Again",
+		"reloadApp": "Reload App",
+		"goToPlay": "Go to Play",
+		"copy": "Copy",
+		"copied": "Copied",
+		"copyFailed": "Copy failed",
+		"clear": "Clear",
+		"clearSearch": "Clear search",
+		"cancel": "Cancel",
+		"save": "Save Changes",
+		"install": "Install",
+		"open": "Open",
+		"close": "Close",
+		"reset": "Reset",
+		"more": "More",
+		"play": "Play",
+		"launching": "Launching...",
+		"running": "Running",
+		"selected": "Selected"
+	},
+	"nav": {
+		"badges": {
+			"dev": "DEV"
+		},
+		"groups": {
+			"library": "Library",
+			"community": "Community",
+			"personal": "Personal",
+			"dev": "Developer",
+			"navigation": "Navigation"
+		},
+		"items": {
+			"play": {
+				"label": "Play",
+				"shortLabel": "Play"
+			},
+			"modpacks": {
+				"label": "Modpacks",
+				"shortLabel": "Packs"
+			},
+			"news": {
+				"label": "News & Events",
+				"shortLabel": "News"
+			},
+			"worlds": {
+				"label": "Worlds",
+				"shortLabel": "Worlds"
+			},
+			"servers": {
+				"label": "Servers",
+				"shortLabel": "Servers"
+			},
+			"skins": {
+				"label": "Skins",
+				"shortLabel": "Skins"
+			},
+			"screenshots": {
+				"label": "Screenshots",
+				"shortLabel": "Gallery"
+			},
+			"settings": {
+				"label": "Settings",
+				"shortLabel": "Settings"
+			},
+			"uiTest": {
+				"label": "UI Lab",
+				"shortLabel": "UI Lab"
+			}
+		}
+	},
+	"shell": {
+		"logoAlt": "Ingot logo",
+		"primaryNavigationAria": "Primary Navigation",
+		"primarySidebarAria": "Primary Sidebar",
+		"mobileNavigationAria": "Mobile Navigation",
+		"mobileRam": "{{ramGb}} GB RAM",
+		"launcherSubtitle": "Ingot Launcher",
+		"statusIdle": "Idle",
+		"statusActive": "{{count}} Active",
+		"collapseSidebar": "Collapse sidebar",
+		"expandSidebar": "Expand sidebar",
+		"collapseSidebarAria": "Collapse sidebar rail",
+		"expandSidebarAria": "Expand sidebar rail",
+		"moreSections": "More Sections",
+		"dismissNavigationSheet": "Dismiss navigation sheet",
+		"closeNavigationSheet": "Close navigation sheet",
+		"toggleActiveProcesses": "Toggle active processes",
+		"switchAccountAria": "Account {{username}}",
+		"window": {
+			"minimize": "Minimize window",
+			"maximize": "Maximize window",
+			"restore": "Restore window",
+			"close": "Close window",
+			"reload": "Reload",
+			"recoveryMode": "Recovery Mode",
+			"titlebarFallback": "Titlebar Fallback",
+			"recovery": "Recovery"
+		},
+		"sidebarFallback": {
+			"title": "Navigation sidebar failed to render",
+			"retry": "Retry navigation sidebar"
+		},
+		"accountSwitcher": {
+			"title": "Switch Account",
+			"addAccount": "Add Account",
+			"closeAria": "Close account switcher",
+			"dismissAria": "Dismiss account switcher"
+		},
+		"processes": {
+			"title": "Background & Game Processes",
+			"emptyTitle": "No active processes",
+			"emptyDescription": "Launch an instance or spawn a test task below.",
+			"stop": "Stop",
+			"spawnTest": "Spawn Test",
+			"stopAll": "Stop All",
+			"instanceBadge": "Instance",
+			"serverBadge": "Server",
+			"defaultServerName": "Local Test Server #{{index}}",
+			"defaultInstanceName": "Instance #{{index}}",
+			"serverPortStatus": "Port :{{port}} ({{online}}/{{max}})",
+			"serverPortPlayers": "Port :{{port}} ({{online}}/{{max}} Players)",
+			"ram": "RAM {{ram}}",
+			"cpu": "CPU {{cpu}}",
+			"closeAria": "Close active processes",
+			"dismissAria": "Dismiss processes popover"
+		},
+		"notifications": {
+			"title": "Notifications",
+			"centerAria": "Notification Center",
+			"dismissToastAria": "Dismiss notification",
+			"unreadAria": "Notifications ({{count}} unread)",
+			"newCount": "{{count}} new",
+			"readAll": "Read all",
+			"clearAllAriaLabel": "Clear all notifications",
+			"dismissAria": "Dismiss notifications popover",
+			"closeAria": "Close notifications",
+			"allFilter": "All ({{count}})",
+			"unreadFilter": "Unread ({{count}})",
+			"emptyUnread": "No unread alerts",
+			"emptyAll": "All caught up",
+			"emptyDescription": "Important crash reports, server alerts, account warnings, and completed downloads appear here.",
+			"unreadDotAria": "Unread",
+			"dismissItemAria": "Dismiss {{title}}",
+			"timeAgo": {
+				"justNow": "Just now",
+				"minutesAgo": "{{count}}m ago",
+				"hoursAgo": "{{count}}h ago",
+				"daysAgo": "{{count}}d ago"
+			},
+			"categories": {
+				"instance": "Instance",
+				"server": "Server",
+				"download": "Download",
+				"auth": "Account",
+				"system": "System"
+			}
+		}
+	},
+	"errors": {
+		"notFound": {
+			"badge": "404 • ROUTE NOT FOUND",
+			"title": "This chunk hasn't been generated",
+			"description": "The page or instance you tried to open doesn't exist or may have been moved.",
+			"returnToPlay": "Return to Play"
+		},
+		"fallback": {
+			"technicalDetails": "Technical details",
+			"diagnostics": "Diagnostics",
+			"copyDiagnostics": "Copy diagnostics",
+			"root": {
+				"badge": "Recovery Mode",
+				"title": "The launcher interface encountered an error",
+				"backendDescription": "A core service or data request failed while initializing the launcher window. Window controls remain active above.",
+				"renderDescription": "A layout component failed to render. Window controls remain active above so you can retry or reload safely."
+			},
+			"shell": {
+				"badge": "Shell Recovery",
+				"title": "A shell panel failed to render",
+				"description": "The rest of the window stayed responsive. You can retry this section or continue using the launcher."
+			},
+			"route": {
+				"badge": "View Error",
+				"title": "Something went wrong in this view",
+				"backendDescription": "An unexpected error occurred while communicating with the launcher backend.",
+				"renderDescription": "This page ran into a rendering error. The titlebar and navigation remain active so you can retry or switch views."
+			}
+		}
+	},
+	"play": {
+		"searchPlaceholder": "Search instances, versions, loaders (Java, Horizon, Bedrock)...",
+		"newInstance": "New",
+		"customInstanceDefaultName": "Custom {{engine}} {{version}}",
+		"groupBy": {
+			"tag": "By Tag",
+			"engine": "By Engine",
+			"all": "Grid"
+		},
+		"engines": {
+			"all": "All Engines",
+			"java": "Java",
+			"horizon": "Horizon (Rust)",
+			"bedrock": "Bedrock"
+		},
+		"allTags": "All Tags",
+		"tags": {
+			"emerald": "Survival & Vanilla+",
+			"amber": "Modded Tech",
+			"rose": "PvP & Rust Client",
+			"violet": "Creative & Shaders",
+			"cyan": "Bedrock & Crossplay"
+		},
+		"lastPlayed": {
+			"justAdded": "Just added",
+			"today": "Today",
+			"yesterday": "Yesterday",
+			"lastWeek": "Last week",
+			"hoursAgoShort": "{{count}}h ago",
+			"daysAgoShort": "{{count}}d ago",
+			"weeksAgoShort": "{{count}}w ago",
+			"hoursAgoLong": "{{count}} hours ago",
+			"daysAgoLong": "{{count}} days ago",
+			"weeksAgoLong": "{{count}} weeks ago",
+			"weekAgoLong": "{{count}} week ago"
+		},
+		"allInstancesHeading": "All Instances ({{count}})",
+		"noMatchesTitle": "No instances match your filters",
+		"noMatchesDescription": "Try clearing the search query or switching engine/tag filters.",
+		"resetFilters": "Reset Filters",
+		"card": {
+			"selectAria": "Select instance {{name}}",
+			"cycleTagTitle": "Click to cycle color tag",
+			"cycleTagAria": "Cycle tag color for {{name}}",
+			"played": "{{playtime}} played"
+		},
+		"launchBar": {
+			"playingAs": "Playing as",
+			"verifying": "Verifying SHA-1...",
+			"launchInstance": "Launch Instance"
+		},
+		"contextMenu": {
+			"closeAria": "Close instance context menu",
+			"actionsAria": "Actions for {{name}}",
+			"inspect": "Inspect Instance",
+			"stopProcess": "Stop Process",
+			"launchNow": "Launch Now",
+			"cycleTag": "Cycle Color Tag",
+			"duplicate": "Duplicate Instance",
+			"copySuffix": "{{name}} Copy"
+		},
+		"quickCreate": {
+			"title": "Create Custom Instance",
+			"subtitle": "Configure a Java, Horizon (Rust), or Bedrock runtime profile.",
+			"closeAria": "Close quick create modal",
+			"closeButtonAria": "Close quick create",
+			"instanceName": "Instance Name",
+			"instanceNamePlaceholder": "e.g. Horizon Dev Nightly",
+			"engine": "Engine",
+			"engineHorizon": "Horizon (Rust Client)",
+			"engineJava": "Minecraft Java",
+			"engineBedrock": "Minecraft Bedrock",
+			"gameVersion": "Game Version",
+			"gameVersionPlaceholder": "Version (e.g. 1.21.4)",
+			"createAndSelect": "Create & Select"
+		}
+	},
+	"instanceDetail": {
+		"backToPlayAria": "Back to Play",
+		"sectionsAria": "Instance Sections",
+		"played": "{{playtime}} played",
+		"stopInstance": "Stop Instance",
+		"launchInstance": "Launch Instance",
+		"tabs": {
+			"mods": "Mods",
+			"worlds": "Worlds",
+			"logs": "Live Logs",
+			"settings": "JVM & Settings"
+		},
+		"mods": {
+			"filterPlaceholder": "Filter installed mods...",
+			"updateBadge": "Update"
+		},
+		"logs": {
+			"title": "Stdout Log Stream",
+			"live": "LIVE",
+			"idle": "IDLE",
+			"empty": "[ingot] Log buffer cleared."
+		},
+		"jvm": {
+			"title": "Per-Instance Memory Override ({{ram}} GB)",
+			"customArgs": "Custom Runtime Arguments",
+			"savedNotice": "Overrides saved",
+			"saveOverrides": "Save Overrides"
+		}
+	},
+	"modpacks": {
+		"title": "Modpacks Browser",
+		"subtitle": "Curated Modrinth and CurseForge profiles ready for 1-click instance creation.",
+		"sources": {
+			"all": "All Sources",
+			"modrinth": "Modrinth",
+			"curseforge": "CurseForge"
+		},
+		"channels": {
+			"Release": "Release",
+			"Beta": "Beta",
+			"LTS": "LTS"
+		},
+		"tags": {
+			"Performance": "Performance",
+			"Shaders": "Shaders",
+			"Tech": "Tech",
+			"Space": "Space",
+			"RPG": "RPG",
+			"Quests": "Quests",
+			"Rust Engine": "Rust Engine",
+			"Vulkan": "Vulkan",
+			"Kitchen Sink": "Kitchen Sink",
+			"Endgame": "Endgame",
+			"Adventure": "Adventure",
+			"Multiplayer": "Multiplayer"
+		},
+		"catalog": {
+			"mp-fabulously": {
+				"summary": "OptiFine parity, Sodium & Iris shaders, and smooth frame pacing out of the box."
+			},
+			"mp-create-astral": {
+				"summary": "Progression-driven industrial automation leading into Ad Astra space exploration."
+			},
+			"mp-prominence": {
+				"summary": "Overhauled combat trees, boss progression, and curated quests for multiplayer."
+			},
+			"mp-horizon-native": {
+				"summary": "Zero-GC Vulkan chunk meshing profile with native PBR reflections and spatial audio."
+			},
+			"mp-atm10": {
+				"summary": "Kitchen-sink mega-pack with custom endgame recipes and guided quest chapters."
+			},
+			"mp-cobblemon": {
+				"summary": "Creature catching seamlessly integrated into vanilla biomes with custom structures."
+			}
+		},
+		"searchPlaceholder": "Search modpacks by title, tag, or gameplay style...",
+		"byAuthor": "by {{author}}",
+		"downloadsCount": "{{downloads}} downloads",
+		"backToModpacksAria": "Back to Modpacks",
+		"chooseVersion": "Choose Version",
+		"installTitle": "Install {{name}}",
+		"dismissVersionDrawerAria": "Dismiss version drawer",
+		"gallery": {
+			"shaderPanorama": "Shader Panorama",
+			"worldSpawn": "World Spawn Showcase",
+			"telemetry": "Performance Telemetry"
+		}
+	},
+	"news": {
+		"title": "News & Events",
+		"subtitle": "Release notes, Horizon engine milestones, and community highlights.",
+		"filters": {
+			"all": "All Updates",
+			"releases": "Releases",
+			"snapshots": "Snapshots",
+			"community": "Community"
+		},
+		"categories": {
+			"Release": "Release",
+			"Snapshot": "Snapshot",
+			"Community": "Community"
+		},
+		"articles": {
+			"news-horizon-094": {
+				"title": "Ingot Horizon 0.9.4: Parallel Chunk Meshing & Metal/Vulkan Parity",
+				"date": "Today",
+				"summary": "Our Rust-native runtime cuts cold chunk upload latency by 42% and introduces unified frame pacing.",
+				"details": "Horizon 0.9.4 ships lock-free staging buffers on Windows Vulkan, improved entity culling for dense redstone districts, and automatic profile migration from Java resource packs."
+			},
+			"news-1215-snapshot": {
+				"title": "Snapshot 25w14a Brings New Ambient Fireflies & Fallen Logs",
+				"date": "2 days ago",
+				"summary": "Forest and swamp biomes gain atmospheric particle clusters and mossy fallen timber variants.",
+				"details": "Test worlds created on 25w14a include toggleable Lodestone recipes and subtle leaf-fall particles beneath dense birch canopies."
+			},
+			"news-modrinth-sync": {
+				"title": "Modrinth Dependency Resolver Now Caches Lockfiles Offline",
+				"date": "5 days ago",
+				"summary": "Export and share reproducible .ingotpack bundles with deterministic SHA-512 verification.",
+				"details": "Team servers can pin exact transitive mod dependencies so every player joins with zero mismatch errors."
+			},
+			"news-1214-patch": {
+				"title": "Java Edition 1.21.4 Hotfix Notes: Resin Bricks & Pale Garden Polish",
+				"date": "1 week ago",
+				"summary": "Fixes creaking heart light sensitivity edge cases and smooths winter lighting transitions.",
+				"details": "Recommended upgrade for all Fabric 0.16.10 and NeoForge 21.4 survival worlds."
+			}
+		},
+		"featured": "Featured",
+		"read": "Read",
+		"hide": "Hide"
+	},
+	"worlds": {
+		"title": "Worlds",
+		"subtitle": "Direct singleplayer saves indexed across your Java, Horizon, and Bedrock profiles.",
+		"modes": {
+			"all": "All Worlds",
+			"survival": "Survival",
+			"creative": "Creative",
+			"hardcore": "Hardcore"
+		},
+		"seed": "Seed: {{seed}}",
+		"snapshot": "Snapshot",
+		"playWorld": "Play World",
+		"backupModal": {
+			"title": "Create World Snapshot",
+			"closeAria": "Close backup dialog",
+			"dismissAria": "Dismiss backup modal",
+			"descriptionPrefix": "Archive",
+			"descriptionSuffix": "({{sizeMb}} MB) with Zstd compression.",
+			"defaultLabel": "Pre-nether expedition snapshot",
+			"labelAria": "Snapshot label",
+			"saved": "Snapshot Saved",
+			"archiveNow": "Archive Now"
+		}
+	},
+	"servers": {
+		"title": "Servers",
+		"subtitle": "One-click server connections automatically bound to matching modpacks and accounts.",
+		"addServer": "Add Server",
+		"connect": "Connect",
+		"catalog": {
+			"srv-ingot-smp": {
+				"motd": "Season 4 · Proximity Voice + Fresh Nether Reset"
+			},
+			"srv-horizon-lab": {
+				"motd": "Dedicated Vulkan client protocol · 60 TPS Stress Test"
+			},
+			"srv-create-brass": {
+				"motd": "Automated train logistics and space station docking"
+			},
+			"srv-hypixel": {
+				"motd": "SkyBlock, BedWars & Competitive Duels"
+			}
+		},
+		"creatorModal": {
+			"title": "Add / Host Server",
+			"closeAria": "Close server creator",
+			"dismissAria": "Dismiss server modal",
+			"defaultName": "Local PaperMC Dev",
+			"namePlaceholder": "Server Name (e.g. Local PaperMC SMP)",
+			"hostPlaceholder": "Host / IP",
+			"versionPlaceholder": "Version",
+			"saveServer": "Save Server",
+			"defaultMotd": "Managed local / custom server target"
+		}
+	},
+	"skins": {
+		"title": "Skins & Wardrobe",
+		"subtitlePrefix": "Manage player models and capes synced to",
+		"armGeometry": "Arm Geometry",
+		"classic4px": "Classic (4px)",
+		"slim3px": "Slim (3px)",
+		"classicShort": "Classic 4px",
+		"slimShort": "Slim 3px",
+		"classicBadge": "Classic",
+		"slimBadge": "Slim",
+		"capeLabel": "Cape: {{cape}}",
+		"equippedCape": "Equipped Cape",
+		"capePreset": "Cape preset: {{cape}}",
+		"equipped": "Equipped",
+		"select": "Select",
+		"capes": {
+			"Migrator": "Migrator",
+			"15th Anniversary": "15th Anniversary",
+			"Cherry Blossom": "Cherry Blossom",
+			"None": "None"
+		},
+		"presets": {
+			"skin-emerald-smith": {
+				"name": "Ingot Artificer",
+				"subtitle": "Brushed dark iron armor with glowing emerald trim"
+			},
+			"skin-horizon-scout": {
+				"name": "Horizon Scout",
+				"subtitle": "Rust-native pilot suit with visor reflection layer"
+			},
+			"skin-nether-wanderer": {
+				"name": "Basalt Wanderer",
+				"subtitle": "Weathered expedition cloak for late-game survival"
+			},
+			"skin-amethyst-mage": {
+				"name": "Amethyst Archivist",
+				"subtitle": "Lightweight robes with layered crystal pauldrons"
+			}
+		}
+	},
+	"screenshots": {
+		"title": "Screenshots",
+		"subtitle": "Unified gallery indexed across all instances and shader profiles.",
+		"filters": {
+			"all": "All Shots",
+			"fabulously": "Fabulously",
+			"horizon": "Horizon",
+			"create": "Create"
+		},
+		"items": {
+			"shot-1": {
+				"title": "Twilight Spire Over Aldervale",
+				"capturedAt": "Today · 19:42"
+			},
+			"shot-2": {
+				"title": "Horizon Vulkan Volumetric Fog",
+				"capturedAt": "Yesterday · 22:15"
+			},
+			"shot-3": {
+				"title": "Automatic Brass Train Junction",
+				"capturedAt": "3 days ago"
+			},
+			"shot-4": {
+				"title": "Deep Slate Cavern Geode",
+				"capturedAt": "Last week"
+			}
+		},
+		"copyName": "Copy Name",
+		"openLightboxAria": "Open {{title}} in lightbox",
+		"closeLightboxAria": "Close lightbox",
+		"dismissPreviewAria": "Dismiss screenshot preview"
+	},
+	"toastPicker": {
+		"screenPosition": "Screen Position",
+		"groupAria": "Notification screen position",
+		"mobileHint": "Tap Top or Bottom inside the phone frame.",
+		"desktopHint": "Click any corner or edge inside the window frame.",
+		"positions": {
+			"topLeft": "Top Left",
+			"topCenter": "Top Center",
+			"topRight": "Top Right",
+			"bottomLeft": "Bottom Left",
+			"bottomCenter": "Bottom Center",
+			"bottomRight": "Bottom Right",
+			"topL": "Top L",
+			"topC": "Top C",
+			"topR": "Top R",
+			"botL": "Bot L",
+			"botC": "Bot C",
+			"botR": "Bot R",
+			"top": "Top",
+			"bottom": "Bottom"
+		}
+	},
+	"settings": {
+		"title": "Settings",
+		"subtitle": "Customize theme colors, navigation layout, language, notifications, JVM memory, network, and developer tools.",
+		"sectionsAria": "Settings Sections",
+		"tabs": {
+			"appearance": "Appearance",
+			"language": "Language",
+			"java": "Java & Memory",
+			"accounts": "Accounts",
+			"network": "Network"
+		},
+		"appearance": {
+			"colorTheme": "Color Theme",
+			"copyThemeJson": "Copy Theme JSON",
+			"copiedJson": "Copied JSON",
+			"copiedThemeToast": "Copied {{theme}} theme JSON to clipboard.",
+			"copyThemeErrorToast": "Failed to copy theme JSON to clipboard.",
+			"navigationLayout": "Navigation Layout",
+			"mobileLayoutOnly": "Tablet & Desktop only · No effect on mobile",
+			"themes": {
+				"light": {
+					"title": "Light",
+					"description": "Crisp daylight surfaces with balanced emerald accents."
+				},
+				"dark": {
+					"title": "Dark",
+					"description": "Deep obsidian graphite chrome with high-contrast text."
+				},
+				"purple": {
+					"title": "Purple",
+					"description": "Royal amethyst glass panels paired with violet accents."
+				},
+				"custom": {
+					"title": "Custom",
+					"description": "Personalize every color token, radius, and JSON style preset."
+				}
+			},
+			"navVariants": {
+				"sonoma": {
+					"title": "Sonoma Sidebar",
+					"description": "Grouped macOS-style persistent sidebar with fluid active pill."
+				},
+				"rail": {
+					"title": "Collapsible Rail",
+					"description": "Compact icon rail with manual expand toggle for maximum canvas width."
+				},
+				"sequoia": {
+					"title": "Sequoia Island",
+					"description": "Detached translucent glass panel floating inside the window frame."
+				},
+				"capsule": {
+					"title": "Top Capsule",
+					"description": "Zero-sidebar layout with centered segmented navigation inside titlebar."
+				}
+			}
+		},
+		"customTheme": {
+			"title": "Custom Theme Builder",
+			"subtitle": "Tune color tokens live or import/export portable JSON themes.",
+			"seedPreset": "Seed preset:",
+			"baseContrastMode": "Base Contrast Mode",
+			"darkBase": "Dark Base",
+			"lightBase": "Light Base",
+			"baseContrastHint": "Controls adaptive foreground ink, glass highlights, and toast contrast.",
+			"cornerRadius": "Corner Radius",
+			"colorTokens": "Color Tokens",
+			"jsonTitle": "JSON Import / Export",
+			"jsonSubtitle": "Copy your current configuration or paste shared JSON styles to apply them.",
+			"copyJson": "Copy JSON",
+			"pasteClipboard": "Paste Clipboard",
+			"applyJson": "Apply JSON",
+			"jsonErrorsHeading": "Unable to apply theme JSON:",
+			"revert": "Revert",
+			"revertTitle": "Revert to last valid color",
+			"copiedToast": "Custom theme JSON copied to clipboard.",
+			"copyFailedToast": "Clipboard write failed. Copy from the JSON editor below.",
+			"emptyClipboardToast": "Clipboard is empty. Paste JSON directly into the box below.",
+			"clipboardErrorToast": "Clipboard JSON has validation errors.",
+			"appliedClipboardToast": "Applied custom theme from clipboard JSON.",
+			"clipboardBlockedToast": "Clipboard read blocked. Paste JSON manually into the editor box.",
+			"invalidJsonToast": "Custom theme JSON is invalid.",
+			"appliedJsonToast": "Custom theme JSON applied.",
+			"loadedPresetToast": "Loaded {{preset}} preset into Custom theme.",
+			"resetDefaultToast": "Reset custom theme to default preset.",
+			"picker": {
+				"triggerAria": "{{label}} color picker",
+				"svAria": "{{label}} saturation and brightness",
+				"hueAria": "{{label}} hue",
+				"channelAria": "{{label}} {{channel}} channel",
+				"swatchAria": "Select swatch {{hex}}"
+			},
+			"fields": {
+				"background": "App Background",
+				"foreground": "Primary Text",
+				"card": "Card Surface",
+				"cardForeground": "Card Text",
+				"sidebar": "Sidebar Surface",
+				"sidebarForeground": "Sidebar Text",
+				"popover": "Popover Surface",
+				"popoverForeground": "Popover Text",
+				"primary": "Primary Accent",
+				"primaryForeground": "Accent Text",
+				"muted": "Muted Surface",
+				"mutedForeground": "Muted Text",
+				"border": "Border Color",
+				"destructive": "Danger / Destructive"
+			}
+		},
+		"language": {
+			"title": "Display Language",
+			"description": "Choose the display language for Ingot. Dates, numbers, and file sizes follow your selected locale.",
+			"followSystem": "Follow System Language",
+			"detectedOsLocale": "Detected OS locale: {{language}}",
+			"systemBadge": "System",
+			"formatPreviewTitle": "Regional Format Preview",
+			"previewDate": "Date",
+			"previewTime": "Time",
+			"previewFileSize": "File Size",
+			"previewDownloads": "Downloads",
+			"searchPlaceholder": "Search {{count}} languages...",
+			"searchAriaLabel": "Search languages",
+			"clearSearchAriaLabel": "Clear language search",
+			"noMatches": "No languages matched \"{{query}}\"",
+			"savedToastSystem": "Language set to System Default ({{language}})",
+			"savedToastCustom": "Language set to {{language}}",
+			"savedToastDescription": "Display language preference saved.",
+			"names": {
+				"en": "English",
+				"be": "Belarusian",
+				"zh": "Chinese (Simplified)",
+				"cs": "Czech",
+				"nl": "Dutch",
+				"fr": "French",
+				"de": "German",
+				"hu": "Hungarian",
+				"id": "Indonesian",
+				"it": "Italian",
+				"ja": "Japanese",
+				"kk": "Kazakh",
+				"ko": "Korean",
+				"pl": "Polish",
+				"pt": "Portuguese",
+				"ro": "Romanian",
+				"ru": "Russian",
+				"es": "Spanish",
+				"sv": "Swedish",
+				"tr": "Turkish",
+				"uk": "Ukrainian",
+				"vi": "Vietnamese"
+			}
+		},
+		"notifications": {
+			"title": "Notifications",
+			"testToast": "Test Toast",
+			"preferredPlacement": "Preferred Toast Placement",
+			"mobilePlacementDescription": "Choose Top or Bottom placement on mobile. Left, Center, and Right alignment applies on tablet and desktop.",
+			"desktopPlacementDescription": "Choose which corner or edge of the launcher window displays frosted status banners, download progress cards, and stacked alerts.",
+			"updatedToast": "Notifications set to {{position}}",
+			"updatedToastDescription": "Launcher alerts will now appear here.",
+			"previewToast": "Sample notification preview",
+			"previewToastDescription": "Anchored at {{position}}."
+		},
+		"developer": {
+			"title": "Developer Options",
+			"openUiLab": "Open UI Lab",
+			"showPagesTitle": "Show Developer Pages",
+			"showPagesDescription": "Expose UI Design Lab and internal sandboxes in sidebar, capsule bar, and mobile menus.",
+			"pagesEnabledToast": "Developer pages enabled",
+			"pagesHiddenToast": "Developer pages hidden",
+			"pagesEnabledDescription": "UI Lab is now visible in launcher navigation.",
+			"pagesHiddenDescription": "UI Lab and developer routes have been hidden from navigation.",
+			"contextMenuTitle": "Allow Inspect Context Menu",
+			"contextMenuDescription": "Keep the native right-click context menu enabled for element inspection inside desktop windows."
+		},
+		"java": {
+			"title": "Default Memory Allocation ({{ramGb}} GB)",
+			"sliderAriaLabel": "Allocated RAM in GB"
+		},
+		"accounts": {
+			"title": "Connected Profiles",
+			"description": "Select the default identity used for game launches and servers.",
+			"addAccount": "Add Account",
+			"types": {
+				"microsoft": "Microsoft",
+				"horizonAuth": "Horizon Auth",
+				"offline": "Offline",
+				"elyBy": "Ely.by",
+				"xboxLive": "Xbox Live"
+			}
+		},
+		"network": {
+			"title": "Network & Behavior",
+			"discordTitle": "Discord Rich Presence",
+			"discordDescription": "Broadcast active instance & pack details while playing.",
+			"minimizeTitle": "Minimize on Game Launch",
+			"minimizeDescription": "Hide main Ingot window until the active game process exits.",
+			"workersTitle": "Concurrent Asset Workers",
+			"workersDescription": "Parallel HTTP/2 streams during mod sync."
+		}
+	},
+	"uiLab": {
+		"title": "UI Design Lab",
+		"devOnlyBadge": "DEV ONLY",
+		"subtitle": "Interactive sandbox for themes, shell navigation variants, spring pills, and live process badges.",
+		"liveShellControls": "Live Shell Controls",
+		"navigationVariant": "Navigation Variant",
+		"activeTheme": "Active Theme",
+		"variants": {
+			"sonoma": "Sonoma",
+			"rail": "Rail",
+			"sequoia": "Sequoia",
+			"capsule": "Capsule"
+		},
+		"themes": {
+			"light": "Light",
+			"dark": "Dark",
+			"purple": "Purple",
+			"custom": "Custom"
+		},
+		"processSimulator": "Process Simulator ({{count}} Active)",
+		"spawnGame": "+ Spawn Game",
+		"spawnServer": "+ Spawn Server",
+		"debugHorizonProcess": "Debug Horizon Session",
+		"modrinthSyncServerProcess": "Modrinth Sync Server",
+		"clearAll": "Clear All",
+		"segmentedControlsHeading": "Segmented Controls & Color Tags",
+		"demoOptions": {
+			"alpha": "Alpha",
+			"beta": "Beta",
+			"gamma": "Gamma"
+		},
+		"toast": {
+			"title": "Apple-Style Toast Notifications",
+			"dismissAll": "Dismiss All",
+			"subtitle": "Test Liquid Glass styling, determinate ring & bar progress, promise morphs, error micro-shake feedback, interactive pills, and Notification Center stack expansion.",
+			"saveAsAppDefault": "Save as App Default",
+			"savedAsAppDefaultToast": "Saved as app toast position",
+			"contentLabel": "Content",
+			"density": {
+				"detailed": "Title + Details",
+				"compact": "Title Only"
+			},
+			"densityHintDetailed": "Shows both headline and secondary detail text.",
+			"densityHintCompact": "Compact single-line banner with title only.",
+			"autoCloseLabel": "Auto-Close",
+			"durationStay": "Stay",
+			"durationPinnedHint": "Keeps notifications open until you dismiss them.",
+			"durationTimedHint": "Closes automatically after {{duration}} unless hovered.",
+			"notificationTypesLabel": "Notification Types",
+			"types": {
+				"default": "Default",
+				"success": "Success",
+				"error": "Error",
+				"warning": "Warning",
+				"info": "Info",
+				"loading": "Loading"
+			},
+			"progressMorphsLabel": "Progress & Morphs",
+			"actions": {
+				"downloadProgress": "Download Progress",
+				"progressFail": "Progress Fail",
+				"stepProgress": "Step Progress (+25%)",
+				"promiseResolve": "Promise Resolve",
+				"promiseReject": "Promise Reject"
+			},
+			"variantsLabel": "Variants & Interactions",
+			"variants": {
+				"actionPill": "Action Pill",
+				"actionCancel": "Action + Cancel",
+				"customIcon": "Custom Icon",
+				"noIcon": "No Icon",
+				"customJsxCard": "Custom JSX Card",
+				"stackBurst": "Stack Burst (4x)"
+			},
+			"bellAlertsLabel": "Titlebar Bell Alerts (Persistent Inbox + Action)",
+			"bellAlerts": {
+				"instanceCrash": "Instance Crash",
+				"serverPortAlert": "Server Port Alert",
+				"packInstalled": "Pack Installed",
+				"sessionWarning": "Session Warning"
+			},
+			"samples": {
+				"downloadingIris": "Downloading Iris Shaders 1.8.2",
+				"downloadingIrisDetail": "{{loaded}} / {{total}} MB · {{speed}} MB/s",
+				"downloadingIrisDescription": "Fetching bundle from Modrinth CDN...",
+				"downloadInterrupted": "Download interrupted",
+				"downloadInterruptedDescription": "Connection reset while streaming shard 3/5.",
+				"retry": "Retry",
+				"irisInstalled": "Iris Shaders 1.8.2 installed",
+				"irisInstalledDescription": "Verified SHA-512 checksum and added to profile.",
+				"indexingBackups": "Indexing world backups",
+				"snapshotsVerified": "{{count}} / 4 snapshots verified",
+				"stepProgressDescription": "Click Step Progress again to advance.",
+				"allSnapshotsIndexed": "All 4 snapshots indexed",
+				"allSnapshotsIndexedDescription": "Local backup catalog is up to date.",
+				"verifyingManifest": "Verifying modpack manifest...",
+				"packReadyToLaunch": "{{packName}} ready to launch",
+				"manifestFailed": "Manifest verification failed",
+				"verifyingManifestDescription": "Checked 42 mods and shader pipeline.",
+				"syncingAssetIndex": "Syncing asset index...",
+				"assetsSynced": "Assets synced",
+				"assetChecksumFailed": "Asset checksum failed",
+				"assetChecksumFailedDescription": "Remote manifest signature did not match.",
+				"customCardTitle": "Custom Card Slot",
+				"customCardDescription": "Bespoke layout inside the spring stack.",
+				"closeCustomCardAria": "Close custom card",
+				"stackInfoTitle": "Checking Modrinth index...",
+				"stackInfoDescription": "Comparing 18 installed mods for updates.",
+				"stackWarningTitle": "Sodium 0.6.10 available",
+				"stackWarningDescription": "Release notes ready in Updates panel.",
+				"stackErrorTitle": "Texture atlas warning",
+				"stackErrorDescription": "One pack resource exceeded 4K limit.",
+				"stackSuccessTitle": "Shader cache warmed",
+				"stackSuccessDescription": "Compiled 14 pipelines in 0.4s.",
+				"defaultTitle": "Ingot Launcher ready",
+				"defaultDescription": "All workspace profiles indexed cleanly.",
+				"successTitle": "Profile synced cleanly",
+				"successDescription": "Fabric 1.21.4 shader pack verified across 42 mods.",
+				"errorTitle": "Modrinth checksum mismatch",
+				"errorDescription": "Iris Shaders 1.8.2 failed SHA-512 verification.",
+				"warningTitle": "Java 21 runtime recommended",
+				"warningDescription": "Selected instance currently targets an older JVM build.",
+				"infoTitle": "Cloud backup queued",
+				"infoDescription": "World snapshots will upload automatically after exit.",
+				"loadingTitle": "Downloading NeoForge artifacts...",
+				"loadingDescription": "Pinned until manually dismissed or resolved.",
+				"screenshotSavedTitle": "Screenshot saved to Gallery",
+				"reveal": "Reveal",
+				"openedPreview": "Opened screenshot folder preview",
+				"overwriteKeybindsTitle": "Overwrite existing keybinds?",
+				"overwriteKeybindsDescription": "Applying server preset changes 6 bindings.",
+				"keep": "Keep",
+				"keptKeybinds": "Kept current keybinds",
+				"apply": "Apply",
+				"appliedKeybinds": "Preset keybinds applied",
+				"shaderPresetTitle": "Shader preset tuned",
+				"shaderPresetDescription": "Volumetric clouds & reflections enabled.",
+				"minimalHudTitle": "Minimal HUD notice",
+				"minimalHudDescription": "Rendered without a leading medallion icon.",
+				"bellCrashTitle": "1.21.4 Fabric exited with code 1",
+				"bellCrashMessage": "Mixin apply failure detected during mod init.",
+				"bellCrashAction": "View Logs",
+				"bellServerTitle": "Paper Server failed on :25565",
+				"bellServerMessage": "Another local process is already listening on TCP 25565.",
+				"bellServerAction": "Open Servers",
+				"bellPackTitle": "Fabulously Optimized installed",
+				"bellPackMessage": "48 mods & shader configurations ready to launch.",
+				"bellPackAction": "Open Packs",
+				"bellAuthTitle": "Microsoft session expired",
+				"bellAuthMessage": "Refresh Alex_Craft credentials before launching online.",
+				"bellAuthAction": "Accounts"
+			}
+		}
+	}
+}

@@ -1,9 +1,15 @@
 import { Check, Plus, ShieldCheck } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import { cn } from "@/shared/lib/utils"
-import { getAccountInitials, useAccountStore } from "@/shared/stores/useAccountStore"
+import {
+	ACCOUNT_TYPE_LABEL_KEYS,
+	getAccountInitials,
+	useAccountStore,
+} from "@/shared/stores/useAccountStore"
 
 const AccountsSettingsPage = () => {
+	const { t } = useTranslation()
 	const { accounts, activeAccountId, setActiveAccountId, addAccount } = useAccountStore(
 		useShallow((s) => {
 			return {
@@ -19,9 +25,11 @@ const AccountsSettingsPage = () => {
 		<section className="flex flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="min-w-0 flex-1">
-					<h2 className="text-[13.5px] font-semibold text-foreground">Connected Profiles</h2>
+					<h2 className="text-[13.5px] font-semibold text-foreground">
+						{t("settings.accounts.title")}
+					</h2>
 					<p className="text-[11.5px] leading-relaxed text-muted-foreground">
-						Select the default identity used for game launches and servers.
+						{t("settings.accounts.description")}
 					</p>
 				</div>
 				<button
@@ -30,7 +38,7 @@ const AccountsSettingsPage = () => {
 					className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3 text-[12px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
 				>
 					<Plus className="size-3.5 shrink-0" />
-					<span>Add Account</span>
+					<span>{t("settings.accounts.addAccount")}</span>
 				</button>
 			</div>
 
@@ -69,7 +77,7 @@ const AccountsSettingsPage = () => {
 									) : null}
 								</div>
 								<span className="block truncate text-[10.5px] text-muted-foreground">
-									{acc.type} · {acc.uuid.slice(0, 8)}
+									{t(ACCOUNT_TYPE_LABEL_KEYS[acc.type])} · {acc.uuid.slice(0, 8)}
 								</span>
 							</div>
 							{isActive ? <Check className="size-3.5 shrink-0 text-primary" /> : null}

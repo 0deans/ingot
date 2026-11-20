@@ -1,11 +1,14 @@
 import { Camera, Check, Copy, Maximize2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 
+export type ScreenshotId = "shot-1" | "shot-2" | "shot-3" | "shot-4"
+
 export interface ScreenshotItem {
-	id: string
-	title: string
+	id: ScreenshotId
+	titleKey: `screenshots.items.${ScreenshotId}.title`
 	instance: "Fabulously Optimized" | "Horizon Engine Nightly" | "Create: Astral"
-	capturedAt: string
+	capturedAtKey: `screenshots.items.${ScreenshotId}.capturedAt`
 	resolution: string
 	shaderPack: string
 	gradient: string
@@ -19,8 +22,11 @@ interface ScreenshotCardProps {
 }
 
 const ScreenshotCard = ({ shot, isCopied, onOpenLightbox, onCopyMeta }: ScreenshotCardProps) => {
+	const { t } = useTranslation()
+
+	const shotTitle = t(shot.titleKey)
 	const CopyIcon = isCopied ? Check : Copy
-	const copyLabel = isCopied ? "Copied" : "Copy Name"
+	const copyLabel = isCopied ? t("common.copied") : t("screenshots.copyName")
 
 	return (
 		<article className="overflow-hidden rounded-2xl border border-border bg-card/65 transition-colors hover:border-foreground/20">
@@ -39,7 +45,7 @@ const ScreenshotCard = ({ shot, isCopied, onOpenLightbox, onCopyMeta }: Screensh
 					onClick={() => {
 						onOpenLightbox(shot)
 					}}
-					aria-label={`Open ${shot.title} in lightbox`}
+					aria-label={t("screenshots.openLightboxAria", { title: shotTitle })}
 					className="flex size-8 cursor-pointer items-center justify-center rounded-xl border border-white/15 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-black/70"
 				>
 					<Maximize2 className="size-3.5" />
@@ -48,9 +54,9 @@ const ScreenshotCard = ({ shot, isCopied, onOpenLightbox, onCopyMeta }: Screensh
 
 			<div className="flex items-center justify-between gap-3 p-3.5">
 				<div className="min-w-0">
-					<h2 className="truncate text-[13.5px] font-semibold text-foreground">{shot.title}</h2>
+					<h2 className="truncate text-[13.5px] font-semibold text-foreground">{shotTitle}</h2>
 					<p className="truncate text-[11px] text-muted-foreground">
-						{shot.instance} · {shot.shaderPack} · {shot.capturedAt}
+						{shot.instance} · {shot.shaderPack} · {t(shot.capturedAtKey)}
 					</p>
 				</div>
 

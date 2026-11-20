@@ -1,7 +1,13 @@
 import { Plus, Search, X } from "lucide-react"
 import { motion } from "motion/react"
-import type { ChangeEvent } from "react"
-import type { EngineFilter, GroupByOption, TagFilter } from "@/features/play/types"
+import { useMemo, type ChangeEvent } from "react"
+import { useTranslation } from "react-i18next"
+import {
+	TAG_LABEL_KEYS,
+	type EngineFilter,
+	type GroupByOption,
+	type TagFilter,
+} from "@/features/play/types"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
 import { COLOR_TAGS, TAG_ORDER } from "@/shared/stores/useInstancesStore"
 
@@ -17,31 +23,6 @@ interface PlayToolbarProps {
 	onToggleCreate: () => void
 }
 
-const GROUP_BY_OPTIONS: SegmentedOption<GroupByOption>[] = [
-	{ value: "tag", label: "By Tag" },
-	{ value: "engine", label: "By Engine" },
-	{ value: "all", label: "Grid" },
-]
-
-const ENGINE_OPTIONS: SegmentedOption<EngineFilter>[] = [
-	{ value: "all", label: "All Engines" },
-	{ value: "Java", label: "Java" },
-	{ value: "Horizon (Rust)", label: "Horizon (Rust)" },
-	{ value: "Bedrock", label: "Bedrock" },
-]
-
-const TAG_OPTIONS: SegmentedOption<TagFilter>[] = [
-	{ value: "all", label: "All Tags" },
-	...TAG_ORDER.map((tagId) => {
-		const meta = COLOR_TAGS[tagId]
-		return {
-			value: tagId,
-			label: meta.name.split(" ")[0] ?? meta.name,
-			dotClass: meta.dot,
-		}
-	}),
-]
-
 const PlayToolbar = ({
 	query,
 	engine,
@@ -53,6 +34,39 @@ const PlayToolbar = ({
 	onGroupByChange,
 	onToggleCreate,
 }: PlayToolbarProps) => {
+	const { t } = useTranslation()
+
+	const groupByOptions: SegmentedOption<GroupByOption>[] = useMemo(() => {
+		return [
+			{ value: "tag", label: t("play.groupBy.tag") },
+			{ value: "engine", label: t("play.groupBy.engine") },
+			{ value: "all", label: t("play.groupBy.all") },
+		]
+	}, [t])
+
+	const engineOptions: SegmentedOption<EngineFilter>[] = useMemo(() => {
+		return [
+			{ value: "all", label: t("play.engines.all") },
+			{ value: "Java", label: t("play.engines.java") },
+			{ value: "Horizon (Rust)", label: t("play.engines.horizon") },
+			{ value: "Bedrock", label: t("play.engines.bedrock") },
+		]
+	}, [t])
+
+	const tagOptions: SegmentedOption<TagFilter>[] = useMemo(() => {
+		const mappedTags = TAG_ORDER.map((tagId) => {
+			const meta = COLOR_TAGS[tagId]
+			const fullLabel = t(TAG_LABEL_KEYS[tagId])
+			return {
+				value: tagId,
+				label: fullLabel.split(" ")[0] ?? fullLabel,
+				dotClass: meta.dot,
+			}
+		})
+
+		return [{ value: "all", label: t("play.allTags") }, ...mappedTags]
+	}, [t])
+
 	const handleQueryInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		onQueryChange(e.target.value)
 	}
@@ -70,13 +84,13 @@ const PlayToolbar = ({
 						type="text"
 						value={query}
 						onChange={handleQueryInputChange}
-						placeholder="Search instances, versions, loaders (Java, Horizon, Bedrock)..."
+						placeholder={t("play.searchPlaceholder")}
 						className="h-8 w-full rounded-xl border border-border bg-background/80 pr-7 pl-8 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
 					/>
 					{query && (
 						<button
 							type="button"
-							aria-label="Clear search"
+							aria-label={t("common.clearSearch")}
 							onClick={handleClearQuery}
 							className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
 						>
@@ -89,7 +103,7 @@ const PlayToolbar = ({
 					layoutId="play-group-pill"
 					value={groupBy}
 					onChange={onGroupByChange}
-					options={GROUP_BY_OPTIONS}
+					options={groupByOptions}
 				/>
 
 				<motion.button
@@ -99,7 +113,7 @@ const PlayToolbar = ({
 					className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/15 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/25"
 				>
 					<Plus className="h-3.5 w-3.5" />
-					<span>New</span>
+					<span>{t("play.newInstance")}</span>
 				</motion.button>
 			</div>
 
@@ -108,7 +122,7 @@ const PlayToolbar = ({
 					layoutId="play-engine-pill"
 					value={engine}
 					onChange={onEngineChange}
-					options={ENGINE_OPTIONS}
+					options={engineOptions}
 					tone="emerald"
 				/>
 
@@ -116,7 +130,7 @@ const PlayToolbar = ({
 					layoutId="play-tag-pill"
 					value={tag}
 					onChange={onTagChange}
-					options={TAG_OPTIONS}
+					options={tagOptions}
 				/>
 			</div>
 		</div>

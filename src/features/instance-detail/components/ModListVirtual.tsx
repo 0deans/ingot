@@ -1,5 +1,6 @@
 import { ArrowUpCircle, Package, Search } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 
 interface ModEntry {
@@ -25,6 +26,8 @@ const INITIAL_MODS: ModEntry[] = [
 ]
 
 const ModListVirtual = () => {
+	const { t } = useTranslation()
+
 	const [mods, setMods] = useState<ModEntry[]>(INITIAL_MODS)
 	const [query, setQuery] = useState("")
 
@@ -60,7 +63,7 @@ const ModListVirtual = () => {
 					onChange={(event) => {
 						setQuery(event.target.value)
 					}}
-					placeholder="Filter installed mods..."
+					placeholder={t("instanceDetail.mods.filterPlaceholder")}
 					className="h-8 w-full rounded-xl border border-border bg-background/80 pr-3 pl-8 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
 				/>
 			</div>
@@ -79,7 +82,7 @@ const ModListVirtual = () => {
 										{mod.hasUpdate ? (
 											<span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-300">
 												<ArrowUpCircle className="size-3" />
-												<span>Update</span>
+												<span>{t("instanceDetail.mods.updateBadge")}</span>
 											</span>
 										) : null}
 									</div>
@@ -101,7 +104,7 @@ const ModListVirtual = () => {
 										: "bg-foreground/10 text-muted-foreground",
 								)}
 							>
-								{mod.enabled ? "Enabled" : "Disabled"}
+								{mod.enabled ? t("common.enabled") : t("common.disabled")}
 							</button>
 						</div>
 					)

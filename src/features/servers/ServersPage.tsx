@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import LocalServerCreatorModal from "@/features/servers/components/LocalServerCreatorModal"
 import ServerRow, { type ServerEntry } from "@/features/servers/components/ServerRow"
 import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
@@ -13,6 +14,7 @@ const INITIAL_SERVERS: ServerEntry[] = [
 		name: "Ingot Community SMP",
 		address: "play.ingot-smp.net",
 		motd: "Season 4 · Proximity Voice + Fresh Nether Reset",
+		motdKey: "servers.catalog.srv-ingot-smp.motd",
 		playersOnline: 48,
 		playersMax: 120,
 		pingMs: 18,
@@ -25,6 +27,7 @@ const INITIAL_SERVERS: ServerEntry[] = [
 		name: "Horizon Rust Staging Realm",
 		address: "rust.ingot.gg:25575",
 		motd: "Dedicated Vulkan client protocol · 60 TPS Stress Test",
+		motdKey: "servers.catalog.srv-horizon-lab.motd",
 		playersOnline: 19,
 		playersMax: 200,
 		pingMs: 24,
@@ -37,6 +40,7 @@ const INITIAL_SERVERS: ServerEntry[] = [
 		name: "Brassworks Guild",
 		address: "brass.guildcraft.org",
 		motd: "Automated train logistics and space station docking",
+		motdKey: "servers.catalog.srv-create-brass.motd",
 		playersOnline: 14,
 		playersMax: 40,
 		pingMs: 42,
@@ -49,6 +53,7 @@ const INITIAL_SERVERS: ServerEntry[] = [
 		name: "Hypixel Network",
 		address: "mc.hypixel.net",
 		motd: "SkyBlock, BedWars & Competitive Duels",
+		motdKey: "servers.catalog.srv-hypixel.motd",
 		playersOnline: 38410,
 		playersMax: 100000,
 		pingMs: 61,
@@ -59,6 +64,7 @@ const INITIAL_SERVERS: ServerEntry[] = [
 ]
 
 const ServersPage = () => {
+	const { t } = useTranslation()
 	const selectOrCreateByName = useInstancesStore((s) => {
 		return s.selectOrCreateByName
 	})
@@ -104,10 +110,10 @@ const ServersPage = () => {
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
-					<h1 className="text-lg font-semibold tracking-tight text-foreground">Servers</h1>
-					<p className="text-[12px] text-muted-foreground">
-						One-click server connections automatically bound to matching modpacks and accounts.
-					</p>
+					<h1 className="text-lg font-semibold tracking-tight text-foreground">
+						{t("servers.title")}
+					</h1>
+					<p className="text-[12px] text-muted-foreground">{t("servers.subtitle")}</p>
 				</div>
 
 				<button
@@ -118,7 +124,7 @@ const ServersPage = () => {
 					className="flex h-8 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3 text-[12px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
 				>
 					<Plus className="size-3.5" />
-					<span>Add Server</span>
+					<span>{t("servers.addServer")}</span>
 				</button>
 			</div>
 

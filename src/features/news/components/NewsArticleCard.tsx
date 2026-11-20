@@ -1,17 +1,35 @@
 import { Calendar, ChevronDown, ChevronUp, Newspaper, Sparkles } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 
 export type NewsArticleCategory = "Release" | "Snapshot" | "Community"
 
+export type NewsArticleId =
+	| "news-horizon-094"
+	| "news-1215-snapshot"
+	| "news-modrinth-sync"
+	| "news-1214-patch"
+
 export interface NewsArticle {
-	id: string
-	title: string
+	id: NewsArticleId
+	titleKey: `news.articles.${NewsArticleId}.title`
 	category: NewsArticleCategory
-	date: string
+	dateKey: `news.articles.${NewsArticleId}.date`
 	versionBadge: string
-	summary: string
-	details: string
+	summaryKey: `news.articles.${NewsArticleId}.summary`
+	detailsKey: `news.articles.${NewsArticleId}.details`
 	featured?: boolean
+}
+
+type CategoryLabelKey =
+	| "news.categories.Release"
+	| "news.categories.Snapshot"
+	| "news.categories.Community"
+
+const CATEGORY_LABEL_KEYS: Record<NewsArticleCategory, CategoryLabelKey> = {
+	Release: "news.categories.Release",
+	Snapshot: "news.categories.Snapshot",
+	Community: "news.categories.Community",
 }
 
 const CATEGORY_BADGE_CLASS: Record<NewsArticleCategory, string> = {
@@ -27,8 +45,10 @@ interface NewsArticleCardProps {
 }
 
 const NewsArticleCard = ({ article, isExpanded, onToggle }: NewsArticleCardProps) => {
+	const { t } = useTranslation()
+
 	const ToggleIcon = isExpanded ? ChevronUp : ChevronDown
-	const toggleLabel = isExpanded ? "Hide" : "Read"
+	const toggleLabel = isExpanded ? t("news.hide") : t("news.read")
 
 	return (
 		<article
@@ -47,7 +67,7 @@ const NewsArticleCard = ({ article, isExpanded, onToggle }: NewsArticleCardProps
 							CATEGORY_BADGE_CLASS[article.category],
 						)}
 					>
-						{article.category}
+						{t(CATEGORY_LABEL_KEYS[article.category])}
 					</span>
 					<span className="rounded-md bg-foreground/8 px-1.5 py-0.5 font-mono text-[10px] text-foreground/80">
 						{article.versionBadge}
@@ -55,20 +75,22 @@ const NewsArticleCard = ({ article, isExpanded, onToggle }: NewsArticleCardProps
 					{article.featured ? (
 						<span className="flex items-center gap-1 text-[10.5px] font-medium text-primary">
 							<Sparkles className="size-3" />
-							<span>Featured</span>
+							<span>{t("news.featured")}</span>
 						</span>
 					) : null}
 				</div>
 				<span className="flex items-center gap-1 text-[11px] text-muted-foreground">
 					<Calendar className="size-3" />
-					<span>{article.date}</span>
+					<span>{t(article.dateKey)}</span>
 				</span>
 			</div>
 
 			<div className="mt-2.5 flex items-start justify-between gap-3">
 				<div>
-					<h2 className="text-[14.5px] font-semibold text-foreground">{article.title}</h2>
-					<p className="mt-1 text-[12.5px] leading-relaxed text-foreground/80">{article.summary}</p>
+					<h2 className="text-[14.5px] font-semibold text-foreground">{t(article.titleKey)}</h2>
+					<p className="mt-1 text-[12.5px] leading-relaxed text-foreground/80">
+						{t(article.summaryKey)}
+					</p>
 				</div>
 				<button
 					type="button"
@@ -86,7 +108,7 @@ const NewsArticleCard = ({ article, isExpanded, onToggle }: NewsArticleCardProps
 
 			{isExpanded ? (
 				<div className="mt-3 border-t border-border pt-3 text-[12px] leading-relaxed text-muted-foreground">
-					{article.details}
+					{t(article.detailsKey)}
 				</div>
 			) : null}
 		</article>

@@ -1,4 +1,6 @@
-import { type CustomThemeConfig } from "@/shared/theme/customTheme"
+import { type AppThemeId, type CustomThemeConfig } from "@/shared/theme/customTheme"
+
+const APP_THEME_CLASSES: readonly AppThemeId[] = ["light", "dark", "purple", "custom"]
 
 const CUSTOM_CSS_VARIABLES = [
 	"--radius",
@@ -105,4 +107,26 @@ export const clearCustomThemeVariables = (target?: HTMLElement): void => {
 	}
 	element.classList.remove("custom-dark", "custom-light")
 	element.style.removeProperty("color-scheme")
+}
+
+export const applyAppTheme = (
+	theme: AppThemeId,
+	customTheme: CustomThemeConfig,
+	target?: HTMLElement,
+): void => {
+	const element = target ?? (typeof document !== "undefined" ? document.documentElement : null)
+	if (!element) {
+		return
+	}
+
+	element.classList.remove(...APP_THEME_CLASSES)
+	element.classList.add(theme)
+
+	if (theme === "custom") {
+		applyCustomThemeVariables(customTheme, element)
+		return
+	}
+
+	clearCustomThemeVariables(element)
+	element.style.colorScheme = theme === "light" ? "light" : "dark"
 }

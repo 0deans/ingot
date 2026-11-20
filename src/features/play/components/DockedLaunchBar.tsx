@@ -1,5 +1,7 @@
 import { Package, Play, RefreshCw } from "lucide-react"
 import { motion } from "motion/react"
+import { useTranslation } from "react-i18next"
+import { ENGINE_LABEL_KEYS } from "@/features/play/types"
 import { cn } from "@/shared/lib/utils"
 import { COLOR_TAGS, type GameInstance } from "@/shared/stores/useInstancesStore"
 
@@ -18,6 +20,8 @@ const DockedLaunchBar = ({
 	isLaunching,
 	onLaunch,
 }: DockedLaunchBarProps) => {
+	const { t } = useTranslation()
+
 	const tagDotClass = COLOR_TAGS[instance.colorTag].dot
 	const runtimeLabel = instance.jvmArgs || `JVM ${ramGb} GB`
 
@@ -50,12 +54,12 @@ const DockedLaunchBar = ({
 					<div className="flex items-center gap-2">
 						<span className="truncate text-xs font-bold text-foreground">{instance.name}</span>
 						<span className="rounded-md border border-border bg-foreground/6 px-1.5 py-0.5 font-mono text-[10px] leading-none text-foreground/80">
-							{instance.engine} • {instance.version}
+							{t(ENGINE_LABEL_KEYS[instance.engine])} • {instance.version}
 						</span>
 					</div>
 					<div className="truncate text-[11px] leading-tight text-muted-foreground">
-						Playing as <span className="font-medium text-foreground">{username}</span> •{" "}
-						{runtimeLabel}
+						{t("play.launchBar.playingAs")}{" "}
+						<span className="font-medium text-foreground">{username}</span> • {runtimeLabel}
 					</div>
 				</div>
 			</motion.div>
@@ -70,12 +74,12 @@ const DockedLaunchBar = ({
 				{isLaunching ? (
 					<>
 						<RefreshCw className="h-4 w-4 animate-spin" />
-						<span>Verifying SHA-1...</span>
+						<span>{t("play.launchBar.verifying")}</span>
 					</>
 				) : (
 					<>
 						<Play className="h-4 w-4 fill-current" />
-						<span>Launch Instance</span>
+						<span>{t("play.launchBar.launchInstance")}</span>
 					</>
 				)}
 			</motion.button>

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { i18n } from "@/shared/i18n/i18n"
 
 export type NotificationLevel = "info" | "success" | "warning" | "error"
 export type NotificationCategory = "instance" | "server" | "download" | "auth" | "system"
@@ -83,18 +84,24 @@ export const formatNotificationTimeAgo = (
 ): string => {
 	const diffSeconds = Math.max(0, Math.floor((nowMs - timestampMs) / 1000))
 	if (diffSeconds < 45) {
-		return "Just now"
+		return i18n.t("shell.notifications.timeAgo.justNow")
 	}
 	const diffMinutes = Math.floor(diffSeconds / 60)
 	if (diffMinutes < 60) {
-		return `${diffMinutes}m ago`
+		return i18n.t("shell.notifications.timeAgo.minutesAgo", {
+			count: diffMinutes,
+		})
 	}
 	const diffHours = Math.floor(diffMinutes / 60)
 	if (diffHours < 24) {
-		return `${diffHours}h ago`
+		return i18n.t("shell.notifications.timeAgo.hoursAgo", {
+			count: diffHours,
+		})
 	}
 	const diffDays = Math.floor(diffHours / 24)
-	return `${diffDays}d ago`
+	return i18n.t("shell.notifications.timeAgo.daysAgo", {
+		count: diffDays,
+	})
 }
 
 interface PersistedNotificationState {

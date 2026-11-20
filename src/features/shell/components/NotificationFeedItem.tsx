@@ -6,6 +6,7 @@ import {
 	TriangleAlertIcon,
 	X,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 import {
 	formatNotificationTimeAgo,
@@ -14,12 +15,19 @@ import {
 	type NotificationLevel,
 } from "@/shared/stores/useNotificationStore"
 
-const CATEGORY_LABELS: Record<NotificationCategory, string> = {
-	instance: "Instance",
-	server: "Server",
-	download: "Download",
-	auth: "Account",
-	system: "System",
+type CategoryLabelKey =
+	| "shell.notifications.categories.instance"
+	| "shell.notifications.categories.server"
+	| "shell.notifications.categories.download"
+	| "shell.notifications.categories.auth"
+	| "shell.notifications.categories.system"
+
+const CATEGORY_LABEL_KEYS: Record<NotificationCategory, CategoryLabelKey> = {
+	instance: "shell.notifications.categories.instance",
+	server: "shell.notifications.categories.server",
+	download: "shell.notifications.categories.download",
+	auth: "shell.notifications.categories.auth",
+	system: "shell.notifications.categories.system",
 }
 
 const LEVEL_BADGE_CLASS: Record<NotificationLevel, string> = {
@@ -66,6 +74,8 @@ const NotificationFeedItem = ({
 	onDismiss,
 	onNavigateAction,
 }: NotificationFeedItemProps) => {
+	const { t } = useTranslation()
+
 	return (
 		<div
 			className={cn(
@@ -95,12 +105,12 @@ const NotificationFeedItem = ({
 				<div className="flex items-center gap-1.5">
 					{!item.read ? (
 						<span
-							aria-label="Unread"
+							aria-label={t("shell.notifications.unreadDotAria")}
 							className={cn("size-1.5 shrink-0 rounded-full", LEVEL_DOT_CLASS[item.level])}
 						/>
 					) : null}
 					<span className="rounded bg-foreground/8 px-1.5 py-0.5 text-[9.5px] font-semibold text-muted-foreground">
-						{CATEGORY_LABELS[item.category]}
+						{t(CATEGORY_LABEL_KEYS[item.category])}
 					</span>
 					<span className="text-[10px] text-muted-foreground tabular-nums">
 						{formatNotificationTimeAgo(item.createdAt)}
@@ -133,7 +143,7 @@ const NotificationFeedItem = ({
 
 			<button
 				type="button"
-				aria-label={`Dismiss ${item.title}`}
+				aria-label={t("shell.notifications.dismissItemAria", { title: item.title })}
 				onClick={(event) => {
 					event.stopPropagation()
 					onDismiss(item.id)

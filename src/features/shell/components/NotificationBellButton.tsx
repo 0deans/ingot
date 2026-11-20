@@ -1,5 +1,6 @@
 import { Bell } from "lucide-react"
 import { type MouseEvent } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 
 interface NotificationBellButtonProps {
@@ -29,11 +30,14 @@ const NotificationBellButton = ({
 	size = "sm",
 	onClick,
 }: NotificationBellButtonProps) => {
+	const { t } = useTranslation()
 	const hasUnread = unreadCount > 0
 	const badgeText = unreadCount > 9 ? "9+" : String(unreadCount)
 	const badgeClass = resolveBellBadgeClass(hasUnreadError, hasUnreadWarning)
 	const sizeClass = size === "md" ? "size-8" : "size-7"
-	const ariaLabel = hasUnread ? `Notifications (${unreadCount} unread)` : "Notifications"
+	const ariaLabel = hasUnread
+		? t("shell.notifications.unreadAria", { count: unreadCount })
+		: t("shell.notifications.title")
 
 	const buttonToneClass = open
 		? "border-primary/40 bg-primary/18 text-primary"

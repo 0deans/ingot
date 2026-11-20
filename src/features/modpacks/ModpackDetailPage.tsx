@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Download } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { MODPACK_CATALOG } from "@/features/modpacks/components/ModpackCard"
 import ModpackGallery from "@/features/modpacks/components/ModpackGallery"
 import VersionInstallDrawer from "@/features/modpacks/components/VersionInstallDrawer"
@@ -13,6 +14,7 @@ interface ModpackDetailPageProps {
 }
 
 const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
+	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const selectOrCreateByName = useInstancesStore((s) => {
 		return s.selectOrCreateByName
@@ -20,6 +22,7 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 	const spawnMockProcess = useProcessStore((s) => {
 		return s.spawnMockProcess
 	})
+
 	const [drawerOpen, setDrawerOpen] = useState(false)
 
 	const pack = MODPACK_CATALOG.find((item) => {
@@ -38,7 +41,7 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 			engine: pack.engine,
 			colorTag: pack.engine === "Horizon (Rust)" ? "cyan" : "emerald",
 		})
-		spawnMockProcess(`Install ${pack.name}`, "instance", pack.engine)
+		spawnMockProcess(t("modpacks.installTitle", { name: pack.name }), "instance", pack.engine)
 		void navigate({ to: "/" })
 	}
 
@@ -48,7 +51,7 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 				<div className="flex min-w-0 items-center gap-3">
 					<Link
 						to="/modpacks"
-						aria-label="Back to Modpacks"
+						aria-label={t("modpacks.backToModpacksAria")}
 						className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border bg-foreground/5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 					>
 						<ArrowLeft className="size-4" />
@@ -56,7 +59,8 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 					<div className="min-w-0">
 						<h1 className="truncate text-base font-semibold text-foreground">{pack.name}</h1>
 						<p className="truncate text-[11.5px] text-muted-foreground">
-							{pack.provider} · by {pack.author} · {pack.downloads} downloads
+							{pack.provider} · {t("modpacks.byAuthor", { author: pack.author })} ·{" "}
+							{t("modpacks.downloadsCount", { downloads: pack.downloads })}
 						</p>
 					</div>
 				</div>
@@ -69,11 +73,11 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 					className="flex h-9 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
 				>
 					<Download className="size-3.5" />
-					<span>Choose Version</span>
+					<span>{t("modpacks.chooseVersion")}</span>
 				</button>
 			</div>
 
-			<p className="text-[13px] leading-relaxed text-foreground/85">{pack.summary}</p>
+			<p className="text-[13px] leading-relaxed text-foreground/85">{t(pack.summaryKey)}</p>
 
 			<ModpackGallery packName={pack.name} accentClass={pack.accentClass} />
 

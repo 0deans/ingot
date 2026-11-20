@@ -1,8 +1,9 @@
 import { motion } from "motion/react"
 import type { KeyboardEvent, MouseEvent } from "react"
-import type { GameInstance, InstanceEngine } from "@/features/play/types"
+import { useTranslation } from "react-i18next"
+import { ENGINE_LABEL_KEYS, type GameInstance, type InstanceEngine } from "@/features/play/types"
 import { cn } from "@/shared/lib/utils"
-import { COLOR_TAGS } from "@/shared/stores/useInstancesStore"
+import { COLOR_TAGS, formatRelativeLastPlayed } from "@/shared/stores/useInstancesStore"
 
 interface InstanceCardProps {
 	instance: GameInstance
@@ -29,6 +30,8 @@ const InstanceCard = ({
 	onOpenDetails,
 	onContextMenu,
 }: InstanceCardProps) => {
+	const { t } = useTranslation()
+
 	const tagStyle = COLOR_TAGS[instance.colorTag]
 	const engineBadgeClass = ENGINE_BADGE_CLASS[instance.engine]
 	const cardSurfaceClass = isSelected
@@ -74,7 +77,7 @@ const InstanceCard = ({
 			layout="position"
 			role="button"
 			tabIndex={0}
-			aria-label={`Select instance ${instance.name}`}
+			aria-label={t("play.card.selectAria", { name: instance.name })}
 			aria-pressed={isSelected}
 			onClick={handleCardClick}
 			onDoubleClick={handleCardDoubleClick}
@@ -91,8 +94,8 @@ const InstanceCard = ({
 					<button
 						type="button"
 						onClick={handleCycleTagClick}
-						title="Click to cycle color tag"
-						aria-label={`Cycle tag color for ${instance.name}`}
+						title={t("play.card.cycleTagTitle")}
+						aria-label={t("play.card.cycleTagAria", { name: instance.name })}
 						className={cn(
 							"h-3 w-3 shrink-0 cursor-pointer rounded-full ring-2 ring-border transition-transform hover:scale-125",
 							tagStyle.dot,
@@ -107,12 +110,12 @@ const InstanceCard = ({
 					{isRunning ? (
 						<span className="flex h-4 items-center gap-1 rounded border border-primary/30 bg-primary/20 px-1.5 font-mono text-[9px] leading-none text-primary uppercase">
 							<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-							Running
+							{t("common.running")}
 						</span>
 					) : (
 						isSelected && (
 							<span className="flex h-4 items-center rounded border border-border bg-foreground/10 px-1.5 font-mono text-[9px] leading-none text-foreground uppercase">
-								Selected
+								{t("common.selected")}
 							</span>
 						)
 					)}
@@ -126,7 +129,7 @@ const InstanceCard = ({
 						engineBadgeClass,
 					)}
 				>
-					{instance.engine}
+					{t(ENGINE_LABEL_KEYS[instance.engine])}
 				</span>
 				<span className="font-mono text-[10px] leading-none text-muted-foreground">
 					{instance.loader} • {instance.version}
@@ -134,8 +137,8 @@ const InstanceCard = ({
 			</div>
 
 			<div className="mt-2.5 flex items-center justify-between border-t border-border pt-2 font-mono text-[10px] leading-none text-muted-foreground">
-				<span>{instance.playtime} played</span>
-				<span>{instance.lastPlayed}</span>
+				<span>{t("play.card.played", { playtime: instance.playtime })}</span>
+				<span>{formatRelativeLastPlayed(instance.lastPlayed, t)}</span>
 			</div>
 		</motion.div>
 	)

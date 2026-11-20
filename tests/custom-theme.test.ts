@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import ColorPicker from "@/shared/components/ColorPicker"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import {
+	applyAppTheme,
 	applyCustomThemeVariables,
 	clearCustomThemeVariables,
 } from "@/shared/theme/applyCustomTheme"
@@ -28,6 +29,7 @@ import {
 afterEach(() => {
 	cleanup()
 	clearCustomThemeVariables(document.documentElement)
+	document.documentElement.classList.remove("light", "dark", "purple", "custom")
 	useLauncherPrefsStore.getState().resetCustomTheme()
 })
 
@@ -249,5 +251,20 @@ describe("ColorPicker", () => {
 		fireEvent.click(swatch)
 
 		expect(handleChange).toHaveBeenCalledWith("#a855f7")
+	})
+
+	test("applyAppTheme updates root class, colorScheme, and custom CSS variables", () => {
+		applyAppTheme("purple", DEFAULT_CUSTOM_THEME)
+		expect(document.documentElement.classList.contains("purple")).toBe(true)
+		expect(document.documentElement.classList.contains("dark")).toBe(false)
+		expect(document.documentElement.style.colorScheme).toBe("dark")
+		expect(document.documentElement.style.getPropertyValue("--primary")).toBe("")
+
+		applyAppTheme("custom", DEFAULT_CUSTOM_THEME)
+		expect(document.documentElement.classList.contains("custom")).toBe(true)
+		expect(document.documentElement.classList.contains("purple")).toBe(false)
+		expect(document.documentElement.style.getPropertyValue("--primary")).toBe(
+			DEFAULT_CUSTOM_THEME.colors.primary,
+		)
 	})
 })

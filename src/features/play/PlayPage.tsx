@@ -1,6 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router"
 import { Search } from "lucide-react"
 import { useCallback, useMemo, useState, type MouseEvent } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import InstanceContextMenu, {
 	type ContextMenuState,
@@ -24,6 +25,7 @@ import { findProcessByName, useProcessStore } from "@/shared/stores/useProcessSt
 const playRouteApi = getRouteApi("/")
 
 const PlayPage = () => {
+	const { t } = useTranslation()
 	const search = playRouteApi.useSearch()
 	const navigate = playRouteApi.useNavigate()
 
@@ -187,14 +189,14 @@ const PlayPage = () => {
 	const handleCloneInstance = useCallback(
 		(instance: GameInstance) => {
 			addInstance({
-				name: `${instance.name} Copy`,
+				name: t("play.contextMenu.copySuffix", { name: instance.name }),
 				engine: instance.engine,
 				loader: instance.loader,
 				version: instance.version,
 				colorTag: instance.colorTag,
 			})
 		},
-		[addInstance],
+		[addInstance, t],
 	)
 
 	const handleResetFilters = useCallback(() => {
@@ -236,18 +238,16 @@ const PlayPage = () => {
 					<div className="mb-2.5 flex size-10 items-center justify-center rounded-xl bg-foreground/6 text-muted-foreground">
 						<Search className="size-4.5" />
 					</div>
-					<p className="text-[13.5px] font-medium text-foreground">
-						No instances match your filters
-					</p>
+					<p className="text-[13.5px] font-medium text-foreground">{t("play.noMatchesTitle")}</p>
 					<p className="mt-1 max-w-sm text-[12px] text-muted-foreground">
-						Try clearing the search query or switching engine/tag filters.
+						{t("play.noMatchesDescription")}
 					</p>
 					<button
 						type="button"
 						onClick={handleResetFilters}
 						className="mt-3 rounded-lg bg-foreground/8 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/14"
 					>
-						Reset Filters
+						{t("play.resetFilters")}
 					</button>
 				</div>
 			) : (

@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Package, Play, Square } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import { ENGINE_LABEL_KEYS } from "@/features/play/types"
 import { cn } from "@/shared/lib/utils"
 import { COLOR_TAGS, type GameInstance } from "@/shared/stores/useInstancesStore"
 
@@ -10,6 +12,7 @@ interface InstanceHeaderProps {
 }
 
 const InstanceHeader = ({ instance, isRunning, onToggleLaunch }: InstanceHeaderProps) => {
+	const { t } = useTranslation()
 	const tagMeta = COLOR_TAGS[instance.colorTag]
 
 	return (
@@ -17,7 +20,7 @@ const InstanceHeader = ({ instance, isRunning, onToggleLaunch }: InstanceHeaderP
 			<div className="flex min-w-0 items-center gap-3">
 				<Link
 					to="/"
-					aria-label="Back to Play"
+					aria-label={t("instanceDetail.backToPlayAria")}
 					className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border bg-foreground/5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 				>
 					<ArrowLeft className="size-4" />
@@ -30,11 +33,12 @@ const InstanceHeader = ({ instance, isRunning, onToggleLaunch }: InstanceHeaderP
 					<div className="flex items-center gap-2">
 						<h1 className="truncate text-base font-semibold text-foreground">{instance.name}</h1>
 						<span className="rounded-md border border-border bg-foreground/6 px-1.5 py-0.5 font-mono text-[10px] text-foreground/80">
-							{instance.engine}
+							{t(ENGINE_LABEL_KEYS[instance.engine])}
 						</span>
 					</div>
 					<p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
-						{instance.loader} · {instance.version} · {instance.playtime} played
+						{instance.loader} · {instance.version} ·{" "}
+						{t("instanceDetail.played", { playtime: instance.playtime })}
 					</p>
 				</div>
 			</div>
@@ -52,12 +56,12 @@ const InstanceHeader = ({ instance, isRunning, onToggleLaunch }: InstanceHeaderP
 				{isRunning ? (
 					<>
 						<Square className="size-3.5 fill-current" />
-						<span>Stop Instance</span>
+						<span>{t("instanceDetail.stopInstance")}</span>
 					</>
 				) : (
 					<>
 						<Play className="size-3.5 fill-current" />
-						<span>Launch Instance</span>
+						<span>{t("instanceDetail.launchInstance")}</span>
 					</>
 				)}
 			</button>

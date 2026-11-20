@@ -1,6 +1,7 @@
 import { X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react"
+import { useTranslation } from "react-i18next"
 import type { CreateInstanceInput, InstanceEngine, TagColor } from "@/features/play/types"
 
 interface QuickCreateModalProps {
@@ -26,6 +27,8 @@ const isInstanceEngine = (value: string): value is InstanceEngine => {
 }
 
 const QuickCreateModal = ({ open, onClose, onCreate }: QuickCreateModalProps) => {
+	const { t } = useTranslation()
+
 	const [name, setName] = useState("")
 	const [engine, setEngine] = useState<InstanceEngine>("Horizon (Rust)")
 	const [version, setVersion] = useState(DEFAULTS_BY_ENGINE["Horizon (Rust)"].version)
@@ -78,13 +81,18 @@ const QuickCreateModal = ({ open, onClose, onCreate }: QuickCreateModalProps) =>
 		onClose()
 	}
 
+	const modalTitle = t("play.quickCreate.title")
+	const instanceNameLabel = t("play.quickCreate.instanceName")
+	const engineLabel = t("play.quickCreate.engine")
+	const gameVersionLabel = t("play.quickCreate.gameVersion")
+
 	return (
 		<AnimatePresence>
 			{open ? (
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 					<motion.button
 						type="button"
-						aria-label="Close quick create modal"
+						aria-label={t("play.quickCreate.closeAria")}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -93,7 +101,7 @@ const QuickCreateModal = ({ open, onClose, onCreate }: QuickCreateModalProps) =>
 					/>
 					<motion.form
 						role="dialog"
-						aria-label="Create Custom Instance"
+						aria-label={modalTitle}
 						initial={{ opacity: 0, scale: 0.96, y: 8 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
 						exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -103,14 +111,14 @@ const QuickCreateModal = ({ open, onClose, onCreate }: QuickCreateModalProps) =>
 					>
 						<div className="flex items-center justify-between border-b border-border pb-3">
 							<div>
-								<h2 className="text-sm font-bold text-foreground">Create Custom Instance</h2>
+								<h2 className="text-sm font-bold text-foreground">{modalTitle}</h2>
 								<p className="text-[11px] text-muted-foreground">
-									Configure a Java, Horizon (Rust), or Bedrock runtime profile.
+									{t("play.quickCreate.subtitle")}
 								</p>
 							</div>
 							<button
 								type="button"
-								aria-label="Close quick create"
+								aria-label={t("play.quickCreate.closeButtonAria")}
 								onClick={handleClose}
 								className="cursor-pointer rounded-lg p-1 text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 							>
@@ -120,43 +128,47 @@ const QuickCreateModal = ({ open, onClose, onCreate }: QuickCreateModalProps) =>
 
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 							<label className="flex flex-col gap-1 sm:col-span-2">
-								<span className="text-[11px] font-medium text-foreground/80">Instance Name</span>
+								<span className="text-[11px] font-medium text-foreground/80">
+									{instanceNameLabel}
+								</span>
 								<input
 									type="text"
-									aria-label="Instance Name"
+									aria-label={instanceNameLabel}
 									value={name}
 									onChange={(event) => {
 										setName(event.target.value)
 									}}
-									placeholder="e.g. Horizon Dev Nightly"
+									placeholder={t("play.quickCreate.instanceNamePlaceholder")}
 									className="h-9 rounded-xl border border-border bg-background/80 px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
 								/>
 							</label>
 
 							<label className="flex flex-col gap-1">
-								<span className="text-[11px] font-medium text-foreground/80">Engine</span>
+								<span className="text-[11px] font-medium text-foreground/80">{engineLabel}</span>
 								<select
-									aria-label="Engine"
+									aria-label={engineLabel}
 									value={engine}
 									onChange={handleEngineChange}
 									className="h-9 rounded-xl border border-border bg-background px-2.5 text-xs text-foreground focus:border-primary/50 focus:outline-none"
 								>
-									<option value="Horizon (Rust)">Horizon (Rust Client)</option>
-									<option value="Java">Minecraft Java</option>
-									<option value="Bedrock">Minecraft Bedrock</option>
+									<option value="Horizon (Rust)">{t("play.quickCreate.engineHorizon")}</option>
+									<option value="Java">{t("play.quickCreate.engineJava")}</option>
+									<option value="Bedrock">{t("play.quickCreate.engineBedrock")}</option>
 								</select>
 							</label>
 
 							<label className="flex flex-col gap-1">
-								<span className="text-[11px] font-medium text-foreground/80">Game Version</span>
+								<span className="text-[11px] font-medium text-foreground/80">
+									{gameVersionLabel}
+								</span>
 								<input
 									type="text"
-									aria-label="Game Version"
+									aria-label={gameVersionLabel}
 									value={version}
 									onChange={(event) => {
 										setVersion(event.target.value)
 									}}
-									placeholder="Version (e.g. 1.21.4)"
+									placeholder={t("play.quickCreate.gameVersionPlaceholder")}
 									className="h-9 rounded-xl border border-border bg-background/80 px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
 								/>
 							</label>
@@ -168,13 +180,13 @@ const QuickCreateModal = ({ open, onClose, onCreate }: QuickCreateModalProps) =>
 								onClick={handleClose}
 								className="h-8 cursor-pointer rounded-xl border border-border bg-foreground/5 px-3.5 text-xs font-medium text-foreground/80 transition-colors hover:bg-foreground/10"
 							>
-								Cancel
+								{t("common.cancel")}
 							</button>
 							<button
 								type="submit"
 								className="h-8 cursor-pointer rounded-xl bg-primary px-4 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90"
 							>
-								Create &amp; Select
+								{t("play.quickCreate.createAndSelect")}
 							</button>
 						</div>
 					</motion.form>

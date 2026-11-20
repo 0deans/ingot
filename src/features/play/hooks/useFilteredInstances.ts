@@ -1,10 +1,13 @@
 import { useMemo } from "react"
-import type {
-	EngineFilter,
-	GameInstance,
-	GroupByOption,
-	InstanceSection,
-	TagFilter,
+import { useTranslation } from "react-i18next"
+import {
+	ENGINE_LABEL_KEYS,
+	TAG_LABEL_KEYS,
+	type EngineFilter,
+	type GameInstance,
+	type GroupByOption,
+	type InstanceSection,
+	type TagFilter,
 } from "@/features/play/types"
 import { COLOR_TAGS, ENGINE_ORDER, TAG_ORDER } from "@/shared/stores/useInstancesStore"
 
@@ -25,6 +28,8 @@ export const useFilteredInstances = ({
 	tag,
 	groupBy,
 }: FilterOptions): InstanceSection[] => {
+	const { t } = useTranslation()
+
 	const filteredInstances = useMemo(() => {
 		const trimmed = query.trim().toLowerCase()
 		return instances.filter((inst) => {
@@ -49,7 +54,7 @@ export const useFilteredInstances = ({
 			return [
 				{
 					key: "all",
-					title: `All Instances (${filteredInstances.length})`,
+					title: t("play.allInstancesHeading", { count: filteredInstances.length }),
 					items: filteredInstances,
 				},
 			]
@@ -63,7 +68,7 @@ export const useFilteredInstances = ({
 
 				return {
 					key: eng,
-					title: eng,
+					title: t(ENGINE_LABEL_KEYS[eng]),
 					items,
 				}
 			})
@@ -81,7 +86,7 @@ export const useFilteredInstances = ({
 
 			return {
 				key: tagId,
-				title: meta.name,
+				title: t(TAG_LABEL_KEYS[tagId]),
 				dotClass: meta.dot,
 				items,
 			}
@@ -90,5 +95,5 @@ export const useFilteredInstances = ({
 		return tagSections.filter((section) => {
 			return section.items.length > 0
 		})
-	}, [filteredInstances, groupBy])
+	}, [filteredInstances, groupBy, t])
 }

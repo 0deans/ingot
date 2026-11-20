@@ -1,7 +1,8 @@
 import { Copy, ExternalLink, Palette, Play, Square } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect } from "react"
-import type { GameInstance } from "@/features/play/types"
+import { useTranslation } from "react-i18next"
+import { ENGINE_LABEL_KEYS, type GameInstance } from "@/features/play/types"
 
 export interface ContextMenuState {
 	instance: GameInstance
@@ -28,6 +29,8 @@ const InstanceContextMenu = ({
 	onCycleTag,
 	onClone,
 }: InstanceContextMenuProps) => {
+	const { t } = useTranslation()
+
 	useEffect(() => {
 		if (!state) {
 			return
@@ -56,7 +59,7 @@ const InstanceContextMenu = ({
 				<div className="fixed inset-0 z-50">
 					<button
 						type="button"
-						aria-label="Close instance context menu"
+						aria-label={t("play.contextMenu.closeAria")}
 						onClick={onClose}
 						onContextMenu={(event) => {
 							event.preventDefault()
@@ -66,7 +69,7 @@ const InstanceContextMenu = ({
 					/>
 					<motion.div
 						role="menu"
-						aria-label={`Actions for ${state.instance.name}`}
+						aria-label={t("play.contextMenu.actionsAria", { name: state.instance.name })}
 						initial={{ opacity: 0, scale: 0.96, y: -4 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
 						exit={{ opacity: 0, scale: 0.96, y: -4 }}
@@ -79,7 +82,7 @@ const InstanceContextMenu = ({
 								{state.instance.name}
 							</p>
 							<p className="truncate text-[10px] text-muted-foreground">
-								{state.instance.engine} · {state.instance.version}
+								{t(ENGINE_LABEL_KEYS[state.instance.engine])} · {state.instance.version}
 							</p>
 						</div>
 
@@ -93,7 +96,7 @@ const InstanceContextMenu = ({
 							className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px] text-foreground transition-colors hover:bg-foreground/8"
 						>
 							<ExternalLink className="size-3.5 text-primary" />
-							<span>Inspect Instance</span>
+							<span>{t("play.contextMenu.inspect")}</span>
 						</button>
 
 						<button
@@ -108,12 +111,12 @@ const InstanceContextMenu = ({
 							{isRunning ? (
 								<>
 									<Square className="size-3.5 fill-current text-rose-500 dark:text-rose-400" />
-									<span>Stop Process</span>
+									<span>{t("play.contextMenu.stopProcess")}</span>
 								</>
 							) : (
 								<>
 									<Play className="size-3.5 fill-current text-primary" />
-									<span>Launch Now</span>
+									<span>{t("play.contextMenu.launchNow")}</span>
 								</>
 							)}
 						</button>
@@ -128,7 +131,7 @@ const InstanceContextMenu = ({
 							className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px] text-foreground transition-colors hover:bg-foreground/8"
 						>
 							<Palette className="size-3.5 text-amber-500 dark:text-amber-400" />
-							<span>Cycle Color Tag</span>
+							<span>{t("play.contextMenu.cycleTag")}</span>
 						</button>
 
 						<button
@@ -141,7 +144,7 @@ const InstanceContextMenu = ({
 							className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px] text-foreground transition-colors hover:bg-foreground/8"
 						>
 							<Copy className="size-3.5 text-sky-500 dark:text-sky-400" />
-							<span>Duplicate Instance</span>
+							<span>{t("play.contextMenu.duplicate")}</span>
 						</button>
 					</motion.div>
 				</div>

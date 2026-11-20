@@ -10,10 +10,12 @@ import {
 	X,
 } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import LanguageOptionCard from "@/features/settings/components/LanguageOptionCard"
 import {
 	APP_LANGUAGES,
+	LANGUAGE_NAME_KEYS,
 	detectSystemLocale,
 	filterLanguages,
 	findLanguageMeta,
@@ -26,6 +28,7 @@ import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { appleToast } from "@/shared/ui/sonner"
 
 const LanguageSettingsPage = () => {
+	const { t } = useTranslation()
 	const { language, setLanguage } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -54,30 +57,54 @@ const LanguageSettingsPage = () => {
 	}, [effectiveLocale])
 	const previewItems = useMemo(() => {
 		return [
-			{ id: "date", label: "Date", value: formatPreview.dateSample, icon: Calendar },
-			{ id: "time", label: "Time", value: formatPreview.timeSample, icon: Clock },
-			{ id: "size", label: "File Size", value: formatPreview.sizeSample, icon: HardDrive },
-			{ id: "number", label: "Downloads", value: formatPreview.numberSample, icon: Hash },
+			{
+				id: "date",
+				label: t("settings.language.previewDate"),
+				value: formatPreview.dateSample,
+				icon: Calendar,
+			},
+			{
+				id: "time",
+				label: t("settings.language.previewTime"),
+				value: formatPreview.timeSample,
+				icon: Clock,
+			},
+			{
+				id: "size",
+				label: t("settings.language.previewFileSize"),
+				value: formatPreview.sizeSample,
+				icon: HardDrive,
+			},
+			{
+				id: "number",
+				label: t("settings.language.previewDownloads"),
+				value: formatPreview.numberSample,
+				icon: Hash,
+			},
 		]
-	}, [formatPreview])
+	}, [formatPreview, t])
 
 	const isSystemSelected = language === "system"
+	const systemTranslatedName = t(LANGUAGE_NAME_KEYS[systemLanguageMeta.code])
 	const systemLocaleLabel =
-		systemLanguageMeta.nativeName === systemLanguageMeta.englishName
+		systemLanguageMeta.nativeName === systemTranslatedName
 			? systemLanguageMeta.nativeName
-			: `${systemLanguageMeta.nativeName} (${systemLanguageMeta.englishName})`
+			: `${systemLanguageMeta.nativeName} (${systemTranslatedName})`
 
 	const handleSelectLanguage = (nextPreference: LauncherLanguagePreference) => {
 		setLanguage(nextPreference)
 		if (nextPreference === "system") {
-			appleToast.info(`Language set to System Default (${systemLanguageMeta.nativeName})`, {
-				description: "Preference saved. Full UI translation wiring is coming next.",
-			})
+			appleToast.info(
+				t("settings.language.savedToastSystem", { language: systemLanguageMeta.nativeName }),
+				{
+					description: t("settings.language.savedToastDescription"),
+				},
+			)
 			return
 		}
 		const meta = findLanguageMeta(nextPreference)
-		appleToast.info(`Language set to ${meta.nativeName}`, {
-			description: "Preference saved. Full UI translation wiring is coming next.",
+		appleToast.info(t("settings.language.savedToastCustom", { language: meta.nativeName }), {
+			description: t("settings.language.savedToastDescription"),
 		})
 	}
 
@@ -86,12 +113,13 @@ const LanguageSettingsPage = () => {
 			<section className="flex flex-col gap-4 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 				<div className="flex items-center gap-2">
 					<Languages className="size-4 text-primary" />
-					<h2 className="text-[13.5px] font-semibold text-foreground">Display Language</h2>
+					<h2 className="text-[13.5px] font-semibold text-foreground">
+						{t("settings.language.title")}
+					</h2>
 				</div>
 
 				<p className="text-[11.5px] leading-relaxed text-muted-foreground">
-					Choose the display language for Ingot. Dates, numbers, and file sizes follow your selected
-					locale.
+					{t("settings.language.description")}
 				</p>
 
 				<button
@@ -121,10 +149,10 @@ const LanguageSettingsPage = () => {
 
 						<div className="min-w-0">
 							<span className="block text-[13px] font-semibold text-foreground">
-								Follow System Language
+								{t("settings.language.followSystem")}
 							</span>
 							<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-								Detected OS locale: {systemLocaleLabel}
+								{t("settings.language.detectedOsLocale", { language: systemLocaleLabel })}
 							</p>
 						</div>
 					</div>
@@ -135,7 +163,7 @@ const LanguageSettingsPage = () => {
 				<div className="flex flex-col gap-2.5 rounded-xl border border-border bg-foreground/3 p-3">
 					<div className="flex items-center justify-between gap-2">
 						<span className="text-[11px] font-medium text-muted-foreground">
-							Regional Format Preview
+							{t("settings.language.formatPreviewTitle")}
 						</span>
 						<span className="rounded-md border border-border bg-foreground/5 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground/85 uppercase">
 							{effectiveLocale}
@@ -171,8 +199,10 @@ const LanguageSettingsPage = () => {
 						onChange={(event) => {
 							setSearchQuery(event.target.value)
 						}}
-						placeholder={`Search ${APP_LANGUAGES.length} languages...`}
-						aria-label="Search languages"
+						placeholder={t("settings.language.searchPlaceholder", {
+							count: APP_LANGUAGES.length,
+						})}
+						aria-label={t("settings.language.searchAriaLabel")}
 						className="h-9 w-full rounded-xl border border-border bg-foreground/4 pr-8 pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
 					/>
 					{searchQuery ? (
@@ -181,7 +211,7 @@ const LanguageSettingsPage = () => {
 							onClick={() => {
 								setSearchQuery("")
 							}}
-							aria-label="Clear language search"
+							aria-label={t("settings.language.clearSearchAriaLabel")}
 							className="absolute top-1/2 right-2 flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 						>
 							<X className="size-3" />
@@ -206,7 +236,7 @@ const LanguageSettingsPage = () => {
 				) : (
 					<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-foreground/2 px-4 py-8 text-center">
 						<p className="text-xs font-medium text-foreground">
-							No languages matched &ldquo;{searchQuery.trim()}&rdquo;
+							{t("settings.language.noMatches", { query: searchQuery.trim() })}
 						</p>
 						<button
 							type="button"
@@ -215,7 +245,7 @@ const LanguageSettingsPage = () => {
 							}}
 							className="cursor-pointer rounded-lg border border-border bg-foreground/5 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-foreground/10"
 						>
-							Clear search
+							{t("common.clearSearch")}
 						</button>
 					</div>
 				)}

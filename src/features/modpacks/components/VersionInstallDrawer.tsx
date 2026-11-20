@@ -1,6 +1,20 @@
 import { Download, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
+import { useTranslation } from "react-i18next"
 import type { ModpackItem } from "@/features/modpacks/components/ModpackCard"
+import { ENGINE_LABEL_KEYS } from "@/features/play/types"
+import { formatRelativeLastPlayed } from "@/shared/stores/useInstancesStore"
+
+type ReleaseChannelKey =
+	| "modpacks.channels.Release"
+	| "modpacks.channels.Beta"
+	| "modpacks.channels.LTS"
+
+interface VersionEntry {
+	label: string
+	channelKey: ReleaseChannelKey
+	date: string
+}
 
 interface VersionInstallDrawerProps {
 	open: boolean
@@ -15,10 +29,14 @@ const VersionInstallDrawer = ({
 	onClose,
 	onInstallVersion,
 }: VersionInstallDrawerProps) => {
-	const versions = [
-		{ label: `${pack.version}-latest`, channel: "Release", date: "Today" },
-		{ label: `${pack.version}-rc2`, channel: "Beta", date: "4 days ago" },
-		{ label: `${pack.version}-lts`, channel: "LTS", date: "2 weeks ago" },
+	const { t } = useTranslation()
+
+	const installTitle = t("modpacks.installTitle", { name: pack.name })
+	const dismissAria = t("modpacks.dismissVersionDrawerAria")
+	const versions: readonly VersionEntry[] = [
+		{ label: `${pack.version}-latest`, channelKey: "modpacks.channels.Release", date: "Today" },
+		{ label: `${pack.version}-rc2`, channelKey: "modpacks.channels.Beta", date: "4 days ago" },
+		{ label: `${pack.version}-lts`, channelKey: "modpacks.channels.LTS", date: "2 weeks ago" },
 	]
 
 	return (
@@ -27,13 +45,13 @@ const VersionInstallDrawer = ({
 				<div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
 					<button
 						type="button"
-						aria-label="Close version installer"
+						aria-label={dismissAria}
 						onClick={onClose}
 						className="fixed inset-0 cursor-default bg-black/60 backdrop-blur-xs"
 					/>
 					<motion.div
 						role="dialog"
-						aria-label={`Select version for ${pack.name}`}
+						aria-label={installTitle}
 						initial={{ opacity: 0, y: 16 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: 16 }}
@@ -42,17 +60,15 @@ const VersionInstallDrawer = ({
 					>
 						<div className="mb-3 flex items-center justify-between gap-3 border-b border-border pb-2.5">
 							<div className="min-w-0 flex-1">
-								<h2 className="truncate text-sm font-semibold text-foreground">
-									Install {pack.name}
-								</h2>
+								<h2 className="truncate text-sm font-semibold text-foreground">{installTitle}</h2>
 								<p className="text-[11px] text-muted-foreground">
-									{pack.loader} · {pack.engine}
+									{pack.loader} · {t(ENGINE_LABEL_KEYS[pack.engine])}
 								</p>
 							</div>
 							<button
 								type="button"
 								onClick={onClose}
-								aria-label="Dismiss version drawer"
+								aria-label={dismissAria}
 								className="shrink-0 cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-4" />
@@ -71,7 +87,7 @@ const VersionInstallDrawer = ({
 												{ver.label}
 											</p>
 											<p className="text-[10.5px] text-muted-foreground">
-												{ver.channel} · {ver.date}
+												{t(ver.channelKey)} · {formatRelativeLastPlayed(ver.date, t)}
 											</p>
 										</div>
 										<button
@@ -83,7 +99,7 @@ const VersionInstallDrawer = ({
 											className="flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2.5 text-[11px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
 										>
 											<Download className="size-3" />
-											<span>Install</span>
+											<span>{t("common.install")}</span>
 										</button>
 									</div>
 								)

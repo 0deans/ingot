@@ -1,8 +1,10 @@
 import { Sliders } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
 
 const NetworkSettingsPage = () => {
+	const { t } = useTranslation()
 	const [discordRpc, setDiscordRpc] = useState(true)
 	const [closeOnLaunch, setCloseOnLaunch] = useState(false)
 	const [concurrentDownloads, setConcurrentDownloads] = useState(8)
@@ -11,14 +13,18 @@ const NetworkSettingsPage = () => {
 		<section className="flex flex-col gap-3 rounded-2xl border border-border bg-card/65 p-4 backdrop-blur-md">
 			<div className="flex items-center gap-2">
 				<Sliders className="size-4 text-primary" />
-				<h2 className="text-[13.5px] font-semibold text-foreground">Network &amp; Behavior</h2>
+				<h2 className="text-[13.5px] font-semibold text-foreground">
+					{t("settings.network.title")}
+				</h2>
 			</div>
 
 			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
 				<div className="min-w-0 flex-1">
-					<p className="text-[12.5px] font-medium text-foreground">Discord Rich Presence</p>
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.network.discordTitle")}
+					</p>
 					<p className="text-[11px] leading-relaxed text-muted-foreground">
-						Broadcast active instance &amp; pack details while playing.
+						{t("settings.network.discordDescription")}
 					</p>
 				</div>
 				<button
@@ -37,15 +43,17 @@ const NetworkSettingsPage = () => {
 							: "bg-foreground/10 text-muted-foreground",
 					)}
 				>
-					{discordRpc ? "Enabled" : "Disabled"}
+					{discordRpc ? t("common.enabled") : t("common.disabled")}
 				</button>
 			</div>
 
 			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
 				<div className="min-w-0 flex-1">
-					<p className="text-[12.5px] font-medium text-foreground">Minimize on Game Launch</p>
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.network.minimizeTitle")}
+					</p>
 					<p className="text-[11px] leading-relaxed text-muted-foreground">
-						Hide main Ingot window until the active game process exits.
+						{t("settings.network.minimizeDescription")}
 					</p>
 				</div>
 				<button
@@ -64,15 +72,17 @@ const NetworkSettingsPage = () => {
 							: "bg-foreground/10 text-muted-foreground",
 					)}
 				>
-					{closeOnLaunch ? "Enabled" : "Disabled"}
+					{closeOnLaunch ? t("common.enabled") : t("common.disabled")}
 				</button>
 			</div>
 
 			<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
 				<div className="min-w-0 flex-1">
-					<p className="text-[12.5px] font-medium text-foreground">Concurrent Asset Workers</p>
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.network.workersTitle")}
+					</p>
 					<p className="text-[11px] leading-relaxed text-muted-foreground">
-						Parallel HTTP/2 streams during mod sync.
+						{t("settings.network.workersDescription")}
 					</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-1.5">

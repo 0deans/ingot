@@ -1,6 +1,7 @@
 import { Archive, Check, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { WorldSave } from "@/features/worlds/components/WorldCard"
 
 interface BackupSnapshotModalProps {
@@ -9,7 +10,11 @@ interface BackupSnapshotModalProps {
 }
 
 const BackupSnapshotModal = ({ world, onClose }: BackupSnapshotModalProps) => {
-	const [label, setLabel] = useState("Pre-nether expedition snapshot")
+	const { t } = useTranslation()
+
+	const [label, setLabel] = useState(() => {
+		return t("worlds.backupModal.defaultLabel")
+	})
 	const [created, setCreated] = useState(false)
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -27,13 +32,13 @@ const BackupSnapshotModal = ({ world, onClose }: BackupSnapshotModalProps) => {
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 					<button
 						type="button"
-						aria-label="Close backup dialog"
+						aria-label={t("worlds.backupModal.closeAria")}
 						onClick={onClose}
 						className="fixed inset-0 cursor-default bg-black/60 backdrop-blur-xs"
 					/>
 					<motion.form
 						role="dialog"
-						aria-label={`Snapshot ${world.name}`}
+						aria-label={t("worlds.backupModal.title")}
 						initial={{ opacity: 0, scale: 0.96 }}
 						animate={{ opacity: 1, scale: 1 }}
 						exit={{ opacity: 0, scale: 0.96 }}
@@ -44,12 +49,14 @@ const BackupSnapshotModal = ({ world, onClose }: BackupSnapshotModalProps) => {
 						<div className="flex items-center justify-between border-b border-border pb-2.5">
 							<div className="flex items-center gap-2">
 								<Archive className="size-4 text-primary" />
-								<h2 className="text-sm font-semibold text-foreground">Create World Snapshot</h2>
+								<h2 className="text-sm font-semibold text-foreground">
+									{t("worlds.backupModal.title")}
+								</h2>
 							</div>
 							<button
 								type="button"
 								onClick={onClose}
-								aria-label="Dismiss backup modal"
+								aria-label={t("worlds.backupModal.dismissAria")}
 								className="cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-4" />
@@ -57,8 +64,9 @@ const BackupSnapshotModal = ({ world, onClose }: BackupSnapshotModalProps) => {
 						</div>
 
 						<p className="text-xs text-muted-foreground">
-							Archive <span className="font-medium text-foreground">{world.name}</span> (
-							{world.sizeMb} MB) with Zstd compression.
+							{t("worlds.backupModal.descriptionPrefix")}{" "}
+							<span className="font-medium text-foreground">{world.name}</span>{" "}
+							{t("worlds.backupModal.descriptionSuffix", { sizeMb: world.sizeMb })}
 						</p>
 
 						<input
@@ -67,7 +75,7 @@ const BackupSnapshotModal = ({ world, onClose }: BackupSnapshotModalProps) => {
 							onChange={(event) => {
 								setLabel(event.target.value)
 							}}
-							aria-label="Snapshot label"
+							aria-label={t("worlds.backupModal.labelAria")}
 							className="h-9 w-full rounded-xl border border-border bg-background/80 px-3 text-xs text-foreground focus:border-primary/40 focus:outline-none"
 						/>
 
@@ -77,14 +85,16 @@ const BackupSnapshotModal = ({ world, onClose }: BackupSnapshotModalProps) => {
 								onClick={onClose}
 								className="h-8 cursor-pointer rounded-xl border border-border bg-foreground/5 px-3 text-xs font-medium text-foreground/80 hover:bg-foreground/10"
 							>
-								Cancel
+								{t("common.cancel")}
 							</button>
 							<button
 								type="submit"
 								className="flex h-8 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
 							>
 								{created ? <Check className="size-3.5" /> : <Archive className="size-3.5" />}
-								<span>{created ? "Snapshot Saved" : "Archive Now"}</span>
+								<span>
+									{created ? t("worlds.backupModal.saved") : t("worlds.backupModal.archiveNow")}
+								</span>
 							</button>
 						</div>
 					</motion.form>

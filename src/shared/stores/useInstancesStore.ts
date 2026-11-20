@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next"
 import { create } from "zustand"
+import { i18n } from "@/shared/i18n/i18n"
 
 export type InstanceEngine = "Java" | "Horizon (Rust)" | "Bedrock"
 export type TagColor = "emerald" | "amber" | "rose" | "violet" | "cyan"
@@ -242,6 +244,64 @@ export const selectSelectedInstance = (state: InstancesState): GameInstance | un
 	return foundInstance ?? state.instances[0]
 }
 
+const HOURS_SHORT_REGEX = /^(\d+)h ago$/
+const DAYS_SHORT_REGEX = /^(\d+)d ago$/
+const WEEKS_SHORT_REGEX = /^(\d+)w ago$/
+const HOURS_LONG_REGEX = /^(\d+) hours? ago$/
+const DAYS_LONG_REGEX = /^(\d+) days? ago$/
+const WEEKS_LONG_REGEX = /^(\d+) weeks? ago$/
+
+export const formatRelativeLastPlayed = (raw: string, t: TFunction): string => {
+	if (raw === "Just added") {
+		return t("play.lastPlayed.justAdded")
+	}
+	if (raw === "Today") {
+		return t("play.lastPlayed.today")
+	}
+	if (raw === "Yesterday") {
+		return t("play.lastPlayed.yesterday")
+	}
+	if (raw === "Last week") {
+		return t("play.lastPlayed.lastWeek")
+	}
+
+	const hoursShort = HOURS_SHORT_REGEX.exec(raw)
+	if (hoursShort?.[1]) {
+		return t("play.lastPlayed.hoursAgoShort", { count: Number(hoursShort[1]) })
+	}
+
+	const daysShort = DAYS_SHORT_REGEX.exec(raw)
+	if (daysShort?.[1]) {
+		return t("play.lastPlayed.daysAgoShort", { count: Number(daysShort[1]) })
+	}
+
+	const weeksShort = WEEKS_SHORT_REGEX.exec(raw)
+	if (weeksShort?.[1]) {
+		return t("play.lastPlayed.weeksAgoShort", { count: Number(weeksShort[1]) })
+	}
+
+	const hoursLong = HOURS_LONG_REGEX.exec(raw)
+	if (hoursLong?.[1]) {
+		return t("play.lastPlayed.hoursAgoLong", { count: Number(hoursLong[1]) })
+	}
+
+	const daysLong = DAYS_LONG_REGEX.exec(raw)
+	if (daysLong?.[1]) {
+		return t("play.lastPlayed.daysAgoLong", { count: Number(daysLong[1]) })
+	}
+
+	if (raw === "1 week ago") {
+		return t("play.lastPlayed.weekAgoLong", { count: 1 })
+	}
+
+	const weeksLong = WEEKS_LONG_REGEX.exec(raw)
+	if (weeksLong?.[1]) {
+		return t("play.lastPlayed.weeksAgoLong", { count: Number(weeksLong[1]) })
+	}
+
+	return raw
+}
+
 const getDefaultJvmArgs = (engine: InstanceEngine): string => {
 	if (engine === "Horizon (Rust)") {
 		return "Native Rust"
@@ -303,7 +363,12 @@ export const useInstancesStore = create<InstancesState>((set) => {
 			set((state) => {
 				const id = `inst-${crypto.randomUUID()}`
 				const trimmedName = input.name.trim()
-				const resolvedName = trimmedName || `Custom ${input.engine} ${input.version}`
+				const resolvedName =
+					trimmedName ||
+					i18n.t("play.customInstanceDefaultName", {
+						engine: input.engine,
+						version: input.version,
+					})
 				const nextInstance: GameInstance = {
 					id,
 					name: resolvedName,

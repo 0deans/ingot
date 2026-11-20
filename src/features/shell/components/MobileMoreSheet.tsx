@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { isNavItemActive, type AppRoutePath, type NavItem } from "@/features/shell/navigation"
 import { cn } from "@/shared/lib/utils"
 
@@ -20,6 +21,8 @@ const MobileMoreSheet = ({
 	onClose,
 	onNavigate,
 }: MobileMoreSheetProps) => {
+	const { t } = useTranslation()
+
 	useEffect(() => {
 		if (!open) {
 			return
@@ -41,7 +44,7 @@ const MobileMoreSheet = ({
 				<div className="fixed inset-0 z-50 flex items-end justify-center">
 					<motion.button
 						type="button"
-						aria-label="Close navigation sheet"
+						aria-label={t("shell.closeNavigationSheet")}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -50,7 +53,7 @@ const MobileMoreSheet = ({
 					/>
 					<motion.div
 						role="dialog"
-						aria-label="More Navigation"
+						aria-label={t("shell.moreSections")}
 						initial={{ y: "100%" }}
 						animate={{ y: 0 }}
 						exit={{ y: "100%" }}
@@ -60,12 +63,12 @@ const MobileMoreSheet = ({
 						<div className="mx-auto mb-3 h-1 w-10 rounded-full bg-foreground/20" />
 						<div className="mb-3 flex items-center justify-between gap-3 px-1">
 							<span className="truncate text-[13px] font-semibold text-foreground">
-								More Sections
+								{t("shell.moreSections")}
 							</span>
 							<button
 								type="button"
 								onClick={onClose}
-								aria-label="Dismiss navigation sheet"
+								aria-label={t("shell.dismissNavigationSheet")}
 								className="shrink-0 cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-4" />
@@ -77,6 +80,7 @@ const MobileMoreSheet = ({
 								const Icon = item.icon
 								const isActive = isNavItemActive(currentPath, item.path)
 								const isLastOddItem = items.length % 2 === 1 && index === items.length - 1
+								const badgeText = item.badgeKey ? t(item.badgeKey) : item.badge
 								return (
 									<Link
 										key={item.path}
@@ -97,11 +101,11 @@ const MobileMoreSheet = ({
 									>
 										<Icon className="size-4 shrink-0 text-primary" />
 										<span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
-											{item.label}
+											{t(item.labelKey)}
 										</span>
-										{item.badge ? (
+										{badgeText ? (
 											<span className="shrink-0 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-												{item.badge}
+												{badgeText}
 											</span>
 										) : null}
 									</Link>

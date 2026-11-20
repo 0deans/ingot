@@ -1,12 +1,37 @@
+import type { TFunction } from "i18next"
 import { Activity, Plus, Square, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
 	resolveCenteredTitlebarPopoverStyle,
 	type PopoverAnchorRect,
 } from "@/features/shell/components/AccountSwitcherPopover"
 import { cn } from "@/shared/lib/utils"
 import { type RunningProcess } from "@/shared/stores/useProcessStore"
+
+const PORT_PLAYERS_REGEX = /^Port :(\d+) \((\d+)\/(\d+) Players\)$/
+const PORT_STATUS_REGEX = /^Port :(\d+) \((\d+)\/(\d+)\)$/
+
+const formatProcessAccountLabel = (account: string, t: TFunction): string => {
+	const playersMatch = PORT_PLAYERS_REGEX.exec(account)
+	if (playersMatch?.[1] && playersMatch[2] && playersMatch[3]) {
+		return t("shell.processes.serverPortPlayers", {
+			port: playersMatch[1],
+			online: playersMatch[2],
+			max: playersMatch[3],
+		})
+	}
+	const statusMatch = PORT_STATUS_REGEX.exec(account)
+	if (statusMatch?.[1] && statusMatch[2] && statusMatch[3]) {
+		return t("shell.processes.serverPortStatus", {
+			port: statusMatch[1],
+			online: statusMatch[2],
+			max: statusMatch[3],
+		})
+	}
+	return account
+}
 
 interface ActiveProcessesPopoverProps {
 	open: boolean
@@ -25,9 +50,12 @@ const KIND_BADGE_CLASS: Record<RunningProcess["kind"], string> = {
 		"border-sky-600/25 bg-sky-500/12 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300",
 }
 
-const KIND_LABEL: Record<RunningProcess["kind"], string> = {
-	instance: "Instance",
-	server: "Server",
+const KIND_LABEL_KEY: Record<
+	RunningProcess["kind"],
+	"shell.processes.instanceBadge" | "shell.processes.serverBadge"
+> = {
+	instance: "shell.processes.instanceBadge",
+	server: "shell.processes.serverBadge",
 }
 
 const ActiveProcessesPopover = ({
@@ -39,6 +67,8 @@ const ActiveProcessesPopover = ({
 	onStopAll,
 	onSpawnTest,
 }: ActiveProcessesPopoverProps) => {
+	const { t } = useTranslation()
+
 	useEffect(() => {
 		if (!open) {
 			return
@@ -63,13 +93,13 @@ const ActiveProcessesPopover = ({
 				<div className="fixed inset-0 z-50">
 					<button
 						type="button"
-						aria-label="Close active processes"
+						aria-label={t("shell.processes.closeAria")}
 						onClick={onClose}
 						className="fixed inset-0 cursor-default bg-black/25"
 					/>
 					<motion.div
 						role="dialog"
-						aria-label="Active Processes"
+						aria-label={t("shell.processes.title")}
 						style={anchoredStyle}
 						initial={{ opacity: 0, y: -8, scale: 0.97 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -84,7 +114,7 @@ const ActiveProcessesPopover = ({
 							<div className="flex min-w-0 items-center gap-2">
 								<Activity className="size-3.5 shrink-0 text-primary" />
 								<span className="truncate text-[12.5px] font-semibold text-popover-foreground">
-									Background & Game Processes
+									{t("shell.processes.title")}
 								</span>
 								<span className="shrink-0 rounded-full bg-foreground/8 px-1.5 py-0.5 text-[10px] font-medium text-foreground/75">
 									{processes.length}
@@ -93,7 +123,7 @@ const ActiveProcessesPopover = ({
 							<button
 								type="button"
 								onClick={onClose}
-								aria-label="Dismiss processes popover"
+								aria-label={t("shell.processes.dismissAria")}
 								className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-3.5" />
@@ -105,10 +135,10 @@ const ActiveProcessesPopover = ({
 								<div className="flex flex-col items-center justify-center py-8 text-center">
 									<Activity className="mb-2 size-6 text-muted-foreground/60" />
 									<p className="text-[12.5px] font-medium text-popover-foreground">
-										No active processes
+										{t("shell.processes.emptyTitle")}
 									</p>
 									<p className="mt-0.5 text-[11px] text-muted-foreground">
-										Launch an instance or spawn a test task below.
+										{t("shell.processes.emptyDescription")}
 									</p>
 								</div>
 							) : (
@@ -130,16 +160,24 @@ const ActiveProcessesPopover = ({
 																KIND_BADGE_CLASS[proc.kind],
 															)}
 														>
-															{KIND_LABEL[proc.kind]}
+															{t(KIND_LABEL_KEY[proc.kind])}
 														</span>
 													</div>
 													<p className="mt-0.5 truncate text-[11px] text-foreground/70">
 														{proc.engine} · {proc.uptime}
 													</p>
 													<div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10.5px] font-medium text-foreground/75">
-														<span className="whitespace-nowrap">RAM {proc.ram}</span>
-														<span className="whitespace-nowrap">CPU {proc.cpu}</span>
-														{proc.account ? <span className="truncate">{proc.account}</span> : null}
+														<span className="whitespace-nowrap">
+															{t("shell.processes.ram", { ram: proc.ram })}
+														</span>
+														<span className="whitespace-nowrap">
+															{t("shell.processes.cpu", { cpu: proc.cpu })}
+														</span>
+														{proc.account ? (
+															<span className="truncate">
+																{formatProcessAccountLabel(proc.account, t)}
+															</span>
+														) : null}
 													</div>
 												</div>
 												<button
@@ -150,7 +188,7 @@ const ActiveProcessesPopover = ({
 													className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-rose-600/25 bg-rose-500/12 px-2 py-1 text-[11px] font-medium whitespace-nowrap text-rose-700 transition-colors hover:bg-rose-500/22 dark:border-rose-500/25 dark:text-rose-300"
 												>
 													<Square className="size-2.5 fill-current" />
-													<span>Stop</span>
+													<span>{t("shell.processes.stop")}</span>
 												</button>
 											</div>
 										)
@@ -166,7 +204,7 @@ const ActiveProcessesPopover = ({
 								className="flex items-center gap-1 rounded-lg bg-foreground/8 px-2.5 py-1 text-[11.5px] font-medium text-popover-foreground transition-colors hover:bg-foreground/14"
 							>
 								<Plus className="size-3" />
-								<span>Spawn Test</span>
+								<span>{t("shell.processes.spawnTest")}</span>
 							</button>
 							{processes.length > 0 ? (
 								<button
@@ -174,7 +212,7 @@ const ActiveProcessesPopover = ({
 									onClick={onStopAll}
 									className="rounded-lg bg-rose-500/15 px-2.5 py-1 text-[11.5px] font-medium text-rose-600 transition-colors hover:bg-rose-500/25 dark:text-rose-300"
 								>
-									Stop All
+									{t("shell.processes.stopAll")}
 								</button>
 							) : null}
 						</div>

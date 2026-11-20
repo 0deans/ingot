@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { i18n } from "@/shared/i18n/i18n"
 import { COLOR_TAGS, type GameInstance } from "@/shared/stores/useInstancesStore"
 
 export type ProcessKind = "instance" | "server"
@@ -176,14 +177,27 @@ export const useProcessStore = create<ProcessState>((set, get) => {
 			set((state) => {
 				const count = state.runningProcesses.length
 				const defaultName =
-					kind === "server" ? `Local Test Server #${count + 1}` : `Instance #${count + 1}`
+					kind === "server"
+						? i18n.t("shell.processes.defaultServerName", {
+								index: count + 1,
+							})
+						: i18n.t("shell.processes.defaultInstanceName", {
+								index: count + 1,
+							})
 				const pid = Math.floor(10000 + Math.random() * 50000)
 				const nextProc: RunningProcess = {
 					id: `proc-${crypto.randomUUID()}`,
 					name: customName ?? defaultName,
 					kind,
 					engine,
-					account: kind === "server" ? `Port :${25565 + count} (1/20)` : username,
+					account:
+						kind === "server"
+							? i18n.t("shell.processes.serverPortStatus", {
+									port: 25565 + count,
+									online: 1,
+									max: 20,
+								})
+							: username,
 					pid,
 					ram: kind === "server" ? "2.0 GB" : "1.4 GB",
 					cpu: "5.2%",

@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router"
 import { Search } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import ModpackCard, {
 	MODPACK_CATALOG,
@@ -12,13 +13,8 @@ import { useProcessStore } from "@/shared/stores/useProcessStore"
 
 type ProviderFilter = "all" | "Modrinth" | "CurseForge"
 
-const PROVIDER_OPTIONS: SegmentedOption<ProviderFilter>[] = [
-	{ value: "all", label: "All Sources" },
-	{ value: "Modrinth", label: "Modrinth" },
-	{ value: "CurseForge", label: "CurseForge" },
-]
-
 const ModpacksPage = () => {
+	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const { instances, selectOrCreateByName } = useInstancesStore(
 		useShallow((s) => {
@@ -34,6 +30,14 @@ const ModpacksPage = () => {
 
 	const [provider, setProvider] = useState<ProviderFilter>("all")
 	const [query, setQuery] = useState("")
+
+	const providerOptions: SegmentedOption<ProviderFilter>[] = useMemo(() => {
+		return [
+			{ value: "all", label: t("modpacks.sources.all") },
+			{ value: "Modrinth", label: t("modpacks.sources.modrinth") },
+			{ value: "CurseForge", label: t("modpacks.sources.curseforge") },
+		]
+	}, [t])
 
 	const installedNames = useMemo(() => {
 		const names = instances.map((inst) => {
@@ -72,7 +76,7 @@ const ModpacksPage = () => {
 			colorTag: pack.engine === "Horizon (Rust)" ? "cyan" : "emerald",
 		})
 		if (!isAlreadyInstalled) {
-			spawnMockProcess(`Install ${pack.name}`, "instance", pack.engine)
+			spawnMockProcess(t("modpacks.installTitle", { name: pack.name }), "instance", pack.engine)
 		}
 		void navigate({ to: "/" })
 	}
@@ -81,14 +85,14 @@ const ModpacksPage = () => {
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
-					<h1 className="text-lg font-semibold tracking-tight text-foreground">Modpacks Browser</h1>
-					<p className="text-[12px] text-muted-foreground">
-						Curated Modrinth and CurseForge profiles ready for 1-click instance creation.
-					</p>
+					<h1 className="text-lg font-semibold tracking-tight text-foreground">
+						{t("modpacks.title")}
+					</h1>
+					<p className="text-[12px] text-muted-foreground">{t("modpacks.subtitle")}</p>
 				</div>
 				<SegmentedControl
 					layoutId="modpacks-provider-filter"
-					options={PROVIDER_OPTIONS}
+					options={providerOptions}
 					value={provider}
 					onChange={setProvider}
 					tone="emerald"
@@ -103,7 +107,7 @@ const ModpacksPage = () => {
 					onChange={(event) => {
 						setQuery(event.target.value)
 					}}
-					placeholder="Search modpacks by title, tag, or gameplay style..."
+					placeholder={t("modpacks.searchPlaceholder")}
 					className="h-9 w-full rounded-xl border border-border bg-card/70 pr-3 pl-8.5 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
 				/>
 			</div>

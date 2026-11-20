@@ -1,6 +1,7 @@
 import { MoreHorizontal, Play } from "lucide-react"
 import { motion } from "motion/react"
 import { useCallback, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import MobileBottomNavItem from "@/features/shell/components/MobileBottomNavItem"
 import {
@@ -25,6 +26,7 @@ interface MobileBottomBarProps {
 }
 
 const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
+	const { t } = useTranslation()
 	const { showDeveloperPages, ramGb } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -97,7 +99,7 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 								{selectedInstance.name}
 							</p>
 							<p className="truncate text-[10.5px] text-muted-foreground">
-								{selectedInstance.version} · {ramGb} GB RAM
+								{selectedInstance.version} · {t("shell.mobileRam", { ramGb })}
 							</p>
 						</div>
 					</div>
@@ -108,12 +110,15 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 						className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-[12px] font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:opacity-90 disabled:opacity-60"
 					>
 						<Play className="size-3.5 fill-current" />
-						<span>{isLaunching ? "Launching..." : "Play"}</span>
+						<span>{isLaunching ? t("common.launching") : t("common.play")}</span>
 					</button>
 				</div>
 			) : null}
 
-			<nav aria-label="Mobile Navigation" className="grid grid-cols-5 gap-1 px-2 py-1.5">
+			<nav
+				aria-label={t("shell.mobileNavigationAria")}
+				className="grid grid-cols-5 gap-1 px-2 py-1.5"
+			>
 				{primaryItems.map((item) => {
 					const isActive = isNavItemActive(currentPath, item.path) && !moreOpen
 					return <MobileBottomNavItem key={item.path} item={item} isActive={isActive} />
@@ -136,7 +141,7 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 						/>
 					) : null}
 					<MoreHorizontal className="relative z-10 size-4" />
-					<span className="relative z-10">More</span>
+					<span className="relative z-10">{t("common.more")}</span>
 				</button>
 			</nav>
 		</div>

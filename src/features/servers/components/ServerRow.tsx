@@ -1,11 +1,19 @@
 import { Play, Server, Signal, Users } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { InstanceEngine } from "@/shared/stores/useInstancesStore"
+
+export type ServerMotdKey =
+	| "servers.catalog.srv-ingot-smp.motd"
+	| "servers.catalog.srv-horizon-lab.motd"
+	| "servers.catalog.srv-create-brass.motd"
+	| "servers.catalog.srv-hypixel.motd"
 
 export interface ServerEntry {
 	id: string
 	name: string
 	address: string
 	motd: string
+	motdKey?: ServerMotdKey
 	playersOnline: number
 	playersMax: number
 	pingMs: number
@@ -20,6 +28,8 @@ interface ServerRowProps {
 }
 
 const ServerRow = ({ server, onConnect }: ServerRowProps) => {
+	const { t } = useTranslation()
+
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card/65 px-4 py-3 transition-colors hover:border-foreground/20 hover:bg-card">
 			<div className="flex min-w-0 items-center gap-3">
@@ -33,7 +43,9 @@ const ServerRow = ({ server, onConnect }: ServerRowProps) => {
 							{server.address}
 						</span>
 					</div>
-					<p className="mt-0.5 truncate text-[12px] text-muted-foreground">{server.motd}</p>
+					<p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+						{server.motdKey ? t(server.motdKey) : server.motd}
+					</p>
 				</div>
 			</div>
 
@@ -59,7 +71,7 @@ const ServerRow = ({ server, onConnect }: ServerRowProps) => {
 					className="flex h-8 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3.5 text-[12px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
 				>
 					<Play className="size-3.5 fill-current" />
-					<span>Connect</span>
+					<span>{t("servers.connect")}</span>
 				</button>
 			</div>
 		</div>

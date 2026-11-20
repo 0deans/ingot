@@ -1,4 +1,5 @@
 import { RotateCw } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import WindowControlButtons from "@/shared/components/WindowControlButtons"
 import { getSafeAppVersion } from "@/shared/lib/errorFormatting"
 
@@ -8,6 +9,7 @@ interface SafeTitlebarProps {
 }
 
 const SafeTitlebar = ({ statusLabel, onReload }: SafeTitlebarProps) => {
+	const { t } = useTranslation()
 	const appVersion = getSafeAppVersion()
 
 	return (
@@ -18,7 +20,7 @@ const SafeTitlebar = ({ statusLabel, onReload }: SafeTitlebarProps) => {
 			<div data-tauri-drag-region className="flex shrink-0 items-center gap-2">
 				<img
 					src="/ingot.svg"
-					alt="Ingot logo"
+					alt={t("shell.logoAlt")}
 					draggable={false}
 					className="pointer-events-none size-5 shrink-0 object-contain"
 				/>
@@ -47,7 +49,7 @@ const SafeTitlebar = ({ statusLabel, onReload }: SafeTitlebarProps) => {
 						className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-foreground/5 px-2.5 text-[11px] font-medium text-foreground transition-colors hover:bg-foreground/10"
 					>
 						<RotateCw className="size-3" />
-						<span>Reload</span>
+						<span>{t("shell.window.reload")}</span>
 					</button>
 				) : null}
 

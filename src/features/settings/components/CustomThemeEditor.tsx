@@ -1,5 +1,6 @@
 import { Check, ClipboardPaste, Copy, RotateCcw, SlidersHorizontal } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useShallow } from "zustand/react/shallow"
 import CustomThemeColorField from "@/features/settings/components/CustomThemeColorField"
@@ -16,20 +17,23 @@ import {
 	type CustomThemeColors,
 } from "@/shared/theme/customTheme"
 
-const BASE_MODE_OPTIONS: SegmentedOption<CustomThemeBaseMode>[] = [
-	{ value: "dark", label: "Dark Base", dotClass: "bg-zinc-900" },
-	{ value: "light", label: "Light Base", dotClass: "bg-zinc-100" },
-]
+type SeedPresetId = Exclude<AppThemeId, "custom">
+
+type SeedPresetLabelKey =
+	| "settings.appearance.themes.dark.title"
+	| "settings.appearance.themes.light.title"
+	| "settings.appearance.themes.purple.title"
 
 const RADIUS_PRESETS: readonly number[] = [0, 0.35, 0.625, 0.75, 1.0]
 
-const SEED_PRESETS: readonly { id: Exclude<AppThemeId, "custom">; label: string }[] = [
-	{ id: "dark", label: "Dark" },
-	{ id: "light", label: "Light" },
-	{ id: "purple", label: "Purple" },
+const SEED_PRESETS: readonly { id: SeedPresetId; labelKey: SeedPresetLabelKey }[] = [
+	{ id: "dark", labelKey: "settings.appearance.themes.dark.title" },
+	{ id: "light", labelKey: "settings.appearance.themes.light.title" },
+	{ id: "purple", labelKey: "settings.appearance.themes.purple.title" },
 ]
 
 const CustomThemeEditor = () => {
+	const { t } = useTranslation()
 	const {
 		customTheme,
 		setCustomTheme,
@@ -55,7 +59,12 @@ const CustomThemeEditor = () => {
 	const [copiedJson, setCopiedJson] = useState<boolean>(false)
 	const [fieldResetEpoch, setFieldResetEpoch] = useState<number>(0)
 
-	const displayedJson = jsonEditDraft ?? stringifyCustomThemeJson(customTheme)
+	const baseModeOptions: SegmentedOption<CustomThemeBaseMode>[] = useMemo(() => {
+		return [
+			{ value: "dark", label: t("settings.customTheme.darkBase"), dotClass: "bg-zinc-900" },
+			{ value: "light", label: t("settings.customTheme.lightBase"), dotClass: "bg-zinc-100" },
+		]
+	}, [t])
 
 	const handleCommitColor = useCallback(
 		(key: keyof CustomThemeColors, value: string) => {
@@ -97,60 +106,62 @@ const CustomThemeEditor = () => {
 		try {
 			await navigator.clipboard.writeText(payload)
 			setCopiedJson(true)
-			toast.success("Custom theme JSON copied to clipboard.")
+			toast.success(t("settings.customTheme.copiedToast"))
 		} catch {
-			toast.error("Clipboard write failed. Copy from the JSON editor below.")
+			toast.error(t("settings.customTheme.copyFailedToast"))
 		}
-	}, [customTheme])
+	}, [customTheme, t])
 
 	const handlePasteClipboard = useCallback(async () => {
 		try {
 			const clipboardText = await navigator.clipboard.readText()
 			if (!clipboardText.trim()) {
-				toast.info("Clipboard is empty. Paste JSON directly into the box below.")
+				toast.info(t("settings.customTheme.emptyClipboardToast"))
 				return
 			}
 			const parsed = parseCustomThemeJson(clipboardText)
 			if (!parsed.ok) {
 				setJsonEditDraft(clipboardText)
 				setJsonErrors(parsed.errors)
-				toast.error("Clipboard JSON has validation errors.")
+				toast.error(t("settings.customTheme.clipboardErrorToast"))
 				return
 			}
 			setCustomTheme(parsed.value)
 			resetBulkDrafts()
-			toast.success("Applied custom theme from clipboard JSON.")
+			toast.success(t("settings.customTheme.appliedClipboardToast"))
 		} catch {
-			toast.info("Clipboard read blocked. Paste JSON manually into the editor box.")
+			toast.info(t("settings.customTheme.clipboardBlockedToast"))
 		}
-	}, [resetBulkDrafts, setCustomTheme])
+	}, [resetBulkDrafts, setCustomTheme, t])
+
+	const displayedJson = jsonEditDraft ?? stringifyCustomThemeJson(customTheme)
 
 	const handleApplyJson = useCallback(() => {
 		const parsed = parseCustomThemeJson(displayedJson)
 		if (!parsed.ok) {
 			setJsonErrors(parsed.errors)
-			toast.error("Custom theme JSON is invalid.")
+			toast.error(t("settings.customTheme.invalidJsonToast"))
 			return
 		}
 		setCustomTheme(parsed.value)
 		resetBulkDrafts()
-		toast.success("Custom theme JSON applied.")
-	}, [displayedJson, resetBulkDrafts, setCustomTheme])
+		toast.success(t("settings.customTheme.appliedJsonToast"))
+	}, [displayedJson, resetBulkDrafts, setCustomTheme, t])
 
 	const handleSeedPreset = useCallback(
-		(presetId: Exclude<AppThemeId, "custom">) => {
+		(presetId: SeedPresetId, presetLabel: string) => {
 			resetCustomTheme(presetId)
 			resetBulkDrafts()
-			toast.success(`Loaded ${presetId} preset into Custom theme.`)
+			toast.success(t("settings.customTheme.loadedPresetToast", { preset: presetLabel }))
 		},
-		[resetBulkDrafts, resetCustomTheme],
+		[resetBulkDrafts, resetCustomTheme, t],
 	)
 
 	const handleReset = useCallback(() => {
 		resetCustomTheme()
 		resetBulkDrafts()
-		toast.success("Reset custom theme to default preset.")
-	}, [resetBulkDrafts, resetCustomTheme])
+		toast.success(t("settings.customTheme.resetDefaultToast"))
+	}, [resetBulkDrafts, resetCustomTheme, t])
 
 	useEffect(() => {
 		if (!copiedJson) {
@@ -172,26 +183,31 @@ const CustomThemeEditor = () => {
 				<div className="flex min-w-0 items-center gap-2">
 					<SlidersHorizontal className="size-4 shrink-0 text-primary" />
 					<div className="min-w-0">
-						<h2 className="text-[13.5px] font-semibold text-foreground">Custom Theme Builder</h2>
+						<h2 className="text-[13.5px] font-semibold text-foreground">
+							{t("settings.customTheme.title")}
+						</h2>
 						<p className="text-[11.5px] text-muted-foreground">
-							Tune color tokens live or import/export portable JSON themes.
+							{t("settings.customTheme.subtitle")}
 						</p>
 					</div>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-1.5">
-					<span className="mr-1 text-[11px] font-medium text-muted-foreground">Seed preset:</span>
+					<span className="mr-1 text-[11px] font-medium text-muted-foreground">
+						{t("settings.customTheme.seedPreset")}
+					</span>
 					{SEED_PRESETS.map((preset) => {
+						const presetLabel = t(preset.labelKey)
 						return (
 							<button
 								key={preset.id}
 								type="button"
 								onClick={() => {
-									handleSeedPreset(preset.id)
+									handleSeedPreset(preset.id, presetLabel)
 								}}
 								className="cursor-pointer rounded-lg border border-border bg-foreground/5 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-foreground/10"
 							>
-								{preset.label}
+								{presetLabel}
 							</button>
 						)
 					})}
@@ -201,25 +217,27 @@ const CustomThemeEditor = () => {
 						className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border bg-foreground/5 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 					>
 						<RotateCcw className="size-3" />
-						<span>Reset</span>
+						<span>{t("common.reset")}</span>
 					</button>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-foreground/3 p-3.5 md:grid-cols-2">
 				<div className="flex flex-col gap-2">
-					<span className="text-[11.5px] font-medium text-foreground">Base Contrast Mode</span>
+					<span className="text-[11.5px] font-medium text-foreground">
+						{t("settings.customTheme.baseContrastMode")}
+					</span>
 					<div>
 						<SegmentedControl
 							layoutId="custom-theme-base-mode"
-							options={BASE_MODE_OPTIONS}
+							options={baseModeOptions}
 							value={customTheme.baseMode}
 							onChange={handleBaseModeChange}
 							tone="emerald"
 						/>
 					</div>
 					<p className="text-[11px] text-muted-foreground">
-						Controls adaptive foreground ink, glass highlights, and toast contrast.
+						{t("settings.customTheme.baseContrastHint")}
 					</p>
 				</div>
 
@@ -229,7 +247,7 @@ const CustomThemeEditor = () => {
 							htmlFor="custom-theme-radius"
 							className="text-[11.5px] font-medium text-foreground"
 						>
-							Corner Radius
+							{t("settings.customTheme.cornerRadius")}
 						</label>
 						<span className="font-mono text-[11px] font-semibold text-primary">
 							{customTheme.radiusRem.toFixed(2)}rem
@@ -277,7 +295,7 @@ const CustomThemeEditor = () => {
 
 			<div className="flex flex-col gap-2.5">
 				<h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-					Color Tokens
+					{t("settings.customTheme.colorTokens")}
 				</h3>
 				<div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
 					{CUSTOM_THEME_FIELDS.map((field) => {
@@ -298,9 +316,11 @@ const CustomThemeEditor = () => {
 			<div className="flex flex-col gap-2.5 rounded-xl border border-border bg-foreground/3 p-3.5">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="min-w-0 flex-1">
-						<h3 className="text-[12.5px] font-semibold text-foreground">JSON Import / Export</h3>
+						<h3 className="text-[12.5px] font-semibold text-foreground">
+							{t("settings.customTheme.jsonTitle")}
+						</h3>
 						<p className="text-[11px] text-muted-foreground">
-							Copy your current configuration or paste shared JSON styles to apply them.
+							{t("settings.customTheme.jsonSubtitle")}
 						</p>
 					</div>
 
@@ -317,7 +337,7 @@ const CustomThemeEditor = () => {
 							) : (
 								<Copy className="size-3.5 text-muted-foreground" />
 							)}
-							<span>{copiedJson ? "Copied" : "Copy JSON"}</span>
+							<span>{copiedJson ? t("common.copied") : t("settings.customTheme.copyJson")}</span>
 						</button>
 
 						<button
@@ -328,7 +348,7 @@ const CustomThemeEditor = () => {
 							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-foreground/6 px-2.5 py-1.5 text-[11.5px] font-medium whitespace-nowrap text-foreground transition-colors hover:bg-foreground/12"
 						>
 							<ClipboardPaste className="size-3.5 text-muted-foreground" />
-							<span>Paste Clipboard</span>
+							<span>{t("settings.customTheme.pasteClipboard")}</span>
 						</button>
 
 						<button
@@ -336,13 +356,13 @@ const CustomThemeEditor = () => {
 							onClick={handleApplyJson}
 							className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11.5px] font-semibold whitespace-nowrap text-primary-foreground transition-opacity hover:opacity-90"
 						>
-							<span>Apply JSON</span>
+							<span>{t("settings.customTheme.applyJson")}</span>
 						</button>
 					</div>
 				</div>
 
 				<textarea
-					aria-label="Custom theme JSON"
+					aria-label={t("settings.customTheme.jsonTitle")}
 					value={displayedJson}
 					onChange={(event) => {
 						setJsonEditDraft(event.currentTarget.value)
@@ -360,7 +380,7 @@ const CustomThemeEditor = () => {
 						role="alert"
 						className="rounded-xl border border-destructive/40 bg-destructive/12 px-3 py-2 text-[11.5px] text-destructive"
 					>
-						<p className="font-semibold">Unable to apply theme JSON:</p>
+						<p className="font-semibold">{t("settings.customTheme.jsonErrorsHeading")}</p>
 						<ul className="mt-1 list-disc pl-4">
 							{jsonErrors.map((errorMessage) => {
 								return <li key={errorMessage}>{errorMessage}</li>

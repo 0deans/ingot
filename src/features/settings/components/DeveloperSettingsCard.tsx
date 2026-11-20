@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router"
 import { ArrowUpRight, Code2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import { cn } from "@/shared/lib/utils"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { appleToast } from "@/shared/ui/sonner"
 
 const DeveloperSettingsCard = () => {
+	const { t } = useTranslation()
 	const {
 		showDeveloperPages,
 		setShowDeveloperPages,
@@ -25,11 +27,14 @@ const DeveloperSettingsCard = () => {
 	const handleToggleDeveloperPages = () => {
 		const next = !showDeveloperPages
 		setShowDeveloperPages(next)
-		appleToast.info(next ? "Developer pages enabled" : "Developer pages hidden", {
-			description: next
-				? "UI Lab is now visible in launcher navigation."
-				: "UI Lab and developer routes have been hidden from navigation.",
-		})
+		appleToast.info(
+			next ? t("settings.developer.pagesEnabledToast") : t("settings.developer.pagesHiddenToast"),
+			{
+				description: next
+					? t("settings.developer.pagesEnabledDescription")
+					: t("settings.developer.pagesHiddenDescription"),
+			},
+		)
 	}
 
 	const handleToggleContextMenu = () => {
@@ -42,7 +47,9 @@ const DeveloperSettingsCard = () => {
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<Code2 className="size-4 text-primary" />
-					<h2 className="text-[13.5px] font-semibold text-foreground">Developer Options</h2>
+					<h2 className="text-[13.5px] font-semibold text-foreground">
+						{t("settings.developer.title")}
+					</h2>
 				</div>
 
 				{showDeveloperPages ? (
@@ -50,7 +57,7 @@ const DeveloperSettingsCard = () => {
 						to="/ui-test"
 						className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/12 px-2.5 py-1 text-[11.5px] font-medium text-primary transition-colors hover:bg-primary/20"
 					>
-						<span>Open UI Lab</span>
+						<span>{t("settings.developer.openUiLab")}</span>
 						<ArrowUpRight className="size-3.5" />
 					</Link>
 				) : null}
@@ -58,9 +65,11 @@ const DeveloperSettingsCard = () => {
 
 			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
 				<div className="min-w-0 flex-1">
-					<p className="text-[12.5px] font-medium text-foreground">Show Developer Pages</p>
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.developer.showPagesTitle")}
+					</p>
 					<p className="text-[11px] leading-relaxed text-muted-foreground">
-						Expose UI Design Lab and internal sandboxes in sidebar, capsule bar, and mobile menus.
+						{t("settings.developer.showPagesDescription")}
 					</p>
 				</div>
 				<button
@@ -75,16 +84,17 @@ const DeveloperSettingsCard = () => {
 							: "bg-foreground/10 text-muted-foreground",
 					)}
 				>
-					{showDeveloperPages ? "Enabled" : "Disabled"}
+					{showDeveloperPages ? t("common.enabled") : t("common.disabled")}
 				</button>
 			</div>
 
 			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
 				<div className="min-w-0 flex-1">
-					<p className="text-[12.5px] font-medium text-foreground">Allow Inspect Context Menu</p>
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.developer.contextMenuTitle")}
+					</p>
 					<p className="text-[11px] leading-relaxed text-muted-foreground">
-						Keep the native right-click context menu enabled for element inspection inside desktop
-						windows.
+						{t("settings.developer.contextMenuDescription")}
 					</p>
 				</div>
 				<button
@@ -99,7 +109,7 @@ const DeveloperSettingsCard = () => {
 							: "bg-foreground/10 text-muted-foreground",
 					)}
 				>
-					{enableDevContextMenu ? "Enabled" : "Disabled"}
+					{enableDevContextMenu ? t("common.enabled") : t("common.disabled")}
 				</button>
 			</div>
 		</section>

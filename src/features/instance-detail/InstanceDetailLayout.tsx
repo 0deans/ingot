@@ -1,5 +1,6 @@
 import { Outlet, useRouterState } from "@tanstack/react-router"
 import { Globe2, Package, Settings, Terminal, type LucideIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import InstanceHeader from "@/features/instance-detail/components/InstanceHeader"
 import RouteNavTabs, { type RouteNavTabItem } from "@/shared/components/motion/RouteNavTabs"
@@ -15,6 +16,12 @@ interface InstanceDetailLayoutProps {
 
 type InstanceTabSuffix = "mods" | "worlds" | "logs" | "settings"
 
+type InstanceTabLabelKey =
+	| "instanceDetail.tabs.mods"
+	| "instanceDetail.tabs.worlds"
+	| "instanceDetail.tabs.logs"
+	| "instanceDetail.tabs.settings"
+
 interface InstanceTabItem {
 	to:
 		| "/instances/$instanceId/mods"
@@ -22,23 +29,39 @@ interface InstanceTabItem {
 		| "/instances/$instanceId/logs"
 		| "/instances/$instanceId/settings"
 	suffix: InstanceTabSuffix
-	label: string
+	labelKey: InstanceTabLabelKey
 	icon: LucideIcon
 }
 
 const INSTANCE_TABS: readonly InstanceTabItem[] = [
-	{ to: "/instances/$instanceId/mods", suffix: "mods", label: "Mods", icon: Package },
-	{ to: "/instances/$instanceId/worlds", suffix: "worlds", label: "Worlds", icon: Globe2 },
-	{ to: "/instances/$instanceId/logs", suffix: "logs", label: "Live Logs", icon: Terminal },
+	{
+		to: "/instances/$instanceId/mods",
+		suffix: "mods",
+		labelKey: "instanceDetail.tabs.mods",
+		icon: Package,
+	},
+	{
+		to: "/instances/$instanceId/worlds",
+		suffix: "worlds",
+		labelKey: "instanceDetail.tabs.worlds",
+		icon: Globe2,
+	},
+	{
+		to: "/instances/$instanceId/logs",
+		suffix: "logs",
+		labelKey: "instanceDetail.tabs.logs",
+		icon: Terminal,
+	},
 	{
 		to: "/instances/$instanceId/settings",
 		suffix: "settings",
-		label: "JVM & Settings",
+		labelKey: "instanceDetail.tabs.settings",
 		icon: Settings,
 	},
 ]
 
 const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
+	const { t } = useTranslation()
 	const pathname = useRouterState({
 		select: (state) => {
 			return state.location.pathname
@@ -81,7 +104,7 @@ const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
 		const targetSuffix = `/instances/${instanceId}/${tab.suffix}`
 		return {
 			key: tab.suffix,
-			label: tab.label,
+			label: t(tab.labelKey),
 			icon: tab.icon,
 			isActive: pathname === targetSuffix,
 			link: { to: tab.to, params: { instanceId } },
@@ -96,7 +119,11 @@ const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
 				onToggleLaunch={handleToggleLaunch}
 			/>
 
-			<RouteNavTabs ariaLabel="Instance Sections" layoutId="instance-detail-tab" items={tabItems} />
+			<RouteNavTabs
+				ariaLabel={t("instanceDetail.sectionsAria")}
+				layoutId="instance-detail-tab"
+				items={tabItems}
+			/>
 
 			<Outlet />
 		</div>

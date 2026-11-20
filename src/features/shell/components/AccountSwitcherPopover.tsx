@@ -1,8 +1,13 @@
 import { Check, Plus, ShieldCheck, User, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, type CSSProperties } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/shared/lib/utils"
-import { getAccountInitials, type AccountProfile } from "@/shared/stores/useAccountStore"
+import {
+	ACCOUNT_TYPE_LABEL_KEYS,
+	getAccountInitials,
+	type AccountProfile,
+} from "@/shared/stores/useAccountStore"
 
 export type AccountPopoverAnchor = "capsule" | "rail" | "sidebar" | "mobile"
 
@@ -90,6 +95,8 @@ const AccountSwitcherPopover = ({
 	onSelectAccount,
 	onAddAccount,
 }: AccountSwitcherPopoverProps) => {
+	const { t } = useTranslation()
+
 	useEffect(() => {
 		if (!open) {
 			return
@@ -114,13 +121,13 @@ const AccountSwitcherPopover = ({
 				<div className="fixed inset-0 z-50">
 					<button
 						type="button"
-						aria-label="Close account switcher"
+						aria-label={t("shell.accountSwitcher.closeAria")}
 						onClick={onClose}
 						className="fixed inset-0 cursor-default bg-black/25"
 					/>
 					<motion.div
 						role="dialog"
-						aria-label="Account Switcher"
+						aria-label={t("shell.accountSwitcher.title")}
 						style={anchoredStyle}
 						initial={{
 							opacity: 0,
@@ -143,13 +150,13 @@ const AccountSwitcherPopover = ({
 							<div className="flex items-center gap-2">
 								<User className="size-3.5 text-primary" />
 								<span className="text-[12.5px] font-semibold text-popover-foreground">
-									Switch Account
+									{t("shell.accountSwitcher.title")}
 								</span>
 							</div>
 							<button
 								type="button"
 								onClick={onClose}
-								aria-label="Dismiss account switcher"
+								aria-label={t("shell.accountSwitcher.dismissAria")}
 								className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 							>
 								<X className="size-3.5" />
@@ -192,7 +199,7 @@ const AccountSwitcherPopover = ({
 												) : null}
 											</div>
 											<span className="block truncate text-[10.5px] text-muted-foreground">
-												{account.type} · {account.uuid.slice(0, 8)}
+												{t(ACCOUNT_TYPE_LABEL_KEYS[account.type])} · {account.uuid.slice(0, 8)}
 											</span>
 										</div>
 										{isActive ? <Check className="size-3.5 shrink-0 text-primary" /> : null}
@@ -210,7 +217,7 @@ const AccountSwitcherPopover = ({
 								className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-foreground/8 px-2.5 py-1.5 text-[11.5px] font-medium text-popover-foreground transition-colors hover:bg-foreground/14"
 							>
 								<Plus className="size-3.5" />
-								<span>Add Account</span>
+								<span>{t("shell.accountSwitcher.addAccount")}</span>
 							</button>
 						</div>
 					</motion.div>

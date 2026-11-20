@@ -1,23 +1,36 @@
 import { Check, Sparkles } from "lucide-react"
-import type { ArmModel } from "@/features/skins/components/SkinCanvas3D"
+import { useTranslation } from "react-i18next"
+import {
+	CAPE_LABEL_KEYS,
+	type ArmModel,
+	type CapeId,
+} from "@/features/skins/components/SkinCanvas3D"
 import { cn } from "@/shared/lib/utils"
 
+export type SkinPresetId =
+	| "skin-emerald-smith"
+	| "skin-horizon-scout"
+	| "skin-nether-wanderer"
+	| "skin-amethyst-mage"
+
 export interface SkinPreset {
-	id: string
-	name: string
+	id: SkinPresetId
+	nameKey: `skins.presets.${SkinPresetId}.name`
 	model: ArmModel
-	cape: string
+	cape: CapeId
 	gradient: string
-	subtitle: string
+	subtitleKey: `skins.presets.${SkinPresetId}.subtitle`
 }
 
 interface SkinPresetGridProps {
 	presets: readonly SkinPreset[]
-	selectedId: string
+	selectedId: SkinPresetId
 	onSelect: (preset: SkinPreset) => void
 }
 
 const SkinPresetGrid = ({ presets, selectedId, onSelect }: SkinPresetGridProps) => {
+	const { t } = useTranslation()
+
 	return (
 		<section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			{presets.map((preset) => {
@@ -47,17 +60,21 @@ const SkinPresetGrid = ({ presets, selectedId, onSelect }: SkinPresetGridProps) 
 									)}
 								>
 									<Sparkles className="size-3" />
-									<span>{preset.model === "classic" ? "Classic" : "Slim"}</span>
+									<span>
+										{preset.model === "classic" ? t("skins.classicBadge") : t("skins.slimBadge")}
+									</span>
 								</span>
 								{isSelected ? <Check className="size-4 text-primary" /> : null}
 							</div>
-							<h2 className="text-[14px] font-semibold text-foreground">{preset.name}</h2>
-							<p className="mt-1 text-[12px] text-muted-foreground">{preset.subtitle}</p>
+							<h2 className="text-[14px] font-semibold text-foreground">{t(preset.nameKey)}</h2>
+							<p className="mt-1 text-[12px] text-muted-foreground">{t(preset.subtitleKey)}</p>
 						</div>
 
 						<div className="mt-4 flex items-center justify-between border-t border-border pt-2.5 text-[11px] text-muted-foreground">
-							<span>Cape preset: {preset.cape}</span>
-							<span className="font-medium text-primary">{isSelected ? "Equipped" : "Select"}</span>
+							<span>{t("skins.capePreset", { cape: t(CAPE_LABEL_KEYS[preset.cape]) })}</span>
+							<span className="font-medium text-primary">
+								{isSelected ? t("skins.equipped") : t("skins.select")}
+							</span>
 						</div>
 					</button>
 				)

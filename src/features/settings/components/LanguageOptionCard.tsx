@@ -1,5 +1,10 @@
 import { Check } from "lucide-react"
-import { type AppLanguageMeta, type AppLocaleCode } from "@/shared/i18n/languages"
+import { useTranslation } from "react-i18next"
+import {
+	LANGUAGE_NAME_KEYS,
+	type AppLanguageMeta,
+	type AppLocaleCode,
+} from "@/shared/i18n/languages"
 import { cn } from "@/shared/lib/utils"
 
 interface LanguageOptionCardProps {
@@ -15,6 +20,8 @@ const LanguageOptionCard = ({
 	isSystemDetected,
 	onSelect,
 }: LanguageOptionCardProps) => {
+	const { t } = useTranslation()
+
 	return (
 		<button
 			type="button"
@@ -47,12 +54,12 @@ const LanguageOptionCard = ({
 					</span>
 					{isSystemDetected ? (
 						<span className="shrink-0 rounded-full border border-border bg-foreground/5 px-1.5 py-0.5 text-[9.5px] font-medium text-muted-foreground">
-							System
+							{t("settings.language.systemBadge")}
 						</span>
 					) : null}
 				</div>
 				<span className="block truncate text-[11px] text-muted-foreground">
-					{language.englishName}
+					{t(LANGUAGE_NAME_KEYS[language.code])}
 				</span>
 			</div>
 

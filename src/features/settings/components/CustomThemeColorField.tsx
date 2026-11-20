@@ -1,5 +1,6 @@
 import { Undo2 } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import ColorPicker from "@/shared/components/ColorPicker"
 import { cn } from "@/shared/lib/utils"
 import {
@@ -7,6 +8,39 @@ import {
 	type CustomThemeColors,
 	type CustomThemeFieldDescriptor,
 } from "@/shared/theme/customTheme"
+
+type CustomThemeFieldLabelKey =
+	| "settings.customTheme.fields.background"
+	| "settings.customTheme.fields.foreground"
+	| "settings.customTheme.fields.card"
+	| "settings.customTheme.fields.cardForeground"
+	| "settings.customTheme.fields.sidebar"
+	| "settings.customTheme.fields.sidebarForeground"
+	| "settings.customTheme.fields.popover"
+	| "settings.customTheme.fields.popoverForeground"
+	| "settings.customTheme.fields.primary"
+	| "settings.customTheme.fields.primaryForeground"
+	| "settings.customTheme.fields.muted"
+	| "settings.customTheme.fields.mutedForeground"
+	| "settings.customTheme.fields.border"
+	| "settings.customTheme.fields.destructive"
+
+const FIELD_LABEL_KEYS: Record<keyof CustomThemeColors, CustomThemeFieldLabelKey> = {
+	background: "settings.customTheme.fields.background",
+	foreground: "settings.customTheme.fields.foreground",
+	card: "settings.customTheme.fields.card",
+	cardForeground: "settings.customTheme.fields.cardForeground",
+	sidebar: "settings.customTheme.fields.sidebar",
+	sidebarForeground: "settings.customTheme.fields.sidebarForeground",
+	popover: "settings.customTheme.fields.popover",
+	popoverForeground: "settings.customTheme.fields.popoverForeground",
+	primary: "settings.customTheme.fields.primary",
+	primaryForeground: "settings.customTheme.fields.primaryForeground",
+	muted: "settings.customTheme.fields.muted",
+	mutedForeground: "settings.customTheme.fields.mutedForeground",
+	border: "settings.customTheme.fields.border",
+	destructive: "settings.customTheme.fields.destructive",
+}
 
 interface FieldDraftState {
 	epoch: number
@@ -29,12 +63,16 @@ const CustomThemeColorField = ({
 	resetEpoch,
 	onCommitColor,
 }: CustomThemeColorFieldProps) => {
+	const { t } = useTranslation()
+
 	const [draftState, setDraftState] = useState<FieldDraftState>({
 		epoch: resetEpoch,
 		value: null,
 		error: null,
 	})
 
+	const fieldLabel = t(FIELD_LABEL_KEYS[field.key])
+	const revertLabel = t("settings.customTheme.revert")
 	const isCurrentEpoch = draftState.epoch === resetEpoch
 	const draft = isCurrentEpoch ? draftState.value : null
 	const error = isCurrentEpoch ? draftState.error : null
@@ -81,14 +119,14 @@ const CustomThemeColorField = ({
 		>
 			<div className="flex items-center justify-between gap-2">
 				<label htmlFor={inputId} className="text-[12px] font-medium text-foreground">
-					{field.label}
+					{fieldLabel}
 				</label>
 				<span className="font-mono text-[10px] text-muted-foreground">{field.token}</span>
 			</div>
 
 			<div className="flex items-center gap-2">
 				<ColorPicker
-					label={field.label}
+					label={fieldLabel}
 					value={committedValue}
 					fallback={fallbackValue}
 					onChange={handlePickerChange}
@@ -128,12 +166,12 @@ const CustomThemeColorField = ({
 					<button
 						type="button"
 						onClick={handleClearDraft}
-						aria-label={`Revert ${field.label}`}
-						title="Revert to last valid color"
+						aria-label={`${revertLabel} ${fieldLabel}`}
+						title={t("settings.customTheme.revertTitle")}
 						className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
 					>
 						<Undo2 className="size-2.5" />
-						<span>Revert</span>
+						<span>{revertLabel}</span>
 					</button>
 				</div>
 			) : null}

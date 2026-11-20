@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next"
 import { motion } from "motion/react"
+import { useTranslation } from "react-i18next"
 import { useBreakpoint } from "@/features/shell/hooks/useBreakpoint"
 import { cn } from "@/shared/lib/utils"
 import {
@@ -11,67 +13,85 @@ export type { ToastPosition }
 
 type VerticalEdge = "top" | "bottom"
 
+type PositionLabelKey =
+	| "toastPicker.positions.topLeft"
+	| "toastPicker.positions.topCenter"
+	| "toastPicker.positions.topRight"
+	| "toastPicker.positions.bottomLeft"
+	| "toastPicker.positions.bottomCenter"
+	| "toastPicker.positions.bottomRight"
+
+type PositionShortLabelKey =
+	| "toastPicker.positions.topL"
+	| "toastPicker.positions.topC"
+	| "toastPicker.positions.topR"
+	| "toastPicker.positions.botL"
+	| "toastPicker.positions.botC"
+	| "toastPicker.positions.botR"
+
+type MobileEdgeLabelKey = "toastPicker.positions.top" | "toastPicker.positions.bottom"
+
 interface PositionSlot {
 	value: ToastPosition
-	label: string
-	shortLabel: string
+	labelKey: PositionLabelKey
+	shortLabelKey: PositionShortLabelKey
 	alignClass: string
 }
 
 interface MobileEdgeSlot {
 	edge: VerticalEdge
-	label: string
+	labelKey: MobileEdgeLabelKey
 }
 
 const POSITION_SLOTS: PositionSlot[] = [
 	{
 		value: "top-left",
-		label: "Top Left",
-		shortLabel: "Top L",
+		labelKey: "toastPicker.positions.topLeft",
+		shortLabelKey: "toastPicker.positions.topL",
 		alignClass: "items-start justify-start",
 	},
 	{
 		value: "top-center",
-		label: "Top Center",
-		shortLabel: "Top C",
+		labelKey: "toastPicker.positions.topCenter",
+		shortLabelKey: "toastPicker.positions.topC",
 		alignClass: "items-start justify-center",
 	},
 	{
 		value: "top-right",
-		label: "Top Right",
-		shortLabel: "Top R",
+		labelKey: "toastPicker.positions.topRight",
+		shortLabelKey: "toastPicker.positions.topR",
 		alignClass: "items-start justify-end",
 	},
 	{
 		value: "bottom-left",
-		label: "Bottom Left",
-		shortLabel: "Bot L",
+		labelKey: "toastPicker.positions.bottomLeft",
+		shortLabelKey: "toastPicker.positions.botL",
 		alignClass: "items-end justify-start",
 	},
 	{
 		value: "bottom-center",
-		label: "Bottom Center",
-		shortLabel: "Bot C",
+		labelKey: "toastPicker.positions.bottomCenter",
+		shortLabelKey: "toastPicker.positions.botC",
 		alignClass: "items-end justify-center",
 	},
 	{
 		value: "bottom-right",
-		label: "Bottom Right",
-		shortLabel: "Bot R",
+		labelKey: "toastPicker.positions.bottomRight",
+		shortLabelKey: "toastPicker.positions.botR",
 		alignClass: "items-end justify-end",
 	},
 ]
 
 const MOBILE_EDGE_SLOTS: MobileEdgeSlot[] = [
-	{ edge: "top", label: "Top" },
-	{ edge: "bottom", label: "Bottom" },
+	{ edge: "top", labelKey: "toastPicker.positions.top" },
+	{ edge: "bottom", labelKey: "toastPicker.positions.bottom" },
 ]
 
-const findPositionLabel = (position: ToastPosition): string => {
+const findPositionLabel = (position: ToastPosition, t: TFunction): string => {
 	const found = POSITION_SLOTS.find((slot) => {
 		return slot.value === position
 	})
-	return found ? found.label : "Bottom Right"
+	return found ? t(found.labelKey) : t("toastPicker.positions.bottomRight")
 }
 
 const getVerticalEdge = (position: ToastPosition): VerticalEdge => {
@@ -88,11 +108,17 @@ const replaceVerticalEdge = (position: ToastPosition, edge: VerticalEdge): Toast
 	return edge === "top" ? "top-right" : "bottom-right"
 }
 
-const resolveActivePositionLabel = (position: ToastPosition, isMobile: boolean): string => {
+const resolveActivePositionLabel = (
+	position: ToastPosition,
+	isMobile: boolean,
+	t: TFunction,
+): string => {
 	if (!isMobile) {
-		return findPositionLabel(position)
+		return findPositionLabel(position, t)
 	}
-	return getVerticalEdge(position) === "top" ? "Top" : "Bottom"
+	return getVerticalEdge(position) === "top"
+		? t("toastPicker.positions.top")
+		: t("toastPicker.positions.bottom")
 }
 
 interface MiniAppShellChromeProps {
@@ -272,6 +298,7 @@ const ToastPositionPicker = ({
 	layoutId = "toast-position-card",
 	onChange,
 }: ToastPositionPickerProps) => {
+	const { t } = useTranslation()
 	const breakpoint = useBreakpoint()
 	const navVariant = useLauncherPrefsStore((s) => {
 		return s.navVariant
@@ -279,12 +306,15 @@ const ToastPositionPicker = ({
 
 	const isMobile = breakpoint === "mobile"
 	const activeVerticalEdge = getVerticalEdge(value)
-	const activeLabel = resolveActivePositionLabel(value, isMobile)
+	const activeLabel = resolveActivePositionLabel(value, isMobile, t)
+	const groupAria = t("toastPicker.groupAria")
 
 	return (
 		<div className="flex min-w-0 flex-col gap-2">
 			<div className="flex items-center justify-between gap-3">
-				<span className="text-[11.5px] font-medium text-foreground/90">Screen Position</span>
+				<span className="text-[11.5px] font-medium text-foreground/90">
+					{t("toastPicker.screenPosition")}
+				</span>
 				<span className="rounded-full border border-primary/25 bg-primary/14 px-2 py-0.5 text-[10.5px] font-semibold text-primary">
 					{activeLabel}
 				</span>
@@ -293,18 +323,19 @@ const ToastPositionPicker = ({
 			{isMobile ? (
 				<div
 					role="group"
-					aria-label="Notification screen position"
+					aria-label={groupAria}
 					className="relative mx-auto flex h-76 w-46 max-w-full flex-col overflow-hidden rounded-3xl border-2 border-border/90 bg-background/90 shadow-inner select-none"
 				>
 					<MiniMobileShellChrome />
 
 					<div className="absolute inset-x-0 top-8 bottom-8 flex flex-col justify-between p-2.5">
 						{MOBILE_EDGE_SLOTS.map((slot) => {
+							const slotLabel = t(slot.labelKey)
 							return (
 								<PositionSlotButton
 									key={slot.edge}
-									label={slot.label}
-									shortLabel={slot.label}
+									label={slotLabel}
+									shortLabel={slotLabel}
 									isSelected={activeVerticalEdge === slot.edge}
 									layoutId={`${layoutId}-mobile`}
 									showDetails={showDetails}
@@ -320,7 +351,7 @@ const ToastPositionPicker = ({
 			) : (
 				<div
 					role="group"
-					aria-label="Notification screen position"
+					aria-label={groupAria}
 					className="relative flex h-48 w-96 max-w-full flex-col overflow-hidden rounded-xl border border-border bg-background/90 shadow-inner select-none"
 				>
 					<MiniAppShellChrome navVariant={navVariant} />
@@ -330,8 +361,8 @@ const ToastPositionPicker = ({
 							return (
 								<div key={slot.value} className={cn("flex p-0.5", slot.alignClass)}>
 									<PositionSlotButton
-										label={slot.label}
-										shortLabel={slot.shortLabel}
+										label={t(slot.labelKey)}
+										shortLabel={t(slot.shortLabelKey)}
 										isSelected={slot.value === value}
 										layoutId={layoutId}
 										showDetails={showDetails}
@@ -347,9 +378,7 @@ const ToastPositionPicker = ({
 			)}
 
 			<span className="text-[11px] text-muted-foreground">
-				{isMobile
-					? "Tap Top or Bottom inside the phone frame."
-					: "Click any corner or edge inside the window frame."}
+				{isMobile ? t("toastPicker.mobileHint") : t("toastPicker.desktopHint")}
 			</span>
 		</div>
 	)

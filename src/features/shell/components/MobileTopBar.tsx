@@ -1,5 +1,6 @@
 import { Boxes } from "lucide-react"
 import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import NotificationBellButton from "@/features/shell/components/NotificationBellButton"
 import { findNavItem } from "@/features/shell/navigation"
@@ -26,6 +27,7 @@ interface MobileTopBarProps {
 }
 
 const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
+	const { t } = useTranslation()
 	const activeAccount = useAccountStore(selectActiveAccount)
 	const activeProcessesCount = useProcessStore((s) => {
 		return s.runningProcesses.length
@@ -63,9 +65,11 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 				</div>
 				<div className="min-w-0">
 					<p className="truncate text-[13.5px] font-semibold text-foreground">
-						{currentItem.label}
+						{t(currentItem.labelKey)}
 					</p>
-					<p className="truncate text-[10px] text-muted-foreground">Ingot Launcher</p>
+					<p className="truncate text-[10px] text-muted-foreground">
+						{t("shell.launcherSubtitle")}
+					</p>
 				</div>
 			</div>
 
@@ -75,7 +79,7 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 					onClick={(event) => {
 						toggleAnchored("processes", layoutKey, event.currentTarget)
 					}}
-					aria-label="Toggle active processes"
+					aria-label={t("shell.toggleActiveProcesses")}
 					className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-foreground/5 px-2.5 text-[11px] font-medium text-foreground transition-colors hover:bg-foreground/10"
 				>
 					<span
@@ -103,7 +107,7 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 					onClick={(event) => {
 						toggleAnchored("account", layoutKey, event.currentTarget)
 					}}
-					aria-label={`Account ${activeAccount.username}`}
+					aria-label={t("shell.switchAccountAria", { username: activeAccount.username })}
 					className={cn(
 						"flex size-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-br text-[11px] font-bold text-white shadow-inner ring-1 ring-border",
 						activeAccount.avatarBg,

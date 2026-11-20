@@ -1,5 +1,6 @@
 import { Bell, Download, Sparkles, Wand2, XIcon } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import ToastPositionPicker, {
 	type ToastPosition,
@@ -11,18 +12,6 @@ import { appleToast } from "@/shared/ui/sonner"
 
 type ToastDensity = "detailed" | "compact"
 type ToastDurationPreset = "2s" | "4s" | "8s" | "pinned"
-
-const DENSITY_OPTIONS: SegmentedOption<ToastDensity>[] = [
-	{ value: "detailed", label: "Title + Details" },
-	{ value: "compact", label: "Title Only" },
-]
-
-const DURATION_OPTIONS: SegmentedOption<ToastDurationPreset>[] = [
-	{ value: "2s", label: "2s" },
-	{ value: "4s", label: "4s" },
-	{ value: "8s", label: "8s" },
-	{ value: "pinned", label: "Stay" },
-]
 
 const resolveDurationMs = (preset: ToastDurationPreset): number => {
 	if (preset === "2s") {
@@ -38,6 +27,7 @@ const resolveDurationMs = (preset: ToastDurationPreset): number => {
 }
 
 const ToastLabSection = () => {
+	const { t } = useTranslation()
 	const { preferredToastPosition, setPreferredToastPosition } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -54,6 +44,22 @@ const ToastLabSection = () => {
 	const [toastPosition, setToastPosition] = useState<ToastPosition>(preferredToastPosition)
 	const [density, setDensity] = useState<ToastDensity>("detailed")
 	const [durationPreset, setDurationPreset] = useState<ToastDurationPreset>("4s")
+
+	const densityOptions: SegmentedOption<ToastDensity>[] = useMemo(() => {
+		return [
+			{ value: "detailed", label: t("uiLab.toast.density.detailed") },
+			{ value: "compact", label: t("uiLab.toast.density.compact") },
+		]
+	}, [t])
+
+	const durationOptions: SegmentedOption<ToastDurationPreset>[] = useMemo(() => {
+		return [
+			{ value: "2s", label: "2s" },
+			{ value: "4s", label: "4s" },
+			{ value: "8s", label: "8s" },
+			{ value: "pinned", label: t("uiLab.toast.durationStay") },
+		]
+	}, [t])
 
 	useEffect(() => {
 		return () => {
@@ -79,10 +85,16 @@ const ToastLabSection = () => {
 	const runAnimatedDownload = (shouldFail: boolean) => {
 		let progress = 8
 		const totalMb = 64.0
-		const id = appleToast.progress("Downloading Iris Shaders 1.8.2", {
+		const id = appleToast.progress(t("uiLab.toast.samples.downloadingIris"), {
 			value: progress,
-			detail: `5.1 / ${totalMb.toFixed(1)} MB · 18.4 MB/s`,
-			description: showDescription ? "Fetching bundle from Modrinth CDN..." : undefined,
+			detail: t("uiLab.toast.samples.downloadingIrisDetail", {
+				loaded: "5.1",
+				total: totalMb.toFixed(1),
+				speed: "18.4",
+			}),
+			description: showDescription
+				? t("uiLab.toast.samples.downloadingIrisDescription")
+				: undefined,
 			position: toastPosition,
 		})
 
@@ -92,12 +104,14 @@ const ToastLabSection = () => {
 
 			if (shouldFail && progress >= 62) {
 				window.clearInterval(intervalId)
-				appleToast.failProgress(id, "Download interrupted", {
-					description: showDescription ? "Connection reset while streaming shard 3/5." : undefined,
+				appleToast.failProgress(id, t("uiLab.toast.samples.downloadInterrupted"), {
+					description: showDescription
+						? t("uiLab.toast.samples.downloadInterruptedDescription")
+						: undefined,
 					position: toastPosition,
 					duration: durationMs,
 					action: {
-						label: "Retry",
+						label: t("uiLab.toast.samples.retry"),
 						onClick: () => {
 							runAnimatedDownload(false)
 						},
@@ -108,9 +122,9 @@ const ToastLabSection = () => {
 
 			if (progress >= 100) {
 				window.clearInterval(intervalId)
-				appleToast.completeProgress(id, "Iris Shaders 1.8.2 installed", {
+				appleToast.completeProgress(id, t("uiLab.toast.samples.irisInstalled"), {
 					description: showDescription
-						? "Verified SHA-512 checksum and added to profile."
+						? t("uiLab.toast.samples.irisInstalledDescription")
 						: undefined,
 					position: toastPosition,
 					duration: durationMs,
@@ -120,7 +134,11 @@ const ToastLabSection = () => {
 
 			appleToast.updateProgress(id, {
 				value: progress,
-				detail: `${loadedMb.toFixed(1)} / ${totalMb.toFixed(1)} MB · ${(16.2 + (progress % 7)).toFixed(1)} MB/s`,
+				detail: t("uiLab.toast.samples.downloadingIrisDetail", {
+					loaded: loadedMb.toFixed(1),
+					total: totalMb.toFixed(1),
+					speed: (16.2 + (progress % 7)).toFixed(1),
+				}),
 			})
 		}, 380)
 
@@ -131,10 +149,10 @@ const ToastLabSection = () => {
 		const nextStep = stepToastIdRef.current === null ? 25 : stepValueRef.current + 25
 
 		if (stepToastIdRef.current === null) {
-			const id = appleToast.progress("Indexing world backups", {
+			const id = appleToast.progress(t("uiLab.toast.samples.indexingBackups"), {
 				value: 25,
-				detail: "1 / 4 snapshots verified",
-				description: showDescription ? "Click Step Progress again to advance." : undefined,
+				detail: t("uiLab.toast.samples.snapshotsVerified", { count: 1 }),
+				description: showDescription ? t("uiLab.toast.samples.stepProgressDescription") : undefined,
 				position: toastPosition,
 			})
 			stepToastIdRef.current = id
@@ -146,8 +164,10 @@ const ToastLabSection = () => {
 			const completedId = stepToastIdRef.current
 			stepToastIdRef.current = null
 			stepValueRef.current = 0
-			appleToast.completeProgress(completedId, "All 4 snapshots indexed", {
-				description: showDescription ? "Local backup catalog is up to date." : undefined,
+			appleToast.completeProgress(completedId, t("uiLab.toast.samples.allSnapshotsIndexed"), {
+				description: showDescription
+					? t("uiLab.toast.samples.allSnapshotsIndexedDescription")
+					: undefined,
 				position: toastPosition,
 				duration: durationMs,
 			})
@@ -158,7 +178,7 @@ const ToastLabSection = () => {
 		stepValueRef.current = nextStep
 		appleToast.updateProgress(stepToastIdRef.current, {
 			value: nextStep,
-			detail: `${chunk} / 4 snapshots verified`,
+			detail: t("uiLab.toast.samples.snapshotsVerified", { count: chunk }),
 		})
 	}
 
@@ -169,12 +189,14 @@ const ToastLabSection = () => {
 			}, 1500)
 		})
 		appleToast.promise(simulatedJob, {
-			loading: "Verifying modpack manifest...",
+			loading: t("uiLab.toast.samples.verifyingManifest"),
 			success: (result) => {
-				return `${result.packName} ready to launch`
+				return t("uiLab.toast.samples.packReadyToLaunch", { packName: result.packName })
 			},
-			error: "Manifest verification failed",
-			description: showDescription ? "Checked 42 mods and shader pipeline." : undefined,
+			error: t("uiLab.toast.samples.manifestFailed"),
+			description: showDescription
+				? t("uiLab.toast.samples.verifyingManifestDescription")
+				: undefined,
 			position: toastPosition,
 			duration: durationMs,
 		})
@@ -187,10 +209,12 @@ const ToastLabSection = () => {
 			}, 1400)
 		})
 		appleToast.promise(failingJob, {
-			loading: "Syncing asset index...",
-			success: "Assets synced",
-			error: "Asset checksum failed",
-			description: showDescription ? "Remote manifest signature did not match." : undefined,
+			loading: t("uiLab.toast.samples.syncingAssetIndex"),
+			success: t("uiLab.toast.samples.assetsSynced"),
+			error: t("uiLab.toast.samples.assetChecksumFailed"),
+			description: showDescription
+				? t("uiLab.toast.samples.assetChecksumFailedDescription")
+				: undefined,
 			position: toastPosition,
 			duration: durationMs,
 		})
@@ -208,19 +232,19 @@ const ToastLabSection = () => {
 							<div className="min-w-0 flex-1">
 								<div className="flex items-center justify-between gap-2">
 									<p className="truncate text-[12.5px] font-semibold tracking-tight">
-										Custom Card Slot
+										{t("uiLab.toast.samples.customCardTitle")}
 									</p>
 									<span className="rounded-full bg-primary/14 px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-primary">
 										JSX
 									</span>
 								</div>
 								<p className="mt-0.5 text-[11.5px] text-muted-foreground">
-									Bespoke layout inside the spring stack.
+									{t("uiLab.toast.samples.customCardDescription")}
 								</p>
 							</div>
 							<button
 								type="button"
-								aria-label="Close custom card"
+								aria-label={t("uiLab.toast.samples.closeCustomCardAria")}
 								onClick={() => {
 									appleToast.dismiss(toastId)
 								}}
@@ -241,23 +265,26 @@ const ToastLabSection = () => {
 
 	const triggerStackBurst = () => {
 		appleToast.info(
-			"Checking Modrinth index...",
-			buildOptions("Comparing 18 installed mods for updates."),
+			t("uiLab.toast.samples.stackInfoTitle"),
+			buildOptions(t("uiLab.toast.samples.stackInfoDescription")),
 		)
 		window.setTimeout(() => {
 			appleToast.warning(
-				"Sodium 0.6.10 available",
-				buildOptions("Release notes ready in Updates panel."),
+				t("uiLab.toast.samples.stackWarningTitle"),
+				buildOptions(t("uiLab.toast.samples.stackWarningDescription")),
 			)
 		}, 160)
 		window.setTimeout(() => {
 			appleToast.error(
-				"Texture atlas warning",
-				buildOptions("One pack resource exceeded 4K limit."),
+				t("uiLab.toast.samples.stackErrorTitle"),
+				buildOptions(t("uiLab.toast.samples.stackErrorDescription")),
 			)
 		}, 320)
 		window.setTimeout(() => {
-			appleToast.success("Shader cache warmed", buildOptions("Compiled 14 pipelines in 0.4s."))
+			appleToast.success(
+				t("uiLab.toast.samples.stackSuccessTitle"),
+				buildOptions(t("uiLab.toast.samples.stackSuccessDescription")),
+			)
 		}, 480)
 	}
 
@@ -266,9 +293,7 @@ const ToastLabSection = () => {
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<Bell className="size-4 text-primary" />
-					<h2 className="text-[13.5px] font-semibold text-foreground">
-						Apple-Style Toast Notifications
-					</h2>
+					<h2 className="text-[13.5px] font-semibold text-foreground">{t("uiLab.toast.title")}</h2>
 				</div>
 				<button
 					type="button"
@@ -279,14 +304,11 @@ const ToastLabSection = () => {
 					}}
 					className="cursor-pointer rounded-xl border border-border px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground transition-colors hover:bg-foreground/8 hover:text-foreground"
 				>
-					Dismiss All
+					{t("uiLab.toast.dismissAll")}
 				</button>
 			</div>
 
-			<p className="text-[12px] text-muted-foreground">
-				Test Liquid Glass styling, determinate ring &amp; bar progress, promise morphs, error
-				micro-shake feedback, interactive pills, and Notification Center stack expansion.
-			</p>
+			<p className="text-[12px] text-muted-foreground">{t("uiLab.toast.subtitle")}</p>
 
 			<div className="grid grid-cols-1 gap-5 rounded-xl border border-border/60 bg-foreground/2 p-4 @xl:grid-cols-[auto_1fr] @xl:items-center">
 				<div className="flex flex-col gap-2">
@@ -301,46 +323,50 @@ const ToastLabSection = () => {
 							type="button"
 							onClick={() => {
 								setPreferredToastPosition(toastPosition)
-								appleToast.success("Saved as app toast position", {
+								appleToast.success(t("uiLab.toast.savedAsAppDefaultToast"), {
 									position: toastPosition,
 								})
 							}}
 							className="w-fit cursor-pointer rounded-lg border border-primary/30 bg-primary/12 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/20"
 						>
-							Save as App Default
+							{t("uiLab.toast.saveAsAppDefault")}
 						</button>
 					) : null}
 				</div>
 
 				<div className="flex min-w-0 flex-col gap-4 @xl:border-l @xl:border-border/50 @xl:pl-5">
 					<div className="flex min-w-0 flex-col gap-1.5">
-						<span className="text-[11.5px] font-medium text-foreground/90">Content</span>
+						<span className="text-[11.5px] font-medium text-foreground/90">
+							{t("uiLab.toast.contentLabel")}
+						</span>
 						<SegmentedControl
 							layoutId="uitest-toast-density"
-							options={DENSITY_OPTIONS}
+							options={densityOptions}
 							value={density}
 							onChange={setDensity}
 							tone="emerald"
 						/>
 						<span className="text-[11px] text-muted-foreground">
 							{showDescription
-								? "Shows both headline and secondary detail text."
-								: "Compact single-line banner with title only."}
+								? t("uiLab.toast.densityHintDetailed")
+								: t("uiLab.toast.densityHintCompact")}
 						</span>
 					</div>
 					<div className="flex min-w-0 flex-col gap-1.5">
-						<span className="text-[11.5px] font-medium text-foreground/90">Auto-Close</span>
+						<span className="text-[11.5px] font-medium text-foreground/90">
+							{t("uiLab.toast.autoCloseLabel")}
+						</span>
 						<SegmentedControl
 							layoutId="uitest-toast-duration"
-							options={DURATION_OPTIONS}
+							options={durationOptions}
 							value={durationPreset}
 							onChange={setDurationPreset}
 							tone="neutral"
 						/>
 						<span className="text-[11px] text-muted-foreground">
 							{durationPreset === "pinned"
-								? "Keeps notifications open until you dismiss them."
-								: `Closes automatically after ${durationPreset} unless hovered.`}
+								? t("uiLab.toast.durationPinnedHint")
+								: t("uiLab.toast.durationTimedHint", { duration: durationPreset })}
 						</span>
 					</div>
 				</div>
@@ -348,87 +374,87 @@ const ToastLabSection = () => {
 
 			<div className="flex flex-col gap-2">
 				<span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-					Notification Types
+					{t("uiLab.toast.notificationTypesLabel")}
 				</span>
 				<div className="flex flex-wrap gap-2">
 					<button
 						type="button"
 						onClick={() => {
 							appleToast(
-								"Ingot Launcher ready",
-								buildOptions("All workspace profiles indexed cleanly."),
+								t("uiLab.toast.samples.defaultTitle"),
+								buildOptions(t("uiLab.toast.samples.defaultDescription")),
 							)
 						}}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Default
+						{t("uiLab.toast.types.default")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
 							appleToast.success(
-								"Profile synced cleanly",
-								buildOptions("Fabric 1.21.4 shader pack verified across 42 mods."),
+								t("uiLab.toast.samples.successTitle"),
+								buildOptions(t("uiLab.toast.samples.successDescription")),
 							)
 						}}
 						className="cursor-pointer rounded-xl border border-emerald-500/30 bg-emerald-500/12 px-3 py-1.5 text-[12px] font-medium text-emerald-600 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
 					>
-						Success
+						{t("uiLab.toast.types.success")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
 							appleToast.error(
-								"Modrinth checksum mismatch",
-								buildOptions("Iris Shaders 1.8.2 failed SHA-512 verification."),
+								t("uiLab.toast.samples.errorTitle"),
+								buildOptions(t("uiLab.toast.samples.errorDescription")),
 							)
 						}}
 						className="cursor-pointer rounded-xl border border-rose-500/30 bg-rose-500/12 px-3 py-1.5 text-[12px] font-medium text-rose-600 transition-colors hover:bg-rose-500/20 dark:text-rose-300"
 					>
-						Error
+						{t("uiLab.toast.types.error")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
 							appleToast.warning(
-								"Java 21 runtime recommended",
-								buildOptions("Selected instance currently targets an older JVM build."),
+								t("uiLab.toast.samples.warningTitle"),
+								buildOptions(t("uiLab.toast.samples.warningDescription")),
 							)
 						}}
 						className="cursor-pointer rounded-xl border border-amber-500/30 bg-amber-500/12 px-3 py-1.5 text-[12px] font-medium text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
 					>
-						Warning
+						{t("uiLab.toast.types.warning")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
 							appleToast.info(
-								"Cloud backup queued",
-								buildOptions("World snapshots will upload automatically after exit."),
+								t("uiLab.toast.samples.infoTitle"),
+								buildOptions(t("uiLab.toast.samples.infoDescription")),
 							)
 						}}
 						className="cursor-pointer rounded-xl border border-sky-500/30 bg-sky-500/12 px-3 py-1.5 text-[12px] font-medium text-sky-600 transition-colors hover:bg-sky-500/20 dark:text-sky-300"
 					>
-						Info
+						{t("uiLab.toast.types.info")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
 							appleToast.loading(
-								"Downloading NeoForge artifacts...",
-								buildOptions("Pinned until manually dismissed or resolved."),
+								t("uiLab.toast.samples.loadingTitle"),
+								buildOptions(t("uiLab.toast.samples.loadingDescription")),
 							)
 						}}
 						className="cursor-pointer rounded-xl border border-primary/35 bg-primary/12 px-3 py-1.5 text-[12px] font-medium text-primary transition-colors hover:bg-primary/20"
 					>
-						Loading
+						{t("uiLab.toast.types.loading")}
 					</button>
 				</div>
 			</div>
 
 			<div className="flex flex-col gap-2">
 				<span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-					Progress &amp; Morphs
+					{t("uiLab.toast.progressMorphsLabel")}
 				</span>
 				<div className="flex flex-wrap gap-2">
 					<button
@@ -439,7 +465,7 @@ const ToastLabSection = () => {
 						className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
 					>
 						<Download className="size-3.5" />
-						<span>Download Progress</span>
+						<span>{t("uiLab.toast.actions.downloadProgress")}</span>
 					</button>
 					<button
 						type="button"
@@ -448,14 +474,14 @@ const ToastLabSection = () => {
 						}}
 						className="cursor-pointer rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-[12px] font-medium text-rose-600 transition-colors hover:bg-rose-500/18 dark:text-rose-300"
 					>
-						Progress Fail
+						{t("uiLab.toast.actions.progressFail")}
 					</button>
 					<button
 						type="button"
 						onClick={triggerStepProgress}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Step Progress (+25%)
+						{t("uiLab.toast.actions.stepProgress")}
 					</button>
 					<button
 						type="button"
@@ -463,32 +489,32 @@ const ToastLabSection = () => {
 						className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-[12px] font-medium text-emerald-600 transition-colors hover:bg-emerald-500/18 dark:text-emerald-300"
 					>
 						<Sparkles className="size-3.5" />
-						<span>Promise Resolve</span>
+						<span>{t("uiLab.toast.actions.promiseResolve")}</span>
 					</button>
 					<button
 						type="button"
 						onClick={triggerPromiseReject}
 						className="cursor-pointer rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-[12px] font-medium text-rose-600 transition-colors hover:bg-rose-500/18 dark:text-rose-300"
 					>
-						Promise Reject
+						{t("uiLab.toast.actions.promiseReject")}
 					</button>
 				</div>
 			</div>
 
 			<div className="flex flex-col gap-2">
 				<span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-					Variants &amp; Interactions
+					{t("uiLab.toast.variantsLabel")}
 				</span>
 				<div className="flex flex-wrap gap-2">
 					<button
 						type="button"
 						onClick={() => {
-							appleToast.success("Screenshot saved to Gallery", {
+							appleToast.success(t("uiLab.toast.samples.screenshotSavedTitle"), {
 								...buildOptions("horizon_sunset_2140.png (3840x2160)"),
 								action: {
-									label: "Reveal",
+									label: t("uiLab.toast.samples.reveal"),
 									onClick: () => {
-										appleToast.info("Opened screenshot folder preview", {
+										appleToast.info(t("uiLab.toast.samples.openedPreview"), {
 											position: toastPosition,
 											duration: durationMs,
 										})
@@ -498,26 +524,26 @@ const ToastLabSection = () => {
 						}}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Action Pill
+						{t("uiLab.toast.variants.actionPill")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
-							appleToast.warning("Overwrite existing keybinds?", {
-								...buildOptions("Applying server preset changes 6 bindings."),
+							appleToast.warning(t("uiLab.toast.samples.overwriteKeybindsTitle"), {
+								...buildOptions(t("uiLab.toast.samples.overwriteKeybindsDescription")),
 								cancel: {
-									label: "Keep",
+									label: t("uiLab.toast.samples.keep"),
 									onClick: () => {
-										appleToast.info("Kept current keybinds", {
+										appleToast.info(t("uiLab.toast.samples.keptKeybinds"), {
 											position: toastPosition,
 											duration: durationMs,
 										})
 									},
 								},
 								action: {
-									label: "Apply",
+									label: t("uiLab.toast.samples.apply"),
 									onClick: () => {
-										appleToast.success("Preset keybinds applied", {
+										appleToast.success(t("uiLab.toast.samples.appliedKeybinds"), {
 											position: toastPosition,
 											duration: durationMs,
 										})
@@ -527,52 +553,52 @@ const ToastLabSection = () => {
 						}}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Action + Cancel
+						{t("uiLab.toast.variants.actionCancel")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
-							appleToast("Shader preset tuned", {
-								...buildOptions("Volumetric clouds & reflections enabled."),
+							appleToast(t("uiLab.toast.samples.shaderPresetTitle"), {
+								...buildOptions(t("uiLab.toast.samples.shaderPresetDescription")),
 								icon: <Wand2 className="size-4 text-primary" />,
 							})
 						}}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Custom Icon
+						{t("uiLab.toast.variants.customIcon")}
 					</button>
 					<button
 						type="button"
 						onClick={() => {
-							appleToast("Minimal HUD notice", {
-								...buildOptions("Rendered without a leading medallion icon."),
+							appleToast(t("uiLab.toast.samples.minimalHudTitle"), {
+								...buildOptions(t("uiLab.toast.samples.minimalHudDescription")),
 								icon: null,
 							})
 						}}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						No Icon
+						{t("uiLab.toast.variants.noIcon")}
 					</button>
 					<button
 						type="button"
 						onClick={triggerCustomCard}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Custom JSX Card
+						{t("uiLab.toast.variants.customJsxCard")}
 					</button>
 					<button
 						type="button"
 						onClick={triggerStackBurst}
 						className="cursor-pointer rounded-xl border border-border bg-foreground/6 px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-foreground/12"
 					>
-						Stack Burst (4x)
+						{t("uiLab.toast.variants.stackBurst")}
 					</button>
 				</div>
 			</div>
 
 			<div className="flex flex-col gap-2">
 				<span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-					Titlebar Bell Alerts (Persistent Inbox + Action)
+					{t("uiLab.toast.bellAlertsLabel")}
 				</span>
 				<div className="flex flex-wrap gap-2">
 					<button
@@ -581,14 +607,17 @@ const ToastLabSection = () => {
 							notifyBackgroundEvent({
 								level: "error",
 								category: "instance",
-								title: "1.21.4 Fabric exited with code 1",
-								message: "Mixin apply failure detected during mod init.",
-								action: { label: "View Logs", route: "/instances/inst-1/logs" },
+								title: t("uiLab.toast.samples.bellCrashTitle"),
+								message: t("uiLab.toast.samples.bellCrashMessage"),
+								action: {
+									label: t("uiLab.toast.samples.bellCrashAction"),
+									route: "/instances/inst-1/logs",
+								},
 							})
 						}}
 						className="cursor-pointer rounded-xl border border-rose-500/30 bg-rose-500/12 px-3 py-1.5 text-[12px] font-medium text-rose-600 transition-colors hover:bg-rose-500/20 dark:text-rose-300"
 					>
-						Instance Crash
+						{t("uiLab.toast.bellAlerts.instanceCrash")}
 					</button>
 					<button
 						type="button"
@@ -596,14 +625,17 @@ const ToastLabSection = () => {
 							notifyBackgroundEvent({
 								level: "warning",
 								category: "server",
-								title: "Paper Server failed on :25565",
-								message: "Another local process is already listening on TCP 25565.",
-								action: { label: "Open Servers", route: "/servers" },
+								title: t("uiLab.toast.samples.bellServerTitle"),
+								message: t("uiLab.toast.samples.bellServerMessage"),
+								action: {
+									label: t("uiLab.toast.samples.bellServerAction"),
+									route: "/servers",
+								},
 							})
 						}}
 						className="cursor-pointer rounded-xl border border-amber-500/30 bg-amber-500/12 px-3 py-1.5 text-[12px] font-medium text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
 					>
-						Server Port Alert
+						{t("uiLab.toast.bellAlerts.serverPortAlert")}
 					</button>
 					<button
 						type="button"
@@ -611,14 +643,17 @@ const ToastLabSection = () => {
 							notifyBackgroundEvent({
 								level: "success",
 								category: "download",
-								title: "Fabulously Optimized installed",
-								message: "48 mods & shader configurations ready to launch.",
-								action: { label: "Open Packs", route: "/modpacks" },
+								title: t("uiLab.toast.samples.bellPackTitle"),
+								message: t("uiLab.toast.samples.bellPackMessage"),
+								action: {
+									label: t("uiLab.toast.samples.bellPackAction"),
+									route: "/modpacks",
+								},
 							})
 						}}
 						className="cursor-pointer rounded-xl border border-emerald-500/30 bg-emerald-500/12 px-3 py-1.5 text-[12px] font-medium text-emerald-600 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
 					>
-						Pack Installed
+						{t("uiLab.toast.bellAlerts.packInstalled")}
 					</button>
 					<button
 						type="button"
@@ -626,14 +661,17 @@ const ToastLabSection = () => {
 							notifyBackgroundEvent({
 								level: "warning",
 								category: "auth",
-								title: "Microsoft session expired",
-								message: "Refresh Alex_Craft credentials before launching online.",
-								action: { label: "Accounts", route: "/settings/accounts" },
+								title: t("uiLab.toast.samples.bellAuthTitle"),
+								message: t("uiLab.toast.samples.bellAuthMessage"),
+								action: {
+									label: t("uiLab.toast.samples.bellAuthAction"),
+									route: "/settings/accounts",
+								},
 							})
 						}}
 						className="cursor-pointer rounded-xl border border-sky-500/30 bg-sky-500/12 px-3 py-1.5 text-[12px] font-medium text-sky-600 transition-colors hover:bg-sky-500/20 dark:text-sky-300"
 					>
-						Session Warning
+						{t("uiLab.toast.bellAlerts.sessionWarning")}
 					</button>
 				</div>
 			</div>
