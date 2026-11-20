@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo } from "react"
 import { useShallow } from "zustand/react/shallow"
+import MobileMoreSheet from "@/features/shell/components/mobile/MobileMoreSheet"
+import NotificationsPopover from "@/features/shell/components/notifications/NotificationsPopover"
 import AccountSwitcherPopover, {
 	type AccountPopoverAnchor,
-} from "@/features/shell/components/AccountSwitcherPopover"
-import ActiveProcessesPopover from "@/features/shell/components/ActiveProcessesPopover"
-import MobileMoreSheet from "@/features/shell/components/MobileMoreSheet"
-import NotificationsPopover from "@/features/shell/components/NotificationsPopover"
+} from "@/features/shell/components/popovers/AccountSwitcherPopover"
+import ActiveProcessesPopover from "@/features/shell/components/popovers/ActiveProcessesPopover"
 import { PRIMARY_MOBILE_PATHS, getVisibleNavItems } from "@/features/shell/navigation"
 import {
 	isAnchoredOverlayOpen,

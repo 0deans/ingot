@@ -2,14 +2,14 @@ import { Bell } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import NotificationFeedItem from "@/features/shell/components/notifications/NotificationFeedItem"
+import NotificationPopoverHeader, {
+	type NotificationFilter,
+} from "@/features/shell/components/notifications/NotificationPopoverHeader"
 import {
 	resolveCenteredTitlebarPopoverStyle,
 	type PopoverAnchorRect,
-} from "@/features/shell/components/AccountSwitcherPopover"
-import NotificationFeedItem from "@/features/shell/components/NotificationFeedItem"
-import NotificationPopoverHeader, {
-	type NotificationFilter,
-} from "@/features/shell/components/NotificationPopoverHeader"
+} from "@/features/shell/components/popovers/AccountSwitcherPopover"
 import { cn } from "@/shared/lib/utils"
 import {
 	countUnreadNotifications,

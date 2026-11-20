@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { toast } from "sonner"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import NotificationBellButton from "@/features/shell/components/NotificationBellButton"
-import NotificationsPopover from "@/features/shell/components/NotificationsPopover"
+import NotificationBellButton from "@/features/shell/components/notifications/NotificationBellButton"
+import NotificationsPopover from "@/features/shell/components/notifications/NotificationsPopover"
 import { notifyBackgroundEvent, registerNotificationNavigator } from "@/shared/lib/notify"
 import {
 	MAX_NOTIFICATIONS,

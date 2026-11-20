@@ -1,6 +1,6 @@
 import { useRouter, useRouterState, type ErrorComponentProps } from "@tanstack/react-router"
 import { useCallback } from "react"
-import ErrorFallbackCard from "@/shared/components/ErrorFallbackCard"
+import ErrorFallbackCard from "@/shared/components/errors/ErrorFallbackCard"
 
 const ErrorFallbackView = ({ error, reset }: ErrorComponentProps) => {
 	const router = useRouter()

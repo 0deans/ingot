@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import UiTestPage from "@/features/ui-test/UiTestPage"
-import NotFoundView from "@/shared/components/NotFoundView"
+import NotFoundView from "@/shared/components/errors/NotFoundView"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 
 const UiTestRouteComponent = () => {

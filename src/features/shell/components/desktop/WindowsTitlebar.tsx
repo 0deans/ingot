@@ -3,14 +3,14 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
-import CapsuleNavItem from "@/features/shell/components/CapsuleNavItem"
-import NotificationBellButton from "@/features/shell/components/NotificationBellButton"
+import CapsuleNavItem from "@/features/shell/components/desktop/CapsuleNavItem"
+import NotificationBellButton from "@/features/shell/components/notifications/NotificationBellButton"
 import { getVisibleNavItems, isNavItemActive, type NavItem } from "@/features/shell/navigation"
 import {
 	isAnchoredOverlayOpen,
 	useShellOverlayStore,
 } from "@/features/shell/stores/useShellOverlayStore"
-import WindowControlButtons from "@/shared/components/WindowControlButtons"
+import WindowControlButtons from "@/shared/components/window/WindowControlButtons"
 import { cn } from "@/shared/lib/utils"
 import {
 	ACCOUNT_TYPE_LABEL_KEYS,
@@ -197,7 +197,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 					/>
 					<span className="tabular-nums">
 						{statusLabel}
-						{hasRunning ? <span className="hidden md:inline"> · {totalRamLabel}</span> : null}
+						{hasRunning ? <span className="hidden md:inline"> Ã‚Â· {totalRamLabel}</span> : null}
 					</span>
 				</button>
 

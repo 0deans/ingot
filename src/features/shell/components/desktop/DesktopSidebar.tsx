@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, ChevronsUpDown, Settings } from "lucide-reac
 import { LayoutGroup, motion } from "motion/react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
-import SidebarNavItem from "@/features/shell/components/SidebarNavItem"
+import SidebarNavItem from "@/features/shell/components/desktop/SidebarNavItem"
 import {
 	NAV_GROUP_LABEL_KEYS,
 	NAV_GROUP_ORDER,

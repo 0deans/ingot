@@ -1,6 +1,6 @@
 import { createRouter } from "@tanstack/react-router"
-import ErrorFallbackView from "@/shared/components/ErrorFallbackView"
-import NotFoundView from "@/shared/components/NotFoundView"
+import ErrorFallbackView from "@/shared/components/errors/ErrorFallbackView"
+import NotFoundView from "@/shared/components/errors/NotFoundView"
 import { routeTree } from "./routeTree.gen"
 
 export const router = createRouter({

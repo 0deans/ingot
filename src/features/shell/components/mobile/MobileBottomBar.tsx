@@ -3,7 +3,7 @@ import { motion } from "motion/react"
 import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
-import MobileBottomNavItem from "@/features/shell/components/MobileBottomNavItem"
+import MobileBottomNavItem from "@/features/shell/components/mobile/MobileBottomNavItem"
 import {
 	PRIMARY_MOBILE_PATHS,
 	getVisibleNavItems,
@@ -99,7 +99,7 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 								{selectedInstance.name}
 							</p>
 							<p className="truncate text-[10.5px] text-muted-foreground">
-								{selectedInstance.version} · {t("shell.mobileRam", { ramGb })}
+								{selectedInstance.version} Â· {t("shell.mobileRam", { ramGb })}
 							</p>
 						</div>
 					</div>

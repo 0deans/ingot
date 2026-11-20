@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import {
 	resolveCenteredTitlebarPopoverStyle,
 	type PopoverAnchorRect,
-} from "@/features/shell/components/AccountSwitcherPopover"
+} from "@/features/shell/components/popovers/AccountSwitcherPopover"
 import { cn } from "@/shared/lib/utils"
 import { type RunningProcess } from "@/shared/stores/useProcessStore"
 
@@ -164,7 +164,7 @@ const ActiveProcessesPopover = ({
 														</span>
 													</div>
 													<p className="mt-0.5 truncate text-[11px] text-foreground/70">
-														{proc.engine} · {proc.uptime}
+														{proc.engine} Â· {proc.uptime}
 													</p>
 													<div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10.5px] font-medium text-foreground/75">
 														<span className="whitespace-nowrap">

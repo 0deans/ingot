@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import { MODPACK_CATALOG } from "@/features/modpacks/components/ModpackCard"
 import ModpackGallery from "@/features/modpacks/components/ModpackGallery"
 import VersionInstallDrawer from "@/features/modpacks/components/VersionInstallDrawer"
-import NotFoundView from "@/shared/components/NotFoundView"
+import NotFoundView from "@/shared/components/errors/NotFoundView"
 import { useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
 
@@ -59,7 +59,7 @@ const ModpackDetailPage = ({ projectId }: ModpackDetailPageProps) => {
 					<div className="min-w-0">
 						<h1 className="truncate text-base font-semibold text-foreground">{pack.name}</h1>
 						<p className="truncate text-[11.5px] text-muted-foreground">
-							{pack.provider} · {t("modpacks.byAuthor", { author: pack.author })} ·{" "}
+							{pack.provider} Â· {t("modpacks.byAuthor", { author: pack.author })} Â·{" "}
 							{t("modpacks.downloadsCount", { downloads: pack.downloads })}
 						</p>
 					</div>

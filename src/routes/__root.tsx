@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-router"
 import { useCallback } from "react"
 import AppShell from "@/features/shell/components/AppShell"
-import RootErrorFallback from "@/shared/components/RootErrorFallback"
+import RootErrorFallback from "@/shared/components/errors/RootErrorFallback"
 
 const RootRouteErrorComponent = ({ error, reset }: ErrorComponentProps) => {
 	const router = useRouter()

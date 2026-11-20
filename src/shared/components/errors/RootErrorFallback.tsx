@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
-import ErrorFallbackCard from "@/shared/components/ErrorFallbackCard"
-import SafeTitlebar from "@/shared/components/SafeTitlebar"
+import ErrorFallbackCard from "@/shared/components/errors/ErrorFallbackCard"
+import SafeTitlebar from "@/shared/components/window/SafeTitlebar"
 
 interface RootErrorFallbackProps {
 	error: unknown

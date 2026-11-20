@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import ErrorBoundary from "@/shared/components/ErrorBoundary"
-import ErrorFallbackCard from "@/shared/components/ErrorFallbackCard"
-import RootErrorFallback from "@/shared/components/RootErrorFallback"
+import ErrorBoundary from "@/shared/components/errors/ErrorBoundary"
+import ErrorFallbackCard from "@/shared/components/errors/ErrorFallbackCard"
+import RootErrorFallback from "@/shared/components/errors/RootErrorFallback"
 
 interface BombProps {
 	shouldThrow: () => boolean

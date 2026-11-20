@@ -1,6 +1,6 @@
 import { RotateCw } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import WindowControlButtons from "@/shared/components/WindowControlButtons"
+import WindowControlButtons from "@/shared/components/window/WindowControlButtons"
 import { getSafeAppVersion } from "@/shared/lib/errorFormatting"
 
 interface SafeTitlebarProps {
