@@ -3,9 +3,8 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
-import CapsuleNavItem from "@/features/shell/components/desktop/CapsuleNavItem"
+import CapsuleGroupedNav from "@/features/shell/components/desktop/CapsuleGroupedNav"
 import NotificationBellButton from "@/features/shell/components/notifications/NotificationBellButton"
-import { getVisibleNavItems, isNavItemActive, type NavItem } from "@/features/shell/navigation"
 import {
 	isAnchoredOverlayOpen,
 	useShellOverlayStore,
@@ -88,7 +87,6 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 	}, [notifications])
 
 	const isCapsule = navVariant === "capsule"
-	const capsuleItems: NavItem[] = getVisibleNavItems(showDeveloperPages)
 	const hasRunning = activeProcessesCount > 0
 	const totalRamLabel =
 		totalProcessRamMb >= 1024
@@ -180,25 +178,19 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 				<AnimatePresence initial={false}>
 					{isCapsule ? (
 						<LayoutGroup id="windows-titlebar-capsule">
-							<motion.nav
+							<motion.div
 								key="top-capsule-nav"
-								aria-label={t("shell.primaryNavigationAria")}
 								initial={{ opacity: 0, scale: 0.96, y: -3 }}
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.96, y: -3 }}
 								transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-								className="no-scrollbar flex max-w-full min-w-0 items-center gap-0.5 overflow-x-auto rounded-full border border-border bg-foreground/5 p-0.5 backdrop-blur-md"
+								className="flex max-w-full min-w-0 items-center"
 							>
-								{capsuleItems.map((item) => {
-									return (
-										<CapsuleNavItem
-											key={item.path}
-											item={item}
-											isActive={isNavItemActive(currentPath, item.path)}
-										/>
-									)
-								})}
-							</motion.nav>
+								<CapsuleGroupedNav
+									currentPath={currentPath}
+									showDeveloperPages={showDeveloperPages}
+								/>
+							</motion.div>
 						</LayoutGroup>
 					) : null}
 				</AnimatePresence>
