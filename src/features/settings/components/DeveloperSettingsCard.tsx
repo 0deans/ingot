@@ -1,7 +1,8 @@
-import { Code2 } from "lucide-react"
+import { Code2, RotateCcw } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
+import { Button } from "@/shared/ui/button"
 import { Switch } from "@/shared/ui/switch"
 
 const DeveloperSettingsCard = () => {
@@ -11,6 +12,7 @@ const DeveloperSettingsCard = () => {
 		setShowDeveloperPages,
 		enableDevContextMenu,
 		setEnableDevContextMenu,
+		setOnboardingCompleted,
 	} = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -18,6 +20,7 @@ const DeveloperSettingsCard = () => {
 				setShowDeveloperPages: s.setShowDeveloperPages,
 				enableDevContextMenu: s.enableDevContextMenu,
 				setEnableDevContextMenu: s.setEnableDevContextMenu,
+				setOnboardingCompleted: s.setOnboardingCompleted,
 			}
 		}),
 	)
@@ -28,6 +31,10 @@ const DeveloperSettingsCard = () => {
 
 	const handleToggleContextMenu = () => {
 		setEnableDevContextMenu(!enableDevContextMenu)
+	}
+
+	const handleReplayOnboarding = () => {
+		setOnboardingCompleted(false)
 	}
 
 	return (
@@ -71,6 +78,27 @@ const DeveloperSettingsCard = () => {
 					onCheckedChange={handleToggleContextMenu}
 					aria-label={t("settings.developer.contextMenuTitle")}
 				/>
+			</div>
+
+			<div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-foreground/3 px-3.5 py-2.5">
+				<div className="min-w-0 flex-1">
+					<p className="text-[12.5px] font-medium text-foreground">
+						{t("settings.developer.replayOnboardingTitle")}
+					</p>
+					<p className="text-[11px] leading-relaxed text-muted-foreground">
+						{t("settings.developer.replayOnboardingDescription")}
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					onClick={handleReplayOnboarding}
+					className="shrink-0 cursor-pointer"
+				>
+					<RotateCcw className="size-3.5" />
+					<span>{t("settings.developer.replayAction")}</span>
+				</Button>
 			</div>
 		</section>
 	)

@@ -730,7 +730,10 @@
 			"pagesEnabledDescription": "UI Lab is now visible in launcher navigation.",
 			"pagesHiddenDescription": "UI Lab and developer routes have been hidden from navigation.",
 			"contextMenuTitle": "Allow Inspect Context Menu",
-			"contextMenuDescription": "Keep the native right-click context menu enabled for element inspection inside desktop windows."
+			"contextMenuDescription": "Keep the native right-click context menu enabled for element inspection inside desktop windows.",
+			"replayOnboardingTitle": "First-Launch Setup",
+			"replayOnboardingDescription": "Re-open the initial startup onboarding flow.",
+			"replayAction": "Replay"
 		},
 		"java": {
 			"title": "Default Memory Allocation ({{ramGb}} GB)",
@@ -989,6 +992,48 @@
 				"bellAuthMessage": "Refresh Alex_Craft credentials before launching online.",
 				"bellAuthAction": "Accounts"
 			}
+		}
+	},
+	"onboarding": {
+		"dialogAria": "Ingot First Launch Setup",
+		"stepsAria": "Setup steps",
+		"stepCounter": "Step {{current}} of {{total}}",
+		"steps": {
+			"language": "Language",
+			"appearance": "Appearance",
+			"gameplay": "Game Defaults"
+		},
+		"actions": {
+			"skip": "Skip",
+			"skipSetup": "Skip setup",
+			"back": "Back",
+			"continue": "Continue",
+			"finish": "Enter Ingot"
+		},
+		"welcome": {
+			"titlePrefix": "Welcome to ",
+			"subtitle": "Let's tune your language, look, and memory defaults in a few quick steps. You can change anything later.",
+			"getStarted": "Get Started",
+			"pillFast": "Fast native launches",
+			"pillModpacks": "Modpacks & Worlds",
+			"pillThemes": "Custom Themes & Layouts"
+		},
+		"language": {
+			"title": "Choose your language",
+			"subtitle": "Changes apply immediately across the setup and launcher.",
+			"systemHint": "Match your operating system language automatically"
+		},
+		"appearance": {
+			"title": "Make it yours",
+			"subtitle": "Pick a color theme and how you prefer to navigate Ingot.",
+			"subtitleMobile": "Pick a color theme. You can customize colors anytime in Settings.",
+			"themeHeading": "Theme",
+			"navHeading": "Navigation Layout"
+		},
+		"gameplay": {
+			"title": "Game defaults",
+			"subtitle": "Set default memory allocation for new Minecraft instances.",
+			"ramLabel": "Default RAM Allocation"
 		}
 	}
 }

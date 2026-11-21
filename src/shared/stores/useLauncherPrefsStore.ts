@@ -97,6 +97,7 @@ interface PersistedLauncherPrefs {
 	windowSettings: WindowPrefs
 	syncSettings: SyncPrefs
 	updateChannel: UpdateChannel
+	onboardingCompleted: boolean
 }
 
 interface LauncherPrefsState extends PersistedLauncherPrefs {
@@ -117,6 +118,7 @@ interface LauncherPrefsState extends PersistedLauncherPrefs {
 	setWindowSettings: (settings: WindowPrefs) => void
 	setSyncSetting: (key: keyof SyncPrefs, enabled: boolean) => void
 	setUpdateChannel: (channel: UpdateChannel) => void
+	setOnboardingCompleted: (completed: boolean) => void
 }
 
 export const useLauncherPrefsStore = create<LauncherPrefsState>()(
@@ -136,6 +138,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				windowSettings: DEFAULT_WINDOW_PREFS,
 				syncSettings: DEFAULT_SYNC_PREFS,
 				updateChannel: "stable",
+				onboardingCompleted: false,
 				setTheme: (theme) => {
 					const parsed = appThemeSchema.safeParse(theme)
 					if (!parsed.success) {
@@ -278,6 +281,9 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 					}
 					set({ updateChannel: parsed.data })
 				},
+				setOnboardingCompleted: (onboardingCompleted) => {
+					set({ onboardingCompleted: Boolean(onboardingCompleted) })
+				},
 			}
 		},
 		{
@@ -297,6 +303,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 					windowSettings: state.windowSettings,
 					syncSettings: state.syncSettings,
 					updateChannel: state.updateChannel,
+					onboardingCompleted: state.onboardingCompleted,
 				}
 			},
 			merge: (persistedState, currentState) => {
@@ -319,6 +326,7 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 				const parsedWindow = windowPrefsSchema.safeParse(raw.windowSettings)
 				const parsedSync = syncPrefsSchema.safeParse(raw.syncSettings)
 				const parsedChannel = updateChannelSchema.safeParse(raw.updateChannel)
+				const parsedOnboarding = z.boolean().safeParse(raw.onboardingCompleted)
 
 				return {
 					...currentState,
@@ -341,6 +349,9 @@ export const useLauncherPrefsStore = create<LauncherPrefsState>()(
 					windowSettings: parsedWindow.success ? parsedWindow.data : currentState.windowSettings,
 					syncSettings: parsedSync.success ? parsedSync.data : currentState.syncSettings,
 					updateChannel: parsedChannel.success ? parsedChannel.data : currentState.updateChannel,
+					onboardingCompleted: parsedOnboarding.success
+						? parsedOnboarding.data
+						: currentState.onboardingCompleted,
 				}
 			},
 		},

@@ -2,6 +2,7 @@ import { Outlet, useRouterState } from "@tanstack/react-router"
 import { AnimatePresence } from "motion/react"
 import { useCallback, useMemo, useRef } from "react"
 import { useShallow } from "zustand/react/shallow"
+import OnboardingFlow from "@/features/onboarding/components/OnboardingFlow"
 import DockedLaunchBar from "@/features/play/components/DockedLaunchBar"
 import DesktopSidebar from "@/features/shell/components/desktop/DesktopSidebar"
 import SidebarErrorFallback from "@/features/shell/components/desktop/SidebarErrorFallback"
@@ -32,12 +33,13 @@ const AppShell = () => {
 	const isMobile = breakpoint === "mobile"
 	const isTablet = breakpoint === "tablet"
 
-	const { navVariant, ramGb, railExpanded } = useLauncherPrefsStore(
+	const { navVariant, ramGb, railExpanded, onboardingCompleted } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
 				navVariant: s.navVariant,
 				ramGb: s.ramGb,
 				railExpanded: s.railExpanded,
+				onboardingCompleted: s.onboardingCompleted,
 			}
 		}),
 	)
@@ -175,6 +177,14 @@ const AppShell = () => {
 
 			<ErrorBoundary resetKey={currentLayoutKey} fallback={null}>
 				<ShellOverlays currentPath={pathname} layoutKey={currentLayoutKey} isMobile={isMobile} />
+			</ErrorBoundary>
+
+			<ErrorBoundary resetKey={onboardingCompleted ? "done" : "open"} fallback={null}>
+				<AnimatePresence>
+					{!onboardingCompleted ? (
+						<OnboardingFlow key="onboarding-flow" isMobile={isMobile} />
+					) : null}
+				</AnimatePresence>
 			</ErrorBoundary>
 		</div>
 	)
