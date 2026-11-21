@@ -1,7 +1,9 @@
+import { QueryClientProvider } from "@tanstack/react-query"
 import { RouterProvider } from "@tanstack/react-router"
 import React, { useCallback, useEffect } from "react"
 import ReactDOM from "react-dom/client"
 import { useShallow } from "zustand/react/shallow"
+import { queryClient, useBackendEventBridge } from "@/shared/api"
 import ErrorBoundary from "@/shared/components/errors/ErrorBoundary"
 import RootErrorFallback from "@/shared/components/errors/RootErrorFallback"
 import { useTauriDeepLinks } from "@/shared/hooks/useTauriDeepLinks"
@@ -52,6 +54,8 @@ const IngotApp = () => {
 		})
 	}, [language])
 
+	useBackendEventBridge()
+
 	useTauriDeepLinks({
 		onPreloadRoutes: handlePreloadRoutes,
 		onNavigatePath: handleNavigatePath,
@@ -85,7 +89,9 @@ const renderApp = async () => {
 	if (!rootElement.innerHTML) {
 		ReactDOM.createRoot(rootElement).render(
 			<React.StrictMode>
-				<IngotApp />
+				<QueryClientProvider client={queryClient}>
+					<IngotApp />
+				</QueryClientProvider>
 			</React.StrictMode>,
 		)
 	}
