@@ -15,6 +15,7 @@ interface SegmentedControlProps<T extends string> {
 	onChange: (value: T) => void
 	size?: "sm" | "md"
 	tone?: "neutral" | "emerald"
+	fullWidth?: boolean
 }
 
 const SegmentedControl = <T extends string>({
@@ -24,6 +25,7 @@ const SegmentedControl = <T extends string>({
 	onChange,
 	size = "sm",
 	tone = "neutral",
+	fullWidth = false,
 }: SegmentedControlProps<T>) => {
 	const activePillClass =
 		tone === "emerald" ? "border-primary/35 bg-primary/15" : "border-foreground/15 bg-foreground/10"
@@ -31,7 +33,10 @@ const SegmentedControl = <T extends string>({
 
 	return (
 		<div
-			className="no-scrollbar inline-flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-border bg-card/80 p-1"
+			className={cn(
+				"no-scrollbar max-w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-border bg-card/80 p-1",
+				fullWidth ? "flex w-full" : "inline-flex w-fit",
+			)}
 			role="tablist"
 		>
 			{options.map((opt) => {
@@ -49,7 +54,8 @@ const SegmentedControl = <T extends string>({
 							onChange(opt.value)
 						}}
 						className={cn(
-							"relative flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors select-none",
+							"relative flex cursor-pointer items-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors select-none",
+							fullWidth ? "min-w-0 flex-1 justify-center" : "shrink-0",
 							sizeClass,
 							textClass,
 						)}

@@ -3,6 +3,7 @@ import { motion } from "motion/react"
 import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import MobileBottomNavItem from "@/features/shell/components/mobile/MobileBottomNavItem"
 import {
 	PRIMARY_MOBILE_PATHS,
@@ -12,7 +13,6 @@ import {
 } from "@/features/shell/navigation"
 import { useShellOverlayStore } from "@/features/shell/stores/useShellOverlayStore"
 import { cn } from "@/shared/lib/utils"
-import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import {
 	COLOR_TAGS,
 	selectSelectedInstance,
@@ -36,7 +36,8 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 		}),
 	)
 	const selectedInstance = useInstancesStore(selectSelectedInstance)
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
+	const activeUsername = activeAccount?.username ?? "Player"
 	const { isLaunching, launchInstance } = useProcessStore(
 		useShallow((s) => {
 			return {
@@ -64,10 +65,10 @@ const MobileBottomBar = ({ currentPath }: MobileBottomBarProps) => {
 		}
 		launchInstance({
 			instance: selectedInstance,
-			username: activeAccount.username,
+			username: activeUsername,
 			ramGb,
 		})
-	}, [activeAccount.username, launchInstance, ramGb, selectedInstance])
+	}, [activeUsername, launchInstance, ramGb, selectedInstance])
 
 	const matchedItems = PRIMARY_MOBILE_PATHS.map((path) => {
 		return allItems.find((item) => {

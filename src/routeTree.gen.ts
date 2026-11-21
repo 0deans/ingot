@@ -17,6 +17,7 @@ import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as SkinsRouteImport } from './routes/skins'
 import { Route as WorldsRouteImport } from './routes/worlds'
 import { Route as DevUiTestRouteImport } from './routes/_dev/ui-test'
+import { Route as AccountsAddRouteImport } from './routes/accounts/add'
 import { Route as InstancesInstanceIdRouteRouteImport } from './routes/instances/$instanceId/route'
 import { Route as ModpacksIndexRouteImport } from './routes/modpacks/index'
 import { Route as ModpacksProjectIdRouteImport } from './routes/modpacks/$projectId'
@@ -68,6 +69,11 @@ const WorldsRoute = WorldsRouteImport.update({
 const DevUiTestRoute = DevUiTestRouteImport.update({
   id: '/_dev/ui-test',
   path: '/ui-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountsAddRoute = AccountsAddRouteImport.update({
+  id: '/accounts/add',
+  path: '/accounts/add',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstancesInstanceIdRouteRoute =
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/worlds': typeof WorldsRoute
   '/instances/$instanceId': typeof InstancesInstanceIdRouteRouteWithChildren
   '/ui-test': typeof DevUiTestRoute
+  '/accounts/add': typeof AccountsAddRoute
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/worlds': typeof WorldsRoute
   '/instances/$instanceId': typeof InstancesInstanceIdRouteRouteWithChildren
   '/ui-test': typeof DevUiTestRoute
+  '/accounts/add': typeof AccountsAddRoute
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/worlds': typeof WorldsRoute
   '/instances/$instanceId': typeof InstancesInstanceIdRouteRouteWithChildren
   '/_dev/ui-test': typeof DevUiTestRoute
+  '/accounts/add': typeof AccountsAddRoute
   '/modpacks/$projectId': typeof ModpacksProjectIdRoute
   '/settings/accounts': typeof SettingsAccountsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/worlds'
     | '/instances/$instanceId'
     | '/ui-test'
+    | '/accounts/add'
     | '/modpacks/$projectId'
     | '/settings/accounts'
     | '/settings/appearance'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/worlds'
     | '/instances/$instanceId'
     | '/ui-test'
+    | '/accounts/add'
     | '/modpacks/$projectId'
     | '/settings/accounts'
     | '/settings/appearance'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/worlds'
     | '/instances/$instanceId'
     | '/_dev/ui-test'
+    | '/accounts/add'
     | '/modpacks/$projectId'
     | '/settings/accounts'
     | '/settings/appearance'
@@ -278,6 +290,7 @@ export interface RootRouteChildren {
   WorldsRoute: typeof WorldsRoute
   InstancesInstanceIdRouteRoute: typeof InstancesInstanceIdRouteRouteWithChildren
   DevUiTestRoute: typeof DevUiTestRoute
+  AccountsAddRoute: typeof AccountsAddRoute
   ModpacksProjectIdRoute: typeof ModpacksProjectIdRoute
   ModpacksIndexRoute: typeof ModpacksIndexRoute
 }
@@ -338,6 +351,13 @@ declare module '@tanstack/react-router' {
       path: '/ui-test'
       fullPath: '/ui-test'
       preLoaderRoute: typeof DevUiTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accounts/add': {
+      id: '/accounts/add'
+      path: '/accounts/add'
+      fullPath: '/accounts/add'
+      preLoaderRoute: typeof AccountsAddRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/instances/$instanceId': {
@@ -477,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorldsRoute: WorldsRoute,
   InstancesInstanceIdRouteRoute: InstancesInstanceIdRouteRouteWithChildren,
   DevUiTestRoute: DevUiTestRoute,
+  AccountsAddRoute: AccountsAddRoute,
   ModpacksProjectIdRoute: ModpacksProjectIdRoute,
   ModpacksIndexRoute: ModpacksIndexRoute,
 }

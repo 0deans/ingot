@@ -1,5 +1,9 @@
+import { useNavigate } from "@tanstack/react-router"
 import { useCallback, useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
+import { useSetActiveAccount } from "@/features/settings/api/accountsApi"
 import MobileMoreSheet from "@/features/shell/components/mobile/MobileMoreSheet"
 import NotificationsPopover from "@/features/shell/components/notifications/NotificationsPopover"
 import AccountSwitcherPopover, {
@@ -12,12 +16,13 @@ import {
 	isAnchoredOverlayOpen,
 	useShellOverlayStore,
 } from "@/features/shell/stores/useShellOverlayStore"
+import { getApiErrorMessage } from "@/shared/api/apiError"
 import { navigateFromNotification } from "@/shared/lib/notify"
-import { useAccountStore } from "@/shared/stores/useAccountStore"
 import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import { useLauncherPrefsStore, type NavVariant } from "@/shared/stores/useLauncherPrefsStore"
 import { useNotificationStore } from "@/shared/stores/useNotificationStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
+import { appleToast } from "@/shared/ui/sonner"
 
 const resolveAccountAnchorMode = (
 	isMobile: boolean,
@@ -43,6 +48,11 @@ interface ShellOverlaysProps {
 }
 
 const ShellOverlays = ({ currentPath, layoutKey, isMobile }: ShellOverlaysProps) => {
+	const { t } = useTranslation()
+	const navigate = useNavigate()
+	const { accounts, activeAccount, isLoading: isAccountsLoading } = useActiveAccount()
+	const setActiveAccountMutation = useSetActiveAccount()
+
 	const { navVariant, railExpanded, showDeveloperPages } = useLauncherPrefsStore(
 		useShallow((s) => {
 			return {
@@ -59,17 +69,6 @@ const ShellOverlays = ({ currentPath, layoutKey, isMobile }: ShellOverlaysProps)
 				activeOverlay: s.activeOverlay,
 				anchorsByKind: s.anchorsByKind,
 				closeAll: s.closeAll,
-			}
-		}),
-	)
-
-	const { accounts, activeAccountId, setActiveAccountId, addAccount } = useAccountStore(
-		useShallow((s) => {
-			return {
-				accounts: s.accounts,
-				activeAccountId: s.activeAccountId,
-				setActiveAccountId: s.setActiveAccountId,
-				addAccount: s.addAccount,
 			}
 		}),
 	)
@@ -136,6 +135,25 @@ const ShellOverlays = ({ currentPath, layoutKey, isMobile }: ShellOverlaysProps)
 		[closeAll, markRead],
 	)
 
+	const handleSelectAccount = useCallback(
+		(accountId: string) => {
+			if (accountId === activeAccount?.id) {
+				return
+			}
+			setActiveAccountMutation.mutate(accountId, {
+				onError: (mutationError) => {
+					appleToast.error(getApiErrorMessage(mutationError, t("accounts.auth.errorFallback")))
+				},
+			})
+		},
+		[activeAccount?.id, setActiveAccountMutation, t],
+	)
+
+	const handleAddAccount = useCallback(() => {
+		closeAll()
+		void navigate({ to: "/accounts/add" })
+	}, [closeAll, navigate])
+
 	useEffect(() => {
 		if (!processesOpen && !notificationsOpen && !accountOpen && !updateOpen) {
 			return
@@ -185,10 +203,11 @@ const ShellOverlays = ({ currentPath, layoutKey, isMobile }: ShellOverlaysProps)
 				anchorMode={accountAnchorMode}
 				anchorRect={anchorsByKind.account ?? null}
 				accounts={accounts}
-				activeAccountId={activeAccountId}
+				activeAccountId={activeAccount?.id ?? null}
+				isLoading={isAccountsLoading}
 				onClose={closeAll}
-				onSelectAccount={setActiveAccountId}
-				onAddAccount={addAccount}
+				onSelectAccount={handleSelectAccount}
+				onAddAccount={handleAddAccount}
 			/>
 
 			<MobileMoreSheet

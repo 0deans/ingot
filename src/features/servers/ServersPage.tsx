@@ -1,9 +1,9 @@
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import LocalServerCreatorModal from "@/features/servers/components/LocalServerCreatorModal"
 import ServerRow, { type ServerEntry } from "@/features/servers/components/ServerRow"
-import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
@@ -71,7 +71,7 @@ const ServersPage = () => {
 	const launchInstance = useProcessStore((s) => {
 		return s.launchInstance
 	})
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const ramGb = useLauncherPrefsStore((s) => {
 		return s.ramGb
 	})
@@ -94,7 +94,7 @@ const ServersPage = () => {
 		if (target) {
 			launchInstance({
 				instance: target,
-				username: activeAccount.username,
+				username: activeAccount?.username ?? "Player",
 				ramGb,
 			})
 		}

@@ -1,7 +1,9 @@
-import { ChevronLeft, ChevronRight, ChevronsUpDown, Settings } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronsUpDown, Settings, User } from "lucide-react"
 import { LayoutGroup, motion } from "motion/react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { ACCOUNT_TYPE_LABEL_KEYS, getAccountInitials } from "@/features/accounts/accountModel"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import SidebarNavItem from "@/features/shell/components/desktop/SidebarNavItem"
 import {
 	NAV_GROUP_LABEL_KEYS,
@@ -16,12 +18,6 @@ import {
 	useShellOverlayStore,
 } from "@/features/shell/stores/useShellOverlayStore"
 import { cn } from "@/shared/lib/utils"
-import {
-	ACCOUNT_TYPE_LABEL_KEYS,
-	getAccountInitials,
-	selectActiveAccount,
-	useAccountStore,
-} from "@/shared/stores/useAccountStore"
 import { useLauncherPrefsStore, type NavVariant } from "@/shared/stores/useLauncherPrefsStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
 
@@ -43,7 +39,7 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 			}
 		}),
 	)
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const runningCount = useProcessStore((s) => {
 		return s.runningProcesses.length
 	})
@@ -92,6 +88,10 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 	const isSettingsActive = isNavItemActive(currentPath, "/settings")
 	const outerTargetWidth = isSequoia ? targetWidth + 10 : targetWidth
 	const transitionSpec = { duration: 0.24, ease: [0.22, 1, 0.36, 1] as const }
+	const signInLabel = t("accounts.empty.signIn")
+	const accountTitle = activeAccount
+		? `${activeAccount.username} (${t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])})`
+		: signInLabel
 
 	return (
 		<motion.div
@@ -207,33 +207,37 @@ const DesktopSidebar = ({ variant, compact, currentPath, layoutKey }: DesktopSid
 						onClick={(event) => {
 							toggleAnchored("account", layoutKey, event.currentTarget)
 						}}
-						title={
-							isIconOnly
-								? `${activeAccount.username} (${t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])})`
-								: undefined
-						}
+						title={isIconOnly ? accountTitle : undefined}
 						className={cn(
 							"flex cursor-pointer items-center rounded-xl border border-sidebar-border bg-foreground/4 transition-colors hover:bg-foreground/8",
 							isIconOnly ? "justify-center p-1.5" : "gap-2.5 px-2 py-1.5 text-left",
 						)}
 					>
-						<div
-							className={cn(
-								"flex size-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-br text-[11px] font-bold text-white shadow-inner",
-								activeAccount.avatarBg,
-							)}
-						>
-							{getAccountInitials(activeAccount.username)}
-						</div>
+						{activeAccount ? (
+							<div
+								className={cn(
+									"flex size-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-br text-[11px] font-bold text-white shadow-inner",
+									activeAccount.avatarBg,
+								)}
+							>
+								{getAccountInitials(activeAccount.username)}
+							</div>
+						) : (
+							<div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-foreground/10 text-muted-foreground">
+								<User className="size-3.5" />
+							</div>
+						)}
 						{!isIconOnly ? (
 							<>
 								<div className="min-w-0 flex-1 overflow-hidden">
 									<p className="truncate text-[12px] font-medium whitespace-nowrap text-sidebar-foreground">
-										{activeAccount.username}
+										{activeAccount ? activeAccount.username : signInLabel}
 									</p>
-									<p className="truncate text-[10px] whitespace-nowrap text-muted-foreground">
-										{t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])}
-									</p>
+									{activeAccount ? (
+										<p className="truncate text-[10px] whitespace-nowrap text-muted-foreground">
+											{t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])}
+										</p>
+									) : null}
 								</div>
 								<ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
 							</>

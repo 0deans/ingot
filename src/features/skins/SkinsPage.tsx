@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import SkinCanvas3D, { type ArmModel, type CapeId } from "@/features/skins/components/SkinCanvas3D"
 import SkinPresetGrid, {
 	type SkinPreset,
 	type SkinPresetId,
 } from "@/features/skins/components/SkinPresetGrid"
-import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 
 const SKIN_PRESETS: readonly SkinPreset[] = [
 	{
@@ -46,7 +46,7 @@ const CAPES: readonly CapeId[] = ["Migrator", "15th Anniversary", "Cherry Blosso
 
 const SkinsPage = () => {
 	const { t } = useTranslation()
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 
 	const [selectedSkinId, setSelectedSkinId] = useState<SkinPresetId>("skin-emerald-smith")
 	const [armModel, setArmModel] = useState<ArmModel>("classic")
@@ -71,7 +71,8 @@ const SkinsPage = () => {
 				<h1 className="text-lg font-semibold tracking-tight text-foreground">{t("skins.title")}</h1>
 				<p className="text-[12px] text-muted-foreground">
 					{t("skins.subtitlePrefix")}{" "}
-					<span className="font-medium text-foreground">{activeAccount.username}</span>.
+					<span className="font-medium text-foreground">{activeAccount?.username ?? "Player"}</span>
+					.
 				</p>
 			</div>
 

@@ -745,10 +745,8 @@
 			"addAccount": "Add Account",
 			"types": {
 				"microsoft": "Microsoft",
-				"horizonAuth": "Horizon Auth",
 				"offline": "Offline",
-				"elyBy": "Ely.by",
-				"xboxLive": "Xbox Live"
+				"elyBy": "Ely.by"
 			}
 		},
 		"network": {
@@ -1034,6 +1032,76 @@
 			"title": "Game defaults",
 			"subtitle": "Set default memory allocation for new Minecraft instances.",
 			"ramLabel": "Default RAM Allocation"
+		}
+	},
+	"accounts": {
+		"addPage": {
+			"title": "Add Account",
+			"subtitle": "Sign in with Microsoft, Ely.by, or create an offline profile.",
+			"back": "Back",
+			"providers": {
+				"microsoft": "Microsoft",
+				"elyBy": "Ely.by",
+				"offline": "Offline"
+			}
+		},
+		"auth": {
+			"microsoft": {
+				"title": "Microsoft Account",
+				"description": "Sign in securely with your Microsoft account to play online and sync skins.",
+				"startButton": "Sign in with Microsoft",
+				"waiting": "Waiting for Microsoft sign-in...",
+				"codeLabel": "Device code",
+				"copyCode": "Copy code",
+				"copied": "Copied",
+				"openBrowser": "Open in browser",
+				"cancel": "Cancel",
+				"cancelling": "Cancelling previous sign-in...",
+				"pendingTitle": "Pending Microsoft sign-in found",
+				"pendingDescription": "A previous sign-in attempt was interrupted. Resume where you left off or discard it to start fresh.",
+				"resume": "Resume sign-in",
+				"discard": "Discard"
+			},
+			"ely": {
+				"title": "Ely.by Account",
+				"description": "Sign in with your Ely.by username or email and password.",
+				"usernameLabel": "Username or email",
+				"usernamePlaceholder": "Enter your Ely.by username or email",
+				"usernameRequired": "Username is required.",
+				"passwordLabel": "Password",
+				"passwordPlaceholder": "Enter your password",
+				"passwordRequired": "Password is required.",
+				"submit": "Sign in"
+			},
+			"offline": {
+				"title": "Offline Profile",
+				"description": "Create a local offline account for singleplayer and LAN sessions.",
+				"usernameLabel": "Username",
+				"usernamePlaceholder": "Steve",
+				"usernameHint": "3–16 characters: letters, numbers, and underscores only.",
+				"invalidUsername": "Username must be 3–16 characters using letters, numbers, or underscores.",
+				"usernameTooShort": "Username must be at least 3 characters.",
+				"usernameTooLong": "Username must be at most 16 characters.",
+				"usernameInvalidChars": "Username may only contain letters, numbers, and underscores.",
+				"usernameExists": "An offline account with this username already exists.",
+				"submit": "Add Offline Account"
+			},
+			"successToast": "Account added successfully",
+			"errorFallback": "Authentication failed. Please try again."
+		},
+		"empty": {
+			"title": "No accounts connected",
+			"description": "Connect a Microsoft, Ely.by, or offline account to launch Minecraft.",
+			"signIn": "Sign in"
+		},
+		"actions": {
+			"remove": "Remove",
+			"removing": "Removing...",
+			"confirmRemove": "Confirm",
+			"removeAria": "Remove {{username}}",
+			"retry": "Retry",
+			"loadError": "Failed to load accounts.",
+			"loading": "Loading accounts..."
 		}
 	}
 }

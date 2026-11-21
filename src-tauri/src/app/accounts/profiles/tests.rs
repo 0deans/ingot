@@ -104,3 +104,28 @@ async fn account_read_recovers_pending_login_when_application_state_is_recreated
     assert!(get_accounts(app.handle().clone()).unwrap().is_empty());
     assert!(vault.read("microsoft:test").unwrap().is_none());
 }
+
+#[tokio::test]
+async fn duplicate_offline_account_is_rejected_case_insensitively() {
+    let dir = tempfile::tempdir().unwrap();
+    let app = tauri::test::mock_app();
+    let state = AppState::new(AppPaths::new(dir.path().to_owned())).unwrap();
+    app.manage(state);
+
+    let first = add_offline_account(app.handle().clone(), "Steve".to_owned())
+        .await
+        .unwrap();
+    assert_eq!(first.id, "offline:steve");
+    assert_eq!(first.username, "Steve");
+
+    let err = add_offline_account(app.handle().clone(), "steve".to_owned())
+        .await
+        .unwrap_err();
+    assert!(matches!(err, ProfileError::DuplicateOfflineAccount));
+
+    let profiles = get_accounts(app.handle().clone()).unwrap();
+    assert_eq!(profiles.len(), 1);
+    assert_eq!(profiles[0].id, "offline:steve");
+    assert_eq!(profiles[0].username, "Steve");
+    assert!(profiles[0].is_active);
+}

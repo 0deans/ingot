@@ -1,8 +1,10 @@
-import { ChevronDown, Sparkles } from "lucide-react"
+import { ChevronDown, Sparkles, User } from "lucide-react"
 import { AnimatePresence, LayoutGroup, motion } from "motion/react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { ACCOUNT_TYPE_LABEL_KEYS, getAccountInitials } from "@/features/accounts/accountModel"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import CapsuleGroupedNav from "@/features/shell/components/desktop/CapsuleGroupedNav"
 import NotificationBellButton from "@/features/shell/components/notifications/NotificationBellButton"
 import {
@@ -11,12 +13,6 @@ import {
 } from "@/features/shell/stores/useShellOverlayStore"
 import WindowControlButtons from "@/shared/components/window/WindowControlButtons"
 import { cn } from "@/shared/lib/utils"
-import {
-	ACCOUNT_TYPE_LABEL_KEYS,
-	getAccountInitials,
-	selectActiveAccount,
-	useAccountStore,
-} from "@/shared/stores/useAccountStore"
 import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import {
@@ -41,7 +37,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 			}
 		}),
 	)
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const runningProcesses = useProcessStore((s) => {
 		return s.runningProcesses
 	})
@@ -105,6 +101,11 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 		return "cursor-pointer border-primary/35 bg-primary/12 text-primary hover:bg-primary/20"
 	}
 	const versionPillToneClass = getVersionPillToneClass()
+	const signInLabel = t("accounts.empty.signIn")
+	const accountTitle = activeAccount
+		? `${activeAccount.username} (${t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])})`
+		: signInLabel
+	const accountLabel = activeAccount ? activeAccount.username : signInLabel
 
 	return (
 		<header
@@ -204,7 +205,7 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 							type="button"
 							aria-expanded={accountOpen}
 							aria-haspopup="dialog"
-							title={`${activeAccount.username} (${t(ACCOUNT_TYPE_LABEL_KEYS[activeAccount.type])})`}
+							title={accountTitle}
 							onClick={(event) => {
 								toggleAnchored("account", layoutKey, event.currentTarget)
 							}}
@@ -214,15 +215,21 @@ const WindowsTitlebar = ({ currentPath, layoutKey }: WindowsTitlebarProps) => {
 							transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
 							className="flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border bg-foreground/5 p-1 text-[11.5px] font-medium text-foreground transition-colors hover:bg-foreground/10 xl:gap-1.5 xl:pr-2 xl:pl-1"
 						>
-							<span
-								className={cn(
-									"flex size-5 shrink-0 items-center justify-center rounded-full bg-linear-to-br text-[9px] leading-none font-bold tracking-tight text-white",
-									activeAccount.avatarBg,
-								)}
-							>
-								{getAccountInitials(activeAccount.username)}
-							</span>
-							<span className="hidden max-w-24 truncate xl:inline">{activeAccount.username}</span>
+							{activeAccount ? (
+								<span
+									className={cn(
+										"flex size-5 shrink-0 items-center justify-center rounded-full bg-linear-to-br text-[9px] leading-none font-bold tracking-tight text-white",
+										activeAccount.avatarBg,
+									)}
+								>
+									{getAccountInitials(activeAccount.username)}
+								</span>
+							) : (
+								<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-muted-foreground">
+									<User className="size-3" />
+								</span>
+							)}
+							<span className="hidden max-w-24 truncate xl:inline">{accountLabel}</span>
 							<ChevronDown className="size-3 text-muted-foreground" />
 						</motion.button>
 					) : null}

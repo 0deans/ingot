@@ -6,6 +6,8 @@ use ingot_accounts::account::AccountProfile;
 pub(crate) enum ProfileError {
     #[error("Player nickname cannot be empty")]
     EmptyNickname,
+    #[error("An offline account with this username already exists")]
+    DuplicateOfflineAccount,
     #[error(transparent)]
     Validation(#[from] ingot_accounts::account::validation::AccountValidationError),
     #[error(transparent)]
@@ -49,7 +51,16 @@ pub(crate) async fn add_offline_account<R: tauri::Runtime>(
         .acquire(&account_id)
         .await
         .map_err(ProfileError::from)?;
-    with_recovered(&app, |repository| repository.activate(new_profile)).map_err(ProfileError::from)
+    let created = with_recovered(&app, |repository| {
+        let existing = repository.load()?;
+        if existing.iter().any(|account| account.id == account_id) {
+            return Ok(None);
+        }
+        repository.activate(new_profile).map(Some)
+    })
+    .map_err(ProfileError::from)?;
+
+    created.ok_or(ProfileError::DuplicateOfflineAccount)
 }
 
 pub(super) fn save_skin_url<R: tauri::Runtime>(

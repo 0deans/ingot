@@ -2,10 +2,10 @@ import { Outlet, useRouterState } from "@tanstack/react-router"
 import { Globe2, Package, Settings, Terminal, type LucideIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import InstanceHeader from "@/features/instance-detail/components/InstanceHeader"
 import NotFoundView from "@/shared/components/errors/NotFoundView"
 import RouteNavTabs, { type RouteNavTabItem } from "@/shared/components/motion/RouteNavTabs"
-import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { selectInstanceById, useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { findProcessByName, useProcessStore } from "@/shared/stores/useProcessStore"
@@ -77,7 +77,7 @@ const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
 			}
 		}),
 	)
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const ramGb = useLauncherPrefsStore((s) => {
 		return s.ramGb
 	})
@@ -95,7 +95,7 @@ const InstanceDetailLayout = ({ instanceId }: InstanceDetailLayoutProps) => {
 		}
 		launchInstance({
 			instance,
-			username: activeAccount.username,
+			username: activeAccount?.username ?? "Player",
 			ramGb,
 		})
 	}

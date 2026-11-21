@@ -3,6 +3,7 @@ import { Search } from "lucide-react"
 import { useCallback, useMemo, useState, type MouseEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import InstanceContextMenu, {
 	type ContextMenuState,
 } from "@/features/play/components/InstanceContextMenu"
@@ -17,7 +18,6 @@ import type {
 	GroupByOption,
 	TagFilter,
 } from "@/features/play/types"
-import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { findProcessByName, useProcessStore } from "@/shared/stores/useProcessStore"
@@ -49,13 +49,15 @@ const PlayPage = () => {
 			}
 		}),
 	)
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const ramGb = useLauncherPrefsStore((s) => {
 		return s.ramGb
 	})
 
 	const [createOpen, setCreateOpen] = useState(false)
 	const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
+
+	const activeUsername = activeAccount?.username ?? "Player"
 
 	const sections = useFilteredInstances({
 		instances,
@@ -179,11 +181,11 @@ const PlayPage = () => {
 			}
 			launchInstance({
 				instance,
-				username: activeAccount.username,
+				username: activeUsername,
 				ramGb,
 			})
 		},
-		[activeAccount.username, launchInstance, ramGb, runningProcesses, stopProcess],
+		[activeUsername, launchInstance, ramGb, runningProcesses, stopProcess],
 	)
 
 	const handleCloneInstance = useCallback(

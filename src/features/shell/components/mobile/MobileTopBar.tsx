@@ -1,7 +1,9 @@
-import { Boxes } from "lucide-react"
+import { Boxes, User } from "lucide-react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useShallow } from "zustand/react/shallow"
+import { getAccountInitials } from "@/features/accounts/accountModel"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import NotificationBellButton from "@/features/shell/components/notifications/NotificationBellButton"
 import UpdatePillButton from "@/features/shell/components/UpdatePillButton"
 import { findNavItem } from "@/features/shell/navigation"
@@ -10,11 +12,6 @@ import {
 	useShellOverlayStore,
 } from "@/features/shell/stores/useShellOverlayStore"
 import { cn } from "@/shared/lib/utils"
-import {
-	getAccountInitials,
-	selectActiveAccount,
-	useAccountStore,
-} from "@/shared/stores/useAccountStore"
 import { useAppUpdateStore } from "@/shared/stores/useAppUpdateStore"
 import {
 	countUnreadNotifications,
@@ -30,7 +27,7 @@ interface MobileTopBarProps {
 
 const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 	const { t } = useTranslation()
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const activeProcessesCount = useProcessStore((s) => {
 		return s.runningProcesses.length
 	})
@@ -69,6 +66,9 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 	}, [notifications])
 
 	const currentItem = findNavItem(currentPath)
+	const accountAriaLabel = activeAccount
+		? t("shell.switchAccountAria", { username: activeAccount.username })
+		: t("accounts.empty.signIn")
 
 	return (
 		<header className="relative z-30 flex shrink-0 items-center justify-between border-b border-border bg-sidebar/85 px-3.5 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2.5 backdrop-blur-xl">
@@ -130,13 +130,15 @@ const MobileTopBar = ({ currentPath, layoutKey }: MobileTopBarProps) => {
 					onClick={(event) => {
 						toggleAnchored("account", layoutKey, event.currentTarget)
 					}}
-					aria-label={t("shell.switchAccountAria", { username: activeAccount.username })}
+					aria-label={accountAriaLabel}
 					className={cn(
-						"flex size-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-br text-[11px] font-bold text-white shadow-inner ring-1 ring-border",
-						activeAccount.avatarBg,
+						"flex size-8 cursor-pointer items-center justify-center rounded-full shadow-inner ring-1 ring-border",
+						activeAccount
+							? cn("bg-linear-to-br text-[11px] font-bold text-white", activeAccount.avatarBg)
+							: "bg-foreground/10 text-muted-foreground",
 					)}
 				>
-					{getAccountInitials(activeAccount.username)}
+					{activeAccount ? getAccountInitials(activeAccount.username) : <User className="size-4" />}
 				</button>
 			</div>
 		</header>

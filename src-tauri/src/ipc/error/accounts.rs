@@ -5,6 +5,7 @@ impl From<crate::app::accounts::ProfileError> for ApiError {
         use crate::app::accounts::ProfileError;
         match error {
             ProfileError::EmptyNickname => Self::invalid_input("Player nickname cannot be empty"),
+            ProfileError::DuplicateOfflineAccount => Self::conflict(error.to_string()),
             ProfileError::Validation(error) => Self::invalid_input(error.to_string()),
             ProfileError::Ownership(error) => Self::conflict(error.to_string()),
             ProfileError::Recovery(error) => Self::from(error),

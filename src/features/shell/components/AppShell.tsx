@@ -1,7 +1,8 @@
 import { Outlet, useRouterState } from "@tanstack/react-router"
 import { AnimatePresence } from "motion/react"
-import { useCallback, useMemo, useRef } from "react"
+import { useCallback, useRef } from "react"
 import { useShallow } from "zustand/react/shallow"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import OnboardingFlow from "@/features/onboarding/components/OnboardingFlow"
 import DockedLaunchBar from "@/features/play/components/DockedLaunchBar"
 import DesktopSidebar from "@/features/shell/components/desktop/DesktopSidebar"
@@ -18,7 +19,6 @@ import PageTransition from "@/shared/components/motion/PageTransition"
 import SafeTitlebar from "@/shared/components/window/SafeTitlebar"
 import { useScrollRestoration } from "@/shared/hooks/useScrollRestoration"
 import { cn } from "@/shared/lib/utils"
-import { findActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { selectSelectedInstance, useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
@@ -43,14 +43,7 @@ const AppShell = () => {
 			}
 		}),
 	)
-	const { accounts, activeAccountId } = useAccountStore(
-		useShallow((s) => {
-			return {
-				accounts: s.accounts,
-				activeAccountId: s.activeAccountId,
-			}
-		}),
-	)
+	const { activeAccount } = useActiveAccount()
 	const selectedInstance = useInstancesStore(selectSelectedInstance)
 	const { isLaunching, launchInstance } = useProcessStore(
 		useShallow((s) => {
@@ -64,9 +57,7 @@ const AppShell = () => {
 	const mainRef = useRef<HTMLElement | null>(null)
 	useScrollRestoration(mainRef, pathname)
 
-	const activeAccount = useMemo(() => {
-		return findActiveAccount(accounts, activeAccountId)
-	}, [accounts, activeAccountId])
+	const activeUsername = activeAccount?.username ?? "Player"
 
 	const handleLaunchSelected = useCallback(() => {
 		if (!selectedInstance) {
@@ -74,10 +65,10 @@ const AppShell = () => {
 		}
 		launchInstance({
 			instance: selectedInstance,
-			username: activeAccount.username,
+			username: activeUsername,
 			ramGb,
 		})
-	}, [activeAccount.username, launchInstance, ramGb, selectedInstance])
+	}, [activeUsername, launchInstance, ramGb, selectedInstance])
 
 	const currentLayoutKey = `${navVariant}:${railExpanded ? "1" : "0"}:${isMobile ? "1" : "0"}`
 	const showDesktopSidebar = !isMobile && navVariant !== "capsule"
@@ -156,7 +147,7 @@ const AppShell = () => {
 									{pathname === "/" && selectedInstance ? (
 										<DockedLaunchBar
 											instance={selectedInstance}
-											username={activeAccount.username}
+											username={activeUsername}
 											ramGb={ramGb}
 											isLaunching={isLaunching}
 											onLaunch={handleLaunchSelected}

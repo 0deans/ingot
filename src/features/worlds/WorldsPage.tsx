@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useActiveAccount } from "@/features/accounts/useActiveAccount"
 import BackupSnapshotModal from "@/features/worlds/components/BackupSnapshotModal"
 import WorldCard, { type WorldSave } from "@/features/worlds/components/WorldCard"
 import SegmentedControl, { type SegmentedOption } from "@/shared/components/motion/SegmentedControl"
-import { selectActiveAccount, useAccountStore } from "@/shared/stores/useAccountStore"
 import { useInstancesStore } from "@/shared/stores/useInstancesStore"
 import { useLauncherPrefsStore } from "@/shared/stores/useLauncherPrefsStore"
 import { useProcessStore } from "@/shared/stores/useProcessStore"
@@ -69,7 +69,7 @@ const WorldsPage = () => {
 	const launchInstance = useProcessStore((s) => {
 		return s.launchInstance
 	})
-	const activeAccount = useAccountStore(selectActiveAccount)
+	const { activeAccount } = useActiveAccount()
 	const ramGb = useLauncherPrefsStore((s) => {
 		return s.ramGb
 	})
@@ -110,7 +110,7 @@ const WorldsPage = () => {
 		if (targetInstance) {
 			launchInstance({
 				instance: targetInstance,
-				username: activeAccount.username,
+				username: activeAccount?.username ?? "Player",
 				ramGb,
 			})
 		}
